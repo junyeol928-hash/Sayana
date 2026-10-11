@@ -9,9 +9,9 @@ const INTERVALS = [1, 3, 7, 14];
 const SDK_URL = "https://esm.sh/@anthropic-ai/sdk@0.127.0";
 const MARKED_URL = "https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.esm.js";
 const MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
-// チューター=速さと質のバランス / レビュー=深く見てほしいので Opus / ヒント=短いので安いモデル
-const DEFAULT_MODELS = { tutor: "claude-sonnet-5-5", review: "claude-opus-5-5", hint: "claude-haiku-5-5" };
-const MODELS_VERSION = 2;
+// チューター・ヒント=速さと質のバランスで Sonnet / レビュー=深く見てほしいので Opus
+const DEFAULT_MODELS = { tutor: "claude-sonnet-5-5", review: "claude-opus-5-5", hint: "claude-sonnet-5-5" };
+const MODELS_VERSION = 3;
 
 // ------------------------------------------------------------ 保存
 
@@ -32,11 +32,16 @@ let S = loadState();
 migrateSettings();
 
 function migrateSettings() {
-  if ((S.settings.modelsVersion ?? 1) >= MODELS_VERSION) return;
+  const from = S.settings.modelsVersion ?? 1;
+  if (from >= MODELS_VERSION) return;
   const m = S.settings.models;
-  // 以前は「チューター・レビュー」が1つの欄で、レビューにも同じモデルが入っていた
-  if (m && (!m.review || m.review === m.tutor)) {
+  // v1: 以前は「チューター・レビュー」が1つの欄で、レビューにも同じモデルが入っていた
+  if (m && from < 2 && (!m.review || m.review === m.tutor)) {
     m.review = DEFAULT_MODELS.review;
+  }
+  // v2: ヒントの既定が Haiku だった(自分で別のモデルにしていたらそのまま)
+  if (m && from < 3 && (!m.hint || m.hint === "claude-haiku-5-5")) {
+    m.hint = DEFAULT_MODELS.hint;
   }
   S.settings.modelsVersion = MODELS_VERSION;
   save();
@@ -646,7 +651,7 @@ function renderSettings() {
     out.innerHTML = `<p class="muted small">接続しています…</p>`;
     try {
       const client = await anthropic();
-      const res = await client.messages.create({ model: models.hint, max_tokens: 50,
+      const res = await client.messages.create({ model: models.hint, max_tokens: 200,
         messages: [{ role: "user", content: "「接続OK」とだけ返してください。" }] });
       out.innerHTML = `<p class="done">✅ つながりました(${esc(res.model)}): ${esc(textOf(res))}</p>`;
     } catch (e) {

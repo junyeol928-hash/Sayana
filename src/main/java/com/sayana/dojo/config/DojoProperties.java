@@ -84,7 +84,7 @@ public class DojoProperties {
         private String tutor = "claude-sonnet-5-5";
         private String review = "claude-opus-5-5";
         private String explain = "claude-sonnet-5-5";
-        private String hint = "claude-haiku-5-5";
+        private String hint = "claude-sonnet-5-5";
         private String generate = "claude-haiku-5-5";
 
         public String getTutor() { return tutor; }
