@@ -1,3 +1,260 @@
 id: capstone-requirements
 title: 要件整理と画面・テーブル設計
-status: planned
+status: ready
+minutes: 15
+summary: 第4部で作る申請・承認システム「承認くん」の設計図を描く。要件・ユースケース・画面遷移図・ER図・状態遷移図を書き、業務ルールの「仕様の穴」を潰してから実装に入る。
+goals:
+  - 業務システムを 要件 → 画面 → データ → 実装 → テスト の順で考え、各段階で何を決めるか説明できる
+  - 承認くんの役割(Role)・ユースケース・画面と URL を、誰が何をするかの形で書き出せる
+  - ER 図と状態遷移図を mermaid で描き、状態遷移を enum と switch 式に写せる
+  - 業務ルール1〜7を読み、「ちょうど」「空っぽ」「本人」「2回目」で仕様の穴を見つけられる
+samples:
+  - title: 状態遷移をシナリオで流してみる
+    description: |
+      状態遷移図を写した enum に、ハルの申請のシナリオを流します。図に矢印がない遷移は「できません」になり、状態はそのまま残ります。
+      シナリオの並びを変えて、どの遷移が許されるかを確かめてみましょう。
+    code: |
+      // 承認くんの状態遷移を enum で表して、シナリオを流してみる
+      enum RequestStatus {
+          DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN;
+
+          boolean canTransitionTo(RequestStatus next) {
+              return switch (this) {
+                  case DRAFT -> next == SUBMITTED || next == WITHDRAWN;
+                  case SUBMITTED -> next == APPROVED || next == RETURNED;
+                  case RETURNED -> next == SUBMITTED || next == WITHDRAWN;
+                  case APPROVED, WITHDRAWN -> false;
+              };
+          }
+      }
+
+      // ここを変えてみよう:並びを入れ替える・WITHDRAWN を途中に入れる・
+      // SUBMITTED の直後に WITHDRAWN を置く(申請中の取下げ)とどうなる?
+      List<RequestStatus> scenario = List.of(
+              RequestStatus.SUBMITTED,   // ハルが申請
+              RequestStatus.RETURNED,    // モカ先輩が差戻し
+              RequestStatus.SUBMITTED,   // ハルが直して再申請
+              RequestStatus.APPROVED,    // 承認
+              RequestStatus.RETURNED);   // 承認後に差戻し……できる?
+
+      RequestStatus current = RequestStatus.DRAFT;
+      System.out.println("スタート: " + current);
+      for (RequestStatus next : scenario) {
+          if (current.canTransitionTo(next)) {
+              System.out.println(current + " → " + next + " OK");
+              current = next;
+          } else {
+              System.out.println(current + " → " + next + " できません(状態はそのまま)");
+          }
+      }
+      System.out.println("最終状態: " + current);
+  - title: 10万円の境界と null(休暇申請)
+    description: |
+      業務ルール3「100,000円以上の承認は ADMIN だけ」を、よくある間違い版と正しい版で比べます。
+      間違い版は「ちょうど10万円」を見逃し、休暇申請(金額 `null`)で NullPointerException になります(`Integer` を `>` で比べると自動でアンボクシングされるため)。
+    code: |
+      // 業務ルール3「100,000円以上の承認は ADMIN だけ」を2通りに書いて比べる
+      // ここを変えてみよう:amounts に 100001 や -1 を足す/LIMIT を 50_000 にする
+      final int LIMIT = 100_000;
+
+      boolean wrong(Integer amount) {        // よくある書き間違い
+          return amount > LIMIT;             // 「超える」になっている & null で落ちる
+      }
+
+      boolean right(Integer amount) {        // 承認くんの書き方
+          return amount != null && amount >= LIMIT;
+      }
+
+      Integer[] amounts = {99_999, 100_000, 120_000, null};   // null は休暇申請
+      for (Integer a : amounts) {
+          String w;
+          try {
+              w = wrong(a) ? "ADMIN" : "APPROVERでOK";
+          } catch (NullPointerException e) {
+              w = "NullPointerException!";
+          }
+          String r = right(a) ? "ADMIN" : "APPROVERでOK";
+          System.out.printf("%-8s 間違い版: %-22s 正しい版: %s%n", a, w, r);
+      }
+quiz:
+  - question: |
+      解説の `RequestStatus`(状態遷移図どおりの `canTransitionTo`)を使って、次のコードを実行したときの出力は?
+      ```java
+      RequestStatus s = RequestStatus.DRAFT;
+      List<RequestStatus> steps = List.of(
+          RequestStatus.SUBMITTED, RequestStatus.WITHDRAWN,
+          RequestStatus.RETURNED, RequestStatus.SUBMITTED);
+      for (RequestStatus next : steps) {
+          if (s.canTransitionTo(next)) {
+              s = next;
+          }
+      }
+      System.out.println(s);
+      ```
+    choices: ["WITHDRAWN", "RETURNED", "SUBMITTED", "DRAFT"]
+    answer: 2
+    explanation: |
+      DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は **図に矢印がない**(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。
+      続く SUBMITTED → RETURNED(差戻し)は OK、RETURNED → SUBMITTED(再申請)も OK なので、最後は `SUBMITTED` です。
+      `WITHDRAWN` を選んだ人は「申請中でも取り下げられる」と思い込んでいます。それこそが設計で潰すべき仕様の穴です。
+  - question: |
+      `RequestStatus` が次のように書かれています。同じプロジェクトで enum に定数 `CANCELLED` を1つ追加して保存(コンパイル)すると、どうなる?
+      ```java
+      public boolean canTransitionTo(RequestStatus next) {
+          return switch (this) {
+              case DRAFT -> next == SUBMITTED || next == WITHDRAWN;
+              case SUBMITTED -> next == APPROVED || next == RETURNED;
+              case RETURNED -> next == SUBMITTED || next == WITHDRAWN;
+              case APPROVED, WITHDRAWN -> false;
+          };
+      }
+      ```
+    choices: ["switch 式が網羅されていないのでコンパイルエラーになる", "CANCELLED のときは false が返る", "CANCELLED のときは null が返る", "警告は出るが、実行時に CANCELLED で呼ぶまで何も起きない"]
+    answer: 0
+    explanation: |
+      enum を対象にした switch **式** は、`default` がない場合 **全定数を網羅** していないと `the switch expression does not cover all possible input values` のコンパイルエラーになります。
+      これが「遷移の決め忘れをコンパイラに見つけてもらう」仕組みです。`default -> false` を書いてしまうと網羅チェックが効かなくなり、CANCELLED は黙って false になります(選択肢2の状態)。
+      boolean を返す式なので null にはなりません。
+  - question: |
+      業務ルール3(100,000円以上は ADMIN だけが承認できる)を、次のように実装しました。**ルールと違う結果** になる金額はどれ?
+      ```java
+      static boolean requiresAdmin(int amount) {
+          return amount > 100_000;
+      }
+      ```
+    choices: ["99,999円", "100,000円", "100,001円", "0円"]
+    answer: 1
+    explanation: |
+      ルールは「100,000円 **以上**」なので、100,000円ちょうどは ADMIN が必要です。ところが `>` は「超える」なので `100_000 > 100_000` は false になり、APPROVER でも承認できてしまいます。
+      99,999円・0円は どちらの書き方でも false、100,001円はどちらでも true なので差が出ません。差が出るのは **境界値ちょうど** だけ。だから境界値のテストが必須なのです。
+  - question: |
+      ADMIN(管理者)のボスが、自分で 150,000円の備品購入(PURCHASE)を申請しました。業務ルール1〜7に従うと、この申請を承認できるのは誰?
+    choices: ["ボス本人(ADMIN なので)", "APPROVER のモカ先輩", "誰も承認できないので自動で承認済になる", "ボス以外の ADMIN"]
+    answer: 3
+    explanation: |
+      ルール3で 100,000円以上は ADMIN しか承認できないので、APPROVER のモカ先輩は不可。ルール2で **自分の申請は承認できない** ので、ボス本人も不可。残るのは「ボス以外の ADMIN」です。
+      では ADMIN が1人しかいない会社では? これが「本人」で見つかる仕様の穴の典型で、実務では代理承認や上位者への回付といった仕組みを別途決めます。自動承認はどのルールにもない動きです。
+  - question: |
+      申請の状態を、enum ではなく次のフラグで持つ設計にしました。**最大の問題** はどれ?
+      ```java
+      boolean submitted;
+      boolean approved;
+      boolean returned;
+      boolean withdrawn;
+      ```
+    choices: ["boolean は DB に保存できない", "approved と returned が同時に true のような、ありえない状態を作れてしまう", "フィールドが増えてメモリを大量に使う", "getter の名前が isXxx になって読みにくい"]
+    answer: 1
+    explanation: |
+      4つの boolean は 2の4乗 = 16通りの組み合わせを表せますが、意味のある状態は5つ(全部 false の下書きを含む)だけです。残りの「承認済みかつ差戻し」のような矛盾した状態を、コンパイラは止めてくれません。
+      enum なら値は常にどれか1つなので、矛盾が **型のレベルで起こりえません**。boolean は普通に DB に保存できますし、メモリや getter 名は本質的な問題ではありません。
+columns:
+  - type: genba
+    title: 「ちょうど10万円」は本番で見つかると高くつく
+    body: |
+      ある会社の経費システムで「10万円以上は部長承認」というルールが、実装では `amount > 100000` になっていました。テストデータは 5万円と 20万円だけ。リリースから3か月後、監査で「ちょうど10万円の備品購入が課長承認だけで通っている」と指摘されて発覚しました。
+
+      直すコードは1文字(`>` を `>=` に)。でも実際にかかったのは、該当する申請の洗い出し、関係者への説明、再承認の運用、再発防止の報告書……と、何人もの数日分の作業でした。
+
+      設計レビューで「ちょうど10万円は?」と聞いていれば、会議室で5分で終わった話です。仕様の穴は **見つかるのが後になるほど、直すコストが膨らむ** と現場ではよく言われます。だから第4部は、コードより先に設計を書くところから始めています。
+  - type: trivia
+    title: 稟議とハンコとワークフローシステム
+    body: |
+      日本の会社で「申請 → 承認」の仕組みを語るなら **稟議(りんぎ)** は外せません。担当者が起案した書類(稟議書)を、課長 → 部長 → 役員……と回して、各自がハンコを押して承認していく制度です。
+
+      一部の会社には、部下のハンコを上司の方へ少し傾けて押す「お辞儀ハンコ」なる慣習がある、という話まであります。
+
+      この紙の回覧を電子化したのが **ワークフローシステム**(電子稟議)で、承認くんはその超ミニ版です。製品は違っても中身はだいたい同じで、「申請の状態」「誰が承認できるかのルール」「承認経路」「履歴(監査証跡)」の4つが核になります。
+
+      紙の稟議書の「回覧欄に押されたハンコの列」は、まさに承認くんの `ApprovalHistory` テーブル。履歴を消さずに残す設計は、紙の時代からの知恵なのです。
+  - type: mistake
+    title: 履歴を持たずに上書きしたら、誰が承認したか分からなくなった
+    body: |
+      ある社内システムでは、申請テーブルに `status` と `approver_id` だけを持ち、操作のたびに上書きしていました。
+
+      ある日、差し戻されて再申請された申請が承認されました。数か月後に問い合わせが来ます。「この申請、最初に差し戻したのは誰で、何て理由だった?」——答えられません。`approver_id` には最後に承認した人しか残っておらず、差戻しコメントも再申請時に消えていたからです。
+
+      承認くんの業務ルール6「状態を変える操作は必ず `ApprovalHistory` を1件残す」は、これを防ぐためのルールです。
+
+      - 申請テーブル = **今の姿**(上書きしてよい)
+      - 履歴テーブル = **経緯**(追記するだけで、更新も削除もしない)
+
+      この2つを分けるのは、会計・在庫・勤怠など、お金や権限が絡む業務システムの定番パターンです。
+sts:
+  intro: |
+    このレッスンでは実装はしません。STS に承認くん用の **ワークスペース** を用意し、設計メモ `docs/design.md` を、これから作る `approval-app` とは別のプロジェクトに書きます。
+    最後にチェックリストで設計レビューをします。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: 承認くん用のワークスペースに切り替える
+      detail: |
+        メニューの **File > Switch Workspace > Other...**(ファイル > ワークスペースの切り替え > その他...)を選びます。
+        **Workspace** 欄に `C:\work\approval-ws` と入力して **Launch**(起動)を押すと、STS が再起動して空のワークスペースが開きます。
+
+        第4部の作業はすべてこのワークスペースで行います。第3部までの練習用プロジェクトと混ざらないので、Boot Dashboard もすっきりします。
+    - title: ワークスペースの文字コードと JDK を確認する
+      detail: |
+        **Window > Preferences**(ウィンドウ > 設定)を開き、次の2か所を確認します。ワークスペースを新しくすると設定も初期値に戻るので、ここで揃えておきます。
+        - **General > Workspace**(一般 > ワークスペース)の **Text file encoding**(テキスト・ファイルのエンコード)が **UTF-8** になっていること。`Default (MS932)` なら **Other** で `UTF-8` を選ぶ
+        - **Java > Installed JREs**(Java > インストール済みの JRE)で JDK 21 にチェックが付いていること
+
+        **Apply and Close**(適用して閉じる)で保存します。MS932 のままだと、日本語の業務ルールや data.sql が文字化けします。
+    - title: 設計メモ用のプロジェクトを作る
+      detail: |
+        **File > New > Project...**(ファイル > 新規 > プロジェクト...)を開き、**General > Project**(一般 > プロジェクト)を選んで **Next**(次へ)。
+        **Project name** に `approval-docs` と入力して **Finish**(完了)を押します。
+
+        続けて **Package Explorer**(パッケージ・エクスプローラー)の `approval-docs` を右クリックし、**New > Folder**(新規 > フォルダー)で `docs`、
+        `docs` を右クリックして **New > File**(新規 > ファイル)で `design.md` を作ります。
+
+        設計メモをアプリのプロジェクトの外に置くのは、`approval-app` を作り直したりインポートし直したりしても設計が巻き込まれないようにするためです。
+    - title: design.md に要件とユースケースを書く
+      detail: |
+        `design.md` に次の見出しを作り、解説を見ながら自分の言葉で埋めます(コピペではなく書くのがポイント)。
+
+        ```markdown
+        # 承認くん 設計メモ
+        ## 1. 役割(Role)とできること
+        ## 2. ユースケース(基本フロー/代替フロー)
+        ## 3. 画面と URL
+        ## 4. ER 図
+        ## 5. 状態遷移図
+        ## 6. 業務ルール 1〜7
+        ## 7. 仕様の穴と決めたこと
+        ```
+
+        ユースケースは「申請者が経費を申請する」「承認者が差し戻す」の2つ以上を、基本フローと代替フローに分けて書きます。**Ctrl+S** で保存します。
+    - title: 図を mermaid で書いてプレビューする
+      detail: |
+        4・5章に、解説の ER 図と状態遷移図を ```` ```mermaid ```` のコードブロックで書き写します。
+        STS のエディターは mermaid を図にしてくれないので、ブラウザで `https://mermaid.live` を開き、左側にコードを貼って図が表示されるか確かめます。
+
+        構文を間違えると右側に `Parse error on line 3` のようなエラーが出ます。日本語のラベルは `: "申請する"` のようにダブルクォートで囲むと安全です。
+    - title: 仕様の穴を自分で3つ以上見つける
+      detail: |
+        7章に、解説の表以外の穴を **3つ以上** 書き、「承認くんではこうする」という自分の答えも添えます。ヒントは「ちょうど」「空っぽ」「本人」「2回目」です。
+
+        例:差戻しコメントが半角スペースだけだったら?(→ ルール4で不可)/同じ申請を2人の承認者が同時に開いて、片方が承認・片方が差戻しを押したら?(→ 後から押した方は「承認済の申請は変更できません」になるべき)
+    - title: 設計レビューをする
+      detail: |
+        書き上げた `design.md` を、次の観点で見直します(できれば誰かに読んでもらう)。
+
+        - 状態遷移図の矢印それぞれに、押せる人(役割)と画面のボタンが対応しているか
+        - ER 図に、画面に表示する項目がすべてあるか(承認待ち一覧の「申請者名」はどこから取る?)
+        - 業務ルール1〜7のそれぞれに、破られたときのメッセージが決まっているか
+        - 「ハルが申請 → モカが差戻し → ハルが再申請 → ボスが承認」のシナリオを図の上で指でなぞれるか
+    - title: (任意)設計メモを Git で管理する
+      detail: |
+        第2部で学んだ Git 連携を使い、`approval-docs` を右クリックして **Team > Share Project...**(チーム > プロジェクトの共有...)で Git リポジトリを作り、
+        **Git Staging** ビューから最初のコミットをしておくと、設計の変更履歴が残ります。設計にも「履歴」は大事です。
+checklist:
+  - key: cap-workspace
+    text: C:\work\approval-ws のワークスペースを作り、Text file encoding が UTF-8、JDK 21 が既定になっていることを確認した
+  - key: cap-docs-project
+    text: approval-docs プロジェクトに docs/design.md を作り、7つの見出しを用意した
+  - key: cap-usecase
+    text: ユースケースを2つ以上、基本フローと代替フローに分けて書いた
+  - key: cap-mermaid
+    text: ER 図と状態遷移図を mermaid で書き、mermaid.live でエラーなく図になることを確認した
+  - key: cap-holes
+    text: 解説の表にない仕様の穴を3つ以上見つけ、承認くんとしての答えを書いた
+  - key: cap-review
+    text: 「申請 → 差戻し → 再申請 → 承認」のシナリオを状態遷移図・画面・ルールでなぞり、矛盾がないことを確認した

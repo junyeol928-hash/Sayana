@@ -118,13 +118,13 @@ logging.level.org.springframework.orm.jpa.JpaTransactionManager=DEBUG
 
 ```text
 Creating new transaction with name
-  [com.example.demo.TransferService.transfer]:
+  [com.example.demo.OrderService.order]:
   PROPAGATION_REQUIRED,ISOLATION_DEFAULT
 ...
 Initiating transaction rollback
 ```
 
-罠1を踏んでいると、`importAll` を呼んでも `order` の `Creating new transaction` が出ません。
+罠1を踏んでいると、`OrderService.order` の名前が出ず、代わりに `SimpleJpaRepository.save` のような Repository のメソッド名が `save` のたびに並びます。1件ずつ別々にコミットされている証拠です。
 
 ## readOnly と伝播
 

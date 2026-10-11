@@ -1,0 +1,40 @@
+title: 入力エラーを項目ごとの ProblemDetail にする
+className: ValidationErrorHandler
+difficulty: 3
+libraries: [spring]
+problem: |
+  会員登録 API `POST /api/members` は、`@Valid @RequestBody MemberRequest` で入力チェックをしています。
+  チェックに引っかかると Spring は `MethodArgumentNotValidException` を投げ、何もしなければ本文の無い 400 になります。
+  これでは画面側が「どの項目がなぜダメか」を表示できません。
+
+  `ValidationErrorHandler`(`@RestControllerAdvice`)を完成させ、RFC 9457 の **ProblemDetail** 形式で、項目ごとのメッセージを返してください。
+
+  ```text
+  HTTP/1.1 400 Bad Request
+  Content-Type: application/problem+json
+
+  {
+    "type": "about:blank",
+    "title": "入力エラー",
+    "status": 400,
+    "detail": "入力内容を確認してください",
+    "instance": "/api/members",
+    "errors": {
+      "name": "氏名は必須です",
+      "email": "メールアドレスの形式が正しくありません"
+    }
+  }
+  ```
+
+  作り方:
+  1. `@ExceptionHandler(MethodArgumentNotValidException.class)` を付けたメソッドで `ProblemDetail` を返す
+  2. `ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "入力内容を確認してください")` で作り、`setTitle("入力エラー")`
+  3. `ex.getBindingResult().getFieldErrors()` を回して、`項目名(getField())→ メッセージ(getDefaultMessage())` の `Map` を作る。
+     同じ項目にエラーが2つ以上あったら **最初の1つ** だけ入れる(`putIfAbsent`)。順番を保つなら `LinkedHashMap`
+  4. `setProperty("errors", map)` で追加する(JSON では `type` や `title` と同じ階層に出ます)
+
+  `type` と `instance` は Spring が埋めてくれるので、自分で設定しなくて構いません。
+  `@ExceptionHandler` のメソッドが `ProblemDetail` を返すと、ステータスは `ProblemDetail` の `status` になり、Content-Type は `application/problem+json` になります。
+
+  **STS で書くなら**:`MemberRequest` と `MemberController` は `com.example.shop.member`、`ValidationErrorHandler` は `com.example.shop.web` に置きます。
+  Spring Boot では `spring-boot-starter-validation` を依存に入れると `@Valid` が効きます(テストでは `LocalValidatorFactoryBean` を渡しています)。
