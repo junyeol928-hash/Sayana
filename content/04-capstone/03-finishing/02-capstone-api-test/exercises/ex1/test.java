@@ -15,7 +15,10 @@ import java.util.TreeMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
@@ -67,9 +70,13 @@ class RequestApiControllerTest {
                 "Java の本", RequestStatus.DRAFT, SATO, null, null,
                 at(5, 9), null, null));
 
+        // Spring Boot と同じく、日時を ISO-8601 の文字列で出す ObjectMapper にしておく
+        var mapper = Jackson2ObjectMapperBuilder.json()
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
         mvc = MockMvcBuilders.standaloneSetup(new RequestApiController(service))
                 .setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8),
-                        new MappingJackson2HttpMessageConverter())
+                        new MappingJackson2HttpMessageConverter(mapper))
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .build();
     }

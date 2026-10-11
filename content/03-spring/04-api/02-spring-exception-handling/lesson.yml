@@ -15,7 +15,6 @@ samples:
     description: |
       Controller は「見つからなければ例外を投げる」だけ。`@RestControllerAdvice` が無いと例外が外へ漏れ(Spring Boot なら 500)、
       あると 404 の ProblemDetail(`application/problem+json`)に変わります。
-      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
       // ここを変えてみよう:HttpStatus や setTitle の文言を変える / ID を 1 にする

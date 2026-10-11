@@ -15,7 +15,6 @@ samples:
     description: |
       Web サーバーは起動せず、Spring MVC の仕組みだけを動かして REST API を呼び出します。
       POST → 201 + Location、GET の一覧と個別取得、存在しない ID の 404、Content-Type を付け忘れた 415 を順に見ます。
-      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
       // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
