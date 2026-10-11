@@ -15,17 +15,29 @@ samples:
     description: |
       ファイルの中身はただのバイト列です。STS の文字コード設定がずれたときの「文字化け」を、ここで再現してみましょう。
     code: |
-      import org.springframework.data.repository.query.parser.*;
-      class Department { Long id; String name; }
-      class Employee { Long id; String name; int age; Department department; }
-      for (String m : List.of("findByNameAndAge", "findTop3ByDepartmentNameOrderByAgeDesc", "findByNameContainingOrAgeBetween", "countByAgeLessThan", "findByNmae")) {
-        try {
-        var t = new PartTree(m, Employee.class);
-        System.out.println(m + " -> " + t + " sort=" + t.getSort() + " limit=" + t.isLimiting() + " max=" + t.getMaxResults() + " count=" + t.isCountProjection());
-        for (var or : t) { System.out.println("  OR"); for (Part p : or) System.out.println("    " + p.getProperty().toDotPath() + " " + p.getType() + " args=" + p.getNumberOfArguments()); }
-        } catch (Exception e) { System.out.println(m + " -> " + e.getClass().getSimpleName() + ": " + e.getMessage()); }
-      }
-      /exit
+      import java.nio.charset.Charset;
+      import java.nio.charset.StandardCharsets;
+
+      // ここを変えてみよう:text を自分の名前や好きな言葉に
+      String text = "こんにちは";
+      Charset utf8 = StandardCharsets.UTF_8;
+      Charset ms932 = Charset.forName("MS932");
+
+      // UTF-8 で「保存」したバイト列(日本語は1文字3バイト)
+      byte[] a = text.getBytes(utf8);
+      System.out.println("UTF-8 のバイト数: " + a.length);
+
+      // 同じバイト列を、正しい約束と間違った約束で読む
+      System.out.println("UTF-8 で読む: " + new String(a, utf8));
+      System.out.println("MS932 で読む: " + new String(a, ms932));
+
+      // 逆向き:MS932 で保存(日本語は1文字2バイト)して
+      // UTF-8 で読む
+      byte[] b = text.getBytes(ms932);
+      System.out.println("MS932 のバイト数: " + b.length);
+      System.out.println("UTF-8 で読む: " + new String(b, utf8));
+      // ここを変えてみよう:text を "abc123" にすると
+      // どちらで読んでも化けない。なぜ?
 
 quiz:
   - question: |

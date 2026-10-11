@@ -1,0 +1,30 @@
+title: 会員登録フォームを受け取る Controller(PRG パターン)
+className: MemberController
+difficulty: 3
+libraries: [spring]
+problem: |
+  会員登録フォームを受け取る `MemberController` を完成させてください。フォームクラス `MemberForm`(注釈付き)と、
+  登録した会員を覚えておく `MemberStore`(メモリ上のリスト)はできています。
+
+  **作るもの**
+
+  1. `GET /members/new` … Model に空の `MemberForm` を `"memberForm"` という名前で入れて、ビュー名 `"members/form"` を返す
+  2. `POST /members` … フォームを受け取って検証する
+     - 入力エラーがあれば、**登録せずに** 同じビュー名 `"members/form"` を返す
+     - エラーが無ければ `store.add(form.getName(), form.getEmail())` で登録し、
+       フラッシュ属性 `"message"` に `"登録しました"` を入れて、`"redirect:/members/done"` を返す(PRG パターン)
+
+  **ヒント**
+
+  - POST のメソッドは `@Validated @ModelAttribute MemberForm form` で受け取り、**その直後の引数** に `BindingResult` を置きます。
+    `BindingResult` を置き忘れると、エラー時にメソッドが呼ばれず 400 Bad Request になります。
+  - フラッシュ属性は引数に `RedirectAttributes ra` を足して `ra.addFlashAttribute(...)` です。
+  - 雛形の `register` は検証もせずにリダイレクトしているので、空欄でも登録されてしまいます。
+
+  テストは `MockMvcBuilders.standaloneSetup(...)` に `LocalValidatorFactoryBean` を渡して MockMvc を作り、
+  返ってきたビュー名、Model に入った `BindingResult` のエラー、リダイレクト先(`getRedirectedUrl()`)、
+  フラッシュ属性(`getFlashMap()`)を確かめます(MockMvc の詳しい使い方は「MockMvcによるテスト」のレッスンで扱います)。
+  Thymeleaf のテンプレートは採点では描画しません(ビュー名だけを確かめます)。
+
+  ※ STS では `MemberController` は `com.example.member.web`、`MemberForm` も同じパッケージ、
+  `MemberStore` の役目は後のレッスンで Service と Repository に分けます(採点用に1ファイルにまとめています)。

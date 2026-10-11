@@ -1,3 +1,318 @@
 id: spring-config
 title: 設定ファイルとプロファイル
-status: planned
+status: ready
+minutes: 15
+summary: application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。
+goals:
+  - application.properties と application.yml の書き方の違いを理解し、よく使うキー(server.port、spring.datasource.*、logging.level.*)を書ける
+  - "@Value(\"${キー:既定値}\") と @ConfigurationProperties(record)を使い分けて設定値を受け取れる"
+  - application-{profile}.yml と spring.profiles.active で環境ごとに設定を切り替え、@Profile で Bean を切り替えられる
+  - 設定の優先順位と、キーから環境変数名への変換ルール(SPRING_DATASOURCE_URL など)を説明できる
+  - パスワードや API キーを設定ファイルに書かず、環境変数で渡せる
+samples:
+  - title: 設定値を @Value で受け取る(既定値つき)
+    libraries: [spring]
+    description: |
+      `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。
+      `shop.name` の行を消すと、`@Value` の `:` の後ろに書いた既定値が使われることを確かめましょう。
+    code: |
+      import org.springframework.beans.factory.annotation.Value;
+      import org.springframework.context.annotation.*;
+      import org.springframework.core.env.MapPropertySource;
+
+      // 設定値を受け取る @Configuration(application.yml の shop.* を想定)
+      @Configuration
+      class ShopConfig {
+          @Bean
+          String banner(@Value("${shop.name:Java道場ストア}") String name,
+                        @Value("${shop.tax-rate:0.10}") double taxRate) {
+              return name + "(税率 " + Math.round(taxRate * 100) + "%)";
+          }
+      }
+
+      // application.yml に書いたつもりの設定
+      // ここを変えてみよう:shop.name の行を消す / tax-rate を "0.10" にする
+      Map<String, Object> props = Map.of(
+              "shop.name", "モカ珈琲店",
+              "shop.tax-rate", "0.08");
+
+      var ctx = new AnnotationConfigApplicationContext();
+      ctx.getEnvironment().getPropertySources()
+         .addFirst(new MapPropertySource("my-settings", props));
+      ctx.register(ShopConfig.class);
+      ctx.refresh();
+
+      System.out.println(ctx.getBean("banner", String.class));
+      // Environment から直接読むこともできる(無ければ第2引数)
+      System.out.println("server.port = " + ctx.getEnvironment()
+              .getProperty("server.port", "8080(既定値)"));
+      ctx.close();
+  - title: "@Profile で Bean を切り替える"
+    libraries: [spring]
+    description: |
+      `setActiveProfiles` は Spring Boot の `spring.profiles.active` に当たります。**`register` より前** に呼ぶのがポイントです。
+      `"dev"` を `"prod"` にしたり、`{ }`(プロファイルなし)にしたりして、登録される Bean が変わるのを確かめましょう。
+    code: |
+      import org.springframework.context.annotation.*;
+
+      interface Notifier { String send(String to, String msg); }
+
+      class ConsoleNotifier implements Notifier {
+          public String send(String to, String msg) {
+              return "[送信しない] " + to + " 宛: " + msg;
+          }
+      }
+
+      class SmtpNotifier implements Notifier {
+          public String send(String to, String msg) {
+              return "[SMTPで送信] " + to + " 宛: " + msg;
+          }
+      }
+
+      @Configuration
+      class MailConfig {
+          @Bean @Profile("prod")
+          Notifier smtp() { return new SmtpNotifier(); }
+
+          @Bean @Profile("!prod")      // prod 以外すべて(何も指定しないときも)
+          Notifier console() { return new ConsoleNotifier(); }
+      }
+
+      // ここを変えてみよう:"dev" を "prod" に。{ } にする(プロファイルなし)とどうなる?
+      String[] active = { "dev" };
+
+      var ctx = new AnnotationConfigApplicationContext();
+      ctx.getEnvironment().setActiveProfiles(active);   // register より前に設定する
+      ctx.register(MailConfig.class);
+      ctx.refresh();
+
+      System.out.println("有効なプロファイル: "
+              + String.join(",", ctx.getEnvironment().getActiveProfiles()));
+      System.out.println("登録された Notifier: "
+              + String.join(",", ctx.getBeanNamesForType(Notifier.class)));
+      System.out.println(ctx.getBean(Notifier.class)
+              .send("haru@example.com", "パスワード再設定のご案内"));
+      ctx.close();
+quiz:
+  - question: |
+      次の2つのファイルがあり、`dev` プロファイルを有効にして起動しました。`server.port` と `spring.datasource.url` の値の組み合わせは?
+      ```yaml
+      # application.yml
+      server:
+        port: 8080
+      spring:
+        datasource:
+          url: jdbc:h2:file:./data/app
+      ```
+      ```yaml
+      # application-dev.yml
+      server:
+        port: 8081
+      ```
+    choices:
+      - "8080 と jdbc:h2:file:./data/app"
+      - "8081 と jdbc:h2:file:./data/app"
+      - "8081 と 未設定(application-dev.yml に書いていないので)"
+      - "起動エラー(同じキーが2か所にあるので)"
+    answer: 1
+    explanation: |
+      プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
+      同じキーが複数の場所にあるのは正常な状態で、優先順位の高い方が採用されるだけなのでエラーにはなりません。
+  - question: |
+      設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
+    choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJO_EXEC_MAX_HEAP"]
+    answer: 2
+    explanation: |
+      変換ルールは「`.` を `_` に」「`-` は削除」「全部大文字」の3つなので `DOJO_EXEC_MAXHEAP` です。
+      `DOJO_EXEC_MAX_HEAP` は `_` が `.` の区切りとみなされ、`dojo.exec.max.heap`(max の下の heap)という別のキーとして扱われます。
+      `.` や `-` を含む名前は、Windows 以外の多くのシェルでは環境変数名として設定すらできません。
+  - question: |
+      次の設定がすべてあるとき、`@Value("${shop.fee:500}") int fee` に入る値は?
+      ```text
+      application.yml       … shop.fee: 300
+      application-prod.yml  … shop.fee: 400(prod プロファイル有効)
+      環境変数              … SHOP_FEE=800
+      起動コマンド          … java -jar shop.jar --shop.fee=1000
+      ```
+    choices: ["1000", "800", "400", "500"]
+    answer: 0
+    explanation: |
+      優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > application-{profile}.yml > application.yml」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
+      500 は `@Value` の既定値で、どこにもキーが無いときにだけ使われます。コマンドライン引数を外せば環境変数の 800 になります。
+  - question: |
+      `application.yml` にこう書いたところ、サーバは 8080 のまま起動し、エラーも出ませんでした。原因は?
+      ```yaml
+      server:
+        port:9090
+      ```
+    choices:
+      - "server.port は application.yml では変更できず、コマンドライン引数でしか指定できない"
+      - "port: の後ろにスペースが無いので、port:9090 という1つの文字列として読まれた"
+      - "YAML ではポート番号を \"9090\" のように引用符で囲む必要がある"
+      - "application.properties が無いと application.yml は読まれない"
+    answer: 1
+    explanation: |
+      YAML のキーと値の区切りは「コロン + スペース」です。`port:9090` はスペースが無いので区切りとみなされず、`server` の値が `"port:9090"` という文字列になります。`server.port` というキーは存在しないことになり、既定の 8080 で黙って起動します。
+      数値はそのまま書けばよく、引用符は不要です。`application.yml` は単独で読まれますし、`server.port` も設定ファイルで変更できます。
+  - question: |
+      次の Bean 定義で、**プロファイルを何も指定せずに** 起動したとき、登録される `PaymentGateway` の Bean はどれ?
+      ```java
+      @Bean @Profile("prod")
+      PaymentGateway realGateway() { ... }
+
+      @Bean @Profile("dev")
+      PaymentGateway fakeGateway() { ... }
+      ```
+    choices: ["realGateway だけ", "fakeGateway だけ", "どちらも登録されない", "両方登録される"]
+    answer: 2
+    explanation: |
+      プロファイルを指定しないときに有効なのは `default` プロファイルだけです。`prod` も `dev` も有効ではないので、どちらの Bean も登録されません。この状態で `PaymentGateway` を注入しようとすると、起動時に `No qualifying bean of type 'PaymentGateway'` で失敗します。
+      「指定し忘れたときにどうなるか」まで決めておくのが大事で、安全側(本物の決済をしない側)を `@Profile("!prod")` にしておくと、指定し忘れても事故になりません。
+columns:
+  - type: mistake
+    title: YAML の 0123 は「83」になる ―― パスワードは引用符で囲め
+    body: |
+      Spring Boot が使っている YAML パーサ(SnakeYAML)は YAML 1.1 の規則で値の型を推測します。そのため、次のような「事故」が起きます。
+
+      ```yaml
+      app:
+        pin: 0123        # 先頭が 0 → 8進数とみなされ、83 になる
+        country: NO      # NO / off / yes → boolean(false / true)になる
+        pw: "0123"       # 引用符で囲めば文字列 "0123" のまま
+      ```
+
+      実際に SnakeYAML で読むと `{pin=83, country=false, pw=0123}` になります。ノルウェーの国コード `NO` が `false` になるので、海外では「Norway problem」と呼ばれる有名な罠です。
+
+      特に危ないのが、数字だけのパスワードや社員番号・郵便番号・電話番号です。起動はするのに値だけが変わっているので、「パスワードが合わない」「先頭の 0 が消えた」という分かりにくい不具合になります。**数字で始まる文字列や、yes/no/on/off は引用符で囲む** と覚えておきましょう(`.properties` 形式ならこの問題は起きません)。
+  - type: genba
+    title: 開発PCから本番DBを消した話
+    body: |
+      ある現場で、新人が「テストデータを入れ直す」つもりでテーブルを全削除するバッチを流したら、消えたのは本番DBでした。原因は、トラブル調査のために誰かが共有の `application.yml` に本番の接続先を書いて、そのままコミットしていたことです。
+
+      再発防止で決まったルールはこうでした。
+
+      - 共通の `application.yml` には **ローカル用の安全な値** だけを書く(H2 やローカルの Docker など)
+      - 本番の接続先・パスワードは **本番サーバの環境変数** でだけ渡す(`SPRING_DATASOURCE_URL` など)。開発PCには本番の認証情報を置かない
+      - 危ない処理(全削除・メール一斉送信)の Bean には `@Profile("!prod")` や `@Profile("prod")` を付けて、取り違えても動かない構造にする
+
+      「人間は間違える」前提で、**間違えても事故にならない仕組み** を設定で作るのが現場の知恵です。
+  - type: trivia
+    title: 「設定は環境変数に」の元ネタ ―― The Twelve-Factor App
+    body: |
+      「コードは1つ、環境ごとの違いは環境変数で渡す」という考え方は、Heroku の開発者たちが 2011 年ごろにまとめた **The Twelve-Factor App** という設計指針の3番目「Config(設定を環境変数に格納する)」が有名な出どころです。
+
+      判断の目安として「そのリポジトリを今すぐ公開しても、認証情報が1つも漏れないか?」という問いが挙げられています。漏れるなら、それはコードに混ざってはいけない設定だということです。
+
+      Spring Boot の「環境変数がファイルより優先される」「`SPRING_DATASOURCE_URL` のような名前で上書きできる」という仕組みは、この考え方とぴったり噛み合っています。Docker やクラウドでは、アプリに設定を渡す手段が実質「環境変数」なので、今ではほぼ業界標準の流儀です。
+sts:
+  intro: |
+    STS で `dev` / `prod` の2つのプロファイルを作り、**Run Configurations**(実行構成)で切り替えて、起動ログの違いを確かめます。
+    これまでのレッスンで作った Spring Boot プロジェクト(Spring Web 入り)を使ってください。無ければ **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)で、依存関係に **Spring Web** を選んで作ります。
+  steps:
+    - title: application.properties を application.yml にする
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `src/main/resources/application.properties` を右クリックし、
+        **Refactor > Rename...**(リファクタリング > 名前変更...)で `application.yml` に変えます。
+        中身の `spring.application.name=...` は YAML の形に書き直してください(STS のバージョンによっては右クリックメニューに **Convert .properties to .yaml** があり、自動で変換できます)。
+
+        ```yaml
+        spring:
+          application:
+            name: demo
+        server:
+          port: 8080
+        app:
+          greeting: 共通設定です
+        ```
+
+        YAML エディタで `ser` と打って **Ctrl+Space** を押すと、`server.port` などのキーが説明つきで補完されます。インデントは **スペース2つ**(Tab キーを押してもスペースが入る設定になっています)。
+    - title: application-dev.yml と application-prod.yml を作る
+      detail: |
+        `src/main/resources` を右クリックし、**New > File**(新規 > ファイル)で `application-dev.yml` を作ります。同じように `application-prod.yml` も作ります。
+
+        ```yaml
+        # application-dev.yml
+        server:
+          port: 8081
+        app:
+          greeting: 開発環境です
+        logging:
+          level:
+            org.springframework.web: DEBUG
+        ```
+
+        ```yaml
+        # application-prod.yml
+        server:
+          port: 8082
+        app:
+          greeting: 本番環境です
+        ```
+    - title: 設定値を受け取って起動ログに出す
+      detail: |
+        起動クラス(`@SpringBootApplication` が付いたクラス)に、次の `@Bean` を追加します。起動の最後に1回だけ実行される処理です。
+
+        ```java
+        @Bean
+        CommandLineRunner showGreeting(
+                @Value("${app.greeting:未設定}") String greeting) {
+            return args -> System.out.println("挨拶: " + greeting);
+        }
+        ```
+
+        `CommandLineRunner` と `@Value` が赤くなったら **Ctrl+Shift+O**(インポートの編成)で import を追加します。
+    - title: プロファイルなしで起動する
+      detail: |
+        起動クラスを右クリックし **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。**Console**(コンソール)に次の3行が出れば成功です。
+
+        ```text
+        No active profile set, falling back to 1 default profile: "default"
+        Tomcat started on port 8080 (http) with context path '/'
+        挨拶: 共通設定です
+        ```
+
+        確認したら、Console の赤い四角(**Terminate** / 終了)か Boot Dashboard の停止ボタンで止めます。止めずに次を起動すると、ポートが重なって起動できないことがあります。
+    - title: Run Configurations の Spring Boot タブで dev を指定する
+      detail: |
+        メニューの **Run > Run Configurations...**(実行 > 実行構成...)を開き、左の一覧の **Spring Boot App** の下にあるアプリ名(さっき起動したもの)を選びます。
+        右側の **Spring Boot** タブにある **Profile**(プロファイル)欄に `dev` と入力し、**Apply**(適用)→ **Run**(実行)。
+
+        ```text
+        The following 1 profile is active: "dev"
+        Tomcat started on port 8081 (http) with context path '/'
+        挨拶: 開発環境です
+        ```
+
+        `logging.level.org.springframework.web: DEBUG` を書いたので、DEBUG の行が増えていることも見てください。dev 用の設定だけが上書きされ、`spring.application.name` は共通設定のままです。
+    - title: Arguments タブで prod に切り替える
+      detail: |
+        もう一度 **Run > Run Configurations...** を開き、**Spring Boot** タブの Profile 欄を空に戻します。
+        代わりに **Arguments**(引数)タブの **Program arguments**(プログラムの引数)に `--spring.profiles.active=prod` と書いて **Run**。
+        `The following 1 profile is active: "prod"`、ポート `8082`、`挨拶: 本番環境です` になれば成功です。
+        コマンドラインで `java -jar demo.jar --spring.profiles.active=prod` と起動するのと同じ意味です。
+    - title: 環境変数で上書きして優先順位を確かめる
+      detail: |
+        同じ実行構成の **Environment**(環境)タブで **Add...**(追加...)を押し、名前 `SERVER_PORT`、値 `9090` を追加して **Run**。
+        prod のまま起動しても `Tomcat started on port 9090` になり、**環境変数が application-prod.yml より優先される** ことが分かります。
+        さらに Program arguments に `--server.port=7070` を足すと 7070 になり、コマンドライン引数が一番強いことも確かめられます。
+        終わったら環境変数と引数を消して **Apply** しておきましょう(残っていると、後で「なぜかポートが違う」と悩みます)。
+    - title: Java道場の設定ファイルを読む
+      detail: |
+        このアプリのプロジェクトを STS にインポートしている場合は、`src/main/resources/application.yml` と `application-lan.yml` を開いて見比べます。
+        `application-lan.yml` で上書きされているのは `server.address` と `dojo.lan.enabled` の2つだけで、ポートや DB の設定は共通のままだと確認してください。
+        また、`application.yml` のどこにも API キーが書かれていない(コメントで「環境変数 ANTHROPIC_API_KEY から読む」とだけある)ことも見ておきましょう。
+checklist:
+  - key: yml-converted
+    text: application.properties を application.yml に変えて YAML で書き、Ctrl+Space でキーの補完が出るのを確かめた
+  - key: profile-files
+    text: application-dev.yml と application-prod.yml を作り、ポートと app.greeting を変えた
+  - key: run-default
+    text: プロファイルなしで起動し、「No active profile set」とポート 8080 のログを確認した
+  - key: run-config-profile
+    text: Run Configurations の Spring Boot タブで dev を指定して起動し、「The following 1 profile is active "dev"」とポート 8081 を確認した
+  - key: args-profile
+    text: Arguments タブの --spring.profiles.active=prod で prod に切り替えられた
+  - key: env-override
+    text: Environment タブの SERVER_PORT が application-prod.yml より優先され、--server.port がさらに優先されることを確かめた
+  - key: read-dojo-config
+    text: Java道場の application.yml と application-lan.yml を読み、LAN モードで変わる設定と、API キーがファイルに無いことを確認した

@@ -1,0 +1,29 @@
+title: 名前変更と定数の抽出で読みやすくする
+className: Overtime
+difficulty: 1
+problem: |
+  勤怠システムの残業時間を計算するメソッドがあります。計算は正しいのですが、名前が `calc`・`m`・`t`・`x`、
+  謎の数字 `480` と、読む人に優しくありません。**計算結果を変えずに**、次のリファクタリングをしてください。
+
+  1. メソッド名 `calc` → **`totalOvertimeMinutes`**(呼び出している `main` も一緒に変わること)
+  2. 変数名 `m` → `workedMinutes`、`t` → `total`、`x` → `minutes`
+  3. 2か所の `480` → **`static final int STANDARD_MINUTES = 480;`** という定数(アクセス修飾子は何でもよい)
+
+  ```java
+  totalOvertimeMinutes(new int[] {480, 540, 600, 300}); // 180
+  ```
+
+  **STS でのやり方**
+
+  - 名前変更:`calc` にカーソルを置いて **Alt+Shift+R** → 枠の中で新しい名前を打って **Enter**。
+    宣言も呼び出し元も一度に変わります(変数名も同じ操作)
+  - 定数の抽出:どちらかの `480` を選択して **Alt+Shift+T**(Refactor メニュー)→ **Extract Constant...**(定数の抽出)。
+    名前に `STANDARD_MINUTES` を入力し、**Replace all occurrences of the selected expression with references to the constant**
+    (選択した式の出現箇所をすべて定数への参照で置換)にチェックが入っていることを確認して **OK**
+
+  STS では `src/main/java` の `com.example.attendance` パッケージに `Overtime.java` を置きます。
+  **先に `calc` を呼ぶ小さな JUnit テストを `src/test/java` に書いてからリネームしてみてください。テスト側の呼び出しも自動で書き換わり、
+  テストが緑のまま** なのを確かめられます。これが「リファクタリングとテストはセット」の体験です。
+
+  ※ 採点のテストは、メソッドや定数を **名前で探す** 仕組み(リフレクション)で確かめています。名前は1文字も違わないように。
+  `calc` を残したまま新しいメソッドを作るのではなく、名前を **変更** してください。

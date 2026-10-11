@@ -1,0 +1,33 @@
+title: Maven プロジェクトのファイルを仕分ける
+className: MavenLayout
+difficulty: 2
+problem: |
+  社内ツールで、Maven プロジェクトの中のファイルパス(プロジェクトのルートからの相対パス)を受け取って仕分ける `MavenLayout` を作ります。
+  Windows のパス(区切りが `\`)も来るので、どちらの区切りでも同じ結果になるようにしてください。
+
+  ### 1. `toClassName(String path)`:ソースファイルのパスから完全修飾クラス名を作る
+
+  - `src/main/java/` または `src/test/java/` の下にある `.java` ファイルなら、その下のパスを `.` 区切りにし、末尾の `.java` を外した名前を返す
+  - それ以外(`src/main/resources` の下、`pom.xml`、`.java` 以外など)は `null` を返す
+
+  | path | 戻り値 |
+  |---|---|
+  | `src/main/java/com/example/demo/DemoApplication.java` | `"com.example.demo.DemoApplication"` |
+  | `src\test\java\com\example\demo\DemoApplicationTests.java` | `"com.example.demo.DemoApplicationTests"` |
+  | `src/main/java/Hello.java` | `"Hello"`(パッケージなし) |
+  | `src/main/resources/application.properties` | `null` |
+
+  ### 2. `shouldCommit(String path)`:Git にコミットすべきファイルか
+
+  次のどれかに当てはまれば `false`(コミットしない)、それ以外は `true`。
+
+  - 最初のフォルダが `target` または `bin`(ビルド結果)、`.settings`(STS の設定)
+  - ファイル名(最後の要素)が `.project` または `.classpath`
+
+  例:`pom.xml`・`mvnw`・`src/main/java/...` は `true`、`target/classes/com/example/demo/DemoApplication.class`・`.classpath`・`.settings/org.eclipse.jdt.core.prefs` は `false`。
+  `src/main/resources/static/bin/app.js` のように、**途中に** `bin` があるだけのものは `true` です(先頭のフォルダだけを見る)。
+
+  ヒント:最初に `path.replace('\\', '/')` で区切りを `/` にそろえると、あとは `/` だけ考えればよくなります(Java の文字リテラルでは `\` を `'\\'` と書きます)。
+  `startsWith`・`endsWith`・`substring`・`split("/")` が使えます。
+
+  STS で書くなら、たとえば `com.example.tools` パッケージに置くクラスです(採点用にパッケージなしにしています)。

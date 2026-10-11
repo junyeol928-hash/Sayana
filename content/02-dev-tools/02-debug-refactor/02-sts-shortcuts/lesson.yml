@@ -1,3 +1,205 @@
 id: sts-shortcuts
 title: ショートカットとリファクタリング機能
-status: planned
+status: ready
+minutes: 15
+summary: 補完・クイックフィックス・インポート整理など毎日使うキーと、名前変更・メソッド抽出などのリファクタリング機能。テストを緑に保ったまま安全に作り変える。
+goals:
+  - Ctrl+Space / Ctrl+1 / Ctrl+Shift+O / Ctrl+Shift+F など、毎日使うショートカットを使える
+  - Ctrl+Shift+T・R、F3、Ctrl+Alt+H でコードの中を素早く移動・調査できる
+  - main・sysout・foreach のテンプレートと、Alt+Shift+S のソース生成を使える
+  - 名前変更・メソッド抽出・ローカル変数抽出・インライン化を使い、IDE のリファクタリングが安全な理由と限界を説明できる
+  - テストを緑に保ったまま小さく変えるリファクタリングの進め方と、保存時アクションを設定できる
+samples:
+  - title: 抽出の前と後で結果が同じことを確かめる
+    description: レッスン本文のメソッド抽出の例です。`totalBefore` が抽出前、`totalAfter` が抽出後。リファクタリングは「振る舞いを変えない」ことが条件なので、どんな入力でも同じ結果になるはずです。
+    code: |
+      // メソッド抽出の前(totalBefore)と後(totalAfter)を比べる
+      // ここを変えてみよう:inputs に配列を足す / subtotal の中身をわざと壊して「違う!」を出す
+      static int totalBefore(int[] prices) {
+          int sum = 0;
+          for (int p : prices) {
+              sum += p;
+          }
+          return sum + sum / 10;
+      }
+
+      static int subtotal(int[] prices) {
+          int sum = 0;
+          for (int p : prices) {
+              sum += p;
+          }
+          return sum;
+      }
+
+      static int totalAfter(int[] prices) {
+          int sum = subtotal(prices);
+          return sum + sum / 10;
+      }
+
+      int[][] inputs = {{100, 200}, {}, {999}, {1, 2, 3}};
+      for (int[] in : inputs) {
+          int before = totalBefore(in);
+          int after = totalAfter(in);
+          System.out.println(java.util.Arrays.toString(in) + " → 前: " + before
+                  + " / 後: " + after + (before == after ? " 同じ" : " 違う!"));
+      }
+quiz:
+  - question: |
+      次のコードで、ローカル変数 `count` にカーソルを置いて **Alt+Shift+R** で `total` に名前変更しました。書き換わるのはどれ?
+      ```java
+      int count = 0;
+      int account = 5;
+      String label = "count";
+      count += account;
+      ```
+    choices: ["変数 count の宣言と、それを使っている count += の部分だけ", "上に加えて、文字列 \"count\" も \"total\" になる", "上に加えて、account も actotal になる", "count という文字が含まれる箇所すべて"]
+    answer: 0
+    explanation: |
+      IDE の名前変更は、ソースを構文木に解析して **同じ宣言を指している箇所だけ** を書き換えます。`account` は別の変数、`"count"` はただの文字列データなので変わりません。
+      「count という文字が含まれる箇所すべて」が変わるのは、テキストの検索と置換(Ctrl+F)で一括置換した場合です。`account` が `actotal` になる事故はこちらで起きます。
+  - question: |
+      次のメソッドで、`int max = scores[0];` から `for` の閉じ括弧までの4行を選択し、**Alt+Shift+M** で `maxOf` という名前で抽出しました。作られるメソッドは?(アクセス修飾子は省略して示す)
+      ```java
+      static void report(int[] scores) {
+          int max = scores[0];
+          for (int s : scores) {
+              if (s > max) { max = s; }
+          }
+          System.out.println("最高点: " + max);
+      }
+      ```
+    choices: ["static void maxOf(int[] scores)", "static int maxOf(int[] scores)", "static int maxOf()", "static int maxOf(int max, int[] scores)"]
+    answer: 1
+    explanation: |
+      STS は選択範囲の **データの流れ** を解析します。範囲の中で使っている外の変数は `scores` だけなので引数は `int[] scores`。範囲の中で値が決まり、後ろの `println` で使われる変数は `max` なので、戻り値は `int` になり、元の場所は `int max = maxOf(scores);` に置き換わります(アクセス修飾子はダイアログで選べます)。
+      `void` だと `max` を呼び出し元に返せません。`max` は範囲の中で宣言されているので引数にはなりません。
+  - question: |
+      新しいクラスに次の1行を書いたところ、`List cannot be resolved to a type`(List を型に解決できません)と赤線が出ました。最も手早い直し方は?
+      ```java
+      List<String> names = new ArrayList<>();
+      ```
+    choices: ["Ctrl+Shift+F を押す", "Ctrl+Shift+R を押す", "Ctrl+Shift+O を押す", "Ctrl+D を押す"]
+    answer: 2
+    explanation: |
+      **Ctrl+Shift+O(Organize Imports)** は、足りない import を追加し、使っていない import を削除します。`List` と `ArrayList` の import が一度に入ります。`List` のように同名のクラスが複数ある(`java.util.List` と `java.awt.List`)場合は、どちらにするか選ぶダイアログが出るので `java.util.List` を選びます。
+      Ctrl+Shift+F はフォーマット、Ctrl+Shift+R はファイルを開く、Ctrl+D は行削除で、どれも import は追加しません(赤線の上で Ctrl+1 → **Import 'List' (java.util)** でも直せます)。
+  - question: |
+      `counter.next()` は呼ぶたびに 1, 2, 3, … を返すメソッドです。次のコードの `n` を **Alt+Shift+I**(インライン化)したところ、`System.out.println(counter.next() + counter.next());` になりました。出力はどう変わる?
+      ```java
+      int n = counter.next();
+      System.out.println(n + n);
+      ```
+    choices: ["2 のまま変わらない", "2 から 3 に変わる", "コンパイルエラーになる", "2 から 1 に変わる"]
+    answer: 1
+    explanation: |
+      インライン化前は `next()` を1回だけ呼び、その値 1 を2回足すので `2`。インライン化後は `next()` を **2回** 呼ぶので `1 + 2 = 3` になります。式に副作用がある(呼ぶたびに状態が変わる)と、インライン化で評価回数が変わり、振る舞いが変わってしまいます。
+      文法的には正しいのでコンパイルエラーにはなりません。IDE の機能でもこうした変化を常に止めてくれるとは限らないので、**リファクタリングのたびにテストを回す** ことが大切です。
+  - question: |
+      テストのある既存コードをリファクタリングするときの進め方として、最も適切なのはどれ?
+    choices: ["まとめて全部直してから、最後に一度だけテストを実行する", "テストが赤いままでも、IDE の機能を使えば安全なので気にせず進める", "リファクタリングのついでに、気になったバグもその場で直して一緒にテストする", "テストが緑の状態から始め、名前変更や抽出を1つするたびにテストを実行する"]
+    answer: 3
+    explanation: |
+      **緑から始めて、小さく1つ変えるごとにテスト** が基本です。赤になったら原因は直前の1手だけなので、Ctrl+Z で戻せばすぐ元の状態に戻れます。
+      まとめて直すと、赤になったときにどの変更が原因か分かりません。赤いまま始めると、自分の変更で壊したのか元から壊れていたのか区別できません。バグ修正は「振る舞いを変える」作業なので、リファクタリング(振る舞いを変えない)とは分けて行い、別々にテストで確かめるのが現場の作法です。
+columns:
+  - type: trivia
+    title: リファクタリングの源流は Smalltalk
+    body: |
+      「リファクタリング」という言葉を広めたのは、マーティン・ファウラーの著書『Refactoring』(1999年)です。ただしその元になったのは、ウィリアム・オプダイクが1992年にイリノイ大学で書いた博士論文で、「振る舞いを保ったままプログラムを変換する操作」を体系的に整理したものでした。
+
+      自動でリファクタリングできる最初の実用的なツールは、同じイリノイ大学で作られた Smalltalk 用の **Refactoring Browser** と言われています。この考え方が Java の IDE に持ち込まれ、Eclipse の Java 開発ツール(JDT)にも、名前変更やメソッド抽出が組み込まれました。Eclipse JDT の開発を率いたのは、デザインパターンの本『GoF 本』の著者の一人であり、JUnit の共同作者でもあるエーリヒ・ガンマです。
+
+      テスト(JUnit)とリファクタリング(IDE)が同じ人たちの周りで育ったのは偶然ではありません。「テストがあるから安心して作り変えられる」という発想は、最初からセットだったのです。
+  - type: genba
+    title: 直す前に Ctrl+Alt+H で「影響範囲」を見る
+    body: |
+      「このメソッドの戻り値、null じゃなくて空リストにしたいな」と思ったとき、ベテランがまずやるのは **Ctrl+Alt+H(呼び出し階層)** です。**Call Hierarchy**(呼び出し階層)ビューに、そのメソッドを呼んでいる箇所がツリーで表示され、▶ を開くと「呼び出し元の呼び出し元」までたどれます。
+
+      - 呼び出し元が3か所なら、それぞれの使い方を見て安全に変えられるか判断できる
+      - 50か所あるなら、変更の影響が大きいので、新しいメソッドを足して少しずつ移行する作戦にする
+      - 呼び出し元が0か所なら、そもそも使われていないメソッドなので削除候補
+
+      レビューで「この変更、他に影響ない?」と聞かれたとき、「呼び出し階層で全部見ました。呼び出し元は2か所で、どちらも null チェックしていないので空リストの方が安全です」と答えられると、一気に信頼されます。似た機能に、フィールドや型の参照箇所を一覧する **Ctrl+Shift+G**(References in Workspace)もあります。
+  - type: mistake
+    title: 補完に任せたら java.awt.List が入っていた
+    body: |
+      補完や Ctrl+Shift+O は、**同名のクラスが複数あるとき** に要注意です。例えば `List` には `java.util.List`(コレクション)と `java.awt.List`(古い GUI 部品)があり、うっかり後者を選ぶと次のエラーになります。
+
+      ```text
+      The type List is not generic; it cannot be
+      parameterized with arguments <String>
+      ```
+
+      原因はファイル先頭の `import java.awt.List;` です。同様に `@Test` は JUnit 5 の `org.junit.jupiter.api.Test` と JUnit 4 の `org.junit.Test` があり、JUnit 4 の方を選ぶと JUnit 5 だけの環境では **テストが実行されません**。
+
+      対策は、エラーが出たらまず **import 文を見る** こと。普段使わないパッケージは **Window > Preferences > Java > Appearance > Type Filters**(型フィルター)に `java.awt.*` などを登録すると、候補に出なくなります。
+sts:
+  intro: |
+    ショートカットとテンプレートでコードを書き、Alt+Shift+S のソース生成とリファクタリング機能を一通り試します。最後に保存時アクションを設定します。
+    表のキーは Windows 版 STS 4 の標準設定です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: Ctrl+Shift+L でショートカット一覧を見る
+      detail: |
+        エディターをクリックしてから **Ctrl+Shift+L** を押すと、画面右下に今使えるショートカットの一覧(**Key Assist**)が出ます。一覧から項目をダブルクリックすると、その機能を実行できます。
+        もう一度 **Ctrl+Shift+L** を押すと **Window > Preferences > General > Keys**(ウィンドウ > 設定 > 一般 > キー)が開き、キーの割り当てを確認・変更できます。
+    - title: テンプレートでクラスを書く
+      detail: |
+        **New > Class**(新規 > クラス)で `Shortcuts` クラスを作り(main のチェックは外す)、クラスの中で次を試します。
+
+        - `main` と入力して **Ctrl+Space** → 候補から **main - main method** を選んで Enter
+        - main の中で `sysout` + **Ctrl+Space** → `System.out.println();` が展開される
+        - `int[] scores = {80, 90, 70};` と書いた次の行で `foreach` + **Ctrl+Space** → `scores` を回す拡張 for が展開される。枠で囲まれた変数名は打ち変えられるので、`score` にして **Enter**
+    - title: import を Ctrl+Shift+O と Ctrl+1 に任せる
+      detail: |
+        main の中に `List<String> names = new ArrayList<>();` と手で打ちます(補完は使わない)。赤線が出たら **Ctrl+Shift+O** を押し、選択ダイアログが出たら **java.util.List** を選んで **Finish**(完了)。ファイル先頭に `import java.util.ArrayList;` と `import java.util.List;` が入れば成功です。
+        次に `Files.readString(Path.of("a.txt"));` と書き、赤線の上で **Ctrl+1** → import を追加。続いて `IOException` の赤線に **Ctrl+1** → **Add throws declaration**(throws 宣言の追加)を選んで、エラーが消えることを確認します。
+    - title: 移動系のキーでコードを調べる
+      detail: |
+        - **Ctrl+Shift+T** で `ArrayList` と入力して開く(JDK のソースが読める)。開いたら **Ctrl+O**(クイック・アウトライン)で `add` と打つとメソッドに飛べる
+        - 自分のコードに戻り、`println` にカーソルを置いて **F3** → `PrintStream` の定義に飛ぶ。**Alt+←** で元の場所に戻る
+        - 自分で作ったメソッドの名前にカーソルを置いて **Ctrl+Alt+H** → **Call Hierarchy**(呼び出し階層)ビューに呼び出し元が出る
+        - **Ctrl+Shift+R** で `pom` と打ち、Maven プロジェクトなら `pom.xml` を開ける(Java 以外のファイルも開ける)
+    - title: 行の操作とコメント
+      detail: |
+        適当な行で **Ctrl+D**(行削除)→ **Ctrl+Z** で戻す。**Alt+↓** / **Alt+↑** で行を上下に移動し、**Ctrl+Alt+↓** で行を複製します(画面が回転したら、Intel グラフィックスのホットキーを無効にしてください)。
+        複数行を選択して **Ctrl+/** を押すと `//` コメントの付け外し、**Ctrl+Shift+F** でフォーマットされることを確認します。
+    - title: Alt+Shift+S で getter・コンストラクタ・toString を生成する
+      detail: |
+        `Employee` クラスを作り、フィールドだけ書きます。
+
+        ```java
+        public class Employee {
+            private String name;
+            private int salary;
+        }
+        ```
+
+        クラスの中で **Alt+Shift+S** → **Generate Getters and Setters...**(getter および setter の生成)→ **Select All**(すべて選択)→ **Generate**(生成)。
+        続けて **Alt+Shift+S** → **Generate Constructor using Fields...**(フィールドを使用してコンストラクターを生成)、**Alt+Shift+S** → **Generate toString()...**(toString() の生成)も実行し、それぞれのコードが入ることを確認します。
+    - title: テストを緑に保ったままリファクタリングする
+      detail: |
+        演習2の `Invoice` を STS に置き(問題文の手順どおり、空のメソッド4つは消す)、`InvoiceTest` を右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。**JUnit** ビューで `build` のテストが緑なのを確認します。
+        「小計」の4行を選択して **Alt+Shift+M**(メソッド抽出)→ 名前 `subtotal`、**Access modifier** は **package** → **OK**。**JUnit** ビューの **Rerun Test**(テストの再実行)ボタンでテストを回し、緑のままなのを確認します。
+        同じように1つ抽出するたびにテストを回します。ほかに、変数名を **Alt+Shift+R** で変える、式を選んで **Alt+Shift+L** でローカル変数に切り出す、その変数を **Alt+Shift+I** でインライン化して元に戻す、も試します。
+    - title: 保存時アクションを設定する
+      detail: |
+        **Window > Preferences > Java > Editor > Save Actions**(ウィンドウ > 設定 > Java > エディター > 保存アクション)を開き、**Perform the selected actions on save**(保存時に選択したアクションを実行)にチェック。
+        **Format source code**(ソース・コードのフォーマット)と **Format edited lines**(編集した行をフォーマット)、**Organize imports**(インポートの編成)にチェックして **Apply and Close**(適用して閉じる)。
+        インデントを崩して余計な import を1行足し、**Ctrl+S** で保存した瞬間に整うことを確認します。
+checklist:
+  - key: key-assist
+    text: Ctrl+Shift+L でショートカット一覧を表示し、もう一度押して Keys の設定画面を開けた
+  - key: templates
+    text: main・sysout・foreach を Ctrl+Space で展開してコードを書けた
+  - key: import-quickfix
+    text: Ctrl+Shift+O で import を整理し、Ctrl+1 のクイックフィックスで赤線(import 不足・未処理の例外)を直せた
+  - key: navigation
+    text: Ctrl+Shift+T・Ctrl+Shift+R でファイルを開き、F3 で定義へ移動、Ctrl+Alt+H で呼び出し元を表示できた
+  - key: source-generate
+    text: Alt+Shift+S で getter/setter・コンストラクタ・toString を生成できた
+  - key: refactor-with-tests
+    text: Alt+Shift+M でメソッドを抽出し、抽出するたびに JUnit テストが緑のままであることを確認した
+  - key: rename-inline
+    text: Alt+Shift+R で名前変更し、Alt+Shift+L でローカル変数の抽出と Alt+Shift+I でインライン化を試した
+  - key: save-actions
+    text: Save Actions でフォーマットとインポート整理を設定し、Ctrl+S で自動的に整うことを確かめた

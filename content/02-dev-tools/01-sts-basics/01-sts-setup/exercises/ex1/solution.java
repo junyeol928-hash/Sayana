@@ -24,7 +24,9 @@ public class EncodingDoctor {
     }
 
     public static String decode(byte[] data) {
-        Charset cs = isUtf8(data) ? StandardCharsets.UTF_8 : Charset.forName("MS932");
+        Charset cs = isUtf8(data)
+                ? StandardCharsets.UTF_8
+                : Charset.forName("MS932");
         return new String(data, cs);
     }
 

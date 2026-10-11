@@ -1,3 +1,176 @@
 id: spring-controller
 title: Controllerとルーティング
-status: planned
+status: ready
+minutes: 15
+summary: HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。
+goals:
+  - HTTP のメソッド・パス・クエリ・ステータスコードを読み取り、400/404/405 の原因を推測できる
+  - DispatcherServlet が対応表(HandlerMapping)を使って Controller に振り分ける流れを説明できる
+  - "@Controller(ビュー名を返す)と @RestController(本体を返す)を使い分けられる"
+  - "@GetMapping / @PostMapping / @RequestMapping・@PathVariable・@RequestParam(required・defaultValue)でリクエストを受け取れる"
+  - ResponseEntity でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる
+samples:
+  - title: Controller を MockMvc で呼んでみる
+    libraries: [spring]
+    description: |
+      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。
+      パスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。`[...]` は Spring が内部で投げた例外の名前です。
+      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
+    code: |
+      // Controller を MockMvc で呼んでみる(Web サーバーは起動しない)
+      // ここを変えてみよう:URL やクエリを書き換える / name を消す
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+      
+      @RestController
+      class HelloController {
+          @GetMapping("/hello")   // GET /hello?name=...
+          String hello(
+                  @RequestParam(defaultValue = "ゲスト") String name) {
+              return "こんにちは、" + name + "さん";
+          }
+      
+          @GetMapping("/users/{id}")   // GET /users/7
+          String user(@PathVariable int id) {
+              return "ユーザー" + id + "番";
+          }
+      
+          @PostMapping("/login")   // name は必須(required = true)
+          String login(@RequestParam String name) {
+              return name + " でログインしました";
+          }
+      }
+      
+      public class Main {
+          public static void main(String[] args) throws Exception {
+              MockMvc mvc = MockMvcBuilders
+                      .standaloneSetup(new HelloController())
+                      .setMessageConverters(
+                              new StringHttpMessageConverter(UTF_8))
+                      .defaultResponseCharacterEncoding(UTF_8)
+                      .build();
+      
+              send(mvc, get("/hello"));
+              send(mvc, get("/hello").param("name", "ハル"));
+              send(mvc, get("/users/7"));
+              // int に変換できない
+              send(mvc, get("/users/abc"));
+              // 必須パラメータ name が無い
+              send(mvc, post("/login"));
+              send(mvc, post("/login").param("name", "haru"));
+              // GET 専用のパスに POST
+              send(mvc, post("/hello"));
+              // 対応表に無いパス
+              send(mvc, get("/nothing"));
+          }
+      
+          static void send(MockMvc mvc, RequestBuilder req)
+                  throws Exception {
+              MvcResult result = mvc.perform(req).andReturn();
+              var request = result.getRequest();
+              var res = result.getResponse();
+              // 送ったパラメータを " name=値" の形で並べる
+              StringBuilder params = new StringBuilder();
+              request.getParameterMap().forEach((k, v) ->
+                      params.append(" " + k + "=" + v[0]));
+              Exception ex = result.getResolvedException();
+              String body = ex != null
+                      ? "[" + ex.getClass().getSimpleName() + "]"
+                      : res.getContentAsString();
+              System.out.println(request.getMethod() + " "
+                      + request.getRequestURI() + params
+                      + " → " + res.getStatus() + " " + body);
+          }
+      }
+  - title: JSON・ResponseEntity・redirect
+    libraries: [spring]
+    description: |
+      `record` を返すと JSON に、`ResponseEntity` で包むとステータスコードを選べます。
+      `@Controller` で `"redirect:..."` を返すと 302 と `Location` ヘッダーが返ります(ブラウザはそこへ GET し直します)。
+    code: |
+      // 戻り値で変わるレスポンス:JSON・ResponseEntity・redirect:
+      // ここを変えてみよう:存在しない ID(99)を GET する / quantity を変える
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import java.util.Map;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.stereotype.Controller;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+      
+      record Item(int id, String name, int price) {}
+      
+      @RestController
+      @RequestMapping("/api/items")   // 共通プレフィックス
+      class ItemApi {
+          Map<Integer, Item> items = Map.of(
+                  1, new Item(1, "ボールペン", 120),
+                  2, new Item(2, "ノート", 200));
+      
+          @GetMapping("/{id}")   // GET /api/items/{id}
+          ResponseEntity<Item> find(@PathVariable int id) {
+              Item item = items.get(id);
+              if (item == null) {
+                  return ResponseEntity.notFound().build(); // 404
+              }
+              return ResponseEntity.ok(item);   // 200 + JSON
+          }
+      }
+      
+      @Controller   // 画面用。"redirect:" で始まるとリダイレクト
+      class OrderController {
+          long nextId = 100;
+      
+          @PostMapping("/orders")
+          String order(@RequestParam int itemId,
+                       @RequestParam int quantity) {
+              long id = nextId++;
+              System.out.println("  (注文を登録: 商品" + itemId
+                      + " × " + quantity + ")");
+              return "redirect:/orders/" + id;   // PRG パターン
+          }
+      }
+      
+      public class Main {
+          public static void main(String[] args) throws Exception {
+              MockMvc mvc = MockMvcBuilders
+                      .standaloneSetup(new ItemApi(), new OrderController())
+                      .setMessageConverters(
+                              new StringHttpMessageConverter(UTF_8),
+                              new MappingJackson2HttpMessageConverter())
+                      .defaultResponseCharacterEncoding(UTF_8)
+                      .build();
+      
+              send(mvc, get("/api/items/1"));
+              send(mvc, get("/api/items/99"));
+              send(mvc, post("/orders")
+                      .param("itemId", "1").param("quantity", "3"));
+          }
+      
+          static void send(MockMvc mvc, RequestBuilder req)
+                  throws Exception {
+              MvcResult result = mvc.perform(req).andReturn();
+              var res = result.getResponse();
+              System.out.println(result.getRequest().getMethod() + " "
+                      + result.getRequest().getRequestURI()
+                      + " → " + res.getStatus());
+              if (res.getHeader("Location") != null) {
+                  System.out.println("  Location: "
+                          + res.getHeader("Location"));
+              }
+              String body = res.getContentAsString();
+              if (!body.isEmpty()) {
+                  System.out.println("  " + res.getContentType());
+                  System.out.println("  " + body);
+              }
+          }
+      }

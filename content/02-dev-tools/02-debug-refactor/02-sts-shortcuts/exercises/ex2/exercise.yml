@@ -1,0 +1,44 @@
+title: 長い請求書メソッドを小さなメソッドに分割する
+className: Invoice
+difficulty: 2
+problem: |
+  請求書の文字列を作る `Invoice.build` は、小計・割引・消費税・文字列の組み立てを1つのメソッドで全部やっていて長くなっています。
+  **出力を1文字も変えずに**、次の4つのメソッドに分割し、`build` からはそれらを呼ぶように書き換えてください。
+
+  | メソッド | 中身 |
+  |---|---|
+  | `static int subtotal(List<Item> items)` | 単価 × 数量 の合計 |
+  | `static int discount(int subtotal, boolean member)` | 会員は小計の10%、非会員でも1万円以上なら5% |
+  | `static int tax(int taxable)` | 割引後の金額の10% |
+  | `static String line(Item item)` | 明細1行(`ペン x3 = 360`) |
+
+  計算ルールは `build` の中のコメントのとおりです(割引・税の端数は切り捨て)。
+
+  ```text
+  ペン x3 = 360
+  ノート x2 = 500
+  小計: 860
+  割引: -86
+  税: 77
+  合計: 851
+  ```
+
+  **テストの見どころ**:`build` の出力を確かめるテストは、**分割前の starter の時点ですでに緑** です。
+  分割の途中も最後も、このテストを緑のまま保ってください。残りのテストは分割後のメソッドを直接呼んで確かめます。
+
+  **STS でのやり方(メソッド抽出 Alt+Shift+M)**
+
+  STS では雛形の下にある空のメソッド4つを **消してから** 練習します(同じ名前のメソッドがあると抽出できないため)。
+
+  1. 「小計」の4行(`int subtotal = 0;` から `for` の閉じ括弧まで)を選択して **Alt+Shift+M**
+  2. **Extract Method**(メソッドの抽出)ダイアログで **Method name** に `subtotal`、
+     **Access modifier** は **package**(何も付けない)を選んで **OK**。
+     `int subtotal = subtotal(items);` に置き換わります
+  3. 同様に「割引」の `int discount = 0;` から `if` の閉じ括弧までを `discount`、
+     式 `taxable * 10 / 100` を `tax`、`sb.append(...)` の括弧の中の式を `line` として抽出する。
+     引数の順番がずれたときは、ダイアログの **Up** / **Down** ボタンで表のとおりに並べ替える
+  4. 1つ抽出するたびに、テストクラスを右クリック → **Run As > JUnit Test** で緑を確認する
+
+  STS では `src/main/java` の `com.example.billing` パッケージに `Item.java`(record)と `Invoice.java`、
+  `src/test/java` の同じパッケージに `InvoiceTest.java` を置きます。
+  この画面の採点では、雛形どおり `package` 文なしの1ファイルで書き、空のメソッドの中身を書いて `build` から呼ぶ形にしてください。

@@ -1,3 +1,265 @@
 id: spring-data-jpa
 title: Spring Data JPA
-status: planned
+status: ready
+minutes: 15
+summary: エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。
+goals:
+  - JDBC 直書きと比べて、JPA・Hibernate・Spring Data JPA がそれぞれ何を担当しているか説明できる
+  - "@Entity・@Id・@GeneratedValue・@Column・@ManyToOne・@OneToMany(mappedBy)でエンティティを書ける"
+  - JpaRepository を継承し、派生クエリ(And・Containing・Between・OrderBy・Top3・count)と @Query(JPQL)で検索を宣言できる
+  - Pageable と Page でページングでき、application.properties で H2(ファイルモード・コンソール)と ddl-auto を設定できる
+  - N+1 問題と LazyInitializationException の原因を説明し、join fetch と DTO への詰め替えで避けられる
+samples:
+  - title: Spring Data がメソッド名をどう読むか(PartTree)
+    description: |
+      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。
+      `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。DB には接続しません。
+    libraries: [spring, jpa]
+    code: |
+      import org.springframework.data.repository.query.parser.Part;
+      import org.springframework.data.repository.query.parser.PartTree;
+
+      // Spring Data が派生クエリのメソッド名を解析するクラス PartTree を、直接呼んでみる
+      class Department { Long id; String name; }
+      class Employee { Long id; String name; int age; Department department; }
+
+      // ここを変えてみよう:メソッド名を書き換えて再実行
+      // (Or を入れる・Asc にする・First にする・わざと nmae とつづりを間違える など)
+      String[] names = {
+          "findByNameAndAge",
+          "findTop3ByDepartmentNameOrderByAgeDesc",
+          "countByAgeBetween",
+          "findByNameContainingOrAgeLessThan",
+          "findByNmae",
+      };
+
+      for (String name : names) {
+          System.out.println("■ " + name);
+          try {
+              PartTree tree = new PartTree(name, Employee.class);
+              int group = 1;
+              for (PartTree.OrPart or : tree) {      // Or で区切られたグループ
+                  for (Part p : or) {                // グループ内は And
+                      System.out.println("  条件" + group + ": "
+                              + p.getProperty().toDotPath() + " " + p.getType());
+                  }
+                  group++;
+              }
+              System.out.println("  並び順: " + tree.getSort()
+                      + " / 件数制限: " + (tree.isLimiting() ? tree.getMaxResults() : "なし")
+                      + " / count: " + tree.isCountProjection());
+          } catch (RuntimeException e) {
+              System.out.println("  起動時エラーになる: " + e.getMessage());
+          }
+      }
+quiz:
+  - question: |
+      次の派生クエリが表す検索として正しいものは?
+      ```java
+      List<Employee> findTop3ByDepartmentNameOrderByAgeDesc(String name);
+      ```
+    choices:
+      - "名前が name の社員を、部署の年齢順に3件"
+      - "部署名が name の社員を全件取り、年齢の若い順に並べて先頭3件"
+      - "部署名が name の社員を、年齢の高い順に並べて先頭3件"
+      - "部署名が name の部署を3件、社員の年齢順に"
+    answer: 2
+    explanation: |
+      `find` + `Top3`(先頭3件)+ `By` + `DepartmentName`(`department.name` をたどる条件)+ `OrderByAgeDesc`(年齢の降順)と読みます。返すのは戻り値どおり `Employee` です。
+      `Desc` は降順(大きい順)なので「若い順」ではありません。`DepartmentName` は社員自身の `name` ではなく、関連先 `department` の `name` です。
+  - question: |
+      `Employee` に `name` プロパティがあるとき、Repository に次のメソッドを宣言してアプリを起動すると、どうなる?
+      ```java
+      List<Employee> findByNmae(String name);
+      ```
+    choices:
+      - "起動時に No property 'nmae' found for type 'Employee' のエラーで起動に失敗する"
+      - "起動はするが、このメソッドを呼んだときに初めて例外になる"
+      - "コンパイルエラーになる"
+      - "条件が無視されて全件が返る"
+    answer: 0
+    explanation: |
+      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
+      Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
+  - question: |
+      社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
+      次のコードを(同じトランザクション内で)実行すると、SQL は合計何回発行される?
+      ```java
+      for (Employee e : employeeRepository.findAll()) {
+          System.out.println(e.getDepartment().getName());
+      }
+      ```
+    choices: ["1回", "2回", "10回", "11回"]
+    answer: 3
+    explanation: |
+      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが **N+1 問題** です。
+      同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は `join fetch` で一度に取ることです。
+  - question: |
+      `@Query` の JPQL として正しいものはどれ?(エンティティは `Employee`、テーブル名は `employees`、フィールドは `age`、列名も `age`)
+    choices:
+      - "select * from employees where age >= :age"
+      - "select e from Employee e where e.age >= :age"
+      - "select e from employees e where e.age >= :age"
+      - "select Employee from Employee where age >= ?"
+    answer: 1
+    explanation: |
+      JPQL は **エンティティ(クラス名)とフィールド名** に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
+      `employees` はテーブル名なので JPQL では使えません(エンティティ名として解決できずエラー)。`select *` は SQL の書き方で、JPQL にはありません。テーブル名で生の SQL を書きたいときは `@Query(value = "...", nativeQuery = true)` を使います。
+  - question: |
+      本番環境の `spring.jpa.hibernate.ddl-auto` の設定として、最も適切なものは?
+    choices: ["create", "update", "validate", "create-drop"]
+    answer: 2
+    explanation: |
+      本番は `validate`(エンティティと実テーブルが合っているか検証するだけ)か `none` にし、テーブル変更は Flyway などのマイグレーションで SQL ファイルとして管理します。
+      `create` と `create-drop` は起動・終了のたびにテーブルを作り直すので全データが消えます。`update` は列や表を足すだけで、列の削除・型変更はせず、何を実行したかの記録も残らないため、本番の変更管理には向きません。
+columns:
+  - type: trivia
+    title: javax.persistence が jakarta.persistence に変わった理由
+    body: |
+      ネットで JPA のサンプルを探すと、`import javax.persistence.Entity;` と書かれたものがたくさん出てきます。これを Spring Boot 3 のプロジェクトに貼ると、こうなります。
+
+      ```text
+      package javax.persistence does not exist
+      ```
+
+      JPA を含む Java EE は、2017年に Oracle から Eclipse 財団に移管され、**Jakarta EE** に改名されました。ところが「javax」という名前空間は Oracle の商標が絡むため、移管後は中身を変更できない取り決めになりました。そこで Jakarta EE 9(2020年)で、パッケージ名を一斉に `javax.*` から `jakarta.*` に付け替えたのです。
+
+      Spring Boot 3(Spring Framework 6)はこの Jakarta EE 9 以降が前提なので、`jakarta.persistence.*` を使います。古い記事のコードを使うときは、import の `javax` を `jakarta` に置き換えるだけで動くことが多いです(`javax.sql.DataSource` のように JDK 本体に属するものは `javax` のまま)。
+  - type: mistake
+    title: 双方向関連の toString で StackOverflowError
+    body: |
+      部署と社員を双方向(`@ManyToOne` と `@OneToMany`)にして、IDE で toString を自動生成しました。
+
+      ```java
+      // Department
+      public String toString() {
+          return "Department[name=" + name + ", employees=" + employees + "]";
+      }
+      // Employee
+      public String toString() {
+          return "Employee[name=" + name + ", department=" + department + "]";
+      }
+      ```
+
+      ログに部署を出した瞬間、`java.lang.StackOverflowError` です。部署の toString が社員リストの toString を呼び、社員の toString が部署の toString を呼び……と無限に往復するからです。Lombok の `@Data` をエンティティに付けても、同じことが toString・hashCode で起きます。
+
+      しかも toString で関連を触ると、遅延ロードの SQL が勝手に飛んだり、セッション外なら LazyInitializationException になったりします。エンティティの toString には **関連フィールドを入れない**(id や name だけにする)のが現場の定番です。
+  - type: genba
+    title: 起動ログの WARN「spring.jpa.open-in-view is enabled by default」
+    body: |
+      Spring Boot で JPA と Web を一緒に使うと、起動時にこんな警告が出ます。
+
+      ```text
+      WARN ... JpaBaseConfiguration$JpaWebConfiguration :
+      spring.jpa.open-in-view is enabled by default. Therefore, database
+      queries may be performed during view rendering.
+      ```
+
+      **Open Session In View(OSIV)** は、HTTP リクエストの最初から最後(画面の描画が終わるまで)DB との会話を開きっぱなしにする仕組みで、Spring Boot では既定で有効です。おかげで Controller や Thymeleaf でエンティティの LAZY 関連を触っても LazyInitializationException になりません。
+
+      便利な反面、画面描画の途中で SQL が飛ぶ(N+1 の温床)、リクエスト中ずっと DB 接続を握るので混雑時に接続が足りなくなる、という副作用があります。そのため多くの現場では `spring.jpa.open-in-view=false` にして、必要なデータは Service の中で `join fetch` で取り、DTO に詰め替えてから返す設計にしています。警告が「明示的に設定してね」と言っているのは、この判断を開発者に意識させるためです。
+sts:
+  intro: |
+    STS で Spring Data JPA + H2 のプロジェクトを作り、エンティティと Repository を書いて、起動時にデータを保存・検索します。最後に H2 コンソールでテーブルの中身を自分の目で確かめます。
+    メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Starter Project を作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
+        - **Name** に `jpa-demo`、**Type** は `Maven`、**Packaging** は `Jar`、**Java Version** は `21`
+        - **Group** は `com.example`、**Package** は `com.example.demo`
+
+        **Next**(次へ)を押します。
+    - title: 依存関係を選ぶ
+      detail: |
+        **Spring Boot Version** は本教材と同じ 3.5 系を選びます。検索欄で次の3つを探してチェックを入れ、**Finish**(完了)を押します。
+        - `JPA` → **Spring Data JPA**
+        - `H2` → **H2 Database**
+        - `Web` → **Spring Web**
+
+        右下の進捗バーが消え、**Package Explorer**(パッケージ・エクスプローラー)に `jpa-demo` が出れば成功です(初回は依存のダウンロードに数分かかります)。
+    - title: application.properties に DB の設定を書く
+      detail: |
+        `src/main/resources/application.properties` を開き、次を追記して **Ctrl+S** で保存します。
+
+        ```properties
+        spring.datasource.url=jdbc:h2:file:./data/jpa-demo
+        spring.datasource.username=sa
+        spring.datasource.password=
+        spring.h2.console.enabled=true
+        spring.jpa.hibernate.ddl-auto=update
+        spring.jpa.show-sql=true
+        ```
+
+        ファイルモードの H2 では、Spring Boot は自動でテーブルを作りません(自動で作るのはメモリモードのときだけ)。そのため `ddl-auto=update` を明示しています。
+    - title: エンティティと Repository を作る
+      detail: |
+        `com.example.demo` パッケージを右クリックして **New > Class**(新規 > クラス)で `Department` と `Employee` を作り、解説や演習1と同じアノテーションを付けます(どちらも `public class`、`protected` の引数なしコンストラクタも忘れずに)。
+
+        続けて **New > Interface**(新規 > インターフェース)で `EmployeeRepository` と `DepartmentRepository` を作ります。
+
+        ```java
+        public interface EmployeeRepository
+                extends JpaRepository<Employee, Long> {
+            List<Employee> findByNameContaining(String keyword);
+        }
+        ```
+
+        `DepartmentRepository` は `JpaRepository<Department, Long>` を継承するだけで中身は空で構いません。
+    - title: CommandLineRunner でデータを保存・検索する
+      detail: |
+        `JpaDemoApplication.java`(`@SpringBootApplication` が付いたクラス)に、起動直後に1回動く Bean を追加します。
+
+        ```java
+        @Bean
+        CommandLineRunner demo(DepartmentRepository depts,
+                               EmployeeRepository emps) {
+            return args -> {
+                if (emps.count() == 0) {   // 再起動で二重登録しない
+                    Department dev =
+                        depts.save(new Department("開発部"));
+                    emps.save(new Employee("佐藤", "sato@example.com", dev));
+                    emps.save(new Employee("伊藤", "ito@example.com", dev));
+                    emps.save(new Employee("鈴木", "suzuki@example.com", dev));
+                }
+                emps.findByNameContaining("藤")
+                    .forEach(e -> System.out.println("検索結果: " + e.getName()));
+            };
+        }
+        ```
+
+        import が赤くなったら **Ctrl+Shift+O**(インポートの編成)で整理します。
+    - title: 起動して SQL と検索結果を見る
+      detail: |
+        プロジェクトを右クリックして **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選びます(**Boot Dashboard** から起動しても同じです)。
+        **Console**(コンソール)に `create table employees ...`、`insert into employees ...`、`select ... where e1_0.name like ? escape '\'` のような SQL が流れ、最後に `検索結果: 佐藤` と `検索結果: 伊藤` が出れば成功です。
+        Repository の実装クラスを1行も書いていないのに、SQL が作られていることを確かめてください。
+    - title: H2 コンソールでテーブルの中身を見る
+      detail: |
+        アプリを起動したまま、ブラウザで `http://localhost:8080/h2-console` を開きます。ログイン画面で
+        - **JDBC URL** を `jdbc:h2:file:./data/jpa-demo`(application.properties と同じ)に書き換える
+        - **User Name** は `sa`、**Password** は空
+
+        **Connect** を押し、`SELECT * FROM EMPLOYEES;` を実行します。3行が表示され、`DEPARTMENT_ID` 列に部署の id が入っていれば成功です。
+        JDBC URL を既定の `jdbc:h2:~/test` のまま接続すると、空の別 DB に繋がってテーブルが見えないので注意してください。
+    - title: 落とし穴を体験する
+      detail: |
+        1. 停止(Console の赤い四角 **Terminate** ボタン)して再起動し、データが消えずに残っている(insert が流れない)ことを確認します。プロジェクト直下の `data` フォルダ(**F5** で表示を更新)に `jpa-demo.mv.db` ができています。
+        2. `forEach` の出力を `e.getName() + " / " + e.getDepartment().getName()` に変えて起動すると、`LazyInitializationException: could not initialize proxy ... - no Session` で落ちます。CommandLineRunner はトランザクションの外なので、検索が終わった時点でセッションが閉じているからです。
+        3. Repository に `@Query("select e from Employee e join fetch e.department where e.name like %:keyword%")` を付けたメソッドを追加して使うと、部署名も表示できます。Console の SQL に `join departments` が入っていることを確かめましょう。
+        4. 最後に `findByNameContaining` を `findByNmaeContaining` に変えて起動し、`No property 'nmae' found` で起動に失敗することを見ておきます(確認したら元に戻す)。
+checklist:
+  - key: jpa-project
+    text: Spring Starter Project で Spring Data JPA・H2 Database・Spring Web を選んだプロジェクトを作成できた
+  - key: jpa-entity-repo
+    text: エンティティ(@Entity・@Id・@ManyToOne)と JpaRepository を継承した Repository を作り、実装クラスなしで save と派生クエリが動いた
+  - key: jpa-show-sql
+    text: show-sql の出力で、派生クエリから作られた SQL(where ... like ?)を Console で確認した
+  - key: jpa-h2-console
+    text: /h2-console に JDBC URL を合わせて接続し、SELECT * FROM EMPLOYEES でデータを確認した
+  - key: jpa-file-mode
+    text: 再起動してもデータが残ること(H2 ファイルモード)を確認し、ddl-auto を本番で update にしない理由を説明できる
+  - key: jpa-lazy
+    text: LazyInitializationException を発生させ、join fetch の @Query で解消できた
+  - key: jpa-typo
+    text: 派生クエリのプロパティ名を間違えると、起動時に No property ... found で失敗することを確認した

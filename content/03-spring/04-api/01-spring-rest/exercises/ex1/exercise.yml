@@ -1,0 +1,29 @@
+title: 在庫照会 API(一覧と個別取得)
+className: InventoryController
+difficulty: 1
+libraries: [spring]
+problem: |
+  倉庫の在庫を JSON で返す REST API を完成させてください。データは Controller の中の `Map` に最初から入っています。
+
+  | リクエスト | レスポンス |
+  |---|---|
+  | `GET /api/items` | `200` と全商品の配列(商品コード順) |
+  | `GET /api/items?inStock=true` | `200` と在庫 1 個以上の商品だけの配列 |
+  | `GET /api/items/B-010` | `200` と商品1件の JSON |
+  | `GET /api/items/Z-999` | `404`(本文なし) |
+
+  JSON の例(`GET /api/items/B-010`):
+
+  ```json
+  {"code":"B-010","name":"クリアファイル","stock":35}
+  ```
+
+  やること:
+  - `list` に `@GetMapping` を付け、引数 `inStock` を `@RequestParam(defaultValue = "false")` で受け取る。`true` なら `stock > 0` の商品だけ返す
+  - `find` に `@GetMapping("/{code}")` を付け、引数を `@PathVariable` で受け取る。見つからなければ `ResponseEntity.notFound().build()`、見つかれば `ResponseEntity.ok(...)`
+    (`ResponseEntity.of(Optional)` を使ってもOK)
+
+  `Item` は record なので、Jackson が `code` / `name` / `stock` という名前の JSON に自動で変換してくれます。
+
+  **STS で書くなら**:`com.example.inventory.Item`(Item.java)と `com.example.inventory.InventoryController`(InventoryController.java)の2ファイルに分けます。
+  採点用に1ファイルにまとめているだけで、中身は同じです。テストは `MockMvcBuilders.standaloneSetup(new InventoryController())` で HTTP リクエストを再現して確かめます。

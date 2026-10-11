@@ -1,0 +1,38 @@
+title: タスクを登録する POST(201 + Location)
+className: TaskController
+difficulty: 2
+libraries: [spring]
+problem: |
+  タスク管理 API に「登録」を追加します。`GET /api/tasks/{id}`(1件取得)はもう動いています。
+  `POST /api/tasks` を完成させてください。
+
+  **リクエスト**
+
+  ```text
+  POST /api/tasks
+  Content-Type: application/json
+
+  {"title":"請求書を送る"}
+  ```
+
+  **成功したときのレスポンス**
+
+  ```text
+  HTTP/1.1 201 Created
+  Location: /api/tasks/1
+  Content-Type: application/json
+
+  {"id":1,"title":"請求書を送る","done":false}
+  ```
+
+  ルール:
+  - 本文の JSON は `@RequestBody CreateTaskRequest req` で受け取る
+  - ID は `seq.incrementAndGet()` で 1, 2, 3… と採番し、`done` は `false` で `store` に保存する
+  - ステータスは **201 Created**、`Location` ヘッダに作ったタスクの URL(`/api/tasks/{id}`)を入れ、本文に作ったタスクを返す。
+    `ResponseEntity.created(URI.create(...)).body(...)` を使う
+    (`ServletUriComponentsBuilder` で `http://localhost/api/tasks/1` のような絶対URLにしてもOK。テストは末尾が `/api/tasks/1` かを見ます)
+  - `title` が `null` または空白だけ(`isBlank()`)なら、何も保存せずに **400 Bad Request**(本文なし)を返す。
+    `ResponseEntity.badRequest().build()` を使う(入力チェックのちゃんとしたやり方は次のレッスン「例外ハンドリング」で扱います)
+
+  **STS で書くなら**:`Task` と `CreateTaskRequest` は `com.example.todo.task` パッケージにそれぞれ別ファイル、
+  `TaskController` も同じパッケージの TaskController.java に置きます。

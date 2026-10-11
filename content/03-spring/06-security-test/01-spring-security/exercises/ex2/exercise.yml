@@ -1,0 +1,38 @@
+title: ソルト付きハッシュでパスワードを保存する
+className: PasswordHasher
+difficulty: 3
+problem: |
+  パスワードを「平文で保存しない」仕組みを、`java.security.MessageDigest`(SHA-256)とソルトで体験します。
+  **本番では自作せず、Spring Security の `BCryptPasswordEncoder` を使います**(理由は下の注意)。ここでは中で何が起きているかを知るのが目的です。
+
+  `encode(raw, salt)`(結果を `"ソルト$ハッシュ"` の形に整える部分)は完成しています。次の3つを実装してください。
+
+  **1. `static byte[] digest(String raw, byte[] salt)`**
+
+  1. `md.update(salt)` でソルトを先に入れ、`md.digest(raw の UTF-8 バイト列)` で1回目のハッシュを得る
+  2. その結果を `md.digest(...)` にかけ直すことを繰り返し、**合計 `ITERATIONS`(1000)回** 計算する(ストレッチング)
+
+  **2. `String encode(String raw)`**
+
+  `SALT_BYTES`(16)バイトのソルトを `SecureRandom` で作り、`encode(raw, salt)` を返します。
+  同じパスワードでも毎回違う文字列になります。
+
+  **3. `boolean matches(String raw, String stored)`**
+
+  `stored` を `$` の位置でソルトとハッシュに分けて Base64 から戻し、**保存値のソルトで計算し直して** 比べます。
+
+  ```java
+  PasswordHasher h = new PasswordHasher();
+  String s = h.encode("haru-pass"); // 例: "q3V0...==$9fK2...="
+  h.matches("haru-pass", s);        // true
+  h.matches("Haru-pass", s);        // false
+  h.matches("haru-pass", "abc");    // false(例外にしない)
+  ```
+
+  注意:
+  - `stored.split("$")` は **分割できません**。`split` の引数は正規表現で、`$` は「行末」を意味するからです。`indexOf('$')` か `split("\\$")` を使います。
+  - バイト列の比較は `MessageDigest.isEqual` で。`Arrays.equals` は最初に違うバイトで止まるため、かかる時間から一致した長さを推測される余地があります。
+  - `raw` や `stored` が `null`、`$` が無い、Base64 として不正(`decode` が `IllegalArgumentException`)なときは `false` を返します。
+
+  **なぜ本番は BCrypt なのか**:SHA-256 は「速く計算できる」ように作られたハッシュなので、1000 回繰り返しても GPU で大量に総当たりできてしまいます。
+  BCrypt(や Argon2)は **わざと遅く、計算コストを後から上げられる** パスワード専用の方式です。

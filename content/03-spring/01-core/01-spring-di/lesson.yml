@@ -1,3 +1,396 @@
 id: spring-di
 title: DIとIoCコンテナ
-status: planned
+status: ready
+minutes: 15
+summary: new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。
+goals:
+  - 依存を自分で new するコードの問題点(テストしにくい・差し替えられない)を説明できる
+  - 素の Java でコンストラクタに依存を渡す「手動 DI」を書ける
+  - "@Component 系のアノテーションと @Configuration + @Bean で Bean を登録し、AnnotationConfigApplicationContext から取り出せる"
+  - コンストラクタインジェクションが推奨される理由を、フィールドインジェクションと比べて説明できる
+  - "同じ型の Bean が複数あるときに @Primary / @Qualifier で選べ、Bean が singleton であることの注意点を説明できる"
+samples:
+  - title: 手動 DI とコンテナ DI を見比べる
+    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。コンテナもコンストラクタを呼んでいることが出力で分かります。
+    libraries: [spring]
+    code: |
+      import org.springframework.context.annotation.*;
+      import org.springframework.stereotype.*;
+
+      // 依存される側(部品):インターフェースと実装
+      interface MailSender {
+          String send(String to, String body);
+      }
+
+      @Component
+      class LogMailSender implements MailSender {
+          public String send(String to, String body) {
+              return "[LOG] " + to + " へ送信: " + body;
+          }
+      }
+
+      // 依存する側:部品はコンストラクタで受け取る(1つなら @Autowired 不要)
+      @Service
+      class OrderService {
+          private final MailSender mail;
+
+          OrderService(MailSender mail) {
+              this.mail = mail;
+              System.out.println("OrderService を new した(部品: "
+                      + mail.getClass().getSimpleName() + ")");
+          }
+
+          void placeOrder(String user, String item) {
+              System.out.println(mail.send(user, item + " のご注文を承りました"));
+          }
+      }
+
+      System.out.println("--- ① 手動で組み立て(素の Java の DI)---");
+      var manual = new OrderService(new LogMailSender());
+      manual.placeOrder("haru@example.com", "コーヒー豆");
+
+      System.out.println("--- ② IoC コンテナに組み立てを任せる ---");
+      // ここを変えてみよう:LogMailSender.class を消して実行すると?(部品が無くて起動失敗)
+      var ctx = new AnnotationConfigApplicationContext(
+              LogMailSender.class, OrderService.class);
+      OrderService s = ctx.getBean(OrderService.class);
+      s.placeOrder("moka@example.com", "ドリップバッグ");
+      System.out.println("もう一度 getBean しても同じもの? "
+              + (s == ctx.getBean(OrderService.class)));
+      ctx.close();
+  - title: "@Configuration + @Bean と、@Primary / @Qualifier"
+    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`@Bean` の Bean 名はメソッド名です。
+    libraries: [spring]
+    code: |
+      import org.springframework.beans.factory.annotation.*;
+      import org.springframework.context.annotation.*;
+      import org.springframework.stereotype.*;
+
+      interface Notifier {
+          String send(String message);
+      }
+
+      // ライブラリのクラスのつもり(アノテーションは付いていない)
+      class MailNotifier implements Notifier {
+          private final String from;
+          MailNotifier(String from) { this.from = from; }
+          public String send(String m) { return "メール(" + from + "): " + m; }
+      }
+
+      class SlackNotifier implements Notifier {
+          private final String channel;
+          SlackNotifier(String channel) { this.channel = channel; }
+          public String send(String m) { return "Slack(" + channel + "): " + m; }
+      }
+
+      // @Bean メソッドの戻り値が Bean になる。Bean 名はメソッド名
+      @Configuration
+      class NotifyConfig {
+          @Bean
+          @Primary  // ここを変えてみよう:@Primary を消すと起動時にエラー
+          Notifier mailNotifier() {
+              return new MailNotifier("noreply@example.com");
+          }
+
+          @Bean
+          Notifier slackNotifier() {
+              return new SlackNotifier("#alert");
+          }
+      }
+
+      @Service
+      class ReportService {  // 特に指定なし → @Primary が選ばれる
+          private final Notifier notifier;
+          ReportService(Notifier notifier) { this.notifier = notifier; }
+          void send() { System.out.println(notifier.send("月次レポートです")); }
+      }
+
+      @Service
+      class AlertService {   // 名前で指定 → @Primary より優先
+          private final Notifier notifier;
+          // ここを変えてみよう:"slackNotifier" を "mailNotifier" に
+          AlertService(@Qualifier("slackNotifier") Notifier notifier) {
+              this.notifier = notifier;
+          }
+          void send() { System.out.println(notifier.send("CPU 使用率 95%!")); }
+      }
+
+      var ctx = new AnnotationConfigApplicationContext(
+              NotifyConfig.class, ReportService.class, AlertService.class);
+      ctx.getBean(ReportService.class).send();
+      ctx.getBean(AlertService.class).send();
+      System.out.println("Notifier の Bean: "
+              + ctx.getBeansOfType(Notifier.class).keySet());
+      ctx.close();
+  - title: singleton の Bean に状態を持たせると事故る
+    description: Bean は既定で singleton(コンテナに1個)。フィールドに合計金額を持つと、別のユーザーの分まで足されてしまいます。`@Scope("prototype")` を付けると毎回別インスタンスになることも確かめましょう。
+    libraries: [spring]
+    code: |
+      import org.springframework.context.annotation.*;
+      import org.springframework.stereotype.*;
+
+      // ダメな例:Bean のフィールドに「ユーザーごとの状態」を持っている
+      @Service
+      class BadCartService {
+          private int total;  // 全員で共有される!
+
+          int add(String user, int price) {
+              total += price;
+              return total;
+          }
+      }
+
+      // 良い例:状態は持たず、引数で受け取って結果を返す(ステートレス)
+      @Service
+      class GoodCartService {
+          int add(int currentTotal, int price) {
+              return currentTotal + price;
+          }
+      }
+
+      // ここを変えてみよう:BadCartService の上に @Scope("prototype") を付けると?
+      var ctx = new AnnotationConfigApplicationContext(
+              BadCartService.class, GoodCartService.class);
+
+      // 別々のユーザーのつもりで、それぞれ getBean する
+      BadCartService forHaru = ctx.getBean(BadCartService.class);
+      BadCartService forMoka = ctx.getBean(BadCartService.class);
+      System.out.println("同じインスタンス? " + (forHaru == forMoka));
+      System.out.println("ハル: 1000円の本 → 合計 " + forHaru.add("haru", 1000));
+      System.out.println("モカ:  500円の豆 → 合計 " + forMoka.add("moka", 500));
+      System.out.println("ハル: 200円のペン → 合計 " + forHaru.add("haru", 200));
+
+      GoodCartService good = ctx.getBean(GoodCartService.class);
+      int haruTotal = good.add(0, 1000);   // 状態は呼び出し側(本物ならセッションやDB)
+      int mokaTotal = good.add(0, 500);
+      haruTotal = good.add(haruTotal, 200);
+      System.out.println("ステートレス版 → ハル " + haruTotal + "円 / モカ " + mokaTotal + "円");
+      ctx.close();
+quiz:
+  - question: |
+      次のクラスを、テストコードで `new OrderService().placeOrder("本")` と呼び出しました。どうなる?
+      ```java
+      @Service
+      class OrderService {
+          @Autowired
+          private MailSender mail;
+
+          void placeOrder(String item) {
+              mail.send(item + " を注文しました");
+          }
+      }
+      ```
+    choices: ["@Autowired が効いて MailSender が自動で入り、正常に動く", "コンパイルエラーになる", "mail が null のままなので NullPointerException になる", "NoSuchBeanDefinitionException になる"]
+    answer: 2
+    explanation: |
+      `@Autowired` で値を入れるのは **IoC コンテナ** です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
+      コンパイルは問題なく通ります。`NoSuchBeanDefinitionException` はコンテナが Bean を探して見つからなかったときの例外で、コンテナを使っていないここでは出ません。
+      コンストラクタインジェクションにしておけば、`new OrderService(偽物)` と依存を渡すしかないので、この事故は起きません。
+  - question: |
+      次の3クラスを `new AnnotationConfigApplicationContext(Smtp.class, Log.class, Shop.class)` で登録しました。どうなる?
+      ```java
+      interface Sender { void send(String s); }
+
+      @Component
+      class Smtp implements Sender { public void send(String s) { } }
+
+      @Component
+      class Log implements Sender { public void send(String s) { } }
+
+      @Service
+      class Shop {
+          Shop(Sender sender) { }
+      }
+      ```
+    choices: ["NoUniqueBeanDefinitionException(候補が2つ)で起動に失敗する", "先に登録した Smtp が注入される", "後に登録した Log が注入される", "sender に null が渡される"]
+    answer: 0
+    explanation: |
+      `Sender` 型の Bean が2つあり、どちらを渡すべきかコンテナには決められないので、`expected single matching bean but found 2: smtp,log` というエラーで起動に失敗します。登録順で勝手に選ばれることはありません。
+      解決するには、どちらかに `@Primary` を付けるか、`Shop` のコンストラクタ引数に `@Qualifier("smtp")` のように Bean 名を指定します。
+  - question: |
+      次のコードの出力は?
+      ```java
+      @Service
+      class Counter {
+          private int count;
+          int next() { return ++count; }
+      }
+
+      var ctx = new AnnotationConfigApplicationContext(Counter.class);
+      Counter a = ctx.getBean(Counter.class);
+      Counter b = ctx.getBean(Counter.class);
+      a.next();
+      b.next();
+      System.out.println(a.next() + " " + (a == b));
+      ```
+    choices: ["2 false", "1 false", "2 true", "3 true"]
+    answer: 3
+    explanation: |
+      Bean の既定スコープは **singleton** なので、`getBean` は何度呼んでも同じインスタンスを返します。`a` と `b` は同じオブジェクトで `a == b` は `true`。
+      `a.next()`(1)→ `b.next()`(2、同じ count を増やす)→ `a.next()`(3)なので `3 true` です。
+      `@Scope("prototype")` を付けると毎回新しいインスタンスになり、`2 false` になります。Web アプリでこの「共有される状態」を持つと、他のユーザーのデータが混ざる事故になります。
+  - question: |
+      次の設定で、`AuditService` に注入されるのはどれ?
+      ```java
+      @Component @Primary
+      class SmtpSender implements Sender { ... }
+
+      @Component("logSender")
+      class LogSender implements Sender { ... }
+
+      @Service
+      class AuditService {
+          AuditService(@Qualifier("logSender") Sender sender) { ... }
+      }
+      ```
+    choices: ["SmtpSender(@Primary が最優先)", "LogSender(@Qualifier の指定が優先)", "候補が2つなので起動エラー", "両方が List で渡される"]
+    answer: 1
+    explanation: |
+      `@Qualifier` は注入する側で「この名前の Bean をくれ」と指定するもので、まず候補をその名前に絞り込みます。`@Primary` は「候補が複数残ったときの既定」なので、`@Qualifier` で1つに絞られた時点で出番はありません。よって `LogSender` です。
+      `@Qualifier` が無い引数には `@Primary` の `SmtpSender` が入ります。複数まとめて欲しいときは、引数の型を `List<Sender>` や `Map<String, Sender>` にします。
+  - question: |
+      ライブラリが提供している `JsonMapper` クラス(ソースは変更できない)を、設定値を渡して作り、Bean として登録したい。最も適切な方法は?
+    choices: ["JsonMapper クラスに @Component を付ける", "使う側のフィールドに @Autowired を付ければ自動で作られる", "@Configuration クラスに、JsonMapper を new して返す @Bean メソッドを書く", "使う側のコンストラクタの中で new JsonMapper(...) する"]
+    answer: 2
+    explanation: |
+      ソースを変更できないクラスにはアノテーションを付けられません。`@Configuration` クラスの `@Bean` メソッドで `new` して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。
+      `@Autowired` は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(`NoSuchBeanDefinitionException`)。使う側で `new` するのは、まさに DI をやめて元の「new だらけ」に戻る書き方です。
+columns:
+  - type: trivia
+    title: IoC は「ハリウッドの原則」
+    body: |
+      IoC(制御の反転)は、昔から **ハリウッドの原則**(Hollywood Principle)とも呼ばれます。オーディションに来た役者に言う決まり文句「Don't call us, we'll call you.(こちらから電話するから、そっちからはかけてこないで)」が由来です。
+
+      普通のプログラムは「自分が」ライブラリを呼びます。フレームワークでは逆に「フレームワークが」あなたのコードを呼びます。JUnit もそうで、あなたは `@Test` メソッドを書くだけ。いつ `new` して、いつ呼ぶかは JUnit が決めています。
+
+      「DI」という言葉は、2004年に Martin Fowler が記事「Inversion of Control Containers and the Dependency Injection pattern」で名付けました。「IoC という言葉は広すぎる。依存を注入する部分に名前を付けよう」というのが動機です。Spring の初版(1.0)が出たのも同じ2004年です。
+  - type: genba
+    title: コンストラクタを書くのが面倒? 現場は Lombok に任せがち
+    body: |
+      依存が4つ5つになると、`private final` フィールドとそれを代入するだけのコンストラクタを書くのが面倒になります。そこで現場では **Lombok** の `@RequiredArgsConstructor` がよく使われます。
+
+      ```java
+      @Service
+      @RequiredArgsConstructor  // final フィールドを受け取るコンストラクタを自動生成
+      class OrderService {
+          private final OrderRepository repo;
+          private final MailSender mail;
+      }
+      ```
+
+      コンパイル時にコンストラクタが生成されるので、中身は普通のコンストラクタインジェクションです。ただし「依存が増えても見た目が増えない」ので、気づいたら依存が10個…ということも。コンストラクタの引数が多すぎるのは **クラスが仕事を抱えすぎているサイン** です。Lombok を使っても、その感覚は持っておきましょう。
+  - type: mistake
+    title: 「Bean が見つからない」の9割はアノテーションの付け忘れ
+    body: |
+      Spring Boot の起動時に、こんなエラーで止まることがあります。
+
+      ```text
+      APPLICATION FAILED TO START
+      Parameter 0 of constructor in com.example.demo.OrderService
+      required a bean of type 'com.example.demo.MailSender'
+      that could not be found.
+      ```
+
+      「`OrderService` のコンストラクタの0番目の引数に渡す `MailSender` 型の Bean が無い」という意味です。まず疑うのは次の3つ。
+
+      1. 実装クラス(`SmtpMailSender`)に `@Component` / `@Service` を付け忘れていないか
+      2. インターフェース側にだけアノテーションを付けていないか(Bean になるのは実装クラス)
+      3. 実装クラスが、メインクラスの外のパッケージに置かれていないか(次のレッスンで詳しく)
+sts:
+  intro: |
+    STS で Spring Boot のプロジェクトを作り、`@Service` と `CommandLineRunner` で DI を体験します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    `CommandLineRunner` は「アプリの起動が終わった直後に1回だけ実行される処理」を書くためのインターフェースです(詳しくは次のレッスン)。
+  steps:
+    - title: Spring Starter Project を作る
+      detail: |
+        メニューの **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
+        最初の画面で次のように入力します。
+        - **Name**(名前):`di-demo`
+        - **Type**(タイプ):`Maven`、**Packaging**(パッケージング):`Jar`、**Java Version**(Java バージョン):`21`
+        - **Group**(グループ):`com.example`、**Artifact**(成果物):`di-demo`
+        - **Package**(パッケージ):`com.example.didemo`
+
+        **Next**(次へ)を押すと依存関係(**Dependencies**)の選択画面になります。今回は **何も選ばず** に **Finish**(完了)。
+        初回は Maven が依存ライブラリをダウンロードするので、右下の進捗表示が消えるまで1〜2分待ちます。
+        **Package Explorer**(パッケージ・エクスプローラー)に `di-demo` と `src/main/java` の下の `DiDemoApplication.java` が見えれば成功です。
+    - title: インターフェースと @Service の実装クラスを作る
+      detail: |
+        `com.example.didemo` パッケージを右クリック → **New > Interface**(新規 > インターフェース)で `Greeter` を作り、
+        `String greet(String name);` を1行書きます。
+
+        続けて **New > Class**(新規 > クラス)で `JapaneseGreeter` を作ります。**Interfaces**(インターフェース)欄の **Add...**(追加...)で `Greeter` を選ぶと `implements` 付きで生成されます。
+
+        ```java
+        @Service
+        public class JapaneseGreeter implements Greeter {
+            @Override
+            public String greet(String name) {
+                return "こんにちは、" + name + "さん";
+            }
+        }
+        ```
+
+        `@Service` を打って **Ctrl+Space** で補完すると、`import org.springframework.stereotype.Service;` も自動で入ります。
+        どのクラスも **`DiDemoApplication` と同じパッケージ(またはその下)** に置いてください。
+    - title: CommandLineRunner でコンストラクタインジェクションを使う
+      detail: |
+        同じパッケージに `GreetingRunner` クラスを作ります。
+
+        ```java
+        @Component
+        public class GreetingRunner implements CommandLineRunner {
+            private final Greeter greeter;
+
+            public GreetingRunner(Greeter greeter) {
+                this.greeter = greeter;
+            }
+
+            @Override
+            public void run(String... args) {
+                System.out.println(greeter.greet("ハル"));
+            }
+        }
+        ```
+
+        `import` が足りなくて赤い波線が出たら **Ctrl+Shift+O**(インポートの編成)で一括で入ります。
+        `GreetingRunner` も `JapaneseGreeter` も、どこにも `new` が書かれていないことを確認してください。
+    - title: Spring Boot App として実行する
+      detail: |
+        `DiDemoApplication.java` を右クリック → **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
+        画面左下の **Boot Dashboard**(Boot ダッシュボード)で `di-demo` を選んで ▶(**(Re)start**)を押しても起動できます。
+
+        **Console**(コンソール)ビューに Spring のロゴ(バナー)とログが流れ、その後に `こんにちは、ハルさん` と表示されれば成功です。
+        Web の依存を入れていないので、アプリは処理が終わると自動で終了します(Console に `<terminated>` と出ます)。
+    - title: わざと壊してエラーメッセージを読む
+      detail: |
+        `JapaneseGreeter` の `@Service` をコメントアウトして保存し、もう一度実行します。Console に次のようなエラーが出るはずです。
+
+        ```text
+        APPLICATION FAILED TO START
+        Description:
+        Parameter 0 of constructor in com.example.didemo.GreetingRunner
+        required a bean of type 'com.example.didemo.Greeter'
+        that could not be found.
+        ```
+
+        確認できたら `@Service` を戻します。次に、`Greeter` を実装したクラス `EnglishGreeter`(`"Hello, " + name` を返す、`@Service` 付き)を追加して実行すると、
+        今度は `required a single bean, but 2 were found` で失敗します。
+    - title: "@Primary と @Qualifier で直す"
+      detail: |
+        `EnglishGreeter` に `@Primary` を付けて実行すると `Hello, ハル` に変わります。
+        さらに `GreetingRunner` のコンストラクタ引数を `@Qualifier("japaneseGreeter") Greeter greeter` にすると、`@Primary` より優先されて日本語に戻ります
+        (`@Component` 系の Bean 名は、クラス名の先頭を小文字にしたものです)。
+checklist:
+  - key: manual-di
+    text: new だらけのクラスを、依存をコンストラクタで受け取る形(手動 DI)に書き換えて説明できる
+  - key: sts-starter-project
+    text: STS の File > New > Spring Starter Project で di-demo プロジェクトを作成できた
+  - key: sts-service-runner
+    text: "@Service の実装クラスと CommandLineRunner を作り、Run As > Spring Boot App で Console に挨拶が表示された"
+  - key: no-bean-error
+    text: "@Service を外して「required a bean of type ... that could not be found」のエラーを読み、原因を特定できた"
+  - key: primary-qualifier
+    text: 同じ型の Bean を2つにして起動失敗を確認し、@Primary と @Qualifier でそれぞれ直せた
+  - key: singleton-stateless
+    text: Bean が既定で singleton であることと、フィールドに状態を持たせてはいけない理由を説明できる

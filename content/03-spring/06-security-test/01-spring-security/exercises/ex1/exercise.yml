@@ -1,0 +1,43 @@
+title: URL ごとの関所を作る(簡易 AuthorizationFilter)
+className: UrlAuthorizer
+difficulty: 2
+problem: |
+  Spring Security の `authorizeHttpRequests` がやっている「URL ごとの権限判定」を、素の Java で作ってみます。
+  ルールの登録メソッド(`permitAll` / `authenticated` / `hasRole`)は完成しています。次の2つを実装してください。
+
+  **1. `static boolean matches(String pattern, String path)`**
+
+  | pattern | 一致する path | 一致しない path |
+  |---|---|---|
+  | `/login` | `/login` | `/login/x` |
+  | `/admin/**` | `/admin`、`/admin/users/3` | `/administrator` |
+  | `/**` | すべて | なし |
+
+  `/**` で終わるパターンは「その手前の部分そのもの」か「その手前 + `/` で始まる URL」に一致します。それ以外は完全一致です。
+
+  **2. `Decision check(String path, LoginUser user)`**(`user` が `null` なら未ログイン)
+
+  登録順にルールを見て、**最初に一致したルールだけ** で決めます。
+
+  - `PERMIT_ALL` → `ALLOW`(未ログインでも)
+  - 未ログイン → `LOGIN_REQUIRED`(ログイン画面へ)
+  - `AUTHENTICATED` → `ALLOW`
+  - `HAS_ROLE` → `user.authorities()` に `"ROLE_" + role` があれば `ALLOW`、なければ `FORBIDDEN`(403)
+  - どのルールにも一致しない → 未ログインなら `LOGIN_REQUIRED`、ログイン済みなら `FORBIDDEN`
+
+  ```java
+  UrlAuthorizer auth = new UrlAuthorizer()
+          .permitAll("/", "/login", "/css/**")
+          .hasRole("/admin/**", "ADMIN")
+          .authenticated("/**");
+  auth.check("/orders", null);       // LOGIN_REQUIRED
+  auth.check("/admin/users", haru);  // FORBIDDEN(ROLE_USER のみ)
+  auth.check("/admin/users", mocha); // ALLOW(ROLE_ADMIN あり)
+  ```
+
+  ヒント:
+  - 「未ログイン」と「権限不足」は別の結果です。前者は **認証** の失敗、後者は **認可** の失敗。
+  - 本物の Spring Security でも、`hasRole("ADMIN")` は権限 `ROLE_ADMIN` を探します。
+
+  ※ STS で書くなら、`Decision` などは `com.example.demo.security` パッケージに別ファイルで置くところを、採点用に1ファイルにまとめています。
+  本物のアプリでは自分で書かず、`SecurityFilterChain` の設定で Spring Security に任せます。

@@ -1,3 +1,235 @@
 id: tools-maven
 title: Maven(pom.xml・依存関係・ライフサイクル)
-status: planned
+status: ready
+minutes: 15
+summary: このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。
+goals:
+  - pom.xml の座標(groupId / artifactId / version)・parent・properties・dependencies・build/plugins を読んで意味を説明できる
+  - Spring Boot の parent がバージョンを管理する仕組みを理解し、version を書くべき依存と書かない依存を区別できる
+  - スコープ(compile / runtime / test / provided)と推移的依存を説明し、dependency:tree で依存の出どころを調べられる
+  - ライフサイクルの順番(validate → compile → test → package → install)を理解し、./mvnw clean test などを使い分けられる
+  - STS で Maven build... / Update Project / Dependency Hierarchy を使い、ダウンロード失敗やバージョン衝突に対処できる
+samples: []
+quiz:
+  - question: |
+      `pom.xml` に次の依存があります。`src/main/java` のクラスで `import org.h2.Driver;` と書いて `./mvnw compile` すると、どうなる?
+      ```xml
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <scope>runtime</scope>
+      </dependency>
+      ```
+    choices:
+      - 問題なくコンパイルできる
+      - テストコード(src/test/java)からなら使えるので、警告だけ出てコンパイルできる
+      - コンパイルエラーになる
+      - コンパイルは通り、実行時に ClassNotFoundException になる
+    answer: 2
+    explanation: |
+      **runtime** スコープの jar は、テストと実行時のクラスパスには載りますが、**本体(src/main)のコンパイル時のクラスパスには載りません**。そのため `package org.h2 does not exist`(パッケージ org.h2 は存在しません)というコンパイルエラーになります。
+      これは「DB ドライバのクラスを直接使わず、JDBC / JPA の標準インターフェース越しに使え」という設計をビルドで強制してくれる仕組みです。
+      警告で済むことはありません。実行時に ClassNotFoundException になるのは、逆に **provided** の jar を実行環境が用意していなかった場合などです。
+  - question: |
+      次の `pom.xml` を `./mvnw compile` したときの結果として正しいのは?
+      ```xml
+      <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+      </parent>
+      ...
+      <dependencies>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>org.commonmark</groupId>
+          <artifactId>commonmark</artifactId>
+        </dependency>
+      </dependencies>
+      ```
+    choices:
+      - "starter-web は parent のバージョン表から補われるが、commonmark は「version is missing」のエラーになる"
+      - 両方とも parent が version を補うので成功する
+      - version を省略すると Maven Central の最新版が自動で使われるので成功する
+      - 両方とも version が無いのでエラーになる
+    answer: 0
+    explanation: |
+      Spring Boot の parent が持つ **dependencyManagement**(推奨バージョン表)に載っているライブラリだけ、version を省略できます。starter-web は当然載っていますが、commonmark は載っていないので
+      `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの pom.xml で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
+      Maven は「version 省略なら最新版」という動きはしません。同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
+  - question: |
+      `./mvnw install` を実行したところ、テストが1件失敗しました。このとき起きることとして正しいのは?
+    choices:
+      - test フェーズは失敗扱いだが、package と install は続けて実行される
+      - 失敗したテストだけ飛ばして、jar が作られる
+      - install は「登録」だけなので、コンパイルもテストも行われない
+      - test フェーズで止まり、jar は作られず ~/.m2 への登録もされない
+    answer: 3
+    explanation: |
+      フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら validate → compile → test → package → verify → install の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
+      「テストが落ちたものは jar にしない」のが Maven の安全装置です。テストを飛ばす `-DskipTests` というオプションもありますが、「落ちるから飛ばす」は現場では御法度です。
+  - question: |
+      `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では util を管理していないものとします)
+      ```text
+      com.example:shop:jar:1.0
+      +- com.example:a:jar:1.0:compile
+      |  \- com.example:b:jar:1.0:compile
+      |     \- com.example:util:jar:3.0:compile
+      \- com.example:c:jar:1.0:compile
+         \- com.example:util:jar:2.0:compile
+      ```
+    choices:
+      - 3.0(新しい方が勝つ)
+      - 2.0(木の根に近い方が勝つ)
+      - 両方がクラスパスに載る
+      - バージョン衝突のエラーでビルドが止まる
+    answer: 1
+    explanation: |
+      Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。util 3.0 は shop → a → b → util の3段目、util 2.0 は shop → c → util の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
+      「新しい方が勝つ」わけではないので、b が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
+      同じ groupId:artifactId の jar が2つ同時に載ることはありませんし、Maven は衝突をエラーにもしません(黙って片方を選ぶ)。だから dependency:tree で確認する習慣が大事です。
+  - question: |
+      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for switch(`case Integer i ->`)を使っています。結果は?
+      ```xml
+      <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+      </parent>
+      <properties>
+        <java.version>17</java.version>
+      </properties>
+      ```
+    choices:
+      - JDK 21 で動かしているので問題なくコンパイルできる
+      - コンパイルは通るが、実行時に UnsupportedClassVersionError になる
+      - コンパイルエラーになる
+      - properties は単なるメモなので、ビルド結果に影響しない
+    answer: 2
+    explanation: |
+      Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル** するので、Java 21 で正式化された機能は
+      `patterns in switch statements are not supported in -source 17` のようなエラーになります。
+      ちなみに Boot 3.5 の parent の既定値は 17 なので、`<java.version>21</java.version>` の行を消しても同じことが起きます。このアプリの pom.xml にこの行があるのはそのためです。
+      properties は `${...}` で参照される変数であり、プラグインの設定にも使われるので、ビルド結果に直接効きます。
+columns:
+  - type: genba
+    title: anthropic-java は Jackson 2.19.4 が欲しいのに、入るのは 2.21.4
+    body: |
+      Claude API の SDK(`anthropic-java-core` 2.71.0)の POM には、JSON ライブラリ Jackson を **2.19.4** で使うと書いてあります。ところがこのアプリの `dependency:tree` では **2.21.4** です。
+
+      ```text
+      +- com.anthropic:anthropic-java:jar:2.71.0:compile
+      |  +- ...anthropic-java-core:jar:2.71.0:compile
+      |  |  +- com.fasterxml.jackson.module:
+      |  |  |    jackson-module-kotlin:jar:2.21.4:runtime
+      ```
+
+      Boot の parent の **dependencyManagement** が Jackson を 2.21.4 に決めていて、これが推移的依存の版にも効くからです。おかげで Spring 側と SDK 側の Jackson が1つの版にそろいます。
+
+      版を変えたいときは `<h2.version>` のような Boot のプロパティを自分の `<properties>` で上書きしますが、それは「未検証の組み合わせ」への一歩。現場ではセキュリティ修正など理由があるときだけです。
+  - type: mistake
+    title: 「~/.m2 を全部消したら直った」は半分だけ正解
+    body: |
+      ダウンロードが途中で切れると、壊れた jar が `.m2` に残り、ビルドのたびにこんなエラー(どちらも「jar が壊れている」の意味)が出ます。
+
+      ```text
+      error reading ...\.m2\repository\...\xxx.jar;
+        zip file is empty
+      ```
+
+      ```text
+      invalid LOC header (bad signature)
+      ```
+
+      定番アドバイスは「`.m2` を丸ごと消せ」。直りはしますが、何百もの jar を全部取り直すので社内プロキシ環境では数十分かかり、原因(プロキシ設定など)が残っていればまた壊れます。
+
+      正しい手順は、エラーメッセージに出ている **そのライブラリのフォルダだけ** を消して(例:`.m2\repository\com\h2database\h2\2.3.232`)、`./mvnw -U clean test` か STS の **Maven > Update Project...** で **Force Update of Snapshots/Releases** にチェックを入れて取り直すことです。`.lastUpdated` という拡張子のファイルが並んでいたら、それが「前回ダウンロードに失敗した」印です。
+  - type: trivia
+    title: src/main/java という謎の階層は Maven が決めた
+    body: |
+      Java のプロジェクトはなぜか `src/main/java`、`src/main/resources`、`src/test/java` という深いフォルダ構成になっています。これは Java の決まりではなく、**Maven が決めた「標準ディレクトリレイアウト」** です。
+
+      Maven 以前の主流だった Ant では、`build.xml` に「どこのソースを、どの順で、どこへコンパイルするか」を全部手続きとして書いていました。プロジェクトごとに構成がバラバラで、新しい現場に行くたびにビルドを読み解く必要があったのです。
+
+      2004年に 1.0 が出た Maven は「**設定より規約(Convention over Configuration)**」を掲げ、フォルダ構成もライフサイクルも決め打ちにしました。だから pom.xml にソースの場所を一切書かなくてもビルドできます。後発の Gradle もこの構成を引き継いだので、今ではどのツールでも同じ場所にソースがあります。成果物が出る `target/` もこの規約の一部で、「消してもビルドすれば元に戻るもの」という意味を持っています(だから Git には入れません)。
+sts:
+  intro: |
+    このアプリ(java-dojo)を STS に Maven プロジェクトとしてインポート済みの前提で、pom.xml の読み方と Maven の操作を STS 上で体験します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    **Maven のビルドを実行する前に、アプリは停止しておいてください**(`clean` が実行中のアプリの `target/` を消してしまうため)。
+  steps:
+    - title: pom.xml を POM エディタで開く
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `java-dojo` 直下の `pom.xml` をダブルクリックします。
+        エディタ下部に **Overview / Dependencies / Dependency Hierarchy / Effective POM / pom.xml**(概要 / 依存関係 / 依存関係階層 / 有効 POM / pom.xml)のタブが並びます。
+        **pom.xml** タブで XML のソースを開き、本文で読んだ `<parent>`・`<properties>`・`<dependencies>`・`<build>` を探してください。
+        **Effective POM** タブを開くと、parent から継承した設定まで全部展開された「実際に使われる POM」が見られます(数千行あるので、`Ctrl+F` で `maven.compiler.release` を検索し、`21` になっていれば成功)。
+    - title: Dependency Hierarchy で依存の出どころを調べる
+      detail: |
+        **Dependency Hierarchy**(依存関係階層)タブを開きます。左が依存の木(`dependency:tree` の GUI 版)、右の **Resolved Dependencies**(解決された依存関係)が最終的に使われる jar の一覧です。
+        右上のフィルタ欄に `jackson-databind` と入力すると、左の木で「誰が持ち込んだか」の経路だけが表示されます。
+        `spring-boot-starter-web > spring-boot-starter-json > jackson-databind` の経路が見え、右の Resolved Dependencies の `jackson-databind` が 2.21.4 なら成功です。
+        `anthropic-java` 側の経路も表示されていたら、もともと要求された版(2.19.4)がどう表示されているかも見てみましょう。
+    - title: Run As > Maven build... で Goals を指定して実行する
+      detail: |
+        プロジェクトを右クリックし、**Run As > Maven build...**(実行 > Maven ビルド...)を選びます(末尾に「...」がある方です。「...」が無い **Maven build** は前回の設定で即実行)。
+        **Edit Configuration**(構成の編集)ダイアログで:
+        - **Name**(名前)に `java-dojo clean test` と入力
+        - **Goals**(ゴール)に `clean test` と入力(コマンドの `./mvnw` の後ろに書く部分と同じ)
+        - **JRE** タブで JDK 21 が選ばれていることを確認
+
+        **Run**(実行)を押すと **Console**(コンソール)に Maven のログが流れます。このアプリはテストで全演習を採点するので数分かかります。
+        最後に `[INFO] BUILD SUCCESS` が出れば成功です。`No compiler is provided in this environment. Perhaps you are running on a JRE rather than a JDK?` と出たら、JRE タブで JDK 21 を選び直してください。
+        2回目からは **Run > Run History**(実行 > 実行履歴)やツールバーの ▶ の横の ▼ から同じ設定を呼び出せます。
+    - title: 依存を1つ追加して、また外す
+      detail: |
+        **pom.xml** タブで `<dependencies>` の中に次を追加して **Ctrl+S** で保存します(commons-lang3 は Boot のバージョン表に載っているので version は書きません)。
+
+        ```xml
+        <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </dependency>
+        ```
+
+        保存すると STS が自動で依存を読み直します(右下に進捗が出ます)。Package Explorer でプロジェクトの **Maven Dependencies**(Maven 依存関係)を開き、`commons-lang3-3.17.0.jar` が増えていれば成功です。
+        確認できたら追加した `<dependency>` を消して保存し、元に戻してください(次のレッスンで学ぶ Git の **Compare With > HEAD Revision** で、元どおりか確かめることもできます)。
+    - title: Maven > Update Project... で STS の認識を合わせ直す
+      detail: |
+        プロジェクトを右クリックし、**Maven > Update Project...**(Maven > プロジェクトの更新...)を選びます(ショートカットは **Alt+F5**)。
+        ダイアログで `java-dojo` にチェックが入っていることを確認し、**OK** を押します。依存のダウンロードに失敗した後なら、**Force Update of Snapshots/Releases**(スナップショット/リリースの更新を強制)にもチェックを入れます。
+        pom.xml を直したのに赤い×が消えない、`Project configuration is not up-to-date with pom.xml` という警告が出ている、といったときの定番の一手です。
+    - title: ローカルリポジトリ(~/.m2)を覗く
+      detail: |
+        エクスプローラーのアドレス欄に `%USERPROFILE%\.m2\repository` と入力して開きます(`.m2` は隠しフォルダ扱いになっていることがあるので、アドレス欄から直接入るのが確実です)。
+        `com\h2database\h2\2.3.232` と降りていき、`h2-2.3.232.jar` と `h2-2.3.232.pom` があれば成功です。座標(groupId / artifactId / version)がそのままフォルダ構成になっていることを確かめてください。
+        `wrapper\dists` の下には、mvnw がダウンロードした Maven 本体も入っています。
+    - title: コマンドラインでも同じことをする
+      detail: |
+        PowerShell でプロジェクトのフォルダ(pom.xml のある場所)に移動し、次を実行します(コマンドプロンプトなら `./` を付けずに `mvnw`)。
+
+        ```text
+        ./mvnw -v
+        ./mvnw dependency:tree
+        ```
+
+        1つ目で `Apache Maven 3.9.11` と `Java version: 21...` が表示され、2つ目で依存の木が表示されれば成功です。
+        STS の **Run As > Maven build...** と、コマンドの `./mvnw` は同じ pom.xml を読むので、どちらでビルドしても同じ結果になります。
+checklist:
+  - key: pom-read
+    text: このアプリの pom.xml で座標・parent・properties・dependencies・build/plugins の5か所を見つけ、version が書かれていない依存と書かれている依存の違いを説明できた
+  - key: dep-hierarchy
+    text: Dependency Hierarchy タブで jackson-databind を検索し、どの依存が持ち込んでいるかを確認した
+  - key: maven-build
+    text: Run As > Maven build... で Goals に clean test を入れて実行し、Console に BUILD SUCCESS が表示された
+  - key: dep-add
+    text: commons-lang3 を version なしで追加して Maven Dependencies に jar が増えるのを確認し、元に戻した
+  - key: update-project
+    text: Maven > Update Project... を実行し、Force Update のチェックボックスの場所を確認した
+  - key: m2-repo
+    text: "%USERPROFILE%\\.m2\\repository で h2 の jar を見つけ、座標とフォルダ構成の対応を確認した"
+  - key: mvnw-cli
+    text: PowerShell で ./mvnw -v と ./mvnw dependency:tree を実行し、Maven 3.9.11 と依存の木が表示された

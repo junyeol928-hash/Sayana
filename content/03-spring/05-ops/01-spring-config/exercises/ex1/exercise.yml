@@ -1,0 +1,33 @@
+title: 送料ルールを設定ファイルから受け取る
+className: ShopConfig
+difficulty: 2
+libraries: [spring]
+problem: |
+  ネットショップの送料ルール(いくら以上で送料無料か、送料はいくらか)を、コードに直書きせず **設定ファイルから受け取る** ようにします。
+  `ShopConfig` の `@Bean` メソッド `shippingPolicy(...)` の引数に `@Value` を付けて、次の設定値を受け取ってください。
+
+  | キー | 受け取る引数 | 既定値(キーが無いとき) |
+  |---|---|---|
+  | `shop.name` | `String name` | `Java道場ストア` |
+  | `shop.shipping.free-threshold` | `int freeThreshold` | `5000` |
+  | `shop.shipping.fee` | `int fee` | `500` |
+
+  受け取った値で `new ShippingPolicy(name, freeThreshold, fee)` を返します。
+  あわせて `ShippingPolicy` の `feeFor(int amount)` を完成させてください。購入金額 `amount` が `freeThreshold` **以上** なら `0`、未満なら `fee` を返します。
+
+  ```yaml
+  # 例:application.yml にこう書いたら、無料ラインが 3000 円・送料 300 円になる
+  shop:
+    shipping:
+      free-threshold: 3000
+      fee: 300
+  ```
+
+  ヒント:
+  - プレースホルダは `"${キー:既定値}"`。既定値に日本語を書いても構いません。
+  - 設定値は文字列(`"3000"`)でも、Spring が引数の型(`int`)に変換してくれます。
+  - `@Value` を付け忘れると、Spring は「`String` 型の Bean」を探しに行き、`No qualifying bean of type 'java.lang.String'` で起動に失敗します。
+
+  採点では、テストが `AnnotationConfigApplicationContext` の `Environment` に設定値(`MapPropertySource`)を足してから `ShopConfig` を登録します。
+  STS の本物のプロジェクトなら `ShopConfig` は `com.example.shop.config` パッケージ、`ShippingPolicy` は `com.example.shop.domain` パッケージのように別ファイルに置き、
+  設定値は `application.yml` に書きます。

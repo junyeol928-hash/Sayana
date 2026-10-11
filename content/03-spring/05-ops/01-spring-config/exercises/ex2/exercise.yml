@@ -1,0 +1,28 @@
+title: 本番以外では本物のメールを送らない(@Profile)
+className: NotifierConfig
+difficulty: 3
+libraries: [spring]
+problem: |
+  会員へのお知らせを送る `Notifier` を、プロファイルで切り替えます。開発中にうっかり本物のお客様へメールを送る事故を防ぐため、
+  **`prod` プロファイルのときだけ** 本物の送信(`SmtpNotifier`)を使い、**それ以外(`dev` のときも、何も指定しないときも)** は送らずに文字列を返すだけの `ConsoleNotifier` を使います。
+
+  `NotifierConfig` の2つの `@Bean` メソッドを完成させてください。
+
+  1. `smtpNotifier(...)`:`prod` のときだけ登録する。SMTP サーバ名を設定 `mail.host` から受け取り(既定値 `localhost`)、`new SmtpNotifier(host)` を返す
+  2. `consoleNotifier()`:`prod` **以外** のときだけ登録する。`new ConsoleNotifier()` を返す
+
+  どの場合も、`Notifier` 型の Bean が **ちょうど1つ** だけ登録されるようにします。
+
+  | 有効なプロファイル | 使われる Notifier |
+  |---|---|
+  | (なし) | `ConsoleNotifier` |
+  | `dev` | `ConsoleNotifier` |
+  | `prod` | `SmtpNotifier`(host は `mail.host` の値) |
+
+  ヒント:
+  - `@Profile("prod")` は「prod が有効なとき」、`@Profile("!prod")` は「prod が有効でないとき」に Bean を登録します。
+  - 設定値の受け取りは前の問題と同じ `@Value("${キー:既定値}")` です。
+
+  採点では、テストが `ctx.getEnvironment().setActiveProfiles(...)` でプロファイルを有効にし、設定値を `MapPropertySource` で足してから `NotifierConfig` を登録します。
+  STS の本物のプロジェクトなら `NotifierConfig` は `com.example.shop.config` パッケージに、`Notifier` と2つの実装は `com.example.shop.notify` パッケージに別ファイルで置きます。
+  プロファイルは `application-prod.yml` を用意し、起動時に `--spring.profiles.active=prod` などで有効にします。

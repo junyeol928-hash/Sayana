@@ -1,3 +1,235 @@
 id: sts-projects
 title: プロジェクトの作成とインポート
-status: planned
+status: ready
+minutes: 15
+summary: Java Project・Maven Project・Spring Starter Project の違いを知り、Spring Boot の雛形を作って Boot Dashboard で起動する。既存プロジェクトのインポート、エラーが消えないときの対処、ポート 8080 の衝突まで。
+goals:
+  - Java Project・Maven Project・Spring Starter Project の違いを、ビルドと依存管理の観点で説明できる
+  - Spring Starter Project を Java 21・Maven・Spring Web で作成し、生成されたフォルダ構成(src/main/java・src/main/resources・pom.xml・mvnw)を読める
+  - 既存の Maven プロジェクトを Existing Maven Projects でインポートできる
+  - .project / .classpath / .settings が何かを知り、Git に入れない理由を説明できる
+  - Maven > Update Project と Project > Clean を使い分け、Boot Dashboard での起動・停止とポート衝突に対処できる
+
+quiz:
+  - question: |
+      道場アプリを起動したまま、新しく作った demo プロジェクトを Boot Dashboard から起動したら、Console に次のように出た。
+      demo を起動するための対処として正しいものはどれ?
+
+      ```text
+      ***************************
+      APPLICATION FAILED TO START
+      ***************************
+
+      Description:
+
+      Web server failed to start. Port 8080 was already in use.
+      ```
+    choices:
+      - "pom.xml から spring-boot-starter-web を削除する"
+      - "demo の application.properties に server.port=8081 と書いて、起動し直す"
+      - "Project > Clean... を実行してから起動し直す"
+      - "Maven > Update Project... を実行してから起動し直す"
+    answer: 1
+    explanation: |
+      ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo 側の番号を `server.port=8081` で変えるか、
+      道場アプリを止めれば起動できます。
+      Clean や Update Project はビルドや設定の作り直しで、ポートの取り合いとは無関係です。starter-web を消すと Web サーバ自体が無くなり、
+      エラーは消えますが Web アプリとして動かなくなるので本末転倒です。
+
+  - question: |
+      Git から取ってきた Maven プロジェクト(`pom.xml` はあるが `.project` は無い)を、
+      **File > Import... > General > Existing Projects into Workspace** で取り込もうとしたら、
+      `No projects are found to import` と表示された。原因と対処として正しいものはどれ?
+    choices:
+      - "JDK 21 が登録されていないので、Installed JREs に登録してからやり直す"
+      - "インターネットに繋がっていないので、依存ライブラリを取得できていない"
+      - "pom.xml が壊れているので、作り直す必要がある"
+      - "Existing Projects into Workspace は .project があるフォルダ用。Maven > Existing Maven Projects で取り込む"
+    answer: 3
+    explanation: |
+      **Existing Projects into Workspace** は、Eclipse の `.project` ファイルを探して取り込む機能です。`.project` は Git に入れないのが普通なので、
+      Git から取ってきた Maven プロジェクトでは「見つからない」になります。
+      **Maven > Existing Maven Projects** なら `pom.xml` を読んで、m2e が `.project` や `.classpath` を生成しながら取り込みます。
+      JDK やネット接続の問題なら、取り込んだ後にビルドエラーとして現れます。
+
+  - question: |
+      Spring Starter Project で作ったプロジェクトに、次の場所でクラスを作った。ファイルの1行目に書くべき宣言はどれ?
+
+      ```text
+      demo/src/main/java/com/example/shop/OrderService.java
+      ```
+    choices:
+      - "package src.main.java.com.example.shop;"
+      - "package com.example.shop.OrderService;"
+      - "package com.example.shop;"
+      - "package com/example/shop;"
+    answer: 2
+    explanation: |
+      Maven のプロジェクトでは `src/main/java` が **ソースフォルダ(パッケージの根元)** です。その下のフォルダ階層 `com/example/shop` が
+      パッケージ `com.example.shop` に対応します。
+      `src.main.java` はパッケージ名に含めません。パッケージ宣言にクラス名は入れず、区切りは `/` ではなく `.` です。
+      パッケージとフォルダが食い違うと、STS は `The declared package "..." does not match the expected package "..."` というエラーを出します。
+
+  - question: |
+      Spring Starter Project で作ったプロジェクトを Git で管理する。次のうち **コミットすべき** ものはどれ?
+    choices:
+      - "mvnw・mvnw.cmd と .mvn/wrapper/ フォルダ"
+      - ".classpath"
+      - "target/demo-0.0.1-SNAPSHOT.jar"
+      - ".settings/org.eclipse.jdt.core.prefs"
+    answer: 0
+    explanation: |
+      `mvnw` と `.mvn/wrapper/` は **Maven Wrapper** で、Maven を入れていない人や CI でも同じ版の Maven でビルドできるようにするものです。コミットします。
+      `.classpath` と `.settings/` は STS(m2e)が `pom.xml` から生成する IDE 用のファイル、`target/` はビルド結果なので、どれもコミットしません。
+      Spring Initializr が作る `.gitignore` にも、これらは最初から書かれています。
+
+  - question: |
+      `pom.xml` の `<java.version>` を 17 から 21 に書き換えて保存したら、Problems ビューに次のエラーが出て消えない。最も適切な対処はどれ?
+
+      ```text
+      Project configuration is not up-to-date with pom.xml.
+      Select: Maven->Update Project... from the project
+      context menu or use Quick Fix.
+      ```
+    choices:
+      - "Project > Clean... を実行する"
+      - "STS を再インストールする"
+      - "pom.xml の <java.version> を 17 に戻す"
+      - "プロジェクトを右クリック > Maven > Update Project... を実行する"
+    answer: 3
+    explanation: |
+      メッセージのとおり、`pom.xml` の変更が STS 側の設定(`.classpath` や `.settings` の Java の版)にまだ反映されていない状態です。
+      **Maven > Update Project...** で `pom.xml` を読み直すと、JRE System Library が `JavaSE-21` に変わり、エラーが消えます。
+      **Project > Clean** は「コンパイルのやり直し」なので、設定そのものが古いままでは直りません。17 に戻すのは目的と逆です。
+
+columns:
+  - type: trivia
+    title: start.spring.io はコマンド1行でも叩ける
+    body: |
+      STS のウィザードは、裏で **Spring Initializr(start.spring.io)** に入力内容を送り、返ってきた zip を展開しているだけです。
+      同じことはブラウザでも、コマンドでもできます(Windows 10 以降は `curl.exe` が標準で入っています)。
+
+      ```text
+      curl.exe https://start.spring.io/starter.zip
+        -d type=maven-project -d javaVersion=21
+        -d groupId=com.example -d artifactId=demo
+        -d dependencies=web -o demo.zip
+      ```
+
+      (実際は1行で入力。PowerShell では `curl` が別コマンドの別名のことがあるので `curl.exe` と書きます。)
+
+      IntelliJ IDEA や VS Code のウィザードも同じ Initializr を使うので、**どの IDE で作っても同じ雛形** になります。
+
+  - type: genba
+    title: 「.settings はコミットする派」との静かな戦い
+    body: |
+      `.project`・`.classpath`・`.settings` を Git に入れない、というのが今の主流ですが、古いプロジェクトでは **全部コミットされている** ことがよくあります。
+      「全員 Eclipse だし、フォーマッタの設定(`.settings/org.eclipse.jdt.core.prefs`)を共有したい」という理由です。
+
+      ところが、誰かが STS の版を上げたり、Update Project を実行したりするたびに、これらのファイルに **関係ない差分** が出ます。
+      プルリクエストに `.classpath` の変更が毎回混ざり、マージで衝突し、「誰の設定が正しいの?」と揉めるのが定番の流れです。
+
+      いまどきは、Java の版や文字コードは `pom.xml` に、フォーマットのルールは Maven のプラグインや `.editorconfig` に書き、
+      **IDE に依存しない場所を正解にする** のが現場の落としどころです(管理対象から外す手順は Git の回で扱います)。
+
+  - type: mistake
+    title: Spring Boot Version で SNAPSHOT を選んでしまう
+    body: |
+      依存を選ぶ画面の **Spring Boot Version** には、`(SNAPSHOT)` や `M1`(マイルストーン)、`RC1`(リリース候補)が付いた版が並ぶことがあります。
+      一番上にある・数字が大きいから、と選ぶのは危険です。
+
+      - **SNAPSHOT** は開発中の版で、中身が日々変わります。昨日ビルドできたものが今日ビルドできない、が普通に起きます
+      - M や RC は正式リリース前の版で、ネット上の情報や書籍と挙動が合わないことがあります
+
+      `pom.xml` に `<repository>` として `https://repo.spring.io/snapshot` などが追加されていたら、うっかり選んだサインです。
+      学習でも仕事でも、**何も付いていない正式版** を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
+
+sts:
+  intro: |
+    Spring Boot の雛形 `demo` を作って起動し、わざとポートを衝突させて直します。最後にこの道場アプリ自身をインポートします。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades)している場合の表記を括弧で併記しています。ウィザードはインターネット(start.spring.io)に接続します。
+  steps:
+    - title: Spring Starter Project のウィザードを開く
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
+        メニューに無い場合は **File > New > Other...**(ファイル > 新規 > その他)を開き、**Spring Boot > Spring Starter Project** を選んで **Next**(次へ)。
+    - title: プロジェクトの基本情報を入力する
+      detail: |
+        1ページ目で次のように入力・選択します。
+
+        - **Name**(名前):`demo`
+        - **Type**(タイプ):**Maven**
+        - **Packaging**(パッケージング):**Jar**
+        - **Java Version**(Java バージョン):**21**
+        - **Language**(言語):**Java**
+        - **Group**(グループ):`com.example`
+        - **Artifact**(成果物):`demo`
+        - **Package**(パッケージ):`com.example.demo`(Group と Artifact から自動で入ります)
+
+        **Service URL** は `https://start.spring.io` のまま、**Use default location**(デフォルト・ロケーションを使用)もチェックのままで **Next**(次へ)。
+    - title: 依存に Spring Web を選んで作成する
+      detail: |
+        2ページ目の **Spring Boot Version** は、`SNAPSHOT`・`M`・`RC` が付いていない正式版を選びます。
+        **Available**(使用可能)の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れます。右側の **Selected**(選択済み)に Spring Web が出れば OK。
+        **Finish**(完了)を押します。
+
+        右下に進捗が出ている間は、依存ライブラリをダウンロードしています。初回は数分かかることがあります。終わると Package Explorer に `demo` が現れ、
+        `src/main/java`・`src/main/resources`・`src/test/java`・`Maven Dependencies`・`pom.xml` が見えれば成功です。
+        赤い × が付いていたら、`demo` を右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新)を試します。
+    - title: 生成されたファイルを読む
+      detail: |
+        - `pom.xml` をダブルクリックして開き(下部にタブがあれば **pom.xml** タブでソース表示)、`<java.version>21</java.version>` と `spring-boot-starter-web` を探す
+        - `src/main/java` > `com.example.demo` > `DemoApplication.java` を開き、1行目の `package com.example.demo;` と `@SpringBootApplication` を確認する
+        - `src/main/resources` > `application.properties` を開く(`spring.application.name=demo` だけが書かれています)
+
+        `.project` や `.classpath` は Package Explorer では隠れています。見たいときは、Package Explorer 右上の **⋮**(View Menu)>
+        **Filters and Customization...**(フィルターおよびカスタマイズ)で **.\* resources** のチェックを外します。中身を見たら元に戻して構いません。
+    - title: Boot Dashboard から起動する
+      detail: |
+        道場アプリを STS で動かしている場合は、先に止めておきます(次の手順で衝突を体験するなら、動かしたままで構いません)。
+
+        **Boot Dashboard**(見当たらなければ **Window > Show View > Other... > Spring > Boot Dashboard**)の **local** を開き、`demo` を選んで **▶(Start)** を押します。
+        Console に `Tomcat started on port 8080 (http)` と `Started DemoApplication in ...` が出たら起動成功です。
+
+        ブラウザで `http://localhost:8080` を開き、**Whitelabel Error Page**(`status=404`)が出れば OK。まだ画面を作っていないので 404 で正解です。
+    - title: ポート 8080 の衝突を体験して直す
+      detail: |
+        demo を起動したまま、Package Explorer で `DemoApplication.java` を右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選び、**同じアプリをもう1つ** 起動します。
+        Console に `Web server failed to start. Port 8080 was already in use.` が出るのを確認します。
+
+        1. Console ビューの赤い四角 **Terminate**(終了)で、失敗した方を止める(すでに止まっていれば不要)
+        2. `src/main/resources/application.properties` に `server.port=8081` を1行追加して保存
+        3. Boot Dashboard で `demo` を選び、**Restart**(再始動)ボタン(または ■ で止めて ▶)を押す
+        4. Console に `Tomcat started on port 8081` と出て、`http://localhost:8081` で Whitelabel Error Page が出れば成功
+
+        終わったら Boot Dashboard の **■(Stop)** で demo を止めます。
+    - title: 道場アプリをインポートする
+      detail: |
+        **File > Import...**(ファイル > インポート)→ **Maven > Existing Maven Projects**(Maven > 既存 Maven プロジェクト)→ **Next**(次へ)。
+        **Root Directory**(ルート・ディレクトリー)の **Browse...**(参照)で、この道場アプリのフォルダ(`pom.xml` があるところ)を選びます。
+        **Projects** 欄に `/pom.xml  com.sayana:java-dojo:0.1.0-SNAPSHOT:jar` が出てチェックが付いていれば **Finish**(完了)。
+
+        すでにインポート済みの場合は、その行がグレーで選べません(「already exists in the workspace」)。その場合は Package Explorer に `java-dojo` があることを確認すれば OK です。
+    - title: Update Project と Clean を使ってみる
+      detail: |
+        1. `demo` を右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新、**Alt+F5**)→ `demo` にチェックが付いていることを確認して **OK**
+        2. **Project > Clean...**(プロジェクト > クリーン)→ **Clean all projects**(すべてのプロジェクトをクリーン)のチェックを外して `demo` だけ選び **Clean**(クリーン)
+
+        どちらも右下の進捗が終わって、Problems ビューにエラーが無ければ完了です。最後に `demo` フォルダ直下の `.gitignore` を開き、
+        `target/`・`.classpath`・`.project`・`.settings` が書かれていることを確認しましょう。
+
+checklist:
+  - key: starter-created
+    text: Spring Starter Project で demo(Maven・Java 21・Spring Web)を作り、Package Explorer に赤い × なしで表示された
+  - key: layout-read
+    text: pom.xml の java.version と spring-boot-starter-web、DemoApplication.java の package 宣言を確認した
+  - key: boot-started
+    text: Boot Dashboard から demo を起動し、http://localhost:8080 で Whitelabel Error Page(404)を確認した
+  - key: port-conflict
+    text: Port 8080 was already in use を実際に見て、停止または server.port=8081 で解決できた
+  - key: dojo-imported
+    text: Maven > Existing Maven Projects で道場アプリ(java-dojo)を取り込んだ(または取り込み済みを確認した)
+  - key: update-clean
+    text: Maven > Update Project と Project > Clean をそれぞれ実行し、違いを説明できる
+  - key: gitignore-checked
+    text: .gitignore に target・.project・.classpath・.settings が入っていることを確認した
