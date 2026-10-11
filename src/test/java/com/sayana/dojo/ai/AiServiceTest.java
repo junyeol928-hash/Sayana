@@ -118,7 +118,7 @@ class AiServiceTest {
         HintRecord h3 = ai.nextHint(key, "// もう少し");
         assertThat(List.of(h1.getLevel(), h2.getLevel(), h3.getLevel())).containsExactly(1, 2, 3);
         LlmRequest req = lastRequest();
-        assertThat(req.model()).isEqualTo("claude-haiku-5-5");
+        assertThat(req.model()).as("段階ヒントは Sonnet").isEqualTo("claude-sonnet-5-5");
         assertThat(req.messages().get(0).text()).contains("レベル3").contains("ヒントA").contains("ヒントB");
         assertThatThrownBy(() -> ai.nextHint(key, null)).isInstanceOf(AiException.class);
         ai.resetHints(key);
