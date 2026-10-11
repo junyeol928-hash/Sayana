@@ -2,8 +2,8 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
-# 進捗・提出履歴の H2 データベース(個人の学習記録なのでコミットしない)
-data/
+# 進捗・提出履歴の H2 データベース(個人の学習記録なのでコミットしない)。ルートの data/ だけ(m/data はスマホ版の教材)
+/data/
 *.mv.db
 *.trace.db
 *.lock.db

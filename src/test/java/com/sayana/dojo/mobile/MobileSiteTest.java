@@ -59,4 +59,12 @@ class MobileSiteTest {
                 () -> MobileSiteGenerator.write(tmp, Map.of("index.html", new byte[0])));
         assertThat(tmp.resolve("important.txt")).exists();
     }
+
+    @Test
+    @DisplayName(".gitignore がスマホ版のデータ(m/data)を無視していない(ルートの /data/ だけを無視する)")
+    void gitignoreKeepsMobileData() throws Exception {
+        List<String> lines = Files.readAllLines(Path.of(".gitignore"));
+        assertThat(lines).doesNotContain("data/", "data", "**/data/");
+        assertThat(lines).contains("/data/");
+    }
 }
