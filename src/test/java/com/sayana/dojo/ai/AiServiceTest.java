@@ -197,6 +197,7 @@ class AiServiceTest {
         assertThat(g.getClassName()).isEqualTo("StockTotal");
         assertThat(g.getSolution()).contains("sum += x;");
         verify(llm, times(2)).complete(any());
+        assertThat(lastRequest().model()).as("類題生成は Sonnet").isEqualTo("claude-sonnet-5-5");
         assertThat(lastRequest().messages()).hasSize(3);
         assertThat(lastRequest().messages().get(2).text()).contains("検証に失敗しました");
     }
