@@ -35,15 +35,10 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("1. クラスに @Entity が付いている")
-    void entity() {
+    @DisplayName("1. @Entity が付き、id が主キーで DB の自動採番(IDENTITY)になっている")
+    void entityAndId() {
         assertNotNull(ApprovalRequest.class.getAnnotation(Entity.class),
                 "ApprovalRequest クラスに @Entity を付けてください。付けないとテーブルに対応づけられません");
-    }
-
-    @Test
-    @DisplayName("2. id が主キーで、DB の自動採番(IDENTITY)になっている")
-    void id() {
         Field id = field("id");
         assertNotNull(id.getAnnotation(Id.class), "id に @Id を付けてください");
         GeneratedValue gv = id.getAnnotation(GeneratedValue.class);
@@ -53,7 +48,7 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("3. type と status は @Enumerated(EnumType.STRING) で文字列として保存する")
+    @DisplayName("2. type と status は @Enumerated(EnumType.STRING) で文字列として保存する")
     void enumerated() {
         for (String name : new String[] {"type", "status"}) {
             Enumerated en = field(name).getAnnotation(Enumerated.class);
@@ -65,7 +60,7 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("4. applicant は必須の多対一(LAZY)で、外部キー列は applicant_id")
+    @DisplayName("3. applicant は必須の多対一(LAZY)で、外部キー列は applicant_id")
     void applicant() {
         Field f = field("applicant");
         ManyToOne m = f.getAnnotation(ManyToOne.class);
@@ -80,7 +75,7 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("5. approver は省略可能な多対一(LAZY)で、外部キー列は approver_id")
+    @DisplayName("4. approver は省略可能な多対一(LAZY)で、外部キー列は approver_id")
     void approver() {
         Field f = field("approver");
         ManyToOne m = f.getAnnotation(ManyToOne.class);
@@ -96,7 +91,7 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("6. @PrePersist のメソッドで作成日時が入り、状態は DRAFT から始まる")
+    @DisplayName("5. @PrePersist のメソッドで作成日時が入り、状態は DRAFT から始まる")
     void prePersist() throws Exception {
         Method hook = null;
         for (Method m : ApprovalRequest.class.getDeclaredMethods()) {
@@ -118,7 +113,7 @@ class ApprovalRequestTest {
     }
 
     @Test
-    @DisplayName("7. JPA 用の引数なしコンストラクタが protected で用意されている")
+    @DisplayName("6. JPA 用の引数なしコンストラクタが protected で用意されている")
     void noArgConstructor() {
         Constructor<?> c;
         try {
