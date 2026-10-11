@@ -1,0 +1,50 @@
+title: テストが先にある!駐車場の料金計算(TDD)
+className: ParkingFee
+difficulty: 2
+problem: |
+  **テスト駆動開発(TDD)** を体験します。駐車場の料金を計算する `fee(int minutes)` の **テストはもう書かれています**。
+  テストを仕様書として読み、全テストが緑になるように実装してください。
+
+  **料金ルール**
+  - 最初の 30 分は **無料**。
+  - 30 分を超えたら、超えた時間について **30 分ごとに 200 円**。30 分に満たない端数も 30 分として数える(**切り上げ**)。
+  - 料金の **上限は 1500 円**。
+  - `minutes` が負なら、`IllegalArgumentException` を投げる。
+
+  **採点テスト(抜粋)**
+
+  ```java
+  @ParameterizedTest(name = "{0}分 → {1}円")
+  @CsvSource({
+      "0,    0",
+      "30,   0",
+      "31,   200",
+      "60,   200",
+      "61,   400",
+      "240,  1400",
+      "241,  1500",
+      "1440, 1500"
+  })
+  @DisplayName("駐車時間ごとの料金")
+  void fee(int minutes, int expected) {
+      assertEquals(expected, ParkingFee.fee(minutes));
+  }
+
+  @Test
+  @DisplayName("マイナスの時間は IllegalArgumentException")
+  void negative() {
+      assertThrows(IllegalArgumentException.class,
+              () -> ParkingFee.fee(-1));
+  }
+  ```
+
+  **進め方(Red → Green → Refactor)**
+  1. まず雛形のまま採点して、赤(失敗)を確認する。
+  2. 「30 分以下は 0 円」だけ書いて採点 → 一部が緑になる。
+  3. 30 分ごとの加算、上限、例外……と1つずつ足して、全部緑にする。
+  4. 緑になったら、変数名や式を読みやすく整理する(緑のままか再確認)。
+
+  **ヒント**
+  - 「超えた分」は `minutes - 30`。30 分単位の切り上げは `(超えた分 + 29) / 30`(int の割り算)で計算できます。
+  - 上限は `Math.min(料金, 1500)`。
+  - 例外は `throw new IllegalArgumentException("駐車時間が負です: " + minutes);`
