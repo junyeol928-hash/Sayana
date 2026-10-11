@@ -63,7 +63,7 @@ public class DojoProperties {
     /** Claude API まわり。APIキーは環境変数 ANTHROPIC_API_KEY から読む(ここには書かない)。 */
     public static class Ai {
         private final Models models = new Models();
-        /** Sonnet 系モデルで、拒否(refusal)時のサーバー側フォールバックを使うか。 */
+        /** Sonnet 5.5 / Opus 5.5 系モデルで、拒否(refusal)時のサーバー側フォールバックを使うか。 */
         private boolean refusalFallback = true;
         /** チューターに渡す過去の会話の最大件数。 */
         private int chatHistoryLimit = 20;
@@ -82,7 +82,7 @@ public class DojoProperties {
     /** 機能ごとのモデル名。 */
     public static class Models {
         private String tutor = "claude-sonnet-5-5";
-        private String review = "claude-sonnet-5-5";
+        private String review = "claude-opus-5-5";
         private String explain = "claude-sonnet-5-5";
         private String hint = "claude-haiku-5-5";
         private String generate = "claude-haiku-5-5";

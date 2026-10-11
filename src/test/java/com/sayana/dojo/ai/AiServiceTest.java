@@ -134,6 +134,7 @@ class AiServiceTest {
         Submission reviewed = ai.review(s.getId());
         assertThat(reviewed.getAiReview()).contains("総評");
         LlmRequest req = lastRequest();
+        assertThat(req.model()).as("コードレビューは Opus").isEqualTo("claude-opus-5-5");
         assertThat(req.messages().get(0).text()).contains("合格").contains(ex.solution().strip().substring(0, 20));
     }
 
