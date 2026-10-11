@@ -1,3 +1,363 @@
 id: spring-layers
 title: Controller・Service・Repositoryの層分け
-status: planned
+status: ready
+minutes: 15
+summary: 何でも Controller に書く Fat Controller を卒業。Controller・Service・Repository の責務と依存の向き、DTO、パッケージ構成、テストのしやすさまで。
+goals:
+  - Fat Controller の問題点(再利用できない・テストが重い・変更理由が混ざる)を説明できる
+  - Controller・Service・Repository それぞれの責務と、依存を上から下への一方通行にする理由を説明できる
+  - DTO とエンティティを分ける理由と、層別・機能別のパッケージ構成の違いを説明できる
+  - Repository をインターフェースにして、メモリ実装に差し替えて Service をテストできる
+  - "@Controller / @Service / @Repository を付けたクラスを DI コンテナで組み立てられる"
+samples:
+  - title: Service を Spring も DB も使わずにテストする
+    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。`toLowerCase()` を消すと、テストのつもりの ✔ が ✘ に変わります。
+    code: |
+      // Service を Spring も DB も使わずにテストする:Repository をメモリ実装に差し替えるだけ
+      interface MemberRepository {
+          boolean existsByEmail(String email);
+          void save(String email);
+      }
+
+      // 本番では JPA の実装が入る場所。テストでは HashSet で十分
+      class InMemoryMemberRepository implements MemberRepository {
+          final Set<String> emails = new HashSet<>();
+          public boolean existsByEmail(String email) { return emails.contains(email); }
+          public void save(String email) { emails.add(email); }
+      }
+
+      // 業務ロジック:メールアドレスの重複は登録させない
+      class MemberService {
+          private final MemberRepository repository;
+          MemberService(MemberRepository repository) { this.repository = repository; }
+
+          void register(String email) {
+              String normalized = email.strip().toLowerCase(); // ここを変えてみよう:toLowerCase() を消す
+              if (repository.existsByEmail(normalized)) {
+                  throw new IllegalStateException("登録済みのメールです: " + normalized);
+              }
+              repository.save(normalized);
+          }
+      }
+
+      // --- ここからテストのつもり(本物は JUnit で書く) ---
+      void check(String title, boolean ok) {
+          System.out.println((ok ? "✔ " : "✘ ") + title);
+      }
+
+      InMemoryMemberRepository repo = new InMemoryMemberRepository();
+      MemberService service = new MemberService(repo);   // new するだけ。Spring もDBも不要
+
+      service.register("taro@example.com");
+      check("1件目は登録できる", repo.emails.contains("taro@example.com"));
+
+      boolean rejected;
+      try {
+          service.register(" TARO@example.com ");   // 大文字・空白違いの同じアドレス
+          rejected = false;
+      } catch (IllegalStateException e) {
+          rejected = true;
+          System.out.println("  例外メッセージ: " + e.getMessage());
+      }
+      check("大文字・空白違いでも重複として弾く", rejected);
+      check("登録件数は1件のまま", repo.emails.size() == 1);
+  - title: 3層を DI コンテナで組み立てる
+    description: "`@Controller` / `@Service` / `@Repository` を付けたクラスをコンテナに登録し、Controller → Service → Repository の順に呼ばれることを確かめます。Repository の登録を消すと、起動(コンテナ作成)の時点でエラーになります。"
+    libraries: [spring]
+    code: |
+      import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+      import org.springframework.stereotype.*;
+
+      // 3層を Spring のコンテナで組み立てる(Spring Boot ならコンポーネントスキャンが自動でやる部分)
+      interface MemberRepository {
+          void save(String name);
+          List<String> findAll();
+      }
+
+      @Repository
+      class InMemoryMemberRepository implements MemberRepository {
+          private final List<String> data = new ArrayList<>();
+          public void save(String name) { data.add(name); }
+          public List<String> findAll() { return List.copyOf(data); }
+      }
+
+      @Service
+      class MemberService {
+          private final MemberRepository repository;   // インターフェースに依存する
+          MemberService(MemberRepository repository) { this.repository = repository; }
+
+          String register(String name) {
+              if (name == null || name.isBlank()) {
+                  throw new IllegalArgumentException("名前が空です");
+              }
+              repository.save(name.strip());
+              return name.strip() + " さんを登録(会員数 "
+                      + repository.findAll().size() + ")";
+          }
+      }
+
+      @Controller
+      class MemberController {
+          private final MemberService service;         // Repository は知らない
+          MemberController(MemberService service) { this.service = service; }
+
+          String post(String name) {
+              try {
+                  return "200 OK: " + service.register(name);
+              } catch (IllegalArgumentException e) {
+                  return "400 Bad Request: " + e.getMessage();
+              }
+          }
+      }
+
+      // ここを変えてみよう:InMemoryMemberRepository.class を消すと、起動時にどんなエラーになる?
+      var ctx = new AnnotationConfigApplicationContext(
+              MemberController.class,
+              MemberService.class,
+              InMemoryMemberRepository.class);
+
+      MemberController controller = ctx.getBean(MemberController.class);
+      System.out.println(controller.post("山田太郎"));
+      System.out.println(controller.post("  "));
+      System.out.println(controller.post("佐藤花子"));
+
+      // コンテナが作った Bean はシングルトン:何度 getBean しても同じインスタンス
+      MemberService s1 = ctx.getBean(MemberService.class);
+      MemberService s2 = ctx.getBean(MemberService.class);
+      System.out.println("同じ Service? " + (s1 == s2));
+      System.out.println("Repository の中身: " + ctx.getBean(MemberRepository.class).findAll());
+      ctx.close();
+quiz:
+  - question: |
+      次の Service のメソッドで、層分けの観点から一番問題なのはどれ?
+      ```java
+      @Service
+      public class MemberService {
+          public String register(MemberForm form,
+                                 Model model) {
+              // 登録処理
+              model.addAttribute("message", "登録しました");
+              return "members/done";
+          }
+      }
+      ```
+    choices: ["@Service ではなく @Component を付けるべき", "メソッド名が register なのが良くない", "Service が Model やビュー名という画面の都合を知っていて、バッチや REST API から再利用しにくい", "Service のメソッドは static にすべき"]
+    answer: 2
+    explanation: |
+      `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合** です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
+      `@Service` は `@Component` の特殊化なので付けて正しく、static にすると DI できなくなります。
+  - question: |
+      次のコードを実行するとどうなる?(`OrderService` はコンストラクタで `OrderRepository` を受け取る。`OrderRepository` の実装クラスはどこにも登録していない)
+      ```java
+      var ctx = new AnnotationConfigApplicationContext(
+              OrderController.class,
+              OrderService.class);
+      System.out.println("作成OK");
+      ```
+    choices: ["コンテナを作る時点で例外(UnsatisfiedDependencyException)になり、「作成OK」は出ない", "「作成OK」と出て、注文するときに NullPointerException になる", "OrderRepository の実装を Spring が自動で作るので正常に動く", "コンパイルエラーになる"]
+    answer: 0
+    explanation: |
+      DI コンテナは作成時(refresh 時)にシングルトンの Bean をまとめて作り、コンストラクタの引数に渡す Bean を探します。`OrderRepository` 型の Bean が無いので `No qualifying bean of type 'OrderRepository' available` を原因とする `UnsatisfiedDependencyException` が発生し、次の行には進みません。
+      「起動時に失敗する」のはコンストラクタインジェクションの長所で、null のまま動き出して後で NPE、ということになりません。コンパイラは Bean の有無を知らないのでコンパイルは通ります。インターフェースだけから実装を作るのは Spring Data のリポジトリの場合で、普通のインターフェースでは起きません。
+  - question: |
+      次の Controller の問題点として正しいものは?
+      ```java
+      @Controller
+      public class OrderController {
+          private final OrderService service;
+          private final OrderRepository repository;
+          // コンストラクタ省略
+
+          @PostMapping("/orders/{id}/cancel")
+          public String cancel(@PathVariable long id) {
+              repository.deleteById(id);
+              return "redirect:/orders";
+          }
+      }
+      ```
+    choices: ["@PathVariable は long で受け取れない", "redirect: は Service で書くべき", "フィールドが2つあるとコンストラクタインジェクションできない", "層を飛ばして Repository を直接呼んでおり、キャンセルの業務ルール(発送済みは不可など)を通らない更新経路ができる"]
+    answer: 3
+    explanation: |
+      Controller が Repository を直接呼ぶ「層飛ばし」です。キャンセルには「発送済みならキャンセル不可」「在庫を戻す」といった業務ルールがあるはずで、それは Service にまとめておくべきもの。Controller から直接削除できる経路があると、ルールを素通りした更新が紛れ込みます。
+      `@PathVariable` は long に変換できます。リダイレクト先を決めるのは画面遷移の話なので Controller の仕事で正しい。コンストラクタインジェクションは引数がいくつでも可能です。
+  - question: 昔の Spring プロジェクトで「`OrderService` インターフェース + `OrderServiceImpl` クラス」の組が定番だった理由として、もっとも適切なものは?
+    choices: ["Java の文法上、クラスに @Service を付けられなかったから", "@Transactional などを実現するプロキシを、インターフェースが必要な JDK の仕組みで作ることが多かったから", "インターフェースにしないと DI コンテナに登録できなかったから", "Impl という名前のクラスしか Spring がスキャンしなかったから"]
+    answer: 1
+    explanation: |
+      Spring は `@Transactional` などの機能を、Bean の前に **プロキシ** を挟んで実現します。昔はこのプロキシを JDK 標準の動的プロキシ(インターフェースが必須)で作ることが多く、インターフェースを用意するのが無難でした。今の Spring Boot は既定で CGLIB(クラスを継承して作るプロキシ)を使うので、インターフェースは必須ではありません。
+      クラスにも @Service は付けられ、DI にインターフェースは不要、スキャンは名前ではなく注釈で判断します。
+  - question: |
+      次の Service を、DB を使わずにテストしにくい原因はどれ?
+      ```java
+      @Service
+      public class StockService {
+          private final StockRepository repository =
+                  new JdbcStockRepository();
+
+          public int ship(String sku, int qty) {
+              // repository を使った在庫計算
+          }
+      }
+      ```
+    choices: ["StockRepository がインターフェースだから", "メソッドが public だから", "Service が自分で実装クラスを new しているので、テストでメモリ実装に差し替えられないから", "@Service が付いているクラスは new できないから"]
+    answer: 2
+    explanation: |
+      フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を **コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
+      インターフェースにしてあるのは差し替えのための良い設計で、問題はそれを活かしていないこと。`@Service` が付いていても普通に new できます。
+columns:
+  - type: mistake
+    title: エンティティを JSON で返したら、無限ループとパスワード漏れ
+    body: |
+      「詰め替えが面倒だから」と、エンティティをそのまま `@RestController` から返したときによく起きる事故が2つあります。
+
+      1つ目は **無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
+      `Could not write JSON: Infinite recursion (StackOverflowError)` で落ちます。
+
+      2つ目は **見せてはいけない項目の漏れ**。`Member` エンティティに `passwordHash` や `deleted` フラグがあれば、それも全部 JSON に出ます。ハッシュでも外に出すべきではありません。しかも後からエンティティに列を足すと、**気づかないうちに API の応答が増える**。
+
+      `@JsonIgnore` を付けて回る対処もありますが、エンティティが画面の都合で汚れていきます。応答専用の DTO(record が便利)を作って詰め替えるのが、遠回りに見えて一番安全です。
+  - type: genba
+    title: 層のルールはテストで守らせる(ArchUnit)
+    body: |
+      「Controller から Repository を直接呼ばない」というルールは、レビューで指摘し続けても、忙しい時期に必ず破られます。そこで現場では **ArchUnit** というライブラリで、アーキテクチャのルールを JUnit のテストにしてしまうことがあります。
+
+      ```java
+      layeredArchitecture()
+          .consideringAllDependencies()
+          .layer("Web").definedBy("..controller..")
+          .layer("Service").definedBy("..service..")
+          .layer("Repo").definedBy("..repository..")
+          .whereLayer("Web").mayNotBeAccessedByAnyLayer()
+          .whereLayer("Service")
+              .mayOnlyBeAccessedByLayers("Web")
+          .whereLayer("Repo")
+              .mayOnlyBeAccessedByLayers("Service");
+      ```
+
+      誰かが Controller で Repository を import した瞬間に、CI のテストが赤くなります。人の注意力ではなく仕組みで守る、という発想は、波括弧必須を静的解析で強制するのと同じです。
+  - type: trivia
+    title: "@Repository の隠れた仕事:例外の翻訳"
+    body: |
+      `@Service` は今のところ「ここは Service です」という目印でしかありませんが、`@Repository` には実際の機能があります。**例外の翻訳**(exception translation)です。
+
+      DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系** に変換してくれます。
+
+      おかげで Service は「DB が何か」を知らずに `catch (DuplicateKeyException e)` と書けます。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
+sts:
+  intro: |
+    1つのクラスに全部書いた「Fat Controller」を、STS のリファクタリング機能を使って Controller・Service・Repository の3層に分けます。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: 全部入りのクラスを用意する
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)で `shop`(Package は `com.example.shop`、依存関係は **Spring Web**)を作り、
+        `com.example.shop` に `ShopController` を作ります(`@RestController` は戻り値の文字列をそのまま応答にする注釈。詳しくは「REST API」の回)。
+
+        ```java
+        @RestController
+        public class ShopController {
+            private final List<String> items =
+                    new ArrayList<>();
+
+            @PostMapping("/items")
+            public String add(@RequestParam String name,
+                              @RequestParam int price) {
+                if (price <= 0) {
+                    return "価格は1円以上にしてください";
+                }
+                int withTax = price * 110 / 100;
+                items.add(name + " " + withTax + "円");
+                return "登録 " + name + " 税込" + withTax;
+            }
+
+            @GetMapping("/items")
+            public List<String> list() {
+                return items;
+            }
+        }
+        ```
+
+        **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動し、コマンドプロンプトで
+        `curl -X POST "http://localhost:8080/items?name=pen&price=100"` を実行して `登録 pen 税込110` と返ること、
+        ブラウザの `http://localhost:8080/items` に `["pen 110円"]` と出ることを確かめます。これがリファクタリング前の「正しい動き」です。
+    - title: 層ごとのパッケージを作る
+      detail: |
+        Package Explorer(パッケージ・エクスプローラー)で `com.example.shop` を右クリック > **New > Package**(新規 > パッケージ)で、
+        `com.example.shop.controller`・`com.example.shop.service`・`com.example.shop.repository` の3つを作ります。
+        ビューのメニュー(右上の **⋮** または **▽**)> **Package Presentation > Hierarchical**(パッケージの表示 > 階層)にすると、木構造で見やすくなります。
+        どのパッケージも **メインクラス(`ShopApplication`)のパッケージの配下** にあることが大事です。外に置くとコンポーネントスキャンで見つかりません。
+    - title: Controller を Move リファクタリングで移す
+      detail: |
+        `ShopController.java` を選んで右クリック > **Refactor > Move...**(リファクタリング > 移動)(**Alt+Shift+V**)を選び、
+        移動先に `com.example.shop.controller` を選んで **OK**。**Update references to moved elements**(移動したエレメントへの参照を更新)にチェックが入っていることを確認します。
+        ファイルの先頭の `package` 宣言が `package com.example.shop.controller;` に自動で書き換われば成功です(手でファイルを移動すると、ここが直らずエラーになります)。
+    - title: Repository を作り、インターフェースを抽出する
+      detail: |
+        `repository` パッケージに **New > Class** で `InMemoryItemRepository` を作り、`@Repository` を付けて、
+        Controller の `items` フィールドを **Ctrl+X → Ctrl+V** で移します。そこに `save(String item)` と `findAll()` メソッドを書きます。
+
+        次に `InMemoryItemRepository` のクラス名を右クリック > **Refactor > Extract Interface...**(リファクタリング > インターフェースの抽出)を選び、
+        名前に `ItemRepository`、メソッドは両方にチェックして **OK**。`ItemRepository` インターフェースができ、クラスに `implements ItemRepository` が付きます。
+    - title: Service を作って業務ロジックを移す
+      detail: |
+        まず Controller の中で、税込計算の行 `price * 110 / 100` を選択して **Refactor > Extract Method...**(リファクタリング > メソッドの抽出)(**Alt+Shift+M**)で
+        `calcWithTax` という名前のメソッドにします。処理に名前が付くと、どこへ移すべきかが見えやすくなります。
+
+        `service` パッケージに `@Service` を付けた `ShopService` を作り、`private final ItemRepository repository;` を宣言して
+        **Source > Generate Constructor using Fields...**(ソース > フィールドを使用してコンストラクターを生成)でコンストラクタを作ります。
+        価格チェック(`IllegalArgumentException` を投げる形に変える)・`calcWithTax`・`repository.save(...)` を `ShopService.add(name, price)` に移し、
+        Controller は `service.add(...)` を呼んで結果を返すだけにします(Controller にも `ShopService` のフィールドとコンストラクタを同じ手順で作る)。
+    - title: エラーを無くして同じ動きを確かめる
+      detail: |
+        **Ctrl+Shift+O**(インポートの編成)で import を整え、**Window > Show View > Problems**(ウィンドウ > ビューの表示 > 問題)でエラーが0件になったことを確認します。
+        Controller に `ItemRepository` の import が残っていないこと(層飛ばしをしていないこと)も見ておきましょう。
+        再起動して手順1と同じ curl とブラウザ確認をし、**まったく同じ結果** になればリファクタリング成功です(リファクタリングは「動きを変えずに構造を変える」こと)。
+    - title: "@Service を消して起動エラーを見る"
+      detail: |
+        `ShopService` の `@Service` をコメントアウトして再起動すると、Console に次のように出て起動が止まります。
+
+        ```text
+        APPLICATION FAILED TO START
+        Description:
+        Parameter 0 of constructor in com.example.shop.
+        controller.ShopController required a bean of type
+        'com.example.shop.service.ShopService' that could
+        not be found.
+        ```
+
+        「Bean が無い」と言われたら注釈の付け忘れを疑う、を体験したら元に戻します。
+    - title: Service のテストを書く(Spring も DB も無し)
+      detail: |
+        `ShopService` を右クリック > **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、
+        ソースフォルダーが `shop/src/test/java` になっていることを確認して `ShopServiceTest` を作ります。
+
+        ```java
+        @Test
+        void 税込価格で保存される() {
+            var repo = new InMemoryItemRepository();
+            var service = new ShopService(repo);
+            service.add("pen", 100);
+            assertEquals(List.of("pen 110円"),
+                    repo.findAll());
+        }
+        ```
+
+        右クリック > **Run As > JUnit Test**(実行 > JUnit テスト)で、**JUnit** ビューに緑のバーが出れば成功。Spring Boot を起動しないので一瞬で終わるはずです。
+
+checklist:
+  - key: fat-before
+    text: 全部入りの ShopController を動かし、curl とブラウザでリファクタリング前の結果を確認した
+  - key: packages
+    text: controller / service / repository の3つのパッケージをメインクラスの配下に作った
+  - key: move-refactor
+    text: Refactor > Move で ShopController を移動し、package 宣言が自動で書き換わるのを見た
+  - key: extract-interface
+    text: Extract Interface で InMemoryItemRepository から ItemRepository インターフェースを抽出した
+  - key: service-extracted
+    text: 業務ロジックを ShopService に移し、Controller から Repository の import が消えた
+  - key: same-behavior
+    text: リファクタリング後も、curl とブラウザでまったく同じ結果になった
+  - key: no-bean-error
+    text: "@Service を外すと「required a bean of type ... that could not be found」で起動が止まるのを確認した"
+  - key: service-test
+    text: Spring を起動しない ShopServiceTest を書き、JUnit ビューで緑になった
