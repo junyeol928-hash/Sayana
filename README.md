@@ -194,8 +194,7 @@ $env:ANTHROPIC_API_KEY = "sk-ant-api03-xxxxxxxx"
 |---|---|
 | AIチューター / エラー翻訳 | `claude-sonnet-5-5` |
 | コードレビュー | `claude-opus-5-5`(Sonnet の約2倍の料金で、より深く見る) |
-| 段階ヒント | `claude-sonnet-5-5` |
-| 類題生成 | `claude-haiku-5-5` |
+| 段階ヒント / 類題生成 | `claude-sonnet-5-5` |
 
 レッスン本文はプロンプトキャッシュに載せているので、同じレッスンで何度質問しても教材部分の入力コストは抑えられます。
 システムプロンプトは `src/main/resources/prompts/*.md` にあり、自由に調整できます。
