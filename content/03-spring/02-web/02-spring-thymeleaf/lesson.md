@@ -13,7 +13,7 @@
 **テンプレートエンジン** は、「HTML の雛形(テンプレート)」と「データ」を合体させて、最終的な HTML を作る部品です。Spring Boot で一番よく使われるのが **Thymeleaf** です。
 
 ```mermaid
-flowchart LR
+flowchart TD
     C["Controller<br>Model に値を入れる"]
     R["ThymeleafViewResolver"]
     C -->|"ビュー名 items/list"| R
