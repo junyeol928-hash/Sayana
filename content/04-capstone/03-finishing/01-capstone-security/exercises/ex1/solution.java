@@ -29,11 +29,11 @@ public class AccessPolicy {
     static final String LOGIN_REQUIRED = "ログインしてください";
     static final String NO_VIEW = "この申請を閲覧する権限がありません";
     static final String NOT_OWNER = "申請者本人しか操作できません";
-    static final String NOT_APPROVER = "承認・差戻しができるのは承認者か管理者だけです";
+    static final String NOT_APPROVER = "承認者・管理者しか操作できません";
     static final String OWN_REQUEST = "自分の申請は承認できません";
     static final String FINAL_STATUS = "承認済・取下げ済の申請は変更できません";
     static final String BAD_STATUS = "今の状態ではこの操作はできません";
-    static final String HIGH_AMOUNT = "100,000円以上の申請を承認できるのは管理者だけです";
+    static final String HIGH_AMOUNT = "100,000円以上の申請は管理者しか承認できません";
 
     static final int HIGH_AMOUNT_THRESHOLD = 100_000;
 

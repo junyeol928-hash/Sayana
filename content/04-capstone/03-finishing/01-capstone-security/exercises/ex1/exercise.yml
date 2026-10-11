@@ -31,7 +31,7 @@ problem: |
   AccessPolicy policy = new AccessPolicy();
   RequestInfo req = new RequestInfo(1, RequestStatus.SUBMITTED, 120_000);
   policy.check(new Actor(2, Role.APPROVER), Operation.APPROVE, req);
-  // → Decision[allowed=false, reason=100,000円以上の申請を承認できるのは管理者だけです]
+  // → Decision[allowed=false, reason=100,000円以上の申請は管理者しか承認できません]
   policy.check(new Actor(3, Role.ADMIN), Operation.APPROVE, req);
   // → Decision[allowed=true, reason=]
   ```

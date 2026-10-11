@@ -21,6 +21,7 @@ classDiagram
       Long id
       String name
       String email
+      String password
       Role role
     }
     class ApprovalRequest {
@@ -51,6 +52,9 @@ classDiagram
 ```
 
 - `Role`: `APPLICANT`(申請者)/ `APPROVER`(承認者)/ `ADMIN`(管理者)
+- `Employee.password` は BCrypt のハッシュ(capstone-security で追加)。ログインIDはメールアドレス
+- 初期データ(`data.sql`、`MERGE INTO employee ... KEY (email)` で再起動しても増えない):
+  ハル haru@example.com(APPLICANT)/ モカ moka@example.com(APPROVER)/ ボス boss@example.com(ADMIN)。開発用パスワードは `pass1234`
 - `RequestType`: `EXPENSE`(経費精算)/ `LEAVE`(休暇)/ `PURCHASE`(備品購入)。`amount` は EXPENSE と PURCHASE で必須、LEAVE では null
 - `RequestStatus`: `DRAFT`(下書き)/ `SUBMITTED`(申請中)/ `APPROVED`(承認済)/ `RETURNED`(差戻し)/ `WITHDRAWN`(取下げ)
 - `Action`: `SUBMIT` / `APPROVE` / `RETURN` / `WITHDRAW`
@@ -79,6 +83,14 @@ stateDiagram-v2
 5. `APPROVED` と `WITHDRAWN` は以後変更できない
 6. 状態を変える操作は必ず `ApprovalHistory` を1件残す(同じトランザクションで)
 7. ルール違反は `domain` パッケージの `BusinessRuleException`(RuntimeException)で表し、メッセージは日本語
+
+### 実装上の決めごと(各レッスンで共有)
+
+- `application.yml`: H2 ファイルモード `jdbc:h2:file:./data/approval`、`ddl-auto: update`、`defer-datasource-initialization: true`、`sql.init.mode: always`
+- Repository: `EmployeeRepository.findByEmail`(Optional)、`ApprovalRequestRepository.findByApplicantOrderByCreatedAtDesc` / `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)/ `countByStatus`、`ApprovalHistoryRepository.findByRequestOrderByAtAsc`
+- 承認者は申請ごとに固定しない。`approver` には最後に承認・差戻しした人が入る。再申請は承認待ちに戻り、APPROVER/ADMIN の誰でも処理できる
+- 検索条件 `SearchCondition` は `service` パッケージ(REST API からも使う)
+- ログイン前の仮の社員ID(capstone-apply の `CURRENT_EMPLOYEE_ID`、capstone-approve の `CURRENT_APPROVER_ID`)は capstone-security で `@AuthenticationPrincipal` に置き換える
 
 ## 画面と URL
 

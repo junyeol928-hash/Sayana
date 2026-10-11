@@ -144,11 +144,11 @@ BCrypt のハッシュは `$2a$10$` + ソルト22文字 + ハッシュ31文字�
 
 ### 固定の社員ID を @AuthenticationPrincipal に置き換える
 
-capstone-apply では仮に「社員ID=1」で動かしていました。ログイン中の `LoginUser` は引数で受け取れます。
+capstone-apply・approve では定数 `CURRENT_EMPLOYEE_ID`・`CURRENT_APPROVER_ID` で「誰が」を代用していました。ログイン中の `LoginUser` は引数で受け取れます。
 
 ```java
-// web 配下の申請画面の Controller
-// 変更前: Long employeeId = 1L;
+// web/ApprovalController.java
+// 変更前: approve(id, CURRENT_APPROVER_ID, comment)
 @PostMapping("/requests/{id}/approve")
 public String approve(@PathVariable Long id,
         @RequestParam(required = false) String comment,
@@ -158,7 +158,7 @@ public String approve(@PathVariable Long id,
 }
 ```
 
-`approvalService` の引数の形は capstone-approve で作ったものに合わせてください。**画面から社員ID を hidden で送らせてはいけません**。hidden の値はブラウザの開発者ツールで書き換えられます。「誰が」は必ずサーバー側のセッションから取ります。
+(エラー時のフラッシュメッセージなどは capstone-approve のまま。)**画面から社員ID を hidden で送らせてはいけません**。hidden の値はブラウザの開発者ツールで書き換えられます。「誰が」は必ずサーバー側のセッションから取ります。
 
 ### ボタンをロールで出し分ける
 
@@ -190,7 +190,7 @@ if (!d.allowed()) {
 }
 ```
 
-画面の出し分けは「押せないボタンを見せない親切」、Service のチェックは「規則そのもの」。両方が同じ `AccessPolicy` を使えば、画面とサーバーで判定がずれません。
+画面の出し分けは「押せないボタンを見せない親切」、Service のチェックは「規則そのもの」。判定を `AccessPolicy` の1か所に集めておけば、後で画面をもっと細かく出し分けたくなったときも同じ判定を呼べて、画面とサーバーで食い違いません。
 
 ::: sensei
 画面だけで守ったつもりのシステムは、脆弱性診断で一発で見つかる。「隠す」は UX、「拒否する」はセキュリティ。別物だよ。
