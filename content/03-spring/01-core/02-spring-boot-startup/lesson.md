@@ -39,13 +39,13 @@ flowchart TD
   D --> E["自動設定<br>足りない Bean を登録"]
   E --> F["Bean を new して DI"]
   F --> G["組み込み Tomcat 起動<br>(Web の場合)"]
-  G --> H["CommandLineRunner 実行"]
-  H --> I["Started ... in x.xxx seconds"]
+  G --> H["ログ: Started ... in x.xxx seconds"]
+  H --> I["CommandLineRunner 実行"]
 ```
 
 ポイントは **D(自分のクラス)が E(自動設定)より先** なことです。これが次の「自分で定義したら自動設定は引っ込む」仕組みの前提になります。
 
-`CommandLineRunner` は、この起動処理が **全部終わった直後に1回だけ** 呼ばれます。DI 済みの Bean が使えるので、初期データの投入や動作確認に便利です。
+`CommandLineRunner` は、この起動処理が **全部終わった直後に1回だけ** 呼ばれます(`Started` のログより後)。DI 済みの Bean が使えるので、初期データの投入や動作確認に便利です。
 
 ## 自動設定:starter を入れると Bean が用意される理由
 
