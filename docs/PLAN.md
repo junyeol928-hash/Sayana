@@ -208,6 +208,8 @@ flowchart LR
 - [x] LANモード(同じWi-Fiのスマホから。PC以外は合言葉が必要)
 - [x] 採点・JShell で Spring / MockMvc / Thymeleaf / JPA を使えるように(`libraries`)
 - [x] 第1部の残り16レッスン、第2部 6レッスン、第3部 14レッスン、第4部 8レッスン(全50レッスン)
+- [x] スマホ版(`m/`、GitHub Pages で配信): PC も Wi-Fi も無くても読む・クイズ・復習・演習の自己チェック。
+      Service Worker で全レッスンを端末に保存、記録は端末の localStorage、AI は端末に保存した APIキーでブラウザから直接呼ぶ
 
 ### これから(改善候補)
 
@@ -225,5 +227,5 @@ flowchart LR
 1. `content/<部>/<章>/<レッスン>/lesson.yml` の `status` を `ready` にし、[CONTENT_FORMAT.md](CONTENT_FORMAT.md) に沿って中身を書く
 2. `lesson.md` に解説、`exercises/exN/` に演習(`exercise.yml` / `starter.java` / `solution.java` / `test.java`)
 3. 演習は `scripts/verify-exercise.sh <演習ディレクトリ>`(Git Bash など)で単体確認できる
-4. アプリのフッターの「教材を再読み込み」で反映(再起動不要)
+4. アプリのフッターの「教材を再読み込み」で反映(再起動不要)。スマホ版は `./mvnw -q compile exec:java` で `m/` を作り直してコミットする
 5. `./mvnw test` で全演習・全サンプルを自動検証(`CurriculumTest`)。レッスンを増やしたら `CurriculumTest#curriculumShape` の件数も更新する
