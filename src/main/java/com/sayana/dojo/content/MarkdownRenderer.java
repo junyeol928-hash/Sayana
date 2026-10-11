@@ -69,9 +69,12 @@ public class MarkdownRenderer {
         return html.toString();
     }
 
-    /** 選択肢など1行のMarkdownを、外側の &lt;p&gt; なしで HTML にする。 */
+    /**
+     * クイズの選択肢など1行のMarkdownを、外側の &lt;p&gt; なしで HTML にする。
+     * 選択肢には「List&lt;String&gt;」のようなコードを地の文で書きがちなので、生HTMLはエスケープする。
+     */
     public String renderInline(String markdown) {
-        String html = trusted.render(parser.parse(markdown == null ? "" : markdown)).trim();
+        String html = untrusted.render(parser.parse(markdown == null ? "" : markdown)).trim();
         if (html.startsWith("<p>") && html.endsWith("</p>") && html.indexOf("<p>", 1) < 0) {
             html = html.substring(3, html.length() - 4);
         }

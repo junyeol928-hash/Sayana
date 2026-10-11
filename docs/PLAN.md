@@ -9,12 +9,12 @@ Java / STS / Spring Boot をゼロから体系的に学ぶための、**ロー�
 
 | 項目 | 決めたこと |
 |---|---|
-| 利用形態 | 自分の Windows PC で起動し、ブラウザで `http://127.0.0.1:8080` を開く。`server.address=127.0.0.1` で外部から接続させない |
+| 利用形態 | 自分の Windows PC で起動し、ブラウザで `http://127.0.0.1:8080` を開く。`server.address=127.0.0.1` で外部から接続させない。スマホは「Codespaces」か「LANモード(合言葉つき)」で使う |
 | 技術 | Java 21 / Spring Boot 3.5 / Maven Wrapper / Thymeleaf + htmx(SPAなし)/ H2(ファイル)+ Spring Data JPA / CodeMirror 6(CDN) |
 | 教材 | `content/` 配下の Markdown + YAML。**実行時に生成しない**。書式は [CONTENT_FORMAT.md](CONTENT_FORMAT.md) |
 | AI | Claude API(公式 Java SDK `com.anthropic:anthropic-java`)。APIキーは環境変数 `ANTHROPIC_API_KEY`。未設定でも AI 以外は全部動く |
 | 語り口 | モカ先輩 ☕(現場15年)と新人ハル 🐣 の掛け合い。軽く読めるが内容は硬派 |
-| やらないこと | ログイン・マルチユーザー・外部公開用デプロイ・SPA化 |
+| やらないこと | ログイン・マルチユーザー・外部公開用デプロイ・SPA化(LANモードの合言葉は「PC以外から勝手にコードを実行させない」ための最低限の入口) |
 
 ---
 
@@ -57,6 +57,9 @@ flowchart LR
   (エラーは日本語メッセージ)。別JVMプロセス(`-Xmx256m -XX:+UseSerialGC`)で JUnit Platform Launcher を動かし、
   テストごとの合否と失敗理由(期待値と実際の値)をファイル経由で受け取る。10秒を超えたらプロセスツリーごと強制終了。
 - 出力は上限つきバッファ(既定 20,000 文字)。子JVMの同時実行数は既定 2(`dojo.exec.max-concurrent`)。
+- **追加ライブラリ**: 演習やサンプルに `libraries: [spring]`(+ `thymeleaf` / `jpa`)を書くと、アプリ自身のクラスパスから Spring・spring-test(MockMvc)・
+  Jackson・Bean Validation などの jar を探して、採点JVMや JShell に渡す(`LibraryClasspath`)。Spring の演習はタイムアウト最低20秒。
+- JShell では jshell コマンドと同じ標準 import を入れ、行頭がドットのメソッドチェーンもつないで実行する。
 
 ### Claude API を使う機能
 
@@ -100,7 +103,8 @@ flowchart LR
 
 ## 3. カリキュラム
 
-✅ = 完成(本文・サンプル・演習・クイズ・コラム) / ⬜ = 章立てのみ(`status: planned`)
+全50レッスン完成。各レッスンに解説・クイズ5問・コラム、演習(第1部・第3部は1〜3問、STS中心のレッスンは0〜3問)、
+第2部以降は「STSでやってみよう」とチェックリストがある。第4部の共通設計は [CAPSTONE.md](CAPSTONE.md)。
 
 ### 第1部 Java基礎
 
@@ -113,128 +117,108 @@ flowchart LR
   - [x] ループ(`java-loops`)
   - [x] 配列(`java-arrays`)
 - 第3章 メソッドと文字列
-  - [ ] メソッド(`java-methods`)
-  - [ ] 文字列(`java-strings`)
+  - [x] メソッド(`java-methods`)
+  - [x] 文字列(`java-strings`)
 - 第4章 オブジェクト指向
-  - [ ] クラスとオブジェクト(`java-classes`)
-  - [ ] カプセル化(`java-encapsulation`)
-  - [ ] 継承(`java-inheritance`)
-  - [ ] ポリモーフィズム(`java-polymorphism`)
-  - [ ] 抽象クラスとインターフェース(`java-abstract-interface`)
+  - [x] クラスとオブジェクト(`java-classes`)
+  - [x] カプセル化(`java-encapsulation`)
+  - [x] 継承(`java-inheritance`)
+  - [x] ポリモーフィズム(`java-polymorphism`)
+  - [x] 抽象クラスとインターフェース(`java-abstract-interface`)
 - 第5章 例外処理
-  - [ ] 例外処理(`java-exceptions`)
+  - [x] 例外処理(`java-exceptions`)
 - 第6章 コレクションとジェネリクス
-  - [ ] コレクション(`java-collections`)
-  - [ ] ジェネリクス(`java-generics`)
+  - [x] コレクション(`java-collections`)
+  - [x] ジェネリクス(`java-generics`)
 - 第7章 モダンJava
-  - [ ] ラムダとStream(`java-lambda-stream`)
-  - [ ] Optional(`java-optional`)
-  - [ ] recordとenum(`java-record-enum`)
-  - [ ] 日付API(`java-datetime`)
+  - [x] ラムダとStream(`java-lambda-stream`)
+  - [x] Optional(`java-optional`)
+  - [x] recordとenum(`java-record-enum`)
+  - [x] 日付API(`java-datetime`)
 - 第8章 入出力とテスト
-  - [ ] ファイルIO(`java-file-io`)
-  - [ ] JUnit入門(`java-junit`)
+  - [x] ファイルIO(`java-file-io`)
+  - [x] JUnit入門(`java-junit`)
 
 ### 第2部 開発ツール(全レッスンに「STSでやってみよう」+ チェックリスト)
 
 - 第1章 STSの基本
-  - [ ] STSの導入と画面構成(`sts-setup`)
-  - [ ] プロジェクトの作成とインポート(`sts-projects`)
+  - [x] STSの導入と画面構成(`sts-setup`)
+  - [x] プロジェクトの作成とインポート(`sts-projects`)
 - 第2章 デバッグとリファクタリング
-  - [ ] デバッガ(ブレークポイント・ステップ実行・変数監視)(`sts-debugger`)
-  - [ ] ショートカットとリファクタリング機能(`sts-shortcuts`)
+  - [x] デバッガ(ブレークポイント・ステップ実行・変数監視)(`sts-debugger`)
+  - [x] ショートカットとリファクタリング機能(`sts-shortcuts`)
 - 第3章 ビルドとバージョン管理
-  - [ ] Maven(pom.xml・依存関係・ライフサイクル)(`tools-maven`)
-  - [ ] Git連携(`tools-git`)
+  - [x] Maven(pom.xml・依存関係・ライフサイクル)(`tools-maven`)
+  - [x] Git連携(`tools-git`)
 
 ### 第3部 Spring
 
 - 第1章 Springの核
-  - [ ] DIとIoCコンテナ(`spring-di`)
-  - [ ] Spring Bootの起動の仕組み(`spring-boot-startup`)
+  - [x] DIとIoCコンテナ(`spring-di`)
+  - [x] Spring Bootの起動の仕組み(`spring-boot-startup`)
 - 第2章 Webの基本
-  - [ ] Controllerとルーティング(`spring-controller`)
-  - [ ] Thymeleaf(`spring-thymeleaf`)
-  - [ ] フォームとバリデーション(`spring-forms`)
+  - [x] Controllerとルーティング(`spring-controller`)
+  - [x] Thymeleaf(`spring-thymeleaf`)
+  - [x] フォームとバリデーション(`spring-forms`)
 - 第3章 設計とデータアクセス
-  - [ ] Controller・Service・Repositoryの層分け(`spring-layers`)
-  - [ ] Spring Data JPA(`spring-data-jpa`)
-  - [ ] トランザクション(`spring-transaction`)
+  - [x] Controller・Service・Repositoryの層分け(`spring-layers`)
+  - [x] Spring Data JPA(`spring-data-jpa`)
+  - [x] トランザクション(`spring-transaction`)
 - 第4章 APIと例外
-  - [ ] REST API(`spring-rest`)
-  - [ ] 例外ハンドリング(`spring-exception-handling`)
+  - [x] REST API(`spring-rest`)
+  - [x] 例外ハンドリング(`spring-exception-handling`)
 - 第5章 設定とログ
-  - [ ] 設定ファイルとプロファイル(`spring-config`)
-  - [ ] ログ(`spring-logging`)
+  - [x] 設定ファイルとプロファイル(`spring-config`)
+  - [x] ログ(`spring-logging`)
 - 第6章 セキュリティとテスト
-  - [ ] Spring Security入門(`spring-security`)
-  - [ ] MockMvcによるテスト(`spring-mockmvc`)
+  - [x] Spring Security入門(`spring-security`)
+  - [x] MockMvcによるテスト(`spring-mockmvc`)
 
 ### 第4部 総合演習:申請・承認管理のミニ業務システム
 
 - 第1章 設計と土台
-  - [ ] 要件整理と画面・テーブル設計(`capstone-requirements`)
-  - [ ] プロジェクト作成とエンティティ(`capstone-setup`)
+  - [x] 要件整理と画面・テーブル設計(`capstone-requirements`)
+  - [x] プロジェクト作成とエンティティ(`capstone-setup`)
 - 第2章 業務機能の実装
-  - [ ] 申請の登録と一覧(`capstone-apply`)
-  - [ ] 承認・差戻しフロー(`capstone-approve`)
-  - [ ] 検索とページング(`capstone-search`)
+  - [x] 申請の登録と一覧(`capstone-apply`)
+  - [x] 承認・差戻しフロー(`capstone-approve`)
+  - [x] 検索とページング(`capstone-search`)
 - 第3章 仕上げ
-  - [ ] ログインと権限(`capstone-security`)
-  - [ ] REST APIとテスト(`capstone-api-test`)
-  - [ ] 例外・ログ・プロファイルで仕上げ(`capstone-release`)
+  - [x] ログインと権限(`capstone-security`)
+  - [x] REST APIとテスト(`capstone-api-test`)
+  - [x] 例外・ログ・プロファイルで仕上げ(`capstone-release`)
 
 ---
 
 ## 4. フェーズ計画
 
-### フェーズ1(このセッション)✅
+### フェーズ1 ✅ アプリの土台と最初の6レッスン
 
 - [x] 全体設計・カリキュラム一覧・フェーズ計画(このファイル)
-- [x] アプリの土台:ダッシュボード / レッスン画面 / 復習 / 提出履歴 / プレイグラウンド
+- [x] ダッシュボード / レッスン画面 / 復習 / 提出履歴 / プレイグラウンド
 - [x] コード実行(JShell)と採点(別JVM + JUnit、タイムアウト・メモリ上限)
 - [x] 進捗・連続学習日数・苦手レッスン・復習キュー(1→3→7→14日)
 - [x] AI機能:チューター / 段階ヒント / コードレビュー / エラー翻訳 / 類題生成(検証つき)
-- [x] 教材:第1部の最初の6レッスン(環境〜配列)
-- [x] 残りのレッスンの章立て(`status: planned`)
-- [x] 自動テスト:全演習の模範解答が合格・雛形が不合格、全サンプルが動く、画面の通し、AIはモック
+- [x] 第1部の最初の6レッスン、自動テスト(全演習の模範解答が合格・雛形が不合格、全サンプルが動く)
 
-### フェーズ2:第1部を完成させる
+### フェーズ2 ✅ スマホ対応と全カリキュラム
 
-- [ ] 第3章〜第8章の16レッスン(メソッド〜JUnit入門)
-- [ ] 第4章(オブジェクト指向)以降は、複数クラスの演習が必要になる → 採点で「提出ファイル複数」に対応する
-  (`exercise.yml` に `files:` を追加し、Grader で複数ファイルを書き出す)
-- [ ] ファイルIOの演習用に、採点時の作業ディレクトリへ入力ファイルを置けるようにする
-- [ ] 「JUnit入門」では、学習者がテストを書く側になる演習(提出物がテストクラス)に対応する
+- [x] スマホ向けUI(下部メニュー、記号キー付きエディタ、自動大文字化オフ、下から出るAIチューター)
+- [x] GitHub Codespaces 用の devcontainer(PCなしでスマホから使う)
+- [x] LANモード(同じWi-Fiのスマホから。PC以外は合言葉が必要)
+- [x] 採点・JShell で Spring / MockMvc / Thymeleaf / JPA を使えるように(`libraries`)
+- [x] 第1部の残り16レッスン、第2部 6レッスン、第3部 14レッスン、第4部 8レッスン(全50レッスン)
 
-### フェーズ3:第2部 開発ツール
+### これから(改善候補)
 
-- [ ] 6レッスン。画面上で実行できない内容が中心なので「STSでやってみよう」+ チェックリストが主役
-- [ ] スクリーンショットの代わりに、メニュー階層を図(Mermaid)で示す
-- [ ] デバッガ回:わざとバグを入れた小さなプロジェクトを `content/.../assets/` に置き、STSにインポートして直す課題
-- [ ] Maven回:pom.xml を読む・依存を追加するクイズを厚めに
-
-### フェーズ4:第3部 Spring
-
-- [ ] 14レッスン。Spring の演習は画面上の JUnit 採点では限界があるので、2種類に分ける
-  - 画面で採点できるもの:DI の仕組みを素の Java で再現する、Controller のロジック部分、バリデーションのルールなど
-  - STSで作るもの:手順 + チェックリスト + 「提出したコードを AI にレビューしてもらう」(採点なし)
-- [ ] Spring を含むクラスパスでの採点(spring-context / spring-test を採点JVMに渡す)を検討
-
-### フェーズ5:第4部 総合演習
-
-- [ ] 申請・承認管理のミニ業務システム(申請 → 承認/差戻し → 一覧・検索 → 権限 → API → テスト)
-- [ ] 各段階の完成形コードを `content/04-capstone/.../reference/` に置き、差分で答え合わせできるようにする
-- [ ] 段階ごとに AI レビュー(設計の観点:層の責務・トランザクション境界・例外設計)
-
-### 改善候補(随時)
-
+- [ ] 実際の Claude API での動作確認とプロンプトの調整(このリポジトリのテストはモックのみ)
+- [ ] Windows + STS 実機での確認(第2部の手順・メニュー表記、LANモードのファイアウォール)
+- [ ] Codespaces を実際にスマホから起動しての確認
 - [ ] AIチューターの応答ストリーミング(SSE)
 - [ ] 復習キューの「今日はここまで」上限設定
 - [ ] 学習データのエクスポート(JSON)
 - [ ] ダークテーマ
-
----
+- [ ] 第4部の完成版コード(approval-app)を `content/04-capstone/reference/` に置き、差分で答え合わせできるようにする
 
 ## 5. 教材を追加する手順
 
@@ -242,5 +226,4 @@ flowchart LR
 2. `lesson.md` に解説、`exercises/exN/` に演習(`exercise.yml` / `starter.java` / `solution.java` / `test.java`)
 3. 演習は `scripts/verify-exercise.sh <演習ディレクトリ>`(Git Bash など)で単体確認できる
 4. アプリのフッターの「教材を再読み込み」で反映(再起動不要)
-5. `./mvnw test` で全演習・全サンプルを自動検証(`CurriculumTest`)。公開レッスンを増やしたら、
-   `CurriculumTest#curriculumShape` の公開レッスン一覧も更新する
+5. `./mvnw test` で全演習・全サンプルを自動検証(`CurriculumTest`)。レッスンを増やしたら `CurriculumTest#curriculumShape` の件数も更新する

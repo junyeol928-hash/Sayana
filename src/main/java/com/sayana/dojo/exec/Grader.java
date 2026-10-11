@@ -122,7 +122,7 @@ public class Grader {
                 StandardCharsets.UTF_8)) {
             // -parameters: Spring が引数名(@PathVariable など)を読めるようにする
             List<String> options = List.of("-encoding", "UTF-8", "-proc:none", "-g", "-parameters", "-Xlint:none",
-                    "-d", classes.toString(), "-cp", classpath(List.of(junitJar()), extraJars));
+                    "-d", classes.toString(), "-cp", classpath(extraJars, List.of(junitJar())));
             Boolean ok = compiler.getTask(null, fm, diagnostics, options, null, fm.getJavaFileObjectsFromPaths(files))
                     .call();
             List<CodeDiagnostic> errors = new ArrayList<>();
@@ -148,7 +148,10 @@ public class Grader {
         Path resultFile = work.resolve("result.txt");
         String javaExe = Path.of(System.getProperty("java.home"), "bin",
                 isWindows() ? "java.exe" : "java").toString();
-        String cp = classpath(List.of(classes, runnerClasses(), junitJar()), extraJars);
+        // 追加ライブラリは JUnit の一体型 jar より前に置く(同名クラスがあるときに新しい方を使うため)
+        List<Path> head = new ArrayList<>(List.of(classes, runnerClasses()));
+        head.addAll(extraJars);
+        String cp = classpath(head, List.of(junitJar()));
         ProcessBuilder pb = new ProcessBuilder(javaExe,
                 "-Xmx" + config.getMaxHeap(), "-Xss1m", "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1",
                 "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",

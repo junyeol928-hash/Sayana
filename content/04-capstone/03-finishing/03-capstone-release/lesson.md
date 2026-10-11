@@ -10,6 +10,7 @@
 
 ```text
 src/main/java/com/example/approval
+├─ config/DevPasswordInitializer.java(修正)
 ├─ domain/RequestNotFoundException.java(修正)
 ├─ service/ApprovalService.java(業務ログを追加)
 └─ web/api/ApiExceptionHandler.java ★
@@ -146,7 +147,7 @@ spring:
 # application-prod.yml
 spring:
   datasource:
-    url: jdbc:h2:file:./data/approval
+    url: jdbc:h2:file:./data/approval-prod
   h2:
     console:
       enabled: false
@@ -161,16 +162,24 @@ logging:
     name: logs/approval.log
 ```
 
-`application-dev.yml` には、capstone-setup で書いた H2 のメモリ DB・`ddl-auto`・初期データ・H2 コンソールの設定を移します。
+`application-dev.yml` には、これまで `application.yml` にあった H2(`./data/approval`)・`ddl-auto: update`・`sql.init.mode: always` などと H2 コンソールの設定を移します。prod は DB ファイルを `approval-prod` に分け、開発のデータと混ぜません。
+
+開発用パスワード `pass1234` を入れる `config/DevPasswordInitializer` には `@Profile("dev")` を付けます。付けないと、本番の社員にも誰でも知っているパスワードが設定されてしまいます。
+
+```java
+@Configuration
+@Profile("dev")   // dev のときだけ Bean になる
+public class DevPasswordInitializer { ... }
+```
 
 | 設定 | dev | prod |
 |---|---|---|
 | H2 コンソール | 有効 | **無効** |
-| ddl-auto | create-drop など | **validate** |
+| ddl-auto | update | **validate** |
 | ログ | コンソール | **ファイル** |
 
 - **H2 コンソール** はブラウザから DB を直接操作できる画面です。本番で開いていたら、データを丸ごと見られます
-- **validate** は起動時にエンティティとテーブルを突き合わせ、合わなければ起動を止めるだけで、DB には一切触りません。`create` は起動のたびにテーブルを作り直す(=データが消える)ので本番では禁止です
+- **validate** は起動時にエンティティとテーブルを突き合わせ、合わなければ起動を止めるだけで、DB には一切触りません。`create` は起動のたびにテーブルを作り直す(=データが消える)ので本番では禁止。dev の `update` も、列の削除や型の変更は扱えません
 - ログファイルは Logback が既定で 10MB ごとに切り替え、7日分残します
 
 ## jar を作って java -jar で起動
@@ -200,6 +209,7 @@ logging:
 - `mvnw package` が BUILD SUCCESS(全テスト緑)
 - 起動ログに `The following 1 profile is active: "prod"`
 - prod で `/h2-console` が開けない
+- 開発用パスワードを入れるクラスに `@Profile("dev")` が付いている
 - エラー画面・API のエラーに例外メッセージやスタックトレースが出ない
 - ログに氏名・メール・パスワードが出ていない
 - パスワードや接続情報をファイルに直書きせず、環境変数(`${DB_PASSWORD}`)にしている

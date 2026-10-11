@@ -45,12 +45,11 @@ class CurriculumTest {
     }
 
     @Test
-    @DisplayName("4部構成で、最初の6レッスンは公開されている")
+    @DisplayName("4部構成・全50レッスンがすべて公開されている")
     void curriculumShape() {
         assertThat(CONTENT.parts()).hasSize(4);
-        assertThat(CONTENT.readyLessons()).extracting(Lesson::id).contains(
-                "java-hello", "java-variables", "java-operators", "java-if", "java-loops", "java-arrays");
-        assertThat(CONTENT.allLessons().size()).isGreaterThan(40);
+        assertThat(CONTENT.allLessons()).hasSize(50);
+        assertThat(CONTENT.allLessons()).allSatisfy(l -> assertThat(l.ready()).as(l.id()).isTrue());
     }
 
     @Test

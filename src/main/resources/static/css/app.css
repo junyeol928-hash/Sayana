@@ -28,7 +28,9 @@ a:hover { color: var(--accent); }
 h1, h2, h3 { line-height: 1.4; }
 h1 { font-size: 1.8rem; margin: .3em 0 .4em; }
 code, pre, kbd { font-family: var(--mono); }
-:not(pre) > code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; font-size: .92em; }
+:not(pre) > code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; font-size: .92em; overflow-wrap: anywhere; }
+/* 長いパッケージ名や URL でも画面からはみ出さない */
+.lesson-main, .container, .tutor { overflow-wrap: anywhere; }
 pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.55; font-size: 14px; }
 pre code.hljs { background: transparent; padding: 0; }
 kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; font-size: .85em; background: #fff; }

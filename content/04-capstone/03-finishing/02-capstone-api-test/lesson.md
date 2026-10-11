@@ -34,7 +34,7 @@ src/test/java/com/example/approval
 
 ### エンティティではなく record の DTO を返す
 
-`ApprovalRequest` をそのまま返すと、Jackson が関連をたどって `applicant` の **email まで JSON に出します**。列を足すたびに API の形も勝手に変わります。そこで API 専用の型 **DTO**(Data Transfer Object:受け渡し専用のデータの入れ物)を record で作ります。
+エンティティをそのまま返すと、Jackson が関連をたどって `applicant` の **email やパスワードのハッシュまで JSON に出します**。列を足すたびに API の形も勝手に変わります。そこで API 専用の型 **DTO**(Data Transfer Object:受け渡し専用のデータの入れ物)を record で作ります。
 
 ```java
 package com.example.approval.web.api;
@@ -68,7 +68,7 @@ public record RequestSummary(
 409 Conflict は「リソースの現在の状態と衝突した」という意味で、承認済の申請をもう一度承認するのが典型です。承認くんでは、業務ルール違反(自分の申請・10万円以上など)はすべて `BusinessRuleException` → 409、ロールでの門前払いは Security → 403、と線を引きます。
 
 ::: sensei
-自分の申請の承認を 403 にする流派もある。正解は1つじゃない。大事なのは、チームで決めて全 API で揃えることだ。
+自分の申請の承認を 403 にする流派もある。大事なのは、チームで決めて全 API で揃えることだ。
 :::
 
 ## STS での実装
@@ -86,7 +86,7 @@ public class RequestNotFoundException
 }
 ```
 
-読み取り専用の Service を `service` パッケージに作ります(`findByStatusOrderByIdAsc` は `ApprovalRequestRepository` に派生クエリとして足します)。
+読み取り専用の Service を `service` パッケージに作ります。
 
 ```java
 @Service
@@ -103,7 +103,8 @@ public class RequestQueryService {
             RequestStatus status) {
         return status == null
                 ? repo.findAll(Sort.by("id"))
-                : repo.findByStatusOrderByIdAsc(status);
+                : repo
+                    .findByStatusOrderBySubmittedAtAsc(status);
     }
 
     public ApprovalRequest get(Long id) {
@@ -163,13 +164,7 @@ public class RequestApiController {
 }
 ```
 
-`ProblemDetail` は RFC 9457 のエラー形式で、`Content-Type: application/problem+json` になります。409 の本文はこうです。
-
-```text
-{"type":"about:blank","title":"業務ルール違反",
- "status":409,"detail":"承認済の申請は変更できません",
- "instance":"/api/requests/3/approve"}
-```
+`ProblemDetail` は RFC 9457 のエラー形式で、`Content-Type: application/problem+json` になります。本文は `{"title":"業務ルール違反","status":409,"detail":"承認済の申請は変更できません",...}` です。
 
 ## Controller のテスト:@WebMvcTest + @MockitoBean
 
@@ -209,6 +204,10 @@ class RequestApiControllerTest {
 
 403 は capstone-security の `SecurityConfig` の `"/api/**"` → `hasAnyRole("APPROVER", "ADMIN")` が効いた結果です。
 
+### API と CSRF
+
+CSRF は「ブラウザが Cookie を自動で送る」ことを悪用する攻撃です。承認くんの API は画面と同じ **セッション Cookie** で認証するので、`/api/**` でも CSRF 対策は外しません。JavaScript から POST するならトークンを `X-CSRF-TOKEN` ヘッダで送り、テストでは `.with(csrf())` を付けます(忘れると 403)。無効化してよいのは、Cookie を使わず `Authorization` ヘッダのトークンで認証する API にしたときです。
+
 ## Service は単体テストで、ルールを表にする
 
 業務ルールの組み合わせは Spring を起動せずに確かめます。JUnit の `@ParameterizedTest` + `@CsvSource` で **1行=1ケースの表** にするのがテーブル駆動テストです。
@@ -245,9 +244,9 @@ class ApprovalServiceTest {
 }
 ```
 
-`arrange` は、操作者(ID 2・`role` の社員)と別の社員の申請(ID 1)を作り、`employeeRepo.findById` / `requestRepo.findById` が返すよう `when` で仕込むメソッドです。`@InjectMocks` はコンストラクタを見て偽物を渡してくれます。CSV の文字列 `"ADMIN"` は JUnit が enum に自動変換します。
+`arrange` は、操作者(ID 2・`role` の社員)と別の社員の申請(ID 1)を作り、`employeeRepo.findById` / `requestRepo.findById` が返すよう `when` で仕込むメソッドです。CSV の `"ADMIN"` は JUnit が enum に自動変換します。
 
-境界の `99999` と `100000` が並んで見え、ケースを足すのも1行です。
+境界の `99999` と `100000` が並び、ケースの追加も1行です。
 
 ## テストピラミッド:@SpringBootTest は少数精鋭
 
@@ -259,7 +258,7 @@ flowchart TB
     A --- B --- C
 ```
 
-上ほど本物に近いが遅く、壊れたとき原因が遠い。`@SpringBootTest` は全 Bean と H2 を起動するので数秒かかります。既存の `contextLoads()` と「承認すると履歴が同じトランザクションで1件増える」の2本程度に絞ります。
+上ほど本物に近いが遅く、原因が遠い。`@SpringBootTest` は全 Bean と H2 を起動するので数秒かかります。既存の `contextLoads()` と「承認すると履歴が同じトランザクションで1件増える」の2本程度に絞ります。
 
 ## 動作確認
 
@@ -267,7 +266,6 @@ flowchart TB
 2. Boot Dashboard から起動し、承認者でログインしてブラウザで `http://localhost:8080/api/requests?status=SUBMITTED` を開く → JSON の配列
 3. `/api/requests/9999` → 404 の ProblemDetail。申請者でログインし直すと 403
 
-POST はアドレスバーから送れないので、テストで確かめます。
 
 ## よくあるミス
 
@@ -276,12 +274,9 @@ enum への変換は大文字小文字を区別します。ログには `Failed 
 :::
 
 ::: warn @WebMvcTest で No qualifying bean
-`No qualifying bean of type '...RequestQueryService'` は `@MockitoBean` の付け忘れ。`SecurityConfig` が `EmployeeRepository` を使っているなら、それも `@MockitoBean` にします。
+`No qualifying bean of type '...RequestQueryService'` は `@MockitoBean` の付け忘れです。
 :::
 
-::: warn POST のテストだけ 403
-CSRF トークンがないため。`.with(csrf())` を付けます。
-:::
 
 ::: point まとめ
 - API はエンティティでなく record の DTO を返す。一覧と詳細で分ける

@@ -139,9 +139,10 @@ quiz:
       ```java
       @PostMapping("/{id}/approve")
       public RequestDetail approve(@PathVariable Long id,
-                                   Principal principal) {
+              @RequestParam(required = false) String comment,
+              @AuthenticationPrincipal LoginUser user) {
           return RequestDetail.from(approvalService
-                  .approve(id, principal.getName()));
+                  .approve(id, user.id(), comment));
       }
 
       @ExceptionHandler(BusinessRuleException.class)
@@ -263,17 +264,13 @@ sts:
         **Name** に `RequestNotFoundException`、**Superclass**(スーパークラス)に `java.lang.RuntimeException` を入れて **Finish**(完了)。
         解説のとおり、`Long id` を受け取って「申請(ID=…)が見つかりません」をメッセージにするコンストラクタを書き、**Ctrl+S** で保存します。
 
-        capstone-approve の `ApprovalService` で、申請が見つからないときに `BusinessRuleException` を投げていたら、ここで `RequestNotFoundException` に変えます(「ない」は 404、ルール違反は 409 と分けるため)。
-    - title: 派生クエリと RequestQueryService を作る
+        続けて `ApprovalService` の `findRequest` を開き、`orElseThrow(() -> new BusinessRuleException("申請が見つかりません"))` を
+        `orElseThrow(() -> new RequestNotFoundException(id))` に変えます(「ない」は 404、ルール違反は 409 と分けるため)。画面の `ApprovalController` は `BusinessRuleException` だけを捕まえているので、存在しない申請は次のレッスンで作る 404 ページに回ります。
+    - title: RequestQueryService を作る
       detail: |
-        `com.example.approval.repository.ApprovalRequestRepository` を開き、次の1行を足します(既に同じものがあれば不要)。
+        `com.example.approval.repository.ApprovalRequestRepository` を開き、capstone-setup で作った `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)があることを確かめます。
 
-        ```java
-        List<ApprovalRequest> findByStatusOrderByIdAsc(
-                RequestStatus status);
-        ```
-
-        続けて `com.example.approval.service` を右クリック → **New > Class** で `RequestQueryService` を作り、解説のコード(`@Service` と `@Transactional(readOnly = true)`、`findByStatus` と `get`)を書きます。
+        `com.example.approval.service` を右クリック → **New > Class** で `RequestQueryService` を作り、解説のコード(`@Service` と `@Transactional(readOnly = true)`、`findByStatus` と `get`)を書きます。
         `Sort` は `org.springframework.data.domain.Sort` を選びます(**Ctrl+Shift+O** で import を整理すると候補が出ます)。
     - title: web.api パッケージに DTO と Controller を作る
       detail: |
@@ -282,41 +279,41 @@ sts:
         項目と `static from(ApprovalRequest r)` を解説どおりに書きます。
 
         同じパッケージに **New > Class** で `RequestApiController` を作り、`@RestController` / `@RequestMapping("/api/requests")`、3つのメソッドと2つの `@ExceptionHandler` を書きます。
-        `Principal` は `java.security.Principal`、`ProblemDetail` と `HttpStatus` は `org.springframework.http` のものを import します。
-    - title: SecurityConfig で /api/** を承認者に絞る
+        `@AuthenticationPrincipal` は `org.springframework.security.core.annotation`、`LoginUser` は `com.example.approval.config`、`ProblemDetail` と `HttpStatus` は `org.springframework.http` のものを import します。
+    - title: SecurityConfig の /api/** と CSRF を確かめる
       detail: |
-        `com.example.approval.config.SecurityConfig` の `authorizeHttpRequests` に、次の1行があるか確かめます(なければ、`anyRequest()` より **前** に足します)。
+        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より **前** にあることを確かめます(ルールは上から順に評価されます)。
 
-        ```java
-        .requestMatchers("/api/**")
-            .hasAnyRole("APPROVER", "ADMIN")
-        ```
-
-        ルールは上から順に評価されるので、`anyRequest().authenticated()` の後ろに書くと効きません。
+        CSRF は **無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
+        画面の JavaScript から POST するなら、Thymeleaf で `<meta name="_csrf" th:content="${_csrf.token}">` を出しておき、その値を `X-CSRF-TOKEN` ヘッダに入れて送ります。
     - title: 起動してブラウザで GET を確かめる
       detail: |
         **Boot Dashboard**(ブート・ダッシュボード)で `approval-app` を選び、**(Re)start** ボタンで起動します。Console に `Started ApprovalAppApplication` と出たら、
-        ブラウザで `http://localhost:8080/login` を開き、capstone-security で用意した **承認者** のアカウントでログインします。
+        ブラウザで `http://localhost:8080/login` を開き、承認者のモカ(`moka@example.com` / `pass1234`)でログインします。
 
         - `http://localhost:8080/api/requests?status=SUBMITTED` → 申請中の申請の JSON 配列。`email` が出ていないこと
         - `http://localhost:8080/api/requests/1` → 詳細の JSON
         - `http://localhost:8080/api/requests/9999` → `"title":"申請が見つかりません"` の JSON(F12 の開発者ツールの Network タブで 404 を確認)
-        - ログアウトして **申請者** でログインし、`/api/requests` → 403
+        - ログアウトして申請者のハル(`haru@example.com` / `pass1234`)でログインし、`/api/requests` → 403
     - title: Controller のテスト(@WebMvcTest)を書いて実行する
       detail: |
         `src/test/java` に `com.example.approval.web.api` パッケージを作り(**New > Package**)、`RequestApiController.java` を右クリック →
         **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、**Source folder** を `approval-app/src/test/java` にして `RequestApiControllerTest` を作ります。
 
         解説の 409 と 403 のテストに、`queryService.get(99L)` が `RequestNotFoundException` を投げる 404 のテストを足し、エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。
-        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します。
+        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します。
+
+        `@WithMockUser` が作るのは Spring の `User` なので、`@AuthenticationPrincipal LoginUser` の引数には **null** が入ります(`user.id()` で NullPointerException)。`LoginUser` が要る承認のテストは、必ず `.with(user(moka))` で本物の `LoginUser` を渡します。
+        `.with(csrf())` を消して実行すると 403 になることも確かめておきましょう。
     - title: ApprovalService のテーブル駆動テストを書き、わざと壊す
       detail: |
         `src/test/java` の `com.example.approval.service` に `ApprovalServiceTest` を作り、解説の `@ParameterizedTest` + `@CsvSource` と、`arrange` メソッドを書きます。
-        `arrange` では、`role` の社員(`me@example.com`)と、別の社員が出した申請(ID 1、`amount` と `status` は引数どおり)を作り、
-        `employeeRepo.findByEmail("me@example.com")` と `requestRepo.findById(1L)` がそれを返すよう `when(...).thenReturn(Optional.of(...))` で仕込みます。
+        `arrange` では、ID 2 で `role` の社員と、別の社員(ID 1)が出した申請(ID 1、`amount` と `status` は引数どおり)を作り、
+        `employeeRepo.findById(2L)` と `requestRepo.findById(1L)` がそれを返すよう `when(...).thenReturn(Optional.of(...))` で仕込みます。
+        状態は `setStatus` が無いので、`SUBMITTED` なら `submit(...)`、`APPROVED` なら `submit` の後に別の承認者で `approve(...)` を呼んで作ります。
 
         **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ** 結果が並びます。
-        次に `ApprovalService` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。
+        次に `ApprovalFlow.requiresAdmin` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。
     - title: 全テストを流して緑にする
       detail: |
         Package Explorer で `src/test/java` を右クリック → **Run As > JUnit Test**。`ApprovalAppApplicationTests`(`@SpringBootTest` の `contextLoads`)を含む全テストが流れます。
@@ -332,6 +329,8 @@ checklist:
     text: 申請者でログインし直して /api/requests を開き、403 になることを確認した
   - key: api-webmvctest
     text: "@WebMvcTest + @MockitoBean の RequestApiControllerTest(404 / 409 / 403)を Run As > JUnit Test で緑にした"
+  - key: api-csrf
+    text: SecurityConfig で CSRF を無効化していないことを確かめ、テストから .with(csrf()) を外すと POST が 403 になるのを見た
   - key: api-table-test
     text: ApprovalServiceTest のテーブル駆動テストを書き、>= を > に変えると 100000 円の行だけ赤くなるのを確かめて元に戻した
   - key: api-all-green

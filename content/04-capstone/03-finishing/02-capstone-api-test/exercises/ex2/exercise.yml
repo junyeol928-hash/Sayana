@@ -37,4 +37,6 @@ problem: |
   **STS で書くなら**:`BusinessRuleException` と `RequestNotFoundException` は `com.example.approval.domain`、
   `RequestApiController` は `com.example.approval.web.api` に置きます。`RequestService` の役目は、
   見るだけの部分が `RequestQueryService`、承認が capstone-approve の `ApprovalService` です。
+  「誰が」は `Principal` の代わりに `@AuthenticationPrincipal LoginUser user` で受け取り、`approvalService.approve(id, user.id(), comment)` を呼びます
+  (採点用には Security が無いので、Java 標準の `Principal` で縮小しています)。
   本物のアプリでは Spring Security が `/api/**` を APPROVER・ADMIN に絞るので、申請者が呼ぶと Controller に届く前に 403 になります。

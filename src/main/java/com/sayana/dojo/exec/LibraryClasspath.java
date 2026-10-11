@@ -61,7 +61,8 @@ final class LibraryClasspath {
                     "net.minidev.asm.FieldFilter",
                     "org.objectweb.asm.ClassReader",
                     "org.slf4j.LoggerFactory",
-                    "org.hamcrest.Matcher",
+                    // JUnit の一体型 jar にも古い org.hamcrest.Matcher があるので、Matchers で探す
+                    "org.hamcrest.Matchers",
                     // MockMvc の content().json(...) が使う
                     "org.skyscreamer.jsonassert.JSONCompareMode",
                     "org.json.JSONObject",

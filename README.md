@@ -12,6 +12,9 @@ Java と Spring Tool Suite(STS)/ Spring Boot をゼロから体系的に学ぶ�
 ダッシュボードでは、部・章ごとの進捗、連続学習日数、苦手レッスンが見られます。提出履歴と AI レビューは後から見返せます。
 PCでもスマホでも使えます(下の「📱 スマホで使う」)。
 
+カリキュラムは全4部・50レッスン(第1部 Java基礎 22 / 第2部 開発ツール 6 / 第3部 Spring 14 / 第4部 総合演習 8)。
+第3部・第4部の演習は Spring・MockMvc 入りで画面上で採点されます。
+
 設計とカリキュラム、今後の計画は [docs/PLAN.md](docs/PLAN.md)、教材の書き方は [docs/CONTENT_FORMAT.md](docs/CONTENT_FORMAT.md) にあります。
 
 ---

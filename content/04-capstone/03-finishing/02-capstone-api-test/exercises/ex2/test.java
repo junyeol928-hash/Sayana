@@ -57,7 +57,7 @@ class RequestApiControllerTest {
                 throw new BusinessRuleException("承認済の申請は変更できません");
             }
             if (r.status() != RequestStatus.SUBMITTED) {
-                throw new BusinessRuleException("申請中の申請だけ承認できます");
+                throw new BusinessRuleException("この状態の申請は「承認」できません");
             }
             ApprovalRequest done = new ApprovalRequest(r.id(), r.title(), r.type(), r.amount(),
                     r.reason(), RequestStatus.APPROVED, r.applicant(), employees.get(loginId),
