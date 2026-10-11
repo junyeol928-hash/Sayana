@@ -1,0 +1,37 @@
+title: 注文リストから売上を集計する
+className: OrderTotal
+difficulty: 1
+problem: |
+  ネットショップの注文が `List<Order>` で渡されます。`Order` は次のゲッターを持つクラスです(雛形に用意済み)。
+
+  | メソッド | 意味 |
+  |---|---|
+  | `getCustomer()` | 顧客名 |
+  | `getStatus()` | 状態(`"PAID"` 支払済み / `"PENDING"` 未払い / `"CANCELLED"` キャンセル) |
+  | `getAmount()` | 金額(円、0以上) |
+
+  次の2つのメソッドを **Stream で** 完成させてください。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `int totalByStatus(List<Order> orders, String status)` | 状態が `status` と一致する注文の **金額の合計** |
+  | `long countAtLeast(List<Order> orders, int min)` | 金額が `min` **以上** の注文の **件数**(状態は問わない) |
+
+  ### 例
+  ```text
+  佐藤 PAID      3000
+  鈴木 CANCELLED 5000
+  田中 PAID      4500
+  伊藤 PENDING   1200
+  ```
+  - `totalByStatus(orders, "PAID")` → `7500`
+  - `totalByStatus(orders, "REFUNDED")` → `0`(一致なし)
+  - `countAtLeast(orders, 4500)` → `2`(5000 と 4500)
+
+  ### ルール
+  - 注文リストが空なら、どちらも `0` を返す。
+  - 文字列の比較は `==` ではなく `equals` で。
+
+  ### ヒント
+  - `orders.stream().filter(...).mapToInt(Order::getAmount).sum()`
+  - 件数は終端操作 `count()`。戻り値が `long` なのはそのためです。

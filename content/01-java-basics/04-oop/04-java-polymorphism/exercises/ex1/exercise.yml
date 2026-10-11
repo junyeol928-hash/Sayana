@@ -1,0 +1,19 @@
+title: 図形リストの総面積を求める
+className: AreaCalculator
+difficulty: 1
+problem: |
+  円・長方形・三角形のクラスは、どれも親クラス `Shape` を継承し、`area()` をオーバーライド済みです(変更不要)。
+  これらが混ざった `Shape[]` を受け取る、次の2つのメソッドを `AreaCalculator` に完成させてください。
+
+  1. `totalArea(Shape[] shapes)` … すべての図形の面積の合計を返す。配列が空なら `0.0`
+  2. `countLargerThan(Shape[] shapes, double limit)` … 面積が `limit` **より大きい** 図形の個数を返す(ちょうど `limit` は数えない)
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `totalArea({ 長方形3×4, 三角形4×5 })` | `22.0` |
+  | `totalArea({})` | `0.0` |
+  | `countLargerThan({ 長方形3×4, 三角形4×5 }, 10.0)` | `1`(12.0 だけ) |
+
+  注意:
+  - `instanceof` で図形の種類を調べる必要はありません。**`shape.area()` を呼ぶだけ** で、実体に応じた面積が返ってきます(動的ディスパッチ)。
+  - 拡張 for 文(`for (Shape s : shapes)`)を使うとスッキリ書けます。

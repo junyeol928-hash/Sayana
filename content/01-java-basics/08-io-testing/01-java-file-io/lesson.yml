@@ -1,3 +1,282 @@
 id: java-file-io
 title: ファイルIO
-status: planned
+status: ready
+minutes: 15
+summary: Path と Files でファイルを読み書きする。文字コード(UTF-8 / MS932)・閉じ忘れ・相対パスの基準という三大地雷と、CSV 集計の定番パターン。
+goals:
+  - Path と Files(readString / writeString / readAllLines / write / lines / list)でファイルを読み書きできる
+  - 文字コードを明示する理由を説明でき、Windows 由来のファイルを MS932 で読める
+  - BufferedReader / BufferedWriter と Files.lines を try-with-resources で確実に閉じられる
+  - 相対パスが作業ディレクトリ基準で解決されること、STS とコマンドラインで基準が違うことを説明できる
+  - IOException を握りつぶさずに扱い、CSV を読んで集計し別ファイルに書き出せる
+samples:
+  - title: 一時ファイルに書いて読み戻す
+    description: |
+      `Files.createTempFile` で一時ファイルを作り、`writeString` → `readString` / `readAllLines` で読み戻して、最後に削除します。
+      `throws IOException` は「このメソッドはファイル操作の失敗を呼び出し元に任せる」という宣言です。
+    code: |
+      // 一時ファイルに書いて、読み戻す(最後に削除する)
+      // ここを変えてみよう:書く文字列を変える / APPEND を外して上書きにしてみる
+      import java.io.IOException;
+      import java.nio.charset.StandardCharsets;
+      import java.nio.file.*;   // Path, Files, StandardOpenOption
+      import java.util.List;
+
+      public class WriteRead {
+          public static void main(String[] args) throws IOException {
+              Path tmp = Files.createTempFile("memo", ".txt");
+              Files.writeString(tmp, "1行目:こんにちは\n",
+                      StandardCharsets.UTF_8);
+              Files.writeString(tmp, "2行目:Java\n",
+                      StandardCharsets.UTF_8,
+                      StandardOpenOption.APPEND);   // 追記モード
+
+              System.out.println("存在する?: " + Files.exists(tmp));
+              // 日本語は UTF-8 だと1文字3バイト
+              System.out.println("バイト数: " + Files.size(tmp));
+
+              System.out.println("--- readString ---");
+              System.out.print(Files.readString(tmp));
+
+              System.out.println("--- readAllLines ---");
+              List<String> lines = Files.readAllLines(tmp);
+              for (int i = 0; i < lines.size(); i++) {
+                  String s = lines.get(i);
+                  System.out.println((i + 1) + ": " + s
+                          + "(" + s.length() + "文字)");
+              }
+
+              Files.delete(tmp);                    // 後片付け
+              System.out.println("削除後に存在する?: "
+                      + Files.exists(tmp));
+          }
+      }
+  - title: ログから ERROR 行を数える(Files.lines と BufferedReader)
+    description: |
+      `Files.lines` は裏でファイルを開いているので try-with-resources で閉じます。
+      `"[ERROR]"` を `"ERROR"` に変えると、WARN 行まで数えてしまうのを確かめてみましょう。
+    code: |
+      // ログファイルから ERROR 行を数える
+      // ここを変えてみよう:"[ERROR]" を "ERROR" にすると件数は?
+      import java.io.*;         // IOException, BufferedReader
+      import java.nio.file.*;   // Path, Files
+      import java.util.List;
+      import java.util.stream.Stream;
+
+      public class ErrorCount {
+          public static void main(String[] args) throws IOException {
+              Path log = Files.createTempFile("app", ".log");
+              Files.write(log, List.of(
+                      "09:00:01 [INFO] 起動しました",
+                      "09:00:05 [ERROR] DB接続に失敗",
+                      "09:00:06 [WARN] ERROR率が上昇中",
+                      "09:00:09 [ERROR] タイムアウト"));
+
+              // Files.lines は try-with-resources で必ず閉じる
+              long errors;
+              try (Stream<String> s = Files.lines(log)) {
+                  errors = s.filter(l -> l.contains("[ERROR]"))
+                            .count();
+              }
+              System.out.println("ERROR 行: " + errors + " 件");
+
+              // 1行ずつ読む昔ながらの書き方(巨大ファイル向き)
+              try (BufferedReader r = Files.newBufferedReader(log)) {
+                  String line;
+                  int no = 0;
+                  while ((line = r.readLine()) != null) { // 終端で null
+                      no++;
+                      if (line.contains("[ERROR]")) {
+                          System.out.println(no + "行目: " + line);
+                      }
+                  }
+              }
+              Files.delete(log);              // 閉じてあるので消せる
+          }
+      }
+  - title: 売上CSVを集計して別ファイルに書き出す
+    description: |
+      ヘッダーを読み捨て、空行を飛ばし、`Map.merge` で店舗ごとに合計します。出力先のフォルダは `createDirectories` で作ってから書き込みます。
+    code: |
+      // 売上CSVを店舗別に集計して、別フォルダのファイルに書き出す
+      // ここを変えてみよう:データ行を足す / 空行チェックを消すとどうなる?
+      import java.io.*;         // IOException, BufferedReader/Writer
+      import java.nio.file.*;   // Path, Files
+      import java.util.*;       // List, Map, TreeMap
+
+      public class SalesSummary {
+          public static void main(String[] args) throws IOException {
+              Path dir = Files.createTempDirectory("sales");
+              Path in = dir.resolve("sales.csv");
+              Files.write(in, List.of(
+                      "日付,店舗,金額",
+                      "2026-10-01,渋谷,1200",
+                      "2026-10-01,新宿,800",
+                      "",
+                      "2026-10-02,渋谷,500"));
+
+              Map<String, Integer> total = new TreeMap<>();
+              try (BufferedReader r = Files.newBufferedReader(in)) {
+                  r.readLine();                   // ヘッダーを読み捨てる
+                  String line;
+                  while ((line = r.readLine()) != null) {
+                      if (line.isBlank()) {
+                          continue;               // 空行は飛ばす
+                      }
+                      String[] c = line.split(","); // 日付,店舗,金額
+                      total.merge(c[1], Integer.parseInt(c[2]),
+                              Integer::sum);
+                  }
+              }
+
+              Path out = dir.resolve("report/summary.csv");
+              Files.createDirectories(out.getParent()); // report を作る
+              try (BufferedWriter w = Files.newBufferedWriter(out)) {
+                  w.write("店舗,合計");
+                  w.newLine();
+                  for (String shop : total.keySet()) {
+                      w.write(shop + "," + total.get(shop));
+                      w.newLine();
+                  }
+              }
+              System.out.print(Files.readString(out));
+
+              // 後片付け(フォルダは中身を消してから)
+              Files.delete(out);
+              Files.delete(out.getParent());
+              Files.delete(in);
+              Files.delete(dir);
+          }
+      }
+  - title: 文字コードが食い違うと何が起きるか
+    description: |
+      Excel が保存する CSV と同じ MS932 で書いたファイルを、UTF-8 で読むと `MalformedInputException`、MS932 で読むと正しく読めます。
+      コメントのとおり `①` を入れて `Shift_JIS` に変えると、書き込みの時点で `UnmappableCharacterException`(その文字コードでは表せない文字)になります。
+    code: |
+      // Excel が保存した CSV(MS932)を UTF-8 / MS932 で読む
+      // ここを変えてみよう:"渋谷" を "①渋谷" にして、
+      //   "MS932" を "Shift_JIS" に変えるとどうなる?
+      import java.io.IOException;
+      import java.nio.charset.*; // Charset, StandardCharsets など
+      import java.nio.file.*;    // Path, Files
+
+      public class CharsetDemo {
+          public static void main(String[] args) throws IOException {
+              Charset ms932 = Charset.forName("MS932");
+              Path csv = Files.createTempFile("excel", ".csv");
+              Files.writeString(csv, "店舗,金額\n渋谷,1200\n", ms932);
+              // MS932 だと日本語は1文字2バイト
+              System.out.println("バイト数: " + Files.size(csv));
+
+              try {
+                  Files.readAllLines(csv, StandardCharsets.UTF_8);
+              } catch (MalformedInputException e) {
+                  System.out.println("UTF-8 で読むと → " + e);
+              }
+              System.out.println("MS932 で読むと → "
+                      + Files.readAllLines(csv, ms932));
+              Files.delete(csv);
+          }
+      }
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?(`data` フォルダは存在しないものとします)
+      ```java
+      Path p = Path.of("data", "2026", "sales.csv");
+      System.out.println(p.getFileName());
+      System.out.println(p.getParent().getFileName());
+      ```
+    choices: ["data と 2026", "sales.csv と 2026", "sales.csv と data/2026", "NoSuchFileException が発生する"]
+    answer: 1
+    explanation: |
+      `getFileName()` はパスの **最後の要素** を返すので `sales.csv`。`getParent()` は `data/2026` で、その最後の要素は `2026` です。
+      `Path` は「場所」を表す値にすぎず、作ったり分解したりするだけではファイルに触りません。だからフォルダが存在しなくても例外は出ません。存在を確かめたいときは `Files.exists(p)` を使います。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      public static void main(String[] args) {
+          String s = Files.readString(Path.of("memo.txt"));
+          System.out.println(s);
+      }
+      ```
+    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ null が出力される", "コンパイルは通り、memo.txt が無いと NoSuchFileException で落ちる", "コンパイルエラーになる"]
+    answer: 3
+    explanation: |
+      `Files.readString` は **チェック例外** の `IOException` を投げると宣言されています。チェック例外は `catch` するか `throws` で宣言しないと `unreported exception IOException; must be caught or declared to be thrown` というコンパイルエラーです。
+      `main` に `throws IOException` を付ければコンパイルが通り、そのときファイルが無ければ `NoSuchFileException`(`IOException` のサブクラス)で落ちます。空文字や `null` を返して黙っていることはありません。
+  - question: |
+      STS で、プロジェクトのフォルダが `C:\work\shop`、ソースが `C:\work\shop\src\Main.java` にあります。
+      `Main` を **Run As > Java Application** で実行したとき、次のコードの出力は?
+      ```java
+      Path p = Path.of("data/sales.csv");
+      System.out.println(p.toAbsolutePath());
+      ```
+    choices: ['C:\work\shop\src\data\sales.csv', 'C:\work\shop\bin\data\sales.csv', 'C:\work\shop\data\sales.csv', 'STS のインストールフォルダ\data\sales.csv']
+    answer: 2
+    explanation: |
+      相対パスは、ソースや .class の場所ではなく **JVM を起動したときの作業ディレクトリ** を基準に解決されます。STS(Eclipse)の実行構成は、既定で作業ディレクトリが **プロジェクトのフォルダ** なので `C:\work\shop\data\sales.csv` です(区切りは Windows 流の `\` で表示されます)。
+      コマンドプロンプトから `java` で起動した場合は `cd` していた場所が基準になるので、同じコードでも結果が変わります。`src` や `bin` は関係ありません。
+  - question: |
+      次のうち、try-with-resources で閉じる **必要がない** ものはどれ?
+    choices: ["Files.readAllLines(path) が返す List<String>", "Files.lines(path) が返す Stream<String>", "Files.list(dir) が返す Stream<Path>", "Files.newBufferedReader(path) が返す BufferedReader"]
+    answer: 0
+    explanation: |
+      `readAllLines` は **メソッドの中でファイルを開いて全行を読み、閉じてから** `List` を返します。返ってくるのはただのリストなので閉じる必要はありません(`readString` も同じ)。
+      `Files.lines` と `Files.list` は、Stream を処理している間ずっと裏でファイル(フォルダ)を開いたままにしています。終端操作(`count()` など)をしても自動では閉じないので、`BufferedReader` と同じく try-with-resources が必要です。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      Path p = Files.createTempFile("t", ".txt");
+      Files.writeString(p, "A\n");
+      Files.writeString(p, "B\n");
+      Files.writeString(p, "C\n", StandardOpenOption.APPEND);
+      System.out.print(Files.readString(p));
+      ```
+    choices: ["A・B・C の3行", "B・C の2行", "C の1行だけ", "A・C の2行"]
+    answer: 1
+    explanation: |
+      `writeString` はオプションを付けないと **上書き**(既存の中身を消してから書く)です。2行目で `A` は消えて `B` だけになり、3行目は `APPEND`(追記)なので `B` の後ろに `C` が足されます。
+      ログのように書き足していくファイルで `APPEND` を付け忘れると、毎回最後の1件しか残らない、という事故になります。
+columns:
+  - type: genba
+    title: Excel の CSV は「MS932」か「BOM 付き UTF-8」
+    body: |
+      取引先から届く CSV の多くは Excel 製。保存形式は2種類あります。
+
+      - **CSV(コンマ区切り)**:日本語 Windows では **MS932**。`Charset.forName("MS932")` で読む
+      - **CSV UTF-8(コンマ区切り)**:先頭に **BOM**(UTF-8 の目印の3バイト `EF BB BF`)が付く
+
+      厄介なのは BOM。Java は BOM を取り除かないので、1行目の先頭に見えない文字 `\uFEFF` が残り、`"日付".equals(cols[0])` が false に。表示しても同じに見えるので原因が分かりません。
+
+      ```java
+      if (line.startsWith("\uFEFF")) {
+          line = line.substring(1); // BOM を取り除く
+      }
+      ```
+
+      逆に、Java で書いた BOM なし UTF-8 の CSV は、Excel でダブルクリックすると文字化けしがち。Excel で開く人向けなら、MS932 か BOM 付きかを相手と決めておきましょう。
+  - type: trivia
+    title: Java 18 で「既定の文字コード」が UTF-8 になった
+    body: |
+      Java 17 までは、`FileReader` や `FileWriter` などが使う **既定の文字コード** は OS 依存でした。日本語 Windows なら MS932、Linux や Mac なら UTF-8。同じプログラムが OS によって違うファイルを書いていたのです。
+
+      Java 18 の **JEP 400** で、既定は OS に関係なく **UTF-8** に統一されました。一方 `Files` のメソッドは Java 7 で登場したときから「省略したら UTF-8」で、最初からこの問題を避ける設計でした。
+
+      ただし `System.out` は今もコンソール側の文字コードに合わせますし、古い挙動に戻す `-Dfile.encoding=COMPAT` を付けて動かしている現場もあります。「JDK 21 だから大丈夫」とは言い切れません。`StandardCharsets.UTF_8` と書いておけば、誰がどこで動かしても同じ結果になります。
+  - type: mistake
+    title: 書いたはずのレポートが 0 バイト
+    body: |
+      新人が作った日報出力バッチ。件数の少ない日に限って、出力ファイルが **0 バイト** になりました。
+
+      ```java
+      BufferedWriter w = Files.newBufferedWriter(out);
+      for (String line : rows) {
+          w.write(line);
+          w.newLine();
+      }
+      // close() を呼んでいない!
+      ```
+
+      `BufferedWriter` は書いた内容をいったん **メモリ上のバッファ(既定 8192 文字)** に溜め、あふれたときや `close()` / `flush()` のときにまとめてファイルへ書きます。閉じ忘れると、バッファに残った分はプログラム終了とともに消えます。件数が多い日は途中であふれた分だけ書けていたので、「たまに空になる」謎のバグに見えたのです。
+
+      try-with-resources なら例外が起きても必ず `close()` され、その中で `flush()` もされます。

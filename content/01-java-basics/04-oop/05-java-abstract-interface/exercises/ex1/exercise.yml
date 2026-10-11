@@ -1,0 +1,42 @@
+title: 帳票出力をテンプレートメソッドで作る
+className: DailyReport
+difficulty: 1
+problem: |
+  社内システムの帳票を、**テンプレートメソッドパターン** で作ります。
+  抽象クラス `Report` はすでに完成しています。`print()` が「見出し → 本文 → フッター」の流れを決めていて、
+  子クラスは `title()` と `body()` の **差分だけ** を書けばよい作りです。
+
+  ```java
+  abstract class Report {
+      final String print() {
+          return "【" + title() + "】\n" + body() + "\n-- 以上 --";
+      }
+      abstract String title();
+      abstract String body();
+  }
+  ```
+
+  次の2つの子クラスの `title()` と `body()` を完成させてください。
+
+  **1. `DailyReport`(売上日報)**
+  - `new DailyReport(int sales, int customers)`(売上金額・来店客数)
+  - `title()` は `"売上日報"`
+  - `body()` は `"売上: 12000円 / 客数: 30人"` の形式
+
+  **2. `StockReport`(在庫報告)**
+  - `new StockReport(String item, int count)`(商品名・在庫数)
+  - `title()` は `"在庫報告"`
+  - `body()` は `"コピー用紙: 25個"` の形式。ただし在庫数が **10 未満** なら末尾に `" 要発注"` を付ける
+    (例:`"トナー: 9個 要発注"`)
+
+  `new DailyReport(12000, 30).print()` の結果:
+
+  ```text
+  【売上日報】
+  売上: 12000円 / 客数: 30人
+  -- 以上 --
+  ```
+
+  注意:
+  - `Report` クラスは変更しないでください(流れを決めるのは親の仕事です)。
+  - 1つのファイルに `public class DailyReport` と、`public` を付けない `Report` / `StockReport` が入っています。

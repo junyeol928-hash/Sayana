@@ -1,3 +1,239 @@
 id: java-record-enum
 title: recordとenum
-status: planned
+status: ready
+minutes: 15
+summary: 値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、ordinal を保存してはいけない理由、switch 式の網羅性、EnumMap まで。
+goals:
+  - record で自動生成されるもの(フィールド・コンストラクタ・アクセサ・equals/hashCode/toString)を説明できる
+  - コンパクトコンストラクタで値を検証し、不変の値オブジェクトを書ける
+  - "public static final int の定数より enum が優れている理由と、ordinal を永続化してはいけない理由を説明できる"
+  - フィールド・コンストラクタ・メソッドを持つ enum を書き、switch 式で網羅的に分岐できる
+  - enum をキーにした集計に EnumMap を使える
+samples:
+  - title: record の自動生成とコンパクトコンストラクタ
+    description: 1行の宣言だけで equals や toString が使えます。コンパクトコンストラクタで不正な金額をはじきます(JShell では record が public 扱いになるため、コンストラクタにも `public` を付けています)。
+    code: |
+      // 金額と通貨を表す record。コンパクトコンストラクタで検証する
+      // ここを変えてみよう:b の金額を 101 に / 最後の new Money の金額を 0 に
+      record Money(long amount, String currency) {
+          public Money {   // 引数リストを書かないのがコンパクトコンストラクタ
+              if (amount < 0) {
+                  throw new IllegalArgumentException("金額が負: " + amount);
+              }
+          }
+          Money add(Money other) {   // 自分は変えずに新しい Money を返す
+              return new Money(amount + other.amount, currency);
+          }
+      }
+
+      var a = new Money(100, "JPY");
+      var b = new Money(100, "JPY");
+      System.out.println("toString : " + a);
+      System.out.println("アクセサ : " + a.amount() + " " + a.currency());
+      System.out.println("equals   : " + a.equals(b));
+      System.out.println("==       : " + (a == b));
+      System.out.println("add      : " + a.add(b) + " / a は " + a);
+
+      try {
+          new Money(-500, "JPY");
+      } catch (IllegalArgumentException e) {
+          System.out.println("作れない : " + e.getMessage());
+      }
+  - title: フィールドを持つ enum と switch 式
+    description: 税率を持たせた enum です。switch 式は全定数を case に書けば `default` が不要。`case EXEMPT` の行を消すとコンパイルエラーになるのを確かめてみましょう。
+    code: |
+      // 税率を持つ enum
+      // ここを変えてみよう:price を 99 に / case EXEMPT の行を消してみる
+      enum TaxCategory {
+          STANDARD(10), REDUCED(8), EXEMPT(0);
+
+          private final int rate;
+          TaxCategory(int rate) { this.rate = rate; }
+
+          long taxOf(long price) { return price * rate / 100; }
+      }
+
+      long price = 1000;
+      for (TaxCategory c : TaxCategory.values()) {   // 宣言順に回る
+          String label = switch (c) {                  // 全定数を書けば default 不要
+              case STANDARD -> "標準税率";
+              case REDUCED -> "軽減税率";
+              case EXEMPT -> "非課税";
+          };
+          System.out.println(c.ordinal() + " " + c.name() + "(" + label + ")"
+                  + " 税額 " + c.taxOf(price) + "円");
+      }
+
+      System.out.println(TaxCategory.valueOf("REDUCED").taxOf(price));
+      // 次の行の // を外すと IllegalArgumentException(大文字小文字も区別)
+      // System.out.println(TaxCategory.valueOf("reduced"));
+  - title: EnumMap でステータス別に集計する
+    description: enum をキーにするなら EnumMap。中身は ordinal を添字にした配列で、表示も宣言順に並びます。
+    code: |
+      // 注文一覧をステータス別に数える
+      // ここを変えてみよう:orders に注文を足す / EnumMap を HashMap に変えて並び順を比べる
+      import java.util.*;
+
+      enum OrderStatus { ORDERED, SHIPPED, DELIVERED, CANCELLED }
+      record Order(String id, OrderStatus status) {}
+
+      var orders = List.of(
+              new Order("A-001", OrderStatus.SHIPPED),
+              new Order("A-002", OrderStatus.ORDERED),
+              new Order("A-003", OrderStatus.CANCELLED),
+              new Order("A-004", OrderStatus.ORDERED));
+
+      Map<OrderStatus, Integer> count = new EnumMap<>(OrderStatus.class);
+      for (Order o : orders) {
+          count.merge(o.status(), 1, Integer::sum);
+      }
+      System.out.println(count);   // 宣言順に並ぶ
+
+      // enum は == で比べてよい(各定数はインスタンスが1つだけ)
+      long active = orders.stream().filter(
+              o -> o.status() != OrderStatus.CANCELLED).count();
+      System.out.println("キャンセル以外: " + active + "件");
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      record Point(int x, int y) {}
+      var a = new Point(1, 2);
+      var b = new Point(1, 2);
+      System.out.println(a == b);
+      System.out.println(a.equals(b));
+      System.out.println(a);
+      ```
+    choices:
+      - "true / true / Point@1b6d3586 のような文字列"
+      - "false / false / Point[x=1, y=2]"
+      - "false / true / Point[x=1, y=2]"
+      - "false / true / Point@1b6d3586 のような文字列"
+    answer: 2
+    explanation: |
+      `==` は参照型では「同じオブジェクトか」を比べるので、`new` を2回した `a` と `b` は `false`。record は **全コンポーネントの値で比べる equals** を自動生成するので `equals` は `true`。toString も自動生成され、`Point[x=1, y=2]` の形式になります。
+      `Point@1b6d3586` のような「クラス名@ハッシュ値」は、toString をオーバーライドしていない普通のクラスの出力です。
+  - question: |
+      次のうち、**コンパイルエラーになる** record はどれ?
+    choices:
+      - "record R(int x) { void set(int v) { this.x = v; } }"
+      - "record R(int x) { static int count = 0; }"
+      - "record R(int x) { int twice() { return x * 2; } }"
+      - "record R(int x) implements Comparable<R> { public int compareTo(R o) { return Integer.compare(x, o.x); } }"
+    answer: 0
+    explanation: |
+      record のフィールドは暗黙に `private final` なので、メソッド内で再代入すると `cannot assign a value to final variable x` になります。値を変えたいなら、新しい record を作って返すのが流儀です。
+      static フィールド、インスタンスメソッドの追加、インターフェースの実装はどれも許されています。禁止されているのは **インスタンスフィールドの追加**(`field declaration must be static`)と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。
+  - question: |
+      注文ステータスを `ordinal()` の値で DB に保存していました。
+      ```java
+      enum Status { ORDERED, SHIPPED, DELIVERED }   // 保存時
+      ```
+      その後、次のように定数を追加してリリースしました。
+      ```java
+      enum Status { ORDERED, PAID, SHIPPED, DELIVERED }   // 現在
+      ```
+      保存時に「発送済み(SHIPPED)」だった注文を読み込んで `Status.values()[保存値]` で復元すると、どうなる?
+    choices:
+      - "SHIPPED に正しく復元される"
+      - "PAID として復元される"
+      - "ArrayIndexOutOfBoundsException が発生する"
+      - "コンパイル時に警告が出るので、リリース前に気づける"
+    answer: 1
+    explanation: |
+      保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。配列の範囲内なので例外は出ず、コンパイラも DB の中身までは知らないので警告もありません。**黙ってデータが壊れる** のが ordinal 永続化の怖さです。
+      永続化には `name()`(`"SHIPPED"`)か、enum に持たせた業務上のコード値を使います。
+  - question: |
+      次のコードを実行したときの結果は?
+      ```java
+      enum Rank { GOLD, SILVER }
+      String input = "gold";
+      System.out.println(Rank.valueOf(input));
+      ```
+    choices:
+      - "GOLD と出力される"
+      - "gold と出力される"
+      - "null と出力される"
+      - "IllegalArgumentException が発生する"
+    answer: 3
+    explanation: |
+      `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。null を返したり、勝手に大文字に直したりはしません。
+      画面やファイルから来た文字列は `input.strip().toUpperCase()` で整えてから渡し、例外を捕まえて「不正な入力」として扱うのが定番です。なお `null` を渡すと `NullPointerException: Name is null` です。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      enum Size { S, M, L }
+
+      static int price(Size size) {
+          return switch (size) {
+              case S -> 300;
+              case M -> 400;
+          };
+      }
+      ```
+    choices:
+      - "コンパイルは通り、price(Size.L) を呼ぶと 0 が返る"
+      - "L を網羅していないので、コンパイルエラーになる"
+      - "コンパイルは通り、price(Size.L) を呼ぶと例外が発生する"
+      - "enum の switch 式には必ず default が必要なので、コンパイルエラーになる"
+    answer: 1
+    explanation: |
+      switch 式は必ず値を返す必要があるので、enum の **全定数** を case に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
+      「enum には default が必須」ではありません。むしろ全定数を書いて default を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で default を書かない理由です。
+columns:
+  - type: genba
+    title: JPA の @Enumerated はデフォルトが ORDINAL
+    body: |
+      Spring Boot でよく使う JPA(Hibernate)では、エンティティの enum フィールドに何も指定しないと **ordinal(数値)で DB に保存** されます。
+
+      ```java
+      @Enumerated            // 省略時は EnumType.ORDINAL
+      private OrderStatus status;
+      ```
+
+      開発中は問題なく動くので誰も気づかず、運用に入ってから「ステータスを1つ追加したい」と定数を途中に足した瞬間、過去データの意味が全部ずれます。しかも例外は出ないので、発覚はたいてい「発送済みのはずの注文が支払待ちに戻っている」という問い合わせからです。
+
+      現場のルールは `@Enumerated(EnumType.STRING)` を **必ず** 書くこと。さらに名前の変更にも耐えたいなら、enum に `code` フィールドを持たせて変換クラス(`AttributeConverter`)で保存する設計にします。レビューで `@Enumerated` だけの行を見かけたら、即コメントしましょう。
+  - type: trivia
+    title: enum の正体は「インスタンスが決まっている final クラス」
+    body: |
+      `enum OrderStatus { ORDERED, SHIPPED }` を javac にかけると、ざっくり次のクラスになります。
+
+      ```java
+      final class OrderStatus extends Enum<OrderStatus> {
+          static final OrderStatus ORDERED =
+              new OrderStatus("ORDERED", 0);
+          static final OrderStatus SHIPPED =
+              new OrderStatus("SHIPPED", 1);
+      }
+      ```
+
+      各定数は **クラス初期化時に1回だけ作られる static final なインスタンス**。リフレクションでも `new` できず、シリアライズから戻しても同じインスタンスになるよう特別扱いされているので、`==` で比べて安全です。
+
+      この性質から、『Effective Java』では「要素が1つの enum」がシングルトンの最良の実装とされています。なお `values()` は呼ぶたびに配列をコピーして返すので、大量ループの内側で呼ぶのは避けましょう。
+  - type: mistake
+    title: 「record だから不変」のはずが、明細が勝手に増えた
+    body: |
+      請求書を record で作ったつもりのコードです。
+
+      ```java
+      record Invoice(String no, List<String> lines) {}
+
+      var lines = new ArrayList<String>();
+      lines.add("コーヒー豆 1kg");
+      var inv = new Invoice("INV-1", lines);
+      lines.add("ドリッパー");   // 請求書作成「後」の操作
+      System.out.println(inv.lines().size());   // 2 !
+      ```
+
+      `final` なのは「別の List に差し替えられない」ことだけ。**List の中身** は呼び出し元と共有なので、外で `add` すれば明細も増えます(浅い不変)。対策はコンパクトコンストラクタでの防御コピーです。
+
+      ```java
+      record Invoice(String no, List<String> lines) {
+          Invoice {
+              lines = List.copyOf(lines);   // 変更不可のコピーに置き換える
+          }
+      }
+      ```
+
+      引数に再代入した値がフィールドに入ります。`List.copyOf` は変更不可リストなので、`inv.lines().add(...)` も `UnsupportedOperationException` で止まります。

@@ -31,8 +31,8 @@ public record Lesson(
         return sts != null;
     }
 
-    /** 1つのサンプル。 */
-    public record Sample(String title, String descriptionHtml, String code) {
+    /** 1つのサンプル。libraries に "spring" などがあると、そのライブラリ入りの JShell で実行する。 */
+    public record Sample(String title, String descriptionHtml, String code, List<String> libraries) {
     }
 
     /** 選択式クイズ1問。answer は 0 始まり。 */

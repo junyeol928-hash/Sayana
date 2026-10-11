@@ -1,0 +1,24 @@
+title: 支払い方法ごとの手数料を計算する
+className: Checkout
+difficulty: 2
+problem: |
+  レジの会計処理を作ります。支払い方法は親クラス `Payment` と、その子クラス `CashPayment`(現金)・`CardPayment`(カード)・`PointPayment`(ポイント)で表します。
+
+  **手順1:各支払いクラスで `label()` と `fee(int amount)` をオーバーライドする**
+
+  | クラス | `label()` | `fee(amount)`(手数料) |
+  |---|---|---|
+  | `CashPayment` | `"現金"` | 常に `0` |
+  | `CardPayment` | `"カード"` | 金額の 3%(切り捨て)。ただし **最低 100 円** |
+  | `PointPayment` | `"ポイント"` | 金額が 1000 円 **未満** なら `50`、1000 円以上なら `0` |
+
+  例: カードで 3000 円 → 3% は 90 円なので最低額の `100`。カードで 5000 円 → `150`。
+
+  **手順2:`Checkout` の2つのメソッドを完成させる**
+
+  1. `total(Payment p, int amount)` … 支払総額(`amount + 手数料`)を返す
+  2. `receipt(Payment p, int amount)` … `"カード払い: 5000円 + 手数料150円 = 5150円"` の形式の文字列を返す
+
+  注意:
+  - `Checkout` の中で `instanceof` や `if` で支払い方法の種類を判定しては **いけません**。`p.label()` と `p.fee(amount)` を呼ぶだけで、実体に応じた結果が返ってきます(動的ディスパッチ)。
+  - こうしておけば、新しい支払い方法(電子マネーなど)を足しても `Checkout` は1行も変わりません。

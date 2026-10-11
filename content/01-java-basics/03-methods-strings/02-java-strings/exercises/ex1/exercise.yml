@@ -1,0 +1,32 @@
+title: 社員番号のフォーマットを検証する
+className: EmployeeId
+difficulty: 1
+problem: |
+  人事システムの入力画面で、社員番号が正しい形式かをチェックします。
+  正しい社員番号は **`EMP-` + 数字5桁**(例:`EMP-00123`)の9文字です。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `boolean isValid(String id)` | 正しい形式なら `true` |
+  | `String normalize(String id)` | 正しい形式なら **前後の空白を除き、`EMP-` を大文字にした** 社員番号。正しくなければ `null` |
+
+  ### ルール
+  - 前後の空白(**全角スペースを含む**)は無視する。
+  - 先頭の `EMP-` は大文字小文字を区別しない(`emp-00123` もOK)。
+  - `EMP-` の後ろは、ちょうど5文字の半角数字(`0`〜`9`)。
+  - `id` が `null` なら `isValid` は `false`、`normalize` は `null`。
+
+  ### 例
+  | 入力 | `isValid` | `normalize` |
+  |---|---|---|
+  | `"EMP-00123"` | `true` | `"EMP-00123"` |
+  | `" emp-00042 "` | `true` | `"EMP-00042"` |
+  | `"EMP-0123"`(4桁) | `false` | `null` |
+  | `"EMP-0012A"` | `false` | `null` |
+  | `"EMP_00123"` | `false` | `null` |
+
+  ### ヒント
+  - 全角スペースは `trim()` では消えません。`strip()` を使いましょう。
+  - 先頭4文字は `substring(0, 4)` で取り出して `equalsIgnoreCase("EMP-")` で比べられます(長さを先にチェックしないと例外になる点に注意)。
+  - 数字かどうかは、`charAt(i)` で1文字ずつ取り出して `c >= '0' && c <= '9'` で判定できます。
+  - `normalize` は `isValid` を呼び出して使うと短く書けます。

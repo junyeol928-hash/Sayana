@@ -1,0 +1,45 @@
+title: 社員の配列から給与を集計する
+className: Payroll
+difficulty: 3
+problem: |
+  給与システムの集計処理 `Payroll` を完成させてください。社員は `Employee` クラス(完成済み)で表し、`Employee[]` の配列で渡されます。
+
+  ```java
+  class Employee {
+      String name;   // 氏名
+      String dept;   // 部署
+      int salary;    // 月給(円)
+  }
+  ```
+
+  **作る static メソッド**
+
+  | メソッド | 返すもの |
+  |---|---|
+  | `int total(Employee[] staff)` | 全員の月給の合計 |
+  | `int totalByDept(Employee[] staff, String dept)` | 部署が `dept` の社員だけの月給の合計 |
+  | `Employee topEarner(Employee[] staff)` | 月給が一番高い社員(同額なら配列で先に出てくる方) |
+  | `void raiseAll(Employee[] staff, int percent)` | 全員の月給を `percent` % 上げる(`salary * percent / 100` を足す) |
+
+  **共通ルール**
+
+  - 配列には **`null` の要素(空き枠)が混ざっていることがあります**。`null` は飛ばしてください(NullPointerException にしない)。
+  - 社員が1人もいない(空の配列、または全部 `null`)とき、`total` / `totalByDept` は `0`、`topEarner` は `null` を返します。
+  - 部署名は画面入力から来る想定です。`==` ではなく `equals` で比較してください。
+
+  ```java
+  Employee[] staff = {
+      new Employee("佐藤", "営業", 300000),
+      null,
+      new Employee("鈴木", "開発", 350000),
+      new Employee("高橋", "営業", 280000),
+  };
+  Payroll.total(staff);              // 930000
+  Payroll.totalByDept(staff, "営業"); // 580000
+  Payroll.topEarner(staff);          // 鈴木の Employee
+  Payroll.raiseAll(staff, 10);       // 佐藤 330000 / 鈴木 385000 / 高橋 308000
+  ```
+
+  ヒント:
+  - `raiseAll` は何も返しません。配列に入っているのはインスタンスへの **参照** なので、`e.salary` を書き換えれば呼び出し元の社員の月給が変わります。
+  - `topEarner` は「今までで一番高い社員」を入れておく変数を `null` で始めると、全部 `null` の場合も自然に扱えます。

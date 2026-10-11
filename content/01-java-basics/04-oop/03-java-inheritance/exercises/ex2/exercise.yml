@@ -1,0 +1,36 @@
+title: 正社員・パート・マネージャーの月給を計算する
+className: Employee
+difficulty: 2
+problem: |
+  給与システムの社員クラスを、継承を使って作ります。親クラス `Employee` は用意済みです。
+  子クラスで `monthlyPay()`(月給)を **オーバーライド** してください。
+
+  ```text
+  Employee(社員)
+   ├─ FullTimeEmployee(正社員)
+   │    └─ Manager(マネージャー)
+   └─ PartTimeEmployee(パート)
+  ```
+
+  **給与ルール**
+
+  1. `FullTimeEmployee(name, baseSalary, overtimeHours)` … 正社員。
+     月給 = 基本給 + 残業時間 × `2500`
+  2. `PartTimeEmployee(name, hourlyWage, hours)` … パート。
+     月給 = 時給 × 勤務時間。ただし **160 時間を超えた分** は時給の 1.25 倍(`時給 × 125 / 100`、小数切り捨て)
+  3. `Manager(name, baseSalary)` … マネージャー。`FullTimeEmployee` を継承し、**残業代は出ない**(残業時間 0 として親に渡す)。
+     月給 = 正社員としての月給(`super.monthlyPay()`)+ 役職手当 `50000`
+
+  | 呼び出し | 月給 |
+  |---|---|
+  | `new FullTimeEmployee("田中", 300000, 10)` | `325000` |
+  | `new PartTimeEmployee("鈴木", 1200, 100)` | `120000` |
+  | `new PartTimeEmployee("高橋", 1000, 170)` | `172500`(160h×1000 + 10h×1250) |
+  | `new Manager("佐藤", 400000)` | `450000` |
+
+  また、親の `payslip()` は `"名前: 月給円"` を返します(変更不要)。たとえば `new Manager("佐藤", 400000).payslip()` は `"佐藤: 450000円"` です。
+
+  注意:
+  - 各コンストラクタでは `super(...)` で親に値を渡してください。
+  - `Manager` の月給は、正社員の計算を **コピペせず** `super.monthlyPay()` で再利用してください。
+  - オーバーライドするメソッドには `@Override` を付けましょう。

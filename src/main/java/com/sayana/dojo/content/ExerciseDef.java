@@ -1,7 +1,10 @@
 package com.sayana.dojo.content;
 
+import java.util.List;
+
 /**
  * 演習1問の定義。教材由来(key = "lessonId/ex1")と AI生成の類題(key = "gen/123")の両方をこの形で扱う。
+ * libraries に "spring" があると、Spring(と MockMvc)入りのクラスパスで採点する。
  */
 public record ExerciseDef(
         String key,
@@ -13,9 +16,15 @@ public record ExerciseDef(
         String problemHtml,
         String starter,
         String solution,
-        String test) {
+        String test,
+        List<String> libraries) {
 
     public static final String GENERATED_PREFIX = "gen/";
+
+    /** 採点時に使う追加ライブラリ(例: "spring")。 */
+    public boolean usesSpring() {
+        return libraries.contains("spring");
+    }
 
     public String testClassName() {
         return className + "Test";

@@ -1,0 +1,30 @@
+title: 設定値を既定値つきで読み込む
+className: AppConfig
+difficulty: 3
+problem: |
+  アプリの設定ファイルを読み込んだ結果が `Map<String, String>` で渡されます(例:`"db.port" → "5432"`)。
+  設定は人が手で書くので、**キーがない・空白だけ・数値のはずが数値でない** といったことが普通に起きます。
+  これを安全に読み出す `AppConfig` クラスを完成させてください。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `Optional<String> get(String key)` | 値の前後の空白を除いたもの。キーがない/空白を除くと空文字なら **空の Optional** |
+  | `int getInt(String key, int defaultValue)` | 値を int に変換したもの。取れない・**数値に変換できない** なら `defaultValue` |
+  | `String require(String key)` | 値。取れなければ `IllegalStateException` を投げる。メッセージは `"必須の設定がありません: " + key` |
+
+  ### 例
+  設定が `{"app.name": " Java道場 ", "db.port": "5432", "db.timeout": "abc", "db.user": "  "}` のとき
+
+  - `get("app.name")` → `Optional[Java道場]`
+  - `get("db.user")` → `Optional.empty`(空白だけ)
+  - `getInt("db.port", 3306)` → `5432`
+  - `getInt("db.timeout", 30)` → `30`(数値でない)
+  - `getInt("db.pool", 10)` → `10`(キーがない)
+  - `require("db.host")` → `IllegalStateException: 必須の設定がありません: db.host`
+
+  ### ヒント
+  - `get` は `Optional.ofNullable(values.get(key))` から `map(String::strip)` → `filter(...)`。
+  - 雛形には、文字列を int に変換して **Optional で返す** ヘルパー `tryParseInt` を用意してあります(変換できなければ空)。
+    `get(key)` の結果に `map(AppConfig::tryParseInt)` とすると `Optional<Optional<Integer>>` になってしまいます。関数自体が Optional を返すときは **`flatMap`** です。
+  - `require` は `orElseThrow(() -> new IllegalStateException(...))`。
+  - `get()` や `isPresent()` は使わずに書いてみましょう。

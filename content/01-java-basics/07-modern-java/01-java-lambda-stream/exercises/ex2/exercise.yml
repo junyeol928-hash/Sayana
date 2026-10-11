@@ -1,0 +1,35 @@
+title: 社員を部署ごとに集計する
+className: DeptReport
+difficulty: 2
+problem: |
+  人事システムで、社員リスト `List<Employee>` から部署ごとの集計を作ります。
+  `Employee` は `getName()`(氏名)、`getDept()`(部署名)、`getSalary()`(月給・万円)を持つクラスです(雛形に用意済み)。
+
+  次の3つのメソッドを **Stream の `collect`** で完成させてください。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `Map<String, Long> headcount(List<Employee> emps)` | 部署名 → 人数 |
+  | `Map<String, Integer> salaryTotal(List<Employee> emps)` | 部署名 → 月給の合計 |
+  | `Map<String, String> nameById(List<Employee> emps)` | 社員ID → 氏名 |
+
+  ### 例
+  ```text
+  E01 佐藤 開発 42
+  E02 鈴木 営業 38
+  E03 田中 開発 51
+  ```
+  - `headcount` → `{開発=2, 営業=1}`
+  - `salaryTotal` → `{開発=93, 営業=38}`
+  - `nameById` → `{E01=佐藤, E02=鈴木, E03=田中}`
+
+  ### ルール
+  - 社員リストが空なら、どれも **空の Map** を返す(`null` は返さない)。
+  - Map の並び順は問いません(テストは `get` で中身を確認します)。
+  - `nameById` で同じ ID の社員が複数いたら、**後に出てきた方** の氏名を採用する(システム移行で重複データが混ざることがあるため)。
+
+  ### ヒント
+  - `Collectors.groupingBy(Employee::getDept, Collectors.counting())`
+  - グループごとの合計は、第2引数を `Collectors.summingInt(Employee::getSalary)` にします。
+  - `Collectors.toMap(キー, 値)` はキーが重複すると `IllegalStateException` で落ちます。
+    第3引数に「ぶつかったときの決め方」を `(oldName, newName) -> newName` のようなラムダで渡しましょう。

@@ -55,11 +55,26 @@ public class Grader {
         this.gate = gate;
     }
 
+    /** Spring を使う演習は JVM の起動と DI コンテナの準備に時間がかかるので、最低これだけ待つ。 */
+    private static final Duration SPRING_MIN_TIMEOUT = Duration.ofSeconds(20);
+
     public GradeResult grade(ExerciseDef exercise, String code) {
-        return grade(exercise.className(), code, exercise.test(), config.getTimeout());
+        Duration timeout = config.getTimeout();
+        if (exercise.usesSpring() && timeout.compareTo(SPRING_MIN_TIMEOUT) < 0) {
+            timeout = SPRING_MIN_TIMEOUT;
+        }
+        return grade(exercise.className(), code, exercise.test(), exercise.libraries(), timeout);
     }
 
     public GradeResult grade(String className, String code, String testCode, Duration timeout) {
+        return grade(className, code, testCode, List.of(), timeout);
+    }
+
+    /**
+     * @param libraries 追加ライブラリ(例: "spring")。アプリ自身のクラスパスから jar を探して渡す
+     */
+    public GradeResult grade(String className, String code, String testCode, List<String> libraries,
+                             Duration timeout) {
         long start = System.nanoTime();
         if (!gate.acquire(timeout.toSeconds() + 5)) {
             return error("ほかのコードを実行中です。少し待ってからもう一度どうぞ。", start);
@@ -75,7 +90,9 @@ public class Grader {
             Files.writeString(userFile, normalizedCode, StandardCharsets.UTF_8);
             Files.writeString(testFile, testCode, StandardCharsets.UTF_8);
 
-            List<CodeDiagnostic> errors = compile(List.of(userFile, testFile), classes, normalizedCode, className);
+            List<Path> extraJars = LibraryClasspath.resolve(libraries);
+            List<CodeDiagnostic> errors = compile(List.of(userFile, testFile), classes, normalizedCode, className,
+                    extraJars);
             if (!errors.isEmpty()) {
                 boolean onlyTest = errors.stream().allMatch(e -> e.source().equals("採点テスト"));
                 String message = onlyTest
@@ -84,7 +101,7 @@ public class Grader {
                 return new GradeResult(GradeResult.Status.COMPILE_ERROR, List.of(), errors, message, "",
                         elapsed(start));
             }
-            return runTests(work, classes, className, timeout, start);
+            return runTests(work, classes, className, extraJars, timeout, start);
         } catch (IOException e) {
             log.warn("採点の準備に失敗しました", e);
             return error("採点の準備に失敗しました: " + e.getMessage(), start);
@@ -94,8 +111,8 @@ public class Grader {
         }
     }
 
-    private List<CodeDiagnostic> compile(List<Path> files, Path classes, String userCode, String className)
-            throws IOException {
+    private List<CodeDiagnostic> compile(List<Path> files, Path classes, String userCode, String className,
+                                         List<Path> extraJars) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             throw new IllegalStateException("javac が見つかりません。JRE ではなく JDK 21 で起動してください。");
@@ -103,8 +120,9 @@ public class Grader {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager fm = compiler.getStandardFileManager(diagnostics, Locale.JAPANESE,
                 StandardCharsets.UTF_8)) {
-            List<String> options = List.of("-encoding", "UTF-8", "-proc:none", "-g", "-Xlint:none",
-                    "-d", classes.toString(), "-cp", junitJar().toString());
+            // -parameters: Spring が引数名(@PathVariable など)を読めるようにする
+            List<String> options = List.of("-encoding", "UTF-8", "-proc:none", "-g", "-parameters", "-Xlint:none",
+                    "-d", classes.toString(), "-cp", classpath(List.of(junitJar()), extraJars));
             Boolean ok = compiler.getTask(null, fm, diagnostics, options, null, fm.getJavaFileObjectsFromPaths(files))
                     .call();
             List<CodeDiagnostic> errors = new ArrayList<>();
@@ -125,13 +143,12 @@ public class Grader {
         }
     }
 
-    private GradeResult runTests(Path work, Path classes, String className, Duration timeout, long start)
-            throws IOException {
+    private GradeResult runTests(Path work, Path classes, String className, List<Path> extraJars, Duration timeout,
+                                 long start) throws IOException {
         Path resultFile = work.resolve("result.txt");
         String javaExe = Path.of(System.getProperty("java.home"), "bin",
                 isWindows() ? "java.exe" : "java").toString();
-        String cp = String.join(java.io.File.pathSeparator, classes.toString(), runnerClasses().toString(),
-                junitJar().toString());
+        String cp = classpath(List.of(classes, runnerClasses(), junitJar()), extraJars);
         ProcessBuilder pb = new ProcessBuilder(javaExe,
                 "-Xmx" + config.getMaxHeap(), "-Xss1m", "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1",
                 "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
@@ -256,7 +273,7 @@ public class Grader {
                         }
                         Files.copy(in, src);
                     }
-                    List<CodeDiagnostic> errors = compile(List.of(src), tmp, "", RUNNER_CLASS);
+                    List<CodeDiagnostic> errors = compile(List.of(src), tmp, "", RUNNER_CLASS, List.of());
                     if (!errors.isEmpty()) {
                         throw new IllegalStateException("採点ランナーをコンパイルできません: " + errors);
                     }
@@ -266,6 +283,13 @@ public class Grader {
             }
         }
         return dir;
+    }
+
+    private static String classpath(List<Path> first, List<Path> extra) {
+        List<String> entries = new ArrayList<>();
+        first.forEach(p -> entries.add(p.toString()));
+        extra.forEach(p -> entries.add(p.toString()));
+        return String.join(java.io.File.pathSeparator, entries);
     }
 
     private static Thread pump(InputStream in, BoundedOutput sink) {

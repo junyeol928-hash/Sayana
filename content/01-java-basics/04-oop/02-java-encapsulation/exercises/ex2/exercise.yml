@@ -1,0 +1,37 @@
+title: 不変な Money クラス
+className: Money
+difficulty: 2
+problem: |
+  金額と通貨を表す **不変(イミュータブル)** なクラス `Money` を完成させてください。
+  一度作った `Money` の中身は二度と変わらず、計算するときは **新しい `Money` を返します**。
+
+  **フィールド**
+
+  - `amount`(`int`、金額)と `currency`(`String`、通貨コード。例 `"JPY"`)
+  - どちらも **`private final`** にする
+
+  **コンストラクタ** `Money(int amount, String currency)`
+
+  - `amount` が 0 未満なら `IllegalArgumentException`
+  - `currency` が `null` または空文字 `""` なら `IllegalArgumentException`
+
+  **メソッド**
+
+  | メソッド | 動き |
+  |---|---|
+  | `getAmount()` / `getCurrency()` | それぞれの値を返す |
+  | `Money plus(Money other)` | 合計を持つ **新しい** Money を返す。`other` が `null`、または通貨が違うなら `IllegalArgumentException` |
+  | `Money times(int n)` | 金額を `n` 倍した **新しい** Money を返す。`n` が 0 未満なら `IllegalArgumentException` |
+  | `String toString()` | `"1200 JPY"` の形式 |
+
+  ```java
+  Money price = new Money(1200, "JPY");
+  Money total = price.times(3).plus(new Money(500, "JPY"));
+  total.toString();  // "4100 JPY"
+  price.toString();  // "1200 JPY"(元のまま)
+  price.plus(new Money(10, "USD")); // IllegalArgumentException
+  ```
+
+  ヒント:
+  - 通貨の比較は `equals` で。
+  - `final` フィールドはコンストラクタで必ず1回だけ代入します。setter は作りません。

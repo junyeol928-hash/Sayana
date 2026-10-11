@@ -10,6 +10,7 @@
         <textarea class="code-editor tall" name="code" rows="18" spellcheck="false" th:text="${code}"></textarea>
         <div class="actions">
             <button type="submit" class="btn primary">▶ 実行</button>
+            <label class="small"><input type="checkbox" name="libraries" value="spring"> Spring を使う</label>
             <span class="htmx-indicator muted small">実行中…</span>
         </div>
     </form>

@@ -1,3 +1,265 @@
 id: java-abstract-interface
 title: 抽象クラスとインターフェース
-status: planned
+status: ready
+minutes: 15
+summary: abstract で「未完成」を宣言し、interface で「できること」を約束する。テンプレートメソッド、default メソッド、Comparable、「インターフェースに対してプログラムする」まで。
+goals:
+  - 抽象クラス・抽象メソッドのルール(new できない/子は全部実装する)を説明できる
+  - テンプレートメソッドパターンで「流れは親、差分は子」の設計ができる
+  - interface を implements で複数実装し、default / static メソッドの役割を説明できる
+  - 抽象クラスとインターフェースを使い分け、変数の型をインターフェースにする理由を説明できる
+  - Comparable を実装して Arrays.sort で並べ替えられる
+samples:
+  - title: 帳票出力をテンプレートメソッドで作る
+    description: 処理の流れ(見出し→本文→フッター)は親の `print()` が決め、子は `title()` と `body()` の差分だけを書きます。
+    code: |
+      // 帳票出力をテンプレートメソッドで作る
+      // ここを変えてみよう:StockReport の在庫数を 20 にする / 新しい帳票クラスを足してみる
+      abstract class Report {
+          // 処理の流れは親が固定する(final で上書き禁止)
+          final String print() {
+              return "【" + title() + "】\n"
+                   + body() + "\n"
+                   + "-- 以上 --";
+          }
+          abstract String title();   // 差分は子が埋める
+          abstract String body();
+      }
+
+      class SalesReport extends Report {
+          private final int total;
+          SalesReport(int total) { this.total = total; }
+          @Override String title() { return "売上日報"; }
+          @Override String body() { return "売上合計: " + total + "円"; }
+      }
+
+      class StockReport extends Report {
+          private final String item;
+          private final int count;
+          StockReport(String item, int count) {
+              this.item = item;
+              this.count = count;
+          }
+          @Override String title() { return "在庫報告"; }
+          @Override String body() {
+              String mark = (count < 10) ? "(要発注)" : "";
+              return item + ": " + count + "個" + mark;
+          }
+      }
+
+      // 親の型(Report)でまとめて扱える。print() の流れは全部共通
+      Report[] reports = {
+          new SalesReport(12000),
+          new StockReport("コピー用紙", 8)
+      };
+      for (Report r : reports) {
+          System.out.println(r.print());
+      }
+      // new Report() と書くとどうなる?(抽象クラスは new できない)
+  - title: 料金計算ルールをインターフェースで差し替える
+    description: "`Checkout` は `PriceRule` 型しか知りません。ルールを差し替えても `Checkout` のコードは1行も変わらないのがポイントです。"
+    code: |
+      // 料金計算ルールをインターフェースで差し替える
+      // ここを変えてみよう:SaleDiscount の割引率を変える / NoDiscount の label() を消してみる
+      interface PriceRule {
+          int apply(int price);                 // 暗黙に public abstract
+
+          default String label() {              // default メソッド(Java 8+)
+              return "ルール";
+          }
+          static String yen(int price) {        // static メソッド
+              return String.format("%,d円", price);
+          }
+      }
+
+      class NoDiscount implements PriceRule {
+          public int apply(int price) { return price; }   // public は必須
+          @Override public String label() { return "通常価格"; }
+      }
+
+      class SaleDiscount implements PriceRule {
+          private final int percent;
+          SaleDiscount(int percent) { this.percent = percent; }
+          public int apply(int price) {
+              return price - price * percent / 100;
+          }
+          @Override public String label() { return percent + "%オフ"; }
+      }
+
+      class Checkout {
+          private final PriceRule rule;          // 型はインターフェース
+          Checkout(PriceRule rule) { this.rule = rule; }
+          void pay(int price) {
+              System.out.println(rule.label() + ": "
+                  + PriceRule.yen(price) + " → "
+                  + PriceRule.yen(rule.apply(price)));
+          }
+      }
+
+      // Checkout のコードは一切変えずに、ルールだけ差し替える
+      new Checkout(new NoDiscount()).pay(2980);
+      new Checkout(new SaleDiscount(20)).pay(2980);
+  - title: Comparable を実装して並べ替える
+    description: "`Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べます。`implements Comparable<Item>` を消すと実行時に ClassCastException になります。"
+    code: |
+      // Comparable を実装して Arrays.sort で並べ替える
+      // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)
+      class Item implements Comparable<Item> {
+          final String name;
+          final int price;
+          Item(String name, int price) {
+              this.name = name;
+              this.price = price;
+          }
+          @Override
+          public int compareTo(Item other) {
+              // 自分が前なら負、同じなら0、後なら正
+              return Integer.compare(price, other.price);
+          }
+          @Override
+          public String toString() { return name + "(" + price + "円)"; }
+      }
+
+      Item[] items = {
+          new Item("ボールペン", 150),
+          new Item("ノート", 120),
+          new Item("ファイル", 300)
+      };
+      Arrays.sort(items);   // compareTo の結果だけを頼りに並べる
+      System.out.println(Arrays.toString(items));
+quiz:
+  - question: |
+      次のコードで **コンパイルエラーになる** 行はどれ?
+      ```java
+      abstract class Animal {
+          abstract String voice();
+      }
+      class Dog extends Animal {
+          String voice() { return "ワン"; }
+      }
+
+      Animal a = new Dog();      // (A)
+      Animal b = new Animal();   // (B)
+      Dog d = new Dog();         // (C)
+      String v = a.voice();      // (D)
+      ```
+    choices: ["(A)", "(B)", "(C)", "(D)"]
+    answer: 1
+    explanation: |
+      抽象クラスは **`new` できない** ので、(B) が `Animal is abstract; cannot be instantiated` になります。
+      (A) は「親の型の変数に子のインスタンスを入れる」ポリモーフィズムで、抽象クラスでも型としては普通に使えます。(D) は `Animal` に `voice()` が宣言されているので呼べて、実際には `Dog` の `voice()` が動きます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      abstract class Job {
+          final void run() {
+              System.out.print("開始 ");
+              work();
+              System.out.print("終了");
+          }
+          abstract void work();
+      }
+      class Backup extends Job {
+          void work() { System.out.print("バックアップ "); }
+      }
+
+      new Backup().run();
+      ```
+    choices: ["バックアップ ", "開始 終了", "開始 バックアップ 終了", "コンパイルエラー(Backup に run() がない)"]
+    answer: 2
+    explanation: |
+      典型的な **テンプレートメソッド** です。`run()` は親 `Job` から継承されているので `Backup` でも呼べます。`run()` の中の `work()` は、実行時のオブジェクト(`Backup`)の実装が呼ばれるので「開始 バックアップ 終了」になります。
+      `run()` が `final` なのは「流れを子に書き換えさせない」ためで、呼び出すことは問題なくできます。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      interface Greeter {
+          String greet();
+      }
+      class Hello implements Greeter {
+          String greet() { return "Hello"; }
+      }
+      ```
+    choices: ["問題なくコンパイルできる", "Greeter の greet() に public が書かれていないのでエラー", "Hello に @Override がないのでエラー", "Hello の greet() に public がないのでエラー"]
+    answer: 3
+    explanation: |
+      インターフェースのメソッドは、書かなくても **暗黙に `public abstract`** です。実装側の `greet()` は修飾子なし(パッケージ公開)なので、約束より公開範囲を狭めたことになり `attempting to assign weaker access privileges; was public` というエラーになります。`public String greet()` と書けば通ります。
+      インターフェース側に `public` を書かないのは正常で、むしろ省略するのが一般的です。`@Override` は付けるべきですが、なくてもコンパイルエラーにはなりません。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      interface A { default String hi() { return "A"; } }
+      interface B { default String hi() { return "B"; } }
+      class C implements A, B { }
+
+      System.out.println(new C().hi());
+      ```
+    choices: ["C で hi() を上書きしないとコンパイルエラー", "A と出力される(先に書いた方が優先)", "B と出力される(後に書いた方が優先)", "実行時に例外が発生する"]
+    answer: 0
+    explanation: |
+      2つのインターフェースが同じシグネチャの default メソッドを持つと、どちらを使うべきか決められないので `types A and B are incompatible` というコンパイルエラーになります。`implements` に書いた順番は関係ありません。
+      解決するには `C` で `hi()` を上書きし、必要なら `return A.super.hi();` のように片方を明示的に呼びます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class P implements Comparable<P> {
+          int v;
+          P(int v) { this.v = v; }
+          public int compareTo(P o) {
+              return Integer.compare(o.v, v);
+          }
+          public String toString() { return "" + v; }
+      }
+
+      P[] ps = { new P(2), new P(3), new P(1) };
+      Arrays.sort(ps);
+      System.out.println(Arrays.toString(ps));
+      ```
+    choices: ["[1, 2, 3]", "[3, 2, 1]", "[2, 3, 1]", "ClassCastException が発生する"]
+    answer: 1
+    explanation: |
+      `Integer.compare(o.v, v)` は引数が **相手・自分の順** になっています。自分の値が大きいほど負(=前)になるので、**降順** の `[3, 2, 1]` です。
+      `Integer.compare(v, o.v)` なら昇順の `[1, 2, 3]` でした。`Comparable` を実装していれば `ClassCastException` にはなりません。`Arrays.sort` は compareTo の符号だけを見て並べているので、引数の順番1つで並びが逆になります。
+columns:
+  - type: genba
+    title: Service と ServiceImpl、そのインターフェース本当に要る?
+    body: |
+      Spring の現場で必ず見かけるのが `OrderService`(インターフェース)と `OrderServiceImpl`(唯一の実装)のペア。実装は1つなのに、なぜ分けるのでしょう。
+
+      歴史的な理由は2つあります。①昔の Spring はトランザクション管理などを **JDK の動的プロキシ** で実現していて、これはインターフェースがないと使えなかった。②テストで偽物(モック)に差し替えるにはインターフェースが必要だった。
+
+      ところが今は事情が変わりました。Spring Boot 2.0 以降はクラスを直接継承する **CGLIB プロキシ** が既定になり、Mockito もクラスを直接モックできます。最近は「実装が1つならインターフェースは作らない」チームも増えています。
+
+      一方、決済方法・通知手段・外部APIのように **本当に実装が複数ありうる所** では、今でもインターフェースが主役です。そのときは `Impl` ではなく `CreditCardPayment` `StripePayment` のように **違いが分かる名前** を付けるのが良い習慣です。
+  - type: mistake
+    title: compareTo を引き算で書いて並び順が壊れる
+    body: |
+      ネットでよく見る `compareTo` の書き方に、こんなものがあります。
+
+      ```java
+      public int compareTo(Account o) {
+          return this.balance - o.balance;  // 危険!
+      }
+      ```
+
+      「自分が小さければ負、大きければ正」になるので一見正しいのですが、`int` の範囲を超えると **桁あふれ(オーバーフロー)** します。たとえば `balance` が `-2_000_000_000` と `1_000_000_000` だと、引き算の結果は本来 -30億ですが、int に収まらず `1294967296`(正の値)になります。つまり「マイナス20億の方が大きい」と判定され、並び順が壊れます。しかも例外は出ません。
+
+      金額やIDのように大きな値を扱う現場ではまれに起きるバグで、テストデータが小さいと見つかりません。比較は **`Integer.compare(this.balance, o.balance)`** を使えば安全です(`long` なら `Long.compare`)。
+  - type: trivia
+    title: 「定数インターフェース」はアンチパターン
+    body: |
+      インターフェースのフィールドは自動で `public static final` になるので、昔はこんな書き方が流行りました。
+
+      ```java
+      interface Constants {
+          int MAX_USERS = 100;
+          String APP_NAME = "Java道場";
+      }
+      class UserService implements Constants {
+          // MAX_USERS と書くだけで使える
+      }
+      ```
+
+      定数を使いたいだけで `implements` するこの手法は **定数インターフェース** と呼ばれ、名著『Effective Java』でアンチパターンとされています。`UserService` は「Constants ができる」わけではないのに型として公開されてしまい、子クラスにも定数が漏れ出すからです。
+
+      定数をまとめたいなら、`final class` に `private` コンストラクタと `static final` フィールドを置く、決まった選択肢なら後の章で学ぶ `enum` を使う、のが現代の書き方です。

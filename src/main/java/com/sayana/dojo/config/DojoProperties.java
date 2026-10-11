@@ -16,11 +16,28 @@ public class DojoProperties {
 
     private final Exec exec = new Exec();
     private final Ai ai = new Ai();
+    private final Lan lan = new Lan();
 
     public Path getContentDir() { return contentDir; }
     public void setContentDir(Path contentDir) { this.contentDir = contentDir; }
     public Exec getExec() { return exec; }
     public Ai getAi() { return ai; }
+    public Lan getLan() { return lan; }
+
+    /**
+     * LANモード(同じWi-Fiのスマホから開く)。lan プロファイルで有効になる。
+     * PC以外からのアクセスには合言葉(キー)を求める。
+     */
+    public static class Lan {
+        private boolean enabled = false;
+        /** 合言葉。空なら data/lan-key.txt に自動生成して使い回す。 */
+        private String key = "";
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public String getKey() { return key; }
+        public void setKey(String key) { this.key = key; }
+    }
 
     /** コード実行・採点の制限。 */
     public static class Exec {

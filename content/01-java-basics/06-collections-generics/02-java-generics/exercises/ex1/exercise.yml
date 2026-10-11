@@ -1,0 +1,28 @@
+title: 汎用の Pair と最大値メソッドを作る
+className: GenericTools
+difficulty: 1
+problem: |
+  どんな型にも使える部品を2つ完成させてください。
+
+  ### 1. `Pair<K, V>` クラス
+  キーと値の2つ組を持つクラスです(雛形にフィールドとコンストラクタは用意済み)。
+
+  - `getKey()` / `getValue()`:それぞれの値を返す
+  - `swap()`:キーと値を **入れ替えた新しい** `Pair<V, K>` を返す(自分自身は変更しない)
+
+  ```java
+  Pair<String, Integer> p = new Pair<>("りんご", 120);
+  p.getKey();          // "りんご"
+  p.swap().getKey();   // 120
+  ```
+
+  ### 2. `static <T extends Comparable<T>> T max(List<T> list)`
+  リストの中の最大の要素を返します。`Integer` でも `String` でも動くように、`compareTo` で比較します。
+
+  - `max(List.of(3, 9, 4))` → `9`
+  - `max(List.of("kiwi", "apple", "melon"))` → `"melon"`(辞書順で最大)
+  - `list` が `null` または空なら `null` を返す
+
+  ### ヒント
+  - `swap()` の戻り値の型は `Pair<V, K>`。`new Pair<>(value, key)` と書けば、ダイヤモンドが型を推論してくれます。
+  - `a.compareTo(b)` は、a が b より大きければ正の数、小さければ負の数、等しければ 0 を返します。

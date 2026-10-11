@@ -1,0 +1,27 @@
+title: 社員IDから名前を引く
+className: EmployeeFinder
+difficulty: 1
+problem: |
+  社員名簿 `List<Employee>` から、社員IDで社員を探す機能を作ります。
+  `Employee` は `getId()`(社員ID)と `getName()`(氏名)を持つクラスです(雛形に用意済み)。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `Optional<Employee> findById(List<Employee> emps, String id)` | ID が一致する社員。いなければ **空の Optional** |
+  | `String nameOf(List<Employee> emps, String id)` | ID が一致する社員の氏名。いなければ `"(不明)"` |
+
+  ### 例
+  名簿が `E01 佐藤` / `E02 鈴木` / `E03 田中` のとき
+
+  - `findById(emps, "E02")` → 鈴木さんが入った Optional
+  - `findById(emps, "E99")` → `Optional.empty()`
+  - `nameOf(emps, "E03")` → `"田中"`
+  - `nameOf(emps, "E99")` → `"(不明)"`
+
+  ### ルール
+  - 同じ ID の社員が複数いたら、**リストの先頭に近い方** を返す。
+  - 見つからないときに `null` を返してはいけません(Optional を返すメソッドが null を返すのは最悪のパターンです)。
+
+  ### ヒント
+  - `findById` は `emps.stream().filter(...).findFirst()`。`findFirst()` はそのまま Optional を返します。
+  - `nameOf` は `findById` を呼んで、`map(Employee::getName)` → `orElse(...)` とつなげます。`get()` は使わないこと。

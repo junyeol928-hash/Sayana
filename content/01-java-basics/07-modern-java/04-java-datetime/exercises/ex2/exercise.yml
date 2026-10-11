@@ -1,0 +1,31 @@
+title: 勤怠の実働時間を Duration で集計する
+className: WorkTime
+difficulty: 2
+problem: |
+  勤怠システムで、シフトごとの実働時間と月の合計を計算します。
+  1回の勤務は record `Shift(LocalDateTime start, LocalDateTime end, int breakMinutes)` で表します(雛形に用意済み)。
+  夜勤は日付をまたぐので、`LocalTime` ではなく `LocalDateTime` で持っています。
+
+  **1. `actual(Shift s)` … 実働時間**
+
+  - 実働 =(終了 − 開始)− 休憩。`Duration.between` と `minusMinutes` を使う
+  - 次の場合は `IllegalArgumentException`
+    - 終了が開始と同じか、開始より前(`!end.isAfter(start)`)
+    - 休憩がマイナス、または休憩を引いた結果がマイナス
+
+  **2. `total(List<Shift> shifts)` … 合計実働時間**
+
+  - 全シフトの `actual` を足し合わせる。空なら `Duration.ZERO`
+  - `Duration` も不変です。`sum.plus(d);` だけでは足されません
+
+  **3. `format(Duration d)` … 画面表示用の文字列**
+
+  - `"8時間0分"`、`"7時間30分"` の形式(分は0埋めしない)
+  - 24時間を超えても「日」にしない:25時間5分 → `"25時間5分"`
+  - ヒント:時間は `toHours()`、分は `toMinutesPart()`。`toHoursPart()` は24時間で一周するので使わない
+
+  | シフト | 実働 |
+  |---|---|
+  | 2024-04-01 09:00 〜 18:00、休憩60分 | `PT8H`(8時間) |
+  | 2024-04-01 22:00 〜 04-02 06:00、休憩60分 | `PT7H`(日付またぎ) |
+  | 2024-04-01 18:00 〜 09:00(終了が前) | `IllegalArgumentException` |

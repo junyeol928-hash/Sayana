@@ -45,26 +45,33 @@ class CurriculumTest {
     }
 
     @Test
-    @DisplayName("第1部の最初の6レッスンが公開されていて、残りは章立てだけある")
+    @DisplayName("4部構成で、最初の6レッスンは公開されている")
     void curriculumShape() {
         assertThat(CONTENT.parts()).hasSize(4);
-        assertThat(CONTENT.readyLessons()).extracting(Lesson::id).containsExactly(
+        assertThat(CONTENT.readyLessons()).extracting(Lesson::id).contains(
                 "java-hello", "java-variables", "java-operators", "java-if", "java-loops", "java-arrays");
         assertThat(CONTENT.allLessons().size()).isGreaterThan(40);
     }
 
     @Test
-    @DisplayName("公開レッスンには解説・サンプル・演習1〜3問・クイズ5問・コラムがそろっている")
+    @DisplayName("公開レッスンには解説・クイズ5問・コラムがそろっていて、演習かSTS手順がある")
     void readyLessonsAreComplete() {
         for (Lesson l : CONTENT.readyLessons()) {
             assertThat(l.bodyMarkdown()).as(l.id() + " の解説").hasSizeGreaterThan(2000);
-            assertThat(l.samples()).as(l.id() + " のサンプル").isNotEmpty();
-            assertThat(l.exercises()).as(l.id() + " の演習").hasSizeBetween(1, 3);
             assertThat(l.quiz()).as(l.id() + " のクイズ").hasSize(5);
             assertThat(l.columns()).as(l.id() + " のコラム").isNotEmpty();
             l.quiz().forEach(q -> assertThat(q.choices()).as(l.id() + " のクイズの選択肢").hasSizeGreaterThanOrEqualTo(2));
             List<String> keys = l.checklist().stream().map(Lesson.ChecklistItem::key).toList();
             assertThat(keys).as(l.id() + " のチェックリストのキー").doesNotHaveDuplicates();
+            if (l.hasSts()) {
+                // 画面上で実行できない内容が中心のレッスンは、手順とチェックリストが主役
+                assertThat(l.sts().steps()).as(l.id() + " のSTS手順").isNotEmpty();
+                assertThat(l.checklist()).as(l.id() + " のチェックリスト").isNotEmpty();
+                assertThat(l.exercises()).as(l.id() + " の演習").hasSizeLessThanOrEqualTo(3);
+            } else {
+                assertThat(l.samples()).as(l.id() + " のサンプル").isNotEmpty();
+                assertThat(l.exercises()).as(l.id() + " の演習").hasSizeBetween(1, 3);
+            }
         }
         assertThat(CONTENT.lesson("java-hello").orElseThrow().hasSts()).as("STSでやってみよう").isTrue();
     }
@@ -73,7 +80,7 @@ class CurriculumTest {
     @MethodSource("exercises")
     @DisplayName("模範解答は採点テストに全部合格する")
     void solutionPasses(String key, ExerciseDef ex) {
-        GradeResult r = GRADER.grade(ex.className(), ex.solution(), ex.test(), Duration.ofSeconds(30));
+        GradeResult r = GRADER.grade(ex.className(), ex.solution(), ex.test(), ex.libraries(), Duration.ofSeconds(40));
         assertThat(r.status()).as(key + "\n" + r.summaryText() + "\n" + r.output()).isEqualTo(GradeResult.Status.PASSED);
     }
 
@@ -81,7 +88,7 @@ class CurriculumTest {
     @MethodSource("exercises")
     @DisplayName("雛形はコンパイルできて、採点テストには落ちる")
     void starterCompilesButFails(String key, ExerciseDef ex) {
-        GradeResult r = GRADER.grade(ex.className(), ex.starter(), ex.test(), Duration.ofSeconds(30));
+        GradeResult r = GRADER.grade(ex.className(), ex.starter(), ex.test(), ex.libraries(), Duration.ofSeconds(40));
         assertThat(r.status()).as(key + "\n" + r.summaryText()).isNotIn(GradeResult.Status.COMPILE_ERROR,
                 GradeResult.Status.PASSED);
     }
@@ -90,7 +97,7 @@ class CurriculumTest {
     @MethodSource("samples")
     @DisplayName("サンプルは JShell でコンパイルエラーなく最後まで動く")
     void sampleRuns(String name, Lesson.Sample sample) {
-        RunResult r = RUNNER.run(sample.code(), Duration.ofSeconds(20));
+        RunResult r = RUNNER.run(sample.code(), Duration.ofSeconds(30), sample.libraries());
         assertThat(r.status()).as(name + "\n" + r.errorText() + "\n" + r.output())
                 .isIn(RunResult.Status.OK, RunResult.Status.EXCEPTION);
         assertThat(r.output() + String.join("", r.values())).as(name + " の出力").isNotBlank();

@@ -240,8 +240,13 @@ public class AiService {
                 .append('\n'));
         exercises.generatedFor(lessonId).forEach(e -> existing.append("- ").append(e.title()).append(" / ")
                 .append(e.className()).append('\n'));
+        // 教材の演習が Spring を使うレッスンなら、類題でも Spring を使ってよい
+        List<String> libraries = lesson.exercises().stream().flatMap(e -> e.libraries().stream()).distinct().toList();
+        String libraryNote = libraries.contains("spring")
+                ? "\n採点のクラスパスには Spring Framework(spring-context / spring-webmvc / spring-test の MockMvc / Jackson / Bean Validation)も入っています。必要なら使ってよいですが、Spring Boot の自動設定(@SpringBootTest)は使わず、AnnotationConfigApplicationContext や MockMvcBuilders.standaloneSetup を使ってください。"
+                : "";
         List<Turn> turns = new ArrayList<>();
-        turns.add(Turn.user(existing + "\nこのレッスンの類題を1問作ってください。"));
+        turns.add(Turn.user(existing + libraryNote + "\nこのレッスンの類題を1問作ってください。"));
         String lastProblem = "";
         for (int attempt = 1; attempt <= 2; attempt++) {
             String raw = call(config.getModels().getGenerate(), "medium", lesson, "generate-exercise", turns);
@@ -250,11 +255,11 @@ public class AiService {
                 lastProblem = "出力の形式(タグ)が崩れていました。";
             } else {
                 Draft d = draft.get();
-                lastProblem = validate(d);
+                lastProblem = validate(d, libraries);
                 if (lastProblem == null) {
                     return generated.save(new GeneratedExercise(lessonId, d.title(), d.className(), d.difficulty(),
                             d.problem(), d.starter(), d.solution(), d.test(), config.getModels().getGenerate(),
-                            Instant.now(clock)));
+                            String.join(",", libraries), Instant.now(clock)));
                 }
             }
             log.info("類題の検証に失敗(試行{}): {}", attempt, lastProblem);
@@ -302,12 +307,12 @@ public class AiService {
     }
 
     /** 問題なければ null、ダメなら理由。 */
-    private String validate(Draft d) {
-        GradeResult sol = grader.grade(d.className(), d.solution(), d.test(), Duration.ofSeconds(15));
+    private String validate(Draft d, List<String> libraries) {
+        GradeResult sol = grader.grade(d.className(), d.solution(), d.test(), libraries, Duration.ofSeconds(20));
         if (!sol.passed()) {
             return "模範解答が採点テストに合格しませんでした: " + sol.summaryText();
         }
-        GradeResult starter = grader.grade(d.className(), d.starter(), d.test(), Duration.ofSeconds(15));
+        GradeResult starter = grader.grade(d.className(), d.starter(), d.test(), libraries, Duration.ofSeconds(20));
         if (starter.status() == GradeResult.Status.COMPILE_ERROR) {
             return "雛形がコンパイルできませんでした: " + starter.summaryText();
         }

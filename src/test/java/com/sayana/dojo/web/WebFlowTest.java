@@ -158,7 +158,7 @@ class WebFlowTest {
         ExerciseDef base = content.exercise("java-if/ex1").orElseThrow();
         GeneratedExercise g = generated.save(new GeneratedExercise("java-if", "類題テスト", base.className(), 1,
                 "<script>alert(1)</script> を返す問題", base.starter(), base.solution(), base.test(), "test",
-                Instant.now()));
+                null, Instant.now()));
         mvc.perform(get("/practice/" + g.getId())).andExpect(status().isOk())
                 .andExpect(content().string(containsString("類題テスト")))
                 .andExpect(content().string(containsString("&lt;script&gt;")));

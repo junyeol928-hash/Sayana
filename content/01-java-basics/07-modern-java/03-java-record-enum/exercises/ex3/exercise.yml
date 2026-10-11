@@ -1,0 +1,38 @@
+title: 申請ステータスの遷移を enum で判定する
+className: ApplicationFlow
+difficulty: 3
+problem: |
+  経費精算システムの「申請ステータス」を enum で表し、遷移してよいかを判定します。
+
+  ```mermaid
+  flowchart LR
+      D["DRAFT(下書き)"] --> S["SUBMITTED(申請中)"]
+      S --> A["APPROVED(承認済み)"]
+      S --> R["REJECTED(却下)"]
+      S -- "差し戻し" --> D
+      R -- "再申請の準備" --> D
+  ```
+
+  **1. `Status.canMoveTo(Status next)` を完成させる**
+
+  矢印がある遷移だけ `true`、それ以外は `false` を返します。
+
+  | 今の状態 | 遷移できる先 |
+  |---|---|
+  | `DRAFT` | `SUBMITTED` |
+  | `SUBMITTED` | `APPROVED` / `REJECTED` / `DRAFT` |
+  | `REJECTED` | `DRAFT` |
+  | `APPROVED` | なし(最終状態) |
+
+  - 同じ状態への遷移(`DRAFT` → `DRAFT`)も `false`
+  - `next` が `null` なら `false`
+  - `switch (this)` の **switch 式** で書き、`default` は書かないこと(全定数を case に書けば網羅性チェックが効きます)
+
+  **2. `ApplicationFlow.countByStatus(List<Status> statuses)` を完成させる**
+
+  申請の一覧から、ステータスごとの件数を `EnumMap` で返します。
+
+  - **件数が 0 のステータスも、0 として必ず入れる**(画面に「承認済み 0件」と出したいため)
+  - EnumMap なので、反復順は宣言順(DRAFT, SUBMITTED, APPROVED, REJECTED)になります
+
+  例:`countByStatus(List.of(DRAFT, SUBMITTED, DRAFT))` → `{DRAFT=2, SUBMITTED=1, APPROVED=0, REJECTED=0}`

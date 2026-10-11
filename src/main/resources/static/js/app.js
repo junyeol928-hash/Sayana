@@ -13,6 +13,16 @@ let cm = null;            // CodeMirror のモジュール群(読み込めたら
 let activeView = null;    // 最後に触ったエディタ
 let mermaidModule = null;
 
+// スマホ・タブレット(指で操作する端末か、狭い画面)
+const isTouch = () => window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
+
+// スマホのキーボードで打ちにくい記号。押すとカーソル位置に入る
+const SYMBOL_KEYS = [
+  ["⇥", "    "], ["{", "{"], ["}", "}"], ["(", "("], [")", ")"], [";", ";"], ["\"", "\""],
+  ["=", "="], ["+", "+"], ["<", "<"], [">", ">"], ["[", "["], ["]", "]"], [".", "."],
+  ["!", "!"], ["&", "&"], ["|", "|"], ["'", "'"], ["%", "%"], ["_", "_"],
+];
+
 async function loadCodeMirror() {
   try {
     const [core, view, commands, javaLang] = await Promise.all([
@@ -49,6 +59,12 @@ function initEditor(ta) {
       }
     });
     ta.addEventListener("focus", () => { activeView = { text: () => ta.value }; });
+    ta.setAttribute("autocapitalize", "off");
+    ta.setAttribute("autocorrect", "off");
+    addSymbolBar(ta, (text) => {
+      ta.focus();
+      ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, "end");
+    });
     return;
   }
   const { EditorView, basicSetup, keymap, indentWithTab, java } = cm;
@@ -65,12 +81,37 @@ function initEditor(ta) {
         if (u.docChanged) ta.value = u.state.doc.toString();
         if (u.focusChanged && u.view.hasFocus) activeView = { text: () => u.state.doc.toString(), view: u.view };
       }),
-      EditorView.theme({ "&": { fontSize: "14px" } }),
+      // スマホの自動大文字化・自動修正で public が Public にならないように
+      EditorView.contentAttributes.of({ autocapitalize: "off", autocorrect: "off", spellcheck: "false" }),
+      ...(isTouch() ? [EditorView.lineWrapping] : []),
     ],
   });
   ta.style.display = "none";
   ta.parentNode.insertBefore(view.dom, ta);
   ta._cmView = view;
+  addSymbolBar(ta, (text) => {
+    view.dispatch(view.state.replaceSelection(text));
+    view.focus();
+  });
+}
+
+// エディタの上に記号キーの列を出す(スマホのときだけ CSS で表示)
+function addSymbolBar(ta, insert) {
+  const bar = document.createElement("div");
+  bar.className = "symbol-bar";
+  bar.setAttribute("aria-label", "記号を入力");
+  for (const [label, text] of SYMBOL_KEYS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.title = label === "⇥" ? "インデント(空白4つ)" : label;
+    // pointerdown で処理して、エディタのフォーカス(=キーボード)を外さない
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); insert(text); });
+    b.addEventListener("click", (e) => e.preventDefault());
+    bar.appendChild(b);
+  }
+  const editorDom = ta._cmView ? ta._cmView.dom : ta;
+  editorDom.parentNode.insertBefore(bar, editorDom);
 }
 
 function setEditorText(ta, text) {
@@ -125,6 +166,18 @@ document.addEventListener("click", (e) => {
   const editor = form.querySelector("textarea.code-editor");
   if (starter && editor && confirm("エディタの内容を最初の状態に戻しますか?")) {
     setEditorText(editor, starter.value);
+  }
+});
+
+// スマホ: AIチューターを開く/閉じる
+document.addEventListener("click", (e) => {
+  const toggle = e.target.closest("[data-tutor-toggle]");
+  if (!toggle) return;
+  e.preventDefault();
+  const open = document.body.classList.toggle("tutor-open");
+  if (open) {
+    const log = document.getElementById("chat-log");
+    if (log) log.scrollTop = log.scrollHeight;
   }
 });
 

@@ -2,7 +2,10 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#6b4226">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Java道場">
     <title th:text="${title} + ' | Java道場'">Java道場</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.10.0/build/styles/github.min.css">
@@ -27,6 +30,13 @@
             <span th:unless="${aiAvailable}" class="ai-badge off" title="ANTHROPIC_API_KEY が未設定です。AI機能以外は使えます">AI OFF</span>
         </div>
     </div>
+    <!--/* スマホ用の下部ナビ(狭い画面だけ表示) */-->
+    <nav class="bottom-nav" aria-label="メニュー">
+        <a th:href="@{/}"><span class="bn-icon">🏠</span><span>ホーム</span></a>
+        <a th:href="@{/review}"><span class="bn-icon">🔁<span class="bn-count" th:if="${dueCount > 0}" th:text="${dueCount}">3</span></span><span>復習</span></a>
+        <a th:href="@{/history}"><span class="bn-icon">📝</span><span>履歴</span></a>
+        <a th:href="@{/playground}"><span class="bn-icon">🧪</span><span>試す</span></a>
+    </nav>
 </header>
 
 <footer class="site-footer" th:fragment="footer">

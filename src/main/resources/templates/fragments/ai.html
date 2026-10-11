@@ -24,6 +24,7 @@
 <aside th:fragment="tutor(lessonId, messages)" class="tutor" id="tutor">
     <div class="tutor-head">
         <span>☕ AIチューター</span>
+        <button type="button" class="tutor-close" data-tutor-toggle aria-label="閉じる">✕</button>
         <form th:if="${aiAvailable}" class="inline" hx-post="/ai/chat/clear" hx-target="#chat-log" hx-confirm="このレッスンの会話を消しますか?">
             <input type="hidden" name="lessonId" th:value="${lessonId}">
             <button class="link-button small" type="submit">会話をクリア</button>

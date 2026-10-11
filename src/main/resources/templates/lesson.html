@@ -69,6 +69,7 @@
             <form class="code-form run-form" hx-post="/run" th:attr="hx-target='#sample-out-' + ${st.index}" hx-swap="innerHTML"
                   hx-disabled-elt="find button[type=submit]">
                 <input type="hidden" name="lessonId" th:value="${lesson.id}">
+                <input type="hidden" name="libraries" th:each="lib : ${s.libraries}" th:value="${lib}">
                 <textarea class="code-editor" name="code" rows="8" spellcheck="false" th:text="${s.code}"></textarea>
                 <textarea class="starter-code" hidden th:text="${s.code}"></textarea>
                 <div class="actions">
@@ -166,6 +167,9 @@
     </nav>
 </main>
 <aside th:replace="~{fragments/ai :: tutor(${lesson.id}, ${chat})}"></aside>
+<!--/* スマホ: チューターを開くボタン */-->
+<button type="button" class="tutor-fab" data-tutor-toggle aria-label="AIチューターに質問する">☕<span>質問</span></button>
+<div class="tutor-backdrop" data-tutor-toggle></div>
 </div>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

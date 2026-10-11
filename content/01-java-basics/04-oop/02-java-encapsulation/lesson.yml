@@ -1,3 +1,211 @@
 id: java-encapsulation
 title: カプセル化
-status: planned
+status: ready
+minutes: 15
+summary: フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、final と不変オブジェクト、防御的コピーまで。
+goals:
+  - アクセス修飾子4種(public / protected / なし / private)の見える範囲を説明できる
+  - 「全フィールドに getter/setter」がカプセル化にならない理由を説明し、不変条件を守るメソッドを設計できる
+  - コンストラクタで不正な引数を IllegalArgumentException で拒否できる
+  - final フィールドで不変オブジェクトを作り、変更の代わりに新しいインスタンスを返す書き方ができる
+  - 配列を持つクラスで防御的コピーを行い、内部状態を外から壊されないようにできる
+samples:
+  - title: 残高がマイナスにならない口座
+    description: |
+      `balance` は private。残高を変える方法は `deposit` と `withdraw` だけなので、ルール違反の操作はクラスの中で止められます。
+    code: |
+      class Account {
+          private int balance;
+
+          Account(int initial) {
+              if (initial < 0) {
+                  throw new IllegalArgumentException(
+                      "初期残高は0以上: " + initial);
+              }
+              this.balance = initial;
+          }
+
+          int getBalance() {
+              return balance;
+          }
+
+          boolean withdraw(int amount) {
+              if (amount <= 0 || amount > balance) {
+                  return false;            // ルール違反は受け付けない
+              }
+              balance -= amount;
+              return true;
+          }
+      }
+
+      // ここを変えてみよう:初期残高を -500 にする / 出金額を変える
+      Account acc = new Account(1000);
+      System.out.println("3000円出金: " + acc.withdraw(3000));
+      System.out.println("400円出金: " + acc.withdraw(400));
+      System.out.println("残高: " + acc.getBalance());
+      // 次の行の // を外すと? → private なのでコンパイルエラー
+      // acc.balance = -1000000;
+  - title: 不変な Money クラス
+    description: |
+      フィールドはすべて `private final`。`plus` は自分を書き換えず、新しいインスタンスを返します。
+    code: |
+      final class Money {
+          private final int amount;
+
+          Money(int amount) {
+              if (amount < 0) {
+                  throw new IllegalArgumentException(
+                      "金額は0以上: " + amount);
+              }
+              this.amount = amount;
+          }
+
+          Money plus(Money other) {
+              // 自分は変えず、新しいインスタンスを返す
+              return new Money(this.amount + other.amount);
+          }
+
+          int getAmount() {
+              return amount;
+          }
+      }
+
+      // ここを変えてみよう:金額を変える / price.plus(tax) の結果を受け取らないとどうなる?
+      Money price = new Money(1000);
+      Money tax = new Money(100);
+      Money total = price.plus(tax);
+
+      System.out.println("price: " + price.getAmount());   // 元のまま
+      System.out.println("total: " + total.getAmount());
+      System.out.println("同じインスタンス? " + (price == total));
+  - title: 防御的コピーあり/なしの比較
+    description: |
+      getter で内部の配列をそのまま返すと、外から中身を書き換えられてしまいます。`clone()` でコピーを返せば内部は守られます。
+    code: |
+      import java.util.Arrays;
+
+      class LeakyBook {                    // コピーしない(ダメな例)
+          private final int[] scores;
+          LeakyBook(int[] scores) { this.scores = scores; }
+          int[] getScores() { return scores; }
+      }
+
+      class SafeBook {                     // 防御的コピー
+          private final int[] scores;
+          SafeBook(int[] scores) { this.scores = scores.clone(); }
+          int[] getScores() { return scores.clone(); }
+      }
+
+      int[] src = {80, 90, 70};
+      LeakyBook leaky = new LeakyBook(src);
+      SafeBook safe = new SafeBook(src);
+
+      // ここを変えてみよう:書き換える位置や値を変える
+      src[0] = 0;                          // 元の配列を書き換える
+      leaky.getScores()[1] = 0;            // getter の戻り値を書き換える
+      safe.getScores()[1] = 0;
+
+      System.out.println("leaky: "
+              + Arrays.toString(leaky.getScores()));
+      System.out.println("safe : "
+              + Arrays.toString(safe.getScores()));
+quiz:
+  - question: |
+      次のコードで、コンパイルエラーになるのはどの行?
+      ```java
+      class Item {
+          private int stock;
+          int getStock() { return stock; }
+          void add(int n) { stock += n; }
+      }
+      Item item = new Item();     // 行A
+      item.add(5);                // 行B
+      item.stock = 10;            // 行C
+      System.out.println(item.getStock()); // 行D
+      ```
+    choices: ["行A", "行B", "行C", "行D"]
+    answer: 2
+    explanation: |
+      `stock` は `private` なので、`Item` クラスの外からは直接読み書きできません。行C は `stock has private access in Item` になります。
+      行B・行D は Item 自身のメソッドを通しているので問題ありません。メソッドの中(クラスの内側)からは private フィールドを自由に使えます。行A はデフォルトコンストラクタの呼び出しで、これも正しいコードです。
+  - question: |
+      次のコードを実行するとどうなる?
+      ```java
+      final int[] nums = {1, 2, 3};
+      nums[0] = 9;
+      System.out.println(nums[0]);
+      ```
+    choices: ["1 と出力される", "9 と出力される", "コンパイルエラー", "実行時に例外が発生する"]
+    answer: 1
+    explanation: |
+      `final` が禁止するのは **変数 `nums` に別の配列を代入し直すこと**(`nums = new int[3];` など)だけです。`nums` が指している配列の **中身** は変更できるので、`9` と出力されます。
+      「final を付けたから中身も変わらない」は典型的な誤解です。中身まで守りたいなら、外に配列を渡すときに防御的コピーをするなどの工夫が必要です。
+  - question: |
+      次のコードの出力は?
+      ```java
+      class Scores {
+          private final int[] data;
+          Scores(int[] data) { this.data = data; }
+          int first() { return data[0]; }
+      }
+      int[] src = {70, 80};
+      Scores s = new Scores(src);
+      src[0] = 0;
+      System.out.println(s.first());
+      ```
+    choices: ["70", "80", "コンパイルエラー", "0"]
+    answer: 3
+    explanation: |
+      コンストラクタで `this.data = data;` としているので、`s` の内部配列と `src` は **同じ配列** です。呼び出し側が `src[0] = 0` と書き換えると、`s` の中身も変わり `0` が出力されます。
+      これを防ぐには、コンストラクタで `this.data = data.clone();` のように **受け取る時点でコピー**(防御的コピー)します。`data` が private でも、参照を共有していれば守れません。
+  - question: |
+      `Money` は「`plus` が新しいインスタンスを返す」不変クラスです。次のコードの出力は?
+      ```java
+      Money m = new Money(100);
+      m.plus(new Money(50));
+      System.out.println(m.getAmount());
+      ```
+    choices: ["100", "150", "50", "コンパイルエラー"]
+    answer: 0
+    explanation: |
+      不変クラスの `plus` は自分(`m`)を書き換えず、合計を持つ **新しいインスタンス** を返します。ここでは戻り値を受け取っていないので、計算結果は捨てられ、`m` は `100` のままです。
+      合計を使いたいなら `m = m.plus(new Money(50));` のように受け取ります。`String` の `s.toUpperCase();` を書いただけで `s` が変わらないのと同じ理屈です。戻り値を捨てても文法上は正しいのでコンパイルエラーにはなりません。
+  - question: |
+      `com.example.shop` パッケージの `Cart` クラスのメソッドについて、「**同じパッケージのクラスからは呼べるが、別パッケージのクラスからは(サブクラスであっても)呼べない**」のは、どのアクセス修飾子を付けた場合?
+    choices: ["public", "修飾子なし", "protected", "private"]
+    answer: 1
+    explanation: |
+      修飾子を何も付けない(パッケージプライベート)と、同じパッケージの中からだけ見えます。サブクラスでも別パッケージなら見えません。
+      `protected` は「同じパッケージ + 別パッケージのサブクラス」から見えるので、条件に合いません。`private` は同じパッケージの別クラスからも見えず、`public` はどこからでも見えます。
+columns:
+  - type: genba
+    title: "@Data と「とりあえず public」が生む、誰も守らない不変条件"
+    body: |
+      Spring Boot の現場では Lombok がよく使われます。`@Data` を1つ付けるだけで getter・setter・`equals`・`hashCode`・`toString` が全部生成されるので、つい全クラスに付けたくなります。
+
+      でも `@Data` は **全フィールドに setter を生やします**。注文クラスに付ければ `order.setTotal(-1)` も `order.setStatus("適当")` も書けてしまい、「キャンセル済みの注文は発送できない」といったルールは画面やバッチのあちこちに散らばります。「この値を書き換えたのは誰?」を調べるのに、setter の呼び出し元を何十か所も追う羽目に。
+
+      落としどころはこう。①DTO(画面やAPIとの値の受け渡し専用)なら `@Data` でもよい。②業務ルールを持つクラスは `@Getter` だけにして、変更は `cancel()` `ship()` のような意味のあるメソッドで。③不変にできるなら `record`(後のレッスン)を使う。「とりあえず public」も同じ問題を抱えています。
+  - type: trivia
+    title: String が不変なのはセキュリティのため
+    body: |
+      `String` は Java の代表的な不変クラスです。`concat` や `replace` は必ず新しい String を返し、元の文字列は1文字も変わりません。これは設計上のはっきりした理由があります。
+
+      1. **セキュリティ**:ファイルパスやクラス名、接続先のホスト名は String で渡されます。権限チェックを通ったあとで中身を書き換えられたら、チェックの意味がありません。
+      2. **文字列プールで共有できる**:`"GOLD"` のようなリテラルは JVM が1つのインスタンスを使い回します(インターン)。不変だから、誰かが変更して他の場所に影響する心配がありません。
+      3. **hashCode をキャッシュできる**:中身が変わらないので、`hashCode()` は一度計算したら String 内部のフィールドに保存して使い回せます。HashMap のキーとして高速なのはこのおかげです。
+
+      逆に、文字列を何度も連結するとそのたびに新しいインスタンスができるので、ループ内の連結には可変版の `StringBuilder` を使います。
+  - type: mistake
+    title: getter で返した日付を書き換えられて、予約期間がずれた
+    body: |
+      古いコードベースでよくある事故です。予約クラスが開始日を `java.util.Date`(**変更可能**な日付クラス)で持ち、getter でそのまま返していました。
+
+      ```java
+      Date d = reservation.getStart();
+      d.setTime(d.getTime() + 86400000L); // 表示用に1日ずらしたつもり
+      ```
+
+      画面表示用に「翌日」を計算したつもりが、返ってきたのは予約インスタンスの内部の Date そのもの。**予約データ本体の開始日が1日ずれ**、そのまま保存されてしまいました。private にしていても、参照を渡せば中身は守れません。
+
+      対策は ①getter でコピーを返す(防御的コピー)、②そもそも不変な型を使う(Java 8 以降の `LocalDate` は不変で、`plusDays(1)` は新しいインスタンスを返す)。静的解析ツール SpotBugs は、この種のコードを `EI_EXPOSE_REP`(内部表現の露出)として警告してくれます。

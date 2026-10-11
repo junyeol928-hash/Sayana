@@ -1,0 +1,38 @@
+title: 配送ラベルの郵便番号を安全に取り出す
+className: ShippingLabel
+difficulty: 2
+problem: |
+  通販の配送ラベルを印刷する処理で、顧客の郵便番号と市区町村を取り出します。
+  データは古いシステムから移行したもので、**どこが null でもおかしくありません**。
+
+  - `Customer` … `getName()` 氏名、`getAddress()` 住所(**null のことがある**)
+  - `Address` … `getZip()` 郵便番号、`getCity()` 市区町村(どちらも **null や空白だけのことがある**)
+
+  次の2つのメソッドを、`if (x != null)` を重ねずに **Optional の map / filter チェーン** で完成させてください。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `String zipOf(Customer c)` | 郵便番号(前後の空白を除いたもの)。取れなければ `"未登録"` |
+  | `Optional<String> cityOf(Customer c)` | 市区町村(前後の空白を除いたもの)。取れなければ空の Optional |
+
+  「取れない」とは、次のどれかの場合です。
+  1. 顧客 `c` そのものが `null`
+  2. 住所が `null`
+  3. 郵便番号(市区町村)が `null`
+  4. 前後の空白を除くと空文字になる(`""` や `"   "`)
+
+  ### 例
+  - 住所 `zip = " 100-0001 "` → `zipOf` は `"100-0001"`
+  - 住所が `null` → `zipOf` は `"未登録"`、`cityOf` は `Optional.empty()`
+  - `zip = "   "` → `"未登録"`
+
+  ### ヒント
+  ```java
+  Optional.ofNullable(c)
+      .map(Customer::getAddress)
+      .map(Address::getZip)
+      .map(String::strip)          // 前後の空白を除く
+      .filter(s -> !s.isEmpty())   // 空文字ならここで空になる
+      .orElse("未登録");
+  ```
+  `map` は関数の結果が null だと空の Optional にしてくれるので、途中のどこで null が出ても安全です。

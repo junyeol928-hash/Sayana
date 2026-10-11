@@ -1,0 +1,32 @@
+title: 銀行口座クラスで入出金・振込
+className: BankAccount
+difficulty: 2
+problem: |
+  銀行口座を表す `BankAccount` クラスを完成させてください。フィールドは `owner`(名義)と `balance`(残高・円)です。
+
+  **コンストラクタ**
+
+  | コンストラクタ | 動き |
+  |---|---|
+  | `BankAccount(String owner, int balance)` | 名義と初期残高を設定する |
+  | `BankAccount(String owner)` | 初期残高 0 で作る。**`this(...)` で上のコンストラクタを呼ぶ** こと |
+
+  **メソッド**(成功したら `true`、失敗したら `false` を返す。失敗したときは残高を変えない)
+
+  - `boolean deposit(int amount)` … 入金。`amount` が 0 以下なら失敗
+  - `boolean withdraw(int amount)` … 出金。`amount` が 0 以下、または残高より多いなら失敗(残高ちょうどは成功)
+  - `boolean transferTo(BankAccount to, int amount)` … 自分の口座から `to` の口座へ振り込む。
+    `to` が `null`、または自分からの出金に失敗したら失敗
+
+  ```java
+  BankAccount haru = new BankAccount("ハル", 10000);
+  BankAccount moka = new BankAccount("モカ");
+  haru.transferTo(moka, 3000);  // true
+  haru.balance;                 // 7000
+  moka.balance;                 // 3000
+  haru.withdraw(8000);          // false(残高不足。残高は 7000 のまま)
+  ```
+
+  ヒント:
+  - `transferTo` の中では、すでに作った `withdraw` と `to.deposit(...)` を使うと短く書けます。
+  - 引数 `to` には口座インスタンスへの **参照** が渡ってきます。`to.deposit(...)` で変わるのは、呼び出し元が持っている口座そのものです。

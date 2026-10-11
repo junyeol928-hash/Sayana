@@ -1,0 +1,33 @@
+title: 経費データを集計する(? extends と ? super)
+className: ExpenseReport
+difficulty: 2
+problem: |
+  経費精算システムでは、部署によって金額のデータ型がバラバラです(交通費は `Integer`、海外出張は `Double`、
+  まとめ集計は `Long` ……)。どの型のリストでも扱える集計メソッドを2つ完成させてください。
+  メソッドの宣言(ワイルドカード付きの引数)は雛形に用意してあります。
+
+  ### 1. `double total(List<? extends Number> amounts)`
+  金額の合計を `double` で返します。
+
+  - `List<Integer>` でも `List<Double>` でも `List<Long>` でも呼べる
+  - `null` の要素(未入力)は読み飛ばす
+  - `amounts` が `null` または空なら `0.0`
+
+  ### 2. `int collectLarge(List<? extends Number> src, double threshold, List<? super Double> dest)`
+  `src` の中で **`threshold` 以上** の金額を、`double` に変換して `dest` の **末尾に追加** し、追加した件数を返します。
+  監査担当がチェックする「高額経費」の抽出です。
+
+  - `dest` は `List<Double>` でも `List<Number>` でも `List<Object>` でもよい
+  - `src` の `null` の要素は読み飛ばす。`src` が `null` なら何もせず `0` を返す
+  - `src` 自体は変更しない
+
+  ```java
+  List<Number> audit = new ArrayList<>();
+  collectLarge(List.of(3000, 52000, 50000, 800), 50000, audit);  // 2
+  // audit は [52000.0, 50000.0]
+  ```
+
+  ### ヒント
+  - `? extends Number` のリストからは、要素を **`Number` として読めます**。`n.doubleValue()` で `double` に変換できます。
+  - `? super Double` のリストには、**`Double` を入れられます**。`double` を `add` すると自動で `Double` になります(オートボクシング)。
+  - 「読むなら extends、入れるなら super」(PECS)です。逆に `src` に `add` しようとするとコンパイルエラーになるので試してみましょう。

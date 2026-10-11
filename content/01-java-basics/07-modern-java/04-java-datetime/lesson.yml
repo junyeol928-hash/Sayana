@@ -1,3 +1,222 @@
 id: java-datetime
 title: 日付API
-status: planned
+status: ready
+minutes: 15
+summary: Date / Calendar の地雷(可変・月が0始まり)を避けて java.time へ。LocalDate から Instant までの使い分け、不変ゆえの「戻り値を捨てる」罠、Period と Duration、YYYY と mm の取り違え、テストのための Clock 注入まで。
+goals:
+  - Date / Calendar の問題点(可変・月が0始まり)と、java.time が不変である意味を説明できる
+  - LocalDate / LocalTime / LocalDateTime / ZonedDateTime / OffsetDateTime / Instant を用途で使い分けられる
+  - plusDays などの戻り値を受け取って日付を計算し、Period・Duration・ChronoUnit.DAYS.between を使い分けられる
+  - "DateTimeFormatter のパターンで yyyy と YYYY、MM と mm の違いを説明できる"
+  - 曜日・月末を API で求め、now() を直接呼ばずに日付を引数や Clock で受け取る設計にできる
+samples:
+  - title: 作る・足す・不変の罠
+    description: "`plusDays` は新しい日付を返すだけで、元の変数は変わりません。月の加算で存在しない日は月末に丸められます。"
+    code: |
+      // 日付を作って足す。java.time は不変なので戻り値を受け取る
+      // ここを変えてみよう:start を 2024-03-31 に / plusMonths(1) を plusMonths(12) に
+      import java.time.*;
+
+      LocalDate start = LocalDate.of(2024, 1, 31);   // 月は1始まり
+      start.plusDays(7);                             // × 戻り値を捨てている
+      System.out.println("捨てた後  : " + start);
+
+      LocalDate due = start.plusDays(7);             // ○ 受け取る
+      System.out.println("7日後     : " + due);
+      System.out.println("1か月後   : " + start.plusMonths(1));  // 2/31 はないので月末
+      System.out.println("比較      : " + start.isBefore(due));
+
+      LocalDateTime dt = LocalDate.parse("2024-04-01").atTime(9, 30);
+      System.out.println("日時      : " + dt);
+
+      try {
+          LocalDate.of(2023, 2, 29);                 // 存在しない日付
+      } catch (DateTimeException e) {
+          System.out.println("例外      : " + e.getMessage());
+      }
+  - title: Period と Duration と ChronoUnit
+    description: "`Period.getDays()` は「日」の部分だけ。総日数は `ChronoUnit.DAYS.between` です。時間の長さは `Duration` で扱います。"
+    code: |
+      // 期間の求め方3通り
+      // ここを変えてみよう:to を 2024-12-25 に / 退勤を 22:15 に
+      import java.time.*;
+      import java.time.temporal.ChronoUnit;
+
+      LocalDate from = LocalDate.of(2024, 1, 15);
+      LocalDate to = LocalDate.of(2024, 3, 10);
+      Period p = Period.between(from, to);
+      long days = ChronoUnit.DAYS.between(from, to);
+      System.out.println("Period       : " + p);
+      System.out.println("getDays()    : " + p.getDays() + " ← 総日数ではない");
+      System.out.println("DAYS.between : " + days + " 日");
+
+      LocalTime in = LocalTime.of(9, 0);
+      LocalTime out = LocalTime.of(18, 30);
+      Duration work = Duration.between(in, out).minusMinutes(60); // 休憩60分
+      System.out.println("実働         : " + work);
+      System.out.println("表示         : " + work.toHours() + "時間"
+              + work.toMinutesPart() + "分");
+  - title: フォーマットと曜日・月末
+    description: "`YYYY` は週基準の年なので、年末だけ翌年になります。曜日は enum の `DayOfWeek`、月末は `TemporalAdjusters` で求めます。"
+    code: |
+      // パターン文字の大文字小文字の罠と、曜日・月末
+      // ここを変えてみよう:d を 2024-12-27 や 2025-02-10 に
+      import java.time.*;
+      import java.time.format.DateTimeFormatter;
+      import java.time.temporal.TemporalAdjusters;
+
+      LocalDate d = LocalDate.of(2024, 12, 30);
+      var ok = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+      var ng = DateTimeFormatter.ofPattern("YYYY/MM/dd");
+      System.out.println("yyyy/MM/dd : " + d.format(ok));
+      System.out.println("YYYY/MM/dd : " + d.format(ng) + " ← 翌年!?");
+
+      LocalDateTime t = d.atTime(9, 7);
+      var hm = DateTimeFormatter.ofPattern("HH:mm");
+      var hM = DateTimeFormatter.ofPattern("HH:MM");
+      System.out.println("HH:mm      : " + t.format(hm));
+      System.out.println("HH:MM      : " + t.format(hM) + " ← MM は月");
+
+      DayOfWeek w = d.getDayOfWeek();
+      boolean weekend = w == DayOfWeek.SATURDAY || w == DayOfWeek.SUNDAY;
+      System.out.println("曜日       : " + w + "(週末? " + weekend + ")");
+      System.out.println("月の日数   : " + d.lengthOfMonth());
+      LocalDate last = d.with(TemporalAdjusters.lastDayOfMonth());
+      System.out.println("月末       : " + last);
+  - title: Clock を固定してテストできるようにする
+    description: "`now()` に `Clock` を渡すと「今」を差し替えられます。UTC では 3/31 でも、東京では 4/1 になっていることも確かめられます。"
+    code: |
+      // 「今」を固定した Clock で、期限切れ判定をテストする
+      // ここを変えてみよう:Instant の時刻を 14:59:59Z に / ZoneId を "UTC" に
+      import java.time.*;
+
+      class Billing {
+          private final Clock clock;
+          Billing(Clock clock) { this.clock = clock; }
+          boolean isOverdue(LocalDate due) {
+              return LocalDate.now(clock).isAfter(due); // now(clock)
+          }
+      }
+
+      Clock fixed = Clock.fixed(
+              Instant.parse("2024-03-31T15:00:00Z"),
+              ZoneId.of("Asia/Tokyo"));
+      System.out.println("固定した今 : " + LocalDateTime.now(fixed) + "(東京)");
+      System.out.println("同じ瞬間   : " + Instant.now(fixed) + "(UTC)");
+
+      Billing billing = new Billing(fixed);
+      LocalDate due1 = LocalDate.of(2024, 3, 31);
+      LocalDate due2 = LocalDate.of(2024, 4, 1);
+      System.out.println(due1 + " 期限は過ぎた? " + billing.isOverdue(due1));
+      System.out.println(due2 + " 期限は過ぎた? " + billing.isOverdue(due2));
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      LocalDate d = LocalDate.of(2024, 1, 31);
+      d.plusDays(1);
+      System.out.println(d);
+      ```
+    choices: ["2024-02-01", "2024-01-31", "2024-02-31", "コンパイルエラー"]
+    answer: 1
+    explanation: |
+      java.time のクラスは **不変** です。`plusDays(1)` は `d` を書き換えず、2024-02-01 を表す **新しい** LocalDate を返します。その戻り値を捨てているので、`d` は 2024-01-31 のままです。`d = d.plusDays(1);` と受け取れば 2024-02-01 になります。
+      戻り値を使わなくても文法上は正しいのでコンパイルエラーにはなりません。String の `s.toUpperCase();` と同じ種類のミスです。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      var f = DateTimeFormatter.ofPattern("yyyy/mm/dd HH:MM");
+      var t = LocalDateTime.of(2024, 5, 1, 9, 7);
+      System.out.println(t.format(f));
+      ```
+    choices: ["2024/05/01 09:07", "2024/07/01 09:07", "2024/05/01 09:05", "2024/07/01 09:05"]
+    answer: 3
+    explanation: |
+      パターン文字は大文字小文字で意味が違います。`mm` は **分**、`MM` は **月** です。日付側の `mm` に分の `07`、時刻側の `MM` に月の `05` が入り、`2024/07/01 09:05` になります。
+      例外もコンパイルエラーも出ず、それっぽい日時が出てしまうのが怖いところ。正しくは `yyyy/MM/dd HH:mm` です。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      var a = LocalDate.of(2024, 1, 15);
+      var b = LocalDate.of(2024, 3, 10);
+      System.out.println(Period.between(a, b).getDays());
+      System.out.println(ChronoUnit.DAYS.between(a, b));
+      ```
+    choices: ["24 と 55", "55 と 55", "24 と 24", "55 と 24"]
+    answer: 0
+    explanation: |
+      `Period.between` は「1か月と24日」(`P1M24D`)という **年・月・日の組** を返し、`getDays()` はその「日」の部分の 24 だけを返します。1/15 から 3/10 までの **総日数** は 31−15 + 29(2024年の2月)+ 10 = 55 日で、これを求めるのが `ChronoUnit.DAYS.between` です。
+      「残り日数」「経過日数」を `Period.getDays()` で出すと、月をまたいだ瞬間に値がおかしくなります。
+  - question: |
+      世界中のユーザーが使う Web サービスで、「注文を受け付けた瞬間」をログと DB に記録したい。最も適したクラスは?
+    choices: ["LocalDateTime", "LocalDate", "Instant", "LocalTime"]
+    answer: 2
+    explanation: |
+      `Instant` は地域に依存しない **時間軸上の1点**(1970-01-01T00:00Z からの経過時間)なので、「いつ起きたか」の記録に最適です。表示するときに、ユーザーの地域の `ZoneId` で `ZonedDateTime` に変換します。
+      `LocalDateTime` は「どの地域の時刻か」を持たないため、東京の 9:00 とロンドンの 9:00 を区別できず、瞬間を表せません。`LocalDate` と `LocalTime` は片方の情報しかありません。
+  - question: |
+      次のメソッドのテストを書こうとしたところ、うまくいきませんでした。一番の原因は?
+      ```java
+      static boolean isOverdue(LocalDate due) {
+          return LocalDate.now().isAfter(due);
+      }
+      ```
+    choices:
+      - "LocalDate は不変なので isAfter が使えない"
+      - "LocalDate.now() を中で呼んでいるので、結果が実行した日によって変わる"
+      - "isAfter ではなく > で比較しなければならない"
+      - "LocalDate にはタイムゾーンがないので now() は使えない"
+    answer: 1
+    explanation: |
+      `now()` を処理の中で直接呼ぶと、同じテストが今日は通って明日は落ちる、という状態になります。「今日」を **引数で受け取る** か、`Clock` を外から渡して `LocalDate.now(clock)` とし、テストでは `Clock.fixed(...)` で固定します。
+      不変でも `isAfter` は普通に使えます(新しい値を返すだけで自分は変えないのが不変)。日付に `>` は使えません。`LocalDate.now()` はシステムのデフォルトタイムゾーンで「今日」を決めるので、呼ぶこと自体はできます。
+columns:
+  - type: mistake
+    title: 年末の数日だけ壊れる「YYYY」
+    body: |
+      `YYYY` は **週基準の年**(week-based-year)です。「1月1日を含む週は新しい年の第1週」と数えるので、その週に入った12月末の数日は翌年扱いになります。
+
+      ```java
+      var f = DateTimeFormatter.ofPattern("YYYY-MM-dd");
+      LocalDate.of(2024, 12, 29).format(f);  // 2025-12-29
+      LocalDate.of(2024, 12, 28).format(f);  // 2024-12-28
+      ```
+
+      1年のうち数日しか症状が出ないので、テストもレビューもすり抜けて本番で爆発します。2014年の年末には、Twitter のアプリでこのパターン文字が原因とされるログイン障害が起き、話題になりました。日本でも「年末に発行した請求書の日付が1年先」といった事故は珍しくありません。
+
+      対策は、`yyyy` を使うこと、そして日付処理のテストに **12/28〜1/3 あたりの境界値** を必ず入れることです。
+  - type: genba
+    title: 「12月だけ落ちるテスト」と Clock の注入
+    body: |
+      ある請求システムで、毎年12月になると CI のテストが落ちる現象がありました。原因はテストデータを作るこのコードです。
+
+      ```java
+      LocalDate now = LocalDate.now();
+      LocalDate next = LocalDate.of(now.getYear(),
+          now.getMonthValue() + 1, 1);   // 翌月1日のつもり
+      ```
+
+      12月だけ「13月」になり `DateTimeException` です。`now.plusMonths(1).withDayOfMonth(1)` と API に任せれば済む話でした。しかも CI サーバーは UTC、開発者の PC は JST で、朝9時前に実行すると「今日」が1日ずれる、というおまけ付き。
+
+      現場の対策はほぼ決まっています。
+
+      - ロジックは「今日」を **引数で受け取る**
+      - 内部で現在時刻が要るなら `Clock` をコンストラクタで **注入** し、`LocalDate.now(clock)` を使う
+      - テストでは `Clock.fixed(...)` で **月末・うるう日・年末** をわざと指定する
+
+      「現在時刻」は DB と同じく外部への依存、と考えるのがコツです。
+  - type: trivia
+    title: java.time は和暦も話せる
+    body: |
+      日本の業務システムでは、帳票や役所向けの書類で和暦が求められることがよくあります。java.time には `JapaneseDate` と `JapaneseChronology` があり、元号の切り替わりも面倒を見てくれます。
+
+      ```java
+      var f = DateTimeFormatter.ofPattern("GGGGy年M月d日", Locale.JAPAN)
+          .withChronology(JapaneseChronology.INSTANCE);
+      LocalDate.of(2019, 4, 30).format(f);  // 平成31年4月30日
+      LocalDate.of(2019, 5, 1).format(f);   // 令和1年5月1日
+      ```
+
+      令和は2019年5月1日開始ですが、元号名の発表は同年4月1日。JDK は発表前から仮の名前で改元に備え、発表後のアップデートで「令和」を正式に入れました。対応前の古い JDK のままだと、2020年が「平成32年」と表示されてしまいます。和暦を扱うシステムで JDK の更新が重要なのはこのためです。
+
+      なお、このパターンでは「令和元年」ではなく「令和1年」になります。書類で「元年」と書くなら自分で置き換えましょう。

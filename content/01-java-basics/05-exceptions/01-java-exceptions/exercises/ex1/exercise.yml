@@ -1,0 +1,26 @@
+title: 数値変換に失敗したら既定値を返す
+className: QuantityParser
+difficulty: 1
+problem: |
+  注文画面の「数量」欄に入力された文字列を `int` に変換する `parseOrDefault(String text, int defaultValue)` を完成させてください。
+  画面の入力は信用できないので、**変換できないときは例外で落とさず、既定値 `defaultValue` を返します**。
+
+  **ルール**
+
+  - 前後の空白は取り除いてから変換する(`" 7 "` → `7`)。`String` の `strip()` が使えます
+  - `Integer.parseInt` が `NumberFormatException` を投げたら `defaultValue` を返す
+  - `text` が `null` のときも `defaultValue` を返す(`null.strip()` は `NullPointerException` になるので注意)
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `parseOrDefault("12", 1)` | `12` |
+  | `parseOrDefault(" 7 ", 1)` | `7` |
+  | `parseOrDefault("-3", 1)` | `-3` |
+  | `parseOrDefault("12a", 1)` | `1` |
+  | `parseOrDefault("", 1)` | `1` |
+  | `parseOrDefault(null, 1)` | `1` |
+  | `parseOrDefault("2147483648", 1)` | `1`(int の最大値を超える) |
+
+  注意:
+  - catch するのは `NumberFormatException` だけにしてください。`catch (Exception e)` で何でも捕まえるのは、関係ないバグまで隠すので現場では嫌われます。
+  - `null` は catch ではなく、先に `if` で判定しましょう(例外を if の代わりに使わない)。

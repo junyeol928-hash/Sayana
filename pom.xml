@@ -77,6 +77,26 @@
             <version>${junit-platform.version}</version>
         </dependency>
 
+        <!--
+          第3部(Spring)の演習を採点するとき、別JVMに MockMvc などを渡すために実行時クラスパスに載せておく。
+          (アプリ本体はこれらを使わない)
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>

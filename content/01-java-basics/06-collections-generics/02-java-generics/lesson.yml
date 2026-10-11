@@ -1,3 +1,219 @@
 id: java-generics
 title: ジェネリクス
-status: planned
+status: ready
+minutes: 15
+summary: List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。
+goals:
+  - raw 型の問題点(実行時の ClassCastException)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
+  - 型パラメータ付きクラス(Box<T>・Pair<K, V>)とジェネリックメソッドを書ける
+  - "<T extends Comparable<T>> で境界を付け、型パラメータのメソッドを呼べるようにできる"
+  - List<Integer> が List<Number> ではない理由を説明し、? extends / ? super を PECS で使い分けられる
+  - 型消去のために new T() や obj instanceof List<String> ができないこと、型引数にプリミティブを使えないことを説明できる
+samples:
+  - title: raw 型の事故とジェネリクス
+    description: |
+      raw 型のリストには何でも入り、取り出してキャストした瞬間に落ちます(JShell が unchecked の警告を出すのも確認しましょう)。ジェネリクス版では、同じミスがコンパイルエラーになります。
+    code: |
+      // raw 型(型引数なし)のリスト。何でも入ってしまう
+      List raw = new ArrayList();
+      raw.add("佐藤");
+      raw.add(42);                         // ここを "鈴木" に変えてみよう
+      for (Object o : raw) {
+          try {
+              String name = (String) o;     // 取り出すたびにキャストが必要
+              System.out.println("名前: " + name);
+          } catch (ClassCastException e) {
+              System.out.println("落ちた: " + e.getMessage());
+          }
+      }
+
+      // ジェネリクス版。キャスト不要で、間違った型はコンパイル時に弾かれる
+      List<String> names = new ArrayList<>();
+      names.add("佐藤");
+      // names.add(42);                    // ← コメントを外すとコンパイルエラー
+      String first = names.get(0);
+      System.out.println("ジェネリクス版: " + first);
+  - title: Pair クラスとジェネリックメソッド
+    description: |
+      自作の `Pair<K, V>` と、境界付きのジェネリックメソッド `max` です。`max` に渡すリストの型を変えて、どの型でも動くことを確かめましょう。
+    code: |
+      class Pair<K, V> {
+          private final K key;
+          private final V value;
+          Pair(K key, V value) {
+              this.key = key;
+              this.value = value;
+          }
+          K getKey() { return key; }
+          V getValue() { return value; }
+          @Override
+          public String toString() { return key + "=" + value; }
+      }
+
+      static <T extends Comparable<T>> T max(List<T> list) {
+          T best = list.get(0);
+          for (T x : list) {
+              if (x.compareTo(best) > 0) {
+                  best = x;
+              }
+          }
+          return best;
+      }
+
+      // ここを変えてみよう:Pair の型引数や値を変える
+      Pair<String, Integer> stock = new Pair<>("りんご", 12);
+      String item = stock.getKey();          // キャスト不要
+      int qty = stock.getValue();            // Integer → int(アンボクシング)
+      System.out.println(item + " の在庫: " + qty);
+
+      // ここを変えてみよう:List.of(2.5, 1.5) や List.of("kiwi", "apple") にする
+      System.out.println("最大値: " + max(List.of(3, 9, 4)));
+      System.out.println("最大値: " + max(List.of("kiwi", "apple", "melon")));
+  - title: ワイルドカード(? extends と ? super)
+    description: |
+      `sum` は値を **取り出す** だけなので `? extends Number`、`addSamples` は値を **入れる** だけなので `? super Integer`。PECS の実例です。
+    code: |
+      static double sum(List<? extends Number> list) {
+          double total = 0;
+          for (Number n : list) {           // Number として読める
+              total += n.doubleValue();
+          }
+          return total;
+      }
+
+      static void addSamples(List<? super Integer> dest) {
+          dest.add(10);                     // Integer なら安全に入れられる
+          dest.add(20);
+      }
+
+      List<Integer> ints = List.of(1, 2, 3);
+      List<Double> doubles = List.of(1.5, 2.5);
+      System.out.println("Integer の合計: " + sum(ints));
+      System.out.println("Double の合計 : " + sum(doubles));
+
+      List<Number> numbers = new ArrayList<>();
+      List<Object> objects = new ArrayList<>();
+      addSamples(numbers);
+      addSamples(objects);
+      System.out.println("numbers: " + numbers + " / objects: " + objects);
+      // ここを変えてみよう:sum の引数を List<Number> に変えると、sum(ints) はどうなる?
+  - title: 型消去と Integer の比較
+    description: |
+      実行時には `List<String>` も `List<Integer>` も同じクラスです。また、ラッパー型を `==` で比べると、値によって結果が変わってしまいます。
+    code: |
+      List<String> a = new ArrayList<>();
+      List<Integer> b = new ArrayList<>();
+      System.out.println("同じクラス? " + (a.getClass() == b.getClass()));
+      System.out.println("クラス名: " + a.getClass().getName());
+
+      // ここを変えてみよう:x と y を 127、128、-128、-129 にする
+      Integer x = 1000;
+      Integer y = 1000;
+      System.out.println("x == y      : " + (x == y));
+      System.out.println("x.equals(y) : " + x.equals(y));
+quiz:
+  - question: |
+      次のうち、**コンパイルエラーになる** 行はどれ?
+    choices:
+      - "List<Integer> a = new ArrayList<>();"
+      - "List<Number> b = new ArrayList<Integer>();"
+      - "List<? extends Number> c = new ArrayList<Integer>();"
+      - "List<? super Integer> d = new ArrayList<Number>();"
+    answer: 1
+    explanation: |
+      `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で Integer のリストに Double が混ざってしまうからです。
+      1つ目はダイヤモンドで型を推論するので OK。3つ目は「Number かその子のリスト」なので `ArrayList<Integer>` を受け入れられ、4つ目は「Integer かその親のリスト」なので `ArrayList<Number>` を受け入れられます。
+  - question: |
+      次のコードで、**コンパイルエラーになる** のはどの行?
+      ```java
+      List<Integer> ints = new ArrayList<>(List.of(1));
+      List<? extends Number> list = ints;  // (A)
+      Number n = list.get(0);              // (B)
+      list.add(null);                      // (C)
+      list.add(2);                         // (D)
+      ```
+    choices: ["(A)", "(B)", "(C)", "(D)"]
+    answer: 3
+    explanation: |
+      `? extends Number` のリストは「Number の **何かの** 子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
+      (A) の代入は OK、(B) の読み出しは「少なくとも Number」と分かっているので OK。(C) の `null` だけは、どんな参照型のリストにも入れられるので例外的にコンパイルが通ります。値を **取り出す** なら extends、**入れる** なら super(PECS)です。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      List<String> a = new ArrayList<>();
+      List<Integer> b = new ArrayList<>();
+      System.out.println(a.getClass() == b.getClass());
+      ```
+    choices: ["true", "false", "コンパイルエラー", "実行時に ClassCastException"]
+    answer: 0
+    explanation: |
+      Java のジェネリクスは **型消去** で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
+      `getClass()` の比較自体は合法なのでコンパイルエラーにはならず、キャストもしていないので例外も出ません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      List<Integer> ids = List.of(100, 100, 200, 200);
+      System.out.print(ids.get(0) == ids.get(1));
+      System.out.print(" ");
+      System.out.print(ids.get(2) == ids.get(3));
+      ```
+    choices: ["true true", "false false", "true false", "false true"]
+    answer: 2
+    explanation: |
+      `List<Integer>` の要素は `Integer` オブジェクトで、`==` は「同じオブジェクトか」の比較です。オートボクシングで使われる `Integer.valueOf` は **-128〜127 をキャッシュ** しているので、100 は同じオブジェクトになり `true`、200 は別々のオブジェクトになり `false` です。
+      値によって結果が変わるので、テストの小さな値では気づけません。ラッパー型は `equals` で比べましょう。
+  - question: |
+      `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる** 呼び出しはどれ?
+    choices:
+      - "max(List.of(3, 1, 2))"
+      - "max(List.of(new Object(), new Object()))"
+      - "max(List.of(\"b\", \"a\"))"
+      - "max(List.of(2.5, 1.0))"
+    answer: 1
+    explanation: |
+      `T extends Comparable<T>` は「T は自分自身と比較できる型」という **境界** です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で T=Object に決まった時点で境界を満たさずコンパイルエラーになります。
+      境界がなければ `compareTo` を呼べない代わりに何でも渡せますが、境界を付けることで「比較できない型を渡すミス」を実行前に見つけられます。
+columns:
+  - type: trivia
+    title: Java が型を「消した」理由と C# との違い
+    body: |
+      ジェネリクスは 2004 年の Java 5 で導入されました。土台は Martin Odersky(のちの Scala の作者)らが 1998 年に発表した「GJ(Generic Java)」です。
+
+      このとき最大の課題は、**既存の膨大なコードとライブラリを壊さないこと** でした。そこで「型引数はコンパイラがチェックしたら消し、バイトコードは昔と同じ `List` のまま」という **型消去** が選ばれました。おかげで Java 1.4 時代の jar と、新しいジェネリックなコードを混ぜて動かせたのです。
+
+      一方、後発の C#(.NET 2.0)は実行環境ごと作り直し、実行時にも型引数を保持する方式(**reified generics**)にしました。C# では `new T()` 相当も書けますし、`List<int>` もボクシングなしで扱えます。
+
+      Java でも、プリミティブを効率よく扱えるようにする **Project Valhalla** が長年進んでいます。「`List<int>` が書けない」のは、互換性を最優先した歴史の名残です。
+  - type: mistake
+    title: raw 型を1か所混ぜただけで、遠くで落ちる
+    body: |
+      古いユーティリティが raw 型を受け取っていると、こんな事故が起きます。
+
+      ```java
+      static void addDefault(List list) {   // raw 型
+          list.add(0);                     // 警告は出るがコンパイルは通る
+      }
+
+      List<String> names = new ArrayList<>(List.of("佐藤"));
+      addDefault(names);                   // String のリストに Integer が混入
+      for (String n : names) {             // ここで ClassCastException
+          System.out.println(n);
+      }
+      ```
+
+      この状態を **ヒープ汚染(heap pollution)** と言います。型消去のため `add` の時点では何も起きず、落ちるのは後で String として取り出した場所。スタックトレースに犯人の `addDefault` は出てきません。
+
+      `unchecked` 警告はこの事故の予告です。警告ゼロを保ち、raw 型には型引数を付けましょう。
+  - type: genba
+    title: "Map<String, Map<String, List<Integer>>> は黄信号"
+    body: |
+      ジェネリクスを覚えたてのころ、こんな型を書きがちです。
+
+      ```java
+      Map<String, Map<String, List<Integer>>> scores;
+      // 部署 → 社員番号 → 月ごとの点数……のつもり
+      ```
+
+      書いた本人も1週間後には読めません。`scores.get(a).get(b).get(2)` が何を意味するのか、型からは分からないからです。
+
+      現場では、入れ子が2段を超えたら **意味のある名前のクラスを作る** のが定石です。たとえば `Map<String, Department>` にして、`Department` クラスが社員の一覧を持つ形にすれば、`dept.findEmployee(id).getScore(month)` のように読めるコードになります。後で学ぶ `record` を使えば、こうした小さなクラスは1行で作れます。

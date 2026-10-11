@@ -10,8 +10,53 @@ Java と Spring Tool Suite(STS)/ Spring Boot をゼロから体系的に学ぶ�
 - **復習**: クイズと演習を 1日後 → 3日後 → 7日後 → 14日後 に再出題(間隔反復)
 
 ダッシュボードでは、部・章ごとの進捗、連続学習日数、苦手レッスンが見られます。提出履歴と AI レビューは後から見返せます。
+PCでもスマホでも使えます(下の「📱 スマホで使う」)。
 
 設計とカリキュラム、今後の計画は [docs/PLAN.md](docs/PLAN.md)、教材の書き方は [docs/CONTENT_FORMAT.md](docs/CONTENT_FORMAT.md) にあります。
+
+---
+
+## 📱 スマホで使う
+
+画面はスマホ向けにも作ってあります(下部メニュー、記号キー付きのコードエディタ、下から出るAIチューター)。
+アプリ本体(Java)はどこかで動いている必要があるので、次の2通りの使い方があります。
+
+### A. PCなしで、スマホだけで使う(GitHub Codespaces)
+
+GitHub のクラウド上の開発環境でアプリを動かし、スマホのブラウザで開きます。URL は**あなたのGitHubアカウントでしか開けません**。
+
+1. スマホのブラウザ(Safari / Chrome)で、このリポジトリのページを開く
+   - GitHub アプリではなくブラウザで。メニューの「デスクトップ用Webサイトを表示」にすると操作しやすい
+2. 緑の **「<> Code」** ボタン → **「Codespaces」** タブ → **「Create codespace on main」**
+3. VS Code の画面が開き、自動でアプリが起動します。初回は依存ライブラリのダウンロードで数分かかります
+   - 画面下のターミナルに `Started JavaDojoApplication` と出たら準備完了
+4. アプリの画面が新しいタブで開きます。開かないときは、VS Code の **「ポート」**(PORTS)タブで 8080 番の行の 🌐(ブラウザで開く)を押す
+   - URL は `https://<codespace名>-8080.app.github.dev` の形。**ブックマークかホーム画面に追加**しておくと便利
+5. 次から使うときは https://github.com/codespaces を開き、作った codespace を選んで開く → 自動でアプリが起動します
+
+AI機能を使う場合は、GitHub の **Settings → Codespaces → Secrets** で `ANTHROPIC_API_KEY` を登録し(Repository access でこのリポジトリを選ぶ)、codespace を開き直してください。
+
+注意:
+- 学習記録は codespace の中(`data/`)に保存されます。**codespace を削除すると消えます**。GitHub は長く使っていない(既定で30日)停止中の codespace を自動削除するので、ときどき開くか、https://github.com/codespaces で「Keep codespace」を設定してください
+- 個人アカウントには毎月の無料枠があります(2コアのマシンで月数十時間程度)。使わないときは止めておきましょう(しばらく操作しないと自動で止まります)
+
+### B. 家のPCで動かして、同じWi-Fiのスマホで開く(LANモード)
+
+PCで次のように起動します。
+
+```powershell
+./mvnw spring-boot:run "-Dspring-boot.run.profiles=lan"
+```
+
+起動ログに次のような行が出るので、その URL をスマホで開きます(合言葉つき。一度開けば、そのスマホのブラウザは以後 URL だけで入れます)。
+
+```text
+  スマホで開く: http://192.168.1.23:8080/?key=xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+- Windows ファイアウォールの確認が出たら「プライベート ネットワーク」を許可してください
+- このアプリは提出されたコードを PC 上で実行します。そのため LAN モードでは、**PC以外からのアクセスには合言葉が必要**です(合言葉は `data/lan-key.txt`。消すと次の起動で作り直されます)。合言葉付きの URL は人に教えないでください
+- カフェなどの公共 Wi-Fi では使わないでください。LAN モードでないとき(普段の起動)は PC 自身からしか開けません
 
 ---
 

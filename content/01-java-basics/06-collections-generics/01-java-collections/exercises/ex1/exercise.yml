@@ -1,0 +1,30 @@
+title: ログのレベル別件数を集計する
+className: LogLevelCounter
+difficulty: 1
+problem: |
+  アプリのログを1行ずつ読み込んだ `List<String>` から、ログレベルごとの件数を数える
+  `count(List<String> lines)` を完成させてください。
+
+  ログ1行の形式は **「時刻 レベル メッセージ」**(半角スペース区切り)です。
+
+  ```text
+  10:00:01 INFO 起動しました
+  10:00:05 ERROR DB接続に失敗
+  10:00:09 WARN リトライします
+  ```
+
+  **ルール**
+
+  - 戻り値は「レベル → 件数」の `Map<String, Integer>`。上の3行なら `{INFO=1, ERROR=1, WARN=1}`
+  - 一度も出てこないレベルは **Map に入れない**(件数0のキーを作らない)
+  - `null` の行や、空白だけの行(`isBlank()` が true)は読み飛ばす
+  - `lines` 自体が `null` なら空の Map を返す
+  - レベルは2つ目の単語です。`line.split(" ")[1]` で取り出せます(行の形式は正しいものとしてよい)
+
+  **ヒント**
+
+  - `Map<String, Integer> result = new HashMap<>();` を用意して、1行ごとに
+    `result.put(level, result.getOrDefault(level, 0) + 1);`
+  - 余裕があれば `result.merge(level, 1, Integer::sum);` でも書いてみましょう(`::` はラムダの回で説明します)
+
+  ※ `public static` の付いたメソッドの書き方は「メソッド」のレッスンで学んだとおりです。`// TODO:` の部分を書けばOK。

@@ -155,7 +155,8 @@ public class ContentRepository {
         String body = read(dir.resolve("lesson.md"));
 
         List<Sample> samples = maps(y, "samples").stream()
-                .map(m -> new Sample(str(m, "title"), markdown.render(str(m, "description")), strip(str(m, "code"))))
+                .map(m -> new Sample(str(m, "title"), markdown.render(str(m, "description")), strip(str(m, "code")),
+                        strList(m, "libraries")))
                 .toList();
 
         List<QuizQuestion> quiz = new ArrayList<>();
@@ -203,7 +204,7 @@ public class ContentRepository {
         String problem = str(y, "problem");
         return new ExerciseDef(lessonId + "/" + dir.getFileName(), lessonId, str(y, "title"), str(y, "className"),
                 intVal(y, "difficulty", 1), problem, markdown.render(problem), read(dir.resolve("starter.java")),
-                read(dir.resolve("solution.java")), read(dir.resolve("test.java")));
+                read(dir.resolve("solution.java")), read(dir.resolve("test.java")), strList(y, "libraries"));
     }
 
     private static List<Path> subDirs(Path dir) {

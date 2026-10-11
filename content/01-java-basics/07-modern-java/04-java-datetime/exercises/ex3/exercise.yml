@@ -1,0 +1,33 @@
+title: 営業日を数える・営業日後を求める
+className: BusinessDays
+difficulty: 3
+problem: |
+  経理システムで「支払期日は請求日の3営業日後」「この期間の稼働日数は?」といった計算に使う、営業日ユーティリティを作ります。
+  **営業日** = 土曜・日曜でなく、祝日リスト `holidays` にも含まれない日 とします。
+  祝日は年によって変わるので、呼び出し側が `Set<LocalDate>` で渡します。
+
+  **1. `isBusinessDay(LocalDate date, Set<LocalDate> holidays)`**
+
+  - 営業日なら `true`。曜日は `date.getDayOfWeek()` で取れる `DayOfWeek`(enum)で判定する
+
+  **2. `count(LocalDate from, LocalDate to, Set<LocalDate> holidays)` … 期間内の営業日数**
+
+  - `from` と `to` を **両方含む**
+  - `from` が `to` より後なら `0`
+
+  **3. `addBusinessDays(LocalDate start, int n, Set<LocalDate> holidays)` … n 営業日後**
+
+  - `start` の翌日から1日ずつ進め、営業日を `n` 個数えた日を返す
+  - `n` が `0` なら `start` をそのまま返す(`start` が休日でも)
+  - `n` がマイナスなら `IllegalArgumentException`
+
+  例(2024年のゴールデンウィーク。祝日は 4/29(月)・5/3(金)・5/6(月)):
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `count(2024-06-03(月), 2024-06-09(日), 祝日なし)` | `5` |
+  | `count(2024-04-29, 2024-05-06, GWの祝日)` | `3`(4/30・5/1・5/2) |
+  | `addBusinessDays(2024-06-07(金), 1, 祝日なし)` | `2024-06-10`(月) |
+  | `addBusinessDays(2024-05-02(木), 1, GWの祝日)` | `2024-05-07`(火) |
+
+  ヒント:日付を1日ずつ進めるループは `for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1))` のように書けます。`d.plusDays(1)` だけだと `d` は変わらず無限ループになるので注意。

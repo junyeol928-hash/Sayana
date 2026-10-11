@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -45,6 +46,12 @@ public class JShellRunner {
     private static final Logger log = LoggerFactory.getLogger(JShellRunner.class);
     private static final Pattern MAIN_METHOD = Pattern.compile("static\\s+void\\s+main\\s*\\(");
 
+    /** jshell コマンドの既定の import と同じもの + java.time。import を書かなくても List などが使える。 */
+    private static final List<String> DEFAULT_IMPORTS = List.of(
+            "java.io.*", "java.math.*", "java.net.*", "java.nio.file.*", "java.util.*",
+            "java.util.concurrent.*", "java.util.function.*", "java.util.regex.*", "java.util.stream.*",
+            "java.time.*");
+
     private final DojoProperties.Exec config;
     private final ExecutionGate gate;
     private final ExecutorService executor = Executors.newCachedThreadPool(r -> {
@@ -63,6 +70,13 @@ public class JShellRunner {
     }
 
     public RunResult run(String code, Duration timeout) {
+        return run(code, timeout, List.of());
+    }
+
+    /**
+     * @param libraries 追加ライブラリ(例: "spring")。JShell のクラスパスに jar を足してから実行する
+     */
+    public RunResult run(String code, Duration timeout, List<String> libraries) {
         long start = System.nanoTime();
         if (code == null || code.isBlank()) {
             return new RunResult(RunResult.Status.OK, "", List.of(), List.of(), null, 0, false);
@@ -84,6 +98,9 @@ public class JShellRunner {
                             "-Duser.language=ja")
                     .build();
             JShell js = jshell;
+            for (java.nio.file.Path jar : LibraryClasspath.resolve(libraries)) {
+                js.addToClasspath(jar.toString());
+            }
             Evaluation evaluation = new Evaluation(code);
             Future<?> future = executor.submit(() -> evaluation.evaluate(js));
             try {
@@ -104,6 +121,8 @@ public class JShellRunner {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return new RunResult(RunResult.Status.ERROR, out.text(), List.of(), List.of(), "中断されました", 0, false);
+        } catch (IllegalArgumentException e) {
+            return new RunResult(RunResult.Status.ERROR, out.text(), List.of(), List.of(), e.getMessage(), 0, false);
         } catch (RuntimeException e) {
             log.warn("JShell を起動できませんでした", e);
             return new RunResult(RunResult.Status.ERROR, out.text(), List.of(), List.of(),
@@ -150,10 +169,13 @@ public class JShellRunner {
         private volatile String exception;
 
         Evaluation(String code) {
-            this.code = code.replace("\r\n", "\n");
+            this.code = joinLeadingDots(code.replace("\r\n", "\n"));
         }
 
         void evaluate(JShell js) {
+            for (String pkg : DEFAULT_IMPORTS) {
+                js.eval("import " + pkg + ";");
+            }
             SourceCodeAnalysis sca = js.sourceCodeAnalysis();
             String remaining = code;
             boolean executedStatement = false;
@@ -267,6 +289,53 @@ public class JShellRunner {
         String method = el.getMethodName();
         String where = cls.isEmpty() || cls.startsWith("do_it$") ? method : cls + "." + method;
         return where + (el.getLineNumber() > 0 ? "(" + el.getLineNumber() + "行目付近)" : "");
+    }
+
+    private static final Pattern LEADING_DOT = Pattern.compile("^(\\s*)\\.(?=[A-Za-z_<])");
+
+    /**
+     * 行頭がドットで始まるメソッドチェーン(Stream や Builder でよく書く形)をつなぐ。
+     * JShell は「list.stream()」で行が終わると文が完結したとみなすので、
+     * 行頭の「.」を前の行の末尾へ移す(改行の数は変えないので行番号はずれない)。
+     */
+    static String joinLeadingDots(String code) {
+        String[] lines = code.split("\n", -1);
+        boolean inTextBlock = false;
+        boolean inComment = false;
+        int prev = -1;
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (!inTextBlock && !inComment && prev >= 0) {
+                Matcher m = LEADING_DOT.matcher(line);
+                if (m.find() && !lines[prev].stripTrailing().endsWith(";") && !lines[prev].contains("//")) {
+                    lines[prev] = lines[prev].stripTrailing() + ".";
+                    lines[i] = m.group(1) + line.substring(m.end());
+                    line = lines[i];
+                }
+            }
+            if (countOccurrences(line, "\"\"\"") % 2 == 1) {
+                inTextBlock = !inTextBlock;
+            }
+            if (!inTextBlock) {
+                if (line.contains("/*") && !line.contains("*/")) {
+                    inComment = true;
+                } else if (inComment && line.contains("*/")) {
+                    inComment = false;
+                }
+            }
+            if (!line.isBlank() && !inComment) {
+                prev = i;
+            }
+        }
+        return String.join("\n", lines);
+    }
+
+    private static int countOccurrences(String s, String token) {
+        int n = 0;
+        for (int i = s.indexOf(token); i >= 0; i = s.indexOf(token, i + token.length())) {
+            n++;
+        }
+        return n;
     }
 
     private static int leadingWhitespace(String s) {

@@ -49,6 +49,9 @@ public class GeneratedExercise {
 
     private String model;
 
+    /** 採点に使う追加ライブラリ(カンマ区切り。例: "spring")。 */
+    private String libraries;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -56,7 +59,8 @@ public class GeneratedExercise {
     }
 
     public GeneratedExercise(String lessonId, String title, String className, int difficulty, String problem,
-                             String starter, String solution, String test, String model, Instant createdAt) {
+                             String starter, String solution, String test, String model, String libraries,
+                             Instant createdAt) {
         this.lessonId = lessonId;
         this.title = title;
         this.className = className;
@@ -66,6 +70,7 @@ public class GeneratedExercise {
         this.solution = solution;
         this.test = test;
         this.model = model;
+        this.libraries = libraries;
         this.createdAt = createdAt;
     }
 
@@ -79,6 +84,7 @@ public class GeneratedExercise {
     public String getSolution() { return solution; }
     public String getTest() { return test; }
     public String getModel() { return model; }
+    public String getLibraries() { return libraries; }
     public Instant getCreatedAt() { return createdAt; }
 
     public String key() {

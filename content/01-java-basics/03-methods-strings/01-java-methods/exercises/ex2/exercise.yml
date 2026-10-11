@@ -1,0 +1,32 @@
+title: 在庫配列を更新する(値渡しを体感する)
+className: StockUpdater
+difficulty: 2
+problem: |
+  倉庫の商品ごとの在庫数が `int[] stock` で管理されています(`stock[0]` が商品0の在庫…)。
+  次の2つのメソッドを作ってください。片方は **渡された配列そのものを書き換え**、もう片方は **元の配列を変えずに新しい配列を返す** のがポイントです。
+
+  ### `boolean ship(int[] stock, int index, int qty)` … 出荷する
+  - 商品 `index` の在庫から `qty` 個を引き、`true` を返す。**呼び出し元の配列が書き換わる** こと。
+  - 次のどれかに当てはまるときは出荷できないので、**配列を一切変えずに** `false` を返す。
+    - `stock` が `null`
+    - `index` が範囲外(0 未満、または `stock.length` 以上)
+    - `qty` が 0 以下
+    - 在庫が足りない(`stock[index] < qty`)。在庫ちょうどの出荷はOK(在庫 0 になる)
+
+  ### `int[] restocked(int[] stock, int qty)` … 入荷後の在庫表を作る
+  - すべての商品の在庫に `qty` を足した **新しい配列** を返す。
+  - **引数の `stock` は変更してはいけない**(入荷前の在庫表も帳票に残すため)。
+  - `stock` が `null` なら長さ 0 の配列 `new int[0]` を返す。
+
+  ### 例
+  ```java
+  int[] stock = {10, 0, 5};
+  ship(stock, 0, 3);              // true  → stock は {7, 0, 5}
+  ship(stock, 1, 1);              // false → 在庫不足。stock は {7, 0, 5} のまま
+  int[] next = restocked(stock, 2); // next は {9, 2, 7}、stock は {7, 0, 5} のまま
+  ```
+
+  ### ヒント
+  - Java は値渡しですが、配列は「参照の値」が渡るので、`stock[index] -= qty;` は呼び出し元の配列を書き換えます。
+  - `restocked` で `stock[i] += qty` と書くと、呼び出し元の在庫表まで変わってしまいます。`new int[stock.length]` で新しい配列を作りましょう。
+  - 異常系は先に `return false;` で追い返す(ガード節)とスッキリ書けます。

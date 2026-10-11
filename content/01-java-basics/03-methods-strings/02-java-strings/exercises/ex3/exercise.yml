@@ -1,0 +1,43 @@
+title: 帳票の1行を桁揃えで作る
+className: ReportLine
+difficulty: 3
+problem: |
+  売上明細の帳票(固定幅のテキスト)を出力するために、文字列を指定の幅にそろえるメソッドを作ります。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `String padRight(String s, int width)` | `s` を **左寄せ** して、右側を半角スペースで埋めた幅 `width` の文字列 |
+  | `String padLeft(String s, int width)` | `s` を **右寄せ** して、左側を半角スペースで埋めた幅 `width` の文字列 |
+  | `String formatLine(String name, int qty, int amount)` | 帳票の1行 |
+
+  ### padRight / padLeft のルール
+  - `s` が `null` なら `""`(空文字)として扱う。
+  - `padRight` は、`s` が `width` より長ければ **先頭 `width` 文字に切り詰める**(商品名が長すぎて列がずれるのを防ぐ)。
+  - `padLeft` は、`s` が `width` より長くても **切り詰めずにそのまま返す**(数値を切ると金額が変わってしまうため)。
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `padRight("abc", 6)` | `"abc   "` |
+  | `padRight("abcdefg", 6)` | `"abcdef"` |
+  | `padLeft("42", 5)` | `"   42"` |
+  | `padLeft("123456", 4)` | `"123456"` |
+
+  ### formatLine のルール
+  次の3つをこの順につなげる。
+
+  1. 商品名を `padRight` で幅 **12**
+  2. 数量を `padLeft` で幅 **5**
+  3. 金額を **3桁カンマ区切り** にして `padLeft` で幅 **11**
+
+  ```text
+  formatLine("Coffee", 3, 3600)
+  → "Coffee      " + "    3" + "      3,600"
+  → "Coffee          3      3,600"
+  ```
+
+  ### 制約・ヒント
+  - 商品名は半角英数字のみとします(全角文字は画面上の幅が2倍になる問題があるため。コラム参照)。
+  - 空白を n 個並べるには `" ".repeat(n)` が使えます。
+  - 3桁区切りは `String.format("%,d", amount)`。
+  - `int` を文字列にするには `String.valueOf(qty)`。
+  - `formatLine` は自分で作った `padRight` / `padLeft` を呼び出して組み立てましょう。

@@ -1,3 +1,253 @@
 id: java-exceptions
 title: 例外処理
-status: planned
+status: ready
+minutes: 15
+summary: try / catch / finally、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。
+goals:
+  - try / catch / finally の実行順を説明できる
+  - 例外クラスの階層(Throwable / Error / Exception / RuntimeException)と、検査例外・非検査例外の違いを説明できる
+  - throw と throws を使い分け、独自例外クラスを作れる
+  - スタックトレースの1行目と Caused by から原因を特定できる
+  - try-with-resources でリソースを確実に閉じ、例外をラップするときに原因(cause)を渡せる
+samples:
+  - title: try / catch / finally の流れ
+    description: 例外が起きた行で try は中断し、型が合う catch に飛びます。finally は例外の有無にかかわらず必ず実行されます。
+    code: |
+      // try / catch / finally の流れを確かめる
+      // ここを変えてみよう:inputs に "-5" や " 7" や null を足す / finally の行を消してみる
+      String[] inputs = {"12", "12a", "", "0"};
+
+      for (String input : inputs) {
+          System.out.println("--- 入力: \"" + input + "\"");
+          try {
+              int qty = Integer.parseInt(input);   // 失敗するとここで中断
+              System.out.println("数量: " + qty);
+              System.out.println("1個あたり: " + (1200 / qty) + "円");
+          } catch (NumberFormatException e) {
+              System.out.println("数値ではありません → " + e.getMessage());
+          } catch (ArithmeticException e) {
+              System.out.println("0 では割れません → " + e.getMessage());
+          } finally {
+              System.out.println("(チェック終了)");   // 例外の有無にかかわらず必ず実行
+          }
+      }
+  - title: 独自例外を throw して catch する
+    description: "`Exception` を継承した独自例外は検査例外なので、投げるメソッドには `throws` が必要です。前提違反(数量0)は非検査例外の `IllegalArgumentException` で表します。"
+    code: |
+      // 独自例外を throw して、呼び出し側で catch する
+      // ここを変えてみよう:order の数量を 3 / 10 / 0 に変える
+      class StockShortageException extends Exception {     // Exception を継承 = 検査例外
+          StockShortageException(String message) {
+              super(message);
+          }
+      }
+
+      class Inventory {
+          private int stock = 5;
+
+          // 検査例外を投げるメソッドは throws で宣言する(消すとコンパイルエラー)
+          void ship(String item, int qty) throws StockShortageException {
+              if (qty < 1) {
+                  // 前提違反は非検査例外で
+                  throw new IllegalArgumentException("数量は1以上: " + qty);
+              }
+              if (qty > stock) {
+                  throw new StockShortageException(
+                      item + " の在庫不足(要求 " + qty + " / 在庫 " + stock + ")");
+              }
+              stock -= qty;
+              System.out.println(item + " を " + qty + " 個出荷。残り " + stock);
+          }
+      }
+
+      Inventory inv = new Inventory();
+      int[] orders = {3, 4, 0};
+      for (int qty : orders) {
+          try {
+              inv.ship("トナー", qty);
+          } catch (StockShortageException e) {
+              System.out.println("[業務エラー] " + e.getMessage());
+          } catch (IllegalArgumentException e) {
+              System.out.println("[入力エラー] " + e.getMessage());
+          }
+      }
+  - title: try-with-resources とクローズ順
+    description: "`AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられます。閉じる順番は開いた順の逆で、catch より前に閉じ終わります。"
+    code: |
+      // try-with-resources:AutoCloseable を実装すると自動で close される
+      // ここを変えてみよう:fail を true にする / リソースを3つに増やして close の順番を見る
+      class Res implements AutoCloseable {
+          private final String name;
+          Res(String name) {
+              this.name = name;
+              System.out.println("open  " + name);
+          }
+          @Override
+          public void close() {                 // throws を付けなければ catch 不要
+              System.out.println("close " + name);
+          }
+      }
+
+      boolean fail = false;
+      try (Res db = new Res("DB接続");
+           Res file = new Res("ファイル")) {
+          System.out.println("処理中…");
+          if (fail) {
+              throw new IllegalStateException("処理失敗");
+          }
+      } catch (IllegalStateException e) {
+          // close は catch より「前」に終わっている
+          System.out.println("catch " + e.getMessage());
+      } finally {
+          System.out.println("finally");
+      }
+  - title: ラップして再スロー(cause を渡す)
+    description: 下位の例外を自分の層の例外に包み直すときは、catch した例外を cause として渡します。`getCause()` で元の例外を取り出せます。
+    code: |
+      // ラップして再スロー:cause を渡すと「本当の原因」が残る
+      // ここを変えてみよう:text を "8080" にする / new ConfigException の第2引数 e を消してみる
+      class ConfigException extends RuntimeException {
+          ConfigException(String message, Throwable cause) {
+              super(message, cause);
+          }
+      }
+
+      int readPort(String text) {
+          try {
+              return Integer.parseInt(text);
+          } catch (NumberFormatException e) {
+              // 自分の層に合った例外に包み直す。e(原因)を必ず渡す
+              throw new ConfigException("ポート番号が不正: " + text, e);
+          }
+      }
+
+      String text = "80a";
+      try {
+          System.out.println("ポート: " + readPort(text));
+      } catch (ConfigException e) {
+          System.out.println("例外    : " + e.getMessage());
+          System.out.println("Caused by: " + e.getCause());
+      }
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      try {
+          System.out.print("A");
+          int x = Integer.parseInt("x");
+          System.out.print("B");
+      } catch (NumberFormatException e) {
+          System.out.print("C");
+      } finally {
+          System.out.print("D");
+      }
+      System.out.print("E");
+      ```
+    choices: ["ABCDE", "ACDE", "ACE", "ABDE"]
+    answer: 1
+    explanation: |
+      `parseInt("x")` で `NumberFormatException` が発生した時点で try ブロックは中断するので、`B` は出力されません。型が合う catch に飛んで `C`、finally は必ず実行されるので `D`、例外は catch で処理済みなので try 文の後ろの `E` も実行されます。
+      `ACE` は finally を忘れた答え、`ABCDE` は「例外が起きても try の残りが実行される」という誤解です。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      try {
+          int n = Integer.parseInt(text);
+      } catch (IllegalArgumentException e) {
+          System.out.println("引数エラー");
+      } catch (NumberFormatException e) {
+          System.out.println("数値ではない");
+      }
+      ```
+    choices: ["数値でない text なら「数値ではない」と出力される", "数値でない text なら両方の catch が実行される", "実行時に ClassCastException が発生する", "2つ目の catch には絶対に届かないのでコンパイルエラー"]
+    answer: 3
+    explanation: |
+      `NumberFormatException` は `IllegalArgumentException` の **サブクラス** です。catch は上から順に型をチェックするので、1つ目の catch がすべての `NumberFormatException` を捕まえてしまい、2つ目には絶対に届きません。javac はこれを `exception NumberFormatException has already been caught` というコンパイルエラーにします。
+      catch を並べるときは **サブクラス(具体的な例外)を先** に書きます。catch は最初に合った1つしか実行されません。
+  - question: |
+      `import java.io.IOException;` 済みとして、**コンパイルエラーになる** メソッドはどれ?
+    choices: ["void a() { throw new IllegalStateException(\"x\"); }", "void b() throws IOException { throw new IOException(\"x\"); }", "void c() { throw new IOException(\"x\"); }", "void d() { throw new NumberFormatException(\"x\"); }"]
+    answer: 2
+    explanation: |
+      `IOException` は `RuntimeException` の系統ではない **検査例外** なので、投げるメソッドは catch するか `throws IOException` で宣言しなければなりません。`c()` はどちらもしていないので `unreported exception IOException; must be caught or declared to be thrown` になります。
+      `b()` は throws で宣言しているのでOK。`IllegalStateException` と `NumberFormatException` は `RuntimeException` のサブクラス(非検査例外)なので、宣言なしで投げられます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class R implements AutoCloseable {
+          String n;
+          R(String n) {
+              this.n = n;
+              System.out.print("open" + n + " ");
+          }
+          public void close() {
+              System.out.print("close" + n + " ");
+          }
+      }
+
+      try (R a = new R("1"); R b = new R("2")) {
+          System.out.print("body ");
+      }
+      ```
+    choices: ["open1 open2 body close2 close1", "open1 open2 body close1 close2", "open1 body close1 open2 body close2", "open1 open2 body"]
+    answer: 0
+    explanation: |
+      try-with-resources は `( )` の中のリソースを **書いた順に開き**、ブロックを抜けるときに **逆の順番で** `close()` を呼びます。後に開いたリソースは先に開いたものに依存していることが多い(DB接続の上で作った SQL 文など)ので、依存している側から閉じるためです。
+      `close()` を明示的に呼んでいなくても、`AutoCloseable` を実装していれば自動で呼ばれます。
+  - question: |
+      次のコードの問題点として最も適切なのは?
+      ```java
+      try {
+          loadConfig();   // IOException を投げうる
+      } catch (IOException e) {
+          throw new ConfigException("設定の読み込みに失敗");
+      }
+      ```
+    choices: ["IOException は非検査例外なので catch できない", "catch した例外を cause として渡していないので、根本原因がスタックトレースから消える", "catch ブロックの中で throw することはできない", "ConfigException は Exception を直接継承していないと throw できない"]
+    answer: 1
+    explanation: |
+      例外をラップして投げ直すこと自体は正しい設計ですが、`new ConfigException("...", e)` のように **元の例外 `e` を cause として渡さない** と、スタックトレースから `Caused by:` が消えます。ファイル名の誤りなのか、権限不足なのか、根本原因が分からなくなります。
+      catch の中で throw するのは普通のことで、`IOException` は検査例外なので catch できます。独自例外は `Exception` でも `RuntimeException` でも、その子孫を継承すれば throw できます。
+columns:
+  - type: genba
+    title: 空の catch が招いた「3週間気づかない障害」
+    body: |
+      ある受注システムで、注文確定後に確認メールを送る処理がこう書かれていました。
+
+      ```java
+      try {
+          mailer.send(order);
+      } catch (Exception e) {
+          // メールが失敗しても注文は成功させたいので無視
+      }
+      ```
+
+      「メール失敗で注文まで失敗させない」という意図自体は正しいのですが、ある日メールサーバーのパスワードが更新され、送信が全件失敗するようになりました。ログには何も出ず、監視にも引っかかりません。発覚したのは3週間後、「確認メールが来ない」という問い合わせが積み重なってからでした。
+
+      正しくは、**注文は成功させつつ、失敗はログに残す**(`log.warn("確認メール送信失敗 orderId={}", id, e)` のように例外ごと)ことです。さらに再送用のテーブルに積むなど「後で回復する道」を作れば完璧です。「無視」と「記録して先へ進む」は全く別物です。
+  - type: trivia
+    title: 検査例外は Java だけの珍しい仕組み
+    body: |
+      「catch か throws を強制する」検査例外は、主要言語では Java 独特の仕組みです。C#、Kotlin、Scala、Python などには検査例外がなく、すべての例外が非検査例外のように扱われます。Kotlin から Java の `IOException` を投げるメソッドを呼んでも、catch は強制されません。
+
+      検査例外は「失敗の可能性を型で表す」優れたアイデアでしたが、何層にもわたって `throws` を書き続ける手間や、Java 8 のラムダ式(`Function` などは検査例外を投げられない)との相性の悪さから、批判も多くあります。
+
+      そのため標準ライブラリにも `UncheckedIOException`(`IOException` を包む非検査例外)が用意され、Spring も DB のエラーを非検査例外の `DataAccessException` に包み直して投げます。現場では「呼び出し側が回復できない失敗は非検査例外で」が主流になっています。
+  - type: mistake
+    title: finally の中で return すると例外が消える
+    body: |
+      後始末のつもりで、finally に `return` を書いてしまうことがあります。
+
+      ```java
+      static int process() {
+          try {
+              throw new RuntimeException("DB更新失敗");
+          } finally {
+              return 0;   // ← 例外が消える!
+          }
+      }
+      ```
+
+      このメソッドは例外を投げず、何事もなかったように `0` を返します。finally が `return` で終わると、try で起きた例外は **捨てられる** のが Java の仕様です。DB 更新は失敗しているのに、呼び出し元は成功だと思い込みます。
+
+      javac は標準では何も言いませんが、`-Xlint:finally` を付けると `finally clause cannot complete normally` と警告してくれます。finally には **後始末だけ** を書き、`return` や `throw` は書かないのが鉄則です。

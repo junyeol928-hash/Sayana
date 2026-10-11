@@ -1,0 +1,29 @@
+title: 注文の入力チェックで独自例外を投げる
+className: OrderValidator
+difficulty: 2
+problem: |
+  注文データの入力チェックを作ります。不正な注文には **独自の検査例外 `InvalidOrderException`** を投げ、
+  呼び出し側でそれを catch して画面用のメッセージに変換します。
+
+  **1. `InvalidOrderException` を完成させる**
+  - `Exception` を継承済み(= 検査例外)。コンストラクタで受け取ったメッセージを、**親クラスのコンストラクタに渡して** ください
+    (渡さないと `getMessage()` が `null` になります)
+
+  **2. `validate(String itemCode, int quantity)`**:次の順にチェックし、ダメなら例外を投げる
+  1. `itemCode` が `null` または空白だけ(`isBlank()` が true)→ メッセージ `"商品コードが空です"`
+  2. `quantity` が 1〜99 の範囲外 → メッセージ `"数量は1〜99で指定してください: 0"`(末尾は実際の数量)
+  3. どちらも問題なければ何もしない
+
+  **3. `tryOrder(String itemCode, int quantity)`**:`validate` を呼び、結果を文字列で返す
+  - 問題なし → `"受付: A-100 × 3"`
+  - `InvalidOrderException` が投げられた → `"エラー: "` + 例外のメッセージ
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `tryOrder("A-100", 3)` | `"受付: A-100 × 3"` |
+  | `tryOrder("  ", 3)` | `"エラー: 商品コードが空です"` |
+  | `tryOrder("A-100", 100)` | `"エラー: 数量は1〜99で指定してください: 100"` |
+
+  注意:
+  - `validate` は `throws InvalidOrderException` を宣言済みです。`tryOrder` で catch しないとコンパイルエラーになることも確かめてみましょう。
+  - `×` は全角の記号です。問題文からコピーして使ってください。

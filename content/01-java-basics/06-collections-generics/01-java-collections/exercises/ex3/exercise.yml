@@ -1,0 +1,33 @@
+title: 部署ごとの社員名簿を作る(equals と hashCode)
+className: DeptRoster
+difficulty: 3
+problem: |
+  人事システムから取り込んだ社員データ `List<Employee>` から、部署ごとの名簿を作ります。
+  取り込みミスで **同じ社員が二重に入っている** ことがあるので、それも取り除きます。
+
+  ### 1. `Employee` の `equals` と `hashCode`
+  `Employee` は社員番号 `id`・氏名 `name`・部署 `dept` を持つクラスです(雛形に用意済み)。
+  **社員番号が同じなら同じ社員** とみなすように、`equals` と `hashCode` をオーバーライドしてください。
+
+  - 氏名や部署が違っても、`id` が同じなら `equals` は `true`(異動・改姓があってもその人はその人)
+  - `equals` が `true` になる2つは、`hashCode` も必ず同じ値にする
+  - `java.util.Objects` の `Objects.equals` / `Objects.hash` を使うと簡単です
+
+  ### 2. `Map<String, List<String>> groupByDept(List<Employee> employees)`
+  部署名 → その部署の社員の氏名リスト、の Map を返します。
+
+  - 部署は **最初に出てきた順**、氏名もリストに **出てきた順** に並べる(`LinkedHashMap` を使う)
+  - 同じ社員(`equals` が `true`)が2回以上出てきたら、**最初の1件だけ** を使う
+  - `employees` が空なら空の Map を返す
+
+  ```text
+  入力: E01 佐藤 営業 / E02 鈴木 開発 / E03 高橋 営業 / E01 佐藤 営業(重複)
+  結果: {営業=[佐藤, 高橋], 開発=[鈴木]}
+  ```
+
+  ### ヒント
+  - 「もう処理した社員」を `Set<Employee>` に覚えておくと、重複を判定できます。`Set` の `add` は、すでにあれば `false` を返します。
+    この判定が正しく動くのは、1 で `equals` と `hashCode` を両方実装したときだけです。
+  - 部署のリストがまだ Map になければ、新しい `ArrayList` を作って `put` してから氏名を `add` します。
+    (`containsKey` か、`get` の結果が `null` かで判定)
+  - `o instanceof Employee e` は、型チェックと変数 `e` への代入を同時に行う書き方です(Java 16〜)。

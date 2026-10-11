@@ -44,6 +44,7 @@ public class ExerciseCatalog {
         // AI の出力なので HTML はエスケープして描画する
         return new ExerciseDef(g.key(), g.getLessonId(), g.getTitle(), g.getClassName(), g.getDifficulty(),
                 g.getProblem(), markdown.renderUntrusted(g.getProblem()), g.getStarter(), g.getSolution(),
-                g.getTest());
+                g.getTest(), g.getLibraries() == null || g.getLibraries().isBlank() ? List.of()
+                        : List.of(g.getLibraries().split(",")));
     }
 }

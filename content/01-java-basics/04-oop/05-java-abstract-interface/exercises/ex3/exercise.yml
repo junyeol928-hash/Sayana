@@ -1,0 +1,40 @@
+title: 問い合わせチケットを Comparable で並べ替える
+className: TicketQueue
+difficulty: 3
+problem: |
+  サポート窓口の問い合わせチケットを、対応する順番に並べ替えます。
+  `Ticket` クラスに **`Comparable<Ticket>` を実装** し、`Arrays.sort` で並ぶようにしてください。
+
+  `Ticket` は次の3つの情報を持ちます。
+
+  - `id`(`String`):チケット番号。例 `"T-003"`
+  - `priority`(`int`):優先度。**1 が最優先**、2、3 の順に低くなる
+  - `receivedAt`(`int`):受付時刻(0時からの経過分)。小さいほど先に受け付けた
+
+  **並び順のルール(上から順に比べる)**
+
+  1. `priority` が小さい方が前
+  2. `priority` が同じなら、`receivedAt` が小さい(早く受け付けた)方が前
+  3. それも同じなら、`id` の辞書順で前の方が前(文字列の辞書順比較は `a.compareTo(b)` で、結果の符号の意味は同じです)
+
+  作るもの:
+
+  1. `Ticket.compareTo(Ticket other)`:上のルールで、自分が前なら負、同じなら 0、後なら正を返す
+  2. `TicketQueue.order(Ticket[] tickets)`:対応する順に並べた **チケット番号の配列** を返す
+     - **引数の配列そのものは並べ替えないこと**(呼び出し元の画面表示が崩れるため)。
+       `Arrays.copyOf(tickets, tickets.length)` でコピーしてから並べ替えてください
+     - 空配列なら空配列を返す
+
+  例:
+
+  ```java
+  Ticket[] ts = {
+      new Ticket("T-001", 2, 600),
+      new Ticket("T-002", 1, 630),
+      new Ticket("T-003", 2, 540),
+  };
+  TicketQueue.order(ts);  // {"T-002", "T-003", "T-001"}
+  ```
+
+  ヒント:`int` 同士の比較は `Integer.compare(a, b)` を使うと安全です(`a - b` は桁あふれの危険があります)。
+  `Comparable<Ticket>` の `<Ticket>` は「比べる相手の型」の指定です。ジェネリクスの章で詳しく説明します。

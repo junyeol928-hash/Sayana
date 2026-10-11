@@ -1,0 +1,28 @@
+title: 残高がマイナスにならない口座
+className: SafeAccount
+difficulty: 1
+problem: |
+  前回の口座クラスは `acc.balance = -1000000;` と外から書けてしまいました。
+  **残高が絶対にマイナスにならない** 口座クラス `SafeAccount` を作ってください。
+
+  **ルール**
+
+  - フィールド `balance` は **`private`** にする(外から直接書き換えられないように)
+  - コンストラクタ `SafeAccount(int initial)` … `initial` が 0 未満なら `IllegalArgumentException` を投げる
+  - `int getBalance()` … 残高を返す
+  - `void deposit(int amount)` … 入金。`amount` が 0 以下なら `IllegalArgumentException` を投げる
+  - `boolean withdraw(int amount)` … 出金
+    - `amount` が 0 以下なら `IllegalArgumentException` を投げる(呼び出し側のバグなので)
+    - 残高不足なら何もせず `false`(業務上よくあることなので例外にしない)
+    - それ以外は残高を減らして `true`
+
+  ```java
+  SafeAccount acc = new SafeAccount(1000);
+  acc.withdraw(1500);  // false(残高は 1000 のまま)
+  acc.withdraw(1000);  // true(残高 0)
+  acc.deposit(-1);     // IllegalArgumentException
+  new SafeAccount(-1); // IllegalArgumentException
+  ```
+
+  ヒント:
+  - 例外は `throw new IllegalArgumentException("メッセージ");` で投げます。投げた時点でメソッド(コンストラクタ)の処理は終わります。例外の詳しい仕組みは「例外処理」のレッスンでやります。

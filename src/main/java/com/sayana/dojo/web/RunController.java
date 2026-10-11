@@ -1,5 +1,7 @@
 package com.sayana.dojo.web;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +28,11 @@ public class RunController {
     }
 
     @PostMapping("/run")
-    public String run(@RequestParam String code, @RequestParam(required = false) String lessonId, Model model) {
-        RunResult result = runner.run(code);
+    public String run(@RequestParam String code, @RequestParam(required = false) String lessonId,
+                      @RequestParam(required = false) List<String> libraries, Model model) {
+        RunResult result = libraries == null || libraries.isEmpty()
+                ? runner.run(code)
+                : runner.run(code, java.time.Duration.ofSeconds(20), libraries);
         if (lessonId != null && content.lesson(lessonId).isPresent()) {
             learning.markSampleRun(lessonId);
         }
