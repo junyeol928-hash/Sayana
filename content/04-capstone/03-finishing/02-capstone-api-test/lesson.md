@@ -113,7 +113,7 @@ public class RequestQueryService {
 }
 ```
 
-Controller です。承認は capstone-approve の `ApprovalService` に任せます(ここでは `approve(申請ID, ログインID)` の形。引数が違えば合わせてください)。`Principal` は Spring Security がログイン中の人を入れてくれる引数です。
+Controller です。承認は capstone-approve の `ApprovalService.approve(申請ID, 社員ID, コメント)` に任せ、「誰が」は capstone-security の `LoginUser` から取ります。
 
 ```java
 @RestController
@@ -138,9 +138,10 @@ public class RequestApiController {
 
     @PostMapping("/{id}/approve")
     public RequestDetail approve(@PathVariable Long id,
-                                 Principal principal) {
+            @RequestParam(required = false) String comment,
+            @AuthenticationPrincipal LoginUser user) {
         return RequestDetail.from(approvalService
-                .approve(id, principal.getName()));
+                .approve(id, user.id(), comment));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
@@ -172,7 +173,7 @@ public class RequestApiController {
 
 ## Controller のテスト:@WebMvcTest + @MockitoBean
 
-`@WebMvcTest` は Web 層の Bean だけで小さく起動し、Service は `@MockitoBean`(Mockito の偽物)で差し替えます。Security のフィルタも載るので、本物の URL ルールで 403 まで確かめられます。
+`@WebMvcTest` は Web 層の Bean だけで小さく起動し、Service は `@MockitoBean`(Mockito の偽物)で差し替えます。Security のフィルタも載るので、本物の URL ルールで 403 まで確かめられます。`LoginUser` が要る操作は `.with(user(...))` で渡します。
 
 ```java
 @WebMvcTest(RequestApiController.class)
@@ -182,16 +183,16 @@ class RequestApiControllerTest {
     @MockitoBean RequestQueryService queryService;
     @MockitoBean ApprovalService approvalService;
 
+    LoginUser moka = new LoginUser(2L, "モカ",
+            "moka@example.com", "x", Role.APPROVER);
+
     @Test
-    @WithMockUser(username = "moka@example.com",
-                  roles = "APPROVER")
     void 承認済なら409() throws Exception {
-        when(approvalService.approve(3L,
-                "moka@example.com"))
+        when(approvalService.approve(3L, 2L, null))
             .thenThrow(new BusinessRuleException(
                 "承認済の申請は変更できません"));
         mvc.perform(post("/api/requests/3/approve")
-                .with(csrf()))
+                .with(user(moka)).with(csrf()))
            .andExpect(status().isConflict())
            .andExpect(jsonPath("$.title")
                .value("業務ルール違反"));
@@ -206,7 +207,7 @@ class RequestApiControllerTest {
 }
 ```
 
-403 のテストは、capstone-security の `SecurityConfig` に `.requestMatchers("/api/**").hasAnyRole("APPROVER", "ADMIN")` がある前提です(なければ足します)。
+403 は capstone-security の `SecurityConfig` の `"/api/**"` → `hasAnyRole("APPROVER", "ADMIN")` が効いた結果です。
 
 ## Service は単体テストで、ルールを表にする
 
@@ -233,18 +234,18 @@ class ApprovalServiceTest {
             RequestStatus status, String expected) {
         arrange(role, amount, status); // モックに仕込む
         if (expected.equals("OK")) {
-            service.approve(1L, "me@example.com");
+            service.approve(1L, 2L, null);
             verify(historyRepo).save(any()); // ルール6
         } else {
-            assertThrows(BusinessRuleException.class, () ->
-                service.approve(1L, "me@example.com"));
+            assertThrows(BusinessRuleException.class,
+                () -> service.approve(1L, 2L, null));
             verify(historyRepo, never()).save(any());
         }
     }
 }
 ```
 
-`arrange` は、操作者(`role` の社員)と別の社員の申請を作り、`findByEmail` / `findById` が返すよう `when` で仕込むメソッドです。`@InjectMocks` はコンストラクタを見て偽物を渡してくれます。CSV の文字列 `"ADMIN"` は JUnit が enum に自動変換します。
+`arrange` は、操作者(ID 2・`role` の社員)と別の社員の申請(ID 1)を作り、`employeeRepo.findById` / `requestRepo.findById` が返すよう `when` で仕込むメソッドです。`@InjectMocks` はコンストラクタを見て偽物を渡してくれます。CSV の文字列 `"ADMIN"` は JUnit が enum に自動変換します。
 
 境界の `99999` と `100000` が並んで見え、ケースを足すのも1行です。
 
