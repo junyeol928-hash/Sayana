@@ -1,0 +1,284 @@
+id: java-loops
+title: ループ
+status: ready
+minutes: 15
+summary: for・while・do-while の使い分けと break/continue、多重ループ、StringBuilder での文字列組み立て、そして off-by-one や無限ループといった定番のバグを押さえる。
+goals:
+  - for 文の3つの部分(初期化・条件式・更新)の実行順と、ループ変数のスコープを説明できる
+  - 回数・条件・最低1回の観点で for / while / do-while を使い分けられる
+  - break / continue と多重ループを使って、累積・カウンタ・表の出力が書ける
+  - ループ内の文字列連結を StringBuilder で書き、+ 連結が遅くなる理由を説明できる
+  - off-by-one、累積変数の初期化位置、浮動小数点によるループ制御のバグを見抜ける
+samples:
+  - title: for・while・do-while をくらべる
+    description: |
+      同じ「1〜n の合計」を3種類のループで書いたものと、`do-while` が活きる「桁数を数える」例。
+      `n` や `number` の値を変えて、結果がどう変わるか試してみよう。
+    code: |
+      int n = 10;   // ← ここを変えてみよう(0 や 1 も試してみて)
+
+      // for: 回数が決まっているくり返し
+      int sumFor = 0;
+      for (int i = 1; i <= n; i++) {
+          sumFor += i;
+      }
+      System.out.println("for      : " + sumFor);
+
+      // while: 初期化と更新を自分で書く
+      int sumWhile = 0;
+      int k = 1;
+      while (k <= n) {
+          sumWhile += k;
+          k++;          // ← これを消すと無限ループ!(10秒でタイムアウトします)
+      }
+      System.out.println("while    : " + sumWhile);
+
+      // do-while: 最低1回は本体を実行する
+      int number = 0;   // ← 12345 や 7 に変えてみよう
+      int digits = 0;
+      int rest = number;
+      do {
+          digits++;
+          rest /= 10;
+      } while (rest != 0);
+      System.out.println(number + " は " + digits + " 桁");
+  - title: 九九表と多重ループ(StringBuilder で組み立て)
+    description: |
+      外側のループが1回まわる間に、内側のループが最後までまわる。
+      `max` を変えたり、`continue` / `break` の行のコメントを外したりして動きを確かめよう。
+    code: |
+      int max = 9;   // ← ここを変えてみよう(5 や 12 など)
+      StringBuilder sb = new StringBuilder();
+      int count = 0;
+      for (int i = 1; i <= max; i++) {
+          for (int j = 1; j <= max; j++) {
+              // if (j == 5) continue;   // ← コメントを外すと 5 の列が飛ばされる
+              // if (j > i) break;       // ← コメントを外すと三角形の表になる
+              int v = i * j;
+              if (v < 10) sb.append(' ');
+              if (v < 100) sb.append(' ');
+              sb.append(' ').append(v);
+              count++;
+          }
+          sb.append('\n');
+      }
+      System.out.print(sb);
+      System.out.println("内側の本体を実行した回数: " + count);
+  - title: 桁の和と複利計算(while と % と /)
+    description: |
+      `% 10` で一の位を取り出し、`/ 10` で一の位を捨てる、を0になるまでくり返すと各桁を順に処理できる。
+      後半は「目標額に届くまで」という条件で止まる while の例。
+    code: |
+      int value = 98765;   // ← ここを変えてみよう
+      int digitSum = 0;
+      int rest = value;
+      while (rest > 0) {
+          int last = rest % 10;   // 一の位
+          digitSum += last;
+          rest /= 10;             // 一の位を捨てる
+      }
+      System.out.println(value + " の各桁の和 = " + digitSum);
+
+      long balance = 1_000_000;   // 元本(円)
+      int rate = 5;               // 年利(%) ← 1 や 0 に変えてみよう
+      long target = 1_200_000;    // 目標額(円)
+      int years = 0;
+      while (balance < target) {
+          long interest = balance * rate / 100;   // 1円未満切り捨て
+          if (interest == 0) {
+              System.out.println("利息が0円なので永遠に届きません");
+              break;              // これがないと無限ループ
+          }
+          balance += interest;
+          years++;
+          System.out.println(years + "年目: " + balance + "円");
+      }
+  - title: off-by-one と浮動小数点の罠
+    description: |
+      どちらも「ループの回数が1回ずれる」典型的なバグ。`<` と `<=` を入れ替えたり、
+      ループ変数を整数にした正しい書き方と結果を比べてみよう。
+    code: |
+      // off-by-one: 1〜10 の合計のつもり
+      int sum = 0;
+      for (int i = 1; i < 10; i++) {   // ← < を <= に直してみよう
+          sum += i;
+      }
+      System.out.println("合計: " + sum + "(正しくは 55)");
+
+      // double でループ回数を数えると…
+      int count = 0;
+      for (double x = 0.0; x < 1.0; x += 0.1) {
+          count++;
+      }
+      System.out.println("double で数えた回数: " + count + "(10回のつもり)");
+
+      // 正しくは整数で数えて、小数は中で計算する
+      int count2 = 0;
+      for (int i = 0; i < 10; i++) {
+          double x = i / 10.0;
+          count2++;
+      }
+      System.out.println("int で数えた回数: " + count2);
+
+      // 0.1 を10回足すと?
+      double total = 0.0;
+      for (int i = 0; i < 10; i++) {
+          total += 0.1;
+      }
+      System.out.println("0.1 を10回足すと " + total);
+quiz:
+  - question: |
+      次のコードの出力はどれ?
+
+      ```java
+      for (int i = 0; i < 10; i += 3) {
+          System.out.print(i + " ");
+      }
+      ```
+    choices:
+      - "0 1 2 3 4 5 6 7 8 9 "
+      - "3 6 9 "
+      - "0 3 6 9 "
+      - "0 3 6 9 12 "
+    answer: 2
+    explanation: |
+      初期化で `i = 0`、本体の後に `i += 3` なので、0 → 3 → 6 → 9 と進み、次の 12 で条件 `i < 10` が `false` になって終了する。
+      更新部は本体の **後** に実行されるので最初の 0 も出力される(「3 6 9」ではない)。12 は条件判定で弾かれるので出力されない。
+  - question: |
+      次のコードの出力はどれ?
+
+      ```java
+      int n = 5;
+      do {
+          System.out.print(n + " ");
+          n++;
+      } while (n < 3);
+      ```
+    choices:
+      - "5 "
+      - "何も出力されない"
+      - "5 6 7 ...(無限ループ)"
+      - "コンパイルエラー"
+    answer: 0
+    explanation: |
+      `do-while` は本体を先に実行してから条件を判定するので、条件が最初から `false` でも **1回は実行** される。
+      `5 ` を出力したあと `n` が 6 になり、`6 < 3` は `false` なので終了。
+      `while (n < 3) { ... }` なら何も出力されないが、`do-while` では違う。末尾の `;` もちゃんとあるのでコンパイルエラーにはならない。
+  - question: |
+      次のコードのうち、**コンパイルエラーになる行** はどれ?
+
+      ```java
+      int total = 0;                      // (A)
+      for (int i = 1; i <= 3; i++) {      // (B)
+          total += i;                     // (C)
+      }
+      System.out.println(total + i);      // (D)
+      ```
+    choices:
+      - "(A)"
+      - "(B)"
+      - "(C)"
+      - "(D)"
+    answer: 3
+    explanation: |
+      for 文の初期化部で宣言した `i` のスコープは **for 文の中だけ**。ループを抜けた (D) では `i` が見えず、
+      「シンボルを見つけられません」(STS では `i cannot be resolved to a variable`)になる。
+      (C) で外側の `total` を使うのは問題ない。外側で宣言した変数は内側のブロックから見える(逆は見えない)。
+  - question: |
+      次のコードの出力はどれ?
+
+      ```java
+      int sum = 0;
+      for (int i = 1; i <= 5; i++) {
+          if (i == 2) {
+              continue;
+          }
+          if (i == 4) {
+              break;
+          }
+          sum += i;
+      }
+      System.out.println(sum);
+      ```
+    choices:
+      - "1"
+      - "4"
+      - "9"
+      - "13"
+    answer: 1
+    explanation: |
+      i = 1 で sum = 1、i = 2 は `continue` で加算を飛ばす、i = 3 で sum = 4、i = 4 で `break` してループ終了。よって 4。
+      `continue` を「ループ終了」と勘違いすると 1、`break` を「その回だけ飛ばす」と勘違いすると 1 + 3 + 5 = 9 になる。
+      13 は 2 だけを飛ばして 1〜5 を全部足した値で、`break` を無視している。
+  - question: |
+      ループの中で `String s = ""; ... s += 文字列;` と連結するより `StringBuilder` を使うべき理由として、**正しいもの** はどれ?
+    choices:
+      - "+ 連結はコンパイルエラーになることがあるから"
+      - "String は不変なので、+= のたびにそれまでの全文字をコピーした新しい String が作られ、回数の2乗に比例して遅くなるから"
+      - "JDK 9 以降、+ 演算子による文字列連結は非推奨(deprecated)になったから"
+      - "StringBuilder を使うと、ループの回数自体が減るから"
+    answer: 1
+    explanation: |
+      `String` は不変(immutable)なので、`s += x` は「s の全文字 + x」をコピーした新しい文字列を毎回作る。n 回くり返すとコピー量は n² に比例する。
+      `StringBuilder` は書き換え可能なバッファに追記するだけなので速い。
+      + 連結は非推奨ではなく、JDK 9 以降は1つの式の中の連結はむしろ効率的に最適化される(問題になるのはループをまたぐ連結)。ループ回数そのものは変わらない。
+columns:
+  - type: mistake
+    title: for の後ろの「;」1文字で全部が狂う
+    body: |
+      条件分岐の `if (...);` と同じ罠がループにもある。
+
+      ```java
+      for (int i = 0; i < 5; i++); {
+          System.out.println(i);
+      }
+      ```
+
+      `for (...)` の直後の `;` は「何もしない空文」で、**それがループ本体** になる。後ろの `{ ... }` はループと無関係なただのブロックだ。
+      この例では `i` のスコープが for 文の中だけなので、ブロックの中の `i` が見つからず「シンボルを見つけられません」というコンパイルエラーで済む。
+
+      もっと怖いのは `while` 版。
+
+      ```java
+      int i = 0;
+      while (i < 5); {
+          i++;
+      }
+      ```
+
+      本体が空文なので `i` は永遠に増えず、**コンパイルは通って無限ループ** する。CPU 使用率だけが張り付いて何も出力されない、という一番気づきにくい症状になる。
+      対策は「ループの `{` は `)` と同じ行に書く」スタイルに統一すること。`) {` 以外の並びが目に入った瞬間に違和感を持てるようになる。
+  - type: genba
+    title: 本番障害の定番「上限なしリトライ」
+    body: |
+      現場で無限ループが一番起きやすいのは、外部 API や DB への **リトライ処理** だ。
+
+      ```java
+      while (true) {
+          if (送信に成功) break;
+          // 失敗したらもう一回…
+      }
+      ```
+
+      テスト環境では1回目で成功するので問題にならない。ところが本番で相手のサーバーが落ちると、このループは止まらず、
+      毎秒何千回もリクエストを投げ続け、ログがディスクを埋め、相手サーバーの復旧まで妨害する……という二次災害になる。
+
+      レビューでは次の2点を必ずチェックされる。
+
+      - **回数の上限**(例:最大3回。超えたら諦めてエラーを報告する)
+      - **待ち時間**(失敗のたびに少しずつ間隔を広げる「エクスポネンシャルバックオフ」)
+
+      `while (true)` を書いたら「このループが止まらないとしたら、どんな状況か?」を一度考える。それだけで防げる事故は多い。
+      なお Spring には `@Retryable`(Spring Retry)のようなリトライ用の部品もあり、実務では自前ループより先にそちらを検討することが多い。
+  - type: trivia
+    title: for(;;) と while(true)、どっちが正統?
+    body: |
+      無限ループの書き方は `for (;;)` と `while (true)` の2流派がある。`for (;;)` は C 言語由来の書き方で、
+      「条件式を省略すると true 扱い」という仕様を利用している。
+
+      javac でコンパイルすると、どちらも「本体の最後から先頭へ戻る」ジャンプ命令(`goto`)になり、条件判定のない **ほぼ同じバイトコード** になる。
+      性能差はないので、チームの読みやすさで選べばよい。最近は意図が読み取りやすい `while (true)` のほうが優勢だ。
+
+      ちなみに Java のコンパイラは **到達可能性** を解析している(Java 言語仕様 14.22 節)。`break` のない `while (true)` の後ろに文を書くと
+      「この文に制御が移ることはありません」とエラーになる。逆に `while (true)` の後ろに `return` がなくても、メソッドが値を返さずに抜けることはありえないので
+      「return 文がありません」とは言われない。条件が定数の `true` だと、コンパイラは「ここから先には絶対に行かない」と分かるからだ。

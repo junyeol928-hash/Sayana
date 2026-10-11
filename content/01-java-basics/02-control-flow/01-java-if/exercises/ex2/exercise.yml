@@ -1,0 +1,30 @@
+title: ECサイトの送料を計算する
+className: ShippingFee
+difficulty: 2
+problem: |
+  ECサイトの送料を計算する `calc(int amount, String rank)` を完成させてください。
+  `amount` は購入金額(円)、`rank` は会員ランクの文字列です。
+
+  **ルール(上から順に適用)**
+
+  1. `amount` が 0 以下なら、注文データの異常なので `-1` を返す
+  2. `rank` が `"GOLD"` なら、金額に関係なく送料 `0` 円
+  3. `rank` が `"SILVER"` なら、3000 円以上で `0` 円、未満なら `300` 円
+  4. それ以外(`"NORMAL"`、知らないランク、`null`)は、5000 円以上で `0` 円、未満なら `500` 円
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `calc(100, "GOLD")` | `0` |
+  | `calc(2999, "SILVER")` | `300` |
+  | `calc(3000, "SILVER")` | `0` |
+  | `calc(4999, "NORMAL")` | `500` |
+  | `calc(1000, null)` | `500` |
+  | `calc(0, "GOLD")` | `-1` |
+
+  注意:
+  - `rank` は画面入力やDBから来る想定の文字列です。**`==` ではなく `equals` で比較** してください(テストは実行時に組み立てた文字列で呼び出します)。
+  - `rank` が `null` でも `NullPointerException` にならないようにしてください。`"GOLD".equals(rank)` の向きで書くのがコツです。
+  - `switch` を使う場合は、`null` を渡すと NPE になる点に注意。
+
+  ※ `public static int calc(...)` は **メソッド** の書き方です。メソッドは「メソッド」のレッスンで詳しくやります。
+  今は `// TODO:` の部分だけ書けばOK。

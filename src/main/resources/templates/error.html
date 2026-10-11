@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('エラー')}"></head>
+<body>
+<main class="container narrow">
+    <h1>😵 <span th:text="${status}">500</span></h1>
+    <p th:text="${status == 404} ? 'ページが見つかりませんでした。' : '処理中にエラーが起きました。'"></p>
+    <p class="muted small" th:text="${message}"></p>
+    <a class="btn" href="/">ダッシュボードへ戻る</a>
+</main>
+</body>
+</html>

@@ -1,0 +1,225 @@
+id: java-operators
+title: 演算子
+status: ready
+minutes: 15
+summary: 整数除算・剰余・複合代入・インクリメント・短絡評価・文字列連結・三項演算子・優先順位まで、「静かに間違う」演算子の落とし穴をまとめて潰す
+goals:
+  - 整数除算の切り捨て、剰余の符号、ゼロ除算(int と double の違い)を説明できる
+  - 複合代入の暗黙のキャストと、前置・後置インクリメントの違い(i = i++ の罠)を説明できる
+  - "&& と || の短絡評価を使ってゼロ除算をガードでき、& との違いを説明できる"
+  - 文字列連結の評価順と三項演算子を正しく使い、迷ったら括弧で意図を明示できる
+  - 文字列の比較に == ではなく equals を使う理由と、Math クラスの基本メソッドを使える
+samples:
+  - title: 整数除算・剰余・ゼロ除算
+    description: |
+      `a` と `b` の値を変えて、`/` と `%`、`Math.floorDiv` / `Math.floorMod` の違いを確かめよう。
+      最後の行のコメントを外すと、int のゼロ除算で `ArithmeticException` が出る。
+    code: |
+      // 整数同士の割り算は 0 方向へ切り捨て。数値を変えてみよう
+      int a = -7;
+      int b = 2;
+      System.out.println(a + " / " + b + " = " + (a / b));
+      System.out.println(a + " % " + b + " = " + (a % b));
+      System.out.println("floorDiv = " + Math.floorDiv(a, b));
+      System.out.println("floorMod = " + Math.floorMod(a, b));
+
+      // どちらかを double にすると小数まで計算される
+      System.out.println(a / 2.0);
+
+      // double のゼロ除算は例外にならない
+      System.out.println(10.0 / 0);
+      System.out.println(0.0 / 0);
+
+      // ↓ 行頭の // を外すと int のゼロ除算で ArithmeticException が出る
+      // System.out.println(10 / 0);
+  - title: インクリメントと複合代入の罠
+    description: |
+      前置・後置で「式の値」が違うこと、`j = j++` で値が増えないこと、`+=` が黙ってオーバーフローすることを確認しよう。
+    code: |
+      // 後置 i++ は「増やす前」の値、前置 ++i は「増やした後」の値
+      int i = 5;
+      int x = i++;
+      System.out.println("x = " + x + ", i = " + i);
+      int y = ++i;
+      System.out.println("y = " + y + ", i = " + i);
+
+      // i = i++ の罠。j の初期値を変えて試してみよう
+      int j = 10;
+      j = j++;
+      System.out.println("j = " + j);
+
+      // 複合代入には暗黙のキャストが入る(127 を 100 などに変えてみよう)
+      byte bt = 127;
+      bt += 1;
+      System.out.println("bt = " + bt);
+  - title: 文字列連結・短絡評価・三項演算子・equals
+    description: |
+      `count` や `score` を書き換えたり、`&&` を `&` に変えたりして結果の変化を見てみよう。
+    code: |
+      // 文字列連結は左から順に評価される
+      System.out.println("1" + 2 + 3);
+      System.out.println(1 + 2 + "3");
+      System.out.println("合計: " + 1 + 2);
+      System.out.println("合計: " + (1 + 2));
+
+      // 短絡評価: count を 0 以外にすると右側の割り算も実行される
+      int count = 0;
+      int total = 100;
+      System.out.println(count != 0 && total / count > 10);
+      // && を & に変えると? (count が 0 のままだと例外になる)
+
+      // 三項演算子: score を変えてみよう
+      int score = 72;
+      String result = score >= 60 ? "合格" : "不合格";
+      System.out.println(score + "点 → " + result);
+
+      // 文字列の比較は equals
+      String s1 = "hello";
+      String s2 = new String("hello");
+      System.out.println("== : " + (s1 == s2));
+      System.out.println("equals : " + s1.equals(s2));
+  - title: 割り勘とBMIを計算する(Math クラス)
+    description: |
+      演習の予習。`10.0` を `10` に変えると何が起きるかも試してみよう。
+    code: |
+      // 割り勘と BMI を Math クラスで計算してみる。数値を変えてみよう
+      int bill = 10000;
+      int people = 3;
+      System.out.println("1人あたり: " + (bill / people) + "円, 端数: " + (bill % people) + "円");
+
+      double heightCm = 170;
+      double weightKg = 65;
+      double heightM = heightCm / 100;
+      double bmi = weightKg / (heightM * heightM);
+      System.out.println("BMI(そのまま): " + bmi);
+      System.out.println("BMI(小数第1位): " + Math.round(bmi * 10) / 10.0);
+      // ↑ 10.0 を 10 にすると? 整数除算になって小数が消える
+
+      System.out.println(Math.pow(2, 10));   // double で返る
+      System.out.println(Math.max(3, 7) + ", " + Math.min(3, 7) + ", " + Math.abs(-5));
+      System.out.println(Math.round(2.5) + ", " + Math.round(-2.5));  // -2.5 は -2 になる
+quiz:
+  - question: |
+      次のコードの出力は?
+      ```java
+      System.out.println(-7 / 2 + " " + -7 % 2);
+      ```
+    choices: ["-3 -1", "-4 1", "-3.5 -1", "-3 1"]
+    answer: 0
+    explanation: |
+      int 同士の割り算は **0 の方向へ切り捨て** なので `-7 / 2` は `-3`(-3.5 にはならず、-4 にもならない)。
+      `%` の符号は **割られる数(左側)** に従うので `-7 % 2` は `-1`。
+      また `%` は `+` より優先度が高いので、`" " + -7` が先に連結されることはない。
+      `-4 1` は `Math.floorDiv(-7, 2)` と `Math.floorMod(-7, 2)` の結果。
+  - question: |
+      次のうち、**コンパイルエラーになる行** はどれ?
+      ```java
+      byte b = 10;
+      b += 5;              // (A)
+      b++;                 // (B)
+      b = b * 2;           // (C)
+      b = (byte) (b * 2);  // (D)
+      ```
+    choices: ["(A)", "(B)", "(C)", "(D)"]
+    answer: 2
+    explanation: |
+      `byte` 同士・`byte` と `int` の算術演算は、まず `int` に格上げされてから計算されるため、`b * 2` の結果は `int`。
+      それを `byte` に代入しようとする (C) は `incompatible types: possible lossy conversion from int to byte` になる。
+      (A) の複合代入と (B) のインクリメントは仕様上 **暗黙のキャスト** が入るので通る。(D) は明示的にキャストしているので通る。
+  - question: |
+      次のコードの出力は?
+      ```java
+      int i = 3;
+      int a = i++ * 2;
+      int b = ++i * 2;
+      System.out.println(a + "," + b + "," + i);
+      ```
+    choices: ["8,10,5", "6,10,5", "6,8,4", "8,12,5"]
+    answer: 1
+    explanation: |
+      後置 `i++` の式の値は **増やす前** の 3 なので `a = 3 * 2 = 6`(このあと i は 4)。
+      前置 `++i` は **増やした後** の 5 を使うので `b = 5 * 2 = 10`、最終的な i は 5。
+      `8,…` は後置でも増えた値を使うと勘違いした場合、`6,8,4` は2回目のインクリメントを数え忘れた場合の答え。
+  - question: |
+      次のコードの出力は?
+      ```java
+      System.out.println(1 + 2 + "3" + 4 + 5);
+      ```
+    choices: ["15", "12345", "339", "3345"]
+    answer: 3
+    explanation: |
+      `+` は左から順に評価される。`1 + 2` は数値同士なので `3`、`3 + "3"` で文字列 `"33"` になり、
+      以降は文字列連結が続いて `"334"` → `"3345"`。
+      一度 `String` になると、右側の `4 + 5` が先に足し算されることはない(`339` にしたいなら `(4 + 5)` と括弧で囲む)。
+  - question: |
+      次のコードを実行したときの動作として正しいものは?
+      ```java
+      int count = 0;
+      int total = 100;
+      System.out.println(count == 0 || total / count > 10);
+      System.out.println(count == 0 | total / count > 10);
+      ```
+    choices:
+      - "true が2行出力される"
+      - "1行目は true、2行目は false が出力される"
+      - "1行目は true が出力され、2行目で ArithmeticException が発生する"
+      - "1行目で ArithmeticException が発生する"
+    answer: 2
+    explanation: |
+      `||` は **短絡評価** するので、左辺 `count == 0` が true の時点で右辺 `total / count` は評価されず、1行目は true。
+      一方 `|` は短絡しないので左右を両方評価し、`total / count`(100 ÷ 0)で `ArithmeticException: / by zero` が発生する。
+      条件をつなぐときは `&&` / `||` を使うのが原則。
+columns:
+  - type: mistake
+    title: 進捗バーがずっと 0% のまま
+    body: |
+      バッチ処理の進捗を画面に出す機能で、こんなコードがレビューをすり抜けて本番に出ました。
+
+      ```java
+      int done = 750;
+      int total = 1000;
+      int percent = done / total * 100;   // 0 !
+      ```
+
+      `done / total` は int 同士の割り算なので、`done < total` の間はずっと **0**。それに 100 を掛けても 0 です。
+      処理が全部終わった瞬間だけ `1000 / 1000 * 100 = 100` になるので、「0% のまま固まって、最後に突然 100% になる」という不思議な進捗バーの完成です。
+      例外もエラーも出ないので、テストデータが少ないと気づけません。
+
+      直し方は **先に掛けてから割る** か、どちらかを double にすること。
+
+      ```java
+      int percent = done * 100 / total;        // 75
+      double rate = 100.0 * done / total;      // 75.0
+      ```
+
+      ただし `done * 100` は int の範囲(約21億)を超えるとオーバーフローします。件数が大きいなら `long` を使いましょう。
+  - type: genba
+    title: お金の計算に double は使わない
+    body: |
+      今回の割り勘演習で `int` を使ったのには理由があります。`double` は2進数の浮動小数点数なので、`0.1` のような10進の小数を正確に表せません。
+
+      ```java
+      System.out.println(0.1 + 0.2);   // 0.30000000000000004
+      ```
+
+      請求書の合計が1円ずれた、消費税の端数処理が合わない……といった障害は、だいたいここが原因です。現場の定番は次のどちらか。
+
+      - **円単位の整数(`int` / `long`)で持つ**。外貨ならセントなど最小単位の整数にする
+      - **`BigDecimal` を使う**。10進数で正確に計算でき、端数の丸め方(切り捨て・切り上げ・四捨五入など)も明示的に指定できる
+
+      `BigDecimal` は演算子ではなく `add` や `multiply` といったメソッドで計算するので少し書きにくいのですが、金額で `double` を使うとコードレビューで確実に止められます。BMI のような「測定値」は double で問題ありません。
+  - type: trivia
+    title: "true ? 1 : 2.0 は 1 ではなく 1.0"
+    body: |
+      次のコード、何が表示されると思いますか?
+
+      ```java
+      System.out.println(true ? 1 : 2.0);
+      ```
+
+      条件は true なので `1`……と思いきや、答えは **`1.0`** です。
+
+      三項演算子は「式」なので、式全体の型が1つに決まっていなければなりません。2つ目と3つ目のオペランドが数値型で型が違う場合、
+      算術演算と同じ **二項数値昇格** で広い方の型(ここでは `double`)に揃えられます。選ばれなかった `2.0` の型が、選ばれた `1` の見た目にまで影響するわけです。
+
+      同じ理由で、`int` と `long` を混ぜれば結果は `long` になります。三項演算子の2つの選択肢は **同じ型に揃えて書く** のが安全です。

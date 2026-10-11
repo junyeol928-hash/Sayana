@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${lesson.title})}"></head>
+<body class="page-lesson">
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<!--/* 準備中のレッスン */-->
+<main class="container narrow" th:unless="${lesson.ready()}">
+    <nav class="breadcrumb"><a th:href="@{/}">ダッシュボード</a> › <span th:text="${part.title}"></span> › <span th:text="${chapter.title}"></span></nav>
+    <h1 th:text="${lesson.title}"></h1>
+    <div class="card planned-note">
+        <p>🚧 このレッスンは<b>準備中</b>です。章立てだけ先に置いてあります(docs/PLAN.md のチェックリスト参照)。</p>
+        <p class="small muted">教材は <code>content/</code> 配下の Markdown + YAML で追加できます(書式は docs/CONTENT_FORMAT.md)。</p>
+    </div>
+    <nav class="lesson-nav">
+        <a th:if="${prev}" th:href="@{/lessons/{id}(id=${prev.id})}" th:text="'← ' + ${prev.title}"></a>
+        <span></span>
+        <a th:if="${next}" th:href="@{/lessons/{id}(id=${next.id})}" th:text="${next.title} + ' →'"></a>
+    </nav>
+</main>
+
+<div class="lesson-layout" th:if="${lesson.ready()}">
+<main class="lesson-main">
+    <nav class="breadcrumb"><a th:href="@{/}">ダッシュボード</a> › <span th:text="${part.title}"></span> › <span th:text="${chapter.title}"></span></nav>
+    <section class="lesson-hero">
+        <div class="lesson-hero-text">
+            <h1 th:text="${lesson.title}">タイトル</h1>
+            <p class="summary" th:text="${lesson.summary}"></p>
+            <p class="meta">
+                <span>⏱ 読む目安 <b th:text="${lesson.minutes}">15</b> 分</span>
+                <span class="pill" th:classappend="${status.completed()} ? 'ok'" th:text="${status.state().label()}"></span>
+            </p>
+        </div>
+        <div class="goals card" th:if="${!lesson.goals.isEmpty()}">
+            <div class="goals-title">🎯 このレッスンのゴール</div>
+            <ul><li th:each="g : ${lesson.goals}" th:text="${g}"></li></ul>
+        </div>
+    </section>
+
+    <!--/* 読む→動かす→書く→AIに見てもらう→確かめる */-->
+    <nav class="stepper" aria-label="レッスンの流れ">
+        <a href="#read" class="step" th:classappend="${status.read} ? 'done'"><span class="no">1</span>読む</a>
+        <a href="#run" class="step" th:classappend="${status.sampleRun} ? 'done'"><span class="no">2</span>動かす</a>
+        <a href="#sts" class="step" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}"
+           th:classappend="${status.checklistTotal > 0 and status.checklistComplete()} ? 'done'"><span class="no">STS</span>やってみる</a>
+        <a href="#write" class="step" th:classappend="${status.exercisesPassed > 0} ? 'done'"><span class="no">3</span>書く
+            <small th:text="${status.exercisesPassed} + '/' + ${status.exercisesTotal}"></small></a>
+        <a href="#write" class="step" th:classappend="${status.aiReviews > 0} ? 'done'"><span class="no">4</span>AIに見てもらう</a>
+        <a href="#quiz" class="step" th:classappend="${status.bestQuiz != null and status.quizPassed()} ? 'done'"><span class="no">5</span>確かめる
+            <small th:if="${status.bestQuiz != null}" th:text="${status.bestQuiz} + '/' + ${status.quizTotal}"></small></a>
+    </nav>
+
+    <section id="read" class="lesson-section">
+        <h2 class="section-title"><span class="no">1</span>読む</h2>
+        <article class="lesson-body md" th:utext="${lesson.bodyHtml}"></article>
+        <div class="read-action">
+            <div th:if="${status.read}" class="read-done done">✅ 読了済み</div>
+            <button th:unless="${status.read}" class="btn primary" th:attr="hx-post=@{/lessons/{id}/read(id=${lesson.id})}"
+                    hx-swap="outerHTML">📖 読んだ!</button>
+        </div>
+    </section>
+
+    <section id="run" class="lesson-section" th:if="${!lesson.samples.isEmpty()}">
+        <h2 class="section-title"><span class="no">2</span>動かす</h2>
+        <p class="section-lead">サンプルはこの画面で実行できます(JShell)。書き換えて何度でも動かしてみよう。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
+        <div class="sample card" th:each="s, st : ${lesson.samples}">
+            <h3 th:text="${s.title}"></h3>
+            <div class="md small" th:utext="${s.descriptionHtml}"></div>
+            <form class="code-form run-form" hx-post="/run" th:attr="hx-target='#sample-out-' + ${st.index}" hx-swap="innerHTML"
+                  hx-disabled-elt="find button[type=submit]">
+                <input type="hidden" name="lessonId" th:value="${lesson.id}">
+                <textarea class="code-editor" name="code" rows="8" spellcheck="false" th:text="${s.code}"></textarea>
+                <textarea class="starter-code" hidden th:text="${s.code}"></textarea>
+                <div class="actions">
+                    <button type="submit" class="btn primary">▶ 実行</button>
+                    <button type="button" class="btn ghost" data-reset-starter>元に戻す</button>
+                    <span class="htmx-indicator muted small">実行中…</span>
+                </div>
+            </form>
+            <div class="sample-out" th:id="'sample-out-' + ${st.index}"></div>
+        </div>
+    </section>
+
+    <section id="sts" class="lesson-section" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}">
+        <h2 class="section-title"><span class="no">STS</span>STSでやってみよう</h2>
+        <th:block th:if="${lesson.hasSts()}">
+            <div class="md" th:utext="${lesson.sts.introHtml}"></div>
+            <ol class="sts-steps">
+                <li th:each="step : ${lesson.sts.steps}">
+                    <div class="sts-step-title" th:text="${step.title}"></div>
+                    <div class="md" th:utext="${step.detailHtml}"></div>
+                </li>
+            </ol>
+        </th:block>
+        <div class="checklist card" th:if="${!lesson.checklist.isEmpty()}">
+            <div class="checklist-title">✅ やったらチェック <span class="muted small" th:text="${status.checklistDone} + ' / ' + ${status.checklistTotal}"></span></div>
+            <ul>
+                <th:block th:each="item : ${lesson.checklist}" th:with="checked=${status.checkedItems.contains(item.key)}">
+                    <li th:replace="~{fragments/lesson-parts :: checklistItem}"></li>
+                </th:block>
+            </ul>
+        </div>
+    </section>
+
+    <section id="write" class="lesson-section" th:if="${!exercises.isEmpty()}">
+        <h2 class="section-title"><span class="no">3</span>書く <span class="no step4">4</span>AIに見てもらう</h2>
+        <p class="section-lead">提出すると別のJVMでJUnitが走って採点されます(10秒で打ち切り)。
+            採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。</p>
+        <th:block th:each="view : ${exercises}">
+            <article th:replace="~{fragments/exercise :: card(${view})}"></article>
+        </th:block>
+    </section>
+
+    <section id="quiz" class="lesson-section" th:if="${!lesson.quiz.isEmpty()}">
+        <h2 class="section-title"><span class="no">5</span>確かめる</h2>
+        <p class="section-lead">確認クイズ <span th:text="${lesson.quiz.size()}"></span> 問。<span th:text="${status.quizPassScore()}"></span> 問以上で合格。
+            <span th:if="${status.bestQuiz != null}" th:text="'(これまでの最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal} + ')'"></span></p>
+        <form class="quiz card" th:attr="hx-post=@{/lessons/{id}/quiz(id=${lesson.id})}" hx-target="#quiz-result" hx-swap="innerHTML">
+            <ol>
+                <li th:each="q, st : ${lesson.quiz}" class="quiz-q">
+                    <div class="md" th:utext="${q.questionHtml}"></div>
+                    <label th:each="c, cs : ${q.choicesHtml}" class="choice">
+                        <input type="radio" th:name="'q' + ${st.index}" th:value="${cs.index}">
+                        <span th:utext="${c}"></span>
+                    </label>
+                </li>
+            </ol>
+            <button class="btn primary" type="submit">採点する</button>
+        </form>
+        <div id="quiz-result"></div>
+    </section>
+
+    <section id="columns" class="lesson-section" th:if="${!lesson.columns.isEmpty()}">
+        <h2 class="section-title">☕ コラム</h2>
+        <div class="columns">
+            <aside class="column card" th:each="c : ${lesson.columns}" th:classappend="'column-' + ${c.type}">
+                <div class="column-label" th:text="${c.label()}"></div>
+                <h3 th:text="${c.title}"></h3>
+                <div class="md" th:utext="${c.bodyHtml}"></div>
+            </aside>
+        </div>
+    </section>
+
+    <section id="more" class="lesson-section">
+        <h2 class="section-title">➕ もっと練習</h2>
+        <p class="section-lead">AIがこのレッスンの類題を作ります。模範解答が採点テストに合格することを確かめてから出題します。</p>
+        <ul class="generated-list" th:if="${!generated.isEmpty()}">
+            <li th:each="g : ${generated}">
+                <a th:href="@{/practice/{id}(id=${g.exercise.localId()})}" th:text="${g.exercise.title}"></a>
+                <span class="pill ok small" th:if="${g.passed}">合格済み</span>
+            </li>
+        </ul>
+        <form hx-post="/ai/generate" hx-target="#generate-slot" hx-disabled-elt="find button">
+            <input type="hidden" name="lessonId" th:value="${lesson.id}">
+            <button class="btn" type="submit" th:disabled="${!aiAvailable}"
+                    th:title="${aiAvailable ? '' : 'ANTHROPIC_API_KEY を設定すると使えます'}">🤖 類題を作ってもらう</button>
+            <span class="htmx-indicator muted small">問題を作って、模範解答を採点で検証しています…(数十秒かかります)</span>
+        </form>
+        <div id="generate-slot"></div>
+    </section>
+
+    <nav class="lesson-nav">
+        <a th:if="${prev}" th:href="@{/lessons/{id}(id=${prev.id})}" th:text="'← ' + ${prev.title}"></a>
+        <span></span>
+        <a th:if="${next}" th:href="@{/lessons/{id}(id=${next.id})}" th:text="${next.title} + ' →'"></a>
+    </nav>
+</main>
+<aside th:replace="~{fragments/ai :: tutor(${lesson.id}, ${chat})}"></aside>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

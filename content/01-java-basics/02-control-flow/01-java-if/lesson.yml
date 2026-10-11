@@ -1,0 +1,217 @@
+id: java-if
+title: 条件分岐
+status: ready
+minutes: 15
+summary: if / else if / else と switch 式で処理を分ける。波括弧・フォールスルー・文字列の == という三大地雷の避け方まで。
+goals:
+  - if / else if / else を、波括弧を省略せずに書ける
+  - 範囲判定で条件を正しい順に並べ、ガード節(早期 return)でネストを浅くできる
+  - 従来の switch 文のフォールスルーを理解し、switch 式(アロー構文・複数ラベル・yield)で書ける
+  - 文字列を equals で比較し、null と switch の関係(NullPointerException)を説明できる
+  - "if (x = 5) がコンパイルエラーになる理由と、boolean を == true で比べない理由を説明できる"
+samples:
+  - title: 送料計算(if / else if / else)
+    description: 購入金額と会員ランクで送料を決めます。条件は上から順に評価され、最初に当てはまった1つだけが実行されます。
+    code: |
+      // 購入金額と会員ランクで送料を決める
+      // ここを変えてみよう:amount を 2999 / 3000 / 5000 に、rank を "GOLD" や "NORMAL" に
+      int amount = 2980;
+      String rank = "SILVER";
+
+      int fee;
+      if ("GOLD".equals(rank)) {
+          fee = 0;                       // ゴールド会員は常に送料無料
+      } else if (amount >= 5000) {
+          fee = 0;                       // 5000円以上は誰でも無料
+      } else if ("SILVER".equals(rank) && amount >= 3000) {
+          fee = 0;                       // シルバー会員は3000円以上で無料
+      } else {
+          fee = 500;
+      }
+      System.out.println("購入金額: " + amount + "円 / ランク: " + rank);
+      System.out.println("送料: " + fee + "円");
+      System.out.println("お支払い合計: " + (amount + fee) + "円");
+  - title: 曜日番号を switch 式で分類する
+    description: アロー構文・複数ラベル・yield の使い方。`default` を消すと網羅性チェックでコンパイルエラーになるのを確かめてみましょう。
+    code: |
+      // 曜日番号(1=月 … 7=日)を switch 式で分類する
+      // ここを変えてみよう:day を 1〜7 や 0、8 にしてみる。default の行を消すとどうなる?
+      int day = 6;
+
+      String type = switch (day) {
+          case 1, 2, 3, 4, 5 -> "平日";
+          case 6, 7 -> "休日";
+          default -> "不正な曜日番号";
+      };
+
+      String name = switch (day) {
+          case 1 -> "月"; case 2 -> "火"; case 3 -> "水"; case 4 -> "木";
+          case 5 -> "金"; case 6 -> "土"; case 7 -> "日";
+          default -> {
+              System.out.println("※ 1〜7 で指定してください");
+              yield "?";                 // ブロックの中では yield で値を返す
+          }
+      };
+      System.out.println(day + " → " + name + "曜日は " + type);
+  - title: フォールスルーの罠とアロー構文
+    description: 従来の switch 文で `break` を忘れると次の case に落ちていきます。アロー構文なら落ちません。
+    code: |
+      // フォールスルーの罠:従来の switch 文で break を忘れると……
+      // ここを変えてみよう:case 6 の後に break; を足す / day を 7 や 3 にする
+      int day = 6;
+
+      System.out.println("--- 従来の switch 文(break 忘れ)---");
+      switch (day) {
+          case 6:
+              System.out.println("土曜日");
+          case 7:
+              System.out.println("日曜日");
+              break;
+          default:
+              System.out.println("平日");
+      }
+
+      System.out.println("--- アロー構文(落ちていかない)---");
+      switch (day) {
+          case 6 -> System.out.println("土曜日");
+          case 7 -> System.out.println("日曜日");
+          default -> System.out.println("平日");
+      }
+  - title: 文字列の比較は equals、null は switch の前にはじく
+    description: "`==` は同じオブジェクトかどうかを比べるだけ。`input` を `null` にすると `input.equals(...)` の行で NullPointerException が出ます。"
+    code: |
+      // 文字列の比較は equals。== は「同じオブジェクトか」を見るだけ
+      // ここを変えてみよう:input を null にしてみる(input.equals は NPE、"GOLD".equals は false になる)
+      String part = "GOL";
+      String input = part + "D";      // 実行時に組み立てた "GOLD"(ユーザー入力のつもり)
+
+      System.out.println("input == \"GOLD\"      → " + (input == "GOLD"));
+      System.out.println("input.equals(\"GOLD\") → " + input.equals("GOLD"));
+      System.out.println("\"GOLD\".equals(input) → " + "GOLD".equals(input));   // null でも安全
+
+      String label = (input == null) ? "未入力" : switch (input) {   // null を switch に渡すと NPE なので先にはじく
+          case "GOLD" -> "ゴールド会員";
+          case "SILVER" -> "シルバー会員";
+          default -> "一般会員";
+      };
+      System.out.println("会員区分: " + label);
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      int n = 2;
+      switch (n) {
+          case 1:
+              System.out.print("A");
+          case 2:
+              System.out.print("B");
+          case 3:
+              System.out.print("C");
+              break;
+          default:
+              System.out.print("D");
+      }
+      ```
+    choices: ["B", "BCD", "BC", "ABC"]
+    answer: 2
+    explanation: |
+      従来の switch 文は、一致した `case 2` に **ジャンプ** してそこから下を実行します。`case 2` には `break` がないので `case 3` に **フォールスルー** して `C` も出力し、`case 3` の `break` で抜けます。よって `BC` です。
+      `B` だけになるのはアロー構文(`case 2 ->`)の場合。`case 1` より上には戻らないので `A` は出ず、`break` で抜けるので `D` まで落ちることもありません。
+  - question: |
+      `int x = 3;` `boolean ok = false;` と宣言されているとき、**コンパイルエラーになる** のはどれ?
+    choices: ["if (ok = true) { }", "if (x == 5) { }", "if (!ok) { }", "if (x = 5) { }"]
+    answer: 3
+    explanation: |
+      `x = 5` は代入式で、その値は `int` の `5` です。Java の if の条件は `boolean` でなければならず、int → boolean の変換は存在しないので `incompatible types: int cannot be converted to boolean` になります。
+      紛らわしいのは `if (ok = true)`。これも比較ではなく代入ですが、式の値が `boolean`(true)なので **コンパイルが通ってしまい**、常に true の分岐になります。`== true` と書く習慣をやめて `if (ok)` と書けば、この事故はそもそも起きません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      int x = 3;
+      if (x > 5)
+          if (x > 10)
+              System.out.println("大");
+      else
+          System.out.println("小");
+      System.out.println("終");
+      ```
+    choices: ["小 と 終", "終 だけ", "大 と 終", "コンパイルエラー"]
+    answer: 1
+    explanation: |
+      インデントに惑わされないこと。Java では `else` は **一番近い if**(ここでは `if (x > 10)`)に結びつきます(ぶら下がり else)。つまり外側の `if (x > 5)` が false の時点で、内側の if も else も丸ごとスキップされ、`終` だけが出力されます。
+      見た目どおり「5以下なら小」にしたいなら、波括弧で外側の if のブロックを閉じる必要があります。だから現場では1行でも波括弧を省略しません。文法的には正しいのでコンパイルエラーにはなりません。
+  - question: |
+      次のコードについて正しい説明はどれ?
+      ```java
+      int code = 2;
+      String s = switch (code) {
+          case 1 -> "OK";
+          case 2 -> "NG";
+      };
+      System.out.println(s);
+      ```
+    choices: ["コンパイルエラーになる", "NG と出力される", "実行時に例外が発生する", "null と出力される"]
+    answer: 0
+    explanation: |
+      switch **式** は必ず値を返さなければならないので、すべての入力をカバーしている(網羅している)必要があります。`int` は 1 と 2 以外の値も取りうるのに `default` がないため、`the switch expression does not cover all possible input values` というコンパイルエラーになります。
+      `code` が実際には 2 であっても、コンパイラは「取りうるすべての値」で判断します。`default -> "不明";` を足せば `NG` と出力されます。値を返さない switch **文** なら網羅していなくてもエラーにはなりません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      String a = "Ja";
+      String b = a + "va";
+      System.out.println(b == "Java");
+      System.out.println("Java".equals(b));
+      ```
+    choices: ["true と true", "true と false", "false と true", "false と false"]
+    answer: 2
+    explanation: |
+      `b` は実行時に連結して作られた **新しい String オブジェクト** です。`==` は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じ "Java" でもリテラルの "Java" とは別物で `false`。中身を比べる `equals` は `true` です。
+      リテラル同士(`"Java" == "Java"`)ならインターンにより同じオブジェクトになるので `true` になることがあり、これが「テストでは動いたのに本番で壊れる」原因です。文字列は必ず `equals` で比べましょう。
+columns:
+  - type: genba
+    title: 波括弧1つで世界中の iPhone が危険にさらされた「goto fail」
+    body: |
+      2014年2月、Apple の iOS / OS X の SSL/TLS 実装(SecureTransport)で深刻な脆弱性が見つかりました(CVE-2014-1266)。原因は C 言語のこんな数行です。
+
+      ```c
+      if ((err = SSLHashSHA1.update(&hashCtx, &signedParams)) != 0)
+          goto fail;
+          goto fail;   /* ← コピペで紛れ込んだ2行目 */
+      if ((err = SSLHashSHA1.final(&hashCtx, &hashOut)) != 0)
+          goto fail;
+      ```
+
+      波括弧がないので、if に属するのは1行目の `goto fail;` だけ。2行目はインデントが揃っていて if の中に見えますが、実際には **毎回必ず実行** されます。このとき `err` は 0(成功)のままなので、後ろにあった署名検証が丸ごとスキップされ、「成功」として返ってしまいました。結果、偽のサーバー証明書でも通信できてしまい、公衆Wi-Fiなどでの中間者攻撃が可能な状態だったのです。
+
+      if に波括弧があれば2行目はブロックの外に出て、少なくとも見た目で気づけました。「1行でも波括弧を書く」「フォーマッタと静的解析で強制する」という現場ルールには、こういう血の教訓があります。
+  - type: trivia
+    title: String の switch は裏で hashCode を使っている
+    body: |
+      String で switch できるようになったのは Java 7 から。実は JVM には「文字列で分岐する命令」はなく、javac がソースを次のような2段構えに **書き換えて** います。
+
+      1. まず `s.hashCode()`(文字列から計算される int 値)で `switch` して、候補を絞り込む
+      2. 候補が見つかったら `s.equals("GOLD")` で本当に一致するか確認する
+
+      int の switch は JVM の `tableswitch` / `lookupswitch` 命令で高速にジャンプできるので、それに乗っかるための工夫です。ハッシュ値は別の文字列でたまたま一致すること(衝突)があるので、最後に必ず `equals` で確かめています。
+
+      `null` を switch に渡したときのエラーが `Cannot invoke "String.hashCode()"` になるのは、この1段目で `null.hashCode()` を呼んでしまうから。また case のラベルが **コンパイル時定数**(リテラルや `static final` の定数)でなければならないのも、コンパイル時にハッシュ値を計算しておく必要があるからです。
+  - type: mistake
+    title: 割引が永遠に適用されない料金テーブル
+    body: |
+      ある EC サイトで「1万円以上は10%引き、3千円以上は5%引き」というキャンペーンを実装したときのコードです。
+
+      ```java
+      int rate;
+      if (amount >= 3000) {
+          rate = 5;
+      } else if (amount >= 10000) {
+          rate = 10;   // ← ここには絶対に来ない
+      } else {
+          rate = 0;
+      }
+      ```
+
+      1万円以上の注文は先に `amount >= 3000` に当てはまってしまうので、10%引きは **一度も適用されません**。しかもコンパイルエラーも例外も出ず、5%引きにはなっているので画面上は「割引されている」ように見えます。テストも 5000 円のケースしか書いていなかったため、お客様からの問い合わせで発覚しました。
+
+      対策は2つ。①範囲判定は **大きい方から** 並べる(または小さい方から `<` で揃える)。②テストには **境界値**(2999 / 3000 / 9999 / 10000)を必ず入れる。条件の順番ミスは、境界値テストを書けばほぼ確実に見つかります。

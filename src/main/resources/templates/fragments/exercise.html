@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* 演習カード。view は ExerciseView */-->
+<article th:fragment="card(view)" class="exercise card" th:with="ex=${view.exercise}" th:id="'ex-' + ${ex.domId()}">
+    <header class="exercise-head">
+        <h3>
+            <span class="ex-label" th:text="${ex.generated() ? '類題' : '演習'}">演習</span>
+            <span th:text="${ex.title}">タイトル</span>
+        </h3>
+        <div class="exercise-meta">
+            <span class="stars" th:text="${#strings.repeat('★', ex.difficulty) + #strings.repeat('☆', 3 - ex.difficulty)}">★☆☆</span>
+            <span class="pill ok" th:if="${view.passed}">合格済み</span>
+            <span class="pill" th:if="${!view.passed and view.attempts > 0}" th:text="${view.attempts} + '回提出'"></span>
+            <code class="class-name" th:text="${ex.className} + '.java'"></code>
+        </div>
+    </header>
+    <div class="problem md" th:utext="${ex.problemHtml}"></div>
+
+    <form class="code-form" hx-post="/exercises/submit" th:attr="hx-target='#result-' + ${ex.domId()}"
+          hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]">
+        <input type="hidden" name="key" th:value="${ex.key}">
+        <input th:if="${view.reviewItemId != null}" type="hidden" name="reviewItemId" th:value="${view.reviewItemId}">
+        <textarea class="code-editor" name="code" rows="14" spellcheck="false" th:text="${view.code}"></textarea>
+        <textarea class="starter-code" hidden th:text="${ex.starter}"></textarea>
+        <div class="actions">
+            <button type="submit" class="btn primary">▶ 提出して採点</button>
+            <button type="button" class="btn" hx-post="/exercises/hint" hx-swap="outerHTML"
+                    th:attr="hx-target='#hints-' + ${ex.domId()}" th:disabled="${!aiAvailable or !view.hintsLeft()}"
+                    th:title="${!aiAvailable ? 'ANTHROPIC_API_KEY を設定すると使えます' : (view.hintsLeft() ? '押すたびに 方向性 → 手がかり → ほぼ答え' : 'ヒントは3段階で全部です')}"
+                    th:unless="${view.reviewItemId != null}">💡 ヒント<span class="hint-count" th:text="'(' + ${view.hints.size()} + '/3)'"></span></button>
+            <button type="button" class="btn ghost" data-reset-starter>雛形に戻す</button>
+            <span class="htmx-indicator muted small">採点中…(別のJVMでテストを実行しています)</span>
+        </div>
+    </form>
+    <div th:replace="~{fragments/exercise :: hints}"></div>
+    <div class="grade-slot" th:id="'result-' + ${ex.domId()}"></div>
+    <details class="solution" th:if="${view.reviewItemId == null}">
+        <summary>模範解答を見る(ネタバレ注意。まずは自分で!)</summary>
+        <pre><code class="language-java" th:text="${ex.solution}"></code></pre>
+    </details>
+</article>
+
+<!--/* 段階ヒント(view と error を使う) */-->
+<div th:fragment="hints" class="hints" th:id="'hints-' + ${view.exercise.domId()}">
+    <div th:each="h : ${view.hints}" class="hint" th:classappend="'hint-' + ${h.level}">
+        <div class="hint-title" th:text="${h.levelLabel()}">ヒント</div>
+        <div class="md" th:utext="${ui.md(h.text)}"></div>
+    </div>
+    <div class="ai-error" th:if="${error != null}">⚠️ <span th:text="${error}"></span></div>
+    <form th:if="${!view.hints.isEmpty()}" class="hint-reset" hx-post="/exercises/hint/reset" hx-swap="outerHTML"
+          th:attr="hx-target='#hints-' + ${view.exercise.domId()}" hx-confirm="ヒントを消して、最初からやり直しますか?">
+        <input type="hidden" name="key" th:value="${view.exercise.key}">
+        <button class="link-button small" type="submit">ヒントを消して最初から</button>
+    </form>
+</div>
+
+<!--/* 採点結果 */-->
+<div th:fragment="gradeResult" class="grade-result" th:classappend="'status-' + ${#strings.toLowerCase(result.status)}">
+    <div class="grade-banner">
+        <span class="grade-icon" th:text="${result.passed() ? '🎉' : (result.status.name() == 'COMPILE_ERROR' ? '🛠' : (result.status.name() == 'TIMEOUT' ? '⏱' : '🤔'))}"></span>
+        <b th:text="${result.statusLabel()}">合格</b>
+        <span th:if="${result.totalCount() > 0}" th:text="'(' + ${result.passedCount()} + ' / ' + ${result.totalCount()} + ' テスト合格)'"></span>
+        <span class="muted small" th:text="${result.elapsedMillis} + ' ms'"></span>
+    </div>
+    <p class="grade-message" th:if="${result.message != null}" th:text="${result.message}"></p>
+
+    <ul class="diagnostics" th:if="${!result.compileErrors.isEmpty()}">
+        <li th:each="d : ${result.compileErrors}">
+            <b th:text="${d.source} + (${d.line > 0} ? ' ' + ${d.line} + '行目' : '')"></b>:
+            <span th:text="${d.message}"></span>
+            <pre class="code-line" th:if="${!#strings.isEmpty(d.codeLine)}" th:text="${d.codeLine}"></pre>
+        </li>
+    </ul>
+    <ul class="tests" th:if="${!result.tests.isEmpty()}">
+        <li th:each="t : ${result.tests}" th:classappend="${t.passed} ? 'pass' : 'fail'">
+            <span class="mark" th:text="${t.passed} ? '✔' : '✘'"></span>
+            <span th:text="${t.name}"></span>
+            <pre class="test-message" th:if="${!t.passed and !#strings.isEmpty(t.message)}" th:text="${t.message}"></pre>
+        </li>
+    </ul>
+    <details class="output" th:if="${!#strings.isEmpty(result.output)}">
+        <summary>プログラムの出力</summary>
+        <pre class="console" th:text="${result.output}"></pre>
+    </details>
+
+    <p class="review-note" th:if="${reviewLabel != null}">
+        <span th:if="${fromReview}">復習の結果:</span><span th:unless="${fromReview}">復習キュー:</span>
+        <b th:text="${reviewLabel}"></b>
+    </p>
+
+    <div class="ai-actions" th:if="${outcome != null and outcome.submission() != null}">
+        <button class="btn small" th:attr="hx-post='/ai/review/' + ${outcome.submission().id}"
+                hx-target="next .ai-slot" hx-swap="innerHTML" hx-disabled-elt="this" th:disabled="${!aiAvailable}"
+                th:title="${aiAvailable ? '正解でも「より良い書き方」「現場ならこう書く」を講評します' : 'ANTHROPIC_API_KEY を設定すると使えます'}">🤖 AIに講評してもらう</button>
+        <button class="btn small" th:if="${!result.passed()}" th:attr="hx-post='/ai/explain/' + ${outcome.submission().id}"
+                hx-target="next .ai-slot" hx-swap="innerHTML" hx-disabled-elt="this" th:disabled="${!aiAvailable}">🤖 エラーをAIに翻訳してもらう</button>
+        <a class="small" th:href="@{/history/{id}(id=${outcome.submission().id})}">提出履歴で見る</a>
+        <a class="btn small primary" th:if="${fromReview}" th:href="@{/review}">次の復習へ →</a>
+        <span class="htmx-indicator muted small">AIが読んでいます…</span>
+    </div>
+    <div class="ai-slot"></div>
+</div>
+</body>
+</html>

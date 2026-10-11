@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('提出履歴')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+    <h1>📝 提出履歴</h1>
+    <form method="get" class="filter">
+        <select name="lesson" onchange="this.form.submit()">
+            <option value="">すべてのレッスン(最新50件)</option>
+            <option th:each="l : ${lessons}" th:value="${l.id}" th:text="${l.title}" th:selected="${l.id == lessonFilter}"></option>
+        </select>
+    </form>
+    <p th:if="${submissions.isEmpty()}" class="muted">まだ提出がありません。</p>
+    <table class="table" th:unless="${submissions.isEmpty()}">
+        <thead><tr><th>日時</th><th>レッスン</th><th>演習</th><th>結果</th><th>AI</th></tr></thead>
+        <tr th:each="s : ${submissions}">
+            <td class="small muted" th:text="${ui.longTime(s.createdAt)}"></td>
+            <td th:text="${lessonTitles.get(s.lessonId)} ?: ${s.lessonId}"></td>
+            <td><a th:href="@{/history/{id}(id=${s.id})}" th:text="${s.exerciseTitle}"></a>
+                <span class="pill small" th:if="${s.fromReview}">復習</span></td>
+            <td><span class="pill" th:classappend="${s.passed} ? 'ok' : 'ng'"
+                      th:text="${s.passed} ? '合格' : (${s.totalCount > 0} ? '不合格 ' + ${s.passedCount} + '/' + ${s.totalCount} : ${s.status})"></span></td>
+            <td class="small"><span th:if="${s.aiReview != null}">🤖 講評</span> <span th:if="${s.errorExplanation != null}">🤖 翻訳</span></td>
+        </tr>
+    </table>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

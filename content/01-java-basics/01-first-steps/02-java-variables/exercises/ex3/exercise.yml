@@ -1,0 +1,34 @@
+title: アクセスログから総転送量を出す
+className: TrafficCalculator
+difficulty: 2
+problem: |
+  Webサーバーの月次レポート用に、**総転送量(バイト)** を計算します。
+
+  `totalBytes(int avgBytesPerRequest, int requestsPerDay, int days)` を完成させてください。
+
+  - `avgBytesPerRequest` … 1リクエストあたりの平均レスポンスサイズ(バイト)
+  - `requestsPerDay` … 1日あたりのリクエスト数
+  - `days` … 集計日数
+  - 戻り値 … 総転送量(バイト) = 平均サイズ × 1日のリクエスト数 × 日数
+
+  | avgBytesPerRequest | requestsPerDay | days | 戻り値 |
+  |---|---|---|---|
+  | 1000 | 100 | 1 | 100000 |
+  | 50000 | 100000 | 1 | 5000000000 |
+  | 2000000 | 1000 | 30 | 60000000000 |
+
+  **先輩が書いたコードがこちら。** コンパイルは通るのに、大きな値でおかしな結果になります。
+
+  ```java
+  return avgBytesPerRequest * requestsPerDay * days;   // 5000000000 になるはずが 705032704 に…
+  ```
+
+  原因は、`int` 同士の掛け算が `int` のまま計算されて溢れていること(戻り値が `long` でも、溢れたあとに変換されるだけ)。
+  溢れない正しい書き方にしてください。
+
+  **ヒント**
+  - 掛け算が始まる **前に** どれか1つを `long` にすれば、以降の計算は `long` で行われる
+  - `(long) (a * b * c)` は手遅れ。カッコの中で先に溢れてしまう
+  - `a * b * (long) c` も要注意。`a * b` の時点では `int` のまま
+
+  メソッドの書き方は「メソッド」のレッスンで詳しくやります。今は `// TODO:` の部分だけ書けばOKです。

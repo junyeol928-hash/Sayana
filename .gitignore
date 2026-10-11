@@ -1,0 +1,32 @@
+# ビルド
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# 進捗・提出履歴の H2 データベース(個人の学習記録なのでコミットしない)
+data/
+*.mv.db
+*.trace.db
+*.lock.db
+
+# APIキーなどの秘密情報
+.env
+.env.*
+*.key
+application-local.yml
+application-local.properties
+
+# IDE(STS / Eclipse / IntelliJ / VS Code)
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache/
+bin/
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

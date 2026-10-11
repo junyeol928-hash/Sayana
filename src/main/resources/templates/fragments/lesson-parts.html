@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="readDone" class="read-done done">✅ 読了!次は下のサンプルを動かしてみよう。</div>
+
+<li th:fragment="checklistItem" class="check-item" th:classappend="${checked} ? 'checked'">
+    <form th:attr="hx-post=@{/lessons/{id}/checklist(id=${lesson.id})}" hx-target="closest li" hx-swap="outerHTML">
+        <input type="hidden" name="key" th:value="${item.key}">
+        <button type="submit" class="check-button" th:text="${checked} ? '✅' : '⬜'"></button>
+        <span th:text="${item.text}"></span>
+    </form>
+</li>
+
+<!--/* クイズの採点結果 */-->
+<div th:fragment="quizResult" class="quiz-result">
+    <div class="quiz-score" th:with="a=${outcome.attempt()}">
+        <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
+        <span th:if="${a.score == a.total}">満点!🎉</span>
+        <span th:if="${a.score < a.total and a.score >= status.quizPassScore()}">合格ライン突破!</span>
+        <span th:if="${a.score < status.quizPassScore()}" th:text="'合格ラインは ' + ${status.quizPassScore()} + ' 問。解説を読んで、もう一度どうぞ。'"></span>
+        <p class="muted small">解いた問題は復習キューに入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
+    </div>
+    <ol class="quiz-review">
+        <li th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
+            th:classappend="${ok} ? 'correct' : 'wrong'">
+            <div class="q-mark" th:text="${ok} ? '⭕ 正解' : (${chosen < 0} ? '— 未回答' : '❌ 不正解')"></div>
+            <div class="md" th:utext="${q.questionHtml}"></div>
+            <p class="small">
+                <span th:if="${chosen >= 0}">あなたの答え: <span th:utext="${q.choicesHtml.get(chosen)}"></span> / </span>
+                正解: <b th:utext="${q.choicesHtml.get(q.answer)}"></b>
+            </p>
+            <div class="explanation md" th:utext="${q.explanationHtml}"></div>
+        </li>
+    </ol>
+    <p class="muted small">答えを選び直して、もう一度「採点する」を押せます。</p>
+</div>
+</body>
+</html>
