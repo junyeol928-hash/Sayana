@@ -1,0 +1,27 @@
+title: 業務例外を 404 / 409 / 500 の JSON に変換する
+className: ApiExceptionHandler
+difficulty: 2
+libraries: [spring]
+problem: |
+  受注 API の Controller と Service はできています。Service は困ったときに **業務例外** を投げます。
+  今は例外が Controller の外へ素通りしていて、Spring Boot なら 500 エラーになってしまいます。
+  全 Controller 共通の例外ハンドラ `ApiExceptionHandler`(`@RestControllerAdvice`)を完成させ、次の形の JSON を返すようにしてください。
+
+  ```json
+  {"code":"ORDER_NOT_FOUND","message":"注文 99 は見つかりません"}
+  ```
+
+  | 例外 | ステータス | code | message |
+  |---|---|---|---|
+  | `OrderNotFoundException` | 404 | `ORDER_NOT_FOUND` | 例外のメッセージ |
+  | `OrderStateException` | 409 | `ORDER_STATE_CONFLICT` | 例外のメッセージ |
+  | それ以外の `Exception` | 500 | `INTERNAL_ERROR` | `システムエラーが発生しました` |
+
+  - 本文の形は record `ErrorResponse(String code, String message)` で表します(用意済み)
+  - ステータスは `ResponseEntity.status(HttpStatus.NOT_FOUND).body(...)` か、メソッドに `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けて指定します
+  - 500 のときは、例外のメッセージ(内部のホスト名などが入っている)を **利用者に見せない** こと。本物のアプリなら、詳細はログに出します
+
+  `GET /api/orders/{id}/receipt`(領収書の発行)は、外部サービスにつながらず必ず `IllegalStateException` になる想定のエンドポイントです。
+
+  **STS で書くなら**:例外クラスは `com.example.shop.order`、`ErrorResponse` と `ApiExceptionHandler` は `com.example.shop.web` のように置きます。
+  `@RestControllerAdvice` はコンポーネントスキャンで自動登録されます。テストでは `standaloneSetup(...).setControllerAdvice(new ApiExceptionHandler())` で登録しています。

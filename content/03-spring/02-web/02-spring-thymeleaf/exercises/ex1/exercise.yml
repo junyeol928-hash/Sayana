@@ -1,0 +1,39 @@
+title: 商品一覧の表をテンプレートで作る
+className: ProductListPage
+difficulty: 1
+libraries: [spring, thymeleaf]
+problem: |
+  ネットショップの商品一覧ページのテンプレートを作ります。雛形の `TEMPLATE` には、デザイナーが作った **ダミーデータ入りの HTML** が入っています。
+  これに `th:` 属性を足して、Controller から渡された `products`(`List<Product>`)を表示するテンプレートにしてください。
+
+  `products` が「ボールペン 1200円 在庫12」「ノート 98円 在庫0」のとき、こう描画されるようにします(空白や改行は自由です)。
+
+  ```html
+  <table>
+    <tr><th>No.</th><th>商品名</th><th>価格</th><th>在庫</th></tr>
+    <tr class="item">
+      <td class="no">1</td>
+      <td class="name">ボールペン</td>
+      <td class="price">1,200円</td>
+      <td class="stock">残り12個</td>
+    </tr>
+    <tr class="item">
+      <td class="no">2</td>
+      <td class="name">ノート</td>
+      <td class="price">98円</td>
+      <td class="stock">売り切れ</td>
+    </tr>
+  </table>
+  ```
+
+  - `<tr class="item">` を `th:each` で **商品の数だけ** 繰り返す。No. は **ステータス変数** の `count`(1始まり)を使う
+  - 商品名は `th:text` で出す(`<特価>ノート` のような名前も、タグとして解釈されずにそのまま表示されること)
+  - 価格は `${#numbers.formatInteger(p.price, 1, 'COMMA')}` で3桁区切りにし、後ろに `円`
+  - 在庫が 0 なら `売り切れ`、それ以外は `残り○個`(`th:if` / `th:unless`)
+  - `products` が **空** のときは、表(`<table>`)を出さずに `<p class="empty">商品がありません</p>` だけを出す。空でないときはこの `<p>` を出さない
+
+  ヒント:雛形の2行目のダミー行は、消すか `th:remove="all"` を付けます(描画時にだけ消え、ブラウザで直接開いたときは見本として残ります)。
+
+  STS では、この HTML を `src/main/resources/templates/products/list.html` に置き、Controller で
+  `model.addAttribute("products", ...)` して `"products/list"` を返します。採点では、テンプレートを `static final String` に入れたものを
+  `SpringTemplateEngine` で直接描画して確かめています。

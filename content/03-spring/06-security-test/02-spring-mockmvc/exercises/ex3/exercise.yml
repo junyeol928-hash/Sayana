@@ -1,0 +1,40 @@
+title: バグを見逃さないテストを書く
+className: ShipApiCheck
+difficulty: 3
+libraries: [spring]
+problem: |
+  今度は **あなたがテストを書く番** です。送料 API を MockMvc で検証する `check(MockMvc mvc)` を完成させてください。
+  仕様どおりなら何も起きず、仕様と違えば `andExpect` が `AssertionError` を投げる ―― つまり中身は JUnit のテストメソッドと同じです。
+
+  **送料 API の仕様**:`GET /shipping-fee?amount=金額&rank=会員ランク`(`rank` は省略すると `NORMAL`)
+
+  | 条件 | ステータス | 本文 |
+  |---|---|---|
+  | `amount` が 0 以下 | 400 | なし |
+  | `rank` が `GOLD` | 200 | `{"amount":100,"fee":0}` |
+  | `amount` が 5000 以上 | 200 | `{"amount":5000,"fee":0}` |
+  | それ以外 | 200 | `{"amount":4999,"fee":500}` |
+
+  **採点のしかた**:採点テストは、あなたの `check` を次の5つの実装にかけます。
+
+  1. 仕様どおりの実装 → `check` が **通る** こと
+  2. 5000 円ちょうどを有料にするバグ(`>=` を `>` と書いた)→ `check` が **落ちる** こと
+  3. GOLD 会員を特別扱いしないバグ → **落ちる** こと
+  4. 金額 0 円を受け付けるバグ → **落ちる** こと
+  5. 有料のとき 300 円を返すバグ → **落ちる** こと
+
+  バグ入りの実装で落ちない(=バグを見逃す)テストは不合格です。
+
+  ```java
+  mvc.perform(get("/shipping-fee").param("amount", "4999"))
+     .andExpect(status().isOk())
+     .andExpect(jsonPath("$.fee").value(500));
+  ```
+
+  ヒント:
+  - クエリパラメータは `.param("rank", "GOLD")` のように付けます。
+  - **境界値**(5000 ちょうど)と **異常系**(0 円)を検証に入れるのがコツです。正常系の「よくある値」だけのテストは、バグをすり抜けさせます。
+  - `main` を実行すると、同じファイルの `FeeController`(仕様どおりの実装)に対して `check` を走らせて試せます。わざと `FeeController` を壊して、`check` が落ちるかも試してみましょう。
+
+  ※ STS では、`check` の中身は `src/test/java` の `FeeControllerTest` の `@Test` メソッドとして書くものです(`@WebMvcTest(FeeController.class)` と `@Autowired MockMvc mvc` を使う)。
+  採点のために「MockMvc を受け取るメソッド」の形にしています。
