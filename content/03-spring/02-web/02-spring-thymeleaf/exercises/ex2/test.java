@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
@@ -128,7 +129,7 @@ class OrderPageTest {
     @DisplayName("出荷済み(キャンセル不可)の注文にはキャンセルリンクを出さない")
     void noCancelLinkWhenShipped() {
         String html = render(SHIPPED, 1);
-        assertEquals(null, href(html, "cancel"),
+        assertNull(href(html, "cancel"),
                 "cancellable() が false の注文にはキャンセルリンクを出さないでください(th:if=\"*{cancellable()}\")");
         assertFalse(html.contains("この注文をキャンセル"), "出荷済みの注文に「この注文をキャンセル」が出ています");
     }

@@ -93,6 +93,7 @@ class JShellRunnerTest {
                 """, Duration.ofSeconds(30), java.util.List.of("spring"));
         assertThat(r.status()).as(r.errorText() + r.output()).isEqualTo(RunResult.Status.OK);
         assertThat(r.output()).contains("取得: データ");
+        assertThat(r.output()).as("SLF4J の警告は出さない").doesNotContain("SLF4J");
     }
 
     @Test

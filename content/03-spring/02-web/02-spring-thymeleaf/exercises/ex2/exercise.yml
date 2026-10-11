@@ -31,6 +31,7 @@ problem: |
   - 注文日時は `#temporals.format(…, 'yyyy/MM/dd HH:mm')`、合計は `#numbers.formatInteger(…, 1, 'COMMA')`
   - キャンセルのリンクは、注文がキャンセルできるとき(`Order` の `cancellable()` が true)だけ出す。URL は `@{/orders/{id}/cancel(id=…)}` で組み立てる
   - 戻るリンクは `@{/orders(page=${page})}` で、`?page=2` のようなクエリを付ける
+  - 文字列と式をつなぐのは `'注文番号: ' + *{id}` でも、リテラル置換 `|注文番号: *{id}|` でも構いません
   - `/shop` はコンテキストパスです。`@{/...}` が自動で先頭に付けるので、テンプレートに `/shop` と書いてはいけません
 
   STS では `LAYOUT` を `templates/fragments/layout.html`、`DETAIL` を `templates/orders/detail.html` に置き、

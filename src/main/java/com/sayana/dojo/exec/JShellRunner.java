@@ -95,7 +95,9 @@ public class JShellRunner {
                     .in(new ByteArrayInputStream(new byte[0]))
                     .remoteVMOptions("-Xmx" + config.getMaxHeap(), "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1",
                             "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
-                            "-Duser.language=ja")
+                            "-Duser.language=ja",
+                            // Spring を足したときの「SLF4J のプロバイダが無い」警告を出さない
+                            "-Dslf4j.internal.verbosity=ERROR")
                     .build();
             JShell js = jshell;
             for (java.nio.file.Path jar : LibraryClasspath.resolve(libraries)) {
