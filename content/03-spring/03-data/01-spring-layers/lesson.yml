@@ -208,18 +208,18 @@ columns:
   - type: mistake
     title: エンティティを JSON で返したら、無限ループとパスワード漏れ
     body: |
-      「詰め替えが面倒だから」と、エンティティをそのまま `@RestController` から返したときによく起きる事故が2つあります。
+      「詰め替えが面倒」とエンティティをそのまま `@RestController` から返すと、よく2つの事故が起きます。
 
       1つ目は **無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
       `Could not write JSON: Infinite recursion (StackOverflowError)` で落ちます。
 
-      2つ目は **見せてはいけない項目の漏れ**。`Member` エンティティに `passwordHash` や `deleted` フラグがあれば、それも全部 JSON に出ます。ハッシュでも外に出すべきではありません。しかも後からエンティティに列を足すと、**気づかないうちに API の応答が増える**。
+      2つ目は **見せてはいけない項目の漏れ**。`Member` に `passwordHash` や `deleted` フラグがあれば、それも JSON に出ます。後から列を足すと、**気づかないうちに API の応答が増える** のも厄介です。
 
-      `@JsonIgnore` を付けて回る対処もありますが、エンティティが画面の都合で汚れていきます。応答専用の DTO(record が便利)を作って詰め替えるのが、遠回りに見えて一番安全です。
+      `@JsonIgnore` を付けて回るとエンティティが画面の都合で汚れます。応答専用の DTO(record)に詰め替えるのが、遠回りに見えて一番安全です。
   - type: genba
     title: 層のルールはテストで守らせる(ArchUnit)
     body: |
-      「Controller から Repository を直接呼ばない」というルールは、レビューで指摘し続けても、忙しい時期に必ず破られます。そこで現場では **ArchUnit** というライブラリで、アーキテクチャのルールを JUnit のテストにしてしまうことがあります。
+      「Controller から Repository を呼ばない」ルールは、レビューだけだと忙しい時期に破られます。そこで **ArchUnit** でルールを JUnit のテストにする現場があります。
 
       ```java
       layeredArchitecture()
@@ -234,7 +234,7 @@ columns:
               .mayOnlyBeAccessedByLayers("Service");
       ```
 
-      誰かが Controller で Repository を import した瞬間に、CI のテストが赤くなります。人の注意力ではなく仕組みで守る、という発想は、波括弧必須を静的解析で強制するのと同じです。
+      Controller で Repository を使った瞬間に CI が赤くなる。注意力ではなく仕組みで守る発想です。
   - type: trivia
     title: "@Repository の隠れた仕事:例外の翻訳"
     body: |
