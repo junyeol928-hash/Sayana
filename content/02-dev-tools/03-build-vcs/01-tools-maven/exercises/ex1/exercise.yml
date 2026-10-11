@@ -1,0 +1,35 @@
+title: mvn コマンドの実行計画を作る
+className: MavenPlan
+difficulty: 2
+problem: |
+  `./mvnw clean package` と打ったとき、Maven は実際にどのフェーズを順に実行するのか。
+  それを一覧にする `plan(String command)` を完成させてください。
+
+  **この演習で扱うフェーズ(簡略版)**
+
+  - default ライフサイクル:`validate` → `compile` → `test` → `package` → `verify` → `install` → `deploy`
+  - clean ライフサイクル:`clean` だけ
+
+  (本物の default ライフサイクルには `process-resources` や `test-compile` などもっと細かいフェーズがありますが、ここでは上の7つだけを扱います)
+
+  **ルール**
+
+  1. `command` は空白区切りで複数の指定を並べたもの。前後や間の空白がいくつあってもよい
+  2. 左から順に1つずつ処理し、結果のリストに追加していく
+     - `clean` → `"clean"` を追加
+     - default ライフサイクルのフェーズ → `validate` から **そのフェーズまでを順に全部** 追加
+     - `:` を含むもの(`spring-boot:run` など)→ プラグインのゴールなので、そのまま1つ追加
+  3. すでにリストにあるものは追加しない(2回目以降は飛ばす)
+  4. 上のどれにも当てはまらない指定があれば `IllegalArgumentException` を投げる。メッセージにはその指定をそのまま含める(打ち間違いを利用者に知らせるため)
+  5. `command` が `null`・空文字・空白だけのときも `IllegalArgumentException`(本物の Maven も「No goals have been specified」で止まります)
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `plan("package")` | `[validate, compile, test, package]` |
+  | `plan("clean install")` | `[clean, validate, compile, test, package, verify, install]` |
+  | `plan("compile package")` | `[validate, compile, test, package]` |
+  | `plan("clean spring-boot:run")` | `[clean, spring-boot:run]` |
+  | `plan("biuld")` | `IllegalArgumentException`(メッセージに `biuld`) |
+
+  ヒント:フェーズの順番は `List.of(...)` で定数にしておき、`indexOf` で「何番目まで追加するか」を求めると楽です。
+  空白区切りの分解は `command.trim().split("\\s+")` が定番です。
