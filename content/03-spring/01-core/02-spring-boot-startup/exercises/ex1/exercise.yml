@@ -1,0 +1,32 @@
+title: 利用者の設定があればそれを使う「自動設定もどき」
+className: InvoiceAutoConfig
+difficulty: 2
+libraries: [spring]
+problem: |
+  請求金額を計算する `InvoiceService` を Bean として用意する設定クラス `InvoiceAutoConfig` を作ります。
+  Spring Boot の自動設定のように、**利用者が税率(`TaxRate`)の Bean を定義していればそれを使い、
+  無ければ既定の 10%(`StandardTaxRate`)で動く** ようにしてください。
+
+  1. `InvoiceService.total(subtotal)`:小計に税を足した金額を返す。税額は `subtotal * 税率 / 100`(1円未満切り捨て)
+  2. `InvoiceAutoConfig` に `@Configuration` を付け、`invoiceService(...)` に `@Bean` を付ける
+  3. `invoiceService` は引数 `ObjectProvider<TaxRate> taxRates` を受け取り、
+     `taxRates.getIfAvailable(StandardTaxRate::new)` で税率を決めて `new InvoiceService(税率)` を返す
+
+  `ObjectProvider<T>` は「T 型の Bean を **あとで・あれば** 取り出せる」入れ物です。
+  `getIfAvailable(作り方)` は、Bean があればそれを、無ければ引数のラムダ(ここではコンストラクタ参照)で作ったものを返します。
+  普通に `TaxRate taxRate` を引数にすると、Bean が無いときに起動エラーになってしまうので、この形を使います。
+
+  採点では次の2通りでコンテナを作ります(利用者の設定を **先に** 登録するのは、Spring Boot と同じ順番です)。
+  ```java
+  // 利用者の設定なし → 10%
+  new AnnotationConfigApplicationContext(InvoiceAutoConfig.class);
+  // 軽減税率の設定あり → 8%
+  new AnnotationConfigApplicationContext(
+          ReducedTaxConfig.class, InvoiceAutoConfig.class);
+  ```
+
+  例:設定なしで `total(1000)` → `1100`、`total(999)` → `1098`(税 99.9 → 99円)。
+  `ReducedTaxConfig` ありで `total(1000)` → `1080`。
+
+  ※ STS なら `InvoiceAutoConfig` はライブラリ側(例:`com.example.billing.autoconfigure` パッケージ)、
+  `ReducedTaxConfig` はアプリ側(例:`com.example.shop.config`)に置くイメージです。

@@ -1,0 +1,40 @@
+title: 状態遷移図を enum に写す
+className: StatusTable
+difficulty: 1
+problem: |
+  承認くんの申請は、次の状態遷移図のとおりにしか状態が変わりません。
+
+  ```mermaid
+  stateDiagram-v2
+      [*] --> DRAFT
+      DRAFT --> SUBMITTED : 申請
+      SUBMITTED --> APPROVED : 承認
+      SUBMITTED --> RETURNED : 差戻し
+      RETURNED --> SUBMITTED : 再申請
+      DRAFT --> WITHDRAWN : 取下げ
+      RETURNED --> WITHDRAWN : 取下げ
+      APPROVED --> [*]
+      WITHDRAWN --> [*]
+  ```
+
+  enum `RequestStatus` の2つのメソッドを完成させてください。
+
+  | メソッド | 返すもの |
+  |---|---|
+  | `canTransitionTo(RequestStatus next)` | この状態から `next` へ **図に矢印があれば** `true`、なければ `false` |
+  | `isFinal()` | これ以上変更できない状態(`APPROVED` と `WITHDRAWN`。業務ルール5)なら `true` |
+
+  例:
+
+  ```java
+  RequestStatus.DRAFT.canTransitionTo(RequestStatus.SUBMITTED)   // true(申請)
+  RequestStatus.SUBMITTED.canTransitionTo(RequestStatus.WITHDRAWN) // false(申請中は取り下げられない)
+  RequestStatus.APPROVED.isFinal()                                  // true
+  ```
+
+  - 同じ状態への遷移(`DRAFT` → `DRAFT`)は矢印がないので `false` です。
+  - `next` が `null` のときは例外にせず `false` を返します。
+  - ヒント:`switch (this)` の **switch 式** で状態ごとに行き先を書くと、状態を1つ増やしたときに書き忘れがコンパイルエラーで分かります。
+
+  `StatusTable`(完成済み)は遷移表を表示するだけのクラスで、採点用ファイルに `public class` が1つ必要なので置いてあります。
+  STS では `com.example.approval.domain` パッケージに `RequestStatus.java`(`public enum`)として置きます。

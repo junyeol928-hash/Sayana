@@ -122,28 +122,24 @@ columns:
       package javax.persistence does not exist
       ```
 
-      JPA を含む Java EE は、2017年に Oracle から Eclipse 財団に移管され、**Jakarta EE** に改名されました。ところが「javax」という名前空間は Oracle の商標が絡むため、移管後は中身を変更できない取り決めになりました。そこで Jakarta EE 9(2020年)で、パッケージ名を一斉に `javax.*` から `jakarta.*` に付け替えたのです。
+      JPA を含む Java EE は2017年に Oracle から Eclipse 財団へ移管され、**Jakarta EE** になりました。ところが `javax` という名前は商標の都合で移管後に変更できない取り決めになり、Jakarta EE 9(2020年)でパッケージ名を一斉に `jakarta.*` へ付け替えたのです。
 
-      Spring Boot 3(Spring Framework 6)はこの Jakarta EE 9 以降が前提なので、`jakarta.persistence.*` を使います。古い記事のコードを使うときは、import の `javax` を `jakarta` に置き換えるだけで動くことが多いです(`javax.sql.DataSource` のように JDK 本体に属するものは `javax` のまま)。
+      Spring Boot 3 はこれが前提なので `jakarta.persistence.*` を使います。古い記事のコードは import の `javax` を `jakarta` に直せば動くことが多いです(`javax.sql.DataSource` のような JDK 本体のものは `javax` のまま)。
   - type: mistake
     title: 双方向関連の toString で StackOverflowError
     body: |
-      部署と社員を双方向(`@ManyToOne` と `@OneToMany`)にして、IDE で toString を自動生成しました。
+      部署と社員を双方向(`@ManyToOne` と `@OneToMany`)にして、toString にお互いを含めました。
 
       ```java
       // Department
-      public String toString() {
-          return "Department[name=" + name + ", employees=" + employees + "]";
-      }
+      public String toString() { return name + employees; }
       // Employee
-      public String toString() {
-          return "Employee[name=" + name + ", department=" + department + "]";
-      }
+      public String toString() { return name + department; }
       ```
 
-      ログに部署を出した瞬間、`java.lang.StackOverflowError` です。部署の toString が社員リストの toString を呼び、社員の toString が部署の toString を呼び……と無限に往復するからです。Lombok の `@Data` をエンティティに付けても、同じことが toString・hashCode で起きます。
+      部署をログに出した瞬間 `java.lang.StackOverflowError`。部署→社員リスト→社員→部署……と toString が無限に往復するからです。Lombok の `@Data` をエンティティに付けても同じことが起きます。
 
-      しかも toString で関連を触ると、遅延ロードの SQL が勝手に飛んだり、セッション外なら LazyInitializationException になったりします。エンティティの toString には **関連フィールドを入れない**(id や name だけにする)のが現場の定番です。
+      しかも関連に触るので、遅延ロードの SQL が勝手に飛んだり LazyInitializationException になったりします。エンティティの toString に **関連フィールドは入れない** のが定番です。
   - type: genba
     title: 起動ログの WARN「spring.jpa.open-in-view is enabled by default」
     body: |
@@ -155,9 +151,9 @@ columns:
       queries may be performed during view rendering.
       ```
 
-      **Open Session In View(OSIV)** は、HTTP リクエストの最初から最後(画面の描画が終わるまで)DB との会話を開きっぱなしにする仕組みで、Spring Boot では既定で有効です。おかげで Controller や Thymeleaf でエンティティの LAZY 関連を触っても LazyInitializationException になりません。
+      **Open Session In View(OSIV)** は、画面の描画が終わるまで DB とのセッションを開きっぱなしにする仕組みで、既定で有効です。おかげで Thymeleaf で LAZY 関連を触っても例外になりません。
 
-      便利な反面、画面描画の途中で SQL が飛ぶ(N+1 の温床)、リクエスト中ずっと DB 接続を握るので混雑時に接続が足りなくなる、という副作用があります。そのため多くの現場では `spring.jpa.open-in-view=false` にして、必要なデータは Service の中で `join fetch` で取り、DTO に詰め替えてから返す設計にしています。警告が「明示的に設定してね」と言っているのは、この判断を開発者に意識させるためです。
+      反面、描画中に SQL が飛ぶ(N+1 の温床)、リクエスト中ずっと DB 接続を握る、という副作用があります。多くの現場では `spring.jpa.open-in-view=false` にし、必要なデータは Service で `join fetch` して DTO に詰めてから返します。
 sts:
   intro: |
     STS で Spring Data JPA + H2 のプロジェクトを作り、エンティティと Repository を書いて、起動時にデータを保存・検索します。最後に H2 コンソールでテーブルの中身を自分の目で確かめます。

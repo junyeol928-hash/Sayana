@@ -253,20 +253,18 @@ columns:
   - type: trivia
     title: "@RequestParam は引数名をどうやって知っている?"
     body: |
-      `@RequestParam String name` と書くだけで、Spring はクエリの `name` を探してくれます。でも実は、Java のクラスファイルには **普通は引数名が残りません**。リフレクションで `getParameters()[0].getName()` を呼ぶと、名前は `arg0` になります。
+      Java のクラスファイルには、**普通は引数名が残りません**(リフレクションで見ると `arg0`)。それでも `@RequestParam String name` が動くのは、javac の **`-parameters`** オプションで名前を残しているからです。Boot の親 POM が `<parameters>true</parameters>` を設定済みなので、普段は意識しません。
 
-      引数名を残すのが javac の **`-parameters`** オプションです。Spring Boot の親 POM(spring-boot-starter-parent)は maven-compiler-plugin に `<parameters>true</parameters>` を設定しているので、Boot プロジェクトでは意識せずに済んでいます(STS も Maven の設定を読んで同じようにコンパイルします)。
-
-      このオプション無しでコンパイルすると、Spring 6.1 以降はリクエストが来たときに 500 エラーになります。
+      オプション無しだと、Spring 6.1 以降は 500 エラーです。
 
       ```text
-      java.lang.IllegalArgumentException: Name for argument of type
-      [java.lang.String] not specified, and parameter name information
-      not available via reflection. Ensure that the compiler uses
-      the '-parameters' flag.
+      Name for argument of type [java.lang.String] not
+      specified, and parameter name information not available
+      via reflection. Ensure that the compiler uses the
+      '-parameters' flag.
       ```
 
-      以前の Spring はデバッグ情報から名前を推測していましたが、6.1 でその仕組みは削除されました。Maven の親 POM を使わない古いプロジェクトを移行したときによく出会うエラーです。`@RequestParam("name")` と名前を明示すれば、オプションに関係なく動きます。
+      `@RequestParam("name")` と名前を明示すれば、オプションに関係なく動きます。
   - type: genba
     title: PRG にしたのに二重注文? ボタン連打という伏兵
     body: |
@@ -284,28 +282,16 @@ columns:
   - type: mistake
     title: "「Circular view path」って何?"
     body: |
-      API を作るつもりで、うっかり `@Controller` と書いてしまったケースです。
-
-      ```java
-      @Controller
-      public class HelloController {
-          @GetMapping("/hello")
-          public String hello() {
-              return "hello";
-          }
-      }
-      ```
-
-      Thymeleaf が入っていないプロジェクトでこれを開くと、こんなエラーになります。
+      API のつもりで `@Controller` と書き、`/hello` で `"hello"` を返したケース。Thymeleaf が入っていないと、こうなります。
 
       ```text
       Circular view path [hello]: would dispatch back to the current
       handler URL [/hello] again. Check your ViewResolver setup!
       ```
 
-      `@Controller` なので `"hello"` は **ビュー名** として扱われます。テンプレートエンジンが無いと、Spring は「`hello` という名前のページ」へ内部転送しようとしますが、その転送先が `/hello`、つまり **今のメソッド自身** なので、無限ループを防ぐために止めているのです。Thymeleaf が入っていれば代わりに `Error resolving template [hello]` が出ます。
+      `@Controller` なので `"hello"` は **ビュー名** です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば `Error resolving template [hello]` になります。
 
-      どちらのエラーも原因は1つ。文字列や JSON を返したいなら `@RestController`(またはメソッドに `@ResponseBody`)を付けましょう。
+      文字列や JSON を返したいなら `@RestController`(またはメソッドに `@ResponseBody`)。
 sts:
   intro: |
     STS で Spring Web 入りのプロジェクトを作り、Controller を書いてブラウザから呼び出します。ステータスコードやエラー画面もわざと出してみましょう。

@@ -1,0 +1,33 @@
+title: 操作から次の状態を決め、10万円の境界を判定する
+className: ApprovalFlow
+difficulty: 2
+problem: |
+  承認くんでは、画面のボタン(操作 = `Action`)を押すと申請の状態が変わります。
+  `Action` はそれぞれ「行き先の状態」を持っています(完成済み)。
+
+  | Action | 意味 | 行き先 `target()` |
+  |---|---|---|
+  | `SUBMIT` | 申請(差戻し後なら再申請) | `SUBMITTED` |
+  | `APPROVE` | 承認 | `APPROVED` |
+  | `RETURN` | 差戻し | `RETURNED` |
+  | `WITHDRAW` | 取下げ | `WITHDRAWN` |
+
+  `ApprovalFlow` の2つのメソッドを完成させてください。`RequestStatus`(前の問題の答え)と `BusinessRuleException` は完成済みです。
+
+  **1. `next(RequestStatus current, Action action)`**:`current` の申請に `action` をした後の状態を返す。
+
+  - 確定状態(`current.isFinal()`)なら、`BusinessRuleException("承認済の申請は変更できません")` のように
+    **「<状態の表示名>の申請は変更できません」** というメッセージで投げる(業務ルール5)
+  - それ以外で `current.canTransitionTo(action.target())` が `false` なら、
+    **「<状態の表示名>の申請は「<操作の表示名>」できません」**(例:`申請中の申請は「取下げ」できません`)で投げる(業務ルール7)
+  - できるなら `action.target()` を返す
+
+  **2. `requiresAdmin(Integer amount)`**:その金額の申請を承認するのに `ADMIN` が必要なら `true`(業務ルール3)。
+
+  - 金額が **100,000円以上** なら `true`。99,999円なら `false`、100,000円ちょうどは `true`
+  - 休暇申請(`LEAVE`)は金額が `null`。このときは `false`(`NullPointerException` にしない)
+  - 境界の金額は定数 `ADMIN_LIMIT` を使う(マジックナンバーを散らさない)
+
+  ※ 誰が操作したか(業務ルール1・2)はここでは見ません。capstone-approve で `ApprovalService` に組み込みます。
+  STS では `RequestStatus.java`・`Action.java`・`BusinessRuleException.java`・`ApprovalFlow.java` を、
+  すべて `com.example.approval.domain` パッケージに別ファイル(`public`)で置きます。

@@ -1,3 +1,230 @@
 id: spring-security
 title: Spring Security入門
-status: planned
+status: ready
+minutes: 15
+summary: 認証(誰か)と認可(何をしてよいか)。SecurityFilterChain で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。
+goals:
+  - 認証と認可の違いを説明でき、未ログイン(ログイン画面へ)と権限不足(403)を区別できる
+  - 依存を入れただけで全画面がログイン必須になる理由(secure by default)と、リクエストがフィルタチェーンを通る流れを説明できる
+  - SecurityFilterChain の Bean をラムダ DSL で書き、permitAll / hasRole / authenticated を正しい順に並べられる
+  - パスワードを PasswordEncoder(BCrypt)でハッシュ化して保存し、matches で照合する理由を説明できる
+  - CSRF トークン・@PreAuthorize・@AuthenticationPrincipal の役割を説明できる
+samples:
+  - title: ソルトなしとソルトありのハッシュを比べる
+    description: ソルトなしだと、同じパスワードは誰が使っても同じハッシュになります(漏れたら一目で「同じパスワードの人」が分かる)。ソルトを混ぜると別物になります。仕組みの体験用で、本番は BCrypt を使います。
+    code: |
+      // SHA-256 でハッシュ化して16進数で表示する
+      // ここを変えてみよう:パスワードを "password" や "haru-pass" に、ソルトの文字列を変える
+      import java.security.MessageDigest;
+      import java.util.HexFormat;
+
+      String sha256(String s) throws Exception {
+          MessageDigest md = MessageDigest.getInstance("SHA-256");
+          byte[] h = md.digest(s.getBytes("UTF-8"));
+          return HexFormat.of().formatHex(h).substring(0, 16) + "...";
+      }
+
+      String pass = "123456";   // 世界で一番使われているパスワード
+      System.out.println("--- ソルトなし ---");
+      System.out.println("haru : " + sha256(pass));
+      System.out.println("mocha: " + sha256(pass)); // 同じ値!
+
+      System.out.println("--- ソルトあり(ユーザーごとに違う値を混ぜる)---");
+      System.out.println("haru : " + sha256("x7Kp" + pass));
+      System.out.println("mocha: " + sha256("Q2vZ" + pass)); // 別の値になる
+  - title: URL ルールは「最初に一致したもの」で決まる
+    description: Spring Security の `authorizeHttpRequests` と同じく、上から順に見て最初に一致したルールで判定します。ルールの順番を入れ替えると、管理画面に一般ユーザーが入れてしまいます。
+    code: |
+      // URL とルールの対応表(上から順に評価)
+      // ここを変えてみよう:2行目と3行目を入れ替える / path を "/administrator" にする
+      record Rule(String prefix, String need) {}
+
+      List<Rule> rules = List.of(
+          new Rule("/css/", "permitAll"),
+          new Rule("/admin/", "ROLE_ADMIN"),
+          new Rule("/", "authenticated"));
+
+      String path = "/admin/users";
+      Set<String> haru = Set.of("ROLE_USER");   // ログイン済みの一般ユーザー
+
+      for (Rule r : rules) {
+          if (!path.startsWith(r.prefix())) {
+              continue;
+          }
+          boolean ok = r.need().equals("permitAll")
+                  || r.need().equals("authenticated")
+                  || haru.contains(r.need());
+          System.out.println(path + " → ルール " + r.prefix()
+                  + " (" + r.need() + ") → " + (ok ? "許可" : "403 拒否"));
+          break;  // 最初に一致したルールで終わり
+      }
+quiz:
+  - question: |
+      ログイン済みの一般ユーザー(ロールは USER のみ)が `/admin/users/1` を開いたとき、どうなる?
+      ```java
+      http.authorizeHttpRequests(auth -> auth
+          .requestMatchers("/admin/**").authenticated()
+          .requestMatchers("/admin/users/**").hasRole("ADMIN")
+          .anyRequest().authenticated());
+      ```
+    choices: ["403 Forbidden になる", "ログイン画面にリダイレクトされる", "表示できてしまう", "起動時に例外が出る"]
+    answer: 2
+    explanation: |
+      ルールは **上から順に評価され、最初に一致したもの** で決まります。`/admin/users/1` は1行目の `/admin/**` に一致し、ルールは `authenticated()`(ログインしていれば誰でも)なので **表示できてしまいます**。2行目の `hasRole("ADMIN")` は評価すらされません。
+      細かい URL ほど上に書くのが鉄則です。起動時に例外になるのは `anyRequest()` の後に `requestMatchers` を書いた場合(`Can't configure requestMatchers after anyRequest`)で、この設定は文法上は正しく起動してしまうのが怖いところです。
+  - question: |
+      次のコードの出力は?
+      ```java
+      PasswordEncoder enc = new BCryptPasswordEncoder();
+      String a = enc.encode("haru-pass");
+      String b = enc.encode("haru-pass");
+      System.out.println(a.equals(b));
+      System.out.println(enc.matches("haru-pass", a));
+      ```
+    choices: ["true と true", "false と true", "true と false", "false と false"]
+    answer: 1
+    explanation: |
+      BCrypt は encode のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
+      ソルトは保存値(`$2a$10$` に続く部分)の中に入っているので、`matches` はそのソルトで計算し直して比べ、`true` になります。だからパスワードの照合に `equals` を使ってはいけません。
+  - question: |
+      Spring Security を有効にしたアプリで、次の Thymeleaf のフォームから送信したら 403 Forbidden になった。原因として最も適切なのは?
+      ```html
+      <form action="/orders" method="post">
+        <input type="text" name="item">
+        <button>注文</button>
+      </form>
+      ```
+    choices: ["method を get にしていないから", "th:action ではなく action なので CSRF トークンが入っていないから", "ログインしていないから", "/orders に @PreAuthorize が付いていないから"]
+    answer: 1
+    explanation: |
+      POST などの更新系リクエストには **CSRF トークン** が必要で、無いと `CsrfFilter` が 403 で拒否します。Thymeleaf は `th:action="@{/orders}"` と書いたときだけ、隠し項目 `_csrf` を自動で入れてくれます。素の `action` では入りません。
+      GET にすれば通りますが、更新を GET でやるのは別の問題(URL を踏ませるだけで実行される)を生みます。未ログインならログイン画面へのリダイレクトになるので 403 にはなりません。
+  - question: 「認証」と「認可」の説明として正しいものはどれ?
+    choices: ["認証は「何をしてよいか」、認可は「誰か」を確かめる", "ログインに成功すれば、すべての画面の認可も済んだことになる", "認証は「誰か」を確かめ、ログイン済みでも権限が足りなければ認可で 403 になる", "認可に失敗するとログイン画面に戻される"]
+    answer: 2
+    explanation: |
+      **認証(Authentication)** は「あなたは誰?」、**認可(Authorization)** は「それをしてよい?」です。ログインは認証にすぎず、管理画面に入れるかは別途ロールなどで判定されます(足りなければ 403 Forbidden)。
+      ログイン画面に戻されるのは「まだ認証されていない」場合です。この2つを区別できると、障害調査で「401/ログイン画面へ」か「403」かを見て原因の切り分けができます。
+  - question: |
+      次の Service を作り、一般ユーザーで `deleteUser` を呼んだら **削除できてしまった**。最も考えられる原因は?
+      ```java
+      @Service
+      public class UserAdminService {
+          @PreAuthorize("hasRole('ADMIN')")
+          public void deleteUser(long id) { ... }
+      }
+      ```
+    choices: ["設定クラスに @EnableMethodSecurity が付いていない", "hasRole('ROLE_ADMIN') と書くべきだった", "メソッドが public だから", "PasswordEncoder の Bean が無い"]
+    answer: 0
+    explanation: |
+      `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると **エラーも警告も出ずに無視される** ので、テストで「拒否されること」まで確かめるのが大切です。
+      `hasRole('ROLE_ADMIN')` は逆に誤りで、`hasRole` は自動で `ROLE_` を付けます。メソッドセキュリティはプロキシ経由で動くので、むしろ public メソッドであることが必要です(同じクラス内からの呼び出しには効かない点にも注意)。
+columns:
+  - type: genba
+    title: 「403 が出たので csrf().disable() しました」
+    body: |
+      フォームを作ったら 403。検索すると「`csrf(csrf -> csrf.disable())` で直りました!」という記事が山ほど出てきます。貼ると動く。そしてそのままリリース……。レビューでよく見る光景です。
+
+      403 が消えたのは **守りを外したから** です。画面のあるアプリなら、正しい直し方は `th:action` を使うこと(JavaScript から送るならトークンをヘッダ `X-CSRF-TOKEN` に載せる)。
+
+      外してよい代表は、**Cookie のセッションを使わない REST API**(毎回 `Authorization: Bearer ...` ヘッダでトークンを送る方式)。ブラウザが自動で付ける認証情報が無いので、罠サイトから送らせても意味がないからです。
+      「なぜ無効にしてよいか」をコメント1行で説明できないなら、その `disable()` は消しましょう。`anyRequest().permitAll()` も同じです。
+  - type: trivia
+    title: "$2a$10$ の正体 ― BCrypt の保存値を読む"
+    body: |
+      `BCryptPasswordEncoder` で `encode` すると、こんな 60 文字の文字列が出てきます。
+
+      ```text
+      $2a$10$KctJTHsM.R7ohwZgdpPh4uISIKWd48KlaJKKcqbbZxTSGgy0a6VCi
+      ```
+
+      - `2a` … BCrypt のバージョン
+      - `10` … **コスト**。計算を 2 の 10 乗(1024)回分くり返す。1 増やすと計算時間が約2倍
+      - 続く 22 文字 … **ソルト**(ランダムな値)
+      - 残り 31 文字 … ハッシュ本体
+
+      ソルトもコストも保存値の中にあるので、DB に別の列は不要。マシンが速くなったらコストを上げれば済みます。
+      `PasswordEncoderFactories.createDelegatingPasswordEncoder()` は先頭に `{bcrypt}` と方式名を付けて保存するので、将来 Argon2 に乗り換えても古いハッシュと共存できます。
+  - type: mistake
+    title: hasRole("ROLE_ADMIN") で起動しない
+    body: |
+      DB の値が `ROLE_ADMIN` なので`.hasRole("ROLE_ADMIN")` と書いて起動すると……
+
+      ```text
+      IllegalArgumentException: ROLE_ADMIN should not start with
+      ROLE_ since ROLE_ is automatically prepended when using
+      hasRole. Consider using hasAuthority instead.
+      ```
+
+      ロールは「`ROLE_` で始まる権限(authority)」として表され、`hasRole("ADMIN")` は内部で `ROLE_` を付けて探します。二重付けを防いでいるのです。
+      直し方は `hasRole("ADMIN")` か、そのまま比べる `hasAuthority("ROLE_ADMIN")`。逆に `authorities("ADMIN")` と **ROLE_ なしで** 登録すると `hasRole("ADMIN")` に一致せず 403 です(`roles("ADMIN")` なら自動で付く)。
+sts:
+  intro: |
+    Spring Boot プロジェクトに Spring Security を入れて、「何もしないと全部ロックされる」→「SecurityFilterChain で /admin/** を ADMIN だけにする」→「2人のユーザーでログインして違いを確かめる」までやります。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Security 入りのプロジェクトを作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を開き、**Name** に `security-demo`、**Type** は **Maven**、**Java Version** は **21** にして **Next**(次へ)。
+        **New Spring Starter Project Dependencies** の画面で、検索欄を使って **Spring Web**、**Thymeleaf**、**Spring Security** にチェックを入れて **Finish**(完了)。
+        既存のプロジェクトに足す場合は、`pom.xml` に `spring-boot-starter-security` の依存を追加し、プロジェクトを右クリック → **Maven > Update Project...**(Maven > プロジェクトの更新)。
+    - title: 起動してログイン画面と生成パスワードを確認する
+      detail: |
+        `com.example.demo` パッケージに次の Controller を作ります。
+
+        ```java
+        @RestController
+        public class PageController {
+            @GetMapping("/")
+            public String top() { return "トップ"; }
+
+            @GetMapping("/admin/users")
+            public String admin() { return "管理画面"; }
+        }
+        ```
+
+        **Boot Dashboard** で `security-demo` を選んで **(Re)start** を押す(またはプロジェクトを右クリック → **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション))。
+        **Console** に `Using generated security password: ...` が出ていれば成功です。ブラウザで `http://localhost:8080/` を開くと、`/login` のログイン画面にリダイレクトされます。
+        Username に `user`、Password にコンソールのパスワードを貼ってログインし、「トップ」が出ることを確かめます。
+    - title: SecurityFilterChain とユーザーを定義する
+      detail: |
+        同じパッケージに `SecurityConfig` クラスを作り、本文の `filterChain`(`/` を `permitAll`、`/admin/**` を `hasRole("ADMIN")`、それ以外は `authenticated`)と、`passwordEncoder`・`users`(haru = USER、mocha = USER と ADMIN)の3つの `@Bean` を書きます。
+        import は **Ctrl+Shift+O**(インポートの編成)で整理できます。`User` は `org.springframework.security.core.userdetails.User` を選んでください。
+        保存して再起動すると、Console から `Using generated security password` が **消えて** いることを確認します(自分で UserDetailsService を定義したため)。
+    - title: 2人のユーザーでログインして違いを確かめる
+      detail: |
+        ブラウザで `http://localhost:8080/` を開くと、今度はログインなしで「トップ」が出ます(permitAll)。
+        `http://localhost:8080/admin/users` を開くとログイン画面へ。**haru / haru-pass** でログインすると **403**(Whitelabel Error Page に `status=403`)になります。
+        `http://localhost:8080/logout` を開いて **Log Out** ボタンでログアウトし、**mocha / mocha-pass** でログインし直すと「管理画面」が表示されれば成功です。
+        ブラウザのシークレットウィンドウを使うと、2人を同時に試せて便利です。
+    - title: ルールの順番を入れ替えて事故を起こしてみる
+      detail: |
+        `filterChain` の中で、`.requestMatchers("/admin/**").hasRole("ADMIN")` の行を `.anyRequest().authenticated()` の **下** に移して再起動します。
+        Console に `Can't configure requestMatchers after anyRequest` を含む例外が出て起動に失敗することを確認したら、元に戻します。
+    - title: ログイン中のユーザー名を表示する
+      detail: |
+        `PageController` に次のメソッドを足して再起動し、haru でログインして `http://localhost:8080/me` を開きます。
+
+        ```java
+        @GetMapping("/me")
+        public String me(
+                @AuthenticationPrincipal UserDetails me) {
+            return me.getUsername() + " / "
+                    + me.getAuthorities();
+        }
+        ```
+
+        `haru / [ROLE_USER]` と表示されれば成功です。`roles("USER")` が `ROLE_USER` という権限になっていることも確かめられます。
+checklist:
+  - key: default-login
+    text: Spring Security を入れて起動し、Console の生成パスワードで user としてログインできた
+  - key: filter-chain
+    text: SecurityFilterChain の @Bean を書き、/ がログインなしで開けるようになった
+  - key: role-403
+    text: haru(USER)で /admin/users を開くと 403、mocha(ADMIN)では表示できることを確かめた
+  - key: rule-order
+    text: anyRequest() の後に requestMatchers を書くと起動時に例外になることを確かめた
+  - key: bcrypt
+    text: パスワードを BCryptPasswordEncoder でハッシュ化して登録し、平文を保存しない理由を説明できる
+  - key: principal
+    text: "@AuthenticationPrincipal でログイン中のユーザー名とロールを表示できた"

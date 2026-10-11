@@ -88,7 +88,7 @@ Spring Boot では `@EnableWebSecurity` は付けなくても有効です(自動
 
 ### ルールの順番
 
-**ルールは上から順に評価され、最初に一致したもので決まります**。`if / else if` と同じなので、**細かい URL ほど上** に書きます。`anyRequest()` を途中に書くと起動時に `Can't configure requestMatchers after anyRequest` で落ちます。
+**ルールは上から順に評価され、最初に一致したもので決まります**。`if / else if` と同じなので、**細かい URL ほど上** に書きます。`anyRequest()` の後ろに `requestMatchers` を書くと起動時に `Can't configure requestMatchers after anyRequest` で落ちます。
 
 ::: sensei
 `hasRole("ADMIN")` は内部で `ROLE_` を付けて `ROLE_ADMIN` という権限(authority)と比べてる。だから `hasRole("ROLE_ADMIN")` と書くと起動時に怒られるよ。

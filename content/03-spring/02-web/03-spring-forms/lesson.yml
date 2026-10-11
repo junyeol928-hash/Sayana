@@ -1,3 +1,444 @@
 id: spring-forms
 title: フォームとバリデーション
-status: planned
+status: ready
+minutes: 15
+summary: フォームクラスと @ModelAttribute で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。
+goals:
+  - フォームクラスと @ModelAttribute で入力を受け取り、th:object / th:field で画面と結びつけられる
+  - "Bean Validation の注釈(@NotBlank・@Size・@Email・@Min・@Max・@Pattern)を、null の扱いの違いを踏まえて使い分けられる"
+  - "@Validated と直後の BindingResult で検証し、エラー時は同じ画面を返して th:errors で表示できる"
+  - PRG パターンで二重送信を防ぎ、RedirectAttributes のフラッシュ属性でメッセージを渡せる
+  - エンティティを直接フォームにしない理由と、@AssertTrue による相関チェックを説明できる
+samples:
+  - title: Validator で注釈のチェックを確かめる
+    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。初回は Hibernate Validator の起動ログが出ることがあります。
+    libraries: [spring]
+    code: |
+      import jakarta.validation.*;
+      import jakarta.validation.constraints.*;
+      import java.util.*;
+
+      // 会員登録フォーム(画面の入力欄と1対1のクラス)
+      // ここを変えてみよう:注釈の数値やメッセージを変える、@Pattern を足してみる
+      class MemberForm {
+          @NotBlank(message = "名前を入力してください")
+          @Size(max = 20, message = "名前は20文字以内です")
+          String name;
+
+          @NotBlank(message = "メールを入力してください")
+          @Email(message = "メールの形式が正しくありません")
+          String email;
+
+          @NotNull(message = "年齢を入力してください")
+          @Min(value = 18, message = "18歳以上が対象です")
+          @Max(value = 120, message = "年齢が大きすぎます")
+          Integer age;
+
+          MemberForm(String name, String email, Integer age) {
+              this.name = name; this.email = email; this.age = age;
+          }
+      }
+
+      Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+      void check(MemberForm form) {
+          Set<ConstraintViolation<MemberForm>> errors = validator.validate(form);
+          System.out.println("--- " + form.name + " / " + form.email + " / " + form.age);
+          if (errors.isEmpty()) { System.out.println("OK!"); return; }
+          errors.stream()   // Set は順番が決まらないので項目名で並べる
+              .sorted(Comparator.comparing(v -> v.getPropertyPath().toString()))
+              .forEach(v -> System.out.println(v.getPropertyPath() + ": " + v.getMessage()));
+      }
+
+      // ここを変えてみよう:値を書き換えて、どの注釈に引っかかるか見る
+      check(new MemberForm("山田太郎", "taro@example.com", 30));
+      check(new MemberForm("   ", "taro", 17));
+      check(new MemberForm("あ".repeat(21), "", null));
+  - title: "@ModelAttribute の裏側:バインド → 検証 → BindingResult"
+    description: Controller の引数で Spring がやっていることを DataBinder で再現します。数値に変換できない値(typeMismatch)、@AssertTrue の相関チェック、rejectValue で足したエラーが BindingResult に並びます。
+    libraries: [spring]
+    code: |
+      import jakarta.validation.constraints.*;
+      import org.springframework.beans.MutablePropertyValues;
+      import org.springframework.validation.*;
+      import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+      import java.util.*;
+
+      // @ModelAttribute の裏側で Spring がやっていること(バインド → 検証 → BindingResult)を手で再現する
+      public class SignupForm {
+          @NotBlank(message = "氏名を入力してください")
+          private String name;
+          @NotNull(message = "年齢を入力してください")
+          @Min(value = 18, message = "18歳以上が対象です")
+          private Integer age;
+          @NotBlank(message = "パスワードを入力してください")
+          private String password;
+          private String passwordConfirm;
+
+          // 相関チェック:passwordMatched という項目として検証される
+          @AssertTrue(message = "確認用パスワードが一致しません")
+          public boolean isPasswordMatched() {
+              return password != null && password.equals(passwordConfirm);
+          }
+
+          public String getName() { return name; }
+          public void setName(String v) { name = v; }
+          public Integer getAge() { return age; }
+          public void setAge(Integer v) { age = v; }
+          public String getPassword() { return password; }
+          public void setPassword(String v) { password = v; }
+          public String getPasswordConfirm() { return passwordConfirm; }
+          public void setPasswordConfirm(String v) { passwordConfirm = v; }
+      }
+
+      LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+      validator.afterPropertiesSet();
+
+      // ブラウザから届いたリクエストパラメータ(すべて文字列)のつもり
+      // ここを変えてみよう:age を "" や "20" に、passwordConfirm を "secret1" にする
+      Map<String, String> params = new LinkedHashMap<>();
+      params.put("name", "山田太郎");
+      params.put("age", "abc");
+      params.put("password", "secret1");
+      params.put("passwordConfirm", "secret2");
+
+      SignupForm form = new SignupForm();
+      DataBinder binder = new DataBinder(form, "signupForm");
+      binder.setValidator(validator);
+      binder.bind(new MutablePropertyValues(params)); // 名前が同じプロパティに setter で詰める
+      binder.validate();                              // @Validated の正体
+      BindingResult result = binder.getBindingResult();
+
+      // DB を見ないと分からないチェックは、自分でエラーを足す(Service で重複を見つけた想定)
+      if ("山田太郎".equals(form.getName())) {
+          result.rejectValue("name", "duplicate", "その氏名は登録済みです");
+      }
+
+      System.out.println("エラー件数: " + result.getErrorCount());
+      List<FieldError> errors = new ArrayList<>(result.getFieldErrors());
+      errors.sort(Comparator.comparing(FieldError::getField));
+      for (FieldError e : errors) {
+          String msg = "typeMismatch".equals(e.getCode())
+                  ? "数値で入力してください" : e.getDefaultMessage();
+          System.out.println(e.getField() + " [" + e.getCode() + "] 入力値="
+                  + e.getRejectedValue() + " → " + msg);
+      }
+      System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
+  - title: MockMvc で PRG の流れを見る
+    description: フォームの POST を MockMvc で送り、エラー時は同じビュー名、成功時は 302 リダイレクト + フラッシュ属性になることを確かめます(数秒かかります)。
+    libraries: [spring]
+    code: |
+      import jakarta.validation.constraints.*;
+      import org.springframework.stereotype.Controller;
+      import org.springframework.validation.BindingResult;
+      import org.springframework.validation.annotation.Validated;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+      import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+      import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+      public class MemberForm {
+          @NotBlank(message = "氏名を入力してください")
+          private String name;
+          @NotBlank(message = "メールを入力してください")
+          @Email(message = "メールの形式が正しくありません")
+          private String email;
+          public String getName() { return name; }
+          public void setName(String v) { name = v; }
+          public String getEmail() { return email; }
+          public void setEmail(String v) { email = v; }
+      }
+
+      @Controller
+      public class MemberController {
+          int count = 0; // 登録件数(本物は Service → Repository に任せる)
+
+          // ここを変えてみよう:@Validated を消すと? BindingResult の引数と if 文を消すと?
+          @PostMapping("/members")
+          public String register(@Validated @ModelAttribute MemberForm form,
+                                 BindingResult result,
+                                 RedirectAttributes ra) {
+              if (result.hasErrors()) {
+                  return "members/form";            // 同じ画面(入力値とエラーつき)
+              }
+              count++;
+              ra.addFlashAttribute("message", "登録しました");
+              return "redirect:/members/done";      // PRG
+          }
+      }
+
+      LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+      validator.afterPropertiesSet();
+      MemberController controller = new MemberController();
+      MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+              .setValidator(validator).build();
+
+      void send(String name, String email) throws Exception {
+          MvcResult r = mvc.perform(post("/members")
+                  .param("name", name).param("email", email)).andReturn();
+          System.out.println("--- name=" + name + " email=" + email);
+          System.out.println("ステータス: " + r.getResponse().getStatus());
+          if (r.getModelAndView() != null) {
+              System.out.println("ビュー名: " + r.getModelAndView().getViewName());
+              BindingResult br = (BindingResult) r.getModelAndView().getModel()
+                      .get(BindingResult.MODEL_KEY_PREFIX + "memberForm");
+              if (br != null) {
+                  br.getFieldErrors().stream()
+                      .sorted(Comparator.comparing(e -> e.getField()))
+                      .forEach(e -> System.out.println(
+                          "  エラー " + e.getField() + ": " + e.getDefaultMessage()));
+              }
+          }
+          System.out.println("リダイレクト先: " + r.getResponse().getRedirectedUrl());
+          System.out.println("フラッシュ属性 message: "
+                  + r.getFlashMap().get("message"));
+      }
+
+      // ここを変えてみよう:いろいろな入力で送ってみる
+      send("山田太郎", "taro@example.com");
+      send("", "taro");
+      System.out.println("登録件数: " + controller.count);
+quiz:
+  - question: |
+      次のフォームを Bean Validation で検証したとき、エラーは何件?
+      ```java
+      class CouponForm {
+          @Size(max = 10)
+          @Pattern(regexp = "[A-Z0-9]+")
+          String code;   // ← null のまま
+      }
+      ```
+    choices: ["0件", "1件(@Size の違反)", "2件(@Size と @Pattern の違反)", "NullPointerException が発生する"]
+    answer: 0
+    explanation: |
+      `@Size` や `@Pattern`、`@Email`、`@Min` などは **null を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
+      したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。NPE にならないのも、各チェックが最初に null を判定して true を返すからです。
+  - question: |
+      `name` を空欄にして POST したとき、どうなる?(`MemberForm` の `name` には `@NotBlank` が付いている)
+      ```java
+      @PostMapping("/members")
+      public String register(
+              @Validated @ModelAttribute MemberForm form,
+              Model model,
+              BindingResult result) {
+          if (result.hasErrors()) {
+              return "members/form";
+          }
+          return "redirect:/members/done";
+      }
+      ```
+    choices: ["hasErrors() が true になり members/form が表示される", "メソッドは呼ばれず 400 Bad Request になる", "コンパイルエラーになる", "検証されずに /members/done へリダイレクトされる"]
+    answer: 1
+    explanation: |
+      Spring は **検証対象の引数の「直後」** が `BindingResult`(または `Errors`)かどうかでエラーの受け取り先を判断します。ここでは直後が `Model` なので「受け取り先なし」とみなされ、検証エラーは `MethodArgumentNotValidException` として投げられ、メソッドは呼ばれずに 400 Bad Request になります。
+      コンパイラは引数の並びの意味を知らないのでコンパイルは通ります。`@Validated` は付いているので検証はされます。直すには `BindingResult result` を `form` のすぐ後ろへ移します。
+  - question: 登録処理が成功した後、テンプレートを直接返さずに `redirect:` する(PRG パターン)一番の理由は?
+    choices: ["テンプレートの描画が速くなるから", "Bean Validation はリダイレクト後にしか動かないから", "フラッシュ属性はリダイレクトしないと作れないから", "F5(再読み込み)で同じ POST が再送信され、二重登録になるのを防ぐため"]
+    answer: 3
+    explanation: |
+      POST の応答で画面を直接返すと、ブラウザの「最後のリクエスト」は POST のままなので、再読み込みすると同じ内容がもう一度送信されます(二重送信)。リダイレクトを挟むと最後のリクエストが GET になり、何度再読み込みしても完了画面を取り直すだけになります。
+      描画速度や検証のタイミングとは無関係です。フラッシュ属性は「リダイレクトの間だけ値を運ぶ」ための仕組みで、PRG を採用した結果として必要になるもの。理由と結果が逆です。
+  - question: |
+      次のフォームクラスについて正しい説明はどれ?
+      ```java
+      public class OrderForm {
+          @NotBlank
+          private Integer quantity;
+          // getter / setter 省略
+      }
+      ```
+    choices: ["@NotBlank は付けられない場所なのでコンパイルエラーになる", "数値の 0 だけがエラーになる", "コンパイルは通るが、検証したときに UnexpectedTypeException が発生する", "null のときだけエラーになり、問題なく動く"]
+    answer: 2
+    explanation: |
+      `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「Integer を @NotBlank でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
+      `@NotBlank` は文字列(CharSequence)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
+  - question: |
+      次の処理の後、ブラウザが移動する URL は?
+      ```java
+      ra.addAttribute("id", 5);
+      ra.addFlashAttribute("message", "登録しました");
+      return "redirect:/members/done";
+      ```
+    choices: ["/members/done", "/members/done?id=5", "/members/done?id=5&message=登録しました", "/members/done?message=登録しました"]
+    answer: 1
+    explanation: |
+      `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の **クエリパラメータ** になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
+      そのため移動先は `/members/done?id=5`。ID のように URL に残ってよい値は `addAttribute`、「登録しました」のような一度きりのメッセージや URL に出したくない値は `addFlashAttribute` と使い分けます。
+columns:
+  - type: mistake
+    title: エンティティを直接バインドして、管理者になれてしまった話
+    body: |
+      2012年3月、ある開発者が GitHub の Rails リポジトリに、権限の無い自分のアカウントからコミットしてみせる事件がありました。原因は **マスアサインメント**。リクエストパラメータを、モデル(エンティティ)の全項目にそのまま流し込む仕組みを悪用し、画面には無い項目(公開鍵の持ち主の ID)を勝手に送り込んだのです。
+
+      Spring でも同じことが起きます。`@ModelAttribute User user` のように **エンティティを直接受け取る** と、`User` に `role` や `point` があれば、ブラウザの開発者ツールで `role=ADMIN` を足して送るだけでバインドされます。画面に入力欄が無いことは、何の防御にもなりません。
+
+      対策は「**画面に出す項目だけを持つフォームクラスを作り、Service で必要な項目だけをエンティティへ詰め替える**」こと。`@InitBinder` で `setAllowedFields` を指定する方法もありますが、項目を足すたびに更新が必要で漏れやすいので、現場ではフォームクラスを分けるのが基本です。
+  - type: genba
+    title: 「注文が2件入ってるんですけど」問い合わせの正体
+    body: |
+      EC サイトの運用でよくある問い合わせが「1回しか買ってないのに注文が2件ある」。調べると、だいたい次のどれかです。
+
+      1. **POST の応答で完了画面を直接返していた**:お客様が完了画面で F5 を押し、ブラウザの「フォームを再送信しますか?」に何気なく OK
+      2. **ボタン連打**:回線が遅く、反応が無いので「注文確定」を2回クリック
+      3. **戻るボタン**:完了画面から戻って、もう一度「確定」
+
+      1 は PRG パターンで防げます。しかし 2 と 3 は PRG では防げません。現場では、JavaScript で送信後にボタンを無効化する(見た目の対策)に加え、**フォーム表示時にワンタイムトークンを発行し、POST 時に「未使用のトークンか」をサーバ側で確かめる** のが定番です。決済のように絶対に二重にしてはいけない処理では、DB の一意制約で最後の砦を作ります。
+
+      「PRG にしたから二重送信対策は完了」と思い込まないこと。PRG はあくまで F5 対策です。
+  - type: trivia
+    title: エラーメッセージはどこから来る? 4つのエラーコード
+    body: |
+      検証エラーが BindingResult に入るとき、Spring は1つのエラーに **4つのコード** を付けます。`MemberForm` の `name` が `@NotBlank` に違反したなら、次の順です。
+
+      ```text
+      NotBlank.memberForm.name
+      NotBlank.name
+      NotBlank.java.lang.String
+      NotBlank
+      ```
+
+      `th:errors` は、MessageSource(Spring Boot なら `messages.properties`)を **上から順に** 探し、最初に見つかったメッセージを表示します。どれも無ければ注釈の `message` か既定メッセージです。
+
+      ```properties
+      NotBlank=必須項目です
+      typeMismatch.memberForm.age=年齢は数字で入力してください
+      ```
+
+      全画面の必須エラーを揃えつつ、特定の項目だけ文言を変えられます。数値変換に失敗したときの英語の長いメッセージも、`typeMismatch` のコードで差し替えられます。
+sts:
+  intro: |
+    STS で会員登録フォームを作り、**わざと空欄で送ってエラーが出る** こと、成功したら PRG でリダイレクトされることを確かめます。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Validation 入りのプロジェクトを用意する
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を開き、**Name** に `member-form`、
+        **Type** は `Maven`、**Java Version** は `21`、**Package** は `com.example.member` にして **Next**(次へ)。
+        依存関係の画面で **Spring Web**、**Thymeleaf**、**Validation**(I/O の中)にチェックを入れて **Finish**(完了)。
+
+        前のレッスンのプロジェクトを使い回す場合は、プロジェクトを右クリックして **Spring > Add Starters**(Spring > スターターの追加)から
+        **Validation** を足します。`pom.xml` に `spring-boot-starter-validation` が入れば OK。これが無いと注釈を付けても **何もチェックされません**。
+    - title: フォームクラスを作る
+      detail: |
+        `src/main/java` の `com.example.member` を右クリック > **New > Package**(新規 > パッケージ)で `com.example.member.web` を作り、
+        そこに **New > Class**(新規 > クラス)で `MemberForm` を作ります。
+
+        ```java
+        public class MemberForm {
+            @NotBlank(message = "氏名を入力してください")
+            @Size(max = 20)
+            private String name;
+            @NotBlank @Email
+            private String email;
+            @NotNull @Min(18) @Max(120)
+            private Integer age;
+        }
+        ```
+
+        **Ctrl+Shift+O**(Organize Imports / インポートの編成)で import を整えます。候補が出たら **`jakarta.validation.constraints`** のものを選ぶこと。
+        続けて **Source > Generate Getters and Setters...**(ソース > getter および setter の生成)で全項目にチェックを入れて **Generate**(生成)。
+    - title: Controller を作る
+      detail: |
+        同じパッケージに `MemberController` を作ります。
+
+        ```java
+        @Controller
+        @RequestMapping("/members")
+        public class MemberController {
+            @GetMapping("/new")
+            public String form(Model model) {
+                model.addAttribute("memberForm",
+                        new MemberForm());
+                return "members/form";
+            }
+
+            @PostMapping
+            public String register(
+                    @Validated @ModelAttribute MemberForm form,
+                    BindingResult result,
+                    RedirectAttributes ra) {
+                if (result.hasErrors()) {
+                    return "members/form";
+                }
+                ra.addFlashAttribute("message",
+                        form.getName() + " さんを登録しました");
+                return "redirect:/members/done";
+            }
+
+            @GetMapping("/done")
+            public String done() {
+                return "members/done";
+            }
+        }
+        ```
+
+        **Ctrl+Shift+O** で `Model` を選ぶときは **`org.springframework.ui.Model`** を選びます(似た名前の別物があります)。
+    - title: テンプレートを2つ作る
+      detail: |
+        `src/main/resources/templates` を右クリック > **New > Folder**(新規 > フォルダー)で `members` を作り、その中に
+        **New > File**(新規 > ファイル)で `form.html` と `done.html` を作ります。
+
+        `form.html`(年齢・メールも同じ形で `name` の部分を変えて並べる):
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <body>
+        <form th:action="@{/members}"
+              th:object="${memberForm}" method="post">
+          <p>氏名 <input type="text" th:field="*{name}">
+            <span th:if="${#fields.hasErrors('name')}"
+                  th:errors="*{name}" style="color:red"></span>
+          </p>
+          <button>登録</button>
+        </form>
+        </body>
+        </html>
+        ```
+
+        `done.html` の body には `<p th:text="${message}">メッセージ</p>` と `<a th:href="@{/members/new}">続けて登録</a>` を書きます。
+    - title: 起動して、わざと空欄で送る
+      detail: |
+        **Boot Dashboard**(Window > Show View > Other... > Spring > Boot Dashboard)で `member-form` を選んで **(Re)start** ボタン、
+        またはプロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
+        **Console**(コンソール)に `Tomcat started on port 8080` と出たら、ブラウザで `http://localhost:8080/members/new` を開きます。
+
+        **何も入力せずに「登録」** を押してください。同じ画面のまま、各項目の横に赤いエラーメッセージが出れば成功です。
+        氏名は自分で書いた「氏名を入力してください」、メールなどは既定のメッセージ(日本語の Windows なら「空白は許可されていません」など)になります。
+        アドレスバーが `/members` に変わっていること(POST の応答で画面を返している)も確認しましょう。
+    - title: 入力値が残ること・typeMismatch を確かめる
+      detail: |
+        氏名に `山田太郎`、年齢に `abc` を入れて送ります。氏名は **入力したまま残り**、年齢には
+        `Failed to convert property value of type 'java.lang.String' to required type 'java.lang.Integer'...` という英語の長いメッセージが出ます。
+        数値に変換できない値は例外ではなく `typeMismatch` エラーとして BindingResult に入るためです。
+        (余裕があれば `src/main/resources/messages.properties` に `typeMismatch.memberForm.age=年齢は数字で入力してください` と書き、アプリを再起動して文言が変わるのを確かめましょう)
+    - title: 正しく入力して PRG を確かめる
+      detail: |
+        全項目を正しく入れて送ると、アドレスバーが `/members/done` に変わり「山田太郎 さんを登録しました」が表示されます。
+        ここで **F5** を押すと、再送信の確認ダイアログは出ず、メッセージが消えます(フラッシュ属性は1回だけ)。
+
+        比較のため、`register` の最後を `return "members/done";` に変えて再起動し(メッセージは表示されなくて構いません)、
+        登録後に F5 を押してみてください。Chrome なら **「フォームの再送信の確認」(Confirm Form Resubmission)** が出ます。これが二重送信の入口です。確認したら元に戻します。
+    - title: BindingResult を消すとどうなるか
+      detail: |
+        `register` の引数から `BindingResult result` と if 文を消して再起動し、空欄で送ります。
+        ブラウザに **Whitelabel Error Page**(`There was an unexpected error (type=Bad Request, status=400).`)が表示され、
+        Console に `Resolved [org.springframework.web.bind.MethodArgumentNotValidException: ...]` という WARN ログが出れば観察完了です。元に戻しておきましょう。
+
+checklist:
+  - key: validation-starter
+    text: pom.xml に spring-boot-starter-validation が入っていることを確認した
+  - key: form-class
+    text: MemberForm に jakarta.validation の注釈を付け、STS の機能で getter / setter を生成した
+  - key: blank-submit
+    text: 空欄で送信して、同じ画面に赤いエラーメッセージが表示された
+  - key: value-kept
+    text: エラーで戻ったとき、入力した値がフォームに残っていることを確認した
+  - key: type-mismatch
+    text: 年齢に abc を入れて typeMismatch のメッセージを見た
+  - key: prg-redirect
+    text: 正しく送信すると /members/done にリダイレクトされ、F5 を押しても再送信の確認が出なかった
+  - key: bindingresult-400
+    text: BindingResult を消すと 400 Bad Request(Whitelabel Error Page)になるのを確認し、元に戻した

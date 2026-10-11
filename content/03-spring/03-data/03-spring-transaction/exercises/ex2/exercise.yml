@@ -1,0 +1,25 @@
+title: 決済失敗でも在庫を戻す(rollbackFor と自己呼び出しの罠)
+className: OrderService
+difficulty: 3
+libraries: [spring]
+problem: |
+  ネットショップの注文処理 `OrderService` に、**動いているように見えて実はロールバックされない** バグが2つあります。アノテーションを直してください。
+
+  - `placeOrder(item, qty)`:在庫を減らし(`stock.reduce`)、代金を決済する(`payment.charge`)。
+    決済が 10000 円を超えると、検査例外 `PaymentException` で失敗する
+  - `placeAll(lines)`:複数行の注文を順に `placeOrder` する
+
+  直してほしい動き:
+
+  1. `placeOrder` で **決済に失敗したら、減らした在庫を元に戻す**。
+     今は `@Transactional` が付いているのに、`placeOrder("ノートPC", 2)`(9000 円 × 2 = 18000 円で決済失敗)の後、在庫が 5 → 3 に減ったままになります
+  2. `placeAll` は **全部成功か、全部取り消し**。1行目が成功して2行目の決済で失敗したら、1行目の在庫も元に戻す
+
+  ヒント:
+  - `@Transactional` が既定でロールバックするのは **RuntimeException と Error だけ** です。`PaymentException` は `Exception` を継承した検査例外です
+  - `placeAll` の中の `placeOrder(...)` は `this.placeOrder(...)` のこと。プロキシを通らない呼び出しに `@Transactional` は効きません
+  - メソッドの中身は変えなくて大丈夫です。例外は catch せず、そのまま投げてください
+
+  ※ 採点では、DB の代わりに「開始・コミット・ロールバック」を記録し、ロールバック時に `StockStore` を開始時の状態に戻すトランザクションマネージャを使います。
+  ところで、ロールバックで戻るのは DB(ここでは `StockStore`)だけです。`PaymentGateway` の決済記録 `charged` は戻りません。外部サービスの呼び出しがトランザクションで取り消せないことは、解説の「トランザクションの中でやってはいけないこと」を参照してください。
+  STS では `com.example.demo.order` パッケージに `OrderService.java`(`@Service`)、`PaymentException.java` などを別ファイルで置きます。

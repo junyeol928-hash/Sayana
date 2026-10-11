@@ -1,0 +1,33 @@
+title: 在庫 API を仕様どおりに作る(MockMvc で採点)
+className: StockController
+difficulty: 2
+libraries: [spring]
+problem: |
+  在庫を照会・出荷する REST API の Controller を完成させてください。採点テストは **MockMvc**(`standaloneSetup`)で
+  リクエストを投げ、ステータス・JSON・本文を確かめます。テスト(`test.java`)も読んで、何をどう検証しているかを見てみましょう。
+
+  最初に入っている在庫は `A001`(ボールペン・12個)と `B002`(ノート・0個)です。
+
+  | リクエスト | 条件 | ステータス | 本文 |
+  |---|---|---|---|
+  | `GET /stocks/{code}` | あり | 200 | Stock の JSON |
+  | `GET /stocks/{code}` | なし | 404 | なし |
+  | `POST /stocks/{code}/ship?qty=N` | 商品なし | 404 | なし |
+  | 〃 | N が 0 以下 | 400 | `数量は1以上で指定してください` |
+  | 〃 | N が在庫より多い | 409 | `在庫不足です(残り 12)` |
+  | 〃 | それ以外 | 200 | `出荷しました(残り 9)` |
+
+  ```text
+  GET /stocks/A001
+  → 200 {"code":"A001","name":"ボールペン","quantity":12}
+  POST /stocks/A001/ship?qty=3
+  → 200 出荷しました(残り 9)
+  ```
+
+  - メソッドに `@GetMapping("/{code}")` / `@PostMapping("/{code}/ship")` を付けて URL に対応付けます(クラスの `@RequestMapping("/stocks")` と連結されます)。
+  - ステータスは `ResponseEntity.ok(...)`、`ResponseEntity.notFound().build()`、`ResponseEntity.badRequest().body(...)`、`ResponseEntity.status(HttpStatus.CONFLICT).body(...)` で返します。
+  - `Stock` は record なので値を書き換えられません。出荷したら数量を減らした **新しい Stock** を `put` し直します。
+  - 在庫ちょうどの数量は出荷できます(残り 0)。
+
+  ※ `@PathVariable("code")` のように名前を明示しているのは、コンパイル時に `-parameters` が付いていない環境でも動くようにするためです(Spring Boot の Maven 設定では自動で付きます)。
+  STS では `com.example.demo.web` パッケージに `StockController.java`、`Stock` は `com.example.demo.domain` などに別ファイルで置きます。
