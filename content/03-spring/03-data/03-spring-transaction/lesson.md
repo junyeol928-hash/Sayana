@@ -108,6 +108,24 @@ public void order(Order o) { ... }
 
 プロキシはメソッドをオーバーライドして割り込むので、オーバーライドできない `private`(や `final`)メソッドには割り込めません。エラーも出ず、黙って無視されます。
 
+### 効いているかはログで確かめる
+
+どちらの罠もエラーが出ないのが厄介です。`application.properties` でトランザクション管理のログを出すと、開始と終了が見えます。
+
+```properties
+logging.level.org.springframework.orm.jpa.JpaTransactionManager=DEBUG
+```
+
+```text
+Creating new transaction with name
+  [com.example.demo.TransferService.transfer]:
+  PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+...
+Initiating transaction rollback
+```
+
+罠1を踏んでいると、`importAll` を呼んでも `order` の `Creating new transaction` が出ません。
+
 ## readOnly と伝播
 
 参照だけのメソッドには `@Transactional(readOnly = true)` を付けます。Hibernate が変更検知を省略するので速くなり、「ここは書き込まない」という意図もコードに残ります。

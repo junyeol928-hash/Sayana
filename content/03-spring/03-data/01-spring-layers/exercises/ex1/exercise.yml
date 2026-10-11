@@ -1,0 +1,36 @@
+title: Fat Controller から Service と Repository を切り出す
+className: OrderService
+difficulty: 2
+problem: |
+  `OrderController.order(...)` に、入力チェック・送料計算・保存が全部書かれています(Fat Controller)。
+  これを3層に分けてください。Spring は使わず、素の Java で書きます。
+
+  **作るもの**
+
+  1. `OrderRepository`(インターフェース、雛形にあり)を実装する `InMemoryOrderRepository`
+     - `save(order)`:`id` が `0` の注文なら **1 から順に** 番号を振った `Order` を作って保存し、それを返す(`order.withId(番号)` が使えます)
+     - `findById(id)`:見つかれば `Optional.of(注文)`、無ければ `Optional.empty()`
+     - `findAll()`:保存した順の一覧
+  2. `OrderService`(業務ロジック)
+     - コンストラクタで `OrderRepository` を受け取る(**インターフェースの型** で受け取ること)
+     - `placeOrder(customer, unitPrice, quantity)`:
+       - `customer` が null か空白だけなら `IllegalArgumentException("顧客名が空です")`
+       - `quantity` が 1 未満なら `IllegalArgumentException("数量は1以上にしてください")`
+       - 小計 = 単価 × 数量、送料 = 小計が **5000 円以上なら 0 円、未満なら 500 円**、合計 = 小計 + 送料
+       - `new Order(0, customer, 小計, 送料, 合計)` を Repository に保存し、**保存後の(番号付きの)注文** を返す
+  3. `OrderController`(入出力)
+     - 自分では計算も保存もせず、`service.placeOrder(...)` を呼ぶだけにする
+     - 成功したら `"注文番号 1:合計 4100 円"` の形の文字列を返す
+     - `IllegalArgumentException` が出たら `"エラー:" + 例外メッセージ` を返す
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `placeOrder("山田", 1200, 3)` | 小計 3600・送料 500・合計 4100 |
+  | `placeOrder("山田", 2500, 2)` | 小計 5000・送料 0・合計 5000 |
+  | `placeOrder("山田", 1000, 0)` | `IllegalArgumentException` |
+
+  テストは `new OrderService(new InMemoryOrderRepository())` のように **Spring も DB も使わずに** Service を確かめます。
+  テスト側で作った別の `OrderRepository` 実装を渡すテストもあるので、Service の中で `new InMemoryOrderRepository()` しないこと。
+
+  ※ STS では `com.example.shop.order` パッケージに `OrderController`・`OrderService`・`OrderRepository`・`InMemoryOrderRepository`・`Order` を
+  それぞれ別ファイルで置くコードです(採点用に1ファイルにまとめています)。

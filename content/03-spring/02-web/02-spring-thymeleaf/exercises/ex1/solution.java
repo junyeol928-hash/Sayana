@@ -1,5 +1,3 @@
-import java.util.List;
-
 /** 商品(Controller から List<Product> として渡される) */
 record Product(String name, int price, int stock) {
 }
@@ -27,11 +25,4 @@ public class ProductListPage {
             </table>
             <p class="empty" th:if="${products.isEmpty()}">商品がありません</p>
             """;
-
-    /** 画面に出すサンプルデータ(STS なら Controller が DB から取ってくる) */
-    public static List<Product> sampleProducts() {
-        return List.of(
-                new Product("ボールペン", 1200, 12),
-                new Product("ノート", 98, 0));
-    }
 }
