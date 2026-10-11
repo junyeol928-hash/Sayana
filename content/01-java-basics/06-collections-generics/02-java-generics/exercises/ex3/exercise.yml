@@ -1,0 +1,40 @@
+title: 型安全なキャッシュを作る
+className: TypedCache
+difficulty: 3
+problem: |
+  商品マスタや為替レートのように「何度も読むけれど、取りに行くのは重い」データは、メモリ上の **キャッシュ** に置いておきます。
+  キーと値の型を自由に決められる、型安全なキャッシュ `TypedCache<K, V>` を完成させてください。
+
+  ```java
+  TypedCache<String, Integer> prices = new TypedCache<>(2);
+  prices.put("りんご", 120);
+  Integer p = prices.get("りんご");   // 120(キャスト不要)
+  // prices.put("みかん", "八十円"); // ← 値の型が違うのでコンパイルエラー
+  ```
+
+  ### 仕様
+  - **コンストラクタ `TypedCache(int capacity)`**:最大で保持する件数。`capacity` が 1 未満なら
+    `IllegalArgumentException` を投げる
+  - **`void put(K key, V value)`**:キーと値を保存する。
+    - すでにあるキーなら値を上書きする(件数は増えない。並び順も変わらない)
+    - 新しいキーを入れた結果 `capacity` を超えたら、**いちばん古く追加されたキー** を1件削除する
+  - **`V get(K key)`**:値を返す。なければ `null`。
+    見つかったら「ヒット」、見つからなければ「ミス」として回数を数える
+  - **`int size()`**:今の件数
+  - **`int hits()` / `int misses()`**:`get` のヒット回数・ミス回数
+
+  ```java
+  TypedCache<String, Integer> c = new TypedCache<>(2);
+  c.put("A", 1);
+  c.put("B", 2);
+  c.put("C", 3);     // 3件目で容量オーバー → 一番古い A を削除
+  c.get("A");        // null(ミス)
+  c.get("C");        // 3(ヒット)
+  ```
+
+  ### ヒント
+  - 中身は `Map<K, V>` で持ちます。**追加順を覚えている Map の実装** を使うと、「いちばん古いキー」は
+    `map.keySet().iterator().next()` で取れます。
+  - `LinkedHashMap` は、既存のキーに `put` し直しても並び順は変わりません。
+  - `get` でヒットかミスかを判定するときは、値が `null` かどうかより `containsKey` を使うほうが確実です(値として `null` を入れた場合もヒットになります)。
+  - 例外の投げ方は「例外処理」のレッスンでやったとおり `throw new IllegalArgumentException("...")` です。

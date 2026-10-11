@@ -1,0 +1,207 @@
+id: java-variables
+title: 変数と型
+status: ready
+minutes: 15
+summary: プリミティブ型8種と参照型の違い、型変換・オーバーフロー・double の誤差など「黙って壊れる」ポイントを押さえる
+goals:
+  - 変数の宣言・初期化・代入を書き分け、lowerCamelCase / UPPER_SNAKE_CASE の命名ができる
+  - プリミティブ型8種のサイズと使い分け、リテラルの書き方(L / f / 0x / 0b / _)を説明できる
+  - プリミティブ型と参照型(String・null)の違いを、変数に何が入っているかで説明できる
+  - 拡大変換とキャストを使い分け、int のオーバーフローと double の誤差を避けられる
+  - var・ラッパークラスが何をしているかを知り、現場での使いどころを判断できる
+
+samples:
+  - title: プリミティブ型8種とリテラル
+    description: 8つの型に値を入れて表示します。コメントの指示どおりに書き換えて、どこでエラーになるか試してみましょう。
+    code: |
+      byte b = 127;              // 128 に変えてみよう(byte の範囲外でエラー)
+      short s = 32_000;
+      int i = 2_000_000_000;
+      long l = 9_000_000_000L;   // 末尾の L を消してみよう
+      float f = 3.14f;           // 末尾の f を消してみよう
+      double d = 3.14;
+      char c = 'J';              // 'J' を "J" に変えてみよう
+      boolean ok = true;
+
+      System.out.println("byte=" + b + " short=" + s + " int=" + i + " long=" + l);
+      System.out.println("float=" + f + " double=" + d + " char=" + c + " boolean=" + ok);
+
+      // 範囲はラッパークラスの定数で確認できる
+      System.out.println("int : " + Integer.MIN_VALUE + " 〜 " + Integer.MAX_VALUE);
+      System.out.println("long: " + Long.MIN_VALUE + " 〜 " + Long.MAX_VALUE);
+
+      // リテラルの書き方いろいろ(数字を変えてみよう)
+      System.out.println(0x1F);      // 16進数
+      System.out.println(0b1010);    // 2進数
+      System.out.println(1_000_000); // _ は桁区切り
+      System.out.println(010);       // 先頭0は8進数!10ではない
+  - title: 拡大変換とキャスト
+    description: 自動で変換される方向と、キャストが必要な方向を確かめます。キャストした値がどう変わるかに注目。
+    code: |
+      int count = 100;
+      long big = count;        // int → long:自動(拡大変換)
+      double rate = count;     // int → double:自動(拡大変換)
+      System.out.println(big + " / " + rate);
+
+      double price = 3.99;     // -3.99 や 3.5 に変えてみよう
+      int yen = (int) price;   // double → int はキャストが必要。小数点以下は切り捨て
+      System.out.println("(int) " + price + " = " + yen);
+
+      int value = 200;         // 127 や 256 に変えてみよう
+      byte small = (byte) value; // byte に入りきらない上位ビットは捨てられる
+      System.out.println("(byte) " + value + " = " + small);
+
+      System.out.println(7 / 2);   // int 同士の計算は int(詳しくは次のレッスン)
+      System.out.println(7 / 2.0); // 片方が double なら double
+  - title: 黙って壊れる計算(オーバーフローと誤差)
+    description: エラーも出ずに結果が狂う例です。直し方もコメントに書いてあるので、書き換えて結果を比べてみましょう。
+    code: |
+      // int の最大値 + 1
+      System.out.println(Integer.MAX_VALUE + 1);
+
+      // 30日分のミリ秒。先頭の 1000 を 1000L に変えて再実行してみよう
+      long monthMillis = 1000 * 60 * 60 * 24 * 30;
+      System.out.println("30日 = " + monthMillis + " ミリ秒");
+
+      // double の誤差
+      System.out.println(0.1 + 0.2);
+      System.out.println(1.15 * 100);
+
+      // BigDecimal は文字列で作ると正確
+      java.math.BigDecimal x = new java.math.BigDecimal("0.1"); // "0.1" を 0.1(クォートなし)に変えてみよう
+      java.math.BigDecimal y = new java.math.BigDecimal("0.2");
+      System.out.println(x.add(y));
+  - title: var・ラッパークラス・null
+    description: var は型推論であって型が無くなるわけではないこと、null の変数を使うと何が起きるかを確かめます。最後の行は、わざと例外が出るようになっています。
+    code: |
+      var count = 10;               // int と推論される
+      var name = "Haru";            // String と推論される
+      var total = 10_000_000_000L;  // long と推論される
+      System.out.println(name + " " + count + " " + total);
+      // count = "ten";  // ← 先頭の // を消すとコンパイルエラー。var でも count は int のまま
+
+      Integer boxed = count;        // int → Integer(オートボクシング)
+      int raw = boxed;              // Integer → int(アンボクシング)
+      System.out.println(boxed + raw);
+
+      String memo = null;           // null を "メモ" に変えてみよう
+      System.out.println(memo);     // null の表示はできる
+      System.out.println(memo.length()); // null のままだと NullPointerException
+
+quiz:
+  - question: |
+      次のコードを実行すると、何が表示されますか?
+
+      ```java
+      long total = 100000 * 100000;
+      System.out.println(total);
+      ```
+    choices:
+      - "10000000000"
+      - "1410065408"
+      - コンパイルエラーになる
+      - 実行時に例外が発生する
+    answer: 1
+    explanation: |
+      右辺の `100000 * 100000` は **int 同士の計算** なので、計算した時点で int の範囲(約21億)を超えて溢れ、1410065408 になります。その結果が long に拡大変換されて代入されるだけなので、左辺が long でも手遅れです。
+      Java の整数のオーバーフローはコンパイルエラーにも実行時例外にもなりません(黙って一周する)。正しく 10000000000 を得るには `100000L * 100000` と書きます。
+  - question: |
+      次のうち、コンパイルエラーになる行はどれですか?
+
+      ```java
+      int a = 10;      // (A)
+      long b = a;      // (B)
+      float c = 1.5;   // (C)
+      double d = b;    // (D)
+      ```
+    choices: ["(A)", "(B)", "(C)", "(D)"]
+    answer: 2
+    explanation: |
+      小数リテラル `1.5` は **double 型** です。double → float は縮小変換なので、キャストなしでは代入できません。`1.5f` と書けば通ります。
+      (B) の int → long と (D) の long → double はどちらも拡大変換なので自動で変換されます。long(64bit)→ double(64bit)のようにサイズが同じでも、範囲の広い型への変換は拡大変換です。
+  - question: |
+      次のコードを実行すると、何が表示されますか?
+
+      ```java
+      double price = 9.99;
+      int yen = (int) price;
+      System.out.println(yen);
+      ```
+    choices:
+      - "9"
+      - "10"
+      - "9.99"
+      - コンパイルエラーになる
+    answer: 0
+    explanation: |
+      double から int へのキャストは、小数点以下を **切り捨て**(0 に近い方向へ丸め)ます。四捨五入ではないので 10 にはなりません。
+      縮小変換ですがキャスト `(int)` を明示しているのでコンパイルエラーにもなりません。四捨五入したいときは `Math.round` を使います。
+  - question: var(ローカル変数の型推論)について、正しい説明はどれですか?
+    choices:
+      - var で宣言した変数には、あとから別の型の値も代入できる
+      - var はフィールドやメソッドの引数にも使える
+      - "var x = null; と書くと Object 型として推論される"
+      - var は型をコンパイル時に推論するだけで、変数の型があとから変わることはない
+    answer: 3
+    explanation: |
+      `var` は右辺から型をコンパイル時に決めるだけで、Java が静的型付け言語であることは変わりません。`var count = 10;` の count は最後まで int です。
+      var が使えるのはローカル変数だけで、フィールドや引数には使えません。また `var x = null;` は型を決められないのでコンパイルエラーになります(Object にはなりません)。
+  - question: 次のうち、コンパイルが **通る** ものはどれですか?
+    choices:
+      - "int x = null;"
+      - "char c = \"A\";"
+      - "String s = null;"
+      - "long n = 3000000000;"
+    answer: 2
+    explanation: |
+      `String` は参照型なので、「どのオブジェクトも指していない」ことを表す `null` を代入できます。
+      `int` はプリミティブ型なので null は入りません。`"A"` はダブルクォートなので String で、char には `'A'` と書く必要があります。`3000000000` は int の範囲外の int リテラルなので、左辺が long でも `3000000000L` と L を付けないとエラーです。
+
+columns:
+  - type: trivia
+    title: Integer 同士の == は 127 までなら true になる
+    body: |
+      ラッパークラス同士を `==` で比べると、不思議なことが起きます。
+
+      ```java
+      Integer a = 127, b = 127;
+      System.out.println(a == b);       // true
+      Integer c = 128, d = 128;
+      System.out.println(c == d);       // false
+      System.out.println(c.equals(d));  // true
+      ```
+
+      `Integer` は参照型なので、`==` は「中身が同じか」ではなく「**同じオブジェクトを指しているか**」を比べます。オートボクシングは内部で `Integer.valueOf()` を呼んでいて、-128〜127 の値はあらかじめ作ってある使い回しのオブジェクト(キャッシュ)を返すため、たまたま同じオブジェクトになって true になるのです。128 以上は毎回別のオブジェクトなので false。
+
+      テストデータが小さい数だと全部通り、本番の ID が 128 を超えた日に突然バグる罠です。**ラッパークラスの比較は equals** と覚えておきましょう。
+  - type: genba
+    title: お金に double を使うと1円ずれる
+    body: |
+      「単価 1.15ドル × 100個」を double で計算してみると……
+
+      ```java
+      System.out.println(1.15 * 100);              // 114.99999999999999
+      System.out.println(Math.floor(1.15 * 100));  // 114.0
+      ```
+
+      115 になるはずが、切り捨てると 114。請求書が1セントずれて経理から問い合わせが来る、というのは現場の定番トラブルです。
+
+      そのため業務システムの金額は、次のどちらかで扱うのが常識になっています。
+
+      - **BigDecimal**:10進数で正確に計算できるクラス。必ず `new BigDecimal("1.15")` のように **文字列** から作る。端数処理(切り捨て・四捨五入など)もメソッドで明示できる
+      - **最小単位の整数**:円ならそのまま、ドルなら「セント」にして `long` で持つ
+
+      Spring Boot の業務アプリでも、金額フィールドはたいてい `BigDecimal` です。
+  - type: mistake
+    title: 郵便番号や電話番号を数値型で持つと壊れる
+    body: |
+      「数字だから int でいいよね」とやると、こうなります。
+
+      ```java
+      int zip = 0600032;          // 札幌の郵便番号 060-0032 のつもり
+      System.out.println(zip);    // 196634
+      ```
+
+      先頭が `0` の整数リテラルは **8進数** として解釈されるので、まったく別の値になります。電話番号 `09012345678L` に至っては、8進数に 9 は使えないので javac に「`';'がありません`」という意味不明なエラーを出されます(STS では `The literal 09012345678L of type long is out of range`)。
+
+      そもそも郵便番号・電話番号・社員番号・口座番号は、**足したり掛けたりしない「記号」** です。先頭のゼロにも意味があります。こういうものは数値型ではなく **String** で持つのが正解。「計算に使うなら数値、そうでなければ文字列」が判断基準です。

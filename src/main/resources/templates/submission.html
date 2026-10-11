@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('提出 #' + ${s.id})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+    <nav class="breadcrumb"><a th:href="@{/history}">提出履歴</a> › <span th:text="'#' + ${s.id}"></span></nav>
+    <h1 th:text="${s.exerciseTitle}"></h1>
+    <p class="muted">
+        <a th:href="@{/lessons/{id}(id=${s.lessonId})}" th:text="${lessonTitles.get(s.lessonId)} ?: ${s.lessonId}"></a> ・
+        <span th:text="${ui.longTime(s.createdAt)}"></span>
+        <span class="pill small" th:if="${s.fromReview}">復習</span>
+    </p>
+
+    <section class="card">
+        <div class="card-title">提出したコード</div>
+        <pre><code class="language-java" th:text="${s.code}"></code></pre>
+    </section>
+
+    <section class="card">
+        <div class="card-title">採点結果</div>
+        <th:block th:with="outcome=${null}, reviewLabel=${null}, fromReview=${false}">
+            <div th:replace="~{fragments/exercise :: gradeResult}"></div>
+        </th:block>
+    </section>
+
+    <section class="card">
+        <div class="card-title">🤖 AIコードレビュー</div>
+        <div th:if="${s.aiReview != null}" class="md" th:utext="${ui.md(s.aiReview)}"></div>
+        <div th:if="${s.aiReview == null}">
+            <button class="btn small" th:attr="hx-post='/ai/review/' + ${s.id}" hx-target="next .ai-slot" hx-disabled-elt="this"
+                    th:disabled="${!aiAvailable}">講評してもらう</button>
+            <div class="ai-slot"></div>
+        </div>
+    </section>
+
+    <section class="card" th:if="${s.errorExplanation != null or !s.passed}">
+        <div class="card-title">🤖 AIエラー翻訳</div>
+        <div th:if="${s.errorExplanation != null}" class="md" th:utext="${ui.md(s.errorExplanation)}"></div>
+        <div th:if="${s.errorExplanation == null}">
+            <button class="btn small" th:attr="hx-post='/ai/explain/' + ${s.id}" hx-target="next .ai-slot" hx-disabled-elt="this"
+                    th:disabled="${!aiAvailable}">エラーを翻訳してもらう</button>
+            <div class="ai-slot"></div>
+        </div>
+    </section>
+
+    <section class="card" th:if="${exercise != null}">
+        <details>
+            <summary>問題文と模範解答</summary>
+            <div class="md" th:utext="${exercise.problemHtml}"></div>
+            <pre><code class="language-java" th:text="${exercise.solution}"></code></pre>
+        </details>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

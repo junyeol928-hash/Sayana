@@ -1,0 +1,25 @@
+title: 申請エンティティに状態の変え方を持たせる
+className: ApprovalRequest
+difficulty: 2
+problem: |
+  承認くんの申請 `ApprovalRequest` に、状態を変える4つのメソッドを書いてください。
+  **状態をどう変えてよいか(業務ルール4・5)は、エンティティ自身が守ります**。「誰が操作してよいか」は次の問題の `ApprovalService` の担当なので、ここでは見ません。
+
+  | メソッド | 状態の変化 | 記録するもの |
+  |---|---|---|
+  | `submit(now)` | → `SUBMITTED`(DRAFT から申請、RETURNED から再申請) | `submittedAt = now` |
+  | `approve(approver, comment, now)` | → `APPROVED` | `approver`・`comment`・`decidedAt = now` |
+  | `returnBack(approver, comment, now)` | → `RETURNED` | `approver`・`comment`・`decidedAt = now` |
+  | `withdraw()` | → `WITHDRAWN` | なし |
+
+  - 次の状態は、完成済みの **`ApprovalFlow.next(status, Action.XXX)`** で求めます。できない操作なら、これが `BusinessRuleException` を投げます
+    (例:`承認済の申請は変更できません`、`申請中の申請は「取下げ」できません`)。自分で if を書き直さないこと。
+  - **差戻しはコメント必須**(業務ルール4)。`comment` が `null` か空白だけなら `BusinessRuleException("差戻しにはコメントが必要です")` を投げます。
+  - 例外を投げるときは、**状態も他の項目も一切変えない** こと(チェックを全部済ませてから代入する)。
+  - 承認のコメントは任意(`null` でもよい)です。
+
+  `return` は Java の予約語なのでメソッド名に使えません。そのため差戻しは `returnBack` という名前にしています。
+
+  ※ STS では `ApprovalRequest` は `com.example.approval.domain` パッケージの JPA エンティティ(`@Entity`)で、
+  ここで書く4つのメソッドをそのまま足します。`Employee`・`RequestStatus`・`Action`・`ApprovalFlow`・`BusinessRuleException` も同じパッケージです
+  (採点用に1ファイルにまとめ、`Employee` は record に縮めています)。

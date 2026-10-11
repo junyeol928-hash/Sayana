@@ -1,0 +1,36 @@
+title: "@Primary と @Qualifier で決済手段を選ぶ"
+className: CheckoutService
+difficulty: 3
+libraries: [spring]
+problem: |
+  ネットショップのレジ(`CheckoutService`)を作ります。決済手段 `PaymentGateway` の実装 Bean が3つあり、
+  それぞれ手数料が違います。
+
+  | Bean 名 | クラス | 手数料 |
+  |---|---|---|
+  | `"card"` | `CardPayment` | 金額の 3%(1円未満切り捨て) |
+  | `"bank"` | `BankTransfer` | 一律 440円 |
+  | `"konbini"` | `KonbiniPayment` | 一律 220円 |
+
+  3つとも `PaymentGateway` 型なので、何もしないと `CheckoutService` を作るときに
+  `NoUniqueBeanDefinitionException`(候補が3つあって選べない)で起動に失敗します。次を完成させてください。
+
+  1. 3つの実装クラスに、表の **Bean 名** を付ける(`@Component("card")` のように)。手数料の計算も書く
+  2. `CardPayment` に `@Primary` を付けて、既定の決済手段にする
+  3. `CheckoutService` のコンストラクタの2番目の引数に `@Qualifier("bank")` を付けて、銀行振込を指定する
+  4. 3つのメソッドを実装する(どれも「金額 + 手数料」を返す)
+     - `totalWithDefault(amount)`:既定(`@Primary`)の決済手段で
+     - `totalByBank(amount)`:銀行振込で
+     - `totalBy(method, amount)`:Bean 名 `method` の決済手段で。知らない名前なら `IllegalArgumentException`
+
+  例:`totalWithDefault(10000)` → `10300`、`totalByBank(10000)` → `10440`、
+  `totalBy("konbini", 5000)` → `5220`、`totalBy("card", 999)` → `1028`(手数料 29.97 → 29円)
+
+  ヒント:コンストラクタの3番目の引数 `Map<String, PaymentGateway> gateways` には、
+  Spring が **その型の Bean を全部、Bean 名をキーにして** 詰めて渡してくれます(`{card=..., bank=..., konbini=...}`)。
+  `totalBy` はこれを使えば if 文を並べずに書けます。
+
+  ※ 引数名が Bean 名と同じ(例:`PaymentGateway bank`)だと `@Qualifier` なしでも選ばれることがありますが、
+  コンパイル設定(`-parameters`)次第なので、意図があるなら `@Qualifier` で明示するのが現場流です。
+
+  ※ STS では `com.example.shop.payment` パッケージに各クラスを1ファイルずつ置きます。

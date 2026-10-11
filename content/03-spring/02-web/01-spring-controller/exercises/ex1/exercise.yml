@@ -1,0 +1,21 @@
+title: あいさつAPIと会員番号のルーティング
+className: GreetingController
+difficulty: 1
+libraries: [spring]
+problem: |
+  社内ポータルの小さな API を作ります。`GreetingController` に次の2つのエンドポイントを実装してください。
+
+  | リクエスト | レスポンス本体(文字列) |
+  |---|---|
+  | `GET /hello?name=ハル` | `こんにちは、ハルさん!` |
+  | `GET /hello`(name なし) | `こんにちは、ゲストさん!` |
+  | `GET /members/42` | `会員番号: 42` |
+
+  - クラスには `@RestController` を付けます(戻り値をそのままレスポンス本体にするため)。
+  - `/hello` は `@GetMapping` と `@RequestParam` で。name が **無いときや空文字のとき** は `ゲスト` にします(`defaultValue` を使うと両方まとめて対応できます)。
+  - `/members/{id}` は `@PathVariable` で受け取り、`id` は `int` にします。`/members/abc` のように数値でないと、Spring が自動で **400** を返すことも確かめられます。
+  - `/hello` に POST すると **405** になることもテストしています(`@GetMapping` で書けば自動でそうなります)。
+
+  STS で作るなら、`com.example.demo` パッケージに `GreetingController.java` を置き(先頭に `package com.example.demo;`)、
+  アプリを起動してブラウザで `http://localhost:8080/hello?name=ハル` を開けば同じ結果が見られます。
+  採点ではパッケージなしの1ファイルにして、`MockMvcBuilders.standaloneSetup(new GreetingController())` で呼び出しています。

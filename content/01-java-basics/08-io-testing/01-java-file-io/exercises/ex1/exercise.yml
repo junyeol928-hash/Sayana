@@ -1,0 +1,28 @@
+title: ログファイルから ERROR 行を数える
+className: LogCounter
+difficulty: 1
+problem: |
+  運用チームから「昨夜のアプリのログに ERROR が何件出たか数えてほしい」と頼まれました。
+  ログファイルのパスを受け取り、**ログレベルが ERROR の行数** を返す `countErrors(Path log)` を完成させてください。
+
+  ログは UTF-8 で、1行がこんな形式です。
+
+  ```text
+  2026-10-01 09:00:01 [INFO] 起動しました
+  2026-10-01 09:00:05 [ERROR] DB接続に失敗
+  2026-10-01 09:00:06 [WARN] ERROR率が上昇中
+  2026-10-01 09:00:09 [ERROR] タイムアウト
+  ```
+
+  この例なら答えは `2` です。
+
+  **ルール**
+  - ログレベルが ERROR の行とは、**`[ERROR]` を含む行** のこととします。
+  - 3行目のように、メッセージの中に `ERROR` という単語があるだけの行は数えません(`"ERROR"` ではなく `"[ERROR]"` で判定する)。
+  - 空のファイルなら `0`。
+  - ファイルが存在しないときは、**例外を握りつぶさず** `IOException`(`NoSuchFileException`)をそのまま呼び出し元に投げてください。メソッドには `throws IOException` が付いています。
+
+  **ヒント**
+  - `Files.lines(log)` + `filter` + `count()` で書くなら、**try-with-resources で Stream を閉じる** こと。
+  - `Files.readAllLines(log)` で全行を読んで for 文で数えても OK です。
+  - 採点テストは JUnit の `@TempDir`(テストごとに作られて自動で消える一時フォルダ)にログファイルを作ってから呼び出します。

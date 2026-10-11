@@ -1,0 +1,412 @@
+id: capstone-setup
+title: プロジェクト作成とエンティティ
+status: ready
+minutes: 15
+summary: 承認くんの土台を作る。Spring Starter Project の作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。
+goals:
+  - 設計どおりの依存・パッケージ構成で Spring Starter Project を作り、起動クラスより下にパッケージを置く理由を説明できる
+  - H2 ファイルモードで ddl-auto・sql.init.mode・defer-datasource-initialization を設定し、data.sql を何度流しても壊れないように書ける
+  - "@Entity・@Enumerated(EnumType.STRING)・@ManyToOne(LAZY)・@PrePersist で Employee / ApprovalRequest / ApprovalHistory を書ける"
+  - 画面の検索を派生クエリ(OrderBy・count・関連エンティティでの絞り込み)で宣言し、H2 コンソールで中身を確かめられる
+samples:
+  - title: ORDINAL で保存していたら何が起きるか
+    description: |
+      `@Enumerated` を付けないと、enum は宣言順の番号(`ordinal()`)で保存されます。後から定数を途中に足したとき、DB に残っている番号がどう読まれるかを再現します。
+      名前(`name()`)で保存していれば、並びが変わっても同じ状態に戻せることを確かめてください。
+    code: |
+      // ORDINAL(宣言順の番号)で保存していたら……を再現する
+      // 「保存したとき」の enum
+      enum StatusV1 { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
+      // 半年後、誰かが「確認中」を DRAFT の次に足した enum
+      // ここを変えてみよう:CHECKING を末尾に移す/定数を1つ削除してみる
+      enum StatusV2 {
+          DRAFT, CHECKING, SUBMITTED, APPROVED, RETURNED, WITHDRAWN
+      }
+
+      // DB には V1 の時代に保存した値が残っている
+      StatusV1[] saved = {
+          StatusV1.SUBMITTED, StatusV1.APPROVED, StatusV1.WITHDRAWN };
+
+      for (StatusV1 s : saved) {
+          int ordinalInDb = s.ordinal();   // ORDINAL で保存された番号
+          String nameInDb = s.name();      // STRING で保存された名前
+          StatusV2 byOrdinal = StatusV2.values()[ordinalInDb];
+          StatusV2 byName = StatusV2.valueOf(nameInDb);
+          System.out.printf("保存時 %-10s → ORDINAL(%d)で読むと %-10s",
+                  s, ordinalInDb, byOrdinal);
+          System.out.println(" / STRING で読むと " + byName);
+      }
+  - title: 承認くんの派生クエリを PartTree で読む
+    description: |
+      Spring Data は起動時に、Repository のメソッド名を `PartTree` で解析して SQL の条件と並び順に変換します。承認くんで使う名前を直接解析してみましょう。
+      `applicant.name` のように関連先のプロパティでも絞れること、つづりを間違えると `Did you mean ...` と教えてくれることも確かめられます。DB には接続しません。
+    libraries: [spring, jpa]
+    code: |
+      import java.time.LocalDateTime;
+      import org.springframework.data.repository.query.parser.Part;
+      import org.springframework.data.repository.query.parser.PartTree;
+
+      // 承認くんの申請エンティティ(DB には繋がない。プロパティ名だけ使う)
+      class Employee { Long id; String name; String email; }
+      class ApprovalRequest {
+          Long id; String title; Integer amount; String status;
+          Employee applicant; Employee approver;
+          LocalDateTime createdAt; LocalDateTime submittedAt;
+      }
+
+      // ここを変えてみよう:メソッド名を書き換えて再実行
+      // (Desc を Asc に・Top5 を付ける・わざと submitedAt と書く など)
+      String[] names = {
+          "findByApplicantOrderByCreatedAtDesc",
+          "findByStatusOrderBySubmittedAtAsc",
+          "countByStatus",
+          "findByApplicantNameAndAmountGreaterThanEqual",
+          "findByStatusOrderBySubmitedAtAsc",
+      };
+
+      for (String name : names) {
+          System.out.println("■ " + name);
+          try {
+              PartTree tree = new PartTree(name, ApprovalRequest.class);
+              for (PartTree.OrPart or : tree) {
+                  for (Part p : or) {
+                      System.out.println("  条件: " + p.getProperty().toDotPath()
+                              + " " + p.getType());
+                  }
+              }
+              System.out.println("  並び順: " + tree.getSort()
+                      + " / count: " + tree.isCountProjection());
+          } catch (RuntimeException e) {
+              System.out.println("  起動時エラーになる: " + e.getMessage());
+          }
+      }
+quiz:
+  - question: |
+      `status` に `@Enumerated` を付けずに(既定の ORDINAL で)運用していました。DB には次の enum の時代に保存した `SUBMITTED` の行があります。
+      ```java
+      enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
+      ```
+      その後、enum を次のように変えてアプリを再起動しました。この行の `status` は何として読まれる?
+      ```java
+      enum RequestStatus {
+          DRAFT, CHECKING, SUBMITTED, APPROVED, RETURNED, WITHDRAWN
+      }
+      ```
+    choices: ["SUBMITTED", "起動時にエラーになる", "CHECKING", "null"]
+    answer: 2
+    explanation: |
+      ORDINAL は宣言順の番号で保存します。保存時の `SUBMITTED` は 0 始まりで **1** です。新しい enum では 1 番が `CHECKING` なので、データは1バイトも変わっていないのに「確認中」として読まれます。
+      番号の範囲内なのでエラーにも null にもならず、**黙って意味がずれる** のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
+  - question: |
+      次の application.yml で起動すると、どうなる?(`data.sql` には社員3人の MERGE 文があり、CommandLineRunner で `findByEmail("haru@example.com").orElseThrow()` を呼んでいる)
+      ```yaml
+      spring:
+        datasource:
+          url: jdbc:h2:file:./data/approval
+        jpa:
+          hibernate:
+            ddl-auto: update
+          defer-datasource-initialization: true
+      ```
+    choices: ["data.sql が流れず、NoSuchElementException(No value present)で起動に失敗する", "正常に起動し、社員3人が登録される", "Table \"EMPLOYEE\" not found で起動に失敗する", "data.sql が2回流れて社員が6人になる"]
+    answer: 0
+    explanation: |
+      Spring Boot は既定(`spring.sql.init.mode: embedded`)では、**メモリモードの組み込み DB にしか** `data.sql` を流しません。`jdbc:h2:file:` は対象外なので、`data.sql` は黙って無視されます。
+      テーブル自体は `ddl-auto: update` で作られるので「テーブルがない」エラーにはならず、社員0人のまま `orElseThrow()` が `NoSuchElementException` を投げます。`sql.init.mode: always` を足せば流れます。
+      `Table "EMPLOYEE" not found` になるのは、逆に `defer-datasource-initialization` を書き忘れたときです。
+  - question: |
+      `ApprovalRequest` のフィールドは `title`・`status`・`applicant`(Employee)・`createdAt`・`submittedAt` です。次の Repository メソッドのうち、**アプリの起動時にエラーになる** のはどれ?
+    choices: ["List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);", "long countByStatus(RequestStatus status);", "List<ApprovalRequest> findByApplicantNameAndStatus(String name, RequestStatus status);", "List<ApprovalRequest> findByStatusOrderBySubmitedAtAsc(RequestStatus status);"]
+    answer: 3
+    explanation: |
+      最後のメソッドは `SubmitedAt`(t が1つ)とつづりを間違えています。Spring Data は起動時にメソッド名を解析し、`No property 'submitedAt' found for type 'ApprovalRequest'; Did you mean 'submittedAt'` で起動を止めます。
+      `findByApplicantNameAndStatus` は `applicant.name`(関連先の Employee の name)で絞る正しい派生クエリです。`countByStatus` は件数を返す派生クエリで、戻り値 `long` も正しい形です。
+  - question: |
+      起動クラス `ApprovalAppApplication` は `com.example.approval` パッケージにあります。Repository を次のパッケージに置いて起動したらどうなる?
+      ```java
+      package com.example.repository;
+
+      public interface EmployeeRepository
+              extends JpaRepository<Employee, Long> { }
+      ```
+    choices: ["問題なく起動し、Repository も使える", "Repository が見つからず、それを注入する Bean の作成で起動に失敗する", "Repository は見つかるが、メソッドを呼ぶと NullPointerException になる", "コンパイルエラーになる"]
+    answer: 1
+    explanation: |
+      `@SpringBootApplication` は、**起動クラスのパッケージ(com.example.approval)とその下** だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
+      その結果、CommandLineRunner など `EmployeeRepository` を注入したい所で `required a bean of type ... that could not be found` になり、起動に失敗します。import すればコンパイルは通るので、コンパイルエラーにはなりません。
+  - question: |
+      `data.sql` を次のように書き、H2 ファイルモード(`sql.init.mode: always`)で使っています。**2回目の起動** で何が起きる?
+      ```sql
+      INSERT INTO employee (id, name, email, role)
+        VALUES (1, 'ハル', 'haru@example.com', 'APPLICANT');
+      ```
+    choices: ["何も起きない(同じ行は自動で無視される)", "ハルが2人になる", "主キー(または email の一意制約)違反で起動に失敗する", "テーブルが作り直されてデータが消える"]
+    answer: 2
+    explanation: |
+      ファイルモードではデータが残っているので、2回目の起動で同じ `id = 1` を INSERT しようとして `Unique index or primary key violation` になり、起動に失敗します。id を外しても今度は email の一意制約にぶつかります(一意制約がなければハルが増えます)。
+      承認くんでは `MERGE INTO employee (...) KEY (email) VALUES ...` にして、何度流しても同じ結果になる(冪等な)初期データにしています。`ddl-auto: update` はテーブルを作り直しません。
+columns:
+  - type: trivia
+    title: JPA がエンティティに「引数なしコンストラクタ」と「final 禁止」を求める理由
+    body: |
+      JPA の仕様は、エンティティに **public か protected の引数なしコンストラクタ** があること、クラスが **final でない** ことを求めています。
+
+      1. **DB から読むとき**:Hibernate はまず引数なしコンストラクタで空のオブジェクトを作り、リフレクションでフィールドに値を詰めます。
+      2. **LAZY のとき**:`@ManyToOne(fetch = LAZY)` の `applicant` には、本物の `Employee` ではなく、実行時に生成された **Employee のサブクラス(プロキシ)** が入ります。最初に `getName()` を呼んだ瞬間に SELECT が飛ぶ仕組みです。サブクラスを作るので、final クラスや private コンストラクタだと作れません。
+
+      だからエンティティを `record`(暗黙に final)では書けません。protected にするのは「アプリからは使わないで」という意思表示です。
+  - type: genba
+    title: テストデータのメールアドレスは example.com で
+    body: |
+      承認くんの初期データは `haru@example.com` のように `example.com` を使っています。これは適当に選んだのではなく、**RFC 2606 で例示用に予約されたドメイン** です(`example.net`・`example.org` も同様)。誰も取得できないので、間違ってメールが送られても実在の誰かに届きません。
+
+      現場では、テストデータに `test@gmail.com` や `taro@test.co.jp` のような「それっぽい」アドレスを使い、開発環境のメール送信が本番の SMTP に繋がっていて……という事故が後を絶ちません。実在するドメインは、たいてい誰かが使っています。
+
+      後のレッスンで承認時にメール通知を足すなら、なおさらです。テストデータのドメインは example.com、電話番号もダミー用に案内されている番号帯を使う、というのがチームの定番ルールです。
+  - type: mistake
+    title: data.sql で id を指定したら、画面から登録できなくなった
+    body: |
+      初期データの `data.sql` で id を直接指定しました。
+
+      ```sql
+      INSERT INTO approval_request (id, title, ...) VALUES (1, ...);
+      INSERT INTO approval_request (id, title, ...) VALUES (2, ...);
+      ```
+
+      起動は成功。ところが新しい申請を保存すると落ちます。
+
+      ```text
+      Unique index or primary key violation:
+        "PRIMARY KEY ON PUBLIC.APPROVAL_REQUEST(ID) ..."
+      ```
+
+      H2 2.x の IDENTITY 採番は、**id を指定して INSERT した行を数に入れません**。採番は 1 から始まり、既存の id = 1 とぶつかるのです。
+
+      対策は、自動採番する表には id を書かずに入れること。承認くんの社員は `MERGE ... KEY (email)` で入れ、申請はアプリから `save` しています。
+sts:
+  intro: |
+    第4部のワークスペース(`C:\work\approval-ws`)で `approval-app` を作り、エンティティ・Repository・初期データまで作って H2 コンソールで確認します。
+    このレッスンで作ったプロジェクトに、次のレッスンから機能を足していきます。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Starter Project を作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選び、次のとおり入力して **Next**(次へ)。
+        - **Name**:`approval-app`、**Type**:`Maven`、**Packaging**:`Jar`、**Java Version**:`21`
+        - **Group**:`com.example`、**Artifact**:`approval-app`、**Package**:`com.example.approval`
+    - title: 依存関係を6つ選ぶ
+      detail: |
+        **Spring Boot Version** は 3.5 系を選び、検索欄で次の6つを探してチェックを入れます。
+        **Spring Web**・**Thymeleaf**・**Validation**・**Spring Data JPA**・**H2 Database**・**Spring Boot DevTools**
+
+        **Spring Security はまだ選びません**(capstone-security で足します)。**Finish**(完了)を押し、右下の進捗バーが消えて
+        **Package Explorer**(パッケージ・エクスプローラー)に `approval-app` と `ApprovalAppApplication.java` が出れば成功です。
+    - title: パッケージを作る
+      detail: |
+        `src/main/java` の `com.example.approval` を右クリックし、**New > Package**(新規 > パッケージ)で
+        `com.example.approval.domain` と `com.example.approval.repository` を作ります。`service`・`web`・`config` は使うレッスンで作ります。
+        Package Explorer の表示が平らで分かりにくいときは、ビュー右上の **⋮(View Menu)> Package Presentation > Hierarchical**(パッケージの表示 > 階層)にすると木構造で見えます。
+    - title: enum を4つ作る
+      detail: |
+        `domain` を右クリックして **New > Enum**(新規 > 列挙型)で `Role`・`RequestType`・`RequestStatus`・`Action` を作ります。
+
+        ```java
+        public enum Role { APPLICANT, APPROVER, ADMIN }
+        public enum RequestType { EXPENSE, LEAVE, PURCHASE }
+        ```
+
+        `RequestStatus` と `Action` は、前回の演習の答え(`canTransitionTo`・`isFinal`・`label`・`target` 付き)をそのまま使います。
+        同じく前回の `BusinessRuleException`(`RuntimeException` のサブクラス)も **New > Class** で `domain` に作っておきます。
+    - title: Employee エンティティを作る
+      detail: |
+        `domain` に **New > Class**(新規 > クラス)で `Employee` を作ります。
+
+        ```java
+        @Entity
+        public class Employee {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
+            @Column(nullable = false, length = 50)
+            private String name;
+
+            @Column(nullable = false, unique = true)
+            private String email;
+
+            @Enumerated(EnumType.STRING)
+            @Column(nullable = false, length = 20)
+            private Role role;
+
+            protected Employee() { }
+
+            public Employee(String name, String email, Role role) {
+                this.name = name;
+                this.email = email;
+                this.role = role;
+            }
+            // getter(getId・getName・getEmail・getRole)
+        }
+        ```
+
+        getter は **Source > Generate Getters and Setters...**(ソース > getter および setter の生成)で、getter だけにチェックを入れて作れます。
+        import は **Ctrl+Shift+O**(インポートの編成)で。`jakarta.persistence` の方を選びます。
+    - title: ApprovalRequest エンティティを作る
+      detail: |
+        解説のコードに、残りのフィールドを足して完成させます(演習1の答えと同じです)。
+
+        ```java
+        @Column(length = 1000)
+        private String reason;
+
+        @Column(length = 500)
+        private String comment;          // 差戻しコメントなど
+
+        private LocalDateTime submittedAt;
+        private LocalDateTime decidedAt;
+
+        public ApprovalRequest(String title, RequestType type,
+                Integer amount, String reason, Employee applicant) {
+            this.title = title;
+            this.type = type;
+            this.amount = amount;
+            this.reason = reason;
+            this.applicant = applicant;
+        }
+        ```
+
+        getter は全フィールド分を生成します。状態を変えるメソッド(申請する・承認する…)は capstone-approve で足すので、**setter はまだ作りません**。
+    - title: ApprovalHistory エンティティを作る
+      detail: |
+        ```java
+        @Entity
+        public class ApprovalHistory {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
+            @ManyToOne(fetch = FetchType.LAZY, optional = false)
+            @JoinColumn(name = "request_id")
+            private ApprovalRequest request;
+
+            @ManyToOne(fetch = FetchType.LAZY, optional = false)
+            @JoinColumn(name = "actor_id")
+            private Employee actor;
+
+            @Enumerated(EnumType.STRING)
+            @Column(nullable = false, length = 20)
+            private Action action;
+
+            @Column(length = 500)
+            private String comment;
+
+            @Column(nullable = false)
+            private LocalDateTime at;
+
+            protected ApprovalHistory() { }
+
+            public ApprovalHistory(ApprovalRequest request,
+                    Employee actor, Action action, String comment) {
+                this.request = request;
+                this.actor = actor;
+                this.action = action;
+                this.comment = comment;
+                this.at = LocalDateTime.now();
+            }
+            // getter
+        }
+        ```
+
+        履歴は「追記するだけ」の表なので、setter は作りません。
+    - title: Repository を3つ作る
+      detail: |
+        `repository` を右クリックして **New > Interface**(新規 > インターフェース)で3つ作ります。
+
+        ```java
+        public interface EmployeeRepository
+                extends JpaRepository<Employee, Long> {
+            Optional<Employee> findByEmail(String email);
+        }
+        ```
+
+        `ApprovalRequestRepository` は解説のコードのとおり。`ApprovalHistoryRepository` は次のとおりです。
+
+        ```java
+        public interface ApprovalHistoryRepository
+                extends JpaRepository<ApprovalHistory, Long> {
+            List<ApprovalHistory> findByRequestOrderByAtAsc(
+                    ApprovalRequest request);
+        }
+        ```
+    - title: application.yml と data.sql を書く
+      detail: |
+        `src/main/resources/application.properties` を選んで **F2**(または右クリック > **Refactor > Rename**(リファクタリング > 名前変更))で `application.yml` にリネームし、解説の内容を書きます。
+        YAML はインデントが命です。**タブではなく半角スペース2つ** で揃えてください。
+
+        続けて `src/main/resources` を右クリックして **New > File**(新規 > ファイル)で `data.sql` を作り、解説の `MERGE INTO employee ...` を書きます。
+    - title: CommandLineRunner で動作確認のコードを書く
+      detail: |
+        `ApprovalAppApplication.java` に、起動直後に1回動く Bean を足します。
+
+        ```java
+        @Bean
+        CommandLineRunner check(EmployeeRepository employees,
+                                ApprovalRequestRepository requests) {
+            return args -> {
+                employees.findAll().forEach(e -> System.out.println(
+                        "社員: " + e.getName() + " / " + e.getRole()));
+                Employee haru = employees
+                        .findByEmail("haru@example.com").orElseThrow();
+                if (requests.count() == 0) {   // 再起動で増やさない
+                    requests.save(new ApprovalRequest("客先訪問の交通費",
+                            RequestType.EXPENSE, 1_280, "A社打合せ", haru));
+                }
+                requests.findByApplicantOrderByCreatedAtDesc(haru)
+                        .forEach(r -> System.out.println("申請: "
+                                + r.getTitle() + " / " + r.getStatus()
+                                + " / " + r.getCreatedAt()));
+            };
+        }
+        ```
+
+        ここでは `r.getApplicant().getName()` は表示しません。LAZY の関連をトランザクションの外で触ると `LazyInitializationException` になるからです(第3部の Spring Data JPA で見た落とし穴)。
+    - title: 起動して2回確かめる
+      detail: |
+        プロジェクトを右クリックして **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。**Boot Dashboard** から起動しても同じです。
+        **Console**(コンソール)に `create table approval_request (...)` などの SQL と、`社員: ハル / APPLICANT` ほか3行、`申請: 客先訪問の交通費 / DRAFT / ...` が出れば成功です。
+
+        Console の赤い四角(**Terminate**)で止めてもう一度起動し、**社員も申請も増えていない**(`insert into approval_request` が流れない)ことを確認します。
+        プロジェクトを選んで **F5**(更新)すると、直下に `data/approval.mv.db` ができています。
+    - title: H2 コンソールで中身を見る
+      detail: |
+        起動したまま、ブラウザで `http://localhost:8080/h2-console` を開きます。
+        - **JDBC URL** を `jdbc:h2:file:./data/approval` に書き換える(既定の `jdbc:h2:~/test` のままだと空の別 DB に繋がる)
+        - **User Name** は `sa`、**Password** は空で **Connect**
+
+        次の SQL を実行して、結果を確かめます。
+
+        ```sql
+        SELECT * FROM EMPLOYEE;
+        SELECT r.TITLE, r.STATUS, e.NAME
+          FROM APPROVAL_REQUEST r
+          JOIN EMPLOYEE e ON e.ID = r.APPLICANT_ID;
+        ```
+
+        `ROLE` と `STATUS` に `APPLICANT` や `DRAFT` が **文字列で** 入っていること、2つ目の結果に申請者名 `ハル` が出ることを確認します。
+        `SHOW COLUMNS FROM APPROVAL_REQUEST;` を実行すると、`STATUS` 列の型が `ENUM('APPROVED', 'DRAFT', ...)` になっているのも見られます。
+    - title: 落とし穴を体験する
+      detail: |
+        1. application.yml の `defer-datasource-initialization: true` をコメントアウト(行頭に `#`)し、プロジェクト直下の `data` フォルダを削除してから起動します。`Table "EMPLOYEE" not found (this database is empty)` で失敗するのを確認したら元に戻します。
+        2. `findByApplicantOrderByCreatedAtDesc` を `findByApplicantOrderByCreatedDesc` に変えて起動し、`No property 'created' found for type 'ApprovalRequest'; Did you mean 'createdAt'` で起動が止まるのを確認したら元に戻します。
+checklist:
+  - key: cap-setup-project
+    text: approval-app を設計どおりの Group・Package・依存6つ(Security なし)で作成した
+  - key: cap-setup-packages
+    text: domain と repository パッケージを起動クラスの下に作り、enum・例外・エンティティ3つ・Repository 3つを置いた
+  - key: cap-setup-yml
+    text: application.yml に H2 ファイルモード・h2-console・ddl-auto=update・sql.init.mode=always・defer-datasource-initialization を設定した
+  - key: cap-setup-run-twice
+    text: 2回起動して、社員3人と申請1件が増えずに Console に表示されることを確認した
+  - key: cap-setup-h2
+    text: H2 コンソールで EMPLOYEE と APPROVAL_REQUEST を SELECT し、ROLE・STATUS が文字列で入っていることを確認した
+  - key: cap-setup-pitfalls
+    text: defer-datasource-initialization の書き忘れと、派生クエリのプロパティ名の間違いで起動が失敗することを確認した

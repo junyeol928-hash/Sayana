@@ -1,0 +1,44 @@
+title: 料金計算ルールをインターフェースで差し替える
+className: Checkout
+difficulty: 2
+problem: |
+  ネットショップのレジ `Checkout` を作ります。割引のやり方はキャンペーンごとに変わるので、
+  **割引ルールをインターフェース `PriceRule` で表し、レジのコードを変えずに差し替えられる** ようにします。
+
+  ```java
+  interface PriceRule {
+      int apply(int price);          // 割引後の金額を返す
+      default String label() { return "通常価格"; }
+  }
+  ```
+
+  次の4つを完成させてください。
+
+  **1. `RateDiscount`(○%引き)**
+  - `new RateDiscount(int percent)`
+  - `apply(price)` は、割引額 `price * percent / 100`(1円未満切り捨て)を引いた金額を返す
+    - 例:`new RateDiscount(10).apply(999)` → 割引額 99 → `900`
+  - `label()` を上書きして `"10%引き"` の形式で返す
+
+  **2. `CouponDiscount`(○円引きクーポン)**
+  - `new CouponDiscount(int yen)`
+  - `apply(price)` は `price - yen` を返す。ただし **0 円未満にはしない**(引ききれないときは `0`)
+  - `label()` を上書きして `"500円引き"` の形式で返す
+
+  **3. `Checkout.total(int[] prices)`**
+  - 商品の価格の配列を受け取り、**合計してから** フィールド `rule` の `apply` を1回だけ適用した金額を返す
+  - 空配列なら合計 0 にルールを適用した値を返す
+
+  **4. `Checkout.receipt(int[] prices)`**
+  - `"10%引き: 3000円 → 2700円"` の形式(`ルール名: 合計円 → 割引後円`)の文字列を返す
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `new Checkout(new NoDiscount()).total(new int[]{1000, 2000})` | `3000` |
+  | `new Checkout(new RateDiscount(10)).total(new int[]{1000, 2000})` | `2700` |
+  | `new Checkout(new CouponDiscount(500)).total(new int[]{300})` | `0` |
+
+  注意:
+  - インターフェースのメソッドを実装するときは `public` が必須です。
+  - `Checkout` は `PriceRule` 型だけを相手にし、`RateDiscount` などの具体的なクラス名を書かないこと
+    (テストでは、テスト側で作った別のルールも差し込みます)。

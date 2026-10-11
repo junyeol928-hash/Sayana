@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('ダッシュボード')}"></head>
+<body class="page-dashboard">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+
+    <section class="dash-hero">
+        <div class="talk talk-sensei">
+            <div class="talk-avatar"><span class="talk-icon">☕</span><span class="talk-name">モカ先輩</span></div>
+            <div class="talk-bubble">
+                <p th:if="${streak == 0}">おっ、来たね。まずは1レッスン、15分だけやってみよう。読む→動かす→書く→AIに見てもらう→確かめる、の順でいくよ。</p>
+                <p th:if="${streak > 0 and !studiedToday}" th:text="'連続 ' + ${streak} + ' 日!今日もちょっとだけやって記録をつなごう。'"></p>
+                <p th:if="${streak > 0 and studiedToday}" th:text="'今日もやったね。連続 ' + ${streak} + ' 日目。この調子!'"></p>
+            </div>
+        </div>
+        <div class="dash-cards">
+            <div class="stat card">
+                <div class="stat-label">🔥 連続学習</div>
+                <div class="stat-value"><span th:text="${streak}">0</span><small>日</small></div>
+                <div class="stat-sub" th:text="'通算 ' + ${totalDays} + ' 日'"></div>
+            </div>
+            <a class="stat card link-card" th:href="@{/review}">
+                <div class="stat-label">🔁 今日の復習</div>
+                <div class="stat-value"><span th:text="${dueCount}">0</span><small>問</small></div>
+                <div class="stat-sub" th:text="'この先 ' + ${upcoming} + ' 問 / 卒業 ' + ${graduated} + ' 問'"></div>
+            </a>
+            <div class="stat card">
+                <div class="stat-label">📚 完了レッスン</div>
+                <div class="stat-value"><span th:text="${completedLessons}">0</span><small th:text="' / ' + ${readyLessons}"> / 6</small></div>
+                <div class="stat-sub" th:text="'全 ' + ${totalLessons} + ' レッスン(準備中を含む)'"></div>
+            </div>
+            <a class="stat card link-card next" th:if="${nextLesson}" th:href="@{/lessons/{id}(id=${nextLesson.id})}">
+                <div class="stat-label">▶ 次はこれ</div>
+                <div class="stat-value small-text" th:text="${nextLesson.title}"></div>
+                <div class="stat-sub">続きから始める</div>
+            </a>
+        </div>
+    </section>
+
+    <section class="card heatmap-card">
+        <div class="card-title">直近8週間の学習</div>
+        <div class="heatmap">
+            <span th:each="d : ${days}" class="cell" th:classappend="'lv' + ${d.level()}"
+                  th:title="${#temporals.format(d.day, 'M/d')} + ' : ' + ${d.actions} + ' 回'"></span>
+        </div>
+    </section>
+
+    <section class="card weak" th:if="${!weakLessons.isEmpty()}">
+        <div class="card-title">🧩 苦手レッスン</div>
+        <ul class="weak-list">
+            <li th:each="w : ${weakLessons}">
+                <a th:href="@{/lessons/{id}(id=${w.lesson.id})}" th:text="${w.lesson.title}"></a>
+                <span class="muted small" th:text="${#strings.listJoin(w.reasons, ' / ')}"></span>
+                <form class="inline" hx-post="/ai/generate" th:attr="hx-target='#weak-slot-' + ${w.lesson.id}" hx-disabled-elt="find button">
+                    <input type="hidden" name="lessonId" th:value="${w.lesson.id}">
+                    <button class="btn small" type="submit" th:disabled="${!aiAvailable}">🤖 類題を作る</button>
+                    <span class="htmx-indicator muted small">作成中…</span>
+                </form>
+                <div th:id="'weak-slot-' + ${w.lesson.id}"></div>
+            </li>
+        </ul>
+    </section>
+
+    <section class="parts">
+        <article class="part card" th:each="pp : ${parts}">
+            <header class="part-head">
+                <h2 th:text="${pp.part.title}">第1部</h2>
+                <p class="muted" th:text="${pp.part.description}"></p>
+                <div class="progress"><div class="bar" th:style="'width:' + ${pp.percent()} + '%'"></div></div>
+                <div class="small muted" th:text="${pp.completed()} + ' / ' + ${pp.total()} + ' 完了(公開 ' + ${pp.ready()} + ')'"></div>
+            </header>
+            <div class="chapters">
+                <div class="chapter" th:each="cp : ${pp.chapters}">
+                    <div class="chapter-head">
+                        <h3 th:text="${cp.chapter.title}"></h3>
+                        <span class="small muted" th:text="${cp.completed()} + '/' + ${cp.lessons.size()}"></span>
+                    </div>
+                    <ul class="lesson-list">
+                        <li th:each="ls : ${cp.lessons}" th:classappend="'state-' + ${#strings.toLowerCase(ls.state())}">
+                            <span class="state-icon" th:switch="${ls.state().name()}">
+                                <span th:case="'COMPLETED'">✅</span>
+                                <span th:case="'IN_PROGRESS'">🟡</span>
+                                <span th:case="'NOT_STARTED'">⚪</span>
+                                <span th:case="*">🚧</span>
+                            </span>
+                            <a th:href="@{/lessons/{id}(id=${ls.lesson.id})}" th:text="${ls.lesson.title}"></a>
+                            <span class="lesson-stats small muted" th:if="${ls.lesson.ready()}">
+                                <span th:if="${ls.exercisesTotal > 0}" th:text="'演習 ' + ${ls.exercisesPassed} + '/' + ${ls.exercisesTotal}"></span>
+                                <span th:if="${ls.bestQuiz != null}" th:text="'クイズ ' + ${ls.bestQuiz} + '/' + ${ls.quizTotal}"></span>
+                                <span th:if="${ls.checklistTotal > 0}" th:text="'STS ' + ${ls.checklistDone} + '/' + ${ls.checklistTotal}"></span>
+                            </span>
+                            <span class="pill small" th:unless="${ls.lesson.ready()}">準備中</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="card" th:if="${!recentSubmissions.isEmpty()}">
+        <div class="card-title">最近の提出 <a class="small" th:href="@{/history}">すべて見る</a></div>
+        <table class="table">
+            <tr th:each="s : ${recentSubmissions}">
+                <td class="small muted" th:text="${ui.shortTime(s.createdAt)}"></td>
+                <td th:text="${lessonTitles.get(s.lessonId)} ?: ${s.lessonId}"></td>
+                <td><a th:href="@{/history/{id}(id=${s.id})}" th:text="${s.exerciseTitle}"></a></td>
+                <td><span class="pill" th:classappend="${s.passed} ? 'ok' : 'ng'" th:text="${s.passed} ? '合格' : '不合格'"></span></td>
+                <td class="small"><span th:if="${s.aiReview != null}">🤖 講評あり</span></td>
+            </tr>
+        </table>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

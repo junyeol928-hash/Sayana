@@ -1,0 +1,401 @@
+id: capstone-search
+title: 検索とページング
+status: ready
+minutes: 15
+summary: 承認くんに検索画面 GET /requests/search を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
+goals:
+  - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、Specification の部品を allOf でつないで検索できる
+  - Pageable(要求)と Page(結果)の違い、page が 0 始まりであること、size の上限と sort の許可制が必要な理由を説明できる
+  - クエリパラメータの文字列から、不正値に強い PageRequest と Sort(新しい順+id)を組み立てられる
+  - Thymeleaf で「全 N 件中 X〜Y 件目」と前へ/次へを表示し、検索条件をリンクと URL に引き継げる
+  - 一覧の N+1 を @EntityGraph で避け、コレクションの fetch とページングを混ぜてはいけない理由を説明できる
+samples:
+  - title: PageRequest と Page の数字を確かめる
+    description: |
+      45件の結果を20件ずつに分けたとき、`Pageable`(要求)と `Page`(結果)がそれぞれ何を持っているかを見ます。DB の代わりに `subList` で切り出しています。
+      最後に、負の page を `PageRequest.of` に渡すと例外になることも確かめます(だから URL の値はそのまま渡せません)。
+    libraries: [spring, jpa]
+    code: |
+      import org.springframework.data.domain.*;
+
+      // 絞り込み済みの申請が45件あるとする(新しい順。本物は DB が返す)
+      List<String> all = new ArrayList<>();
+      for (int i = 45; i >= 1; i--) all.add("申請" + i);
+
+      // ここを変えてみよう:page を 0〜3、size を 10 や 50 にして再実行
+      int page = 1;
+      int size = 20;
+
+      Pageable req = PageRequest.of(page, size,
+              Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
+      System.out.println("要求: " + req);
+      System.out.println("OFFSET(読み飛ばす件数) = " + req.getOffset());
+
+      // DB の LIMIT / OFFSET の代わりに subList で切り出す
+      int from = (int) Math.min(req.getOffset(), all.size());
+      int to = Math.min(from + size, all.size());
+      Page<String> result = new PageImpl<>(all.subList(from, to), req, all.size());
+
+      System.out.println("中身: " + result.getContent());
+      System.out.println("総件数 " + result.getTotalElements()
+              + " / 総ページ " + result.getTotalPages()
+              + " / 今 " + (result.getNumber() + 1) + " ページ目(画面表示は +1)");
+      System.out.println("前へ? " + result.hasPrevious() + " 次へ? " + result.hasNext());
+
+      // ここを変えてみよう:-1 を 0 にすると例外が出なくなる
+      try {
+          PageRequest.of(-1, 20);
+      } catch (IllegalArgumentException e) {
+          System.out.println("PageRequest.of(-1, 20) → " + e.getMessage());
+      }
+  - title: 任意条件は「値があるときだけ部品を足す」
+    description: |
+      Specification と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。
+      最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+    code: |
+      import java.util.function.Predicate;
+
+      record Req(long id, String title, String status, String type) {}
+
+      List<Req> data = List.of(
+          new Req(1, "大阪出張の交通費", "SUBMITTED", "EXPENSE"),
+          new Req(2, "夏季休暇", "APPROVED", "LEAVE"),
+          new Req(3, "出張用モバイルルーター", "SUBMITTED", "PURCHASE"),
+          new Req(4, "福岡出張の宿泊費", "RETURNED", "EXPENSE"),
+          new Req(5, "モニター購入", "SUBMITTED", "PURCHASE"));
+
+      // 検索条件(null = 指定なし)
+      // ここを変えてみよう:null にしたり、"EXPENSE" や "休暇" にしたりして再実行
+      String status = "SUBMITTED";
+      String type = null;
+      String keyword = "出張";
+
+      // Specification と同じ考え方:値がある条件だけ部品を足す
+      List<Predicate<Req>> conds = new ArrayList<>();
+      if (status != null) conds.add(r -> r.status().equals(status));
+      if (type != null) conds.add(r -> r.type().equals(type));
+      if (keyword != null && !keyword.isBlank())
+          conds.add(r -> r.title().contains(keyword));
+
+      // allOf と同じ:全部を AND でつなぐ(部品が0個なら全件)
+      Predicate<Req> where = conds.stream().reduce(r -> true, Predicate::and);
+
+      System.out.println("使った条件: " + conds.size() + " 個");
+      data.stream().filter(where).forEach(System.out::println);
+
+      // 派生クエリで同じことをすると、条件の有無の組み合わせだけメソッドが要る
+      for (int n = 1; n <= 6; n++) {
+          System.out.println("任意条件 " + n + " 個 → 派生クエリ " + (1 << n) + " 本");
+      }
+  - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
+    description: |
+      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。日本語・空白・`%`・`&` は URL エンコードされ、URL だけで条件を復元できます。
+      Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
+    libraries: [spring]
+    code: |
+      import org.springframework.web.util.UriComponentsBuilder;
+      import org.springframework.util.MultiValueMap;
+
+      // 今の検索条件(null = 指定なし)
+      // ここを変えてみよう:keyword を "50% & 割引" にする / type に "EXPENSE" を入れる
+      String status = "SUBMITTED";
+      String type = null;
+      String keyword = "出張 大阪";
+      int page = 0;
+
+      // 「次へ」のリンク:条件を全部引き継いで page だけ +1 する。
+      // encode() で日本語・空白・% などを URL エンコードする
+      String next = UriComponentsBuilder.fromPath("/requests/search")
+              .queryParamIfPresent("status", Optional.ofNullable(status))
+              .queryParamIfPresent("type", Optional.ofNullable(type))
+              .queryParamIfPresent("keyword", Optional.ofNullable(keyword))
+              .queryParam("page", page + 1)
+              .encode()
+              .build()
+              .toUriString();
+      System.out.println("次へ: " + next);
+
+      // ブックマークから戻ってきたとき:URL だけで条件を復元できる
+      // build(true) は「すでにエンコード済み」という意味
+      MultiValueMap<String, String> q = UriComponentsBuilder.fromUriString(next)
+              .build(true)
+              .getQueryParams();
+      q.forEach((k, v) -> System.out.println("  " + k + " = "
+              + URLDecoder.decode(v.get(0), java.nio.charset.StandardCharsets.UTF_8)));
+quiz:
+  - question: |
+      45件の検索結果に対して、次の `Pageable` で取得すると、何件目から何件目が返る?(並び順の1件目を「1件目」と数える)
+      ```java
+      Pageable p = PageRequest.of(2, 20);
+      ```
+    choices:
+      - "21〜40件目"
+      - "41〜45件目"
+      - "40〜59件目(足りない分は空)"
+      - "2件目から20件"
+    answer: 1
+    explanation: |
+      page は **0 始まり** です。page=2 は「3ページ目」なので OFFSET は 2 × 20 = 40、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
+      「21〜40件目」は page=1 のとき。page を 1 始まりと思い込むと、画面の「2ページ目」リンクで3ページ目が出る、というズレが起きます。
+  - question: |
+      次の検索で、Specification が作る WHERE 句に含まれる条件はどれ?
+      ```java
+      SearchCondition c = new SearchCondition();
+      c.setStatus(null);
+      c.setType(RequestType.EXPENSE);
+      c.setKeyword("   ");   // 空白だけ
+
+      var specs = new ArrayList<Specification<ApprovalRequest>>();
+      if (c.getStatus() != null) specs.add(statusIs(c.getStatus()));
+      if (c.getType() != null) specs.add(typeIs(c.getType()));
+      if (c.hasKeyword()) specs.add(keywordContains(c.getKeyword()));
+      repo.findAll(Specification.allOf(specs), pageable);
+      ```
+      (`hasKeyword()` は「null でも空白だけでもない」なら true)
+    choices:
+      - "status is null and type = 'EXPENSE' and title like '%   %'"
+      - "条件なし(全件)"
+      - "type = 'EXPENSE' だけ"
+      - "type = 'EXPENSE' と、件名か理由の like '%%'"
+    answer: 2
+    explanation: |
+      値がある条件だけ部品を足すので、`status` は null で足されず、キーワードは空白だけなので `hasKeyword()` が false で足されません。残るのは `typeIs` の1つだけです。
+      「status is null」になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白のキーワードで like をすると、空白を含む申請だけに絞られてしまいます。
+  - question: |
+      検索結果の「次へ」リンクを次のように書きました。`/requests/search?status=SUBMITTED&keyword=出張` で検索してから「次へ」を押すと、どうなる?
+      ```html
+      <a th:href="@{/requests/search(page=${page.number + 1})}">次へ</a>
+      ```
+    choices:
+      - "条件が消えて、全件検索の2ページ目が表示される"
+      - "条件を引き継いで、SUBMITTED かつ「出張」の2ページ目が表示される"
+      - "Thymeleaf のエラーになる"
+      - "ブラウザが前の URL の条件を自動で付け足すので、問題なく動く"
+    answer: 0
+    explanation: |
+      リンクの URL に付くのは `page` だけです。HTTP はリクエストごとに独立していて、前の URL の条件をサーバーもブラウザも覚えていないので、`status` と `keyword` は「指定なし」になり、全件の2ページ目が出ます。
+      `status`・`type`・`keyword`・`size`・`sort` をすべて `@{...}` の引数に書いて引き継ぐ必要があります。テンプレートとしては正しいのでエラーにはなりません。
+  - question: |
+      並び順を `createdAt` の降順だけにしていたところ、「2ページ目に1ページ目と同じ申請が出て、ある申請はどのページにも出ない」と報告されました。もっとも適切な対策は?
+    choices:
+      - "size を大きくして、1ページに全部表示する"
+      - "createdAt を昇順に変える"
+      - "ページ送りのたびに count クエリをやめる"
+      - "並び順の2番目のキーに id を足して、順番を一意にする"
+    answer: 3
+    explanation: |
+      SQL の `ORDER BY` は、並べ替えのキーが同じ値の行同士の順番を保証しません。初期データの一括登録などで `createdAt` が同じ行があると、ページを取るたびに順番が入れ替わり、OFFSET で切った境目で重複や抜けが起きます。
+      一意な `id` を最後のキーに足せば、順番が毎回同じに決まります。昇順にしても同じ値の問題は残り、size を大きくするのは上限を決めた意味がなくなります。count クエリは総件数を数えるもので、並び順とは関係ありません。
+  - question: |
+      `applicant` が `@ManyToOne(fetch = FetchType.LAZY)` で、`@EntityGraph` は付けていません。全45件の検索で1ページ目(20件、申請者は全員別人)を表示し、Thymeleaf で `${r.applicant.name}` を出しました。発行される SELECT 文は合計何回?
+      ```java
+      Page<ApprovalRequest> page =
+          repo.findAll(spec, PageRequest.of(0, 20));
+      ```
+    choices: ["2回", "21回", "22回", "40回"]
+    answer: 2
+    explanation: |
+      申請20件を取る SELECT が1回、`Page` の総件数を数える count の SELECT が1回、そして LAZY の `applicant` を画面で触るたびに1回ずつで20回。合計 1 + 1 + 20 = 22回です(N+1 問題に count が1回加わった形)。
+      `@EntityGraph(attributePaths = "applicant")` を付けると申請者を JOIN して一緒に取るので、2回(本体+count)になります。なお、最後のページなどで「取得件数 < size」のときは総件数が計算で分かるので、count は省略されます。
+columns:
+  - type: trivia
+    title: Specification.where が「非推奨」になっている
+    body: |
+      ネットの Specification のサンプルは、ほぼ全部がこう書いてあります。
+
+      ```java
+      Specification.where(statusIs(s)).and(typeIs(t))
+      ```
+
+      ところが Spring Boot 3.5(Spring Data JPA 3.5)で書くと、STS では `where` に取り消し線が付き、
+      「... has been deprecated and marked for removal」と警告が出ます。3.5 で **削除予定の非推奨** になったからです。代わりに、条件なしを表す `Specification.unrestricted()` から `.and(...)` でつなぐか、
+      この教材のように部品のリストを `Specification.allOf(...)` に渡します。
+
+      `where(null)` が「条件なし」を意味する、という null 頼みの書き方をやめるためです。
+      非推奨は「次のメジャーバージョンで消える」という予告なので、新しいコードでは避けましょう。
+  - type: genba
+    title: 深いページほど遅くなる OFFSET の正体
+    body: |
+      `PageRequest.of(5000, 20)` は SQL では `OFFSET 100000 ROWS FETCH FIRST 20 ROWS ONLY` のようになります。
+      DB は **10万行を並べて読み飛ばしてから** 20行を返すので、ページが深くなるほど遅くなります。
+
+      業務システムの検索画面では、10ページより後ろを見る人はほとんどいません(その前に条件で絞ります)。
+      なので承認くんのような画面は OFFSET のままで十分です。一方、ログやタイムラインのように「どんどん下へ」読み進める画面では、
+      **キーセット方式**(前のページの最後の `createdAt` と `id` を覚えて、`where (created_at, id) < (?, ?)` で続きを取る)にします。
+      インデックスで直接その位置へ飛べるので、何ページ目でも速さが変わりません。
+
+      Spring Data JPA 3.1 以降は `ScrollPosition` と `Window` でこの方式も書けます。
+      「ページ番号で飛ぶ必要があるか?」を最初に決めるのが、ページング設計のコツです。
+  - type: mistake
+    title: "「ページングしてるから大丈夫」で本番が重くなった"
+    body: |
+      Controller の引数に `Pageable pageable` と書くだけで、Spring Boot が `page`・`size`・`sort` を読んでくれます。便利ですが、既定の上限は
+      `spring.data.web.pageable.max-page-size=2000` です。社内の別システムが「全件ほしいから」と `size=2000` で叩き続け、
+      しかも一覧が N+1 で、1リクエストに2,000本以上の SELECT が飛んでいた……というのは、よく聞く話です。
+
+      対策は2つ。上限を業務に合わせて下げる(`spring.data.web.pageable.max-page-size=50`)か、承認くんのように `PagingParams` で自分で検査します。
+      `sort` も同じで、`Pageable` の自動解決は **存在しない項目名をそのまま通す** ので、`sort=foo` で 500 エラーになります。
+      URL は誰でも書き換えられる入力です。フォームの値と同じように、ページングのパラメータも疑ってかかりましょう。
+sts:
+  intro: |
+    承認くん(`approval-app`)に検索画面を足します。capstone-apply までで、申請の一覧・詳細・新規申請が動いている前提です。
+    パッケージはすべて `com.example.approval` 配下です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: Repository に JpaSpecificationExecutor を足す
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `repository/ApprovalRequestRepository.java` を開き、`extends` に `JpaSpecificationExecutor<ApprovalRequest>` を足します。
+        さらに、解説のとおり `findAll(Specification, Pageable)` を `@EntityGraph(attributePaths = "applicant")` 付きで宣言し直します。
+
+        import が赤くなったら **Ctrl+Shift+O**(インポートの編成)。`Page`・`Pageable` は `org.springframework.data.domain`、`Specification` は `org.springframework.data.jpa.domain` を選びます
+        (`java.awt.print.Pageable` を選ぶとコンパイルエラーになります)。
+    - title: 条件の部品 ApprovalRequestSpecs を作る
+      detail: |
+        `repository` パッケージを右クリック > **New > Class**(新規 > クラス)で `ApprovalRequestSpecs` を作り、解説の `statusIs`・`typeIs`・`keywordContains` と `escape` を書きます。
+        `root.get("title")` の文字列は **エンティティのフィールド名** です(列名の `title` ではなく、たとえば `createdAt` なら `"createdAt"`)。つづりを間違えると、検索したときに `Unable to locate Attribute with the given name [titel]` で落ちます。
+    - title: SearchCondition と RequestSearchService を作る
+      detail: |
+        `service` パッケージに `SearchCondition`(`RequestStatus status`・`RequestType type`・`String keyword` と getter/setter、`hasKeyword()`)を作ります。
+        フィールドを書いたら、エディター上で右クリック > **Source > Generate Getters and Setters...**(ソース > getter および setter の生成...)で一括生成できます。
+
+        同じパッケージに `RequestSearchService` を作り、解説のコードを書きます。`statusIs` などは
+        `import static com.example.approval.repository.ApprovalRequestSpecs.*;` で読み込みます。クラスに `@Transactional(readOnly = true)` を付けるのを忘れずに。
+    - title: PagingParams を作る(演習1)
+      detail: |
+        `web` パッケージに `PagingParams` を作り、演習1で書いた `of(String page, String size, String sort)` をそのまま貼ります(先頭に `package com.example.approval.web;` を足す)。
+        先に画面上で演習1を解いて、テストに通ったコードを持ってくるのがおすすめです。
+    - title: RequestSearchController を作る
+      detail: |
+        `web` パッケージに `RequestSearchController` を作ります。プルダウン用に状態と種類の一覧も Model に入れます。
+
+        ```java
+        @Controller
+        public class RequestSearchController {
+            private final RequestSearchService service;
+
+            public RequestSearchController(RequestSearchService service) {
+                this.service = service;
+            }
+
+            @GetMapping("/requests/search")
+            public String search(
+                    @ModelAttribute("cond") SearchCondition cond,
+                    BindingResult binding,
+                    @RequestParam(required = false) String page,
+                    @RequestParam(required = false) String size,
+                    @RequestParam(required = false) String sort,
+                    Model model) {
+                PageRequest pr = PagingParams.of(page, size, sort);
+                model.addAttribute("page", service.search(cond, pr));
+                model.addAttribute("statuses", RequestStatus.values());
+                model.addAttribute("types", RequestType.values());
+                return "requests/search";
+            }
+        }
+        ```
+    - title: 画面 templates/requests/search.html を作る
+      detail: |
+        `src/main/resources/templates/requests` フォルダを右クリック > **New > File**(新規 > ファイル)で `search.html` を作ります。
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head>
+        <meta charset="UTF-8">
+        <title>申請の検索 - 承認くん</title>
+        </head>
+        <body>
+        <h1>申請の検索</h1>
+
+        <form th:action="@{/requests/search}" method="get"
+              th:object="${cond}">
+          <select th:field="*{status}">
+            <option value="">状態(すべて)</option>
+            <option th:each="s : ${statuses}"
+                    th:value="${s}" th:text="${s}"></option>
+          </select>
+          <select th:field="*{type}">
+            <option value="">種類(すべて)</option>
+            <option th:each="t : ${types}"
+                    th:value="${t}" th:text="${t}"></option>
+          </select>
+          <input type="text" th:field="*{keyword}"
+                 placeholder="件名・理由">
+          <input type="hidden" name="size" th:value="${page.size}">
+          <button type="submit">検索</button>
+        </form>
+
+        <p th:if="${page.totalElements == 0}">該当する申請はありません</p>
+        <p th:if="${page.numberOfElements > 0}"
+           th:with="from=${page.number * page.size + 1},
+                    to=${from + page.numberOfElements - 1}"
+           th:text="|全 ${page.totalElements} 件中 ${from}〜${to} 件目|">
+        </p>
+
+        <table th:if="${page.numberOfElements > 0}">
+          <tr>
+            <th>ID</th><th>件名</th><th>種類</th>
+            <th>状態</th><th>申請者</th><th>作成日時</th>
+          </tr>
+          <tr th:each="r : ${page.content}">
+            <td th:text="${r.id}"></td>
+            <td><a th:href="@{/requests/{id}(id=${r.id})}"
+                   th:text="${r.title}"></a></td>
+            <td th:text="${r.type}"></td>
+            <td th:text="${r.status}"></td>
+            <td th:text="${r.applicant.name}"></td>
+            <td th:text="${#temporals.format(r.createdAt,
+                          'yyyy/MM/dd HH:mm')}"></td>
+          </tr>
+        </table>
+
+        <nav>
+          <a th:if="${page.hasPrevious()}"
+             th:href="@{/requests/search(status=${cond.status},
+               type=${cond.type},keyword=${cond.keyword},
+               page=${page.number - 1},size=${page.size},
+               sort=${param.sort})}">前へ</a>
+          <span th:if="${page.totalPages > 0}"
+                th:text="|${page.number + 1} / ${page.totalPages} ページ|">
+          </span>
+          <a th:if="${page.hasNext()}"
+             th:href="@{/requests/search(status=${cond.status},
+               type=${cond.type},keyword=${cond.keyword},
+               page=${page.number + 1},size=${page.size},
+               sort=${param.sort})}">次へ</a>
+        </nav>
+        </body>
+        </html>
+        ```
+
+        検索フォームには `page` を入れていないので、条件を変えて検索し直すと自動で先頭ページに戻ります(3ページ目のまま条件を変えて「0件」に見える事故を防げます)。
+    - title: 起動して検索とページングを確かめる
+      detail: |
+        `application.properties` に `spring.jpa.show-sql=true` が無ければ足し、**Boot Dashboard** で `approval-app` を選んで **(Re)start** するか、
+        プロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動します。
+
+        ブラウザで次の URL を順に開きます。初期データが少ないときは `size=2` にするとページングを確かめやすくなります。
+        1. `http://localhost:8080/requests/search?size=2` … 新しい順に2件、「全 N 件中 1〜2 件目」と「次へ」が出る
+        2. 「次へ」を押す … URL に `page=1&size=2` が付き、「3〜4 件目」になる。ブラウザの **戻る** で1ページ目に戻れる
+        3. 状態を `SUBMITTED` にして検索 … **Console**(コンソール)の SQL の where に `status=?` だけが入っている
+        4. `?size=100000&page=-1&sort=password` … エラーにならず、先頭ページを最大50件で表示する
+        5. `?status=FOO` … 400 エラーにならず、状態は「すべて」で検索される
+    - title: N+1 と LIKE の落とし穴を体験する
+      detail: |
+        1. Repository の `@EntityGraph` 行を `//` でコメントアウトして再起動し、検索画面を開きます。Console に社員テーブルへの `select ... where e1_0.id=?` が **申請者の人数分** 並ぶのが N+1 です。元に戻すと、本体の SELECT に社員テーブルとの `join` が入り、申請者ごとの SELECT が消えます
+        2. 件名に `50%` を含む申請を1件作り、キーワード `50%` で検索します。`escape` を外すと `50` を含むものが全部ヒットし、付けると `50%` を含むものだけになることを確かめます
+        3. `次へ` リンクから `sort=${param.sort}` を消して `?sort=amount,desc` で検索し、「次へ」を押すと並び順が新しい順に戻ってしまうことを確認します(確認したら元に戻す)
+checklist:
+  - key: search-spec
+    text: ApprovalRequestRepository に JpaSpecificationExecutor を足し、ApprovalRequestSpecs の部品を allOf でつないで検索できた
+  - key: search-sql
+    text: 条件を変えて検索し、show-sql の WHERE 句に「指定した条件だけ」が入ることを Console で確認した
+  - key: search-paging
+    text: "?size=2 で「全 N 件中 X〜Y 件目」と前へ/次へが正しく動き、page が 0 始まりであることを URL で確かめた"
+  - key: search-bad-params
+    text: page=-1・size=100000・sort=password・status=FOO を URL に入れても、エラーにならずに検索できた
+  - key: search-url
+    text: 2ページ目の URL をブックマーク(またはコピーして別タブで開く)し、条件と並び順がそのまま復元されることを確認した
+  - key: search-n-plus-1
+    text: "@EntityGraph を外して N+1 の SELECT を Console で見て、戻すと申請者が JOIN で取れることを確認した"
+  - key: search-like-escape
+    text: キーワードに % を含めて検索し、LIKE のエスケープの有無で結果が変わることを確かめた

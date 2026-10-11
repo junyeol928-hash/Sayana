@@ -1,0 +1,37 @@
+title: 売上CSVを店舗別に集計してレポートを書き出す
+className: SalesReport
+difficulty: 2
+problem: |
+  POS レジから毎日出力される売上CSVを読み、**店舗ごとの売上合計** を別のCSVファイルに書き出す
+  `summarize(Path input, Path output)` を完成させてください。
+
+  **入力(`input`、UTF-8)**:1行目はヘッダー。2行目からは `日付,店舗,金額`。
+
+  ```text
+  日付,店舗,金額
+  2026-10-01,渋谷,1200
+  2026-10-01,新宿,800
+
+  2026-10-02,渋谷,500
+  ```
+
+  **出力(`output`、UTF-8)**:1行目はヘッダー `店舗,合計`。2行目から `店舗,合計金額` を **店舗名の昇順**(`TreeMap` の並び順)で。
+
+  ```text
+  店舗,合計
+  新宿,800
+  渋谷,1700
+  ```
+
+  **ルール**
+  - 入力の1行目(ヘッダー)は集計に含めない。
+  - 空行(`isBlank()` が true の行)は飛ばす。
+  - 入力がヘッダーだけなら、出力はヘッダー行 `店舗,合計` だけ。
+  - `output` の親フォルダが存在しなければ **作る**(`Files.createDirectories`)。
+  - `output` が既に存在する場合は **上書き** する(追記しない)。
+  - 金額は `int` に収まるものとします。カンマを含む店舗名(ダブルクォート付きの値)は来ません。
+
+  **ヒント**
+  - 読み込みは `Files.readAllLines(input, StandardCharsets.UTF_8)` か `Files.newBufferedReader`。
+  - 集計は `Map.merge(店舗, 金額, Integer::sum)` が便利です。
+  - 書き込みは、行を `List<String>` に集めて `Files.write(output, lines, StandardCharsets.UTF_8)` が簡単です。

@@ -1,0 +1,37 @@
+title: クエリパラメータから安全に PageRequest を作る
+className: PagingParams
+difficulty: 2
+libraries: [spring, jpa]
+problem: |
+  承認くんの検索画面 `GET /requests/search?page=&size=&sort=` は、URL のクエリパラメータをそのまま受け取ります。
+  URL は誰でも書き換えられるので、**空・数字でない・負・巨大・知らない項目名** が来ても壊れないように、
+  文字列から `PageRequest` を組み立てるメソッドを作ってください。
+
+  **`static PageRequest of(String page, String size, String sort)`**(引数はどれも `null` や空文字の場合がある)
+
+  | 引数 | ルール |
+  |---|---|
+  | `page` | 前後の空白を除いて整数にする。**0 始まり**。負なら `0`。空・`null`・整数にならない(`"abc"`、`int` に収まらない桁数)なら `0` |
+  | `size` | 整数にして **1〜50 に丸める**(`0` → `1`、`100` → `50`)。空・`null`・整数にならないなら既定の `20` |
+  | `sort` | `"項目"` か `"項目,方向"`。項目は **`createdAt` / `submittedAt` / `amount` だけ** 許可。方向は `asc` / `desc`(大文字小文字は区別しない)、省略時は昇順。それ以外は全部 **不正** として `createdAt` の降順 |
+
+  さらに、並び順の **2番目のキーとして常に `id` の降順** を付けます(同じ日時・同じ金額の行の順番を固定して、ページをまたいだ重複・抜けを防ぐため)。
+
+  ```java
+  PagingParams.of(null, null, null);
+  // → page=0, size=20, sort=createdAt: DESC, id: DESC
+  PagingParams.of("2", "100", "amount,asc");
+  // → page=2, size=50, sort=amount: ASC, id: DESC
+  PagingParams.of("-1", "abc", "password,desc");
+  // → page=0, size=20, sort=createdAt: DESC, id: DESC
+  ```
+
+  ヒント:
+  - `Integer.parseInt` は不正な文字列で `NumberFormatException` を投げます。`try-catch` で既定値にします。
+  - `"amount,"`(方向が空)や `","` も不正です。`"amount,".split(",")` は末尾の空要素を捨てて `["amount"]` になってしまうので、`split(",", -1)` を使います。
+  - 丸めは `Math.max(1, Math.min(50, n))` で書けます。
+  - 方向は `Sort.Direction.fromOptionalString(s)`(`Optional` を返す)が便利です。`Sort.Direction.fromString` は不正な値で例外を投げます。
+  - 並び順は `Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))` のように `Order` を並べて作れます。
+
+  ※ STS では `com.example.approval.web` パッケージに `PagingParams.java` として置き、`RequestSearchController` から呼びます。
+  採点環境では Spring Data の `PageRequest` / `Sort` だけを使います(DB には接続しません)。

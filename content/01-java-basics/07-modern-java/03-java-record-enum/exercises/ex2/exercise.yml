@@ -1,0 +1,30 @@
+title: 金額と通貨を record で表す
+className: MoneyCalc
+difficulty: 2
+problem: |
+  海外取引のある請求システムで、「金額+通貨」を表す値オブジェクトを record で作ります。
+  円とドルをうっかり足してしまう事故を、型の側で防ぐのが目的です。
+
+  **1. `Money`(record)を完成させる**
+
+  `record Money(long amount, String currency)`。`amount` は最小単位(円、セントなど)の整数です。
+
+  - **コンパクトコンストラクタ** で検証する
+    - `amount` が負なら `IllegalArgumentException`
+    - `currency` が `null` または空白だけ(`isBlank()`)なら `IllegalArgumentException`
+  - `Money add(Money other)` … 同じ通貨なら合計した **新しい** Money を返す。通貨が違えば `IllegalArgumentException`
+  - 自分自身(`this`)は書き換えないこと(record なのでそもそも書き換えられません)
+
+  **2. `MoneyCalc.total(List<Money> items, String currency)` を完成させる**
+
+  - `items` を全部足した Money を返す。`items` が空なら `new Money(0, currency)`
+  - `items` の中に `currency` と違う通貨が混ざっていたら `IllegalArgumentException`(`add` に任せればOK)
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `new Money(500, "JPY").add(new Money(300, "JPY"))` | `Money[amount=800, currency=JPY]` |
+  | `new Money(500, "JPY").add(new Money(3, "USD"))` | `IllegalArgumentException` |
+  | `new Money(-1, "JPY")` | `IllegalArgumentException` |
+  | `total(List.of(), "USD")` | `Money[amount=0, currency=USD]` |
+
+  equals / toString は record が自動生成するので、自分で書く必要はありません(テストは `assertEquals(new Money(800, "JPY"), ...)` のように **値の等しさ** で比べます)。

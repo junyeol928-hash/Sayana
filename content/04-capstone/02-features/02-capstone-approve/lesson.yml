@@ -1,0 +1,630 @@
+id: capstone-approve
+title: 承認・差戻しフロー
+status: ready
+minutes: 15
+summary: 承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。
+goals:
+  - 業務ルール1〜7を「エンティティで守るもの」と「Service で守るもの」に分け、その理由を説明できる
+  - ApprovalService の submit / approve / returnBack / withdraw を、チェック → エンティティの操作 → 履歴の保存 の順で書ける
+  - "@Transactional で状態の変更と ApprovalHistory の保存を1つのトランザクションにし、RuntimeException でロールバックされる理由を説明できる"
+  - 承認待ち一覧(GET /approvals)と詳細画面のボタンを作り、ボタンの出し分けとルールのチェックを区別できる
+  - "@Version の楽観ロックで、同時に承認されたときの二重承認を防げる"
+samples:
+  - title: 「誰が」のルールは Service、状態のルールはエンティティ
+    description: |
+      承認の流れを素の Java で再現します。最初は「承認者が10万円ちょうどを承認」なのでルール3で失敗し、状態も履歴も変わりません。
+      `amount` と `actor` を書き換えて、どのルールで止まるかを確かめましょう。
+    code: |
+      // 承認の業務ルール(2・3・6)を Service でチェックする流れ
+      // ここを変えてみよう:amount を 99_999 / 100_000 に、actor を taro / bucho / hanako に
+      class BusinessRuleException extends RuntimeException {
+          BusinessRuleException(String message) { super(message); }
+      }
+      enum Role { APPLICANT, APPROVER, ADMIN }
+      record Employee(long id, String name, Role role) {}
+      record History(String action, String actor) {}
+
+      class Request {
+          final Employee applicant;
+          final Integer amount;
+          String status = "SUBMITTED";
+          Request(Employee applicant, Integer amount) {
+              this.applicant = applicant;
+              this.amount = amount;
+          }
+          void approve() {                       // 状態のルールはエンティティが守る
+              if (!status.equals("SUBMITTED")) {
+                  throw new BusinessRuleException(status + " の申請は承認できません");
+              }
+              status = "APPROVED";
+          }
+      }
+
+      List<History> histories = new ArrayList<>();
+
+      void approve(Request r, Employee actor) {  // 「誰が」のルールは Service が守る
+          if (actor.role() == Role.APPLICANT) {
+              throw new BusinessRuleException("承認者・管理者しか操作できません");
+          }
+          if (r.applicant.id() == actor.id()) {
+              throw new BusinessRuleException("自分の申請は承認できません");
+          }
+          if (r.amount != null && r.amount >= 100_000 && actor.role() != Role.ADMIN) {
+              throw new BusinessRuleException("100,000円以上の申請は管理者しか承認できません");
+          }
+          r.approve();
+          histories.add(new History("APPROVE", actor.name()));   // 成功した後に履歴
+      }
+
+      Employee hanako = new Employee(1, "花子", Role.APPLICANT);
+      Employee taro = new Employee(2, "太郎", Role.APPROVER);
+      Employee bucho = new Employee(3, "部長", Role.ADMIN);
+
+      Integer amount = 100_000;
+      Employee actor = taro;
+
+      Request r = new Request(hanako, amount);
+      try {
+          approve(r, actor);
+          System.out.println(actor.name() + " が承認しました → " + r.status);
+      } catch (BusinessRuleException e) {
+          System.out.println("ルール違反: " + e.getMessage() + "(状態は " + r.status + " のまま)");
+      }
+      try {
+          approve(r, bucho);                     // 2回目(1回目が成功していれば状態のルールで失敗)
+          System.out.println("部長が承認しました → " + r.status);
+      } catch (BusinessRuleException e) {
+          System.out.println("ルール違反: " + e.getMessage());
+      }
+      System.out.println("履歴 " + histories.size() + " 件: " + histories);
+  - title: 楽観ロック(@Version)の仕組み
+    description: |
+      2人が同じ申請を同時に読み込んで承認したときの動きを、メモリ上で再現します。JPA は UPDATE の WHERE に「読んだときの version」を付けるので、
+      後から来た方は更新0件で失敗します。`checkVersion` を `false` にすると、二重承認と履歴2件が起きることを確かめましょう。
+    code: |
+      // 楽観ロック(@Version)の仕組みをメモリ上で再現する
+      // ここを変えてみよう:checkVersion を false にすると、二重承認が通ってしまう
+      boolean checkVersion = true;
+
+      class Row {                 // DB の1行のつもり
+          String status = "SUBMITTED";
+          long version = 0;
+      }
+      record Snapshot(String status, long version) {}   // 各トランザクションが読んだ値
+
+      Row row = new Row();
+      List<String> histories = new ArrayList<>();
+
+      // UPDATE approval_request SET status=?, version=version+1
+      //  WHERE id=? AND version=?  ← 読んだときの version で絞り込む
+      void approveAndCommit(String who, Snapshot read) {
+          if (!read.status().equals("SUBMITTED")) {
+              System.out.println(who + ": 承認済なので承認できません");
+              return;
+          }
+          if (checkVersion && row.version != read.version()) {
+              System.out.println(who + ": 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)");
+              return;
+          }
+          row.status = "APPROVED";
+          row.version++;
+          histories.add("APPROVE by " + who);
+          System.out.println(who + ": 承認してコミット(version=" + row.version + ")");
+      }
+
+      // 太郎と部長が「ほぼ同時に」同じ申請を読み込む
+      Snapshot taroRead = new Snapshot(row.status, row.version);
+      Snapshot buchoRead = new Snapshot(row.status, row.version);
+
+      approveAndCommit("太郎", taroRead);
+      approveAndCommit("部長", buchoRead);
+      System.out.println("最終状態: " + row.status + " / 履歴: " + histories);
+quiz:
+  - question: |
+      `ApprovalRequest` の差戻しを次のように書きました。申請中(SUBMITTED)の `r` に対して下のコードを実行したときの出力は?
+      ```java
+      public void returnBack(Employee approver, String comment,
+                             LocalDateTime now) {
+          status = ApprovalFlow.next(status, Action.RETURN);
+          if (comment == null || comment.isBlank()) {
+              throw new BusinessRuleException("差戻しにはコメントが必要です");
+          }
+          decide(approver, comment, now);
+      }
+      ```
+      ```java
+      try {
+          r.returnBack(taro, "  ", now);
+      } catch (BusinessRuleException e) {
+          System.out.println(r.getStatus());
+      }
+      ```
+    choices: ["SUBMITTED", "RETURNED", "DRAFT", "何も出力されない(例外が catch されない)"]
+    answer: 1
+    explanation: |
+      状態の代入がコメントのチェックより **先** にあるので、例外が投げられた時点で `status` はもう `RETURNED` です。例外は代入を巻き戻してくれません。
+      DB なら、例外が `@Transactional` の外まで出ればロールバックされますが、トランザクションの中で誰かが catch して処理を続けると、
+      「コメントなしで差し戻され、履歴も無い」状態でコミットされかねません。チェックを全部済ませてから代入するのが鉄則です。
+      `BusinessRuleException` は catch しているので、出力されないことはありません。
+  - question: |
+      `BusinessRuleException` を **チェック例外**(`extends Exception`)にして、次のメソッドを実行しました。例外が外へ出たあと、DB はどうなっている?
+      ```java
+      @Transactional
+      public void approve(Long id, Long actorId, String comment)
+              throws BusinessRuleException {
+          ApprovalRequest r = findRequest(id);
+          Employee actor = findEmployee(actorId);
+          r.approve(actor, comment, LocalDateTime.now());
+          histories.save(new ApprovalHistory(...));
+          if (comment != null && comment.length() > 200) {  // 後から追加
+              throw new BusinessRuleException("コメントは200文字以内です");
+          }
+      }
+      ```
+    choices: ["承認済への変更も履歴もコミットされる", "両方ロールバックされる", "履歴だけが保存される", "状態の変更だけが保存される"]
+    answer: 0
+    explanation: |
+      Spring の `@Transactional` は、既定では **RuntimeException と Error のときだけ** ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、
+      **コミット** されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。
+      `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を RuntimeException で表します(ルール7)。
+      状態と履歴は同じトランザクションなので、片方だけ保存されることはありません(なお、チェックは状態を変える **前** に置くのが本来の順番です)。
+  - question: |
+      業務ルール2「自分の申請は承認できない」を守る場所として、レッスンの設計で **本体** になるのはどこ?
+    choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "RequestForm の Bean Validation", "ApprovalService の approve メソッド", "ApprovalHistory の保存処理"]
+    answer: 2
+    explanation: |
+      「誰が操作したか」が要るルールなので、操作する人を受け取る **ApprovalService** で守ります。
+      ボタンを出さないのは利用者への親切にすぎず、`POST /requests/5/approve` は curl や開発者ツールからでも送れます。
+      RequestForm は新規申請の入力チェック用で、承認の操作とは関係ありません。履歴はルールを守った **結果** を記録するもので、チェックする場所ではありません。
+  - question: |
+      `ApprovalRequest` に `@Version private Long version;` を付けました。太郎と部長のトランザクションが、ほぼ同時に version=3 の申請中の申請を読み込み、
+      先に太郎が承認してコミットしました。その後、部長のトランザクションで起きることは?
+    choices: ["部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件になって例外が出て、部長の履歴の INSERT もロールバックされる"]
+    answer: 3
+    explanation: |
+      JPA は UPDATE に `WHERE id=? AND version=3`(読んだときの値)を付けます。太郎のコミットで version は 4 になっているので、部長の UPDATE は **0件**。
+      Hibernate がこれを検出し、Spring は `ObjectOptimisticLockingFailureException` を投げてトランザクションをロールバックします。同じトランザクションの履歴の INSERT も消えます。
+      上書きされて履歴2件になるのは `@Version` が **無い** ときの動きです。
+  - question: |
+      金額の判定を次のように書きました。業務ルール3(100,000円 **以上** の承認は ADMIN だけ。休暇の金額は null)に照らして、正しい指摘は?
+      ```java
+      static boolean requiresAdmin(Integer amount) {
+          return amount > 100_000;
+      }
+      ```
+    choices: ["100,000円ちょうどを承認者が承認でき、休暇(null)では NullPointerException になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(null)で NullPointerException になる点だけが問題", "Integer と int は比べられないのでコンパイルエラーになる"]
+    answer: 0
+    explanation: |
+      問題は2つあります。①「以上」なのに `>` なので、100,000円ちょうどが `false`(ADMIN 不要)になる。②`amount` が `null` のとき、
+      比較のために `Integer` から `int` への **アンボクシング** が起き、`NullPointerException` になる。
+      `Integer` と `int` の比較は自動でアンボクシングされるので、コンパイルは通ります(だから実行するまで気づけない)。
+      正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と null のテストを必ず書きます。
+columns:
+  - type: genba
+    title: 「承認したけど、やっぱり取り消して」と言われたら
+    body: |
+      承認くんでは `APPROVED` は以後変更できません(ルール5)。運用が始まると必ず「間違えて承認した、取り消してほしい」という相談が来ます。
+      ここで DB を直接 `UPDATE ... SET status = 'SUBMITTED'` するのは最悪手です。履歴には「承認した」が残っているのに状態は申請中、という **説明のつかないデータ** になり、監査で必ず指摘されます。
+
+      会計の世界では、確定した伝票は直さず、**逆の内容の伝票(赤伝)を追加** して打ち消します。業務システムも同じ考え方で、
+
+      - 「承認取消」という **新しい操作**(`Action`)と状態を設計に足す
+      - 取消も履歴に残し、誰がなぜ取り消したかを記録する
+      - 取消できる人と期限を決める(経理に回った後は不可、など)
+
+      という形で仕様に追加します。「確定したデータは直さず、操作を足す」が、後から説明できるシステムの鉄則です。
+  - type: mistake
+    title: 一括承認で1件失敗したら、全部消えた(UnexpectedRollbackException)
+    body: |
+      失敗した申請は飛ばすつもりで、一括承認をこう書きました。
+
+      ```java
+      @Transactional
+      public void approveAll(List<Long> ids, Long actorId) {
+          for (Long id : ids) {
+              try {
+                  approvalService.approve(id, actorId, null);
+              } catch (BusinessRuleException e) {
+                  // スキップ
+              }
+          }
+      }
+      ```
+
+      結果は `UnexpectedRollbackException`(…marked as rollback-only)で、**成功した分まで全部ロールバック**。
+      `approve` は呼び出し元のトランザクションに参加するので、RuntimeException が `approve` から出た時点でトランザクション全体に「ロールバック専用」の印が付き、catch しても消えません。
+      対策は、`approveAll` に `@Transactional` を付けず、1件ずつ別のトランザクションにすることです。
+  - type: trivia
+    title: save を呼ばなくても UPDATE される「ダーティチェック」の正体
+    body: |
+      `ApprovalService` は `r.approve(...)` の後に `requests.save(r)` を呼んでいません。それでも DB が更新されるのは、Hibernate が
+      エンティティを読み込んだときに **元の値のコピー(スナップショット)** を取っておき、コミット直前の flush で今の値と1項目ずつ比べているからです。
+      違いがあれば UPDATE を組み立てます。これがダーティチェック(dirty checking)です。
+
+      裏を返すと、読み込んだエンティティの数だけスナップショットがメモリに乗ります。一覧表示のように読むだけの処理に
+      `@Transactional(readOnly = true)` を付けると、Spring は Hibernate のセッションを読み取り専用にして、スナップショットも flush も省きます。
+      「読むだけなら readOnly」は、意図を示すだけでなく実際に軽くなる指定です。
+sts:
+  intro: |
+    前回の `approval-app` に、申請・承認・差戻し・取下げと履歴を足します。最後にデバッガで「同時に承認」を再現して、楽観ロックを目で確かめます。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。パッケージは `com.example.approval` の下です。
+  steps:
+    - title: エンティティに状態を変えるメソッドと @Version を足す(domain)
+      detail: |
+        `domain` の `ApprovalRequest.java` に次を足します。`ApprovalFlow`・`Action`・`BusinessRuleException` は capstone-requirements で作ったもの(同じ domain パッケージ)です。
+
+        ```java
+        @Version
+        private Long version;
+
+        public void submit(LocalDateTime now) {
+            status = ApprovalFlow.next(status, Action.SUBMIT);
+            submittedAt = now;
+        }
+
+        public void approve(Employee approver, String comment, LocalDateTime now) {
+            status = ApprovalFlow.next(status, Action.APPROVE);
+            decide(approver, comment, now);
+        }
+
+        public void returnBack(Employee approver, String comment, LocalDateTime now) {
+            if (comment == null || comment.isBlank()) {
+                throw new BusinessRuleException("差戻しにはコメントが必要です");
+            }
+            status = ApprovalFlow.next(status, Action.RETURN);
+            decide(approver, comment, now);
+        }
+
+        public void withdraw() {
+            status = ApprovalFlow.next(status, Action.WITHDRAW);
+        }
+
+        private void decide(Employee approver, String comment, LocalDateTime now) {
+            this.approver = approver;
+            this.comment = comment;
+            this.decidedAt = now;
+        }
+        ```
+
+        `@Version` は **`jakarta.persistence.Version`** を選びます。続けて `setStatus` を削除し、`status` フィールドを
+        `private RequestStatus status = RequestStatus.DRAFT;` にします。保存すると、前回の `RequestService.createDraft` の
+        `r.setStatus(RequestStatus.DRAFT);` が赤くなるので、その行を消します(初期値で DRAFT になります)。**Problems**(問題)ビューにエラーが残っていなければ OK。
+
+        初期データを `data.sql` の INSERT で入れている場合は、`approval_request` の INSERT に `version` 列(値は `0`)を足しておきます。
+    - title: 履歴と Repository を整える(domain・repository)
+      detail: |
+        `domain` の `ApprovalHistory.java` に、履歴を1行で作れるコンストラクタを足します(JPA 用の引数なしコンストラクタは `protected` で残す)。
+
+        ```java
+        protected ApprovalHistory() {
+        }
+
+        public ApprovalHistory(ApprovalRequest request, Employee actor,
+                               Action action, String comment, LocalDateTime at) {
+            this.request = request;
+            this.actor = actor;
+            this.action = action;
+            this.comment = comment;
+            this.at = at;
+        }
+        ```
+
+        `repository` の2つのインターフェースに派生クエリを足します。
+
+        ```java
+        // ApprovalRequestRepository
+        List<ApprovalRequest> findByStatusOrderBySubmittedAtAsc(RequestStatus status);
+
+        // ApprovalHistoryRepository
+        List<ApprovalHistory> findByRequestIdOrderByAtAsc(Long requestId);
+        ```
+    - title: ApprovalService を作る(service)
+      detail: |
+        `service` パッケージに `ApprovalService` を作ります。`@Transactional` は **`org.springframework.transaction.annotation.Transactional`** を選びます。
+
+        ```java
+        @Service
+        @Transactional
+        public class ApprovalService {
+
+            private final ApprovalRequestRepository requests;
+            private final EmployeeRepository employees;
+            private final ApprovalHistoryRepository histories;
+
+            public ApprovalService(ApprovalRequestRepository requests,
+                                   EmployeeRepository employees,
+                                   ApprovalHistoryRepository histories) {
+                this.requests = requests;
+                this.employees = employees;
+                this.histories = histories;
+            }
+
+            public ApprovalRequest submit(Long requestId, Long actorId) {
+                ApprovalRequest r = findRequest(requestId);
+                Employee actor = findEmployee(actorId);
+                requireApplicant(r, actor);                         // ルール1
+                LocalDateTime now = LocalDateTime.now();
+                r.submit(now);
+                record(r, actor, Action.SUBMIT, null, now);         // ルール6
+                return r;
+            }
+
+            public ApprovalRequest approve(Long requestId, Long actorId, String comment) {
+                ApprovalRequest r = findRequest(requestId);
+                Employee actor = findEmployee(actorId);
+                requireApprover(actor);                             // ルール2
+                if (r.getApplicant().getId().equals(actor.getId())) {
+                    throw new BusinessRuleException("自分の申請は承認できません");
+                }
+                if (ApprovalFlow.requiresAdmin(r.getAmount()) && actor.getRole() != Role.ADMIN) {
+                    throw new BusinessRuleException("100,000円以上の申請は管理者しか承認できません");
+                }
+                LocalDateTime now = LocalDateTime.now();
+                r.approve(actor, comment, now);
+                record(r, actor, Action.APPROVE, comment, now);
+                return r;
+            }
+
+            public ApprovalRequest returnBack(Long requestId, Long actorId, String comment) {
+                ApprovalRequest r = findRequest(requestId);
+                Employee actor = findEmployee(actorId);
+                requireApprover(actor);
+                LocalDateTime now = LocalDateTime.now();
+                r.returnBack(actor, comment, now);                  // ルール4はエンティティ
+                record(r, actor, Action.RETURN, comment, now);
+                return r;
+            }
+
+            public ApprovalRequest withdraw(Long requestId, Long actorId) {
+                ApprovalRequest r = findRequest(requestId);
+                Employee actor = findEmployee(actorId);
+                requireApplicant(r, actor);
+                LocalDateTime now = LocalDateTime.now();
+                r.withdraw();
+                record(r, actor, Action.WITHDRAW, null, now);
+                return r;
+            }
+
+            @Transactional(readOnly = true)
+            public List<ApprovalRequest> findWaiting() {
+                return requests.findByStatusOrderBySubmittedAtAsc(RequestStatus.SUBMITTED);
+            }
+
+            @Transactional(readOnly = true)
+            public List<ApprovalHistory> findHistories(Long requestId) {
+                return histories.findByRequestIdOrderByAtAsc(requestId);
+            }
+
+            private ApprovalRequest findRequest(Long id) {
+                return requests.findById(id)
+                        .orElseThrow(() -> new BusinessRuleException("申請が見つかりません"));
+            }
+
+            private Employee findEmployee(Long id) {
+                return employees.findById(id)
+                        .orElseThrow(() -> new BusinessRuleException("社員が見つかりません"));
+            }
+
+            private void requireApplicant(ApprovalRequest r, Employee actor) {
+                if (!r.getApplicant().getId().equals(actor.getId())) {
+                    throw new BusinessRuleException("申請者本人しか操作できません");
+                }
+            }
+
+            private void requireApprover(Employee actor) {
+                if (actor.getRole() != Role.APPROVER && actor.getRole() != Role.ADMIN) {
+                    throw new BusinessRuleException("承認者・管理者しか操作できません");
+                }
+            }
+
+            private void record(ApprovalRequest r, Employee actor, Action action,
+                                String comment, LocalDateTime now) {
+                histories.save(new ApprovalHistory(r, actor, action, comment, now));
+            }
+        }
+        ```
+    - title: 詳細画面と申請・取下げを RequestController に足す(web)
+      detail: |
+        `RequestService` に1件取得のメソッドを足します。
+
+        ```java
+        @Transactional(readOnly = true)
+        public ApprovalRequest findById(Long id) {
+            return requests.findById(id)
+                    .orElseThrow(() -> new BusinessRuleException("申請が見つかりません"));
+        }
+        ```
+
+        `RequestController` のコンストラクタで `ApprovalService approvalService` も受け取るようにし、3つのハンドラを足します。
+
+        ```java
+        @GetMapping("/{id}")
+        public String detail(@PathVariable Long id, Model model) {
+            model.addAttribute("req", requestService.findById(id));
+            model.addAttribute("histories", approvalService.findHistories(id));
+            return "requests/detail";
+        }
+
+        @PostMapping("/{id}/submit")
+        public String submit(@PathVariable Long id, RedirectAttributes ra) {
+            try {
+                approvalService.submit(id, CURRENT_EMPLOYEE_ID);
+                ra.addFlashAttribute("message", "申請しました");
+            } catch (BusinessRuleException e) {
+                ra.addFlashAttribute("error", e.getMessage());
+            }
+            return "redirect:/requests/" + id;
+        }
+        ```
+
+        `withdraw` も同じ形で、`approvalService.withdraw(...)` とメッセージ「取り下げました」にします。
+        ついでに `list.html` の件名のセルを `<td><a th:href="@{/requests/{id}(id=${r.id})}" th:text="${r.title}">交通費</a></td>` にして、一覧から詳細へ飛べるようにします。
+    - title: ApprovalController を作る(web)
+      detail: |
+        `web` パッケージに `ApprovalController` を作ります。承認のハンドラはレッスン本文のとおりです。
+
+        ```java
+        @Controller
+        public class ApprovalController {
+
+            // TODO capstone-security でログインユーザーに置き換え
+            static final Long CURRENT_APPROVER_ID = 2L;
+
+            private final ApprovalService approvalService;
+
+            public ApprovalController(ApprovalService approvalService) {
+                this.approvalService = approvalService;
+            }
+
+            @GetMapping("/approvals")
+            public String waiting(Model model) {
+                model.addAttribute("requests", approvalService.findWaiting());
+                return "approvals/list";
+            }
+
+            // @PostMapping("/requests/{id}/approve") はレッスン本文のとおり
+
+            @PostMapping("/requests/{id}/return")
+            public String returnBack(@PathVariable Long id,
+                    @RequestParam(required = false) String comment,
+                    RedirectAttributes ra) {
+                try {
+                    approvalService.returnBack(id, CURRENT_APPROVER_ID, comment);
+                    ra.addFlashAttribute("message", "差し戻しました");
+                } catch (BusinessRuleException e) {
+                    ra.addFlashAttribute("error", e.getMessage());
+                } catch (ObjectOptimisticLockingFailureException e) {
+                    ra.addFlashAttribute("error", "他の人が先に操作しました。開き直してください");
+                }
+                return "redirect:/requests/" + id;
+            }
+        }
+        ```
+
+        `CURRENT_APPROVER_ID` は、初期データの **APPROVER の社員の id** にします(ここでは 2。自分の初期データに合わせてください)。
+        `ObjectOptimisticLockingFailureException` は **`org.springframework.orm`** のものを選びます。
+    - title: テンプレートを2つ作る
+      detail: |
+        `templates/requests/detail.html`:
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head><meta charset="UTF-8"><title>申請の詳細</title></head>
+        <body>
+        <p th:if="${message}" th:text="${message}"></p>
+        <p th:if="${error}" th:text="${error}" style="color:red"></p>
+        <h1 th:text="${req.title}">件名</h1>
+        <p>種類:<span th:text="${req.type.label()}">経費精算</span>
+          / 金額:<span th:text="${req.amount == null ? '-' :
+              #numbers.formatInteger(req.amount, 1, 'COMMA') + '円'}">-</span>
+          / 状態:<span th:text="${req.status.label()}">下書き</span></p>
+        <p>理由:<span th:text="${req.reason}">理由</span></p>
+
+        <!-- 申請者のボタン(下書き・差戻しのとき) -->
+        <form th:if="${req.status.name() == 'DRAFT'
+                      or req.status.name() == 'RETURNED'}"
+              th:action="@{/requests/{id}/submit(id=${req.id})}"
+              method="post">
+          <button>申請する</button>
+          <button th:formaction=
+              "@{/requests/{id}/withdraw(id=${req.id})}">取り下げる</button>
+        </form>
+
+        <!-- 承認者のボタン(申請中のとき) -->
+        <form th:if="${req.status.name() == 'SUBMITTED'}"
+              th:action="@{/requests/{id}/approve(id=${req.id})}"
+              method="post">
+          コメント <input type="text" name="comment">
+          <button>承認</button>
+          <button th:formaction=
+              "@{/requests/{id}/return(id=${req.id})}">差戻し</button>
+        </form>
+
+        <h2>履歴</h2>
+        <table>
+          <tr th:each="h : ${histories}">
+            <td th:text="${#temporals.format(h.at, 'yyyy/MM/dd HH:mm')}">日時</td>
+            <td th:text="${h.actor.name}">操作した人</td>
+            <td th:text="${h.action.label()}">操作</td>
+            <td th:text="${h.comment}">コメント</td>
+          </tr>
+        </table>
+        <a th:href="@{/requests}">自分の申請一覧</a>
+        <a th:href="@{/approvals}">承認待ち一覧</a>
+        </body>
+        </html>
+        ```
+
+        フォームには必ず `th:action` を書き、もう1つのボタンだけ `th:formaction` で送り先を変えています。
+        capstone-security で Spring Security を入れると、`th:action` のフォームにだけ CSRF トークンが自動で埋め込まれるからです。
+
+        `templates/approvals/list.html`(`approvals` フォルダを作って置く):
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head><meta charset="UTF-8"><title>承認待ち</title></head>
+        <body>
+        <h1>承認待ち一覧</h1>
+        <table>
+          <tr><th>No.</th><th>件名</th><th>申請者</th>
+              <th>金額</th><th>申請日時</th></tr>
+          <tr th:each="r : ${requests}">
+            <td th:text="${r.id}">1</td>
+            <td><a th:href="@{/requests/{id}(id=${r.id})}"
+                   th:text="${r.title}">交通費</a></td>
+            <td th:text="${r.applicant.name}">申請 花子</td>
+            <td th:text="${r.amount == null ? '-' :
+                #numbers.formatInteger(r.amount, 1, 'COMMA') + '円'}">-</td>
+            <td th:text="${#temporals.format(r.submittedAt,
+                'yyyy/MM/dd HH:mm')}">2026/04/01 09:00</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(requests)}">
+            <td colspan="5">承認待ちの申請はありません</td></tr>
+        </table>
+        </body>
+        </html>
+        ```
+    - title: 申請 → 差戻し → 再申請 → 承認 を通す
+      detail: |
+        **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動し、`http://localhost:8080/requests/new` で金額 12,000円の経費精算を下書き保存します。
+
+        1. 一覧の件名から詳細を開き **申請する**:状態が「申請中」になり、履歴に「申請」が1行
+        2. `http://localhost:8080/approvals` に表示されることを確認し、詳細でコメントを **空白だけ** にして **差戻し**:
+           赤字で「差戻しにはコメントが必要です」、状態も履歴も変わらない
+        3. コメント「領収書を添付してください」で **差戻し** → **申請する**(再申請)→ **承認**
+        4. 履歴が「申請・差戻し・申請・承認」の **4行**、状態が「承認済」で、ボタンが1つも出ていないこと
+    - title: ルール2・3を画面で確かめる
+      detail: |
+        - `ApprovalController` の `CURRENT_APPROVER_ID` を一時的に `1L`(申請者本人)に変えて保存・再起動し、申請中の申請を承認 →「自分の申請は承認できません」
+        - `CURRENT_APPROVER_ID` を `2L` に戻し、**100,000円ちょうど** の申請を作って申請 → 承認 →「100,000円以上の申請は管理者しか承認できません」
+        - `CURRENT_APPROVER_ID` を初期データの **ADMIN の id** にして同じ申請を承認 → 承認できる
+
+        確認が終わったら `CURRENT_APPROVER_ID` を承認者の id に戻します。
+    - title: デバッガで「同時に承認」を再現する(楽観ロック)
+      detail: |
+        1. アプリを止め、プロジェクトを右クリック > **Debug As > Spring Boot App**(デバッグ > Spring Boot アプリケーション)で起動し直す
+        2. `ApprovalService.approve` の `requireApprover(actor);` の行の **左端(行番号の左)をダブルクリック** して、ブレークポイント(青い丸)を置く
+        3. 金額の小さい申請を「申請中」にし、ブラウザの **2つのタブ** で同じ詳細画面を開く
+        4. タブ1で **承認** → STS が止まる(**Confirm Perspective Switch**(パースペクティブ切り替えの確認)が出たら **Switch**(切り替え))。続けてタブ2でも **承認**
+        5. **Debug**(デバッグ)ビューに `http-nio-8080-exec-…` のスレッドが **2つ** 止まっているのを確認し、1つ目を選んで **Resume**(再開、F8)、次に2つ目を選んで F8
+
+        タブ1は「承認しました」、タブ2は「他の人が先に操作しました。開き直してください」になり、履歴の「承認」は **1行だけ** です。
+        2つ目のスレッドは、1つ目がコミットする前に「申請中・version 0」を読んでいたので、ルールのチェックは通ったのに UPDATE が0件になったのです。
+        余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行** になることも確かめましょう(確認後は必ず戻す)。
+checklist:
+  - key: entity-methods
+    text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、setStatus を消してもコンパイルエラーが残っていない
+  - key: full-flow
+    text: 申請 → 差戻し → 再申請 → 承認 を画面で通し、履歴が4行表示された
+  - key: blank-comment
+    text: 空白だけのコメントで差し戻すとエラーになり、状態も履歴も変わらなかった
+  - key: self-approve
+    text: 承認者を申請者本人の id にして「自分の申請は承認できません」を確認した
+  - key: admin-limit
+    text: 100,000円ちょうどの申請が承認者では承認できず、ADMIN なら承認できた
+  - key: approved-final
+    text: 承認済の申請の詳細画面にボタンが出ないことを確認した
+  - key: optimistic-lock
+    text: デバッガで2つの承認を止めて順に再開し、後の方が楽観ロックで失敗して履歴が1行だけだった

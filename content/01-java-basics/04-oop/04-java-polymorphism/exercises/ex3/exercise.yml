@@ -1,0 +1,30 @@
+title: メールと SMS の通知文面を作る
+className: NotificationSender
+difficulty: 3
+problem: |
+  通知サービスを作ります。親クラス `Notification` と、子クラス `EmailNotification`(メール)・`SmsNotification`(SMS)があります。
+
+  **手順1:各通知クラスで `render()`(送信する文面)をオーバーライドする**
+
+  - `EmailNotification(address, subject, message)` の `render()`:
+    `"宛先: " + address + "\n件名: " + subject + "\n" + 本文` (`\n` は改行)
+  - `SmsNotification(phone, message)` の `render()`:
+    `"[SMS] " + 本文`。ただし SMS の本文は **70 文字まで**。本文が 70 文字を超えるときは、先頭 69 文字 + `"…"`(全角三点リーダー1文字)にして、ちょうど 70 文字にそろえる
+
+  本文は親の `getMessage()` で取得できます。
+
+  **手順2:`NotificationSender` の2つのメソッドを完成させる**
+
+  1. `renderAll(Notification[] list)` … 各通知の `render()` の結果を、同じ順番で入れた `String[]` を返す
+  2. `smsPhones(Notification[] list)` … **SMS の通知だけ** を選び、その電話番号(`getPhone()`)を `","` 区切りでつなげて返す。SMS が1つもなければ `""`
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `new SmsNotification("090-1111-2222", "明日10時に伺います").render()` | `"[SMS] 明日10時に伺います"` |
+  | `smsPhones({ メール, SMS(090-1111-2222), SMS(080-3333-4444) })` | `"090-1111-2222,080-3333-4444"` |
+
+  ヒント:
+  - `renderAll` では種類を判定する必要はありません。`n.render()` を呼べば実体に応じた文面になります。
+  - `getPhone()` は `SmsNotification` にしかないメソッドなので、`Notification` 型の変数からは呼べません。
+    `if (n instanceof SmsNotification sms)` のパターンマッチングで SMS だけを取り出してから `sms.getPhone()` を呼びましょう。
+  - 文字列の一部を取り出すには `substring(開始, 終了)` を使います。

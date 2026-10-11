@@ -1,0 +1,36 @@
+title: "@ConditionalOnMissingBean を自分で作る"
+className: LoggingAutoConfig
+difficulty: 3
+libraries: [spring]
+problem: |
+  Spring Boot の `@ConditionalOnMissingBean` は「同じ型の Bean がまだ無いときだけ `@Bean` を登録する」アノテーションです。
+  その仕組みを、Spring Framework の `@Conditional` と `Condition` で自分で作ってみます。
+
+  ログの出力先 `LogSink` と、それを使う `AccessLogger` があります。
+  - 既定の出力先は `ConsoleLogSink`(標準出力に書く)
+  - 利用者が自分の `LogSink` Bean(例:メモリに貯める `MemoryLogSink`)を定義したら、**既定の `ConsoleLogSink` は Bean として登録しない**
+
+  やること:
+  1. `OnMissingLogSinkCondition.matches(...)`:Bean 定義の中に `LogSink` 型が **1つも無ければ `true`** を返す。
+     ```java
+     String[] names = context.getBeanFactory()
+             .getBeanNamesForType(LogSink.class, true, false);
+     ```
+     で、その時点で登録済みの `LogSink` 型の Bean 名が取れます
+     (第3引数 `false` は「型を調べるためだけに Bean を作ったりしない」という指定。条件判定中に Bean を作ると順番が狂うので、Boot 本体も同じ指定をしています)。
+  2. `LoggingAutoConfig` に `@Configuration` を付ける
+  3. `logSink()` に `@Bean` と `@Conditional(OnMissingLogSinkCondition.class)` を付ける
+  4. `accessLogger(LogSink sink)` に `@Bean` を付ける(どちらの `LogSink` が来ても動く)
+  5. `AccessLogger.log(method, path, status)` で `"GET /orders 200"` のような1行を `sink.write(...)` に渡す
+
+  採点では次のようにコンテナを作ります。**利用者の設定を先に** 登録しているのがポイントです
+  (条件は登録の順に判定されるため。Spring Boot も自動設定を利用者の設定より後に処理します)。
+  ```java
+  new AnnotationConfigApplicationContext(LoggingAutoConfig.class);
+  new AnnotationConfigApplicationContext(
+          UserLogConfig.class, LoggingAutoConfig.class);
+  ```
+
+  ※ 本物の Spring Boot では `@ConditionalOnMissingBean` を付けるだけで済みます。
+  STS で自動設定を自作するなら、`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` に
+  クラス名を書いて登録します(このレッスンの本文参照)。

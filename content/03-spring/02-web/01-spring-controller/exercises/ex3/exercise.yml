@@ -1,0 +1,23 @@
+title: お問い合わせフォームを PRG パターンにする
+className: ContactController
+difficulty: 2
+libraries: [spring]
+problem: |
+  画面(HTML)を返すお問い合わせ機能の Controller を作ります。今回は `@RestController` ではなく **`@Controller`** を使い、
+  戻り値は **ビュー名**(テンプレートの名前)です。テンプレートそのものは次の「Thymeleaf」のレッスンで作るので、ここでは
+  「どのビュー名を返すか」「リダイレクトするか」だけを確かめます。
+
+  | リクエスト | すること | 戻り値 |
+  |---|---|---|
+  | `GET /contact` | 入力画面を出す | `"contact/form"` |
+  | `POST /contact` | 問い合わせを保存 | `"redirect:/contact/thanks"` |
+  | `GET /contact/thanks` | 完了画面を出す | `"contact/thanks"` |
+
+  - `POST /contact` はフォームの値 `name` と `message` を `@RequestParam` で受け取り、`new Inquiry(name, message)` を
+    `inquiries` リストに追加してから、完了画面へ **リダイレクト** します(302 と `Location: /contact/thanks` が返ります)。
+  - どちらかのパラメータが無いときは、`@RequestParam` が必須なので Spring が自動で **400** を返し、何も保存されません。
+  - 完了画面を POST の戻り値で直接返さないのは、F5(再読み込み)で POST が再送されて **二重登録** になるのを防ぐためです(PRG パターン)。
+  - クラスに `@RequestMapping("/contact")` を付けると、メソッド側のパスを短く書けます(`@GetMapping` だけならクラスのパスそのもの)。
+
+  STS では `com.example.demo` パッケージに `ContactController.java`、`src/main/resources/templates/contact/` に
+  `form.html` と `thanks.html` を置く形になります。採点ではパッケージなしの1ファイルにしています。

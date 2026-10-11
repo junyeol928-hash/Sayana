@@ -1,0 +1,41 @@
+title: 「前回と同じ内容で注文」のバグを直す
+className: ReorderService
+difficulty: 2
+problem: |
+  備品の発注システムに「前回と同じ内容で注文」ボタンを付けました。ところが、
+
+  > 今回の注文にボールペンを足したら、**前回の注文履歴にもボールペンが増えていた**
+
+  という問い合わせが来ました。しかも、そもそも商品の追加がうまくいっていないようです。
+  `Order` と `ReorderService` にある **バグを2つ** 直して、テストを全部通してください。
+
+  **仕様**
+
+  - `Order(String customer, List<String> items)` … 注文を作る。**注文を作った後で、渡したリストを呼び出し元が変えても、注文の中身は変わらない**こと
+  - `Order#addItem(String item)` … 商品を1つ追加する。`null` や空白だけの商品名(`"   "`)は無視する
+  - `ReorderService.reorder(Order previous, String customer)` … 前回と同じ商品で新しい注文を作る。**前回の注文は変えない**
+
+  ```java
+  List<String> items =
+      new ArrayList<>(List.of("コピー用紙", "トナー"));
+  Order previous = new Order("佐藤", items);
+  Order next = ReorderService.reorder(previous, "佐藤");
+  next.addItem("ボールペン");
+  previous.getItems(); // [コピー用紙, トナー]
+  next.getItems();     // [コピー用紙, トナー, ボールペン]
+  ```
+
+  **デバッガで原因を探そう**
+
+  1. STS で `src/main/java` の `com.example.order` パッケージに `Order.java` と `ReorderService.java`
+     (STS では1ファイル1 public クラスにして、`Order` にも `public` を付ける)、
+     `src/test/java` の同じパッケージに `ReorderServiceTest.java` を置く
+  2. `addItem` の `if` の行と、`reorder` の `return` の行にブレークポイントを置き、
+     テストクラスを右クリック → **Debug As > JUnit Test**(デバッグ > JUnit テスト)
+  3. **Expressions** ビューに `item == null || item.isBlank()` を登録して、`"トナー"` のときの値を見る
+  4. **Variables** ビューで `previous` と `next` を ▶ で展開し、`items` の **`(id=…)` の番号** を比べる。
+     同じ番号なら、2つの注文が **同じ ArrayList を共有** しています
+
+  ヒント:1つ目のバグを直すと、2つ目のバグが姿を現します。
+
+  ※ この画面の採点では、`package` 文なしの1ファイル(`public class ReorderService` + `public` なしの `class Order`)で書いてください。

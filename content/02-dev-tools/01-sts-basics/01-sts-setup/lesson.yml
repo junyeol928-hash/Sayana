@@ -1,0 +1,240 @@
+id: sts-setup
+title: STSの導入と画面構成
+status: ready
+minutes: 15
+summary: STS(Spring Tool Suite 4)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。
+goals:
+  - STS が Eclipse に Spring 向けの拡張を加えた IDE であることを説明できる
+  - 日本語やスペースを含まないフォルダに STS を展開し、ワークスペースを選んで起動できる
+  - STS 本体を動かす Java とプロジェクトが使う JDK の違いを説明し、Installed JREs で JDK 21 を既定にできる
+  - パースペクティブ・ビュー・エディタを区別し、閉じたビューを Show View / Reset Perspective で戻せる
+  - ワークスペースの文字コードを UTF-8 にし、文字化けやメモリ不足の原因を切り分けられる
+
+samples:
+  - title: 同じバイト列を違う文字コードで読む
+    description: |
+      ファイルの中身はただのバイト列です。STS の文字コード設定がずれたときの「文字化け」を、ここで再現してみましょう。
+    code: |
+      import java.nio.charset.Charset;
+      import java.nio.charset.StandardCharsets;
+
+      // ここを変えてみよう:text を自分の名前や好きな言葉に
+      String text = "こんにちは";
+      Charset utf8 = StandardCharsets.UTF_8;
+      Charset ms932 = Charset.forName("MS932");
+
+      // UTF-8 で「保存」したバイト列(日本語は1文字3バイト)
+      byte[] a = text.getBytes(utf8);
+      System.out.println("UTF-8 のバイト数: " + a.length);
+
+      // 同じバイト列を、正しい約束と間違った約束で読む
+      System.out.println("UTF-8 で読む: " + new String(a, utf8));
+      System.out.println("MS932 で読む: " + new String(a, ms932));
+
+      // 逆向き:MS932 で保存(日本語は1文字2バイト)して
+      // UTF-8 で読む
+      byte[] b = text.getBytes(ms932);
+      System.out.println("MS932 のバイト数: " + b.length);
+      System.out.println("UTF-8 で読む: " + new String(b, utf8));
+      // ここを変えてみよう:text を "abc123" にすると
+      // どちらで読んでも化けない。なぜ?
+
+quiz:
+  - question: |
+      STS がたびたび `OutOfMemoryError: Java heap space` で固まるので、`SpringToolSuite4.ini` を次のように編集して再起動した。
+      しかし状況が変わらない。原因として最も適切なものはどれ?
+
+      ```text
+      -startup
+      plugins/org.eclipse.equinox.launcher_(略).jar
+      -Xmx4096m
+      -vmargs
+      -Dosgi.requiredJavaVersion=21
+      -Xms256m
+      ```
+    choices:
+      - "4096m は大きすぎるので、STS が設定を拒否している"
+      - "-Xmx の単位は m ではなく MB と書く必要がある"
+      - "-Xmx4096m が -vmargs より前にあるので、JVM のオプションとして渡っていない"
+      - "ini ではなく、Installed JREs の設定でメモリを増やす必要がある"
+    answer: 2
+    explanation: |
+      `SpringToolSuite4.ini` では、**`-vmargs` の行より後ろ** が JVM に渡すオプションです。前に書いた `-Xmx4096m` は STS(Eclipse)への引数として扱われ、黙って無視されます。
+      `-Xms256m` の下に移せば効きます。単位は `m`(メガ)や `g`(ギガ)で正しく、4096m も PC のメモリが足りていれば問題ありません。
+      Installed JREs は **プロジェクトを実行する JDK** の登録で、STS 本体のメモリとは関係ありません。
+
+  - question: |
+      同僚から受け取った Java ファイルを STS で開いて実行したら、Console にこう表示された。原因として最も考えられるものはどれ?
+
+      ```text
+      縺薙ｓ縺ｫ縺｡縺ｯ
+      ```
+    choices:
+      - "UTF-8 で保存されたファイルを、MS932 の設定のまま読み込んでいる"
+      - "STS のフォントに日本語が含まれていない"
+      - "JDK 21 ではなく JRE でプロジェクトを実行している"
+      - "Pleiades で日本語化していないので、日本語が表示できない"
+    answer: 0
+    explanation: |
+      「縺」「繧」などの漢字と半角カナが混ざった文字列は、**UTF-8 のバイト列を MS932 として読んだ** ときの典型的な文字化けです(元は「こんにちは」)。
+      ワークスペースやプロジェクトの文字コード設定(Text file encoding)を UTF-8 にすれば直ります。
+      フォントの問題なら □ のような豆腐になり、JRE か JDK かは文字コードと無関係です。Pleiades はメニューの日本語化で、ファイルの読み方には影響しません。
+
+  - question: |
+      STS で書いたコードを、`pom.xml` に `<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>` がある
+      Maven プロジェクトとしてコマンドラインでビルドしたら、次のエラーが出た。何が起きている?
+
+      ```text
+      Hello.java:3: error: unmappable character (0x93)
+        for encoding UTF-8
+      ```
+    choices:
+      - "3行目に全角スペースが入っている"
+      - "JDK 21 では日本語の文字列リテラルが使えない"
+      - "Maven のバージョンが古く、UTF-8 に対応していない"
+      - "ソースファイルが MS932 など UTF-8 以外で保存されていて、UTF-8 として読めないバイトがある"
+    answer: 3
+    explanation: |
+      `unmappable character (0x93) for encoding UTF-8` は「UTF-8 として読もうとしたら、0x93 という UTF-8 では意味をなさないバイトがあった」という意味です。
+      MS932 で保存された日本語のバイトを UTF-8 で読むと、このエラーになります。ファイルを UTF-8 で保存し直し、ワークスペースの設定も UTF-8 にそろえます。
+      全角スペースの場合は `illegal character: '\u3000'` という別のエラーです。日本語の文字列リテラルは Java で普通に使えます。
+
+  - question: |
+      ハルが Package Explorer と Console を × で閉じてしまい、どこにも見当たらなくなった。対処として **正しくない** ものはどれ?
+    choices:
+      - "Window > Show View から Package Explorer と Console を選んで開く"
+      - "STS をアンインストールして、展開し直す"
+      - "Window > Perspective > Reset Perspective... でパースペクティブを初期配置に戻す"
+      - "エディタが最大化されていないか、タブのダブルクリック(Ctrl+M)で確かめる"
+    answer: 1
+    explanation: |
+      ビューを閉じても、STS の機能が消えたわけではありません。**Show View** で個別に開くか、**Reset Perspective** で配置ごと初期状態に戻せば済みます。
+      エディタが最大化されているとビューが隠れて「消えた」ように見えるので、ダブルクリックや Ctrl+M で戻るか確かめるのも有効です。
+      再インストールは不要ですし、ワークスペースの設定(`.metadata`)はそのまま残るので、やっても直らないことすらあります。
+
+  - question: |
+      STS を展開して起動しただけの状態(JDK は未登録)について、正しい説明はどれ?
+    choices:
+      - "STS は Java が無いと起動しないので、起動できたなら JDK 21 が使われている"
+      - "STS 本体は同梱の JRE で動いており、プロジェクトの実行に使う JDK は Installed JREs で別に登録する"
+      - "STS 本体とプロジェクトは必ず同じ JVM で動くので、どちらか一方だけ設定すればよい"
+      - "Installed JREs に登録できるのは JRE だけで、JDK は登録できない"
+    answer: 1
+    explanation: |
+      STS には **STS 自身を動かすための JRE** が同梱されていて、それで起動しています。プロジェクトのコンパイル・実行に使う Java は
+      **Window > Preferences > Java > Installed JREs** で登録したもので、両者は別の JVM です。
+      この道場アプリのように `javac` や `jshell` を使うプログラムは JRE では動かないので、JDK 21 を登録して既定(チェック)にします。
+      Installed JREs という名前ですが、JDK のフォルダも登録できます(むしろ JDK を登録するのが普通です)。
+
+columns:
+  - type: trivia
+    title: Eclipse は星の名前で育ち、Pleiades は「すばる」
+    body: |
+      Eclipse は以前、毎年のリリースに天文にちなんだ名前を付けていました。Callisto、Europa、Ganymede(どれも木星の衛星)、
+      Galileo、Helios、Indigo、Juno、Kepler、Luna、Mars、Neon、Oxygen、Photon……と続き、2018年からは年4回の定期リリースになって
+      **2018-09** のような年月の名前に変わりました。STS もこの Eclipse の版の上に作られていて、ダウンロードしたファイル名の
+      `e4.xx` の部分が土台の Eclipse の版を表しています。
+
+      日本語化プラグインの **Pleiades(プレアデス)** は、おうし座の星団の名前で、和名は **すばる(昴)**。「Eclipse = 日食」に合わせて
+      天体の名前が付けられています。ツールの名前の由来を知っておくと、ちょっとだけ愛着がわきます。
+
+  - type: genba
+    title: ワークスペースを OneDrive の下に作ってしまう
+    body: |
+      最近の Windows は、「ドキュメント」フォルダが **OneDrive に同期** されていることがよくあります。何も考えずに既定のまま進めると、
+      ワークスペースが `C:\Users\山田\OneDrive\ドキュメント\workspace` のような場所にできてしまいます。
+
+      こうなると、**日本語を含むパス** になるうえ、ビルドのたびに `target` フォルダの大量の `.class` ファイルが同期され、
+      同期中のファイルロックで「ファイルを削除できない」「ビルドが妙に遅い」といった謎のトラブルが起きます。
+      ワークスペースの `.metadata` は STS が頻繁に書き換えるので、同期との相性は最悪です。
+
+      現場では `C:\dev\workspace` のような **同期対象外の短いパス** に置き、ソースコードのバックアップは OneDrive ではなく **Git** で取ります(Git は第2部の最後でやります)。
+
+  - type: mistake
+    title: zip をエクスプローラーで展開して「パスが長すぎます」
+    body: |
+      STS の zip を Windows のエクスプローラーの「すべて展開」で解凍すると、途中で
+      **「パスが長すぎます」** というエラーで止まったり、一部のファイルが展開されずに **起動はするのにおかしい** STS ができたりすることがあります。
+
+      Eclipse 系の `plugins` フォルダの中は深い階層と長いファイル名だらけで、Windows の昔からのパス長の上限(約260文字)を超えやすいのが原因です。
+      ダウンロード先の `C:\Users\山田\Downloads\` という長いパスで展開するとさらに危険です。
+
+      対策は3つ。①**自己展開 jar 版** を使う(`java -jar` で展開すれば問題が起きにくい)、②7-Zip などのツールで展開する、
+      ③ **`C:\dev\` のような短いパス** にファイルを移してから展開する。「起動はするけど動きが変」なら、まず展開し直しを疑いましょう。
+
+sts:
+  intro: |
+    STS をインストールして、JDK 21 の登録と文字コードの設定まで済ませます。以降のレッスンはすべてこの環境が前提です。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades)している場合の表記を括弧で併記しています。版によってボタンの位置や名前が少し違うことがあります。
+  steps:
+    - title: STS をダウンロードして展開する
+      detail: |
+        ブラウザで **spring.io/tools** を開き、Eclipse 版の **Windows x86_64** 用をダウンロードします。
+
+        - **自己展開 jar**(`...self-extracting.jar`)の場合:ダブルクリック、またはコマンドプロンプトで `java -jar ファイル名.jar` を実行します
+        - **zip** の場合:7-Zip などで展開します(エクスプローラーの「すべて展開」はパスが長すぎて失敗することがあります)
+
+        できた `sts-4.xx.x.RELEASE` フォルダを **`C:\dev\`** に移動します。中に **`SpringToolSuite4.exe`** と **`SpringToolSuite4.ini`** があれば成功です。
+        `C:\Program Files` や、日本語・スペースを含むフォルダには置かないでください。
+    - title: 起動してワークスペースを選ぶ
+      detail: |
+        `SpringToolSuite4.exe` をダブルクリックします(よく使うのでタスクバーにピン留めしておくと便利です)。
+
+        **Select a directory as workspace**(ワークスペースとしてのディレクトリー選択)のダイアログで、**Workspace** 欄に `C:\dev\workspace` と入力して **Launch**(起動)を押します。
+        フォルダが無ければ自動で作られます。STS のウィンドウが開き、Welcome(ようこそ)画面が出たら閉じて構いません。
+
+        毎回聞かれるのが面倒なら **Use this as the default and do not ask again**(これを既定値として使用し、今後この質問を表示しない)にチェックを入れます。
+    - title: JDK 21 を登録して既定にする
+      detail: |
+        1. **Window > Preferences**(ウィンドウ > 設定)を開く
+        2. 左のツリーで **Java > Installed JREs**(Java > インストール済みの JRE)を選ぶ
+        3. **Add...**(追加)→ **Standard VM**(標準 VM)→ **Next**(次へ)
+        4. **JRE home**(JRE ホーム)の **Directory...**(ディレクトリー)で JDK 21 のフォルダ(例:`C:\Program Files\Eclipse Adoptium\jdk-21.x.x-hotspot`。`bin` の一つ上)を選び、**Finish**(完了)
+        5. 一覧に追加された JDK 21 の行の **チェックボックスにチェック** を入れる(チェックが付いたものが既定)
+        6. 左のツリーで **Installed JREs > Execution Environments**(実行環境)を開き、**JavaSE-21** を選んで右側の JDK 21 にチェック
+        7. **Apply and Close**(適用して閉じる)
+
+        一覧の JDK 21 に「(default)」と表示されていれば成功です。
+    - title: 文字コードを UTF-8 にする
+      detail: |
+        **Window > Preferences > General > Workspace**(ウィンドウ > 設定 > 一般 > ワークスペース)を開きます。
+        右側下の **Text file encoding**(テキスト・ファイルのエンコード)が **Default (UTF-8)** か **Other: UTF-8** になっていれば OK です。
+        `MS932` などになっていたら **Other**(その他)を選んで **UTF-8** にし、**Apply and Close**(適用して閉じる)を押します。
+
+        同じ画面の **New text file line delimiter**(新規テキスト・ファイルの行区切り文字)は、チームの決まりが無ければ既定のままで構いません(Git の回で扱います)。
+    - title: STS 本体がどの Java で動いているか確かめる
+      detail: |
+        **Help > About Spring Tool Suite 4**(ヘルプ > Spring Tool Suite 4 について)→ **Installation Details**(インストール詳細)→ **Configuration**(構成)タブを開きます。
+        **Ctrl+F** で `java.home` を探すと、STS 本体を動かしている Java の場所が分かります。`sts-4.xx.x.RELEASE\plugins\...` の中の JRE なら同梱 JRE です。
+        さっき登録したプロジェクト用の JDK 21 とは **別物** であることを確かめましょう。同じ画面で `-Xmx` を探すと、STS 本体のメモリ上限も見られます。
+    - title: ビューを閉じて、元に戻す
+      detail: |
+        1. 右側の **Outline**(アウトライン)ビューのタブの × を押して閉じる
+        2. **Window > Show View > Outline**(ウィンドウ > ビューの表示 > アウトライン)で戻す
+        3. **Window > Show View > Other...**(その他)を開き、**Spring > Boot Dashboard** があることを確認する(開いていなければ開く)
+        4. ビューをドラッグして適当に配置を崩したあと、**Window > Perspective > Reset Perspective...**(ウィンドウ > パースペクティブ > パースペクティブのリセット)→ **Reset Perspective** で初期配置に戻ることを確かめる
+        5. 何かファイルを開いて、エディタのタブをダブルクリック(または **Ctrl+M**)で最大化 → もう一度で元に戻す
+
+        Package Explorer・Outline・Problems・Console・Boot Dashboard がそれぞれどこにあるか、言えるようになれば完了です。
+    - title: (任意)Pleiades で日本語化する
+      detail: |
+        メニューを日本語にしたい場合だけ行います。Pleiades の配布ページから **Pleiades プラグイン**(Windows 版)をダウンロードして展開し、中の `setup.exe` を実行します。
+        **日本語化するアプリケーション** に `C:\dev\sts-4.xx.x.RELEASE\SpringToolSuite4.exe` を選んで **日本語化する** を押し、STS を再起動します。
+        `SpringToolSuite4.ini` に `-javaagent:...pleiades.jar` という行が追加され、メニューが「ファイル」「ウィンドウ」のように変わっていれば成功です。
+        元に戻したいときは、この行を削除して再起動します。
+
+checklist:
+  - key: sts-launched
+    text: STS を日本語・スペースを含まないフォルダ(例 C:\dev)に展開し、SpringToolSuite4.exe で起動できた
+  - key: workspace-chosen
+    text: ワークスペースを OneDrive 外の短いパス(例 C:\dev\workspace)に決めた
+  - key: jdk21-default
+    text: Installed JREs に JDK 21 を追加してチェック(default)を付け、Execution Environments の JavaSE-21 も JDK 21 に対応させた
+  - key: encoding-utf8
+    text: General > Workspace の Text file encoding が UTF-8 になっていることを確認した
+  - key: java-home-checked
+    text: Installation Details の Configuration で STS 本体の java.home を確認し、プロジェクト用 JDK と別物だと分かった
+  - key: views-restored
+    text: ビューを閉じて Show View で戻し、Reset Perspective で配置を初期状態に戻せた
+  - key: ini-located
+    text: SpringToolSuite4.ini を開き、-vmargs の後ろにある -Xmx の行を見つけた(書き換えは必要になったときでよい)

@@ -1,0 +1,369 @@
+id: spring-rest
+title: REST API
+status: ready
+minutes: 15
+summary: URL は名詞・操作は HTTP メソッド・結果はステータスコード。@RestController と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。
+goals:
+  - リソースと URL、HTTP メソッド(GET / POST / PUT / PATCH / DELETE)、ステータスコード(200 / 201 / 204 / 400 / 404 / 409)を使い分けられる
+  - "@RestController と @RequestBody で、record と JSON を相互に変換できる(Jackson)"
+  - "ResponseEntity で 201 Created + Location と 404 Not Found を返し分けられる"
+  - PUT と PATCH の違いを説明し、PATCH を null になれる型で正しく実装できる
+  - エンティティではなく DTO(record)を返す理由と、日時を ISO-8601 で出す仕組み(JavaTimeModule)を説明できる
+samples:
+  - title: タスク API を MockMvc で叩いてみる
+    libraries: [spring]
+    description: |
+      Web サーバーは起動せず、Spring MVC の仕組みだけを動かして REST API を呼び出します。
+      POST → 201 + Location、GET の一覧と個別取得、存在しない ID の 404、Content-Type を付け忘れた 415 を順に見ます。
+    code: |
+      // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
+      // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import java.util.concurrent.atomic.AtomicLong;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+
+      record Task(long id, String title, boolean done) {}
+      record CreateTaskRequest(String title) {}
+
+      @RestController
+      @RequestMapping("/api/tasks")
+      class TaskController {
+          private final Map<Long, Task> store = new TreeMap<>();
+          private final AtomicLong seq = new AtomicLong();
+
+          @GetMapping
+          List<Task> list() {
+              return List.copyOf(store.values());
+          }
+
+          @GetMapping("/{id}")
+          ResponseEntity<Task> get(@PathVariable long id) {
+              return ResponseEntity.of(Optional.ofNullable(store.get(id)));
+          }
+
+          @PostMapping
+          ResponseEntity<Task> create(@RequestBody CreateTaskRequest req) {
+              long id = seq.incrementAndGet();
+              Task t = new Task(id, req.title(), false);
+              store.put(id, t);
+              URI location = URI.create("/api/tasks/" + id);
+              return ResponseEntity.created(location).body(t);
+          }
+      }
+
+      MockMvc mvc = MockMvcBuilders.standaloneSetup(new TaskController())
+          .setMessageConverters(new StringHttpMessageConverter(UTF_8),
+                                new MappingJackson2HttpMessageConverter())
+          .defaultResponseCharacterEncoding(UTF_8)
+          .build();
+
+      void show(String label, MvcResult r) throws Exception {
+          var res = r.getResponse();
+          String loc = res.getHeader("Location");
+          System.out.println("■ " + label);
+          System.out.println("  " + res.getStatus()
+              + (loc == null ? "" : "  Location: " + loc)
+              + "  本文: " + res.getContentAsString());
+      }
+
+      show("POST /api/tasks", mvc.perform(post("/api/tasks")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"title\":\"請求書を送る\"}")).andReturn());
+      show("GET /api/tasks", mvc.perform(get("/api/tasks")).andReturn());
+      show("GET /api/tasks/1", mvc.perform(get("/api/tasks/1")).andReturn());
+      show("GET /api/tasks/99", mvc.perform(get("/api/tasks/99")).andReturn());
+
+      // Content-Type を付け忘れると……?(curl の -d だけで送ったときと同じ)
+      show("POST(Content-Type なし)", mvc.perform(post("/api/tasks")
+          .content("{\"title\":\"x\"}")).andReturn());
+  - title: Jackson で record ⇔ JSON(日時の扱い)
+    libraries: [spring]
+    description: |
+      `LocalDate` を含む record を JSON にします。素の ObjectMapper では失敗し、JavaTimeModule を足すと配列になり、
+      `WRITE_DATES_AS_TIMESTAMPS` を無効にすると ISO-8601 の文字列になります(③が Spring Boot の既定と同じ形)。
+    code: |
+      // Jackson で record ⇔ JSON。LocalDate の扱いに注目
+      // ここを変えてみよう:日付や title を変える / ④の JSON に "x":1 を足してみる
+      import com.fasterxml.jackson.databind.ObjectMapper;
+      import com.fasterxml.jackson.databind.SerializationFeature;
+      import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+      record TaskResponse(long id, String title, LocalDate dueDate) {}
+
+      TaskResponse task = new TaskResponse(1, "見積書を作る", LocalDate.of(2026, 10, 31));
+
+      // ① 素の ObjectMapper:java.time に対応していないので失敗する
+      try {
+          System.out.println(new ObjectMapper().writeValueAsString(task));
+      } catch (Exception e) {
+          String first = e.getMessage().lines().findFirst().orElse("");
+          System.out.println("① 失敗: " + first);
+      }
+
+      // ② JavaTimeModule を登録:変換できるが、日付が配列になる
+      ObjectMapper m2 = new ObjectMapper().registerModule(new JavaTimeModule());
+      System.out.println("② " + m2.writeValueAsString(task));
+
+      // ③ さらに日時を「数値」で書く設定を切る → ISO-8601 の文字列(Spring Boot の既定)
+      ObjectMapper m3 = new ObjectMapper().registerModule(new JavaTimeModule())
+          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+      System.out.println("③ " + m3.writeValueAsString(task));
+
+      // ④ 逆向き:JSON → record(正準コンストラクタで作られる)
+      // 知らない項目 "x":1 を足すと、素の ObjectMapper は UnrecognizedPropertyException
+      // (Spring が作る ObjectMapper は、知らない項目を無視する設定になっている)
+      String json = "{\"id\":2,\"title\":\"請求書を送る\",\"dueDate\":\"2026-11-05\"}";
+      TaskResponse back = m3.readValue(json, TaskResponse.class);
+      System.out.println("④ " + back);
+quiz:
+  - question: |
+      Spring Boot アプリの次のメソッドに、正しい JSON を POST しました。レスポンスとして正しいものは?
+      ```java
+      @PostMapping
+      public ResponseEntity<Task> create(@RequestBody CreateTaskRequest req) {
+          Task t = service.create(req);   // id = 7 で保存された
+          return ResponseEntity
+                  .created(URI.create("/api/tasks/" + t.id()))
+                  .body(t);
+      }
+      ```
+    choices:
+      - "200 OK と、作ったタスクの JSON"
+      - "201 Created、Location: /api/tasks/7、作ったタスクの JSON"
+      - "201 Created と Location ヘッダだけ(本文なし)"
+      - "302 Found で /api/tasks/7 にリダイレクト"
+    answer: 1
+    explanation: |
+      `ResponseEntity.created(uri)` はステータスを **201 Created** にし、`Location` ヘッダに URI を入れます。続く `.body(t)` で本文に JSON も入ります。
+      `.body(...)` の代わりに `.build()` なら本文なしになります。302 はブラウザを別の URL に移動させるリダイレクトで、画面アプリの PRG パターンで使うもの。API の作成結果には使いません。
+  - question: |
+      `@RequestBody` で JSON を受け取る API に、PowerShell から次のコマンドを送りました。返ってくるステータスは?
+      ```text
+      curl.exe -i -X POST http://localhost:8080/api/tasks -d "title=buy"
+      ```
+    choices: ["400 Bad Request", "404 Not Found", "415 Unsupported Media Type", "500 Internal Server Error"]
+    answer: 2
+    explanation: |
+      curl の `-d` は、何も指定しないと `Content-Type: application/x-www-form-urlencoded` で送ります。`@RequestBody` の引数をその形式から変換できる HttpMessageConverter が無いので、
+      Spring は `HttpMediaTypeNotSupportedException` を投げ、**415 Unsupported Media Type** になります。
+      JSON を送るときは `-H "Content-Type: application/json"` を付けます。400 は「形式は合っているが中身(JSON の構文や値)がおかしい」とき、404 は URL が無いときです。
+  - question: |
+      Spring Boot アプリで、次の record を `@RestController` から返しました。レスポンスの JSON は?
+      ```java
+      record TaskResponse(long id, LocalDate dueDate) {}
+      // new TaskResponse(1, LocalDate.of(2026, 10, 31)) を返す
+      ```
+    choices:
+      - '{"id":1,"dueDate":"2026-10-31"}'
+      - '{"id":1,"dueDate":[2026,10,31]}'
+      - '{"id":1,"dueDate":1793404800000}'
+      - "InvalidDefinitionException(LocalDate は変換できない)"
+    answer: 0
+    explanation: |
+      Spring Boot は Jackson に **JavaTimeModule** を自動登録し、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしているので、日付は **ISO-8601 の文字列** `"2026-10-31"` になります。
+      `[2026,10,31]` は JavaTimeModule だけ登録して設定を変えていない素の Jackson の出力、例外は JavaTimeModule すら無いときの結果です。エポックミリ秒の数値は `java.util.Date` を timestamps 設定で書いたときの形です。
+  - question: |
+      「ID 3 のタスクを削除する」API の URL とメソッドとして、REST の現場ルールに最も合っているのは?
+    choices: ["POST /api/deleteTask?id=3", "GET /api/tasks/3/delete", "DELETE /api/task/3", "DELETE /api/tasks/3"]
+    answer: 3
+    explanation: |
+      操作は HTTP メソッド(DELETE)で表し、URL はリソースを **複数形の名詞** で表すので `DELETE /api/tasks/3` です。
+      `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(GET は「状態を変えない」約束のメソッド)。
+      `DELETE /api/task/3` は動き自体は正しいですが、単数形なので `/api/tasks`(一覧・作成)と URL の形が揃いません。
+  - question: |
+      完了済み(done = true)のタスク 5 に `PATCH /api/tasks/5` で `{"title":"新しい名前"}` を送りました。次の実装だと、どうなる?
+      ```java
+      record UpdateTaskRequest(String title, boolean done) {}
+
+      if (req.title() != null) { entity.setTitle(req.title()); }
+      entity.setDone(req.done());
+      ```
+    choices:
+      - "title だけが変わる"
+      - "title が変わり、done が false に戻ってしまう"
+      - "done が送られていないので 400 Bad Request"
+      - "JSON の変換で例外になる"
+    answer: 1
+    explanation: |
+      JSON に無い項目は、record の引数に **その型のデフォルト値** が入ります。`boolean` なら `false` なので、`req.done()` は false になり、完了済みのタスクが未完了に戻ります。
+      Jackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は `Boolean` のような **null になれる型** にして、`null` なら変更しない、と書き分けます。
+columns:
+  - type: trivia
+    title: REST は博士論文から生まれた
+    body: |
+      REST という言葉は、2000年に Roy Fielding がカリフォルニア大学アーバイン校に提出した博士論文
+      「Architectural Styles and the Design of Network-based Software Architectures」の第5章で定義されました。
+      Fielding は HTTP/1.1 の仕様の主要な著者の一人でもあり、「Web がなぜこれほど大きくなれたのか」を設計原則として整理したものが REST です。
+
+      論文の REST はかなり厳格で、レスポンスに「次に取れる操作へのリンク」を含める **HATEOAS** まで求めています。
+      現場の「REST API」はたいてい「URL でリソースを表し、メソッドとステータスを正しく使う」までで、Fielding 本人が「それは REST ではない」とブログで苦言を呈したこともあります。
+      この段階分けは Leonard Richardson の **成熟度モデル**(レベル0〜3)として知られていて、多くの API はレベル2(メソッドとステータスを使い分ける)を目標にしています。
+  - type: genba
+    title: 「全部 200 OK」の API
+    body: |
+      古いシステムで今も見かけるのが、エラーでもステータスは 200 で、本文に `{"result":"NG","message":"該当データなし"}` を返す API です。
+      人間が読む分には困らないのですが、周りの道具が全部だまされます。
+
+      - 監視ツールは 5xx の割合でアラートを出すので、障害が起きても **ダッシュボードは真っ緑**
+      - HTTP クライアントのライブラリは 4xx/5xx で例外を投げる前提なので、呼ぶ側が毎回 `result` を見る if 文を書く羽目になる
+      - 途中のプロキシや CDN が「200 だから」とエラー応答を **キャッシュ** してしまう
+
+      ステータスコードは HTTP の世界の共通語です。「見つからない」は 404、「状態が矛盾」は 409、と正しく返すだけで、監視・リトライ・キャッシュがすべて正しく動きます。
+      エラーの詳しい中身は、次のレッスンで扱う ProblemDetail で本文に添えればよいのです。
+  - type: mistake
+    title: GET で消せる URL を作ったら、データが勝手に消えた
+    body: |
+      2005年、リンク先を先回りして読み込んでおくブラウザ用ツール(Google Web Accelerator)が公開されたとき、
+      「削除」リンクを `<a href="/items/3/delete">` のような **GET** で作っていた Web アプリで、ユーザーが何もしていないのにデータが消える騒ぎが起きました。
+      ツールはページ上のリンクを「読むだけなら安全」と信じて GET していただけです。
+
+      HTTP の仕様では、GET は **安全(safe)なメソッド** で「サーバーの状態を変えない」ことになっています。クローラー、リンクの先読み、
+      ブラウザの再読み込み、プロキシのリトライなど、世の中の仕組みはこの約束を前提に GET を気軽に送ってきます。
+
+      状態を変える操作は POST / PUT / PATCH / DELETE で。API なら `DELETE /api/items/3`、画面ならフォームの POST にします。
+      Spring Security の CSRF 対策も「状態を変えるのは GET 以外」という前提で作られています。
+sts:
+  intro: |
+    STS でタスク管理の小さな REST API を作り、ブラウザと PowerShell(curl.exe / Invoke-RestMethod)から呼び出します。
+    データは DB ではなくメモリ上の Map に持ちます(アプリを再起動すると消えます)。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Web 入りのプロジェクトを作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
+        - **Name** に `todo-api`、**Type** は `Maven`、**Packaging** は `Jar`、**Java Version** は `21`、**Package** は `com.example.todo` にして **Next**(次へ)
+        - **Spring Boot Version** は既定のままで OK。**Dependencies** の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れて **Finish**(完了)
+
+        右下の進捗バーが消え、**Package Explorer**(パッケージ・エクスプローラー)に `todo-api` と `TodoApiApplication.java` が見えれば成功です。
+    - title: DTO の record を作る
+      detail: |
+        `src/main/java` の `com.example.todo` を右クリックし、**New > Package**(新規 > パッケージ)で `com.example.todo.task` を作ります。
+        そのパッケージを右クリックして **New > Record**(新規 > レコード)。一覧に無ければ **New > Class**(新規 > クラス)で作ってから `class` を `record` に書き換えても構いません。
+        次の2つを別々のファイルで作ります。
+
+        ```java
+        package com.example.todo.task;
+
+        import java.time.LocalDate;
+
+        public record TaskResponse(long id, String title,
+                boolean done, LocalDate dueDate) {}
+        ```
+
+        ```java
+        package com.example.todo.task;
+
+        import java.time.LocalDate;
+
+        public record CreateTaskRequest(String title,
+                LocalDate dueDate) {}
+        ```
+    - title: TaskController を書く
+      detail: |
+        同じ `com.example.todo.task` パッケージに **New > Class** で `TaskController` を作り、次のように書きます。
+        **Ctrl+Shift+O**(インポートの編成)を押すと import がまとめて入ります。`URI` は `java.net.URI` を選んでください。
+
+        ```java
+        @RestController
+        @RequestMapping("/api/tasks")
+        public class TaskController {
+            private final Map<Long, TaskResponse> store =
+                    new ConcurrentHashMap<>();
+            private final AtomicLong seq = new AtomicLong();
+
+            @GetMapping
+            public List<TaskResponse> list() {
+                return List.copyOf(store.values());
+            }
+
+            @GetMapping("/{id}")
+            public ResponseEntity<TaskResponse> get(
+                    @PathVariable long id) {
+                return ResponseEntity.of(
+                        Optional.ofNullable(store.get(id)));
+            }
+
+            @PostMapping
+            public ResponseEntity<TaskResponse> create(
+                    @RequestBody CreateTaskRequest req) {
+                long id = seq.incrementAndGet();
+                var t = new TaskResponse(id, req.title(),
+                        false, req.dueDate());
+                store.put(id, t);
+                return ResponseEntity
+                        .created(URI.create("/api/tasks/" + id))
+                        .body(t);
+            }
+        }
+        ```
+    - title: 起動してブラウザで GET する
+      detail: |
+        プロジェクトを右クリックし **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
+        **Console**(コンソール)に `Tomcat started on port 8080 (http)` と `Started TodoApiApplication in ... seconds` が出れば起動完了です。
+        **Boot Dashboard**(**Window > Show View > Other... > Spring > Boot Dashboard**)では、`todo-api` の横に緑の起動マークが付きます。
+
+        ブラウザで `http://localhost:8080/api/tasks` を開き、`[]`(空の配列)が表示されれば成功です。
+        `Port 8080 was already in use` で起動に失敗したら、前に起動したアプリが残っています。Boot Dashboard で赤い四角(**Stop**)を押して止めてから再実行してください。
+    - title: PowerShell から POST する
+      detail: |
+        スタートメニューから PowerShell を開き、次を実行します(行末の `` ` `` は「次の行に続く」の意味)。
+
+        ```text
+        Invoke-RestMethod -Method Post `
+          -Uri http://localhost:8080/api/tasks `
+          -ContentType "application/json" `
+          -Body '{"title":"buy milk","dueDate":"2026-10-31"}'
+        ```
+
+        `id`・`title`・`done`・`dueDate` の4項目が `id : 1`、`title : buy milk` のように一覧表示されれば成功です(PowerShell が JSON をオブジェクトに変換して見せています)。もう一度実行すると `id` が 2 になります。
+        ブラウザの `http://localhost:8080/api/tasks` を再読み込みすると、追加したタスクが JSON で見えます。
+
+        日本語の title を送ると、Windows PowerShell 5.1 では文字化けすることがあります。そのときは `-Body ([Text.Encoding]::UTF8.GetBytes('{"title":"牛乳を買う"}'))` のようにバイト列で渡すか、PowerShell 7(`pwsh`)を使ってください。
+    - title: 201 と Location ヘッダを確かめる
+      detail: |
+        ステータスとヘッダも見たいので、今度は `Invoke-WebRequest` で送ります。
+
+        ```text
+        $r = Invoke-WebRequest -UseBasicParsing -Method Post `
+          -Uri http://localhost:8080/api/tasks `
+          -ContentType "application/json" `
+          -Body '{"title":"write report"}'
+        $r.StatusCode
+        $r.Headers["Location"]
+        ```
+
+        `201` と `/api/tasks/3` のような URL が表示されれば成功です。GET は `curl.exe -i http://localhost:8080/api/tasks/1` でも確かめられます。
+        `-i` を付けると `HTTP/1.1 200` や `Content-Type: application/json` などのヘッダも表示されます(PowerShell 5.1 では `curl` が `Invoke-WebRequest` の別名なので、必ず `curl.exe` と打ちます)。
+    - title: 404 と 415 をわざと出す
+      detail: |
+        - `curl.exe -i http://localhost:8080/api/tasks/99` → 1行目が `HTTP/1.1 404` になる
+        - `curl.exe -i -X POST http://localhost:8080/api/tasks -d "title=x"` → `HTTP/1.1 415` になり、本文に `"error":"Unsupported Media Type"` が出る
+
+        415 のとき、STS の Console には `Resolved [org.springframework.web.HttpMediaTypeNotSupportedException: Content-Type 'application/x-www-form-urlencoded;charset=UTF-8' is not supported]` という1行が出ています。
+        クライアント側のステータスと、サーバー側のログを見比べるクセを付けましょう。
+    - title: コードを直したら再起動する
+      detail: |
+        TaskController に `@DeleteMapping("/{id}")` で削除(成功したら `ResponseEntity.noContent().build()` で 204、無ければ 404)を足してみましょう。
+        保存したら Boot Dashboard で `todo-api` を選び **(Re)start** ボタン(丸い矢印)を押します。
+        `Invoke-WebRequest -UseBasicParsing -Method Delete -Uri http://localhost:8080/api/tasks/1` の `StatusCode` が `204` になれば成功です。
+        メモリ上の Map なので、再起動すると登録したタスクは消えます(だから本物のアプリでは DB を使います)。
+checklist:
+  - key: rest-project
+    text: Spring Web 入りのプロジェクトを作り、Run As > Spring Boot App で Tomcat started on port 8080 を確認した
+  - key: rest-browser-get
+    text: ブラウザで /api/tasks を開き、JSON の配列が表示された
+  - key: rest-post-201
+    text: PowerShell から POST して、201 と Location ヘッダ(/api/tasks/{id})を確認した
+  - key: rest-iso-date
+    text: dueDate が "2026-10-31" のような ISO-8601 の文字列で返ってくるのを確認した
+  - key: rest-404-415
+    text: 存在しない ID で 404、Content-Type なしの POST で 415 を出し、Console のログと見比べた
+  - key: rest-delete-204
+    text: "@DeleteMapping を足して再起動し、DELETE で 204 が返るのを確認した"

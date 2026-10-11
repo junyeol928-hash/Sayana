@@ -1,0 +1,28 @@
+title: 図形の面積を計算する
+className: Shape
+difficulty: 1
+problem: |
+  図形を表す親クラス `Shape` はすでに用意されています。これを **継承** して、長方形 `Rectangle` と三角形 `Triangle` を完成させてください。
+
+  **親クラス `Shape`(変更不要)**
+  - コンストラクタ `Shape(String name)` で図形の名前を受け取る
+  - `getName()` … 名前を返す
+  - `area()` … 面積を返す。親では `0.0`(子クラスでオーバーライドする)
+  - `describe()` … `名前 + "の面積: " + area()` を返す
+
+  **作るもの**
+  1. `Rectangle(int width, int height)` … 名前は `"長方形"`。面積は `幅 × 高さ`
+  2. `Triangle(int base, int height)` … 名前は `"三角形"`。面積は `底辺 × 高さ ÷ 2`
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `new Rectangle(3, 4).area()` | `12.0` |
+  | `new Triangle(3, 5).area()` | `7.5` |
+  | `new Rectangle(3, 4).describe()` | `"長方形の面積: 12.0"` |
+  | `new Triangle(3, 5).getName()` | `"三角形"` |
+
+  注意:
+  - 名前は **`super(...)` で親のコンストラクタに渡して** ください(`Shape` に引数なしのコンストラクタはありません)。
+  - `area()` には **`@Override` を付けて** ください。
+  - `Triangle` の面積は `int` 同士の割り算に注意(`3 * 5 / 2` は `7` になってしまう)。
+  - `describe()` は子クラスで書き直す必要はありません。親の `describe()` が、子でオーバーライドした `area()` を呼んでくれます。

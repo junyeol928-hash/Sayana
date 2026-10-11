@@ -1,0 +1,261 @@
+id: spring-mockmvc
+title: MockMvcによるテスト
+status: ready
+minutes: 15
+summary: サーバーを起動せずに Controller を叩く MockMvc。perform → andExpect の基本、standaloneSetup と @WebMvcTest、@MockitoBean での差し替え、文字化けとコンテキストキャッシュまで。
+goals:
+  - Controller のテスト方法(単体・standaloneSetup・@WebMvcTest・@SpringBootTest)を速さと範囲で選べる
+  - MockMvc で perform → andExpect を書き、status / content / jsonPath / view / model / redirectedUrl で検証できる
+  - Service を偽物(手書きのスタブ、@MockitoBean + Mockito)に差し替えて Controller だけをテストできる
+  - standaloneSetup で日本語が文字化けする理由と直し方を説明できる
+  - コンテキストキャッシュの仕組みと、テストが遅くなる原因を説明できる
+samples:
+  - title: MockMvc で Controller を呼び出す
+    libraries: [spring]
+    description: Tomcat を起動せずに、`standaloneSetup` で載せた Controller に偽物のリクエストを投げます。`andReturn()` で結果を取り出して表示したあと、テストと同じ `andExpect` で検証します。
+    code: |
+      // MockMvc で Controller を「サーバーを起動せずに」呼び出す
+      // ここを変えてみよう:qty を 20 や 0 に / 最後の "left: 8" を "left: 9" にして AssertionError を見る
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.MockMvc;
+      import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+      import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+      import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+      @RestController
+      public class StockController {
+          int stock = 12;
+
+          @PostMapping("/stocks/ship")
+          public ResponseEntity<String> ship(@RequestParam("qty") int qty) {
+              if (qty <= 0) {
+                  return ResponseEntity.badRequest().body("bad qty");
+              }
+              if (qty > stock) {
+                  return ResponseEntity.status(409).body("short: " + stock);
+              }
+              stock -= qty;
+              return ResponseEntity.ok("left: " + stock);
+          }
+      }
+
+      MockMvc mvc = MockMvcBuilders
+              .standaloneSetup(new StockController())
+              .build();
+
+      var res = mvc.perform(post("/stocks/ship").param("qty", "3"))
+              .andReturn()
+              .getResponse();
+      System.out.println("status = " + res.getStatus());
+      System.out.println("body   = " + res.getContentAsString());
+
+      // テストではこう書く(期待と違えば AssertionError)
+      void test() throws Exception {
+          mvc.perform(post("/stocks/ship").param("qty", "0"))
+                  .andExpect(status().isBadRequest());
+          mvc.perform(post("/stocks/ship").param("qty", "1"))
+                  .andExpect(status().isOk())
+                  .andExpect(content().string("left: 8"));
+      }
+
+      test();
+      System.out.println("andExpect はすべて成功しました");
+  - title: standaloneSetup の文字化けを再現する
+    libraries: [spring]
+    description: 同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしでは `StringHttpMessageConverter` の既定(ISO-8859-1)が使われ、日本語が `?` になります。
+    code: |
+      // 日本語を返す Controller を、UTF-8 設定なし/ありで呼び比べる
+      // ここを変えてみよう:返す文字列を "Total 1,500 yen" にすると、設定なしでも化けない
+      import java.nio.charset.StandardCharsets;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.http.converter.StringHttpMessageConverter;
+      import org.springframework.test.web.servlet.MockMvc;
+      import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+      import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+      @RestController
+      public class TotalController {
+          @GetMapping("/total")
+          public String total() {
+              return "合計 1,500円";
+          }
+      }
+
+      void show(String label, MockMvc mvc) throws Exception {
+          var res = mvc.perform(get("/total")).andReturn().getResponse();
+          System.out.println(label + " Content-Type: " + res.getContentType());
+          System.out.println(label + " 本文: " + res.getContentAsString());
+      }
+
+      MockMvc plain = MockMvcBuilders
+              .standaloneSetup(new TotalController())
+              .build();
+      MockMvc utf8 = MockMvcBuilders
+              .standaloneSetup(new TotalController())
+              .setMessageConverters(
+                      new StringHttpMessageConverter(StandardCharsets.UTF_8))
+              .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+              .build();
+
+      show("[設定なし]", plain);
+      show("[UTF-8 ]", utf8);
+quiz:
+  - question: |
+      次のテストについて正しい説明はどれ?
+      ```java
+      @WebMvcTest(OrderController.class)
+      class OrderControllerTest {
+          @Autowired MockMvc mvc;
+
+          @Test
+          void list() throws Exception {
+              mvc.perform(get("/orders"))
+                 .andExpect(status().isOk());
+          }
+      }
+      ```
+      ※ `OrderController` はコンストラクタで `OrderService`(`@Service`)を受け取る。
+    choices: ["そのまま成功する", "404 で失敗する", "OrderService の Bean が無く、コンテキストの起動に失敗する", "本物の OrderService と DB が使われる"]
+    answer: 2
+    explanation: |
+      `@WebMvcTest` は Controller・`@ControllerAdvice`・フィルタなど **Web 層の Bean だけ** でアプリを組み立てます。`@Service` は作られないので、`OrderController` に渡す `OrderService` が見つからず `No qualifying bean of type 'OrderService'`(Failed to load ApplicationContext)で失敗します。
+      `@MockitoBean OrderService service;` を足して偽物を差し込むのが正解です。本物の Service や DB まで使いたいなら `@SpringBootTest` を選びます。
+  - question: |
+      standaloneSetup(UTF-8 の設定なし)で次の Controller をテストした。結果は?
+      ```java
+      @GetMapping("/hello")
+      public String hello() { return "こんにちは"; }
+      ```
+      ```java
+      mvc.perform(get("/hello"))
+         .andExpect(content().string("こんにちは"));
+      ```
+    choices: ["成功する", "本文が「?????」になって失敗する", "404 で失敗する", "コンパイルエラー"]
+    answer: 1
+    explanation: |
+      `StringHttpMessageConverter` の既定の文字コードは **ISO-8859-1** で、日本語を表せないため `?????` に化け、`Response content expected:<こんにちは> but was:<?????>` で失敗します。
+      standaloneSetup では `setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)` と `defaultResponseCharacterEncoding(StandardCharsets.UTF_8)` を指定します。Spring Boot(`@WebMvcTest` や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。
+  - question: |
+      Mockito で次のように書いた。`service.findByCustomer("C002")` を呼ぶと何が返る?
+      ```java
+      OrderService service = mock(OrderService.class);
+      when(service.findByCustomer("C001"))
+          .thenReturn(List.of(new Order("O-1", "ペン", 300)));
+      ```
+      ※ `findByCustomer` の戻り値の型は `List<Order>`
+    choices: ["空のリスト", "ペンの注文1件のリスト", "null", "例外が発生する"]
+    answer: 0
+    explanation: |
+      `when(...).thenReturn(...)` は **その引数で呼ばれたとき** だけ効きます。仕込んでいない引数 `"C002"` では Mockito の既定値が返り、戻り値が `List` などのコレクションなら **空のコレクション**、`int` なら `0`、普通のオブジェクトなら `null` です。
+      「仕込み忘れても例外にならず空が返る」ので、テストが意図せず通ってしまうことがあります。`verify(service).findByCustomer("C001")` で「本当にその引数で呼ばれたか」も確かめるのが定石です。
+  - question: |
+      standaloneSetup でこの Controller をテストしたら、`ServletException` が発生した。原因は?
+      ```java
+      @Controller
+      public class OrderController {
+          @GetMapping("/orders")
+          public String list(Model model) {
+              model.addAttribute("orders", List.of());
+              return "orders";
+          }
+      }
+      ```
+    choices: ["@RestController にしていないから", "Model に空のリストを入れたから", "テンプレートファイル orders.html が無いから", "画面名 \"orders\" が URL /orders と同じで、自分自身に転送しようとしたから(Circular view path)"]
+    answer: 3
+    explanation: |
+      standaloneSetup は ViewResolver を設定しないと、画面名をそのまま転送先(forward)として扱います。画面名 `orders` は今の URL `/orders` と同じになるので `Circular view path [orders]: would dispatch back to the current handler URL [/orders] again.` で失敗します。
+      画面名を `orders/list` のようにフォルダで分けるのが定番の回避策です(`view().name("orders/list")` で検証できます)。standaloneSetup ではテンプレートは描画されないので、`orders.html` が無いことは原因になりません。
+  - question: |
+      テストクラスが10個ある。全部 `@SpringBootTest` だが、クラスごとに `@MockitoBean` で差し替える Bean がバラバラ。テスト全体がとても遅い。主な原因として最も適切なのは?
+    choices: ["MockMvc が毎回 Tomcat を起動しているから", "設定が違うとみなされ、コンテキストキャッシュが効かず ApplicationContext を何度も作り直しているから", "@MockitoBean は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから"]
+    answer: 1
+    explanation: |
+      Spring のテスト基盤は、**設定が同じ** テストクラス同士で ApplicationContext を使い回します(コンテキストキャッシュ)。`@MockitoBean` の組み合わせ、`@ActiveProfiles`、`@TestPropertySource` が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。`@DirtiesContext` も強制的に作り直します。
+      MockMvc は Tomcat を起動しません(偽物のリクエストで DispatcherServlet を直接呼ぶ)。対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。
+columns:
+  - type: trivia
+    title: "@MockBean から @MockitoBean へ ― 引っ越しの理由"
+    body: |
+      長年使われてきた `@MockBean` は **Spring Boot** の機能(`org.springframework.boot.test.mock.mockito`)でした。Spring Framework 6.2 で、同じことをする `@MockitoBean`(`org.springframework.test.context.bean.override.mockito`)が **Spring Framework 本体** に入り、Spring Boot 3.4 で `@MockBean` は非推奨になりました。
+
+      理由は「Bean の差し替え」を Boot 専用ではなく Spring のテスト基盤の標準にするため。本物を包んで一部だけ偽物にする `@MockitoSpyBean` もあります。
+
+      古い記事をコピペすると、STS で `@MockBean` に取り消し線(非推奨の印)が出ます。基本は import と名前の置き換えだけ。Spring Boot 4 では削除されるので早めに移行しましょう。
+  - type: genba
+    title: CI が 40 分かかる理由は「@SpringBootTest + 毎回違う @MockitoBean」
+    body: |
+      「テストが遅いから、プッシュ前にテストを回さない」。こうなったチームは危険信号です。よくある原因が、全テストクラスに `@SpringBootTest` を付け、クラスごとに違う Bean を `@MockitoBean` で差し替えているパターン。
+      コンテキストキャッシュが効かず、テストクラスの数だけアプリを起動し直します。ログに Spring Boot のバナーが何十回も出ていたらこれです。
+
+      よく効く処方箋は次の3つ。
+
+      - Controller のテストは `@WebMvcTest`、ロジックは素の JUnit。`@SpringBootTest` は通しテスト数本だけ
+      - 差し替える Bean を共通の親クラスに集めて、設定を揃える
+      - `@DirtiesContext` は本当に必要な所だけ(付けるとキャッシュを捨てる)
+
+      このアプリの `WebFlowTest` も、`@SpringBootTest` は「画面の通しテスト」に絞っています。
+  - type: mistake
+    title: 「正常系だけ」のテストは、バグを素通りさせる
+    body: |
+      送料 API に `amount > 5000 ? 0 : 500` というバグ(`>=` のつもりが `>`)がありました。テストはちゃんとありました。
+
+      ```java
+      mvc.perform(get("/shipping-fee").param("amount", "8000"))
+         .andExpect(jsonPath("$.fee").value(0));
+      mvc.perform(get("/shipping-fee").param("amount", "1000"))
+         .andExpect(jsonPath("$.fee").value(500));
+      ```
+
+      どちらも通ります。8000 も 1000 も境界から遠い「よくある値」だからです。5000 円ちょうどのお客様からの問い合わせで発覚しました。
+
+      テストが守ってくれるのは **書いたケースだけ**。境界値(4999 / 5000)と異常系(0 円・マイナス・存在しない ID → 404)を書いて初めて、テストは「バグを見つける道具」になります。演習3はまさにこれを体験する問題です。
+sts:
+  intro: |
+    STS で Controller のテストを JUnit で作り、`@WebMvcTest` + MockMvc で検証して、緑のバーを確認します。Service は `@MockitoBean` で偽物に差し替えます。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: テスト対象の Controller と Service を用意する
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)で、**Dependencies** に **Spring Web** を選んで `mockmvc-demo` を作ります(既存のプロジェクトでも可)。
+        Spring Starter Project には最初から `spring-boot-starter-test`(JUnit 5・Mockito・spring-test 入り)が依存に入っています。`pom.xml` を開いて確かめておきましょう。
+        `src/main/java` の `com.example.demo` パッケージに、演習2と同じ形の `OrderService`(インターフェース)・`Order`(record)・`OrderController` を作ります。`OrderService` の実装クラスはまだ無くて構いません。
+    - title: JUnit テストケースを作る
+      detail: |
+        Package Explorer で `OrderController.java` を右クリック → **New > Other...**(新規 > その他)→ **Java > JUnit > JUnit Test Case**(JUnit テスト・ケース)を選んで **Next**(次へ)。
+        **New JUnit Jupiter test** が選ばれていることを確認し、**Source folder**(ソース・フォルダー)が `mockmvc-demo/src/test/java` になっているか確かめます(`src/main/java` のままならテスト用に直す)。**Name** は `OrderControllerTest` のまま **Finish**(完了)。
+        同じパッケージ名で `src/test/java` 側にファイルができます。テストと本番のコードはフォルダで分け、パッケージは揃えるのが Maven の決まりです。
+    - title: "@WebMvcTest と MockMvc でテストを書く"
+      detail: |
+        本文の `OrderControllerTest`(`@WebMvcTest(OrderController.class)`・`@Autowired MockMvc mvc`・`@MockitoBean OrderService service`)を書きます。
+        `when` / `verify` は `org.mockito.Mockito`、`get` は `MockMvcRequestBuilders`、`status` / `jsonPath` は `MockMvcResultMatchers` の static import です。**Ctrl+Shift+O**(インポートの編成)では static import が入らないことがあるので、候補が出ないときは `import static ...;` を手で書きます。
+        頻繁に使うなら **Window > Preferences > Java > Editor > Content Assist > Favorites**(ウィンドウ > 設定 > Java > エディター > コンテンツ・アシスト > お気に入り)で **New Type...** を押して `org.springframework.test.web.servlet.request.MockMvcRequestBuilders` などを登録すると、補完で static メソッドが出るようになります。
+    - title: Run As > JUnit Test で緑のバーを確認する
+      detail: |
+        エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。**Alt+Shift+X, T** でも実行できます。
+        **JUnit** ビューが開き、上部のバーが **緑** で `Runs: 1/1  Errors: 0  Failures: 0` と出れば成功です。Console にはテスト用に起動した Spring Boot のバナーが表示されます。
+    - title: わざと失敗させて赤いバーを読む
+      detail: |
+        `jsonPath("$[0].item").value("ペン")` の期待値を `"ノート"` に変えて、もう一度実行します。バーが **赤** になり、**Failure Trace**(障害トレース)に `JSON path "$[0].item" expected:<ノート> but was:<ペン>` と出ることを確認します。
+        Failure Trace の行をダブルクリックすると、失敗した行にジャンプできます。確認できたら元に戻します。
+    - title: "@MockitoBean を外して、起動失敗を見る"
+      detail: |
+        `@MockitoBean OrderService service;` の行と、`when` / `verify` の行をコメントアウトして実行します。テストは **Errors** として赤くなり、Failure Trace に `Failed to load ApplicationContext` と、原因として `No qualifying bean of type 'com.example.demo.OrderService'` が出ることを確認します。
+        `@WebMvcTest` は Service を作らない、ということが体感できたら元に戻しましょう。
+    - title: テストをまとめて実行する
+      detail: |
+        Package Explorer で `src/test/java` フォルダ(またはプロジェクト)を右クリック → **Run As > JUnit Test** で、中のテストをすべて実行できます。
+        JUnit ビュー右上の **Rerun Test - Failed First**(失敗したテストを最初に再実行)や、コマンドプロンプトで `mvnw test`(Windows では `mvnw.cmd test`)でも同じテストが動きます。CI(自動ビルド)で動くのは後者です。
+checklist:
+  - key: junit-case
+    text: New > Other > JUnit Test Case で src/test/java に OrderControllerTest を作った
+  - key: webmvctest-green
+    text: "@WebMvcTest + MockMvc のテストを Run As > JUnit Test で実行し、緑のバーを確認した"
+  - key: red-bar
+    text: 期待値をわざと変えて赤いバーにし、Failure Trace の expected / but was を読んで元に戻した
+  - key: mockitobean
+    text: "@MockitoBean を外すと No qualifying bean で起動に失敗することを確かめた"
+  - key: utf8
+    text: standaloneSetup で日本語が ? に化ける理由(ISO-8859-1)と直し方を説明できる
+  - key: read-webflowtest
+    text: このアプリの src/test/java/com/sayana/dojo/web/WebFlowTest.java を開き、@SpringBootTest と MockMvc の使い方を読んだ

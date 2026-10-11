@@ -1,0 +1,39 @@
+title: 在庫APIでステータスコードを返し分ける
+className: StockApiController
+difficulty: 2
+libraries: [spring]
+problem: |
+  倉庫の在庫を扱う REST API を作ります。在庫データ(`stocks`)と `Stock` レコードは雛形に用意してあります。
+  初期データは `A001 ボールペン 12個` / `B002 ノート 0個` / `C003 消しゴム 5個` です。
+
+  **1. 在庫の照会 `GET /api/stocks/{code}`**
+
+  | 状況 | ステータス | 本体 |
+  |---|---|---|
+  | 商品がある | 200 | `Stock` の JSON |
+  | 商品が無い | 404 | なし |
+
+  例:`GET /api/stocks/A001` → `{"code":"A001","name":"ボールペン","quantity":12}`
+
+  **2. 出荷 `POST /api/stocks/{code}/ship?qty=3`**
+
+  上から順にチェックしてください。
+
+  | 状況 | ステータス | 本体 |
+  |---|---|---|
+  | 商品が無い | 404 | なし |
+  | qty が 0 以下 | 400 | なし |
+  | 在庫が qty より少ない | 409 | なし(在庫は減らさない) |
+  | それ以外 | 200 | 出荷後の `Stock` の JSON |
+
+  出荷できたら、在庫を `qty` だけ減らした新しい `Stock` を `stocks` に入れ直します(record は変更できないため)。
+  `qty` を付けずに POST したときは、`@RequestParam` が必須なので Spring が自動で 400 を返します。
+
+  ヒント:
+  - クラスに `@RestController` と `@RequestMapping("/api/stocks")` を付けると、メソッド側は `"/{code}"` だけで済みます。
+  - 戻り値を `ResponseEntity<Stock>` にして、`ResponseEntity.ok(stock)` / `ResponseEntity.notFound().build()` /
+    `ResponseEntity.badRequest().build()` / `ResponseEntity.status(HttpStatus.CONFLICT).build()` を使い分けます。
+  - 409 Conflict は「リクエスト自体は正しいが、今の状態と矛盾していて処理できない」ときのステータスです。
+
+  STS では `com.example.demo` パッケージに `StockApiController.java` と `Stock.java` を分けて置くのが普通です。
+  現場では在庫の操作は Service 層に書きますが(「層分け」のレッスンで扱います)、ここでは Controller の中に書きます。

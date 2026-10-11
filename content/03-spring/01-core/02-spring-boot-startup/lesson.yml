@@ -1,0 +1,304 @@
+id: spring-boot-startup
+title: Spring Bootの起動の仕組み
+status: ready
+minutes: 15
+summary: main の1行 SpringApplication.run の裏側。@SpringBootApplication の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと --debug レポートの読み方、devtools まで。
+goals:
+  - "@SpringBootApplication が @Configuration・@EnableAutoConfiguration・@ComponentScan の合成であることを説明できる"
+  - SpringApplication.run の起動の流れ(スキャン → 自動設定 → DI → Tomcat 起動 → Runner)を説明できる
+  - starter を入れると Bean が用意される理由を、@ConditionalOnClass / @ConditionalOnMissingBean の考え方で説明できる
+  - コンポーネントスキャンの範囲を理解し、「Bean が見つからない」エラーをパッケージ構成から直せる
+  - 起動ログ・APPLICATION FAILED TO START・--debug の自動設定レポートを読んで原因を探せる
+samples:
+  - title: 「利用者が定義していなければ既定を使う」を真似る
+    description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定を登録するかどうかで振る舞いが変わります。
+    libraries: [spring]
+    code: |
+      import org.springframework.beans.factory.*;
+      import org.springframework.context.annotation.*;
+
+      interface Notifier {
+          String send(String message);
+      }
+
+      class ConsoleNotifier implements Notifier {   // 既定の部品
+          public String send(String m) { return "[CONSOLE] " + m; }
+      }
+
+      class SlackNotifier implements Notifier {     // 利用者が用意する部品
+          public String send(String m) { return "[SLACK #ops] " + m; }
+      }
+
+      // 「自動設定」のつもり:利用者が Notifier を定義していれば、それを使う。
+      // 無ければ既定の ConsoleNotifier で動く(@ConditionalOnMissingBean の考え方)
+      @Configuration
+      class AlertAutoConfig {
+          @Bean
+          AlertService alertService(ObjectProvider<Notifier> notifiers) {
+              Notifier n = notifiers.getIfAvailable(() -> {
+                  System.out.println("(Notifier が無いので既定の ConsoleNotifier を使います)");
+                  return new ConsoleNotifier();
+              });
+              return new AlertService(n);
+          }
+      }
+
+      // 利用者の設定(アプリ側で書くもの)
+      @Configuration
+      class UserConfig {
+          @Bean
+          Notifier slackNotifier() {
+              return new SlackNotifier();
+          }
+      }
+
+      record AlertService(Notifier notifier) {
+          void alert(String msg) { System.out.println(notifier.send(msg)); }
+      }
+
+      System.out.println("--- 利用者の設定なし ---");
+      try (var ctx = new AnnotationConfigApplicationContext(AlertAutoConfig.class)) {
+          ctx.getBean(AlertService.class).alert("ディスク残量 5%");
+      }
+
+      System.out.println("--- 利用者が Notifier を定義した ---");
+      // ここを変えてみよう:UserConfig の slackNotifier を消したり、別の Notifier を返したりする
+      try (var ctx = new AnnotationConfigApplicationContext(
+              UserConfig.class, AlertAutoConfig.class)) {
+          ctx.getBean(AlertService.class).alert("ディスク残量 5%");
+      }
+  - title: "@ConditionalOnClass の考え方:自動設定レポートもどき"
+    description: 自動設定は「そのクラス(jar)がクラスパスにあるか」で使うかどうかを決めます。Spring の `ClassUtils.isPresent` で同じ判定をして、`--debug` のレポート風に表示します。
+    libraries: [spring]
+    code: |
+      import org.springframework.util.ClassUtils;
+
+      // @ConditionalOnClass の考え方:「その jar(クラス)がクラスパスにあるか」で設定を使うか決める
+      // この実行環境には Spring・Jackson・Tomcat の jar は入っているが、Thymeleaf と MySQL ドライバは入っていない
+      record AutoConfig(String name, String requiredClass) { }
+
+      // ここを変えてみよう:自分で思いつくクラス名(java.time.LocalDate など)を足してみる
+      List<AutoConfig> candidates = List.of(
+              new AutoConfig("JacksonAutoConfiguration",
+                      "com.fasterxml.jackson.databind.ObjectMapper"),
+              new AutoConfig("WebMvcAutoConfiguration",
+                      "org.springframework.web.servlet.DispatcherServlet"),
+              new AutoConfig("EmbeddedTomcat",
+                      "org.apache.catalina.startup.Tomcat"),
+              new AutoConfig("ThymeleafAutoConfiguration",
+                      "org.thymeleaf.spring6.SpringTemplateEngine"),
+              new AutoConfig("DataSourceAutoConfiguration(MySQL)",
+                      "com.mysql.cj.jdbc.Driver"));
+
+      List<String> positive = new ArrayList<>();
+      List<String> negative = new ArrayList<>();
+      for (AutoConfig c : candidates) {
+          boolean present = ClassUtils.isPresent(c.requiredClass(), null);
+          String simple = c.requiredClass().substring(c.requiredClass().lastIndexOf('.') + 1);
+          if (present) {
+              positive.add(c.name() + " matched:\n      - found required class '" + simple + "'");
+          } else {
+              negative.add(c.name() + ":\n      - did not find required class '" + simple + "'");
+          }
+      }
+      System.out.println("=== 自動設定レポートもどき ===");
+      System.out.println("Positive matches:");
+      positive.forEach(s -> System.out.println("   " + s));
+      System.out.println("Negative matches:");
+      negative.forEach(s -> System.out.println("   " + s));
+quiz:
+  - question: |
+      `@SpringBootApplication` が内部でまとめているアノテーションの組み合わせとして正しいのはどれ?
+    choices: ["@Component + @Autowired + @Bean", "@SpringBootConfiguration(中身は @Configuration)+ @EnableAutoConfiguration + @ComponentScan", "@Configuration + @EnableWebMvc + @Bean", "@Service + @Repository + @Controller"]
+    answer: 1
+    explanation: |
+      `@SpringBootApplication` は `@SpringBootConfiguration`(`@Configuration` の特殊版)・`@EnableAutoConfiguration`(自動設定)・`@ComponentScan`(メインクラスのパッケージ以下を探索)の合成アノテーションです。だからメインクラスの中に `@Bean` メソッドを書くこともできます。
+      `@EnableWebMvc` は Spring MVC の設定を自分で全部引き受けるときのもので、Boot で付けると Web の自動設定が引っ込んでしまいます。`@Service` などはクラスを Bean にする側の印です。
+  - question: |
+      メインクラスが `com.example.shop.ShopApplication` のとき、`@Service` を付けても **Bean として見つからない** のはどれ?
+    choices: ["com.example.shop.OrderService", "com.example.shop.order.OrderService", "com.example.shop.order.mail.MailService", "com.example.common.AuditService"]
+    answer: 3
+    explanation: |
+      `@ComponentScan` はメインクラスのパッケージ `com.example.shop` と、その **サブパッケージ** だけを探します。`com.example.shop.order` や `com.example.shop.order.mail` は何階層下でも対象です。
+      `com.example.common` は名前が似ていても `com.example.shop` の下ではないので対象外。使おうとすると `required a bean of type 'com.example.common.AuditService' that could not be found` で起動に失敗します。
+  - question: |
+      `spring-boot-starter-web` を入れたアプリで、利用者が次の設定を書きました。Jackson の自動設定は `@Bean @ConditionalOnMissingBean ObjectMapper jacksonObjectMapper()` を持っています。起動後のコンテナはどうなる?
+      ```java
+      @Configuration
+      class JsonConfig {
+          @Bean
+          ObjectMapper myObjectMapper() {
+              return new ObjectMapper()
+                      .findAndRegisterModules();
+          }
+      }
+      ```
+    choices: ["ObjectMapper の Bean は myObjectMapper だけになる", "myObjectMapper と jacksonObjectMapper の2つになり、起動エラー", "jacksonObjectMapper が優先され、myObjectMapper は無視される", "自動設定がすべて無効になる"]
+    answer: 0
+    explanation: |
+      利用者の設定が先に処理され、その後に自動設定が評価されます。`@ConditionalOnMissingBean` は「同じ型の Bean がまだ無いときだけ作る」なので、`myObjectMapper` がある以上 `jacksonObjectMapper` は作られません(back off)。
+      2つ登録されて衝突することも、自動設定が全部止まることもありません。止まるのは条件が成立しなかった `jacksonObjectMapper` の1つだけです。
+  - question: |
+      STS でアプリを起動したら、次のログで止まりました。最も可能性の高い原因と対処は?
+      ```text
+      ***************************
+      APPLICATION FAILED TO START
+      ***************************
+      Description:
+      Web server failed to start.
+      Port 8080 was already in use.
+      ```
+    choices: ["Tomcat がインストールされていないので、Tomcat をインストールする", "Spring Web の starter が足りないので pom.xml に追加する", "前に起動した同じアプリ(か別のアプリ)が 8080 を使ったまま。それを停止するか server.port を変える", "@SpringBootApplication の付け忘れ"]
+    answer: 2
+    explanation: |
+      `Port 8080 was already in use` は「8080番ポートを既に誰かが使っている」という意味です。STS では、停止し忘れたアプリを再度 Run して二重起動になるのが定番。Boot Dashboard や Console の停止ボタンで前のアプリを止めるか、`application.properties` に `server.port=8081` のように別ポートを指定します。
+      Tomcat は組み込み(ライブラリとして同梱)なので、別途インストールは不要です。Web の starter が無ければ、そもそも Web サーバを起動しようとしません。
+  - question: |
+      次のアプリを起動したとき、Console に出る順番として正しいのは?
+      ```java
+      @Component
+      class Hello implements CommandLineRunner {
+          Hello() {
+              System.out.println("A: コンストラクタ");
+          }
+          public void run(String... args) {
+              System.out.println("B: run");
+          }
+      }
+      ```
+      (C は Spring Boot が出すログ `Started DemoApplication in 1.2 seconds`)
+    choices: ["B → A → C", "A → C → B", "A → B → C", "C → A → B"]
+    answer: 1
+    explanation: |
+      Bean はコンテナの準備中(`refresh`)に `new` されるので、まず A。準備が終わると Spring Boot が `Started ... in x seconds` をログに出し(C)、その **後で** `CommandLineRunner` の `run` が呼ばれます(B)。
+      `run` は「起動が全部終わった後に1回だけ」実行されるので、DI 済みの Bean を安心して使えます。コンストラクタより先に `run` が呼ばれることはありません(インスタンスが無いと呼べないため)。
+columns:
+  - type: trivia
+    title: あのロゴ(バナー)は変えられる
+    body: |
+      起動時に出る `Spring` の AA(アスキーアート)は **バナー** と呼ばれます。`src/main/resources/banner.txt` を置くと、その中身に差し替わります。
+
+      ```text
+       ☕ Java道場 ☕
+       ${spring-boot.version} で起動中
+      ```
+
+      `${spring-boot.version}` や `${application.title}` のようなプレースホルダも使えます。消したいときは `application.properties` に `spring.main.banner-mode=off`。
+
+      現場では、本番・ステージング・開発で **環境名入りのバナー** を出しておき、「今どの環境のログを見ているか」を取り違えないようにするチームもあります。地味ですが、本番のログだと思ったら開発環境だった……という事故は意外と多いのです。
+  - type: genba
+    title: 「8080 が使われています」と言われたら
+    body: |
+      STS で `Run As > Spring Boot App` を2回押すと、2つ目が `Port 8080 was already in use` で落ちます。Console ビューは最新のプロセスしか表示しないことがあるので、「止めたつもり」になりがちです。
+
+      - **Boot Dashboard** で、緑の ▶ が付いているアプリを選んで ■(Stop)
+      - **Console** ビューの赤い ■(**Terminate** / 終了)で止める
+      - それでも空かないときは、Windows のコマンドプロンプトで探して止める
+
+      ```text
+      netstat -ano | findstr :8080
+      taskkill /PID 12345 /F
+      ```
+
+      `netstat` の最後の列がプロセス ID(PID)です。起動ログの `with PID 12345` と見比べると、どのアプリが居座っているか分かります。
+  - type: mistake
+    title: devtools を入れたのに再起動しない
+    body: |
+      DevTools の自動再起動は「**クラスパス上のファイルが変わったこと**」がきっかけです。つまり、STS がコンパイルして `target/classes` を書き換えない限り何も起きません。よくある原因はこの3つです。
+
+      1. **Project > Build Automatically**(プロジェクト > 自動的にビルド)のチェックが外れている
+      2. pom.xml に DevTools を追加した後、**Maven > Update Project**(Maven > プロジェクトの更新)をしていない
+      3. `templates/` や `static/` の HTML・CSS を変えた。これらは既定で **再起動の対象外**(再起動するほどではないので、ブラウザ側の LiveReload で反映する設計)
+
+      ログのスレッド名が `[restartedMain]` になっていなければ、DevTools 自体が効いていません。
+sts:
+  intro: |
+    Web アプリのプロジェクトを作って起動し、起動ログ・自動設定レポートを読みます。最後に、わざとパッケージの外にクラスを置いて「Bean が見つからない」エラーを再現し、直します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Web と DevTools 入りのプロジェクトを作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)で、次のように入力して **Next**(次へ)。
+        - **Name**(名前):`boot-startup`、**Java Version**(Java バージョン):`21`
+        - **Group**(グループ):`com.example`、**Package**(パッケージ):`com.example.bootstartup`
+
+        依存関係の画面で、検索欄に `web` と入力して **Spring Web** にチェック、続けて `devtools` と入力して **Spring Boot DevTools** にチェックし、**Finish**(完了)。
+        `src/main/java` の `com.example.bootstartup` に `BootStartupApplication.java` ができていれば成功です。
+    - title: 起動してログを読む
+      detail: |
+        `BootStartupApplication.java` を右クリック → **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
+        **Console**(コンソール)ビューで次の3行を探してください。
+        - `Starting BootStartupApplication using Java 21...with PID ...`(PID をメモ)
+        - `Tomcat started on port 8080 (http)`
+        - `Started BootStartupApplication in x.xxx seconds`
+
+        スレッド名の欄が `[restartedMain]` になっていれば DevTools が効いています。
+        ブラウザで `http://localhost:8080/` を開くと **Whitelabel Error Page**(404)が出ます。まだ画面を作っていないので 404 で正常、Tomcat が応答している証拠です。
+    - title: "--debug で自動設定レポートを出す"
+      detail: |
+        いったん停止します(**Boot Dashboard**(Boot ダッシュボード)で `boot-startup` を選んで ■ **Stop**、または Console の赤い ■ **Terminate**(終了))。
+
+        メニューの **Run > Run Configurations...**(実行 > 実行構成...)を開き、左の **Spring Boot App** の下にある `boot-startup - BootStartupApplication` を選びます。
+        **Arguments**(引数)タブの **Program arguments**(プログラムの引数)に `--debug` と入力し、**Apply**(適用)→ **Run**(実行)。
+
+        Console をクリックして **Ctrl+F** で `CONDITIONS EVALUATION REPORT` を検索します。
+        **Positive matches** に `DispatcherServletAutoConfiguration matched`、**Negative matches** に `DataSourceAutoConfiguration` があり、
+        `did not find required class` と理由が書かれていることを確認してください。確認できたら `--debug` を消して **Apply**(適用)しておきます。
+    - title: パッケージの外にクラスを置いて、エラーを再現する
+      detail: |
+        `src/main/java` を右クリック → **New > Package**(新規 > パッケージ)で `com.example.common` を作ります(`com.example.bootstartup` の **外**)。
+        その中に次のクラスを作ります。
+
+        ```java
+        @Service
+        public class ClockService {
+            public String now() {
+                return java.time.LocalTime.now().toString();
+            }
+        }
+        ```
+
+        `com.example.bootstartup` パッケージには、これを使う `HelloRunner` を作ります。
+
+        ```java
+        @Component
+        public class HelloRunner implements CommandLineRunner {
+            private final ClockService clock;
+
+            public HelloRunner(ClockService clock) {
+                this.clock = clock;
+            }
+
+            @Override
+            public void run(String... args) {
+                System.out.println("起動しました: " + clock.now());
+            }
+        }
+        ```
+
+        実行すると `APPLICATION FAILED TO START` になり、
+        `Parameter 0 of constructor in com.example.bootstartup.HelloRunner required a bean of type 'com.example.common.ClockService' that could not be found.` と表示されます。
+    - title: クラスを正しいパッケージへ移して直す
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `ClockService.java` を右クリック → **Refactor > Move...**(リファクタリング > 移動...)。
+        移動先に `com.example.bootstartup` を選び(**Create Package...**(パッケージの作成...)で `com.example.bootstartup.common` を作ってそこに移しても OK)、**OK**。
+        `import` 文は STS が自動で書き換えます。
+
+        もう一度起動して、`Started ...` の **後に** `起動しました: 10:15:30.123` のような行が出れば成功です。
+    - title: DevTools の自動再起動を体験する
+      detail: |
+        アプリを起動したまま、`HelloRunner` のメッセージを `"再起動しました: "` に変えて **Ctrl+S** で保存します。
+        数秒後に Console にバナーと起動ログがもう一度流れ、新しいメッセージが出れば成功です。最初の起動より `Started ... in x.xxx seconds` の秒数が短いことも確認してみましょう(変わらない jar は読み込み直さないため)。
+checklist:
+  - key: sts-web-project
+    text: Spring Web と Spring Boot DevTools 入りのプロジェクトを作り、Run As > Spring Boot App で起動できた
+  - key: read-startup-log
+    text: 起動ログから PID・Tomcat のポート番号・Started の行を見つけ、localhost:8080 で Whitelabel Error Page を確認できた
+  - key: debug-report
+    text: "--debug を付けて起動し、CONDITIONS EVALUATION REPORT の Positive / Negative matches を読めた"
+  - key: scan-error
+    text: メインクラスのパッケージの外にクラスを置いて「could not be found」エラーを再現し、パッケージを移して直せた
+  - key: devtools-restart
+    text: 起動したままコードを保存し、DevTools の自動再起動([restartedMain])でメッセージが変わるのを確認できた
+  - key: explain-autoconfig
+    text: starter を入れると Bean が用意される理由を、@ConditionalOnClass と @ConditionalOnMissingBean を使って説明できる

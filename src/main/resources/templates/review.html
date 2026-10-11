@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('復習')}"></head>
+<body class="page-review">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+    <h1>🔁 復習キュー</h1>
+    <p class="muted">クイズと演習は、解いた日から <b>1日後 → 3日後 → 7日後 → 14日後</b> に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。</p>
+
+    <div th:if="${item == null}" class="card empty-state">
+        <div class="talk talk-sensei">
+            <div class="talk-avatar"><span class="talk-icon">☕</span><span class="talk-name">モカ先輩</span></div>
+            <div class="talk-bubble"><p>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>
+        </div>
+        <a class="btn primary" th:href="@{/}">ダッシュボードへ</a>
+    </div>
+
+    <th:block th:if="${item != null}">
+        <p class="review-progress">残り <b th:text="${due.size()}"></b> 問 ・
+            <a th:href="@{/lessons/{id}(id=${item.lessonId})}" th:text="${itemLesson.title}"></a>
+            <span class="pill small" th:text="'段階 ' + ${item.stage + 1} + '/4'"></span>
+            <span class="pill small ng" th:if="${item.lapses > 0}" th:text="'つまずき ' + ${item.lapses}"></span>
+        </p>
+
+        <div th:if="${question != null}" class="card review-quiz">
+            <div class="md" th:utext="${question.questionHtml}"></div>
+            <form th:attr="hx-post=@{/review/{id}/quiz(id=${item.id})}" hx-target="#review-answer" hx-swap="innerHTML"
+                  hx-on::after-request="this.querySelectorAll('input,button').forEach(e => e.disabled = true)">
+                <label th:each="c, cs : ${question.choicesHtml}" class="choice">
+                    <input type="radio" name="choice" th:value="${cs.index}" required>
+                    <span th:utext="${c}"></span>
+                </label>
+                <button class="btn primary" type="submit">答える</button>
+            </form>
+            <div id="review-answer"></div>
+        </div>
+
+        <div th:if="${view != null}">
+            <p class="muted small">演習の復習です。何も見ずに雛形から書き直してみよう(合格すれば次の段階へ)。</p>
+            <article th:replace="~{fragments/exercise :: card(${view})}"></article>
+        </div>
+    </th:block>
+
+    <section class="card" th:if="${!upcomingItems.isEmpty()}">
+        <div class="card-title">この先の予定(<span th:text="${graduated}"></span> 問 卒業済み)</div>
+        <table class="table">
+            <tr th:each="u : ${upcomingItems}">
+                <td class="small" th:text="${#temporals.format(u.dueDate, 'M/d')}"></td>
+                <td th:text="${u.itemType.name() == 'QUIZ' ? 'クイズ' : '演習'}"></td>
+                <td th:text="${lessonTitles.get(u.lessonId)}"></td>
+                <td class="small muted" th:text="'段階 ' + ${u.stage + 1} + '/4'"></td>
+            </tr>
+        </table>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

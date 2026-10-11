@@ -1,0 +1,208 @@
+id: java-arrays
+title: 配列
+status: ready
+minutes: 15
+summary: 同じ型の値をまとめて扱う配列。宣言・生成、インデックスと範囲外例外、ループでの処理、参照型としての振る舞い、Arrays クラス、二次元配列まで。
+goals:
+  - 配列を new や初期化子で作り、要素の既定値と length を説明できる
+  - ArrayIndexOutOfBoundsException のメッセージから原因を特定できる
+  - for と拡張 for を使い分けて、合計・平均・最大・探索・カウント・逆順を書ける
+  - 配列が参照型であること(代入はエイリアス、== は同一性の比較)を理解し、copyOf / Arrays.equals を正しく使える
+  - 二次元配列(ジャグ配列を含む)を作ってループで処理できる
+samples:
+  - title: 配列を作って中身を見る
+    description: |
+      `new` で作った直後の既定値と、`length`、`Arrays.toString` の動きを確認します。
+    code: |
+      import java.util.Arrays;
+
+      int[] sales = new int[5];          // ここを new int[3] に変えてみよう
+      String[] names = new String[3];
+      boolean[] done = new boolean[2];
+
+      System.out.println("sales の長さ: " + sales.length);
+      System.out.println("既定値: " + Arrays.toString(sales) + " " + Arrays.toString(names) + " " + Arrays.toString(done));
+
+      sales[0] = 12000;
+      sales[4] = 31000;                  // ここを sales[5] にすると? 例外メッセージを読んでみよう
+      System.out.println("代入後: " + Arrays.toString(sales));
+
+      int[] primes = {2, 3, 5, 7};       // 要素を足すと length も変わる
+      System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
+      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(毎回変わる)
+  - title: 代入はコピーじゃない(エイリアスとコピー)
+    description: |
+      `b = a` は同じ配列を指すだけ。`Arrays.copyOf` は新しい配列を作ります。`==` と `Arrays.equals` の違いも確認しましょう。
+    code: |
+      import java.util.Arrays;
+
+      int[] a = {1, 2, 3};
+      int[] b = a;                       // 同じ配列を指す
+      int[] c = Arrays.copyOf(a, a.length);  // 新しい配列(ここを a.clone() に変えても同じ)
+
+      b[0] = 99;                         // b 経由で書き換えると……
+      System.out.println("a = " + Arrays.toString(a));
+      System.out.println("b = " + Arrays.toString(b));
+      System.out.println("c = " + Arrays.toString(c));
+
+      System.out.println("a == b : " + (a == b));
+      System.out.println("a == c : " + (a == c));
+      c[0] = 99;                         // この行を消すと Arrays.equals の結果は?
+      System.out.println("Arrays.equals(a, c) : " + Arrays.equals(a, c));
+
+      int[] longer = Arrays.copyOf(a, 5);    // 長くコピーすると残りは既定値
+      System.out.println("longer = " + Arrays.toString(longer));
+  - title: 典型アルゴリズム(合計・平均・最大・探索・カウント)
+    description: |
+      売上データで定番の処理をまとめて実行します。配列の中身や `target` を変えて結果を確かめましょう。
+    code: |
+      int[] sales = {12000, 8000, 15000, 8000, 21000};   // ここを書き換えてみよう
+
+      long total = 0;
+      for (int s : sales) total += s;
+      double avg = (double) total / sales.length;
+
+      int maxIndex = 0;
+      for (int i = 1; i < sales.length; i++) {
+          if (sales[i] > sales[maxIndex]) maxIndex = i;
+      }
+
+      int target = 8000;                 // 探す値を変えてみよう(存在しない値だと -1)
+      int found = -1;
+      for (int i = 0; i < sales.length; i++) {
+          if (sales[i] == target) { found = i; break; }
+      }
+
+      int over10k = 0;
+      for (int s : sales) if (s >= 10000) over10k++;
+
+      System.out.println("合計: " + total);
+      System.out.println("平均: " + avg);
+      System.out.println("最大: " + (maxIndex + 1) + "日目 (" + sales[maxIndex] + "円)");
+      System.out.println(target + " が最初に出るインデックス: " + found);
+      System.out.println("1万円以上の日数: " + over10k);
+  - title: 二次元配列とジャグ配列
+    description: |
+      行ごとに長さが違う「ジャグ配列」の勤務時間表を、行ごとに合計します。
+    code: |
+      import java.util.Arrays;
+
+      int[][] hours = {
+          {8, 8, 7, 8, 9},   // 社員0
+          {6, 6, 6},         // 社員1(パート)。行を足したり要素を減らしたりしてみよう
+          {8, 9, 8, 8, 8}    // 社員2
+      };
+
+      System.out.println("行の数: " + hours.length);
+      for (int i = 0; i < hours.length; i++) {
+          int sum = 0;
+          for (int h : hours[i]) sum += h;   // hours[i] の長さだけ回る
+          System.out.println("社員" + i + ": " + hours[i].length + "日 / " + sum + "時間");
+      }
+
+      System.out.println(Arrays.deepToString(hours));
+      System.out.println(Arrays.toString(hours));   // こちらは中身が見えない
+quiz:
+  - question: |
+      次のコードを実行すると、何が表示されますか?
+      ```java
+      int[] a = {1, 2, 3};
+      int[] b = a;
+      b[0] = 99;
+      System.out.println(a[0]);
+      ```
+    choices: ["1", "99", "コンパイルエラー", "実行時に例外が発生する"]
+    answer: 1
+    explanation: |
+      配列は参照型なので、`b = a` でコピーされるのは「配列を指す参照」だけです。`a` と `b` は同じ配列を指しているため、`b[0] = 99` は `a[0]` から見ても 99 になります。
+      「1」になると思った人は、`b = a` で配列が複製されると勘違いしています。別の配列が欲しいなら `Arrays.copyOf(a, a.length)` か `a.clone()` を使います。文法上の誤りはないので、コンパイルエラーや例外にはなりません。
+  - question: |
+      次のうち、コンパイルエラーになる行はどれですか?
+      ```java
+      int[] a = new int[3];        // A
+      int[] b = {1, 2, 3};         // B
+      int n = b.length();          // C
+      int[] c = new int[]{4, 5};   // D
+      ```
+    choices: ["A", "B", "C", "D"]
+    answer: 2
+    explanation: |
+      配列の要素数 `length` は **フィールド** なので、カッコを付けて `b.length()` と書くと `cannot find symbol ... method length()` というコンパイルエラーになります。正しくは `b.length` です(String の `length()` はメソッドなのでカッコが必要、という違いが混乱のもと)。
+      A は要素3個の配列の生成、B は宣言と同時の初期化子、D はサイズを書かない `new int[]{...}` 形式で、いずれも正しい書き方です。D でサイズまで書いて `new int[2]{4, 5}` にするとエラーになります。
+  - question: |
+      次のコードの出力はどれですか?
+      ```java
+      int[] x = {1, 2, 3};
+      int[] y = {1, 2, 3};
+      System.out.println((x == y) + " " + Arrays.equals(x, y));
+      ```
+    choices: ["true true", "true false", "false false", "false true"]
+    answer: 3
+    explanation: |
+      `==` は参照型では「同じオブジェクトを指しているか」を比べます。`x` と `y` は中身が同じでも別々に作られた配列なので `false`。
+      `Arrays.equals` は長さと全要素を比べるので `true` です。中身を比べるつもりで `==` や `x.equals(y)`(配列の equals も `==` と同じ判定)を使うのは定番のバグです。
+  - question: |
+      次のコードの出力はどれですか?
+      ```java
+      int[][] t = {{1, 2, 3}, {4}, {5, 6}};
+      System.out.println(t.length + " " + t[1].length + " " + t[2][1]);
+      ```
+    choices: ["3 1 6", "3 3 6", "6 1 5", "実行時に ArrayIndexOutOfBoundsException"]
+    answer: 0
+    explanation: |
+      二次元配列は「配列の配列」です。`t.length` は行の数で 3、`t[1]` は `{4}` なので長さ 1、`t[2][1]` は `{5, 6}` の1番目(0始まり)で 6 です。
+      「3 3 6」は全行が同じ長さだと思い込んだ答えですが、Java では行ごとに長さが違ってよい(ジャグ配列)。「6 1 5」は全要素数と1始まりの数え方を混ぜた誤りです。どのインデックスも範囲内なので例外にもなりません。
+  - question: |
+      次のコードの出力はどれですか?
+      ```java
+      int[] prices = {100, 200, 300};
+      for (int p : prices) {
+          p = p * 2;
+      }
+      System.out.println(Arrays.toString(prices));
+      ```
+    choices: ["[200, 400, 600]", "コンパイルエラー", "[100, 200, 300]", "[I@1b6d3586 のような文字列"]
+    answer: 2
+    explanation: |
+      拡張 for 文の変数 `p` には要素の値が **コピー** されて入ります。`p` に代入しても変わるのはローカル変数 `p` だけで、配列の中身はそのままです。書き換えたいなら `for (int i = 0; i < prices.length; i++) prices[i] *= 2;` のように普通の for を使います。
+      ループ変数への代入は文法上許されるのでコンパイルエラーにはなりません。また `Arrays.toString` を使っているので `[I@...` のような表示にもなりません。
+columns:
+  - type: trivia
+    title: length と length() と size()、なぜバラバラ?
+    body: |
+      Java には「個数」を取る書き方が3つあります。
+
+      | 対象 | 書き方 | 正体 |
+      |---|---|---|
+      | 配列 | `arr.length` | フィールド |
+      | String | `str.length()` | メソッド |
+      | List など | `list.size()` | メソッド |
+
+      配列は普通のクラスから作られるオブジェクトではなく、JVM が特別扱いする存在です。言語仕様(JLS 10.7)で「配列は `public final` なフィールド `length` を持つ」と決められていて、コンパイルすると `arraylength` という配列専用のバイトコード命令になります。一方 String や List は普通のクラスなので、個数はメソッドで返します。List が `length()` でなく `size()` なのは、コレクション設計時の命名の違いで、深い理由はありません。
+
+      覚え方は「**配列だけカッコなし**」。`main(String[] args)` の `args.length` もフィールドです。
+  - type: genba
+    title: 現場の配列事情と「null より空配列」
+    body: |
+      業務コードでは、要素数が増減するデータは配列よりも `List` で扱うのが普通です。ただ、配列が消えることはありません。
+
+      - `main(String[] args)`、`"a,b,c".split(",")` など、標準APIの入口・出口に配列が出てくる
+      - ファイルや通信のデータは `byte[]`。暗号化・画像処理などでは速さと省メモリのため配列が主役
+      - `String.format("%s-%s", a, b)` のような可変長引数も、中身は配列
+
+      もう一つの現場ルールが「**配列やリストを返すメソッドは、null ではなく空(長さ0)を返す**」。`null` を返すと、呼び出し側が毎回 null チェックを書く必要があり、1か所でも忘れると `NullPointerException` で落ちます。空配列なら、拡張 for がそのまま0回で終わるだけなので安全です。このレッスンの演習3が「null が来たら長さ0の配列を返す」仕様になっているのはそのためです。
+  - type: mistake
+    title: ログに [I@1b6d3586 が出ている
+    body: |
+      デバッグ中に `System.out.println("受信データ: " + data);` と書いたら、ログに `受信データ: [I@1b6d3586` と出てきた……新人あるあるです。
+
+      配列は `toString()` を中身の表示用に作り替えていないので、「型名@ハッシュ値」が出ます。`[I` は int の配列、`[Ljava.lang.String;` は String の配列、`[[I` は int の二次元配列を表す JVM 内部の型名です。`@` の後ろは実行するたびに変わります。
+
+      中身を見たいときは次のとおり。
+
+      ```java
+      System.out.println(Arrays.toString(data));      // [3, 1, 4]
+      System.out.println(Arrays.deepToString(table)); // [[1, 2], [3]]
+      ```
+
+      ややこしい例外が1つだけあって、`char[]` は `System.out.println(cs)` に直接渡すと文字列として表示されます(`println(char[])` という専用の版があるため)。ところが `"cs=" + cs` と文字列連結すると `[C@...` になります。見た目が同じ「表示」でも、どのメソッドが選ばれるかで結果が変わる良い例です。

@@ -1,0 +1,217 @@
+id: java-classes
+title: クラスとオブジェクト
+status: ready
+minutes: 15
+summary: バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・this・static、参照の代入と null、toString まで。
+goals:
+  - クラスとインスタンスの違いを説明し、new でインスタンスを作ってフィールドを読み書きできる
+  - コンストラクタを書き、this でフィールドと引数を区別できる。オーバーロードと this(...) を使える
+  - コンストラクタを書くとデフォルトコンストラクタが消える理由と、そのときのエラーを説明できる
+  - インスタンスメソッドと static の違い(どこに属するか)を説明できる
+  - 参照の代入がエイリアスを作ること、null と NullPointerException の関係を説明できる
+samples:
+  - title: 社員クラスを作ってインスタンスを2つ作る
+    description: |
+      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラスです。インスタンスごとにフィールドが別々なことを確かめましょう。
+    code: |
+      class Employee {
+          String name;
+          int salary;
+
+          Employee(String name, int salary) {
+              this.name = name;      // this.name がフィールド、name が引数
+              this.salary = salary;
+          }
+
+          void raise(int amount) {
+              salary += amount;      // 呼び出したインスタンスの salary が変わる
+          }
+
+          @Override
+          public String toString() {
+              return name + "(" + salary + "円)";
+          }
+      }
+
+      // ここを変えてみよう:名前や給料、raise する相手を変える
+      Employee a = new Employee("佐藤", 300000);
+      Employee b = new Employee("鈴木", 350000);
+      a.raise(10000);
+
+      System.out.println(a);   // toString() が呼ばれる
+      System.out.println(b);
+      // toString メソッドを消すと Employee@xxxx という表示になる
+  - title: コンストラクタのオーバーロードと static
+    description: |
+      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数えます。`count` は全インスタンスで1つだけです。
+    code: |
+      class Item {
+          static int count = 0;    // クラスに1つだけ(全インスタンスで共有)
+          String name;
+          int price;
+
+          Item(String name, int price) {
+              this.name = name;
+              this.price = price;
+              count++;
+          }
+
+          Item(String name) {
+              this(name, 100);     // 価格を省略したら100円。this(...) は先頭に
+          }
+
+          int priceWithTax() {
+              return price * 110 / 100;
+          }
+      }
+
+      // ここを変えてみよう:Item を増やす / new Item() と書くとどうなる?
+      Item pen = new Item("ペン", 120);
+      Item eraser = new Item("消しゴム");
+
+      System.out.println(pen.name + " 税込 "
+              + pen.priceWithTax() + "円");
+      System.out.println(eraser.name + " 税込 "
+              + eraser.priceWithTax() + "円");
+      System.out.println("作った数: " + Item.count);
+  - title: 参照の代入と null
+    description: |
+      代入でコピーされるのは参照だけ。`b` を変えると `a` も変わります。オブジェクトの配列は作った直後は全部 `null` です。
+    code: |
+      class Counter {
+          int value;
+      }
+
+      Counter a = new Counter();
+      Counter b = a;             // 同じインスタンスを指す(エイリアス)
+      b.value = 5;
+      System.out.println("a.value = " + a.value);
+      System.out.println("a == b ? " + (a == b));
+
+      // ここを変えてみよう:Counter b = new Counter(); にすると結果は?
+      Counter[] list = new Counter[3];
+      System.out.println("list[0] = " + list[0]);
+
+      for (int i = 0; i < list.length; i++) {
+          list[i] = new Counter(); // 消すと NPE になる
+          list[i].value = i * 10;
+      }
+      System.out.println("list[2].value = " + list[2].value);
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class Box {
+          int size;
+      }
+      Box x = new Box();
+      x.size = 3;
+      Box y = x;
+      y.size = 7;
+      System.out.println(x.size + " " + y.size);
+      ```
+    choices: ["7 7", "3 7", "3 3", "0 7"]
+    answer: 0
+    explanation: |
+      `Box y = x;` でコピーされるのはインスタンスではなく **参照** です。`x` と `y` は同じインスタンスを指すエイリアスなので、`y.size = 7` は `x.size` も 7 にします。
+      `3 7` になるのは `Box y = new Box();` のように別のインスタンスを作った場合です。
+  - question: |
+      次のコードでコンパイルエラーになるのはどの行?
+      ```java
+      class User {                         // 行1
+          String name;                     // 行2
+          User(String name) {              // 行3
+              this.name = name;            // 行4
+          }                                // 行5
+      }                                    // 行6
+      User u = new User();                 // 行7
+      ```
+    choices: ["行3", "行4", "行7", "どこもエラーにならない"]
+    answer: 2
+    explanation: |
+      コンストラクタを1つでも書くと、コンパイラは引数なしの **デフォルトコンストラクタを自動生成しなくなります**。`User(String)` しかないので、`new User()` は `constructor User in class User cannot be applied to given types` になります。
+      行3・行4は正しいコンストラクタです。`new User()` も使いたいなら `User() { this("名無し"); }` のように自分で書きます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class Member {
+          String name;
+          Member(String name) {
+              name = name;
+          }
+      }
+      Member m = new Member("ハル");
+      System.out.println(m.name);
+      ```
+    choices: ["ハル", "name", "null", "空文字(何も表示されない)"]
+    answer: 2
+    explanation: |
+      コンストラクタの中で単に `name` と書くと、それは **引数の name** を指します(引数がフィールドを隠している)。`name = name;` は引数に引数を代入しているだけで、フィールドには何も入りません。フィールドは既定値の `null` のままなので `null` と出力されます。
+      フィールドに入れるには `this.name = name;` と書きます。コンパイルエラーにはならないので気づきにくいミスです。
+  - question: |
+      次のクラスについて、**コンパイルエラーになる** メソッドはどれ?
+      ```java
+      class Shop {
+          int sales;
+          static int shopCount;
+
+          void a() { sales++; }
+          void b() { shopCount++; }
+          static void c() { shopCount++; }
+          static void d() { sales++; }
+      }
+      ```
+    choices: ["a", "b", "c", "d"]
+    answer: 3
+    explanation: |
+      `static` メソッドはインスタンスではなくクラスに属するので、`this`(どのインスタンスか)がありません。そのため インスタンスのフィールド `sales` は直接使えず、`non-static variable sales cannot be referenced from a static context` になります。
+      逆に、インスタンスメソッド `b` から static フィールドを使うのは問題ありません(全インスタンスで共有している1つを触るだけ)。
+  - question: |
+      次のコードを実行するとどうなる?
+      ```java
+      class Task {
+          String title;
+      }
+      Task[] tasks = new Task[2];
+      System.out.println(tasks.length);
+      System.out.println(tasks[0].title);
+      ```
+    choices: ["2 と null が出力される", "2 が出力されたあと NullPointerException", "0 と null が出力される", "コンパイルエラー"]
+    answer: 1
+    explanation: |
+      `new Task[2]` で作られるのは **Task を入れる枠が2つある配列** だけで、Task のインスタンスは作られません。要素は参照型の既定値 `null` です。`tasks.length` は 2 ですが、`tasks[0].title` は null のフィールドを読もうとして `NullPointerException` になります。
+      `tasks[0]` を println するだけなら `null` と表示されますが、`null` に `.` を付けた時点で NPE です。各要素に `tasks[i] = new Task();` が必要です。
+columns:
+  - type: trivia
+    title: Employee@2a139a55 の数字はメモリアドレスではない
+    body: |
+      toString を書かずにインスタンスを println すると `Employee@2a139a55` のように出ます。この16進数を「メモリアドレス」と書いた記事がありますが、不正確です。
+
+      これは `Object` クラスの toString が `getClass().getName() + "@" + Integer.toHexString(hashCode())` を返しているもので、数字は **ハッシュコード**(識別用の int 値)です。HotSpot JVM の既定では、アドレスではなく **スレッドごとの乱数** をもとに作られ、オブジェクトのヘッダーに保存されます。
+
+      そもそも JVM の GC(ガベージコレクション)は、生きているオブジェクトをヒープ内で **移動** させます。アドレスをそのまま使ったら、移動のたびに値が変わってしまいます。一度決まったハッシュコードは移動しても変わらない、というのが仕様上の約束です。
+
+      配列の `[I@1b6d3586` も同じ仕組みで、`[I` は「int の配列」の内部名です。
+  - type: mistake
+    title: "name = name; で本番データの名前が全部 null に"
+    body: |
+      ある勤怠システムで、新しく作った `Staff` クラスのコンストラクタがこう書かれていました。
+
+      ```java
+      Staff(String name, String dept) {
+          name = name;
+          this.dept = dept;
+      }
+      ```
+
+      コンパイルは通り、部署は入るので画面確認では気づかれず、帳票を出した段階で「氏名欄が全員 null」と発覚しました。引数とフィールドが同名のとき、素の `name` は **引数** を指すので、引数に引数を入れているだけだったのです。
+
+      対策は3つ。①フィールドへの代入は必ず `this.` を付ける。②STS(Eclipse)の警告 `The assignment to variable name has no effect` を無視しない。③引数を `final` にする(`Staff(final String name, ...)`)と、`name = name` が **コンパイルエラー** になって機械的に防げます。STS の「ソース → フィールドを使用してコンストラクターを生成」も便利です。
+  - type: genba
+    title: 「とりあえず static」は後で泣く
+    body: |
+      `main` から呼ぶと「non-static ... from a static context」と怒られるので、エラーを消すためにフィールドもメソッドも全部 `static` にしてしまう――新人のコードで本当によく見ます。
+
+      動くことは動きます。でも static フィールドは **アプリ全体で1つ** です。Spring Boot のような Web アプリでは、1つのクラスを複数のリクエスト(複数のユーザー)が同時に使います。そこで「ログイン中のユーザー名」を static フィールドに入れたら、**Aさんの画面にBさんの名前が出る** 事故が起きます。実際に個人情報の表示事故として報告される典型パターンです。
+
+      static にしてよいのは、①定数(`static final`)、②状態を持たない計算(`Math.max` のようなユーティリティ)くらい。データを持つならインスタンスを `new` して、インスタンスメソッドで扱うのが基本です。

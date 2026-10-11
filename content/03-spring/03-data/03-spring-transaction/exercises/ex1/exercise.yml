@@ -1,0 +1,22 @@
+title: 振込を1つのトランザクションにする
+className: TransferService
+difficulty: 2
+libraries: [spring]
+problem: |
+  口座 `from` から `to` へ `amount` 円を振り込む `TransferService` を完成させてください。
+  口座の残高は `AccountStore`(DB の代わり。完成済み)が持っています。
+
+  1. `transfer(from, to, amount)`
+     - `amount` が 0 以下なら `IllegalArgumentException` を投げる
+     - `store.withdraw(from, amount)` で引き出し、`store.deposit(to, amount)` で入金する
+     - **全体を1つのトランザクションにする**(`@Transactional`)。入金で失敗したら、引き出しも取り消されるように
+  2. `balanceOf(id)` は参照だけなので `@Transactional(readOnly = true)` にする
+
+  `AccountStore` の動き:
+  - 口座がなければ `IllegalArgumentException`、残高不足なら `IllegalStateException`(どちらも RuntimeException)
+  - 例:A に 10000 円、B に 0 円のとき `transfer("A", "Z", 3000)` は、A から 3000 円引き出した **後で** Z が無いと分かって例外になる。
+    トランザクションがあればロールバックされて A は 10000 円に戻る
+
+  ※ 採点では、DB の代わりに「開始・コミット・ロールバック」を記録するトランザクションマネージャ(ロールバック時に `AccountStore` を開始時の状態に戻す)を
+  `@EnableTransactionManagement` と一緒に登録して、`@Transactional` が効いているかを確かめます。例外は catch せず、そのまま呼び出し元へ投げてください。
+  STS では `com.example.demo.account` パッケージに `TransferService.java`(`@Service` を付ける)を置き、`AccountStore` の代わりに Spring Data JPA の Repository を使います。

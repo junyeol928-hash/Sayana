@@ -1,0 +1,38 @@
+title: 共通ヘッダー付きの注文詳細ページ
+className: OrderPage
+difficulty: 2
+libraries: [spring, thymeleaf]
+problem: |
+  注文詳細ページのテンプレート `DETAIL` を作ります。共通ヘッダーのフラグメントを持つテンプレート `LAYOUT`(テンプレート名 `layout`)は雛形に完成品があります。
+  `DETAIL` には、Controller から次の2つが渡されます。
+
+  - `order` … `Order`(注文番号・お客様名・注文日時・合計金額・状態)
+  - `page` … 戻り先の一覧ページ番号(`int`)
+
+  アプリのコンテキストパスが `/shop` のとき、例えばこう描画されるようにしてください(空白や改行は自由です)。
+
+  ```html
+  <header class="site">
+    <a href="/shop/">Java商店</a>
+    <h1>注文詳細</h1>
+  </header>
+  <section class="order">
+    <p class="id">注文番号: 1001</p>
+    <p class="customer">お客様: 山田 太郎 様</p>
+    <p class="date">注文日時: 2026/10/11 09:05</p>
+    <p class="total">合計: 3,480円</p>
+    <a class="cancel" href="/shop/orders/1001/cancel">この注文をキャンセル</a>
+    <a class="back" href="/shop/orders?page=2">注文一覧へ戻る</a>
+  </section>
+  ```
+
+  - ヘッダーは自分で書かず、`th:replace="~{layout :: header('注文詳細')}"` で `LAYOUT` のフラグメントを使う
+  - `<section>` に `th:object="${order}"` を付け、中では `*{id}` のような **選択変数式** で値を出す
+  - 注文日時は `#temporals.format(…, 'yyyy/MM/dd HH:mm')`、合計は `#numbers.formatInteger(…, 1, 'COMMA')`
+  - キャンセルのリンクは、注文がキャンセルできるとき(`Order` の `cancellable()` が true)だけ出す。URL は `@{/orders/{id}/cancel(id=…)}` で組み立てる
+  - 戻るリンクは `@{/orders(page=${page})}` で、`?page=2` のようなクエリを付ける
+  - 文字列と式をつなぐのは `'注文番号: ' + *{id}` でも、リテラル置換 `|注文番号: *{id}|` でも構いません
+  - `/shop` はコンテキストパスです。`@{/...}` が自動で先頭に付けるので、テンプレートに `/shop` と書いてはいけません
+
+  STS では `LAYOUT` を `templates/fragments/layout.html`、`DETAIL` を `templates/orders/detail.html` に置き、
+  `th:replace="~{fragments/layout :: header('注文詳細')}"` と書きます。採点では2つの文字列をテンプレート名 `layout` / `detail` として描画しています。

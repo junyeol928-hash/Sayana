@@ -1,0 +1,32 @@
+title: 商品クラスで小計を出す
+className: Product
+difficulty: 1
+problem: |
+  ネットショップのカートに入れる「商品」を表す `Product` クラスを完成させてください。
+
+  **フィールド**(すでに宣言済み)
+
+  | フィールド | 型 | 意味 |
+  |---|---|---|
+  | `name` | `String` | 商品名 |
+  | `price` | `int` | 単価(円) |
+  | `quantity` | `int` | 数量 |
+
+  **作るもの**
+
+  1. コンストラクタ `Product(String name, int price, int quantity)` … 引数を3つのフィールドに入れる
+  2. `int subtotal()` … 小計(単価 × 数量)を返す
+  3. `void add(int n)` … 数量を `n` 個増やす
+  4. `String toString()` … `"ペン 120円 x 3個 = 360円"` の形式の文字列を返す
+
+  ```java
+  Product p = new Product("ペン", 120, 3);
+  p.subtotal();   // 360
+  p.add(2);
+  p.subtotal();   // 600
+  p.toString();   // "ペン 120円 x 5個 = 600円"
+  ```
+
+  ヒント:
+  - 引数とフィールドが同じ名前なので、フィールドへの代入は `this.name = name;` のように `this.` を付けます。
+  - `toString` の中から `subtotal()` を呼んでも構いません。

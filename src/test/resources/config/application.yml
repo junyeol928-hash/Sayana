@@ -1,0 +1,7 @@
+# テスト用の上書き(classpath:/config/application.yml は通常の application.yml より優先される)
+spring:
+  datasource:
+    url: jdbc:h2:mem:dojo-test;DB_CLOSE_DELAY=-1
+  jpa:
+    hibernate:
+      ddl-auto: create-drop

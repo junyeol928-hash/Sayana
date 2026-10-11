@@ -1,0 +1,330 @@
+id: java-lambda-stream
+title: ラムダとStream
+status: ready
+minutes: 15
+summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。
+goals:
+  - 匿名クラスをラムダ式とメソッド参照に書き換えられる
+  - 関数型インターフェース(Function / Predicate / Consumer / Supplier / Comparator)の役割を説明できる
+  - filter / map / sorted / distinct / limit をつないで、Stream の3段階で処理を書ける
+  - collect(toList / toMap / groupingBy / joining)と mapToInt の sum / average で集計できる
+  - 遅延評価・Stream の再利用不可・実質 final という3つの罠を説明できる
+samples:
+  - title: 匿名クラス → ラムダ式 → メソッド参照
+    description: 同じ「並べ替えのルール」を3通りで渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。
+    code: |
+      import java.util.*;
+      import java.util.function.*;
+
+      // ここを変えてみよう:名前を足す / reversed() を消して短い順にする
+      List<String> names =
+          new ArrayList<>(List.of("Mika", "Bob", "Alice", "Ken"));
+
+      // ① 匿名クラス(Java 7 までの書き方)
+      names.sort(new Comparator<String>() {
+          @Override
+          public int compare(String a, String b) {
+              return a.compareTo(b);
+          }
+      });
+      System.out.println("① 辞書順      : " + names);
+
+      // ② ラムダ式:渡したい処理だけを書く
+      names.sort((a, b) -> a.length() - b.length());
+      System.out.println("② 短い順      : " + names);
+
+      // ③ メソッド参照 + Comparator の組み立て
+      names.sort(Comparator.comparing(String::length)
+          .reversed()
+          .thenComparing(Comparator.naturalOrder()));
+      System.out.println("③ 長い順→辞書順: " + names);
+
+      // 標準の関数型インターフェース
+      Predicate<String> isLong = s -> s.length() >= 4;
+      Function<String, String> shout = s -> s.toUpperCase() + "!";
+      Consumer<String> print = System.out::println;
+      Supplier<List<String>> newList = ArrayList::new;
+
+      List<String> picked = newList.get();
+      for (String n : names) {
+          if (isLong.test(n)) {
+              picked.add(shout.apply(n));
+          }
+      }
+      picked.forEach(print);
+  - title: 注文リストを Stream で絞り込む(for 文と比べる)
+    description: 5,000円以上の注文をした顧客を、重複なし・名前順で3人まで。同じ処理を for 文でも書いて比べます。
+    code: |
+      import java.util.*;
+
+      class Order {
+          private final String customer;
+          private final int amount;
+          Order(String customer, int amount) {
+              this.customer = customer;
+              this.amount = amount;
+          }
+          String getCustomer() { return customer; }
+          int getAmount() { return amount; }
+      }
+
+      public class Main {
+          public static void main(String[] args) {
+              // ここを変えてみよう:5000 や limit(3) を変える / distinct() を消す
+              List<Order> orders = List.of(
+                  new Order("Sato", 7200),
+                  new Order("Tanaka", 3000),
+                  new Order("Suzuki", 5000),
+                  new Order("Sato", 9800),
+                  new Order("Ito", 12000),
+                  new Order("Abe", 6400));
+
+              List<String> top = orders.stream()      // 生成
+                  .filter(o -> o.getAmount() >= 5000) // 中間操作
+                  .map(Order::getCustomer)
+                  .distinct()
+                  .sorted()
+                  .limit(3)
+                  .toList();                          // 終端操作
+              System.out.println("Stream版: " + top);
+
+              // 同じことを for 文で
+              List<String> names = new ArrayList<>();
+              for (Order o : orders) {
+                  String c = o.getCustomer();
+                  boolean big = o.getAmount() >= 5000;
+                  if (big && !names.contains(c)) {
+                      names.add(c);
+                  }
+              }
+              Collections.sort(names);
+              List<String> top2 =
+                  names.subList(0, Math.min(3, names.size()));
+              System.out.println("for 版  : " + top2);
+
+              int total = orders.stream()
+                  .filter(o -> o.getAmount() >= 5000)
+                  .mapToInt(Order::getAmount)
+                  .sum();
+              System.out.println("5000円以上の合計: " + total + "円");
+          }
+      }
+  - title: collect で集計する(groupingBy / toMap / joining)
+    description: 社員リストを部署ごとにまとめたり、Map にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。
+    code: |
+      import java.util.*;
+      import java.util.stream.*;
+
+      class Employee {
+          private final String id;
+          private final String name;
+          private final String dept;
+          private final int salary;
+          Employee(String id, String name,
+                   String dept, int salary) {
+              this.id = id;
+              this.name = name;
+              this.dept = dept;
+              this.salary = salary;
+          }
+          String getId() { return id; }
+          String getName() { return name; }
+          String getDept() { return dept; }
+          int getSalary() { return salary; }
+      }
+
+      public class Main {
+          public static void main(String[] args) {
+              // ここを変えてみよう:社員を足す / 部署名を "開発" 以外にしてみる
+              List<Employee> emps = List.of(
+                  new Employee("E01", "佐藤", "開発", 420),
+                  new Employee("E02", "鈴木", "営業", 380),
+                  new Employee("E03", "田中", "開発", 510),
+                  new Employee("E04", "伊藤", "総務", 350),
+                  new Employee("E05", "渡辺", "営業", 400));
+
+              // TreeMap で包むのはキー(部署名)順に表示するため
+              Map<String, List<String>> byDept = new TreeMap<>(
+                  emps.stream().collect(Collectors.groupingBy(
+                      Employee::getDept,
+                      // mapping:社員を「名前だけ」に変えて集める
+                      Collectors.mapping(Employee::getName,
+                          Collectors.toList()))));
+              System.out.println("部署ごと: " + byDept);
+
+              Map<String, Long> count = new TreeMap<>(
+                  emps.stream().collect(Collectors.groupingBy(
+                      Employee::getDept, Collectors.counting())));
+              System.out.println("人数    : " + count);
+
+              Map<String, String> idToName = emps.stream()
+                  .collect(Collectors.toMap(
+                      Employee::getId, Employee::getName));
+              System.out.println("E03 は  : "
+                  + idToName.get("E03"));
+
+              String csv = emps.stream()
+                  .map(Employee::getName)
+                  .collect(Collectors.joining(", "));
+              System.out.println("全員    : " + csv);
+
+              double avg = emps.stream()
+                  .filter(e -> e.getDept().equals("開発"))
+                  .mapToInt(Employee::getSalary)
+                  .average()
+                  .orElse(0);
+              System.out.println("開発の平均給与: " + avg + "万円");
+          }
+      }
+  - title: 3つの罠(遅延評価・再利用・実質 final)
+    description: 終端操作を呼ぶまで中間操作は動かないこと、Stream は使い切りであることを、出力の順番で確かめます。
+    code: |
+      import java.util.*;
+      import java.util.stream.*;
+
+      public class Main {
+          public static void main(String[] args) {
+              // ① 遅延評価:終端操作を呼ぶまで map は動かない
+              Stream<String> s = Stream.of("a", "b", "c")
+                  .map(x -> {
+                      System.out.println("  map: " + x);
+                      return x.toUpperCase();
+                  });
+              System.out.println("まだ何も起きていない");
+              System.out.println("結果: " + s.toList());
+
+              // ② limit は必要な分だけ流す
+              // ここを変えてみよう:limit(2) を limit(5) にする
+              List<Integer> evens = Stream.of(1, 2, 3, 4, 5, 6)
+                  .filter(n -> {
+                      System.out.println("  filter: " + n);
+                      return n % 2 == 0;
+                  })
+                  .limit(2)
+                  .toList();
+              System.out.println("偶数を2つ: " + evens);
+
+              // ③ Stream は使い切り
+              try {
+                  s.count();   // ① の s をもう一度使う
+              } catch (IllegalStateException e) {
+                  System.out.println("再利用エラー: " + e.getMessage());
+              }
+
+              // ④ ラムダから外のローカル変数は書き換えられない
+              int base = 100;          // 実質 final(この後代入しない)
+              // base = 200;           // ← コメントを外すと下の行がコンパイルエラー
+              List<Integer> plus = Stream.of(1, 2, 3)
+                  .map(n -> n + base)
+                  .toList();
+              System.out.println("base を足す: " + plus);
+          }
+      }
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      List<Integer> nums = List.of(3, 1, 3, 2);
+      List<Integer> r = nums.stream()
+          .distinct()
+          .sorted()
+          .map(n -> n * 10)
+          .toList();
+      System.out.println(r);
+      ```
+    choices: ["[30, 10, 30, 20]", "[10, 20, 30]", "[10, 20, 30, 30]", "[30, 10, 20]"]
+    answer: 1
+    explanation: |
+      `distinct()` で重複した 3 が1つになり `[3, 1, 2]`、`sorted()` で `[1, 2, 3]`、`map` で10倍して `[10, 20, 30]` です。
+      `[10, 20, 30, 30]` は distinct を見落とした場合、`[30, 10, 20]` は sorted を見落とした場合の答えです。中間操作は書いた順に1段ずつ効きます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      List<String> list = List.of("a", "b");
+      list.stream().map(s -> {
+          System.out.print(s);
+          return s;
+      });
+      System.out.print("!");
+      ```
+    choices: ["ab!", "!ab", "!", "コンパイルエラー"]
+    answer: 2
+    explanation: |
+      `map` は中間操作で、**遅延評価** されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
+      文法的には正しい式文なのでコンパイルエラーにはなりません。「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
+  - question: |
+      メソッド参照 `String::length` と同じ意味のラムダ式はどれ?
+    choices: ["s -> s.length()", "() -> String.length()", "s -> String.length(s)", "(s, t) -> s.length() + t.length()"]
+    answer: 0
+    explanation: |
+      `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
+      `length()` は static メソッドではないので `String.length()` や `String.length(s)` という呼び方はできません。static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
+  - question: |
+      次のコードのうち、**コンパイルエラーになる行** はどれ?
+      ```java
+      int count = 0;                              // (A)
+      List<String> list = List.of("x", "y");
+      list.forEach(s -> System.out.println(s));   // (B)
+      list.forEach(s -> count++);                 // (C)
+      long n = list.stream().count();             // (D)
+      ```
+    choices: ["(A)", "(B)", "(C)", "(D)"]
+    answer: 2
+    explanation: |
+      ラムダ式から参照できるローカル変数は、`final` か **実質 final**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
+      数えたいなら (D) のように `count()` を使うのが正解です。(A) の宣言自体や、外の変数に触れない (B) は問題ありません。
+  - question: |
+      次のコードを実行するとどうなる?
+      ```java
+      Stream<String> s = Stream.of("A", "B", "C");
+      System.out.println(s.count());
+      System.out.println(s.toList());
+      ```
+    choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと、実行時に例外が発生する"]
+    answer: 3
+    explanation: |
+      Stream は **一度終端操作を呼んだら使い切り** です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
+      コンパイラは「この Stream が使用済みか」を追跡しないのでコンパイルは通ります。もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
+columns:
+  - type: trivia
+    title: ラムダ式は「匿名クラスの省略記法」ではない
+    body: |
+      ラムダ式は匿名クラスを短く書いただけ……と思われがちですが、中身は別物です。
+
+      匿名クラスを書くと、コンパイル時に `Main$1.class` のようなクラスファイルが1つずつ作られます。一方ラムダ式はクラスファイルを作らず、`invokedynamic` という JVM 命令に置き換えられ、**実行時に初めて** 実装オブジェクトが組み立てられます(`LambdaMetafactory` が担当)。ラムダを大量に書いてもクラスファイルが増えず、起動時の読み込みも軽くなるのはこのためです。
+
+      もう1つの違いは `this` の意味です。匿名クラスの中の `this` は「匿名クラス自身」ですが、ラムダの中の `this` は **外側のクラスのインスタンス** を指します。ラムダは新しいスコープを作らないので、外と同じ名前のローカル変数をラムダの引数に使うこともできません(`variable x is already defined`)。
+  - type: mistake
+    title: "comparing(...).reversed() でいきなりコンパイルエラー"
+    body: |
+      「売上の多い順」のつもりでこう書くと怒られます。
+
+      ```java
+      list.sort(Comparator.comparing(p -> p.getSold())
+          .reversed());
+      ```
+
+      ```text
+      error: cannot find symbol
+        symbol:   method getSold()
+        location: variable p of type Object
+      ```
+
+      `p` が `Object` 扱いです。Java の型推論は、メソッド呼び出しの連鎖の途中には外側の型情報を伝えません。`.reversed()` を付けると `comparing(...)` は「`list.sort` に渡される」ことを知らずに推論され、`p` の型が決まらないのです。
+
+      対策は、**メソッド参照にする**(`Comparator.comparing(Product::getSold).reversed()`)か、ラムダの引数に型を書く(`(Product p) -> p.getSold()`)こと。メソッド参照なら型が確定するので、現場ではこちらが定番。
+  - type: genba
+    title: forEach の中で外のリストに add するコード
+    body: |
+      実質 final のルールを知った新人がよく書くのがこれです。
+
+      ```java
+      List<String> result = new ArrayList<>();
+      orders.stream()
+          .filter(o -> o.getAmount() >= 5000)
+          .forEach(o -> result.add(o.getCustomer()));
+      ```
+
+      `result` という変数自体は再代入していないのでコンパイルは通りますし、動きもします。でもレビューでは高確率で指摘されます。Stream の中で外の状態を書き換える(**副作用**)と、`parallelStream()` に変えた瞬間に `ArrayList` が複数スレッドから同時に触られて要素が消えたり例外が出たりするからです。
+
+      「結果は終端操作で受け取る」が原則。この例なら `.map(Order::getCustomer).toList()` で済みます。`forEach` は「画面やログに出す」など、本当に外へ何かするときのためのものです。

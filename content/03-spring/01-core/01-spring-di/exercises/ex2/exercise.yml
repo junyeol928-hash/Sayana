@@ -1,0 +1,36 @@
+title: "@Configuration と @Bean で通知の実装を切り替える"
+className: AppConfig
+difficulty: 2
+libraries: [spring]
+problem: |
+  勤怠の締め忘れを知らせる `ReminderService` があります。通知手段(`Notifier`)は、
+  本番ではメール、開発中はコンソール出力に **設定クラスを差し替えるだけで** 切り替えたい、という要件です。
+
+  `Notifier`・`MailNotifier`・`ConsoleNotifier` は用意済みです(アノテーションの付いていない、
+  ライブラリのクラスのつもり)。次を完成させてください。
+
+  1. `ReminderService` の `remind(members, message)`:
+     `members` の各宛先に `notifier.send(宛先, message)` を呼び、戻り値を **順番どおりに** List にして返す。
+     `members` が空なら空の List を返す。
+  2. 本番用の設定 `AppConfig`(`@Configuration` を付ける)に、2つの `@Bean` メソッドを書く
+     - `notifier()`:`new MailNotifier("noreply@example.com")` を返す
+     - `reminderService()`:`new ReminderService(notifier())` を返す(**`notifier()` を呼んでよい**。理由は下記)
+  3. 開発用の設定 `DevConfig`(`@Configuration` を付ける)に、2つの `@Bean` メソッドを書く
+     - `notifier()`:`new ConsoleNotifier()` を返す
+     - `reminderService(Notifier notifier)`:引数で受け取った Bean を使って `new ReminderService(notifier)` を返す
+
+  採点では次のように、**設定クラスだけを替えて** コンテナを作ります。
+  ```java
+  var prod = new AnnotationConfigApplicationContext(AppConfig.class);
+  var dev  = new AnnotationConfigApplicationContext(DevConfig.class);
+  ```
+
+  出力例(本番):`[MAIL from=noreply@example.com to=tanaka@example.com] 勤怠を締めてください`
+
+  ヒント:`@Configuration` クラスは、Spring が実行時にサブクラス(CGLIB プロキシ)を作って差し替えています。
+  そのため `reminderService()` の中で `notifier()` を呼んでも、新しい `MailNotifier` が作られるのではなく、
+  **コンテナに登録済みの同じ Bean** が返ります。テストでもそれを確かめます。
+  `DevConfig` のように引数で受け取る書き方でも同じ Bean が渡されます(現場ではこちらの書き方も多い)。
+
+  ※ STS では `com.example.attendance.config` パッケージに `AppConfig.java` と `DevConfig.java` を置きます。
+  実際の現場で「本番/開発で切り替える」ときは、後のレッスンで習うプロファイル(`@Profile`)を使います。

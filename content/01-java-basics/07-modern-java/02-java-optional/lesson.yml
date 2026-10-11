@@ -1,0 +1,259 @@
+id: java-optional
+title: Optional
+status: ready
+minutes: 15
+summary: 「値がないかもしれない」を型で表す Optional。作り方・取り出し方、map / flatMap で null チェックを消す書き方、orElse と orElseGet の違い、使ってはいけない場所まで。
+goals:
+  - null が「10億ドルの過ち」と呼ばれる理由と、Optional が解決することを説明できる
+  - of / ofNullable / empty で Optional を作り、orElse / orElseGet / orElseThrow / ifPresent / ifPresentOrElse で取り出せる
+  - orElse と orElseGet の評価タイミングの違いを説明できる
+  - map / filter / flatMap で、ネストした null チェックを1本のチェーンに書き換えられる
+  - get() や isPresent() + get() を避け、Optional を戻り値に限って使える
+samples:
+  - title: null を返すメソッドと Optional を返すメソッド
+    description: 戻り値が `Optional<String>` なら「見つからないかもしれない」ことが型でわかります。取り出し方をいろいろ試してみましょう。
+    code: |
+      import java.util.*;
+
+      // ID から名前を探す(見つからなければ空の Optional)
+      Optional<String> findName(int id) {
+          if (id == 1) return Optional.of("佐藤");
+          if (id == 2) return Optional.of("鈴木");
+          return Optional.empty();
+      }
+
+      // ここを変えてみよう:id を 1 や 2 にする
+      int id = 3;
+
+      // ① 既定値で取り出す
+      String name = findName(id).orElse("ゲスト");
+      System.out.println("① orElse          : " + name);
+
+      // ② あるときだけ処理/ないときは別の処理
+      findName(id).ifPresentOrElse(
+          n -> System.out.println("② こんにちは " + n + " さん"),
+          () -> System.out.println("② ID " + id + " は未登録"));
+
+      // ③ なければ例外にする
+      try {
+          String must = findName(id).orElseThrow(
+              () -> new IllegalArgumentException("ID不明: " + id));
+          System.out.println("③ orElseThrow     : " + must);
+      } catch (IllegalArgumentException e) {
+          System.out.println("③ 例外 → " + e.getMessage());
+      }
+
+      // ④ get() は空だと NoSuchElementException(アンチパターン)
+      try {
+          String g = findName(id).get();
+          System.out.println("④ get()           : " + g);
+      } catch (NoSuchElementException e) {
+          System.out.println("④ get() で例外 → " + e.getMessage());
+      }
+  - title: orElse と orElseGet の評価タイミング
+    description: 値があるときでも、`orElse` の引数は評価されます。出力の「読み込み中…」が何回出るか数えてみましょう。
+    code: |
+      import java.util.*;
+
+      String loadDefault() {
+          System.out.println("  (既定値を読み込み中…重い処理)");
+          return "既定ユーザー";
+      }
+
+      // ここを変えてみよう:Optional.of("佐藤") を Optional.empty() にする
+      Optional<String> found = Optional.of("佐藤");
+
+      System.out.println("--- orElse ---");
+      String a = found.orElse(loadDefault());
+      System.out.println("結果: " + a);
+
+      System.out.println("--- orElseGet ---");
+      String b = found.orElseGet(() -> loadDefault());
+      System.out.println("結果: " + b);
+  - title: ネストした null チェックを map チェーンに
+    description: 社員 → 部署 → 部署名 と辿る処理。どこで null が出ても `orElse` の既定値に落ちます。
+    code: |
+      import java.util.*;
+
+      class Dept {
+          private final String name;
+          Dept(String name) { this.name = name; }
+          String getName() { return name; }
+      }
+
+      class Employee {
+          private final String name;
+          private final Dept dept;
+          Employee(String name, Dept dept) {
+              this.name = name;
+              this.dept = dept;
+          }
+          String getName() { return name; }
+          Dept getDept() { return dept; }
+      }
+
+      public class Main {
+          static String deptNameOld(Employee emp) {
+              String result = "未所属";
+              if (emp != null) {
+                  Dept d = emp.getDept();
+                  if (d != null && d.getName() != null) {
+                      result = d.getName();
+                  }
+              }
+              return result;
+          }
+
+          static String deptName(Employee emp) {
+              return Optional.ofNullable(emp)
+                  .map(Employee::getDept)
+                  .map(Dept::getName)
+                  .filter(s -> !s.isBlank()) // 空白だけもなし扱い
+                  .orElse("未所属");
+          }
+
+          public static void main(String[] args) {
+              // ここを変えてみよう:部署名を "" や " " にしてみる
+              List<Employee> list = new ArrayList<>();
+              list.add(new Employee("佐藤", new Dept("開発")));
+              list.add(new Employee("鈴木", null));
+              list.add(new Employee("田中", new Dept(null)));
+              list.add(null);
+
+              for (Employee e : list) {
+                  String who =
+                      (e == null) ? "(null)" : e.getName();
+                  System.out.println(who + " → if版: "
+                      + deptNameOld(e) + " / Optional版: "
+                      + deptName(e));
+              }
+          }
+      }
+  - title: findFirst と設定値の既定値
+    description: Stream の `findFirst()` は Optional を返します。設定値の読み込みでは「キーがない」「空白だけ」を既定値に寄せます。
+    code: |
+      import java.util.*;
+
+      public class Main {
+          // ここを変えてみよう:timeout を "" や "  " にする / "app.timeout" のキー名を変える
+          static Map<String, String> conf = Map.of(
+              "app.name", "Java道場",
+              "app.timeout", " 30 ",
+              "app.port", "8080");
+
+          static Optional<String> get(String key) {
+              return Optional.ofNullable(conf.get(key))
+                  .map(String::strip)
+                  .filter(s -> !s.isEmpty());
+          }
+
+          public static void main(String[] args) {
+              String name = get("app.name").orElse("名無し");
+              int timeout = get("app.timeout")
+                  .map(Integer::parseInt)
+                  .orElse(10);
+              String mode = get("app.mode").orElse("dev");
+              System.out.println(name + " / timeout=" + timeout
+                  + " / mode=" + mode);
+
+              // 「app.p」で始まるキーのうち、辞書順で最初のもの
+              String firstKey = conf.keySet().stream()
+                  .sorted()
+                  .filter(k -> k.startsWith("app.p"))
+                  .findFirst()
+                  .orElse("なし");
+              System.out.println("app.p で始まる最初のキー: " + firstKey);
+          }
+      }
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      Optional<String> o = Optional.of("   ");
+      String r = o.map(String::strip)
+          .filter(s -> !s.isEmpty())
+          .orElse("未入力");
+      System.out.println(r);
+      ```
+    choices: ["未入力", "空行(何も表示されない)", "   (空白3つ)", "NoSuchElementException"]
+    answer: 0
+    explanation: |
+      `strip()` で空白が取り除かれて `""` になり、`filter` の条件 `!s.isEmpty()` を満たさないので **空の Optional** になります。空なので `orElse` の既定値 `"未入力"` が返ります。
+      `filter` は条件を満たさないとき例外を投げるのではなく、空の Optional を返すだけです。例外になるのは空の Optional に `get()` や引数なしの `orElseThrow()` を呼んだときです。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      static String def() {
+          System.out.print("D");
+          return "d";
+      }
+      // main の中で
+      String a = Optional.of("A").orElse(def());
+      String b = Optional.of("B").orElseGet(() -> def());
+      System.out.print(a + b);
+      ```
+    choices: ["AB", "DAB", "DADB", "DDAB"]
+    answer: 1
+    explanation: |
+      `orElse(def())` では、Java の規則どおり **メソッドを呼ぶ前に引数 `def()` が評価される** ので、値があっても `D` が出力されます(結果は使われず捨てられます)。
+      `orElseGet(() -> def())` はラムダを渡すだけで、値があるので実行されません。よって `D` のあとに `AB` で `DAB` です。重い処理や副作用のある処理を既定値にするなら `orElseGet` を使います。
+  - question: |
+      次のうち、**実行時に例外が発生する** のはどれ?
+    choices: ["Optional.ofNullable(null)", "Optional.empty().orElse(\"x\")", "Optional.of(null)", "Optional.empty().ifPresent(v -> System.out.println(v))"]
+    answer: 2
+    explanation: |
+      `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。null かもしれない値は `ofNullable` で包みます(null なら空の Optional になるだけ)。
+      空の Optional に `orElse` を呼ぶと既定値 `"x"` が返り、`ifPresent` は何もしません。どちらも例外にはなりません。
+  - question: |
+      Optional の使い方として、**現場で推奨される** のはどれ?
+    choices: ["フィールドを `private Optional<String> nickname;` にする", "メソッドの引数を `void send(Optional<String> cc)` にする", "`List<Optional<String>>` で「歯抜け」のリストを表す", "検索メソッドの戻り値を `Optional<Employee> findById(String id)` にする"]
+    answer: 3
+    explanation: |
+      Optional は **メソッドの戻り値で「結果なし」を表すため** に設計された型です。検索の戻り値はまさに本来の用途です。
+      フィールドに使うと Optional が Serializable でないため問題が出るうえ、メモリも余分に使います。引数にすると呼ぶ側に包む手間をかけさせ、しかも Optional 自体に null が渡される可能性が残ります。コレクションの中身に使うより、「ない要素は入れない」ほうが素直です。
+  - question: |
+      `findEmployee(id)` が `Optional<Employee>`、`findDept(e)` が `Optional<Dept>` を返すとき、次の式の型は?
+      ```java
+      findEmployee(id).map(e -> findDept(e))
+      ```
+    choices: ["Optional<Dept>", "Optional<Optional<Dept>>", "Dept", "コンパイルエラーになる"]
+    answer: 1
+    explanation: |
+      `map` は関数の戻り値をそのまま Optional で包むので、関数が `Optional<Dept>` を返すと `Optional<Optional<Dept>>` と **二重に包まれます**。コンパイルエラーにはなりませんが扱いにくい型です。
+      関数自体が Optional を返すときは `flatMap` を使うと、包みが1枚にならされて `Optional<Dept>` になります。
+columns:
+  - type: mistake
+    title: "orElse(save(...)) で、ログインのたびに会員が増える"
+    body: |
+      あるサービスで「会員がいなければ新規登録する」処理がこう書かれていました。
+
+      ```java
+      Member m = repo.findByEmail(email)
+          .orElse(repo.save(new Member(email)));
+      ```
+
+      見た目は「なければ save」ですが、`orElse` の引数は **値があっても必ず評価されます**。つまりログインのたびに `save` が実行され、既存会員でも新しい行がDBに追加されていました。メールアドレスに一意制約がなかったため例外も出ず、「会員数がやけに多い」という集計の違和感で発覚しました。
+
+      正しくは `.orElseGet(() -> repo.save(new Member(email)))`。**既定値の式に副作用(DB更新・ログ出力・採番など)があるなら必ず orElseGet**、と覚えておきましょう。
+  - type: genba
+    title: Spring の findById は Optional を返す
+    body: |
+      この教材の後半で使う Spring Data JPA では、リポジトリの `findById(id)` が `Optional<T>` を返します。現場でよく見るのはこの形です。
+
+      ```java
+      Employee e = repo.findById(id)
+          .orElseThrow(() -> new ResponseStatusException(
+              HttpStatus.NOT_FOUND, "社員がいません: " + id));
+      ```
+
+      「なければ 404 Not Found」が1文で書けます。ここで `get()` を書くと `NoSuchElementException` で 500 エラーになり、「サーバーが壊れた」ように見えてしまいます。
+
+      コードレビューでは「`get()` が出てきたら理由を聞く」「`isPresent()` の直後に `get()` があったら `ifPresent` か `map` に直す」がよくある指摘です。SonarQube などの静的解析にも、チェックなしの `get()` を警告するルールがあります。
+  - type: trivia
+    title: ほかの言語は null をどう扱っている?
+    body: |
+      「値がないかもしれない」を型で表すのは、Java の発明ではありません。Haskell の `Maybe`、Scala の `Option`、Rust の `Option<T>` など、関数型言語ではおなじみの考え方です。Rust には null 参照そのものがありません。
+
+      Kotlin や Swift、TypeScript(strict モード)は一歩進んで、**型システム自体** が null を区別します。`String` には null を入れられず、入れたいなら `String?` と書く。`?.`(安全呼び出し)や `?:`(エルビス演算子)で、Optional の `map` / `orElse` に当たる処理を演算子で書けます。
+
+      Java は後方互換性を最優先するため、言語仕様は変えずに **ライブラリのクラス** として Optional を足しました。だから `Optional<String>` 型の変数にも null を代入できてしまう、という弱点が残っています。null 安全を言語レベルで扱う議論は今も続いています。

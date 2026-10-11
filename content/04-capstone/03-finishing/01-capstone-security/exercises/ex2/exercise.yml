@@ -1,0 +1,52 @@
+title: 承認くんの URL ルール表で関所を作る
+className: UrlAccessTable
+difficulty: 2
+problem: |
+  承認くんの `SecurityFilterChain` に書く URL ルールを、表として持って判定するクラスを作ります。
+  ルールの登録(`permitAll` / `hasAnyRole` / `authenticated`)と、承認くん用の表 `approvalApp()` は完成しています。
+
+  ```java
+  static UrlAccessTable approvalApp() {
+      return new UrlAccessTable()
+          .permitAll("/login", "/error", "/css/**", "/js/**")
+          .hasAnyRole(Set.of(Role.APPROVER, Role.ADMIN),
+              "/approvals/**", "/requests/search",
+              "/requests/*/approve", "/requests/*/return", "/api/**")
+          .authenticated("/**");
+  }
+  ```
+
+  次の2つを実装してください。
+
+  **1. `static boolean matches(String pattern, String path)`**
+
+  パターンと URL を `/` で区切った **セグメント** ごとに比べます(空のセグメントは無視)。
+
+  | パターンの書き方 | 意味 | 例 |
+  |---|---|---|
+  | 普通の文字列 | 同じ文字列のセグメントにだけ一致 | `/login` は `/login` だけ |
+  | `*` | ちょうど1つのセグメントに一致 | `/requests/*/approve` は `/requests/5/approve` に一致、`/requests/approve` や `/requests/5/6/approve` には不一致 |
+  | 末尾の `**` | 残りの **0個以上** のセグメントに一致 | `/approvals/**` は `/approvals`、`/approvals/3/detail` に一致、`/approvalsX` には不一致 |
+
+  **2. `Result decide(String path, Role role)`**(`role` が `null` なら未ログイン)
+
+  登録順にルールを見て、**最初に一致したルールだけ** で決めます。
+
+  - `permitAll` のルール → `ALLOW`(未ログインでも)
+  - 未ログイン → `LOGIN_REQUIRED`(ログイン画面へリダイレクト)
+  - `authenticated` のルール → `ALLOW`
+  - `hasAnyRole` のルール → `role` が含まれていれば `ALLOW`、いなければ `FORBIDDEN`(403)
+  - どのルールにも一致しない → 未ログインなら `LOGIN_REQUIRED`、ログイン済みなら `FORBIDDEN`
+
+  ```java
+  UrlAccessTable t = UrlAccessTable.approvalApp();
+  t.decide("/requests/7", null);                    // LOGIN_REQUIRED
+  t.decide("/requests/7", Role.APPLICANT);          // ALLOW
+  t.decide("/requests/7/approve", Role.APPLICANT);  // FORBIDDEN
+  t.decide("/requests/7/approve", Role.APPROVER);   // ALLOW
+  ```
+
+  ヒント:`"/requests/5".split("/")` は `["", "requests", "5"]` です。空文字を取り除いてから比べると楽です。
+
+  ※ 本物の承認くんでは自分で書かず、`config/SecurityConfig.java` の `authorizeHttpRequests` に同じ表を書いて Spring Security に任せます。
+  ここでは「表の順番で結果がどう変わるか」を確かめるために、判定部分を素の Java で作ります(HTTP メソッドの区別は省略しています)。

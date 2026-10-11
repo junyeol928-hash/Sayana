@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="result" class="run-result" th:classappend="'status-' + ${#strings.toLowerCase(result.status)}">
+    <div class="run-meta">
+        <span class="run-status" th:switch="${result.status.name()}">
+            <span th:case="'OK'">✔ 実行しました</span>
+            <span th:case="'COMPILE_ERROR'">✘ コンパイルエラー</span>
+            <span th:case="'EXCEPTION'">✘ 実行時例外</span>
+            <span th:case="'TIMEOUT'">⏱ タイムアウト</span>
+            <span th:case="'BUSY'">… 混雑中</span>
+            <span th:case="*">✘ エラー</span>
+        </span>
+        <span class="run-time" th:text="${result.elapsedMillis} + ' ms'"></span>
+    </div>
+    <pre class="console" th:if="${!#strings.isEmpty(result.output)}" th:text="${result.output}"></pre>
+    <p class="muted small" th:if="${result.truncated}">(出力が多すぎるので途中で切りました)</p>
+    <div class="values" th:if="${!result.values.isEmpty()}">
+        <div th:each="v : ${result.values}" class="value-line"><span class="arrow">⇒</span> <code th:text="${v}"></code></div>
+    </div>
+    <ul class="diagnostics" th:if="${!result.errors.isEmpty()}">
+        <li th:each="d : ${result.errors}">
+            <b th:text="${d.line > 0 ? d.line + '行目' : ''}"></b> <span th:text="${d.message}"></span>
+            <pre class="code-line" th:if="${!#strings.isEmpty(d.codeLine)}" th:text="${d.codeLine}"></pre>
+        </li>
+    </ul>
+    <pre class="exception" th:if="${result.exception != null}" th:text="${result.exception}"></pre>
+    <p class="muted small" th:if="${result.ok() and #strings.isEmpty(result.output) and result.values.isEmpty()}">(出力はありませんでした)</p>
+
+    <form th:if="${!result.ok() and result.status.name() != 'BUSY'}" class="explain-form"
+          hx-post="/ai/explain-run" hx-target="next .ai-slot" hx-swap="innerHTML" hx-disabled-elt="find button">
+        <input type="hidden" name="lessonId" th:value="${lessonId}">
+        <textarea name="code" hidden th:text="${code}"></textarea>
+        <textarea name="error" hidden th:text="${result.errorText()}"></textarea>
+        <button class="btn small" type="submit" th:disabled="${!aiAvailable}"
+                th:title="${aiAvailable ? '' : 'ANTHROPIC_API_KEY を設定すると使えます'}">🤖 このエラーをAIに翻訳してもらう</button>
+        <span class="htmx-indicator muted small">考え中…</span>
+    </form>
+    <div class="ai-slot"></div>
+</div>
+</body>
+</html>

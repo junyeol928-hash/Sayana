@@ -1,0 +1,39 @@
+title: 設定ファイル(key=value)を Map に読み込む
+className: ConfigLoader
+difficulty: 3
+problem: |
+  バッチ処理の設定ファイルを読み込んで `Map<String, String>` で返す `load(Path file)` を完成させてください。
+  設定ファイルは UTF-8 で、こんな形式です。
+
+  ```text
+  # 売上集計バッチの設定
+  input.dir = C:/data/in
+  output.dir=C:/data/out
+
+  db.url=jdbc:postgresql://localhost/shop?ssl=true
+  app.title = Java道場
+  ```
+
+  この例なら、結果は次の4件です。
+
+  | キー | 値 |
+  |---|---|
+  | `input.dir` | `C:/data/in` |
+  | `output.dir` | `C:/data/out` |
+  | `db.url` | `jdbc:postgresql://localhost/shop?ssl=true` |
+  | `app.title` | `Java道場` |
+
+  ※ 実務では標準の `java.util.Properties` や Spring Boot の設定機能を使いますが、今回は仕組みを理解するために自作します。
+
+  **ルール**
+  1. ファイルが **存在しない** ときは例外にせず、**空の Map** を返す(設定ファイルは省略可能、という仕様)。
+  2. 前後の空白を除いて **空の行** と、**`#` で始まる行**(コメント)は無視する。
+  3. 行を **最初の `=`** でキーと値に分け、それぞれ前後の空白を取り除く(`trim()`)。値の中に `=` があってもそのまま残す(上の `db.url` の `?ssl=true`)。
+  4. 同じキーが2回以上出てきたら、**後に書かれた方** が勝つ。
+  5. `=` を含まない行があったら、`IllegalArgumentException` を投げる。メッセージには **何行目か** を `"3行目"` のような形で含める(行番号は1から数え、空行やコメント行も1行と数える)。
+
+  **ヒント**
+  - 存在チェックは `Files.exists(file)`。
+  - `line.indexOf('=')` で最初の `=` の位置が分かります(無ければ `-1`)。`substring` で前後に分けましょう。
+  - `split("=")` を使うと、値の中の `=` でも分割されてしまう点に注意(`split("=", 2)` なら2つまでに分けられます)。
+  - 例外の投げ方:`throw new IllegalArgumentException(lineNo + "行目: = がありません");`

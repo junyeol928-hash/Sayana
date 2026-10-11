@@ -1,0 +1,33 @@
+title: 税率を持つ enum で税込価格を出す
+className: TaxCalc
+difficulty: 1
+problem: |
+  レジシステムの消費税計算を、税率を持つ enum で作ります。
+
+  **1. `TaxCategory`(enum)を完成させる**
+
+  | 定数 | 意味 | 税率 |
+  |---|---|---|
+  | `STANDARD` | 標準税率 | 10% |
+  | `REDUCED` | 軽減税率(食品など) | 8% |
+  | `EXEMPT` | 非課税 | 0% |
+
+  - 定数・フィールド `ratePercent`・コンストラクタは雛形に用意済みです。
+  - `long taxOf(long price)` … 税額を返す。`price * ratePercent / 100` で、**1円未満は切り捨て**(long の割り算のままでOK)。
+
+  **2. `TaxCalc` の2つのメソッドを完成させる**
+
+  - `priceWithTax(long price, TaxCategory category)` … 税込価格(`price` + 税額)を返す
+  - `parse(String text)` … 画面から来た文字列を `TaxCategory` に変換する
+    - 前後の空白を除き、大文字小文字は区別しない(`" reduced "` → `REDUCED`)
+    - `null` や、どの定数にも当てはまらない文字列なら `IllegalArgumentException` を投げる
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `TaxCategory.STANDARD.taxOf(1000)` | `100` |
+  | `TaxCategory.REDUCED.taxOf(99)` | `7`(7.92 を切り捨て) |
+  | `priceWithTax(1000, REDUCED)` | `1080` |
+  | `parse(" reduced ")` | `REDUCED` |
+  | `parse("food")` | `IllegalArgumentException` |
+
+  ヒント:`TaxCategory.valueOf(...)` は一致しない名前だと `IllegalArgumentException` を投げますが、`null` を渡すと `NullPointerException` です。`null` は先にガード節ではじきましょう。

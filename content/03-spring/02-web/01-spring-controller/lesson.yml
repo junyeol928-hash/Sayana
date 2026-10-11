@@ -1,0 +1,368 @@
+id: spring-controller
+title: Controllerとルーティング
+status: ready
+minutes: 15
+summary: HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。
+goals:
+  - HTTP のメソッド・パス・クエリ・ステータスコードを読み取り、400/404/405 の原因を推測できる
+  - DispatcherServlet が対応表(HandlerMapping)を使って Controller に振り分ける流れを説明できる
+  - "@Controller(ビュー名を返す)と @RestController(本体を返す)を使い分けられる"
+  - "@GetMapping / @PostMapping / @RequestMapping・@PathVariable・@RequestParam(required・defaultValue)でリクエストを受け取れる"
+  - ResponseEntity でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる
+samples:
+  - title: Controller を MockMvc で呼んでみる
+    libraries: [spring]
+    description: |
+      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。
+      パスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。`[...]` は Spring が内部で投げた例外の名前です。
+    code: |
+      // Controller を MockMvc で呼んでみる(Web サーバーは起動しない)
+      // ここを変えてみよう:URL やクエリを書き換える / name を消す
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+      
+      @RestController
+      class HelloController {
+          @GetMapping("/hello")   // GET /hello?name=...
+          String hello(
+                  @RequestParam(defaultValue = "ゲスト") String name) {
+              return "こんにちは、" + name + "さん";
+          }
+      
+          @GetMapping("/users/{id}")   // GET /users/7
+          String user(@PathVariable int id) {
+              return "ユーザー" + id + "番";
+          }
+      
+          @PostMapping("/login")   // name は必須(required = true)
+          String login(@RequestParam String name) {
+              return name + " でログインしました";
+          }
+      }
+      
+      public class Main {
+          public static void main(String[] args) throws Exception {
+              MockMvc mvc = MockMvcBuilders
+                      .standaloneSetup(new HelloController())
+                      .setMessageConverters(
+                              new StringHttpMessageConverter(UTF_8))
+                      .defaultResponseCharacterEncoding(UTF_8)
+                      .build();
+      
+              send(mvc, get("/hello"));
+              send(mvc, get("/hello").param("name", "ハル"));
+              send(mvc, get("/users/7"));
+              // int に変換できない
+              send(mvc, get("/users/abc"));
+              // 必須パラメータ name が無い
+              send(mvc, post("/login"));
+              send(mvc, post("/login").param("name", "haru"));
+              // GET 専用のパスに POST
+              send(mvc, post("/hello"));
+              // 対応表に無いパス
+              send(mvc, get("/nothing"));
+          }
+      
+          static void send(MockMvc mvc, RequestBuilder req)
+                  throws Exception {
+              MvcResult result = mvc.perform(req).andReturn();
+              var request = result.getRequest();
+              var res = result.getResponse();
+              // 送ったパラメータを " name=値" の形で並べる
+              StringBuilder params = new StringBuilder();
+              request.getParameterMap().forEach((k, v) ->
+                      params.append(" " + k + "=" + v[0]));
+              Exception ex = result.getResolvedException();
+              String body = ex != null
+                      ? "[" + ex.getClass().getSimpleName() + "]"
+                      : res.getContentAsString();
+              System.out.println(request.getMethod() + " "
+                      + request.getRequestURI() + params
+                      + " → " + res.getStatus() + " " + body);
+          }
+      }
+  - title: JSON・ResponseEntity・redirect
+    libraries: [spring]
+    description: |
+      `record` を返すと JSON に、`ResponseEntity` で包むとステータスコードを選べます。
+      `@Controller` で `"redirect:..."` を返すと 302 と `Location` ヘッダーが返ります(ブラウザはそこへ GET し直します)。
+    code: |
+      // 戻り値で変わるレスポンス:JSON・ResponseEntity・redirect:
+      // ここを変えてみよう:存在しない ID(99)を GET する / quantity を変える
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import java.util.Map;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.stereotype.Controller;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+      
+      record Item(int id, String name, int price) {}
+      
+      @RestController
+      @RequestMapping("/api/items")   // 共通プレフィックス
+      class ItemApi {
+          Map<Integer, Item> items = Map.of(
+                  1, new Item(1, "ボールペン", 120),
+                  2, new Item(2, "ノート", 200));
+      
+          @GetMapping("/{id}")   // GET /api/items/{id}
+          ResponseEntity<Item> find(@PathVariable int id) {
+              Item item = items.get(id);
+              if (item == null) {
+                  return ResponseEntity.notFound().build(); // 404
+              }
+              return ResponseEntity.ok(item);   // 200 + JSON
+          }
+      }
+      
+      @Controller   // 画面用。"redirect:" で始まるとリダイレクト
+      class OrderController {
+          long nextId = 100;
+      
+          @PostMapping("/orders")
+          String order(@RequestParam int itemId,
+                       @RequestParam int quantity) {
+              long id = nextId++;
+              System.out.println("  (注文を登録: 商品" + itemId
+                      + " × " + quantity + ")");
+              return "redirect:/orders/" + id;   // PRG パターン
+          }
+      }
+      
+      public class Main {
+          public static void main(String[] args) throws Exception {
+              MockMvc mvc = MockMvcBuilders
+                      .standaloneSetup(new ItemApi(), new OrderController())
+                      .setMessageConverters(
+                              new StringHttpMessageConverter(UTF_8),
+                              new MappingJackson2HttpMessageConverter())
+                      .defaultResponseCharacterEncoding(UTF_8)
+                      .build();
+      
+              send(mvc, get("/api/items/1"));
+              send(mvc, get("/api/items/99"));
+              send(mvc, post("/orders")
+                      .param("itemId", "1").param("quantity", "3"));
+          }
+      
+          static void send(MockMvc mvc, RequestBuilder req)
+                  throws Exception {
+              MvcResult result = mvc.perform(req).andReturn();
+              var res = result.getResponse();
+              System.out.println(result.getRequest().getMethod() + " "
+                      + result.getRequest().getRequestURI()
+                      + " → " + res.getStatus());
+              if (res.getHeader("Location") != null) {
+                  System.out.println("  Location: "
+                          + res.getHeader("Location"));
+              }
+              String body = res.getContentAsString();
+              if (!body.isEmpty()) {
+                  System.out.println("  " + res.getContentType());
+                  System.out.println("  " + body);
+              }
+          }
+      }
+quiz:
+  - question: |
+      次の Controller に、クエリなしで `GET /hello` を送ったときのレスポンスは?
+      ```java
+      @RestController
+      public class HelloController {
+          @GetMapping("/hello")
+          public String hello(@RequestParam String name) {
+              return "Hi " + name;
+          }
+      }
+      ```
+    choices: ["200 で Hi null", "400 Bad Request", "404 Not Found", "500 Internal Server Error"]
+    answer: 1
+    explanation: |
+      `@RequestParam` は **デフォルトで required = true** です。`name` が無いと `MissingServletRequestParameterException` になり、Spring が **400** を返します。メソッド自体は呼ばれません。
+      `Hi null` にしたいなら `@RequestParam(required = false)`、既定値を入れたいなら `defaultValue = "..."` を付けます。パス `/hello` 自体は対応表にあるので 404 ではなく、例外はクライアント側の誤りとして処理されるので 500 でもありません。
+  - question: |
+      次の Controller があるとき、**405 Method Not Allowed** になるリクエストはどれ?
+      ```java
+      @RestController
+      @RequestMapping("/api/orders")
+      public class OrderController {
+          @GetMapping("/{id}")
+          public String find(@PathVariable int id) { ... }
+
+          @PostMapping
+          public String create(@RequestParam String item) { ... }
+      }
+      ```
+    choices: ["GET /api/orders/5", "POST /api/orders?item=pen", "DELETE /api/orders/5", "GET /orders/5"]
+    answer: 2
+    explanation: |
+      `/api/orders/5` というパスには GET 用のメソッドがありますが、DELETE 用はありません。「パスは合っているがメソッドが違う」ときが **405** です。
+      `GET /orders/5` はクラスの `@RequestMapping("/api/orders")` が前に付くので一致するパスがそもそも無く、**404** です。上の2つは正常に 200 になります。
+  - question: |
+      次の Controller で `GET /hello` を開いたとき、Spring は戻り値の `"hello"` をどう扱う?
+      ```java
+      @Controller
+      public class HelloController {
+          @GetMapping("/hello")
+          public String hello() {
+              return "hello";
+          }
+      }
+      ```
+    choices: ["文字列 hello をそのままレスポンス本体として返す", "/hello へリダイレクトする", "JSON の \"hello\" として返す", "ビュー名とみなし、テンプレート(Thymeleaf なら templates/hello.html)を描画する"]
+    answer: 3
+    explanation: |
+      `@Controller` の String の戻り値は **ビュー名** です。ViewResolver がテンプレートを探して HTML を作ります。テンプレートが無ければ `Error resolving template [hello]`(Thymeleaf がなければ `Circular view path [hello]`)のエラーになります。
+      文字列をそのまま返したいなら `@RestController`(= `@Controller` + `@ResponseBody`)を使います。リダイレクトは `"redirect:/..."` のように書いたときだけです。
+  - question: |
+      別々のクラスに、次の2つのメソッドを書いてしまいました。何が起きる?
+      ```java
+      // ItemController
+      @GetMapping("/items")
+      public String list() { ... }
+
+      // ProductController
+      @GetMapping("/items")
+      public String all() { ... }
+      ```
+    choices: ["アプリの起動時に Ambiguous mapping の例外で起動に失敗する", "コンパイルエラーになる", "/items に初めてアクセスしたときに 500 エラーになる", "エラーにならず、どちらか片方が毎回ランダムに呼ばれる"]
+    answer: 0
+    explanation: |
+      URL とメソッドの対応表(HandlerMapping)は **起動時に** 全 Controller を読んで作られます。同じ「GET + /items」が2つあると、その時点で `IllegalStateException: Ambiguous mapping` になり、アプリが起動しません。
+      アノテーションの値はコンパイラから見ればただの文字列なので、コンパイルは通ります。ランダムに選ばれるような曖昧な動きはしません。
+  - question: |
+      注文フォームを POST すると、Controller が注文を登録して「注文完了」画面のビュー名を直接返しています。
+      完了画面で F5(再読み込み)を押したお客様の注文が二重に登録されてしまいました。現場での定番の直し方はどれ?
+    choices: ["フォームの送信を POST から GET に変える", "@PostMapping を @RequestMapping に変える", "登録後に \"redirect:/orders/{id}\" を返し、完了画面は GET で表示する", "完了画面のテンプレートでブラウザのキャッシュを無効にする"]
+    answer: 2
+    explanation: |
+      **PRG(Post/Redirect/Get)パターン** です。POST の処理後に 302 でリダイレクトすると、ブラウザは完了画面を GET し直します。F5 で再送されるのは最後の GET だけなので、注文は増えません。
+      登録のような処理を GET にすると、URL を開くだけで(ブックマークやクローラーでも)注文が入ってしまいます。`@RequestMapping` にしても挙動は変わらず、キャッシュの設定は再送を防ぎません。
+columns:
+  - type: trivia
+    title: "@RequestParam は引数名をどうやって知っている?"
+    body: |
+      Java のクラスファイルには、**普通は引数名が残りません**(リフレクションで見ると `arg0`)。それでも `@RequestParam String name` が動くのは、javac の **`-parameters`** オプションで名前を残しているからです。Boot の親 POM が `<parameters>true</parameters>` を設定済みなので、普段は意識しません。
+
+      オプション無しだと、Spring 6.1 以降は 500 エラーです。
+
+      ```text
+      Name for argument of type [java.lang.String] not
+      specified, and parameter name information not available
+      via reflection. Ensure that the compiler uses the
+      '-parameters' flag.
+      ```
+
+      `@RequestParam("name")` と名前を明示すれば、オプションに関係なく動きます。
+  - type: genba
+    title: PRG にしたのに二重注文? ボタン連打という伏兵
+    body: |
+      PRG パターンにすると、完了画面で F5 を押しても POST は再送されません(PRG にしていないと、ブラウザに「フォームの再送信の確認」というダイアログが出ます。ここで「続行」を押されると二重登録です)。
+
+      ところが現場では、PRG にしたのに二重注文が起きることがあります。原因は **送信ボタンの連打**。リダイレクトが返ってくる前に2回クリックされると、POST が2回飛びます。PRG は「再読み込み」対策であって、「連打」は防げません。
+
+      現場ではいくつかを組み合わせます。
+
+      - 送信したら JavaScript でボタンを無効にする(手軽だが、JS を通さないリクエストは防げない)
+      - フォームに使い捨てのトークンを埋めて、サーバー側で「同じトークンは1回だけ」受け付ける
+      - DB に一意制約を付けて、二重登録を最後の砦で止める
+
+      「画面の工夫」と「サーバー側の守り」は両方必要、というのが二重送信対策の定番です。
+  - type: mistake
+    title: "「Circular view path」って何?"
+    body: |
+      API のつもりで `@Controller` と書き、`/hello` で `"hello"` を返したケース。Thymeleaf が入っていないと、こうなります。
+
+      ```text
+      Circular view path [hello]: would dispatch back to the current
+      handler URL [/hello] again. Check your ViewResolver setup!
+      ```
+
+      `@Controller` なので `"hello"` は **ビュー名** です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば `Error resolving template [hello]` になります。
+
+      文字列や JSON を返したいなら `@RestController`(またはメソッドに `@ResponseBody`)。
+sts:
+  intro: |
+    STS で Spring Web 入りのプロジェクトを作り、Controller を書いてブラウザから呼び出します。ステータスコードやエラー画面もわざと出してみましょう。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Web 入りのプロジェクトを作る
+      detail: |
+        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
+        - **Name** に `hello-web`、**Type** は `Maven`、**Java Version** は `21`、**Package** は `com.example.demo` にして **Next**(次へ)
+        - **Dependencies** の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れて **Finish**(完了)
+
+        右下に進捗バーが出ている間は、Maven が依存ライブラリをダウンロードしています。終わるまで待ちましょう。
+    - title: Controller クラスを作る
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `src/main/java` の `com.example.demo` を右クリックし、**New > Class**(新規 > クラス)。
+        **Name** に `HelloController` と入力して **Finish** を押し、次のように書きます。
+
+        ```java
+        package com.example.demo;
+
+        import org.springframework.web.bind.annotation.*;
+
+        @RestController
+        public class HelloController {
+
+            @GetMapping("/hello")
+            public String hello(
+                    @RequestParam(defaultValue = "ゲスト") String name) {
+                return "こんにちは、" + name + "さん";
+            }
+
+            @GetMapping("/users/{id}")
+            public String user(@PathVariable int id) {
+                return "ユーザー" + id + "番";
+            }
+        }
+        ```
+
+        `@SpringBootApplication` のクラス(`HelloWebApplication`)と **同じパッケージかその下** に置くのがポイントです。別のパッケージに置くとコンポーネントスキャンの対象外になり、404 になります。
+    - title: アプリを起動する
+      detail: |
+        プロジェクトを右クリックして **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。左下の **Boot Dashboard** でプロジェクトを選んで起動ボタンを押しても同じです。
+        **Console**(コンソール)に `Tomcat started on port 8080 (http)` と `Started HelloWebApplication in ... seconds` が出たら成功です。
+    - title: ブラウザで開く
+      detail: |
+        ブラウザで次の URL を順に開きます。
+        - `http://localhost:8080/hello?name=ハル` → `こんにちは、ハルさん`
+        - `http://localhost:8080/hello` → `こんにちは、ゲストさん`
+        - `http://localhost:8080/users/7` → `ユーザー7番`
+        - `http://localhost:8080/users/abc` → **Whitelabel Error Page** に `(type=Bad Request, status=400)`
+        - `http://localhost:8080/nothing` → 同じく `(type=Not Found, status=404)`
+
+        **F12** で開発者ツールを開き、**Network**(ネットワーク)タブで再読み込みすると、各リクエストのステータスコードと `Content-Type` が確認できます。
+    - title: コードを変えたら再起動する
+      detail: |
+        戻り値の文字列を変えて **Ctrl+S** で保存し、Boot Dashboard の **(Re)start** ボタン(または Console の赤い四角 **Terminate**(終了)→ もう一度 Run As)で再起動します。
+        起動中にもう一度 Run As すると、2つ目が `Web server failed to start. Port 8080 was already in use.` で失敗します。古い方を止めてから起動し直しましょう。
+        (Spring Boot DevTools を依存に入れると、保存するだけで自動で再起動されるようになります。)
+    - title: わざと同じパスを2つ書く
+      detail: |
+        `HelloController` に、もう1つ `@GetMapping("/hello")` のメソッドを足して再起動します。
+        Console に `Ambiguous mapping. Cannot map 'helloController' method` を含む例外が出て、アプリが起動しないことを確認したら、足したメソッドを消して元に戻します。
+checklist:
+  - key: web-project
+    text: Spring Web 入りのプロジェクトを作り、Run As > Spring Boot App で Console に Tomcat started on port 8080 が表示された
+  - key: hello-browser
+    text: ブラウザで /hello?name=自分の名前 を開き、あいさつが表示された(name なしではゲストになった)
+  - key: path-variable
+    text: /users/7 で @PathVariable の値が表示され、/users/abc で 400 の Whitelabel Error Page を見た
+  - key: devtools-network
+    text: ブラウザの開発者ツール(F12)の Network タブで、ステータスコードと Content-Type を確認した
+  - key: restart
+    text: コードを変えて再起動し、表示が変わることを確認した(Port 8080 was already in use の意味も分かった)
+  - key: ambiguous
+    text: 同じ @GetMapping を2つ書いて起動時の Ambiguous mapping エラーを確認し、元に戻した

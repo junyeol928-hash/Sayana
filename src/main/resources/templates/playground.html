@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('プレイグラウンド')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+    <h1>🧪 プレイグラウンド</h1>
+    <p class="muted">JShell で自由にコードを試せます。文・式・メソッド・クラスを並べて書けます。<code>main</code> を持つクラスだけを書いた場合は自動で <code>main</code> を呼びます。</p>
+    <form class="code-form run-form card" hx-post="/run" hx-target="#playground-out" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]">
+        <textarea class="code-editor tall" name="code" rows="18" spellcheck="false" th:text="${code}"></textarea>
+        <div class="actions">
+            <button type="submit" class="btn primary">▶ 実行</button>
+            <label class="small"><input type="checkbox" name="libraries" value="spring"> Spring を使う</label>
+            <span class="htmx-indicator muted small">実行中…</span>
+        </div>
+    </form>
+    <div id="playground-out"></div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,39 @@
+title: エンティティを隠して DTO で返す+PATCH で部分更新
+className: TaskApi
+difficulty: 3
+libraries: [spring]
+problem: |
+  タスクの保存用クラス `TaskEntity`(本物のアプリなら JPA のエンティティ)には、社内向けのメモ `internalMemo` が入っています。
+  これを **そのまま JSON で返すとメモが外部に漏れる** ので、返す用の record `TaskResponse` に詰め替えて返すようにします。
+  あわせて、一部の項目だけを書き換える `PATCH` を実装してください。
+
+  **1. `TaskResponse.from(TaskEntity e)` を完成させる**
+
+  `id` / `title` / `done` / `dueDate` だけを詰め替えます(`internalMemo` は入れない)。
+  `GET /api/tasks/1` の結果はこうなります。
+
+  ```json
+  {"id":1,"title":"見積書を作る","done":false,"dueDate":"2026-10-31"}
+  ```
+
+  **2. `PATCH /api/tasks/{id}` を完成させる**
+
+  本文は `UpdateTaskRequest`(`title` / `done` / `dueDate`)。**JSON に含まれていた項目だけ** を書き換えます。
+  含まれていない項目は record では `null` になるので、`null` の項目は「変更しない」と判断します。
+
+  | リクエスト本文 | 結果 |
+  |---|---|
+  | `{"done":true}` | `done` だけ true。`title` と `dueDate` はそのまま |
+  | `{"dueDate":"2026-11-15"}` | 期限だけ変更 |
+  | 存在しない ID | `404` |
+
+  成功したら `200` と、更新後の `TaskResponse` を返します。
+
+  ヒント:
+  - `UpdateTaskRequest` の `done` が `boolean` ではなく **`Boolean`(ラッパー型)** になっている理由を考えてみましょう。
+    `boolean` だと「送られてこなかった」と「false が送られてきた」の区別がつきません。
+  - 日付は Jackson が `"2026-11-15"`(ISO-8601)と `LocalDate` を相互に変換します。テストは Spring Boot と同じ設定
+    (`WRITE_DATES_AS_TIMESTAMPS` を無効にした ObjectMapper)で動かしています。
+
+  **STS で書くなら**:`TaskEntity`(entity パッケージ)、`TaskResponse` と `UpdateTaskRequest`(dto パッケージ)、
+  `TaskApi`(web パッケージ。名前は `TaskController` にすることが多い)のように分けます。

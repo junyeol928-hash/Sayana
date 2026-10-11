@@ -1,0 +1,217 @@
+id: java-polymorphism
+title: ポリモーフィズム
+status: ready
+minutes: 15
+summary: 親の型の変数で子のインスタンスを扱い、実行時の型でメソッドが選ばれる。型の if 連鎖を消す技と、キャスト・instanceof・効かないものの罠まで。
+goals:
+  - 「変数の型」と「実体の型」を区別し、呼べるメソッドと実際に動くメソッドを説明できる
+  - 動的ディスパッチを使い、異なる子クラスを配列でまとめて処理できる
+  - 型ごとの if 連鎖を、オーバーライドで置き換えられる
+  - アップキャスト/ダウンキャストと ClassCastException を説明し、instanceof のパターンマッチングで安全にキャストできる
+  - フィールドと static メソッドがポリモーフィックでない(隠蔽される)ことを説明できる
+samples:
+  - title: 動物たちの鳴き声(動的ディスパッチ)
+    description: "`Animal` 型の配列に Dog と Cat を混ぜて入れても、`x.sound()` は実体の型のメソッドを呼びます。"
+    code: |
+      class Animal {
+          String sound() { return "……"; }
+      }
+      class Dog extends Animal {
+          @Override
+          String sound() { return "ワン"; }
+      }
+      class Cat extends Animal {
+          @Override
+          String sound() { return "ニャー"; }
+      }
+
+      // ここを変えてみよう:new Animal() を足す / Bird クラスを作って配列に入れる
+      Animal[] zoo = { new Dog(), new Cat(), new Dog() };
+      for (Animal x : zoo) {
+          // 変数の型は Animal でも、動くのは実体(Dog / Cat)の sound()
+          String cls = x.getClass().getSimpleName();
+          System.out.println(cls + " → " + x.sound());
+      }
+  - title: 送料の if 連鎖をポリモーフィズムで消す
+    description: 各クラスが自分の送料を知っているので、合計を計算する側には分岐が1つもありません。
+    code: |
+      class Delivery {
+          String label() { return "通常便"; }
+          int fee() { return 500; }
+      }
+      class Express extends Delivery {
+          @Override String label() { return "速達"; }
+          @Override int fee() { return 800; }
+      }
+      class StorePickup extends Delivery {
+          @Override String label() { return "店舗受取"; }
+          @Override int fee() { return 0; }
+      }
+
+      // ここを変えてみよう:「ドローン便(1500円)」クラスを足して配列に入れる
+      //                   → 下のループは1文字も変えずに動く
+      Delivery[] orders = {
+          new Delivery(), new Express(), new StorePickup()
+      };
+      int amount = 3000;
+      for (Delivery d : orders) {
+          int total = amount + d.fee();
+          System.out.println(d.label() + ": " + amount
+                  + " + 送料" + d.fee() + " = " + total + "円");
+      }
+  - title: ダウンキャストと instanceof パターンマッチング
+    description: "`instanceof` で確かめてからキャストすれば安全です。確かめずにキャストすると ClassCastException になります。"
+    code: |
+      class Animal { }
+      class Dog extends Animal {
+          String fetch() { return "ボールを取ってきた"; }
+      }
+      class Cat extends Animal { }
+
+      // ここを変えてみよう:a を new Cat() にする
+      Animal a = new Dog();
+
+      // Java 16+ のパターンマッチング:検査とキャストを一度に
+      if (a instanceof Dog d) {
+          System.out.println("犬です: " + d.fetch());
+      } else {
+          System.out.println("犬ではないので fetch できません");
+      }
+
+      // ここを変えてみよう:下の行のコメントを外し、
+      // a が Cat のときに実行すると ClassCastException
+      // Dog forced = (Dog) a;
+      System.out.println("終了");
+  - title: フィールドと static メソッドは変数の型で決まる
+    description: 同名のフィールドや static メソッドは「隠蔽」されるだけで、動的ディスパッチの対象になりません。
+    code: |
+      class Parent {
+          String name = "親のフィールド";
+          String getName() { return name; }
+          static String hello() { return "親の static"; }
+      }
+      class Child extends Parent {
+          String name = "子のフィールド";       // 親の name を隠す(上書きではない)
+          @Override
+          String getName() { return name; }
+          static String hello() { return "子の static"; }  // 隠蔽
+      }
+
+      // ここを変えてみよう:変数の型を Child にすると、出力はどう変わる?
+      Parent p = new Child();
+      System.out.println(p.name);       // 変数の型(Parent)で決まる
+      System.out.println(p.getName());  // 実体の型(Child)で決まる
+      // static も変数の型で決まる(本来は Parent.hello() と書くべき)
+      System.out.println(p.hello());
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class A { String f() { return "A"; } }
+      class B extends A {
+          @Override String f() { return "B"; }
+      }
+      class C extends B { }
+
+      A[] xs = { new A(), new B(), new C() };
+      for (A x : xs) {
+          System.out.print(x.f());
+      }
+      ```
+    choices: ["ABB", "AAA", "ABC", "コンパイルエラー"]
+    answer: 0
+    explanation: |
+      動的ディスパッチにより、`x.f()` は **実体の型** のメソッドが呼ばれます。A は `A`、B は自分でオーバーライドした `B`。C は `f()` を書いていないので、親の B から引き継いだ `f()` が使われて `B` です。よって `ABB`。
+      変数の型(A)で決まるなら `AAA` ですが、オーバーライドされたインスタンスメソッドはそうなりません。C に `f()` がなくてもエラーにはなりません。
+  - question: |
+      `Dog` は `Animal` を継承し、`Dog` にだけ `fetch()` メソッドがあります。**コンパイルエラーになる** 行はどれ?
+      ```java
+      Animal a = new Dog();   // (1)
+      Dog d = (Dog) a;        // (2)
+      d.fetch();              // (3)
+      a.fetch();              // (4)
+      ```
+    choices: ["(1)", "(2)", "(3)", "(4)"]
+    answer: 3
+    explanation: |
+      **呼べるメソッドは変数の型で決まります**。`a` の変数の型は `Animal` なので、実体が Dog でも Animal にない `fetch()` は呼べず、`cannot find symbol` になります。
+      (1) はアップキャストで常に OK。(2) はダウンキャストで、明示しているのでコンパイルは通ります(実体が Dog なので実行時も成功)。(3) は `d` が Dog 型なので呼べます。
+  - question: |
+      次のコードを実行するとどうなる?
+      ```java
+      Animal a = new Cat();
+      Dog d = (Dog) a;
+      System.out.println("OK");
+      ```
+    choices: ["OK と出力される", "実行時に ClassCastException が発生する", "コンパイルエラーになる", "d に null が入り、OK と出力される"]
+    answer: 1
+    explanation: |
+      `Animal` 型の変数の中身は Dog かもしれないので、コンパイラはダウンキャストを通します。しかし実行時に JVM が実体を検査し、Cat を Dog にはできないので `ClassCastException: class Cat cannot be cast to class Dog` が発生します。
+      キャストに失敗しても null にはなりません。安全にやるなら `if (a instanceof Dog d) { ... }` で確かめてから使います。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class P {
+          int v = 1;
+          int get() { return v; }
+      }
+      class C extends P {
+          int v = 2;
+          @Override int get() { return v; }
+      }
+
+      P x = new C();
+      System.out.println(x.v + " " + x.get());
+      ```
+    choices: ["2 2", "1 1", "1 2", "2 1"]
+    answer: 2
+    explanation: |
+      **フィールドはポリモーフィックではありません**。`x.v` はコンパイル時に変数の型 `P` で決まるので、P の `v`(1)です。一方 `x.get()` はオーバーライドされたメソッドなので実体 C の `get()` が呼ばれ、C の `v`(2)を返します。よって `1 2`。
+      C のオブジェクトの中には `v` が2つ存在しています(子の `v` は親の `v` を隠しているだけ)。紛らわしいので同名フィールドは作らないのが鉄則です。
+  - question: |
+      次のコードを実行したときの出力は?(`Dog` は `Animal` を継承)
+      ```java
+      static String p(Animal a) { return "animal"; }
+      static String p(Dog d) { return "dog"; }
+
+      Animal a = new Dog();
+      System.out.println(p(a));
+      ```
+    choices: ["dog", "animal", "コンパイルエラー", "実行時エラー"]
+    answer: 1
+    explanation: |
+      これは **オーバーロード** です。オーバーロードのどれを呼ぶかは **コンパイル時に、引数の変数の型で** 決まります。`a` の変数の型は `Animal` なので `p(Animal)` が選ばれ、`animal` です。
+      実体の型で選ばれる(動的ディスパッチ)のは、**オーバーライド** されたメソッドを「`.` の左側のオブジェクト」に対して呼ぶときだけ。`p((Dog) a)` と書けば `dog` になります。
+columns:
+  - type: genba
+    title: 新しい決済手段を足したら、返金だけ壊れた
+    body: |
+      あるECサイトで、決済手段を文字列の種別コード(`"CASH"` `"CARD"`)で持ち、手数料計算・返金・帳票出力のそれぞれで `if` を書き連ねていました。
+
+      そこへ「QRコード決済」を追加。担当者は手数料計算の `if` には `"QR"` を足しましたが、返金処理の `if` は別のクラスにあって見落とし、QR 払いの返金は最後の `else`(「返金なし」扱い)に落ちていました。コンパイルエラーも例外も出ないので、発覚は問い合わせが来てからです。
+
+      改修では `Payment` クラスを親にして、`fee()` `refund()` `receiptLabel()` を各決済クラスでオーバーライドする形にしました。新しい決済手段は「クラスを1つ足し、全メソッドを書く」だけになり、書き漏れも1か所を見れば分かります。(さらに次回の抽象クラスを使えば、書き漏れをコンパイルエラーにできます。)
+  - type: trivia
+    title: Java のメソッドは最初から「virtual」
+    body: |
+      C++ や C# では、動的ディスパッチさせたいメソッドに `virtual` キーワードを付ける必要があります。付けなければ、変数の型でメソッドが決まります。
+
+      Java は逆で、**static でも private でも final でもないインスタンスメソッドは、すべて最初から動的ディスパッチの対象**(C++ でいう virtual)です。「オーバーライドしたのに親のメソッドが呼ばれる」という C++ 名物の事故が Java では起きないのは、この設計のおかげです。
+
+      「全部 virtual だと遅いのでは?」という心配も、今の JVM では無用です。HotSpot の JIT コンパイラは、実行時に読み込まれているクラスを調べ(クラス階層解析)、子クラスでオーバーライドされていないメソッドは直接呼び出しやインライン化に置き換えます。だから「速くするために final を付ける」必要はありません。final は設計上の意図を示すために使いましょう。
+  - type: mistake
+    title: オーバーロードで型ごとに処理を分けたつもりが……
+    body: |
+      通知の送信処理を、こんなふうに書いたとします。
+
+      ```java
+      static void send(Notification n) { /* 汎用 */ }
+      static void send(Email e) { /* メール専用 */ }
+
+      Notification[] list = { new Email(), new Sms() };
+      for (Notification n : list) {
+          send(n);   // Email でも「汎用」のほうが呼ばれる!
+      }
+      ```
+
+      オーバーロードの選択は **コンパイル時に変数の型(Notification)で** 決まるので、Email でもメール専用の `send` は呼ばれません。実体の型で振り分けたいなら、`send()` を各クラスのメソッドにして **オーバーライド** するのが正解です(`n.send()`)。

@@ -1,0 +1,35 @@
+title: 勤怠データから残業時間を集計する
+className: OvertimeCalc
+difficulty: 3
+problem: |
+  勤怠システムの残業集計を作ります。1日の労働時間(分)を **可変長引数** で何日分でも受け取れるようにします。
+  所定労働時間は **1日 480 分(8時間)**、これを超えた分がその日の残業です。
+
+  | メソッド | 返す値 |
+  |---|---|
+  | `int overtimeOfDay(int workedMinutes)` | 1日分の残業(分)。480 分以下なら 0 |
+  | `int totalOvertime(int... dailyMinutes)` | 全日の残業の合計(分) |
+  | `String toHourMinute(int minutes)` | 分を `"時間:分"` 形式に。分は **2桁ゼロ埋め** |
+  | `boolean exceedsLimit(int... dailyMinutes)` | 残業合計が月の上限 **45時間(2700分)を超えたら** true |
+
+  ### 例
+  | 呼び出し | 結果 |
+  |---|---|
+  | `overtimeOfDay(540)` | `60` |
+  | `overtimeOfDay(300)` | `0` |
+  | `totalOvertime(540, 480, 600)` | `180`(60 + 0 + 120) |
+  | `totalOvertime()` | `0`(引数なし) |
+  | `toHourMinute(185)` | `"3:05"` |
+  | `toHourMinute(2700)` | `"45:00"` |
+
+  ### ルール
+  - 労働時間が 0 以下などおかしな値でも、その日の残業は `0` として扱う。
+  - `totalOvertime` / `exceedsLimit` に `null` の配列が渡されたら、残業 0 として扱う。
+  - `exceedsLimit` は「超えたら」なので、ちょうど 2700 分は `false`。
+  - `toHourMinute` の引数は 0 以上とする。時間の部分はゼロ埋めしない(`"3:05"`、`"10:30"`)。
+
+  ### ヒント
+  - **小さいメソッドを組み合わせる** のがこの演習のテーマです。`totalOvertime` は `overtimeOfDay` を、`exceedsLimit` は `totalOvertime` を呼び出しましょう。
+  - 可変長引数 `int... dailyMinutes` の正体は `int[]` です。拡張 for で回せます。
+  - 時間は `minutes / 60`、分は `minutes % 60`。分が 10 未満なら前に `"0"` を付けます(書式指定は次の「文字列」のレッスンでやるので、今は `+` 連結で)。
+  - 同じ数値 `480` や `2700` を何度も書かず、`static final int` の定数にしておくと読みやすくなります(雛形に用意済み)。

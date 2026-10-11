@@ -1,0 +1,29 @@
+title: 書籍検索を派生クエリで宣言する
+className: Book
+difficulty: 2
+libraries: [spring, jpa]
+problem: |
+  書店の在庫管理システムです。エンティティ `Book`(完成済み)を検索する `BookRepository` に、
+  **メソッド名だけで検索条件を表すメソッド(派生クエリ)** を6つ宣言してください。実装(本体)は書きません。Spring Data が名前から SQL を作ります。
+
+  `Book` のプロパティ: `title`(書名)、`author`(著者名)、`category`(カテゴリ)、`price`(価格)、`publishedYear`(発行年)、`stock`(在庫数)
+
+  | # | 欲しい検索 | 戻り値 | 引数 |
+  |---|---|---|---|
+  | 1 | 著者名が完全一致する本 | `List<Book>` | 著者名 |
+  | 2 | 書名に keyword を含む本(部分一致) | `List<Book>` | keyword |
+  | 3 | 価格が min 以上 max 以下の本を、安い順に | `List<Book>` | min, max |
+  | 4 | 指定カテゴリで、発行年が新しい上位3冊 | `List<Book>` | カテゴリ |
+  | 5 | 在庫数が threshold **未満** の本の冊数 | `long` | threshold |
+  | 6 | 著者名が一致し、**かつ** 発行年が year 以降 | `List<Book>` | 著者名, year |
+
+  例:`findByAuthor("山田太郎")` → 山田太郎さんの本の一覧
+
+  ヒント:
+  - 解説の「命名規則の表」を見ながら、`find` / `count` + `Top3` + `By` + 条件 + `OrderBy...` の順に組み立てます。
+  - 「未満」は `LessThan`、「以上」は `GreaterThanEqual` です。`Equal` の有無で境界値の結果が変わります。
+  - プロパティ名のつづりを間違えると、アプリ起動時に `No property 'xxx' found for type 'Book'` で落ちます。テストでも同じエラーを表示します。
+
+  ※ 採点環境には DB がないので、テストは Spring Data 本体がメソッド名の解析に使う `PartTree` で、条件・並び順・件数制限を確認します。
+  同じ意味なら別の書き方(`Containing` の代わりに `Contains` など)でも合格です。
+  STS では `com.example.demo.book` パッケージに `Book.java`(`public class`)と `BookRepository.java`(`public interface`)を別ファイルで置きます。

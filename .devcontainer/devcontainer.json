@@ -1,0 +1,38 @@
+// GitHub Codespaces 用の設定。PC がなくてもスマホのブラウザだけで Java道場 を動かせる。
+// Codespace を開くとアプリが自動で起動し、8080 番ポートがあなた専用の URL で公開される(既定は非公開=本人のみ)。
+{
+  "name": "Java道場",
+  "image": "mcr.microsoft.com/devcontainers/java:1-21-bookworm",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb"
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Java道場",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  // 初回だけ:依存ライブラリを取ってきてコンパイルしておく(起動を速くする)
+  "postCreateCommand": "./mvnw -B -q -DskipTests compile",
+  // Codespace を開くたびにアプリを起動する
+  "postAttachCommand": {
+    "app": "./mvnw -q spring-boot:run"
+  },
+  // AI機能を使う場合は、GitHub の Settings > Codespaces > Secrets に ANTHROPIC_API_KEY を登録する
+  "secrets": {
+    "ANTHROPIC_API_KEY": {
+      "description": "Claude API のキー(AI機能を使う場合だけ。なくても他の機能は動きます)",
+      "documentationUrl": "https://console.anthropic.com/"
+    }
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    },
+    "vscode": {
+      "extensions": ["vscjava.vscode-java-pack", "vmware.vscode-boot-dev-pack"]
+    }
+  }
+}

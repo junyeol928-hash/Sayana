@@ -1,0 +1,188 @@
+id: tools-git
+title: Git連携
+status: ready
+minutes: 15
+summary: 作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、.gitignore、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。
+goals:
+  - 作業ツリー・ステージ・コミット・ブランチ・リモートの関係を図で説明できる
+  - .gitignore に何を書くべきか(target/・data/・APIキー・IDE設定)を理由とともに説明できる
+  - STS の Git Staging ビューと Team メニューで、コミット・push・pull・ブランチ作成・差分確認ができる
+  - GitHub に個人アクセストークンで接続し、feature ブランチ + プルリクエストの流れを体験する
+  - コンフリクトを Merge Tool で解消でき、APIキーのコミットや force push がなぜ危険かを説明できる
+samples: []
+quiz:
+  - question: |
+      3つのファイルを変更しました。このうち `InvoiceService.java` と `InvoiceServiceTest.java` の2つだけを1つのコミットにし、`README.md` の変更は次のコミットに回したい。どうする?
+    choices:
+      - git commit -a -m "請求額の端数処理を修正" を実行する
+      - 2つのファイルだけを git add(STS なら Git Staging ビューで Staged Changes に移す)してからコミットする
+      - README.md を一度削除してからコミットし、後で元に戻す
+      - いったん3つともコミットして、あとで git push --force で README.md の分を消す
+    answer: 1
+    explanation: |
+      これこそ **ステージ** の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを `git add`(STS では Git Staging ビューで **Unstaged Changes** から **Staged Changes** へドラッグ)してコミットすれば、README.md の変更は作業ツリーに残ったままになります。
+      `git commit -a` は変更済みの管理対象ファイルを **全部** 自動でステージしてしまうので README.md も入ります。ファイルを削除したり force push で履歴を書き換えたりするのは、目的に対して危険すぎる遠回りです。
+  - question: |
+      `application-local.yml` に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。**最初に** やるべきことは?
+    choices:
+      - application-local.yml を削除するコミットを作って push する
+      - git commit --amend でコミットを書き換え、git push --force する
+      - リポジトリを非公開(Private)に切り替える
+      - Claude Console でそのAPIキーを無効化し、新しいキーを発行する
+    answer: 3
+    explanation: |
+      公開リポジトリに push されたキーは、巡回しているボットに **数分で** 拾われる前提で動きます。削除コミットを作っても **過去のコミットには残っている** し、force push や非公開化をしても、すでに誰かがコピーしていたら手遅れです。
+      だから最初にやるのは **キーそのものを無効化(revoke)して作り直す** こと。これで漏れたキーはただの文字列になります。履歴の掃除や .gitignore への追加(`application-local.yml` を書く)は、その後の再発防止策です。
+  - question: |
+      `git push` したら次のように拒否されました。どうする?
+      ```text
+       ! [rejected]        main -> main (fetch first)
+      error: failed to push some refs to 'https://github.com/…'
+      hint: Updates were rejected because the remote contains
+      hint: work that you do not have locally.
+      ```
+    choices:
+      - git pull でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する
+      - git push --force で自分の履歴を送り込む
+      - ローカルのリポジトリを削除して clone し直し、変更を手で書き直す
+      - 新しいブランチを作って、そちらを main に名前変更してから push する
+    answer: 0
+    explanation: |
+      このメッセージは「あなたが最後に pull した後に、誰かが先に push した」という意味です。Git は他人のコミットを消さないように、先に取り込むことを求めています。正解は **pull → (必要ならコンフリクト解消)→ push**。STS なら **Team > Pull** してから **Team > Push to Upstream** です。
+      `--force` は相手のコミットをリモートから消してしまう最悪の手。clone し直しやブランチの付け替えは、不要に手間がかかるうえ事故の元です。
+  - question: |
+      `target/` フォルダを最初のコミットで間違って入れてしまいました。あとから `.gitignore` に `target/` を書きましたが、ビルドするたびに `target/` の中のファイルが「変更あり」と表示され続けます。どうする?
+    choices:
+      - .gitignore の書き方が間違っているので、/target/** に書き直す
+      - STS を再起動すれば .gitignore が反映される
+      - git rm -r --cached target を実行して管理対象から外し、そのことをコミットする
+      - .gitignore 自体をまだコミットしていないのが原因なので、.gitignore をコミットすれば表示されなくなる
+    answer: 2
+    explanation: |
+      `.gitignore` が効くのは **まだ管理されていないファイル** だけです。一度コミットしたファイルは管理対象のままなので、`git rm -r --cached target` で「管理対象から外す(ディスク上のファイルは消さない)」をしてコミットします。それ以降は .gitignore が効いて表示されなくなります。
+      書き方は `target/` で正しく、STS を再起動しても変わりません。また .gitignore はコミットしていなくても(作業ツリーにあるだけで)効くので、.gitignore をコミットしても管理済みのファイルはそのままです。
+  - question: |
+      main ブランチで作業していて、これから「送料無料ラインの変更」に取りかかります。現場の一般的な運用(main + feature ブランチ + プルリクエスト)に沿った最初の操作は?
+    choices:
+      - main のまま変更してコミットし、そのまま main に push する
+      - feature/free-shipping のようなブランチを作って切り替える(STS なら Team > Switch To > New Branch...)
+      - リポジトリのフォルダを丸ごとコピーして、コピー側で作業する
+      - 変更が終わるまでコミットせず、最後に1回だけまとめてコミットする
+    answer: 1
+    explanation: |
+      main は「いつでも動く状態」に保ち、作業は **feature ブランチ** で行います。コマンドなら `git switch -c feature/free-shipping`、STS なら **Team > Switch To > New Branch...** で、**Check out new branch** にチェックを入れたまま作成します。終わったら push して GitHub で **プルリクエスト** を作り、レビューを経て main にマージします。
+      main へ直接 push はブランチ保護で禁止されていることが多く、フォルダのコピーは Git を使う意味がありません。コミットは小さく、意味のまとまりごとにこまめに行うのが基本です。
+columns:
+  - type: genba
+    title: 金曜の夜に push した APIキー、月曜には請求書
+    body: |
+      ある開発者が、個人の練習リポジトリに `application.yml` ごとクラウドのアクセスキーを push してしまいました。公開リポジトリだったので、週末のうちに第三者に拾われ、仮想通貨の採掘用サーバーを大量に立てられて、月曜に数十万円の請求が届いた――という話は、残念ながら珍しくありません。
+
+      GitHub に push されたキーは、公開リポジトリを常に巡回しているボットに数分で見つかります。一方で GitHub 側も **secret scanning** という仕組みで既知の形式のキーを検出し、提携しているサービスに通知したり、**push protection** で push 自体を止めたりしてくれます。ただしこれは最後の安全網。頼り切るものではありません。
+
+      現場の鉄則は「秘密情報はファイルに書かない、書くなら .gitignore 済みのファイルだけ」。このアプリが APIキーを環境変数 `ANTHROPIC_API_KEY` からしか読まないのも、うっかり事故を構造的に起こさないためです。
+  - type: mistake
+    title: git push --force で同僚の1日分が消えた
+    body: |
+      自分のコミットを `git commit --amend` で直したら、push が拒否された。調べると「`--force` を付ければ通る」と書いてあったので、共有の `develop` ブランチに `git push --force`。……その数分前に同僚が push していた3つのコミットが、リモートから消えました。
+
+      force push は「リモートのブランチを、自分の手元の状態で上書きする」操作です。手元に同僚のコミットが無ければ、それは「無かったこと」になります(同僚の PC には残っているので救出はできますが、チーム全員の作業が止まります)。
+
+      対策は3つ。①共有ブランチでは force push しない。②自分専用のブランチで履歴を整えたときは、リモートが自分の知っている状態のときだけ上書きする `--force-with-lease` を使う。③GitHub の **ブランチ保護** で main などへの force push を禁止しておく。現場では③が設定済みのことが多いですが、それでも①が基本です。
+  - type: trivia
+    title: Git は Linux のために数週間で作られた
+    body: |
+      Git の作者は Linux カーネルの生みの親、リーナス・トーバルズです。2005年、Linux 開発で使っていた商用のバージョン管理ツール(BitKeeper)が無償で使えなくなり、代わりを自作したのが始まり。開発開始からわずか数週間で、Git 自身と Linux カーネルの管理に使われ始めました。
+
+      世界中の数千人が同時に開発する Linux のために、「全員が全履歴を持つ分散型」「ブランチを一瞬で作れる」「コミット ID は中身から計算したハッシュ値なので、履歴を改ざんすると ID が変わってすぐ分かる」という設計になっています。
+
+      ちなみに GitHub は Git そのものではなく、Git のリポジトリを預けられるサービス(2008年開始)です。新しいリポジトリの既定ブランチ名は、2020年10月から `master` ではなく `main` になっています。古い記事に `master` と書いてあるのはそのためです。
+sts:
+  intro: |
+    STS に最初から入っている Git 機能(EGit)を使い、GitHub 上の練習用リポジトリで「クローン → コミット → push → ブランチとプルリクエスト → コンフリクト解消」を一通り体験します。
+    このアプリのリポジトリではなく、**壊しても困らない練習用リポジトリ** を使ってください。GitHub のアカウントが必要です。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Git パースペクティブを開く
+      detail: |
+        **Window > Perspective > Open Perspective > Git**(ウィンドウ > パースペクティブ > パースペクティブを開く > Git)を選びます。一覧に Git が無ければ **Other...**(その他...)から **Git** を選んで **Open**(開く)。
+        左に **Git Repositories**(Git リポジトリー)ビューが表示されれば成功です。下部には **History**(履歴)ビューや **Git Staging**(Git ステージング)ビューがあります。
+        元の画面に戻るときは、右上のパースペクティブ切り替えボタン(Java や Spring のアイコン)を押します。
+    - title: コミットに記録される名前とメールアドレスを設定する
+      detail: |
+        **Window > Preferences > Version Control (Team) > Git > Configuration**(ウィンドウ > 設定 > バージョン管理 (チーム) > Git > 構成)を開き、**User Settings**(ユーザー設定)タブで **Add Entry...**(エントリーの追加...)を押します。
+        - Key に `user.name`、Value に自分の名前(GitHub のユーザー名でよい)
+        - もう一度 **Add Entry...** で、Key に `user.email`、Value に GitHub に登録したメールアドレス
+
+        **Apply and Close**(適用して閉じる)を押します。コマンドの `git config --global user.name ...` と同じ設定です。メールアドレスを公開したくなければ、GitHub の **Settings > Emails** に表示される `...@users.noreply.github.com` のアドレスを使えます。
+    - title: GitHub で練習用リポジトリと個人アクセストークンを作る
+      detail: |
+        GitHub で右上の **+ > New repository** を選び、Repository name に `git-practice`、**Public** か **Private** を選び、**Add a README file** にチェックを入れて **Create repository**。
+        次に右上のアイコン > **Settings > Developer settings > Personal access tokens > Fine-grained tokens** > **Generate new token** を押します。
+        - **Expiration**(有効期限)は 30〜90 日程度
+        - **Repository access** で **Only select repositories** を選び、`git-practice` だけを指定
+        - **Permissions** の **Contents** を **Read and write** にする
+
+        **Generate token** を押すと `github_pat_...` で始まるトークンが表示されます。**この画面を閉じると二度と表示されない** ので、次の手順で使うまでコピーしておきます(メモ帳などに保存したままにしない)。
+    - title: Clone a Git repository でクローンする
+      detail: |
+        GitHub のリポジトリ画面の **Code** ボタンで HTTPS の URL(`https://github.com/<ユーザー名>/git-practice.git`)をコピーします。
+        STS の Git Repositories ビューで **Clone a Git repository**(Git リポジトリーのクローン)を押すと、URI 欄にコピーした URL が自動で入ります(入らなければ貼り付け)。
+        - **Authentication** の **User** に GitHub のユーザー名、**Password** に先ほどの **トークン** を入力
+        - **Store in Secure Store**(セキュア・ストアに保管)にチェック
+
+        **Next** → ブランチ選択で `main` にチェック → **Next** → **Directory**(ディレクトリー)に保存先(例 `C:\Users\<名前>\git\git-practice`)を確認して **Finish**。
+        Git Repositories ビューに `git-practice [main]` が表示されれば成功です。
+        本物の Maven プロジェクトをクローンしたときは、`.project` などが .gitignore されているので、続けて **File > Import... > Maven > Existing Maven Projects** でインポートします。
+    - title: プロジェクトとして取り込み、変更して差分を見る
+      detail: |
+        Git Repositories ビューで `git-practice` を右クリックし、**Import Projects...**(プロジェクトのインポート...)→ **Finish** で取り込みます。Java パースペクティブに戻ると Package Explorer に `git-practice [git-practice main]` が表示されます。
+        `README.md` を開き、1行追加して **Ctrl+S** で保存します。ファイル名の前に `>` が付くのが「変更あり」の印です。
+        `README.md` を右クリックし、**Compare With > HEAD Revision**(比較 > HEAD リビジョン)を選ぶと、最後のコミットとの差分が左右に並んで表示されます。追加した行が色付きで見えれば成功です。
+        (変更を捨てて元に戻したいときは **Replace With > HEAD Revision**(置換 > HEAD リビジョン)。今回は使わずに次へ)
+    - title: Team > Commit... で Git Staging ビューからコミットする
+      detail: |
+        プロジェクトを右クリックし、**Team > Commit...**(チーム > コミット...)を選ぶと **Git Staging** ビューが開きます。
+        - **Unstaged Changes**(ステージされていない変更)にある `README.md` を、**Staged Changes**(ステージされた変更)へドラッグ(または緑の **+** ボタン)
+        - **Commit Message**(コミット・メッセージ)に、1行目は要約、1行空けて理由を書く
+        - **Author / Committer** に手順2で設定した名前とメールが入っていることを確認
+
+        **Commit**(コミット)ボタンを押します(**Commit and Push...** は今回は使わない)。ファイル名の `>` が消え、プロジェクト名の横に `↑1` のような「push していないコミットが1つある」印が出れば成功です。
+        **Team > Show in History**(チーム > 履歴に表示)で、History ビューに今のコミットが一番上に出ていることも確認しましょう。
+    - title: Team > Push to Upstream で GitHub に送る
+      detail: |
+        プロジェクトを右クリックし、**Team > Push to Upstream**(チーム > アップストリームへプッシュ)を選びます。結果のダイアログでコミットが送られたことを確認して **Close**。
+        ブラウザで GitHub のリポジトリを再読み込みし、README の変更とコミットメッセージが表示されれば成功です。
+        認証エラーになったら、トークンの権限(Contents: Read and write)と対象リポジトリの指定を見直してください。
+    - title: feature ブランチを作り、プルリクエストでマージする
+      detail: |
+        **Team > Switch To > New Branch...**(チーム > 切り替え > 新規ブランチ...)を選び、**Branch name** に `feature/add-memo` と入力、**Check out new branch**(新規ブランチをチェックアウト)にチェックが入ったまま **Finish**。
+        プロジェクト名の横の表示が `feature/add-memo` に変わります。新しいファイル `memo.md` を作って保存し、手順6と同じようにコミットします。
+        **Team > Push Branch 'feature/add-memo'...**(チーム > ブランチ 'feature/add-memo' のプッシュ...)→ **Next** → **Finish** で、ブランチごと GitHub に送ります。
+        GitHub の画面に出る **Compare & pull request** を押し、説明を書いて **Create pull request**。差分を確認して **Merge pull request** → **Confirm merge** を押せばマージ完了です。
+        STS に戻り、**Team > Switch To > main** で main に切り替えてから **Team > Pull**(チーム > プル)を実行し、`memo.md` が main にも現れれば成功です。
+    - title: わざとコンフリクトを起こして Merge Tool で解消する
+      detail: |
+        1. GitHub の画面で `README.md` を開き、鉛筆アイコン(Edit)で **1行目** を書き換えて **Commit changes**
+        2. STS 側でも、pull する前に `README.md` の **同じ1行目** を別の内容に書き換えてコミットする
+        3. **Team > Pull** を実行すると、コンフリクトの通知が出て、`README.md` に赤い衝突マークが付く
+        4. `README.md` を右クリック > **Team > Merge Tool**(チーム > マージ・ツール)を選ぶと、左に自分の変更、右に相手の変更が並ぶ。左側を正しい内容に直して **Ctrl+S**
+        5. **Team > Add to Index**(チーム > 索引に追加)で「解消済み」にし(Git Staging ビューで Staged Changes へ移してもよい)、Git Staging ビューで **Commit**(メッセージはマージ用のものが入っている)
+        6. **Team > Push to Upstream** で送る
+
+        ファイルに `<<<<<<<` `=======` `>>>>>>>` が残っていないこと、History ビューで2本の線が合流していることを確認できれば成功です。
+checklist:
+  - key: gitignore-read
+    text: このアプリの .gitignore を読み、target/・data/・APIキー関連・IDE 設定の行がそれぞれなぜあるのか説明できた
+  - key: git-config
+    text: STS の Preferences で user.name と user.email を設定した
+  - key: pat-clone
+    text: GitHub で練習用リポジトリと権限を絞った個人アクセストークンを作り、STS の Clone a Git repository でクローンできた
+  - key: commit-push
+    text: Compare With > HEAD Revision で差分を確認し、Git Staging ビューでコミットして Push to Upstream で GitHub に反映できた
+  - key: branch-pr
+    text: Team > Switch To > New Branch... で feature ブランチを作り、push してプルリクエストを作成・マージし、main に pull できた
+  - key: history-view
+    text: History ビューで自分のコミットの一覧と、ブランチが合流するグラフを確認した
+  - key: conflict-resolved
+    text: わざと起こしたコンフリクトを Merge Tool で解消し、Add to Index → Commit → Push まで完了した

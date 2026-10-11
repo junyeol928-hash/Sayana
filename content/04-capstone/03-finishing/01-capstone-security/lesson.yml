@@ -1,0 +1,321 @@
+id: capstone-security
+title: ログインと権限
+status: ready
+minutes: 15
+summary: 承認くんに Spring Security でログインを付け、固定の社員ID をログイン中の社員に置き換える。URL はロールで、業務ルールは Service で、と2段で守る。
+goals:
+  - 承認くんの URL 表から SecurityFilterChain のルール(permitAll・hasAnyRole・authenticated)を正しい順番で書ける
+  - Employee から UserDetails(LoginUser)を作る UserDetailsService を書き、パスワードを BCrypt で保存・照合できる
+  - "@AuthenticationPrincipal でログイン中の社員を受け取り、capstone-apply の固定の社員ID を置き換えられる"
+  - sec:authorize でボタンをロールで出し分け、画面で隠すだけでは守れない理由を説明できる
+  - 業務ルール1〜3を Service 側の AccessPolicy で判定し、「誰が・どの状態で・いくらまで」を1か所にまとめられる
+samples:
+  - title: ボタンが見えることと、承認できることは別
+    description: |
+      画面の `sec:authorize` はロールしか見ません。一方、サーバー側の判定は「自分の申請か」「金額はいくらか」まで見ます。
+      金額や申請者を変えて、ボタンは出るのにサーバーが断るケースを探してみましょう。
+    code: |
+      enum Role { APPLICANT, APPROVER, ADMIN }
+      record Emp(long id, String name, Role role) {}
+      record Req(long applicantId, int amount) {}
+      
+      // 業務ルール1〜3だけの簡易版(演習1で状態も含めた完全版を作る)
+      String canApprove(Emp e, Req r) {
+          if (e.role() == Role.APPLICANT) return "× 承認者ではない";
+          if (e.id() == r.applicantId()) return "× 自分の申請";
+          if (r.amount() >= 100_000 && e.role() != Role.ADMIN) return "× 高額は管理者だけ";
+          return "○ 承認できる";
+      }
+      
+      List<Emp> people = List.of(
+          new Emp(1, "ハル", Role.APPLICANT),
+          new Emp(2, "モカ", Role.APPROVER),
+          new Emp(3, "部長", Role.ADMIN));
+      
+      // ここを変えてみよう:金額を 99_999 や 100_000 に、申請者を 2(モカ)や 3(部長)に
+      Req req = new Req(1, 120_000);
+      
+      System.out.println("申請者ID=" + req.applicantId() + " / 金額=" + req.amount());
+      for (Emp e : people) {
+          // 画面の sec:authorize はロールしか見ない
+          boolean buttonShown = e.role() != Role.APPLICANT;
+          System.out.printf("%-3s %-9s ボタン表示:%s サーバー判定:%s%n",
+                  e.name(), e.role(), buttonShown ? "あり" : "なし", canApprove(e, req));
+      }
+  - title: URL ルールは上から順に、最初に一致したもので決まる
+    description: |
+      承認くんの URL ルールを簡略化した表で、未ログイン・申請者・承認者がどの URL に入れるかを一覧にします。
+      広いルール(`/requests` 以下は全員OK)を先頭に足すと、検索画面に申請者が入れてしまうことを確かめましょう。
+    code: |
+      // 承認くんの URL ルール(上から順に見て、最初に一致したもので決まる)
+      // prefix で簡略化しています。本物は Spring Security の requestMatchers
+      record Rule(String prefix, String need) {}
+      
+      List<Rule> rules = new ArrayList<>(List.of(
+          new Rule("/login", "permitAll"),
+          new Rule("/approvals", "APPROVER/ADMIN"),
+          new Rule("/requests/search", "APPROVER/ADMIN"),
+          new Rule("/", "authenticated")));
+      
+      // ここを変えてみよう:下の行のコメントを外し、広いルールを先頭に入れて再実行
+      // rules.add(0, new Rule("/requests", "authenticated"));
+      
+      String judge(String path, String role) {
+          for (Rule r : rules) {
+              if (!path.startsWith(r.prefix())) continue;
+              if (r.need().equals("permitAll")) return "通す";
+              if (role == null) return "→ /login";
+              if (r.need().equals("authenticated")) return "通す";
+              return r.need().contains(role) ? "通す" : "403";
+          }
+          return role == null ? "→ /login" : "403";
+      }
+      
+      String[] paths = {"/login", "/requests", "/requests/search", "/approvals"};
+      String[] roles = {null, "APPLICANT", "APPROVER"};
+      for (String p : paths) {
+          List<String> cells = new ArrayList<>();
+          for (String role : roles) {
+              cells.add((role == null ? "未ログイン" : role) + "=" + judge(p, role));
+          }
+          System.out.println(p + " → " + cells);
+      }
+quiz:
+  - question: |
+      次の設定で、ロール `APPLICANT` の社員が `GET /requests/search` を開くとどうなる?
+      ```java
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/login").permitAll()
+        .requestMatchers("/requests/**").authenticated()
+        .requestMatchers("/requests/search")
+          .hasAnyRole("APPROVER", "ADMIN")
+        .anyRequest().authenticated())
+      ```
+    choices:
+      - "403 Forbidden になる"
+      - "ログイン画面にリダイレクトされる"
+      - "検索画面が表示される"
+      - "ルールが矛盾しているので起動時にエラーになる"
+    answer: 2
+    explanation: |
+      ルールは上から順に評価され、**最初に一致したもの** で決まります。`/requests/search` は先に書いた `/requests/**` に一致するので、「ログインしていれば誰でも」で通ってしまいます。3行目の `hasAnyRole` は一度も使われません。
+      細かい URL(`/requests/search`)を広いパターン(`/requests/**`)より上に書くのが正解です。この順番は起動時にはチェックされないので、エラーにもなりません(`anyRequest()` の後ろに書いたときだけ起動時エラーになります)。
+  - question: |
+      ログインはできるのに、承認者の社員が `/approvals` を開くと 403 になります。`LoginUser` の次の部分が原因です。正しい直し方は?
+      ```java
+      public Collection<? extends GrantedAuthority>
+              getAuthorities() {
+          return List.of(
+              new SimpleGrantedAuthority(role.name()));
+      }
+      ```
+      (設定は `.requestMatchers("/approvals/**").hasAnyRole("APPROVER", "ADMIN")`)
+    choices:
+      - "権限名を \"ROLE_\" + role.name() にする"
+      - "設定を hasAnyRole(\"ROLE_APPROVER\", \"ROLE_ADMIN\") にする"
+      - "role.name() を role.name().toLowerCase() にする"
+      - "@EnableWebSecurity を付け忘れているので付ける"
+    answer: 0
+    explanation: |
+      `hasAnyRole("APPROVER")` は、権限 `ROLE_APPROVER` を持っているかを調べます(`ROLE_` が自動で付く)。権限を `APPROVER` のまま返すと一致しないので 403 です。権限名に `ROLE_` を付けて返すのが正解です。
+      設定側に `ROLE_` を付けると、起動時に「ROLE_APPROVER should not start with ROLE_ ...」で落ちます。権限名は大文字小文字を区別するので小文字にしても一致しません。Spring Boot では `@EnableWebSecurity` がなくても有効です。
+  - question: |
+      capstone-apply の「固定の社員ID」を置き換えるつもりで、次のように書きました。何が問題?
+      ```html
+      <form th:action="@{/requests}" method="post">
+        <input type="hidden" name="employeeId"
+               th:value="${#authentication.principal.id}">
+        ...
+      ```
+      ```java
+      @PostMapping("/requests")
+      public String create(@RequestParam Long employeeId, ...) {
+      ```
+    choices:
+      - "hidden には数値を入れられないので、employeeId が null になる"
+      - "th:action を使っているので CSRF トークンが二重になり 403 になる"
+      - "#authentication は Thymeleaf では使えない"
+      - "hidden の値はブラウザで書き換えられるので、他人になりすまして申請できる"
+    answer: 3
+    explanation: |
+      hidden の値も、ブラウザの開発者ツールや curl で自由に書き換えて送れます。`employeeId=3` に変えれば、部長の名前で申請できてしまいます。
+      「誰が」は画面から受け取らず、サーバー側のセッションにあるログイン情報を `@AuthenticationPrincipal LoginUser user` で受け取って `user.id()` を使います。
+      hidden に数値は入れられますし(送るときは文字列、受け取るときに変換)、`th:action` の CSRF トークンは1つだけ入ります。`#authentication` は thymeleaf-extras-springsecurity6 を入れていれば使えます。
+  - question: |
+      ロール `APPROVER` のモカさんが、**自分が出した** 申請(5,000円・申請中)の承認を、curl で `POST /requests/8/approve` に直接送りました(ログイン済みのセッションと CSRF トークン付き)。承認くんではどうなるのが正しい?
+    choices:
+      - "画面に承認ボタンが表示されないので、リクエストは届かない"
+      - "SecurityFilterChain は通る(ロールは OK)が、Service の判定で BusinessRuleException になり承認されない"
+      - "SecurityFilterChain が「自分の申請」を見抜いて 403 を返す"
+      - "5,000円なので承認される"
+    answer: 1
+    explanation: |
+      URL のルールが見るのはロールだけなので、APPROVER の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)で拒否します。
+      ボタンを隠しても、curl のように画面を通らないリクエストは届きます。だからこそ Service で必ず判定するのです。金額が小さくても、自分の申請はルール2で承認できません。
+  - question: |
+      次のフォームで「承認」を押すと 403 になりました。原因として正しいものは?
+      ```html
+      <form action="/requests/8/approve" method="post">
+        <button>承認</button>
+      </form>
+      ```
+    choices:
+      - "th:action を使っていないので CSRF トークンが送られていない"
+      - "action の URL が相対パスではないから"
+      - "button に type=\"submit\" が無いから"
+      - "承認は PUT で送る決まりだから"
+    answer: 0
+    explanation: |
+      Spring Security は CSRF 対策が既定で有効で、POST にはサーバーが発行したトークン(`_csrf`)が必要です。`th:action` で書くと Thymeleaf が hidden の `_csrf` を自動で入れますが、ただの `action` だと入らないので 403 になります。
+      `/requests/...` の絶対パスでも POST は届きますし、form の中の `button` は `type` を省略すると submit ボタンです。承認くんの設計では状態を変える操作は POST です。
+columns:
+  - type: trivia
+    title: "パスワードの先頭の {bcrypt} は何?"
+    body: |
+      ネットのサンプルで、パスワードが `{bcrypt}$2a$10$...` や `{noop}password` と書かれているのを見かけます。
+      これは **DelegatingPasswordEncoder** の書式で、`{ }` の中が「どの方式でハッシュしたか」を表します。
+      `PasswordEncoderFactories.createDelegatingPasswordEncoder()` で作るとこの形になり、古い方式のハッシュと新しい方式のハッシュを1つのテーブルに混在させられます。
+      数年後に BCrypt から Argon2 へ移るとき、全員のパスワードを一度に作り直す必要がないのです(ログインのたびに新しい方式で保存し直せる)。
+
+      承認くんは `BCryptPasswordEncoder` を直接 Bean にしているので、`{bcrypt}` は付けません。
+      逆に、`PasswordEncoder` の Bean を定義し忘れると Delegating が使われ、`{ }` の無いハッシュに対して
+      `There is no password encoder mapped for the id 'null'` という例外になります。
+  - type: genba
+    title: "「そのユーザーは存在しません」と言ってはいけない"
+    body: |
+      ログイン失敗のメッセージを「メールアドレスが見つかりません」「パスワードが違います」と分けると親切に見えますが、
+      攻撃者に「このメールアドレスは社員として登録されている」と教えてしまいます(**アカウント列挙**)。
+      承認くんのように `UsernameNotFoundException` を投げても、Spring Security は既定でそれを「パスワード違い」と同じ `BadCredentialsException` に変えるので、
+      どちらでも `/login?error` になり、画面には同じ「メールアドレスかパスワードが違います」が出ます。
+
+      さらに `DaoAuthenticationProvider` は、存在しないユーザーのときも **ダミーのパスワードで BCrypt を1回計算** します。
+      存在するユーザーだけ BCrypt の計算時間(数十ミリ秒)がかかると、応答時間の差で見分けられてしまうからです。
+      「エラーは詳しく」が正義の業務画面でも、ログインだけは例外。現場のセキュリティ診断で必ず見られるポイントです。
+  - type: mistake
+    title: "Role が「あいまい」と言われてコンパイルできない"
+    body: |
+      `SecurityConfig` や初期データのクラスで import を `*` でまとめると、次のコンパイルエラーに出会うことがあります。
+
+      ```text
+      reference to Role is ambiguous
+        both class org.springframework.context.annotation.Role
+        and enum com.example.approval.domain.Role match
+      ```
+
+      Spring にも `@Role` アノテーションがあり、`org.springframework.context.annotation.*` と `com.example.approval.domain.*` を
+      両方 `*` で import すると、どちらの `Role` か決められないのです。
+      STS の **Ctrl+Shift+O**(インポートの編成)は候補が複数あると選択ダイアログを出すので、そこで自分の `Role` を選び、
+      import は1クラスずつ書けば起きません。`User` や `Page` でも同じことが起きます。
+sts:
+  intro: |
+    承認くん(`approval-app`)にログインを付けます。capstone-approve までで、申請・承認・差戻しが「固定の社員ID」で動いている前提です。
+    パッケージはすべて `com.example.approval` 配下です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: Spring Security を依存に追加する
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` を右クリックし、**Spring > Add Starters**(Spring > スターターの追加)を選びます。
+        検索欄に `Security` と入れて **Spring Security** にチェックを入れ、**Next**(次へ)を押すと `pom.xml` の変更点が表示されるので、**Finish**(完了)を押します。
+
+        `pom.xml` を開き、`spring-boot-starter-security` と `thymeleaf-extras-springsecurity6`(groupId は `org.thymeleaf.extras`)の2つが入っていることを確かめます。
+        後者が無ければ `<dependencies>` に手で足します(`<version>` は書かない。Spring Boot が管理します)。保存後、プロジェクトを右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新)(**Alt+F5**)。
+    - title: Employee にパスワードを足す
+      detail: |
+        `domain/Employee.java` に `private String password;`(BCrypt のハッシュ。60文字)と getter / setter を足します。
+        `repository/EmployeeRepository.java` には `Optional<Employee> findByEmail(String email);` を足します。
+
+        開発用のパスワードは、初期データの入れ方に合わせて BCrypt で入れます。`data.sql` で入れている場合は、`config` パッケージに次のクラスを作ると、パスワードが空の社員に `pass1234` を設定できます。
+        初期データを `CommandLineRunner` で入れている場合は、その中で `encoder.encode("pass1234")` をセットしてください。
+
+        ```java
+        @Configuration
+        public class DevPasswordInitializer {
+            @Bean
+            CommandLineRunner initPasswords(EmployeeRepository repo,
+                                            PasswordEncoder encoder) {
+                return args -> repo.findAll().forEach(e -> {
+                    if (e.getPassword() == null) {
+                        e.setPassword(encoder.encode("pass1234"));
+                        repo.save(e);
+                    }
+                });
+            }
+        }
+        ```
+
+        平文のパスワードをソースに書くのは開発中だけです。capstone-release で開発用のプロファイルに閉じ込めます。
+    - title: SecurityConfig・LoginUser・LoginUserDetailsService を作る
+      detail: |
+        `config` パッケージに解説の3クラスを作ります。import は **Ctrl+Shift+O** で整理し、候補が複数出たら次を選びます。
+        - `Role` → `com.example.approval.domain.Role`(`org.springframework.context.annotation.Role` ではない)
+        - `PathRequest` → `org.springframework.boot.autoconfigure.security.servlet.PathRequest`
+        - `PasswordEncoder` → `org.springframework.security.crypto.password.PasswordEncoder`
+
+        H2 コンソール(`/h2-console`)を使い続けたい場合は、`anyRequest()` より上に `.requestMatchers(PathRequest.toH2Console()).permitAll()` を足し、
+        `http.csrf(c -> c.ignoringRequestMatchers(PathRequest.toH2Console()))` と `http.headers(h -> h.frameOptions(f -> f.sameOrigin()))` も設定します(H2 コンソールは画面をフレームで作っているため)。
+    - title: ログイン画面を作る
+      detail: |
+        `web` パッケージに `LoginController`(`@GetMapping("/login")` で `"login"` を返すだけ)を作り、`src/main/resources/templates/login.html` を作ります。
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head>
+        <meta charset="UTF-8">
+        <title>ログイン - 承認くん</title>
+        </head>
+        <body>
+        <h1>承認くん</h1>
+        <p th:if="${param.error}">メールアドレスかパスワードが違います</p>
+        <p th:if="${param.logout}">ログアウトしました</p>
+        <form th:action="@{/login}" method="post">
+          <label>メールアドレス
+            <input type="email" name="username" autofocus></label>
+          <label>パスワード
+            <input type="password" name="password"></label>
+          <button type="submit">ログイン</button>
+        </form>
+        </body>
+        </html>
+        ```
+
+        入力欄の name は `username` と `password` にします(Spring Security のフォームログインが読む名前)。`th:action` なので CSRF トークンは自動で入ります。
+    - title: 固定の社員ID を @AuthenticationPrincipal に置き換える
+      detail: |
+        **Search > Search...**(検索 > 検索...)(**Ctrl+H**)の **File Search**(ファイル検索)で、`CURRENT_` を `*.java` から探します。
+        capstone-apply の `CURRENT_EMPLOYEE_ID` と capstone-approve の `CURRENT_APPROVER_ID` が見つかるはずです。
+        それを使っている Controller のメソッドすべてに `@AuthenticationPrincipal LoginUser user` 引数を足し、定数を `user.id()` に置き換えて、定数そのものは削除します
+        (`AuthenticationPrincipal` は `org.springframework.security.core.annotation` パッケージのものを選びます)。
+        申請(POST /requests)・申請する・取り下げる・承認・差戻しの全部です。1つでも残っていると、その操作だけ「社員ID=1 の人」として動きます。
+    - title: 画面にログイン中の名前・ログアウト・ロール別のリンクを出す
+      detail: |
+        一覧や詳細のテンプレートの `<html>` に `xmlns:sec="http://www.thymeleaf.org/extras/spring-security"` を足し、解説のとおり
+        `${#authentication.principal.name}`(名前)、`th:action="@{/logout}"` の POST フォーム、`sec:authorize="hasAnyRole('APPROVER','ADMIN')"` を付けた「承認待ち一覧」リンクと承認・差戻しボタンを置きます。
+    - title: AccessPolicy を Service に組み込む(演習1)
+      detail: |
+        画面上で演習1を解き、`AccessPolicy`・`Operation`・`Decision` を `service` パッケージに別ファイルで作ります(`AccessPolicy` には `@Component`)。
+        `Actor` の代わりに社員ID とロール、`RequestInfo` の代わりに `ApprovalRequest` を受け取るように引数を直し、`ApprovalService` の各操作の先頭で呼んで、拒否なら `BusinessRuleException(d.reason())` を投げます。
+        capstone-approve で書いた個別のチェックと重なる部分は、`AccessPolicy` 側に一本化します。
+    - title: ロールごとにログインして確かめる
+      detail: |
+        **Boot Dashboard** で `approval-app` を **(Re)start** し、`http://localhost:8080/requests` を開きます。
+        1. `/login` に飛ばされる。間違ったパスワードで「メールアドレスかパスワードが違います」が出る
+        2. 申請者でログイン → 自分の申請一覧が出て、「承認待ち一覧」リンクが無い。`/approvals` を URL 欄に打つと 403
+        3. 申請を1件作って申請する(SUBMITTED)。履歴の操作者がログインした本人になっている
+        4. 承認者でログイン → 承認待ち一覧から3の申請を承認できる。自分の申請の詳細では承認ボタンは見えるが、押すと「自分の申請は承認できません」
+        5. 承認者で 100,000 円以上の申請を承認 → 「100,000円以上の申請は管理者しか承認できません」。管理者でログインし直すと承認できる
+        6. ログアウトを押すと `/login?logout` に戻り、ブラウザの「戻る」で一覧を開こうとしてもログイン画面に飛ばされる
+checklist:
+  - key: security-starter
+    text: Add Starters で Spring Security を追加し、pom.xml に spring-boot-starter-security と thymeleaf-extras-springsecurity6 が入った
+  - key: security-login
+    text: 自作のログイン画面(/login)からメールアドレスと BCrypt のパスワードでログインでき、間違えると ?error が出た
+  - key: security-url-rules
+    text: 申請者で /approvals と /requests/search を開くと 403、承認者では開けることを確認した
+  - key: security-principal
+    text: 固定の社員ID をすべて @AuthenticationPrincipal LoginUser に置き換え、履歴の操作者がログイン中の社員になった
+  - key: security-sec-authorize
+    text: sec:authorize で承認待ち一覧のリンクと承認ボタンがロールによって出たり消えたりした
+  - key: security-server-check
+    text: 承認者が自分の申請を承認しようとすると、ボタンは見えても Service で拒否されることを確かめた
+  - key: security-logout
+    text: POST のログアウトで /login?logout に戻り、戻るボタンでは一覧が見られないことを確認した

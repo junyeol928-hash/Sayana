@@ -1,0 +1,35 @@
+title: 申請フォームの入力チェック(相関チェックつき)
+className: RequestForm
+difficulty: 2
+libraries: [spring]
+problem: |
+  承認くんの新規申請フォーム `RequestForm` に、Bean Validation の注釈で入力ルールを付けてください。
+  種類 `RequestType` は完成済みです(`requiresAmount()` は経費精算・備品購入で `true`、休暇で `false`)。
+
+  | 項目 | ルール | エラーメッセージ |
+  |---|---|---|
+  | `title` | 必須(空白だけも不可) | `件名を入力してください` |
+  | `title` | 50文字以内 | `件名は50文字以内で入力してください` |
+  | `type` | 必須 | `種類を選んでください` |
+  | `amount` | 入力するなら1以上 | `金額は1円以上で入力してください` |
+  | `reason` | 必須(空白だけも不可) | `理由を入力してください` |
+
+  さらに **相関チェック**(複数の項目にまたがるチェック)として、メソッド `isAmountEntered()` を完成させ、
+  `@AssertTrue(message = "経費精算・備品購入は金額が必須です")` を付けてください。
+
+  - 種類が経費精算・備品購入(`type.requiresAmount()` が `true`)で、`amount` が `null` なら `false`
+  - 休暇なら金額は不要なので `true`
+  - **種類が未選択(`null`)のときも `true`**(未選択のエラーは `@NotNull` の担当。同じ原因でエラーを2つ出さない)
+
+  ヒント:
+
+  - `@Min` や `@Size` は **null を OK とみなす** ので、「必須」は `@NotBlank` / `@NotNull` と組み合わせます。
+    金額は種類によって必須かどうかが変わるので、フィールドに `@NotNull` は付けられません(だから相関チェック)。
+  - `@AssertTrue` を付けた `isAmountEntered()` は、`amountEntered` という名前の項目として検証されます。
+  - 列挙型に `@NotBlank` を付けると、検証したときに `UnexpectedTypeException` で落ちます。
+
+  テストは `jakarta.validation.Validator` でフォームを直接検証し、どの項目にどのメッセージが出たかを確かめます。
+
+  ※ STS では `RequestForm` は `com.example.approval.web` パッケージの `RequestForm.java`、
+  `RequestType` は `com.example.approval.domain` パッケージの `RequestType.java`(`public enum`)に置きます
+  (採点用に1ファイルにまとめています)。

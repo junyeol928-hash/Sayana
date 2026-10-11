@@ -1,0 +1,42 @@
+title: 新規申請を受け付ける Controller(PRG と自分の申請一覧)
+className: RequestController
+difficulty: 3
+libraries: [spring]
+problem: |
+  承認くんの申請画面の Controller `RequestController` を完成させてください。
+  フォーム `RequestForm`(前の問題の答え+エンティティへの詰め替え `toEntity()`)、
+  サービス `RequestService`(インターフェース)とそのメモリ実装 `InMemoryRequestService` は完成済みです。
+
+  | メソッド・URL | やること | 返すビュー名 |
+  |---|---|---|
+  | `GET /requests` | `findMine(CURRENT_EMPLOYEE_ID)` の結果を `"requests"` で Model へ | `"requests/list"` |
+  | `GET /requests/new` | 空の `RequestForm` を `"requestForm"` で Model へ | `"requests/new"` |
+  | `POST /requests` | 入力チェック。エラーなら保存しない | `"requests/new"` |
+  | 〃(エラーなし) | 下書きとして保存し、フラッシュ属性を入れる | `"redirect:/requests"` |
+
+  **POST /requests の詳細**
+
+  - フォームは `@Validated @ModelAttribute RequestForm form` で受け取り、**直後の引数** に `BindingResult` を置く
+  - エラーが無ければ `requestService.createDraft(CURRENT_EMPLOYEE_ID, form.toEntity())` で保存し、
+    戻り値の id を使ってフラッシュ属性 `"message"` に `"下書きを保存しました(No.<id>)"` を入れる
+    (例:`下書きを保存しました(No.1)`。かっこは全角)
+  - 成功したら `"redirect:/requests"` を返す(PRG パターン)
+
+  **種類の選択肢 `"types"`**
+
+  画面のセレクトボックスのために、Model に `"types"`(`RequestType.values()`)が **どのハンドラでも** 入っているようにします。
+  `GET /requests/new` で `model.addAttribute` するだけだと、**入力エラーで画面を返したときに選択肢が空になります**。
+  `@ModelAttribute("types")` を付けたメソッドを Controller に1つ作ると、そのクラスの全ハンドラの前に呼ばれて Model に入ります。
+
+  **ログインはまだ無い**
+
+  申請者は定数 `CURRENT_EMPLOYEE_ID`(社員ID 1)で代用します(capstone-security でログインユーザーに置き換えます)。
+  一覧には **この社員の申請だけ** を出します。
+
+  テストは `MockMvcBuilders.standaloneSetup(...)` に `LocalValidatorFactoryBean` を渡して MockMvc を作り、
+  ビュー名・Model・リダイレクト先・フラッシュ属性・保存された申請を確かめます(テンプレートは描画しません)。
+
+  ※ STS では `RequestController`・`RequestForm` は `com.example.approval.web`、
+  `RequestType`・`RequestStatus`・`ApprovalRequest` は `com.example.approval.domain`、
+  `RequestService` は `com.example.approval.service` に置きます。STS の `RequestService` は Repository を使う具象クラスですが、
+  採点用ではインターフェース+メモリ実装にしています。

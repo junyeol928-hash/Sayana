@@ -1,0 +1,337 @@
+id: capstone-api-test
+title: REST APIとテスト
+status: ready
+minutes: 15
+summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を ProblemDetail で返し分け、@WebMvcTest + @MockitoBean とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
+goals:
+  - 承認くんの REST API(GET /api/requests?status=、GET /api/requests/{id}、POST /api/requests/{id}/approve)を Controller に実装できる
+  - エンティティではなく record の DTO(RequestSummary / RequestDetail)を返す理由を説明し、用途ごとに DTO を分けられる
+  - "404(ない)・409(今の状態ではできない)・403(権限がない)を区別し、BusinessRuleException を @ExceptionHandler で 409 の ProblemDetail にできる"
+  - "@WebMvcTest + @MockitoBean で Controller を、@ParameterizedTest のテーブル駆動テストで業務ルールを確かめられる"
+  - テストピラミッドの考え方で @SpringBootTest を少数に絞り、STS で全テストを流して緑にできる
+samples:
+  - title: エンティティをそのまま JSON にすると何が出る?
+    libraries: [spring]
+    description: |
+      Jackson(Spring MVC が JSON 変換に使うライブラリ)で、エンティティ風のクラスと DTO の record を JSON にして比べます。
+      エンティティのほうは、関連先の `Employee` の **email や role まで** 出てしまいます。
+    code: |
+      // エンティティをそのまま JSON にすると何が出る? DTO なら?
+      // ここを変えてみよう:Employee に password 項目を足す /
+      // RequestSummary に項目を足す
+      import com.fasterxml.jackson.databind.ObjectMapper;
+
+      class Employee {                 // エンティティのつもり
+          public Long id = 1L;
+          public String name = "ハル";
+          public String email = "haru@example.com";
+          public String role = "APPLICANT";
+      }
+      class ApprovalRequest {          // エンティティのつもり
+          public Long id = 10L;
+          public String title = "出張交通費";
+          public Integer amount = 12800;
+          public String status = "SUBMITTED";
+          public Employee applicant = new Employee();
+      }
+      record RequestSummary(Long id, String title, Integer amount,
+              String status, String applicantName) {
+          static RequestSummary from(ApprovalRequest r) {
+              return new RequestSummary(r.id, r.title, r.amount,
+                      r.status, r.applicant.name);
+          }
+      }
+
+      ObjectMapper om = new ObjectMapper();
+      ApprovalRequest r = new ApprovalRequest();
+      System.out.println("エンティティ: " + om.writeValueAsString(r));
+      System.out.println("DTO        : "
+              + om.writeValueAsString(RequestSummary.from(r)));
+  - title: 承認 API を MockMvc で叩いて 200 / 409 / 404 を見る
+    libraries: [spring]
+    description: |
+      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。同じ申請を2回承認すると2回目は 409、存在しない ID は 404 になり、
+      どちらも `application/problem+json`(ProblemDetail)で返ります。`onRule` の `@ExceptionHandler` を消すと、例外が Controller の外まで飛び出す様子も見られます。
+      最初に Hibernate Validator のログが出ることがありますが、無視して構いません。
+    code: |
+      // 承認 API を MockMvc で叩く:200 / 409 / 404 を見比べる
+      // ここを変えてみよう:ids の中身を変える・
+      // onRule の @ExceptionHandler を消すと 409 はどうなる?
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+
+      class BusinessRuleException extends RuntimeException {
+          BusinessRuleException(String m) { super(m); }
+      }
+      class RequestNotFoundException extends RuntimeException {
+          RequestNotFoundException(long id) {
+              super("申請(ID=" + id + ")が見つかりません");
+          }
+      }
+      record RequestDetail(long id, String status) {}
+
+      @RestController
+      @RequestMapping("/api/requests")
+      class RequestApiController {
+          // id → 状態(本物は Service と DB。ここでは Map で代用)
+          Map<Long, String> status = new HashMap<>(
+                  Map.of(1L, "SUBMITTED", 2L, "APPROVED"));
+
+          @PostMapping("/{id}/approve")
+          RequestDetail approve(@PathVariable("id") long id) {
+              String s = status.get(id);
+              if (s == null) {
+                  throw new RequestNotFoundException(id);
+              }
+              if (!s.equals("SUBMITTED")) {
+                  throw new BusinessRuleException(
+                          "承認済の申請は変更できません");
+              }
+              status.put(id, "APPROVED");
+              return new RequestDetail(id, "APPROVED");
+          }
+
+          @ExceptionHandler(BusinessRuleException.class)
+          ProblemDetail onRule(BusinessRuleException e) {
+              ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                      HttpStatus.CONFLICT, e.getMessage());
+              pd.setTitle("業務ルール違反");
+              return pd;
+          }
+
+          @ExceptionHandler(RequestNotFoundException.class)
+          ProblemDetail onNotFound(RequestNotFoundException e) {
+              ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                      HttpStatus.NOT_FOUND, e.getMessage());
+              pd.setTitle("申請が見つかりません");
+              return pd;
+          }
+      }
+
+      MockMvc mvc = MockMvcBuilders
+          .standaloneSetup(new RequestApiController())
+          .setMessageConverters(
+              new StringHttpMessageConverter(UTF_8),
+              new MappingJackson2HttpMessageConverter())
+          .defaultResponseCharacterEncoding(UTF_8)
+          .build();
+
+      long[] ids = {1, 1, 99};   // 1回目は承認、2回目は承認済、99 はない
+      for (long id : ids) {
+          String url = "/api/requests/" + id + "/approve";
+          var res = mvc.perform(post(url))
+                  .andReturn().getResponse();
+          System.out.println("POST " + url + " → "
+                  + res.getStatus() + " " + res.getContentType());
+          System.out.println("  " + res.getContentAsString());
+      }
+quiz:
+  - question: |
+      `ApprovalService.approve` は、承認済の申請に対して `BusinessRuleException("承認済の申請は変更できません")` を投げます。
+      次の Controller に、承認済の申請 3 番への `POST /api/requests/3/approve` が来たときのレスポンスは?
+      ```java
+      @PostMapping("/{id}/approve")
+      public RequestDetail approve(@PathVariable Long id,
+              @RequestParam(required = false) String comment,
+              @AuthenticationPrincipal LoginUser user) {
+          return RequestDetail.from(approvalService
+                  .approve(id, user.id(), comment));
+      }
+
+      @ExceptionHandler(BusinessRuleException.class)
+      public ProblemDetail onRule(BusinessRuleException e) {
+          ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                  HttpStatus.CONFLICT, e.getMessage());
+          pd.setTitle("業務ルール違反");
+          return pd;
+      }
+      ```
+    choices: ["200 と application/json(本文は承認済の申請の詳細)", "409 と application/problem+json(detail に例外のメッセージ)", "500 と text/html(エラーページ)", "400 と application/json(本文なし)"]
+    answer: 1
+    explanation: |
+      Controller の中で投げられた `BusinessRuleException` は、同じ Controller の `@ExceptionHandler(BusinessRuleException.class)` が受け取ります。
+      `ProblemDetail` を返すと、ステータスは `ProblemDetail` の `status`(ここでは `CONFLICT` = 409)になり、Content-Type は `application/problem+json` になります。
+      ハンドラがなければ例外は外まで飛び出し、Spring Boot では 500 になります。400 は「リクエストの形が変」なときのコードで、状態による失敗には使いません。
+  - question: |
+      次のテストを実行したら、テストメソッドに入る前にエラーで止まりました。原因は?
+      ```java
+      @WebMvcTest(RequestApiController.class)
+      @Import(SecurityConfig.class)
+      class RequestApiControllerTest {
+          @Autowired MockMvc mvc;
+          @MockitoBean RequestQueryService queryService;
+
+          @Test
+          @WithMockUser(roles = "APPROVER")
+          void 一覧() throws Exception {
+              mvc.perform(get("/api/requests"))
+                 .andExpect(status().isOk());
+          }
+      }
+      ```
+      (`RequestApiController` のコンストラクタは `RequestQueryService` と `ApprovalService` を受け取る)
+    choices: ["@WithMockUser の roles に ROLE_ を付けていない", "MockMvc は @Autowired できない", "get が MockMvcRequestBuilders ではなく別クラスの get になっている", "ApprovalService の Bean がなく、Controller を作れない"]
+    answer: 3
+    explanation: |
+      `@WebMvcTest` は Controller などの Web 層の Bean **だけ** を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
+      Controller のコンストラクタに渡すものがなく `No qualifying bean of type '...ApprovalService'` でコンテキストの起動に失敗します。`@MockitoBean ApprovalService approvalService;` を足せば直ります。
+      `@WithMockUser(roles = "APPROVER")` は自動で `ROLE_` を付けてくれるので正しい書き方です(`ROLE_` を付けるとむしろエラー)。MockMvc は `@WebMvcTest` が用意するので `@Autowired` できます。
+  - question: |
+      `list` が次のように書かれています。`GET /api/requests?status=submitted` を送ると、どうなる?
+      ```java
+      @GetMapping
+      public List<RequestSummary> list(
+              @RequestParam(required = false)
+              RequestStatus status) {
+          return queryService.findByStatus(status).stream()
+                  .map(RequestSummary::from).toList();
+      }
+      ```
+    choices: ["400 Bad Request になる", "status が null として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
+    answer: 0
+    explanation: |
+      文字列から enum への変換は `RequestStatus.valueOf` と同じく **大文字小文字を区別** します。`submitted` という定数はないので変換に失敗し、
+      Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。`required = false` は「パラメータが無いとき」に null にするだけで、変換に失敗した値を null にはしません。
+      Controller のコードまで届かないので 500 にもなりません。API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
+  - question: |
+      業務ルール3「100,000円以上の承認は ADMIN だけ」の境界(99,999円と100,000円)を確かめるテストを足したい。テストピラミッドの考え方で、最もふさわしい場所は?
+    choices: ["@SpringBootTest で H2 に申請を入れ、MockMvc で承認 API を呼ぶテスト", "@WebMvcTest で、ApprovalService を @MockitoBean にした Controller のテスト", "ApprovalService の単体テスト(テーブル駆動)に行を足す", "テストは書かず、リリース前にブラウザで手で確かめる"]
+    answer: 2
+    explanation: |
+      金額と役割の組み合わせは **業務ルール** なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
+      `@WebMvcTest` では Service が偽物なので、ルールそのものは確かめられません(仕込んだ偽物の動きを確かめるだけになります)。`@SpringBootTest` でも確かめられますが遅く、組み合わせを増やすほど全体が重くなります。手での確認は毎回はやらなくなるので、境界の守りにはなりません。
+  - question: |
+      承認くんの方針(業務ルール違反は 409、ロールでの門前払いは Spring Security)どおりの組み合わせはどれ?
+      - (ア)存在しない申請 99 番を承認しようとした
+      - (イ)承認済の申請をもう一度承認しようとした
+      - (ウ)APPLICANT(申請者)ロールの社員が `GET /api/requests` を呼んだ(`/api/**` は APPROVER・ADMIN だけ)
+    choices: ["ア 409 / イ 404 / ウ 403", "ア 404 / イ 409 / ウ 403", "ア 404 / イ 400 / ウ 401", "ア 400 / イ 409 / ウ 404"]
+    answer: 1
+    explanation: |
+      (ア)は「その申請がない」ので **404**(`RequestNotFoundException`)。(イ)は申請はあるが「今の状態ではできない」ので **409**(`BusinessRuleException`)。(ウ)はログインはしているがロールが足りないので **403** Forbidden です。
+      401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(enum に変換できない値など)に使います。
+columns:
+  - type: mistake
+    title: エンティティを返したら、JSON が終わらなくなった
+    body: |
+      ある社内システムの詳細 API はエンティティをそのまま返していました。「履歴も付けたい」と双方向の関連を足すと……
+
+      ```java
+      @OneToMany(mappedBy = "request")
+      private List<ApprovalHistory> histories;
+      ```
+
+      API がエラーになりました。Jackson が「申請 → 履歴 → 申請 → …」とたどり続けたのです。
+
+      ```text
+      Document nesting depth (1001) exceeds the maximum allowed
+      (1000, from `StreamWriteConstraints.getMaxNestingDepth()`)
+      ```
+
+      (古い Jackson では `StackOverflowError`。)`@JsonIgnore` を付けて回るのは対症療法です。**API は DTO を返す** と決めておけば、エンティティに関連を足しても JSON は変わりません。
+  - type: trivia
+    title: ProblemDetail と 409 / 422 の話
+    body: |
+      エラーの JSON の形は、昔はプロジェクトごとにバラバラでした。これを標準化したのが **RFC 7807**(2016年)で、2023年に改訂版の **RFC 9457** になりました。
+      `type`・`title`・`status`・`detail`・`instance` が基本で、独自項目も足せます。Spring Framework 6(Boot 3)から `ProblemDetail` クラスで使えます。
+
+      ステータスコードにも流派があります。「形は正しいが意味的に処理できない」には **422 Unprocessable Content**(もとは WebDAV 用、RFC 9110 で一般化)を使う API も多く、
+      「リソースの現在の状態と衝突する」には **409 Conflict** を使います。承認済の申請の再承認は「状態との衝突」なので 409、というのが承認くんの判断です。どちらを選ぶにせよ、**API 全体で揃っていること** のほうが大事です。
+  - type: genba
+    title: テストが遅い本当の理由は「コンテキストの作り直し」
+    body: |
+      Spring のテストは、一度作ったアプリケーションコンテキスト(Bean の集まり)を **キャッシュ** して、設定が同じテストクラスどうしで使い回します。`@SpringBootTest` が何本あっても、設定が同じなら起動は1回で済みます。
+
+      ところが、テストクラスごとに `@MockitoBean` の組み合わせが違ったり、`@TestPropertySource` でプロパティを少し変えたりすると、それぞれ **別のコンテキスト** とみなされて毎回起動し直します。
+      「テストが1本数秒なのに、全部流すと3分かかる」現場の多くはこれが原因です。
+
+      対策は、`@SpringBootTest` を少数に絞る(テストピラミッド)、`@MockitoBean` の組み合わせを揃える、業務ルールは Spring を起動しない単体テストに寄せる、の3つ。ログに Spring Boot のバナーが何回出ているかを数えると、作り直しの回数が分かります。
+sts:
+  intro: |
+    承認くん(`approval-app`)に REST API を足し、Controller のテストと Service のテーブル駆動テストを書いて、最後に全テストを緑にします。
+    capstone-security まで終わっている前提です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+  steps:
+    - title: RequestNotFoundException を作る
+      detail: |
+        Package Explorer(パッケージ・エクスプローラー)で `src/main/java` の `com.example.approval.domain` を右クリック → **New > Class**(新規 > クラス)。
+        **Name** に `RequestNotFoundException`、**Superclass**(スーパークラス)に `java.lang.RuntimeException` を入れて **Finish**(完了)。
+        解説のとおり、`Long id` を受け取って「申請(ID=…)が見つかりません」をメッセージにするコンストラクタを書き、**Ctrl+S** で保存します。
+
+        続けて `ApprovalService` の `findRequest` を開き、`orElseThrow(() -> new BusinessRuleException("申請が見つかりません"))` を
+        `orElseThrow(() -> new RequestNotFoundException(id))` に変えます(「ない」は 404、ルール違反は 409 と分けるため)。画面の `ApprovalController` は `BusinessRuleException` だけを捕まえているので、存在しない申請は次のレッスンで作る 404 ページに回ります。
+    - title: RequestQueryService を作る
+      detail: |
+        `com.example.approval.repository.ApprovalRequestRepository` を開き、capstone-setup で作った `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)があることを確かめます。
+
+        `com.example.approval.service` を右クリック → **New > Class** で `RequestQueryService` を作り、解説のコード(`@Service` と `@Transactional(readOnly = true)`、`findByStatus` と `get`)を書きます。
+        `Sort` は `org.springframework.data.domain.Sort` を選びます(**Ctrl+Shift+O** で import を整理すると候補が出ます)。
+    - title: web.api パッケージに DTO と Controller を作る
+      detail: |
+        `com.example.approval.web` を右クリック → **New > Package**(新規 > パッケージ)で `com.example.approval.web.api` を作ります。
+        その中で **New > Record**(新規 > レコード)を選び、`RequestSummary` と `RequestDetail` を作ります(メニューに無ければ **New > Other... > Java > Record**)。
+        項目と `static from(ApprovalRequest r)` を解説どおりに書きます。
+
+        同じパッケージに **New > Class** で `RequestApiController` を作り、`@RestController` / `@RequestMapping("/api/requests")`、3つのメソッドと2つの `@ExceptionHandler` を書きます。
+        `@AuthenticationPrincipal` は `org.springframework.security.core.annotation`、`LoginUser` は `com.example.approval.config`、`ProblemDetail` と `HttpStatus` は `org.springframework.http` のものを import します。
+    - title: SecurityConfig の /api/** と CSRF を確かめる
+      detail: |
+        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より **前** にあることを確かめます(ルールは上から順に評価されます)。
+
+        CSRF は **無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
+        画面の JavaScript から POST するなら、Thymeleaf で `<meta name="_csrf" th:content="${_csrf.token}">` を出しておき、その値を `X-CSRF-TOKEN` ヘッダに入れて送ります。
+    - title: 起動してブラウザで GET を確かめる
+      detail: |
+        **Boot Dashboard**(ブート・ダッシュボード)で `approval-app` を選び、**(Re)start** ボタンで起動します。Console に `Started ApprovalAppApplication` と出たら、
+        ブラウザで `http://localhost:8080/login` を開き、承認者のモカ(`moka@example.com` / `pass1234`)でログインします。
+
+        - `http://localhost:8080/api/requests?status=SUBMITTED` → 申請中の申請の JSON 配列。`email` が出ていないこと
+        - `http://localhost:8080/api/requests/1` → 詳細の JSON
+        - `http://localhost:8080/api/requests/9999` → `"title":"申請が見つかりません"` の JSON(F12 の開発者ツールの Network タブで 404 を確認)
+        - ログアウトして申請者のハル(`haru@example.com` / `pass1234`)でログインし、`/api/requests` → 403
+    - title: Controller のテスト(@WebMvcTest)を書いて実行する
+      detail: |
+        `src/test/java` に `com.example.approval.web.api` パッケージを作り(**New > Package**)、`RequestApiController.java` を右クリック →
+        **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、**Source folder** を `approval-app/src/test/java` にして `RequestApiControllerTest` を作ります。
+
+        解説の 409 と 403 のテストに、`queryService.get(99L)` が `RequestNotFoundException` を投げる 404 のテストを足し、エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。
+        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します。
+
+        `@WithMockUser` が作るのは Spring の `User` なので、`@AuthenticationPrincipal LoginUser` の引数には **null** が入ります(`user.id()` で NullPointerException)。`LoginUser` が要る承認のテストは、必ず `.with(user(moka))` で本物の `LoginUser` を渡します。
+        `.with(csrf())` を消して実行すると 403 になることも確かめておきましょう。
+    - title: ApprovalService のテーブル駆動テストを書き、わざと壊す
+      detail: |
+        `src/test/java` の `com.example.approval.service` に `ApprovalServiceTest` を作り、解説の `@ParameterizedTest` + `@CsvSource` と、`arrange` メソッドを書きます。
+        `arrange` では、ID 2 で `role` の社員と、別の社員(ID 1)が出した申請(ID 1、`amount` と `status` は引数どおり)を作り、
+        `employeeRepo.findById(2L)` と `requestRepo.findById(1L)` がそれを返すよう `when(...).thenReturn(Optional.of(...))` で仕込みます。
+        状態は `setStatus` が無いので、`SUBMITTED` なら `submit(...)`、`APPROVED` なら `submit` の後に別の承認者で `approve(...)` を呼んで作ります。
+
+        **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ** 結果が並びます。
+        次に `ApprovalFlow.requiresAdmin` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。
+    - title: 全テストを流して緑にする
+      detail: |
+        Package Explorer で `src/test/java` を右クリック → **Run As > JUnit Test**。`ApprovalAppApplicationTests`(`@SpringBootTest` の `contextLoads`)を含む全テストが流れます。
+        JUnit ビューの上部に `Runs: 12/12  Errors: 0  Failures: 0` のように出て、バーが緑なら完了です(本数は人によって違います)。
+
+        赤があれば、JUnit ビューでそのテストを選び、下の **Failure Trace** の1行目を読みます。`@SpringBootTest` だけ赤いなら、たいてい Bean の配線(コンストラクタの引数・`@Service` の付け忘れ)が原因です。
+checklist:
+  - key: api-dto
+    text: RequestSummary / RequestDetail を record で作り、API の JSON に email が出ていないことをブラウザで確認した
+  - key: api-get
+    text: /api/requests?status=SUBMITTED と /api/requests/{id} を承認者で開いて JSON を確認し、存在しない ID で 404 の ProblemDetail を見た
+  - key: api-403
+    text: 申請者でログインし直して /api/requests を開き、403 になることを確認した
+  - key: api-webmvctest
+    text: "@WebMvcTest + @MockitoBean の RequestApiControllerTest(404 / 409 / 403)を Run As > JUnit Test で緑にした"
+  - key: api-csrf
+    text: SecurityConfig で CSRF を無効化していないことを確かめ、テストから .with(csrf()) を外すと POST が 403 になるのを見た
+  - key: api-table-test
+    text: ApprovalServiceTest のテーブル駆動テストを書き、>= を > に変えると 100000 円の行だけ赤くなるのを確かめて元に戻した
+  - key: api-all-green
+    text: src/test/java を右クリックして全テストを流し、Errors 0・Failures 0 の緑のバーを確認した

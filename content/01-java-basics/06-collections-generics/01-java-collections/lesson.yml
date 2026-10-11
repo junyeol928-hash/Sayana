@@ -1,0 +1,205 @@
+id: java-collections
+title: コレクション
+status: ready
+minutes: 15
+summary: 配列の限界を超える List / Set / Map。ArrayList・HashMap の基本操作から、不変コレクション、ループ中の削除、equals と hashCode、並べ替えまで。
+goals:
+  - List / Set / Map の違いと主な実装クラス(ArrayList・HashSet・LinkedHashSet・TreeSet・HashMap)を使い分けられる
+  - ArrayList と HashMap の基本操作(add / get / set / remove / put / getOrDefault / entrySet など)を書ける
+  - List.of の不変性と UnsupportedOperationException、ループ中の削除と ConcurrentModificationException を説明し、正しく回避できる
+  - HashSet / HashMap に自作クラスを入れるとき、equals と hashCode をセットで実装する理由を説明できる
+  - Collections.sort と Comparator で並べ替えができる
+samples:
+  - title: ArrayList の基本操作
+    description: 追加・取得・置き換え・削除・検索をひととおり試します。存在しない添字を `get` すると何が起きるかも確かめましょう。
+    code: |
+      // ArrayList の基本操作
+      // ここを変えてみよう:get(1) を get(5) にする / remove の対象を変える
+      List<String> members = new ArrayList<>();
+      members.add("佐藤");
+      members.add("鈴木");
+      members.add(0, "高橋");            // 先頭に挿入
+      System.out.println("一覧: " + members);
+      System.out.println("1番目: " + members.get(1));
+
+      members.set(1, "田中");            // 1番目を置き換え
+      boolean removed = members.remove("鈴木");
+      System.out.println("鈴木を削除できた? " + removed);
+      System.out.println("一覧: " + members + " 件数: " + members.size());
+      System.out.println("田中はいる? " + members.contains("田中"));
+  - title: Set の3兄弟と Map の集計
+    description: |
+      同じデータを HashSet / LinkedHashSet / TreeSet に入れて並び順を比べ、HashMap で出現回数を数えます。
+      HashSet の並びは保証されていない(実装やデータ次第で変わる)点に注意。
+    code: |
+      // ここを変えてみよう:tags に要素を足す / 重複を増やす
+      List<String> tags = List.of("spring", "java", "sql", "java", "docker", "sql");
+
+      System.out.println("HashSet       : " + new HashSet<>(tags));
+      System.out.println("LinkedHashSet : " + new LinkedHashSet<>(tags));
+      System.out.println("TreeSet       : " + new TreeSet<>(tags));
+
+      // 出現回数を数える(TreeMap なのでキーは辞書順で並ぶ)
+      Map<String, Integer> count = new TreeMap<>();
+      for (String t : tags) {
+          count.put(t, count.getOrDefault(t, 0) + 1);
+          // 現場ではこう書く: count.merge(t, 1, Integer::sum);
+      }
+      for (Map.Entry<String, Integer> e : count.entrySet()) {
+          System.out.println(e.getKey() + " → " + e.getValue() + "回");
+      }
+      System.out.println("kotlin は? " + count.getOrDefault("kotlin", 0) + "回");
+  - title: ループ中の削除と不変コレクション
+    description: 拡張 for の中で remove すると ConcurrentModificationException。`removeIf` なら安全です。`List.of` で作ったリストは変更できません。
+    code: |
+      // ここを変えてみよう:削除対象を "B" や "C" にしてみる(最後から2番目の C だと例外が出ない!? コラム参照)
+      List<String> list = new ArrayList<>(List.of("A", "B", "C", "D"));
+      try {
+          for (String s : list) {
+              if (s.equals("A")) {
+                  list.remove(s);
+              }
+          }
+      } catch (ConcurrentModificationException e) {
+          System.out.println("例外: " + e);
+      }
+      System.out.println("拡張forの後: " + list);
+
+      list.removeIf(s -> s.equals("C"));    // 条件に合う要素を安全に削除
+      System.out.println("removeIfの後: " + list);
+
+      List<String> fixed = List.of("X", "Y");
+      try {
+          fixed.add("Z");                     // 不変リストは変更不可
+      } catch (UnsupportedOperationException e) {
+          System.out.println("List.of は変更できない: " + e);
+      }
+  - title: equals と hashCode がないと HashSet で困る
+    description: 社員番号が同じなら同じ社員、としたいクラスです。`equals` と `hashCode` をコメントアウトすると結果がどう変わるか試しましょう。
+    code: |
+      class Emp {
+          String id;
+          String name;
+          Emp(String id, String name) { this.id = id; this.name = name; }
+
+          // ここを変えてみよう:この2つのメソッドをまるごとコメントアウトする
+          @Override
+          public boolean equals(Object o) {
+              return o instanceof Emp e && Objects.equals(id, e.id);
+          }
+          @Override
+          public int hashCode() {
+              return Objects.hash(id);
+          }
+      }
+
+      Set<Emp> set = new HashSet<>();
+      set.add(new Emp("E001", "佐藤"));
+      set.add(new Emp("E001", "佐藤"));    // 同じ社員を二重登録
+      System.out.println("件数: " + set.size());
+      System.out.println("E001 はいる? " + set.contains(new Emp("E001", "佐藤")));
+quiz:
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      List<Integer> nums = new ArrayList<>(List.of(1, 5, 3));
+      nums.remove(1);
+      System.out.println(nums);
+      ```
+    choices: ["[5, 3]", "[1, 3]", "[1, 5]", "[3]"]
+    answer: 1
+    explanation: |
+      `List` には `remove(int index)` と `remove(Object o)` の2つがあり、`int` の `1` を渡すと **添字版** が選ばれます。添字1の要素(値 `5`)が消えて `[1, 3]` です。
+      `[5, 3]` は「値 `1` を消した」と読んだ場合の結果で、そうしたいなら `nums.remove(Integer.valueOf(1))` と書きます。`[1, 5]` は末尾を消した場合の結果です。
+  - question: |
+      次のうち、**実行時に例外が発生する** のはどれ?
+    choices:
+      - "List<String> a = new ArrayList<>(List.of(\"x\")); a.add(\"y\");"
+      - "Set<String> b = new HashSet<>(); b.add(\"x\"); b.add(\"x\");"
+      - "Map<String, Integer> c = new HashMap<>(); c.put(\"x\", 1); c.put(\"x\", 2);"
+      - "List<String> d = List.of(\"x\"); d.add(\"y\");"
+    answer: 3
+    explanation: |
+      `List.of` で作ったリストは **不変** なので、`add` すると `UnsupportedOperationException` になります。型は普通の `List` なので、コンパイルは通ってしまう点が厄介です。
+      1つ目は `new ArrayList<>(...)` で可変リストに詰め替えているので OK。HashSet に同じ値を2回 `add` しても例外にはならず、2回目は `false` が返るだけ。HashMap の同じキーへの `put` は値の上書きで、これも例外ではありません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      Set<String> s = new TreeSet<>();
+      s.add("banana");
+      s.add("Apple");
+      s.add("cherry");
+      s.add("banana");
+      System.out.println(s);
+      ```
+    choices: ["[Apple, banana, cherry]", "[banana, Apple, cherry]", "[Apple, banana, banana, cherry]", "[banana, cherry, Apple]"]
+    answer: 0
+    explanation: |
+      `TreeSet` は要素を **自然な順序**(String なら文字コード順)で並べ、重複は持ちません。大文字 `A`(65)は小文字 `b`(98)より前なので `Apple` が先頭で、`[Apple, banana, cherry]` です。
+      追加順の `[banana, Apple, cherry]` になるのは `LinkedHashSet`。Set なので2回目の `banana` は入らず、4要素になることはありません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      Map<String, Integer> m = new HashMap<>();
+      m.put("A", 1);
+      m.put("B", 2);
+      m.put("A", 3);
+      System.out.println(m.size() + " " + m.get("A")
+          + " " + m.getOrDefault("C", 0));
+      ```
+    choices: ["3 1 0", "2 1 null", "2 3 0", "2 3 null"]
+    answer: 2
+    explanation: |
+      同じキー `"A"` への2回目の `put` は **上書き** なので、エントリは A と B の2つ、`get("A")` は後から入れた `3` です。キー `"C"` は存在しないので `getOrDefault` は第2引数の `0` を返します。
+      `get("C")` なら `null` ですが、`getOrDefault` は存在しないときに `null` ではなく既定値を返すためのメソッドです。
+  - question: |
+      `Emp` クラスで `equals` だけを「社員番号が同じなら true」になるようオーバーライドし、`hashCode` はオーバーライドしなかった。次のコードの結果として最も適切なのは?
+      ```java
+      Set<Emp> set = new HashSet<>();
+      set.add(new Emp("E001"));
+      System.out.println(set.contains(new Emp("E001")));
+      ```
+    choices: ["ほぼ確実に false", "必ず true", "コンパイルエラー", "実行時に例外"]
+    answer: 0
+    explanation: |
+      `HashSet` は先に `hashCode()` で探す場所(バケット)を決め、その中だけを `equals` で調べます。`hashCode` が `Object` のまま(インスタンスごとにほぼバラバラの値)だと、別インスタンスは別の場所を探しに行くので、`equals` が呼ばれる前に「ない」と判断され、ほぼ確実に `false` です。
+      コンパイラは equals と hashCode の整合性をチェックしないのでエラーにも例外にもなりません。だからこそ「equals を書いたら hashCode も必ず」が鉄則です。
+columns:
+  - type: mistake
+    title: 「最後から2番目」を消すと例外が出ない
+    body: |
+      ループ中の `remove` は例外……のはずが、これは **例外が出ません**。
+
+      ```java
+      List<String> list = new ArrayList<>(List.of("A", "B", "C"));
+      for (String s : list) {
+          System.out.println(s);
+          if (s.equals("B")) {
+              list.remove(s);
+          }
+      }
+      // 出力: A B   ← C が一度も処理されない!
+      ```
+
+      Iterator は「次があるか」を `カーソル位置 != size()` で判定します。B を消した時点でカーソルも size も2なので、ループが **静かに終わる** のです。変更検知は `next()` の中なので、そこまで行きません。
+
+      例外が出ない代わりに **データが黙って処理漏れ** します。ループ中の削除は、例外の有無に関係なく `removeIf` か `Iterator.remove` に統一しましょう。
+  - type: trivia
+    title: HashMap の中で木が育つ
+    body: |
+      HashMap の中身は「バケット」と呼ばれる配列で、`hashCode()` から計算した位置に要素を入れます。違うキーが同じ位置に来る(**衝突**)と、そのバケットにリストでつないで並べます。衝突が多いと、そこだけリストを先頭から `equals` で順番に調べることになり遅くなります。
+
+      Java 8 からは、1つのバケットの要素が **8個を超え**(かつ配列が64以上)ると、リストを **赤黒木**(バランスの取れた二分探索木)に変換するようになりました。最悪でも探索が対数時間で済みます。
+
+      この改良のきっかけの一つが、2011年に話題になった **Hash DoS 攻撃**。わざと同じハッシュ値になる大量のキー(HTTP のパラメータ名など)を送りつけて、サーバーの HashMap をリスト地獄にして CPU を食いつぶす攻撃です。`hashCode` の質は、性能だけでなくセキュリティにも関わっているのです。
+  - type: genba
+    title: Arrays.asList は「半分だけ」変更できる
+    body: |
+      古いコードでよく見る `Arrays.asList("A", "B")` は、`List.of` とも `ArrayList` とも違う **固定長リスト** を返します。
+
+      - `set(0, "X")` → **できる**(元の配列を書き換える)
+      - `add("C")` / `remove(0)` → `UnsupportedOperationException`
+
+      中身は配列にリストの皮をかぶせた `Arrays$ArrayList`(`java.util.ArrayList` とは別物!)なので長さを変えられません。デバッガで型名を見て「ArrayList なのに add できない!?」と混乱するのは現場あるある。
+
+      変更するなら `new ArrayList<>(...)` に詰め替える、変更しないなら `List.of`、とチームで決めておくとトラブルが減ります。

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="quizAnswer" class="quiz-answer" th:classappend="${correct} ? 'correct' : 'wrong'">
+    <div class="q-mark big" th:text="${correct} ? '⭕ 正解!' : '❌ 不正解'"></div>
+    <p>正解: <b th:utext="${question.choicesHtml.get(question.answer)}"></b></p>
+    <div class="explanation md" th:utext="${question.explanationHtml}"></div>
+    <p class="review-note">次回: <b th:text="${reviewLabel}"></b></p>
+    <a class="btn primary" th:href="@{/review}">次の復習へ →</a>
+</div>
+</body>
+</html>

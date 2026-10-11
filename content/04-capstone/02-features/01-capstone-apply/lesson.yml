@@ -1,0 +1,402 @@
+id: capstone-apply
+title: 申請の登録と一覧
+status: ready
+minutes: 15
+summary: 承認くんに新規申請フォームと「自分の申請一覧」を作る。相関チェック・DRAFT での保存・PRG・状態の日本語表示まで。
+goals:
+  - RequestForm に Bean Validation の注釈を付け、種類によって金額が必須になるルールを @AssertTrue の相関チェックで書ける
+  - "GET /requests/new・POST /requests・GET /requests の3つのハンドラを作り、エラー時は同じ画面、成功時は PRG でリダイレクトできる"
+  - 状態と申請者をフォームではなく Service で決める理由(マスアサインメント・層の依存方向)を説明できる
+  - "Thymeleaf の th:object・th:field・th:errors・th:each で、入力フォームと状態を日本語で出す一覧を作れる"
+  - ログインの代わりの固定IDを1か所に閉じ込め、後で置き換えられる形にできる
+samples:
+  - title: 申請フォームの入力チェックを動かす
+    libraries: [spring]
+    description: |
+      `RequestForm` を Validator で直接検証します。経費精算なのに金額が無いと、相関チェック(`amountEntered`)のエラーになります。
+      最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
+    code: |
+      // 申請フォームの入力チェックを Validator で直接動かす
+      // ここを変えてみよう:type を LEAVE に / amount を null や 0 に / title を "" や 51文字に
+      import jakarta.validation.*;
+      import jakarta.validation.constraints.*;
+
+      enum RequestType {
+          EXPENSE("経費精算"), LEAVE("休暇"), PURCHASE("備品購入");
+          final String label;
+          RequestType(String label) { this.label = label; }
+          boolean requiresAmount() { return this != LEAVE; }
+      }
+
+      class RequestForm {
+          @NotBlank(message = "件名を入力してください")
+          @Size(max = 50, message = "件名は50文字以内で入力してください")
+          String title;
+          @NotNull(message = "種類を選んでください")
+          RequestType type;
+          @Min(value = 1, message = "金額は1円以上で入力してください")
+          Integer amount;
+          @NotBlank(message = "理由を入力してください")
+          String reason;
+
+          @AssertTrue(message = "経費精算・備品購入は金額が必須です")
+          public boolean isAmountEntered() {
+              if (type == null || !type.requiresAmount()) {
+                  return true;
+              }
+              return amount != null;
+          }
+      }
+
+      RequestForm form = new RequestForm();
+      form.title = "客先訪問の交通費";
+      form.type = RequestType.EXPENSE;
+      form.amount = null;          // 経費精算なのに金額なし
+      form.reason = "  ";          // 空白だけ
+
+      Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+      var errors = validator.validate(form);
+      System.out.println("エラー " + errors.size() + " 件");
+      errors.stream()
+            .map(v -> v.getPropertyPath() + " : " + v.getMessage())
+            .sorted()
+            .forEach(System.out::println);
+  - title: 自分の申請だけを日本語の状態で一覧にする
+    description: |
+      一覧の考え方をメモリ上で再現します。申請者IDで絞り込み、状態は enum の名前ではなく `label` で表示します。
+    code: |
+      // 「自分の申請だけ」を一覧に出す Service の考え方(メモリ版)
+      // ここを変えてみよう:CURRENT_EMPLOYEE_ID を 2 に / 申請を足してみる
+      enum RequestStatus {
+          DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+          RETURNED("差戻し"), WITHDRAWN("取下げ");
+          final String label;
+          RequestStatus(String label) { this.label = label; }
+      }
+
+      record ApprovalRequest(long id, String title, Integer amount,
+                             RequestStatus status, long applicantId) {}
+
+      List<ApprovalRequest> all = List.of(
+          new ApprovalRequest(1, "交通費", 1200, RequestStatus.DRAFT, 1),
+          new ApprovalRequest(2, "モニター購入", 32000, RequestStatus.SUBMITTED, 2),
+          new ApprovalRequest(3, "夏季休暇", null, RequestStatus.APPROVED, 1));
+
+      final long CURRENT_EMPLOYEE_ID = 1;   // ログインの代わり(capstone-security で置き換え)
+
+      List<ApprovalRequest> mine = all.stream()
+              .filter(r -> r.applicantId() == CURRENT_EMPLOYEE_ID)
+              .toList();
+
+      System.out.println("No. | 件名 | 金額 | 状態");
+      for (ApprovalRequest r : mine) {
+          String amount = r.amount() == null ? "-" : String.format("%,d円", r.amount());
+          // 画面には enum の名前(DRAFT)ではなく日本語の label を出す
+          System.out.println(r.id() + " | " + r.title() + " | " + amount + " | " + r.status().label);
+      }
+quiz:
+  - question: |
+      レッスンの `RequestForm` を次の値で検証しました。エラー(制約違反)は何件?
+      ```java
+      form.setTitle("");
+      form.setType(RequestType.EXPENSE);
+      form.setAmount(0);
+      form.setReason("客先訪問");
+      ```
+    choices: ["1件", "3件", "2件", "4件"]
+    answer: 2
+    explanation: |
+      `title` が空なので `@NotBlank` で1件、`amount` が 0 なので `@Min(1)` で1件、合わせて **2件** です。
+      相関チェック `isAmountEntered()` は「経費精算で金額が **null** か」だけを見ます。0 は null ではないので `true` になり、エラーは出ません。
+      「金額が不正」は `@Min`、「金額が無い」は相関チェック、と担当が分かれているので同じ原因でエラーが二重に出ません。
+  - question: |
+      次のメソッドの検証エラーは、BindingResult ではどの項目名(フィールド名)で記録される?
+      ```java
+      @AssertTrue(message = "経費精算・備品購入は金額が必須です")
+      public boolean isAmountEntered() { ... }
+      ```
+    choices: ["isAmountEntered", "amount", "type", "amountEntered"]
+    answer: 3
+    explanation: |
+      Bean Validation は JavaBeans の規約で getter をプロパティとして扱います。`boolean` を返す `isXxx()` はプロパティ `xxx` なので、`isAmountEntered()` は **`amountEntered`** です。
+      だから画面では `th:errors="*{amountEntered}"` と書きます。`amount` の横に出したいなら、`amount` の入力欄のそばにこの span を置けば十分です。
+      エラーを `amount` 自体に付けたいなら、クラスレベルの独自制約を作るか、Service で `result.rejectValue("amount", ...)` します。
+  - question: |
+      次の Controller で、POST /requests が入力エラーになって `requests/new` を返したとき、画面はどうなる?
+      ```java
+      @GetMapping("/new")
+      public String newForm(Model model) {
+          model.addAttribute("requestForm", new RequestForm());
+          model.addAttribute("types", RequestType.values());
+          return "requests/new";
+      }
+
+      @PostMapping
+      public String create(@Validated @ModelAttribute RequestForm form,
+                           BindingResult result) {
+          if (result.hasErrors()) {
+              return "requests/new";
+          }
+          // 保存して redirect(省略)
+      }
+      ```
+    choices: ["エラーは表示されるが、種類のセレクトボックスが「選択してください」だけになる", "400 Bad Request になる", "types が無いので 500 エラーになる", "GET のときの types がセッションから復元されて正常に表示される"]
+    answer: 0
+    explanation: |
+      Model は **リクエストごと** に作られます。GET で入れた `types` は POST のリクエストには残っていません。
+      `th:each="t : ${types}"` は `types` が null だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
+      BindingResult が直後にあるので 400 にもなりません。対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
+  - question: |
+      `list.html` に次のように書きました。申請の状態が `RequestStatus.DRAFT` のとき、セルに表示されるのは?
+      ```html
+      <td th:text="${r.status}">状態</td>
+      ```
+    choices: ["下書き", "DRAFT", "0", "RequestStatus.DRAFT"]
+    answer: 1
+    explanation: |
+      `th:text` は値を文字列にして出します。enum の `toString()` は(上書きしていなければ)定数名を返すので **`DRAFT`** です。
+      `ordinal()` の `0` や、型名付きの表記にはなりません。テンプレートの中の「状態」はプロトタイプ用の仮の文字で、描画時に置き換えられます。
+      利用者に見せるなら `${r.status.label()}` のように表示名を出します。
+  - question: |
+      `RequestForm` に `status`(状態)や `applicantId`(申請者)の項目を **作らない** 一番の理由は?
+    choices: ["Thymeleaf が enum の項目を扱えないから", "項目が多いと Bean Validation が遅くなるから", "パラメータを足すだけで、状態や申請者を好きな値にできてしまうから", "JPA のエンティティと同じ名前の項目はフォームに置けないから"]
+    answer: 2
+    explanation: |
+      `@ModelAttribute` は、リクエストパラメータと **同じ名前のプロパティすべて** に値を詰めます。フォームに `status` があれば、
+      開発者ツールで `status=APPROVED` を足すだけで「最初から承認済み」の申請が作れてしまいます(マスアサインメント)。
+      状態と申請者は利用者が入力するものではないので、Service が決めます(新規は `DRAFT`、申請者はログイン中の人)。
+      Thymeleaf は enum を扱えますし、同名の項目を置くこと自体は文法上の問題ではありません。
+columns:
+  - type: mistake
+    title: "@AssertTrue を付けたのに、相関チェックが一度も動かない"
+    body: |
+      相関チェックを書いたのに、経費精算を金額なしで登録できてしまう。原因はメソッドの **名前か戻り値の型** であることがほとんどです。
+
+      ```java
+      @AssertTrue(message = "金額が必須です")
+      public Boolean isAmountEntered() { ... }   // ラッパー型の Boolean
+
+      @AssertTrue(message = "金額が必須です")
+      public boolean checkAmount() { ... }       // is / get で始まらない
+      ```
+
+      Bean Validation がメソッドを検証するのは、JavaBeans の **getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
+      `Boolean` なら `getXxx()` でなければなりません。条件を外れたメソッドは **エラーも警告も出ずに無視** されます。
+
+      対策は、相関チェックにも必ずテストを書くこと(演習のように Validator で直接検証できます)。
+  - type: genba
+    title: 「仮の固定ID」は1か所に閉じ込めて、目印を付ける
+    body: |
+      今回はログイン機能がまだ無いので、申請者を `CURRENT_EMPLOYEE_ID = 1L` で代用しました。現場でも「認証は別チームが作っていて、まだ来ない」はよくある話です。
+
+      困るのは、仮の値が **あちこちに散らばる** ことです。Controller の3か所に `1L` と直接書いておくと、本物のログインに切り替えたときに1か所だけ置き換え漏れ、
+      「なぜか全員の申請が社員1のものとして登録される」という本番障害になります。
+
+      - 仮の値は **定数1つ** にまとめる(置き換える場所が1か所になる)
+      - `// TODO capstone-security で…` のように、いつ・何に置き換えるかを書く(STS の **Window > Show View > Tasks**(タスク)ビューに TODO が一覧で出ます)
+      - 仮のまま本番に出ないよう、レビューで TODO の残りを確認する
+
+      capstone-security では、この定数をログインユーザーの社員IDに置き換えます。
+  - type: trivia
+    title: 金額を int にすると、休暇の申請が登録できなくなる
+    body: |
+      `RequestForm` の金額を `Integer` ではなく `int` にすると、休暇(金額欄は空)で送ったときにこうなります。
+
+      ```text
+      Failed to convert property value of type 'java.lang.String'
+      to required type 'int' for property 'amount'; ...
+      ```
+
+      空欄は「値なし」なので、Spring は数値に変換するとき `null` にします。ところが `int` は `null` を入れられないので、
+      変換失敗(`typeMismatch`)のエラーとして BindingResult に記録され、相関チェックより先に画面へ戻されてしまいます。
+
+      フォームの数値項目は **ラッパー型(Integer / Long)にして、未入力を null で表す** のが定石です。エンティティ側も同じで、
+      休暇の金額を DB の NULL で持つために `Integer amount` にしています。
+sts:
+  intro: |
+    capstone-setup で作った `approval-app` に、新規申請フォームと自分の申請一覧を足します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    パッケージは `com.example.approval` の下の `domain` / `repository` / `service` / `web` を使います。
+  steps:
+    - title: 依存関係と初期データを確認する
+      detail: |
+        **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` の `pom.xml` を開き、**Dependencies** タブ(または `pom.xml` タブ)に
+        `spring-boot-starter-validation` と `spring-boot-starter-thymeleaf` があることを確認します。無ければプロジェクトを右クリック >
+        **Spring > Add Starters**(Spring > スターターの追加)で **Validation** / **Thymeleaf** を足します。
+
+        初期データ(capstone-setup で入れたもの)に **id=1 の社員** がいることも確認しておきます。この社員を「ログイン中の人」の代わりに使います。
+        役割は何でも構いません(承認者も自分の経費は申請するので、申請は全員できます)。
+    - title: enum に表示名を足す(domain)
+      detail: |
+        `com.example.approval.domain` の `RequestType.java` を開き、表示名と「金額が必須か」の判定を足します。
+
+        ```java
+        public enum RequestType {
+            EXPENSE("経費精算"), LEAVE("休暇"), PURCHASE("備品購入");
+
+            private final String label;
+
+            RequestType(String label) {
+                this.label = label;
+            }
+
+            public String label() {
+                return label;
+            }
+
+            public boolean requiresAmount() {
+                return this != LEAVE;
+            }
+        }
+        ```
+
+        `RequestStatus.java` にも同じ形で `label()` を足します(`DRAFT("下書き")`・`SUBMITTED("申請中")`・`APPROVED("承認済")`・
+        `RETURNED("差戻し")`・`WITHDRAWN("取下げ")`)。capstone-requirements で作った `canTransitionTo` などのメソッドはそのまま残します。
+        保存して、Package Explorer に赤い × が出ていなければ OK です。
+    - title: Repository に「自分の申請」の派生クエリを足す(repository)
+      detail: |
+        `com.example.approval.repository` の `ApprovalRequestRepository.java` に1行足します。
+
+        ```java
+        List<ApprovalRequest> findByApplicantIdOrderByCreatedAtDesc(Long applicantId);
+        ```
+
+        `ApplicantId` は「`applicant` プロパティの `id`」とたどって解釈されます。メソッド名を打ち間違えると、
+        **起動時に** `No property 'applicantld' found for type 'ApprovalRequest'; Did you mean 'applicant'` のような例外でアプリが起動しません(実行するまで分からないので、次の手順の起動で必ず確認)。
+    - title: フォームクラスを作る(web)
+      detail: |
+        `com.example.approval` を右クリック > **New > Package**(新規 > パッケージ)で `com.example.approval.web` を作り(既にあれば不要)、
+        **New > Class**(新規 > クラス)で `RequestForm` を作ります。中身はレッスン本文の `RequestForm` のとおりです
+        (`title`・`type`・`amount`・`reason` の4項目、相関チェック `isAmountEntered()`、詰め替え `toEntity()`)。
+
+        **Ctrl+Shift+O**(Organize Imports / インポートの編成)で import を整えます。候補が出たら **`jakarta.validation.constraints`** のものを選びます。
+        続けて **Source > Generate Getters and Setters...**(ソース > getter および setter の生成)で4項目にチェックを入れて **Generate**(生成)。
+        `isAmountEntered()` に対応する setter は作りません(読み取り専用の項目です)。
+    - title: Service を作る(service)
+      detail: |
+        `com.example.approval.service` パッケージに `RequestService` クラスを作ります。中身はレッスン本文のとおりで、省略したコンストラクタはこうです。
+
+        ```java
+        public RequestService(ApprovalRequestRepository requests,
+                              EmployeeRepository employees) {
+            this.requests = requests;
+            this.employees = employees;
+        }
+        ```
+
+        `@Service` は `org.springframework.stereotype.Service`、`@Transactional` は **`org.springframework.transaction.annotation.Transactional`** を選びます
+        (`jakarta.transaction.Transactional` も候補に出ますが、`readOnly` 属性がありません)。
+        `BusinessRuleException` が domain に無ければ、`RuntimeException` を継承し、メッセージを受け取るコンストラクタだけのクラスとして作っておきます。
+    - title: Controller を作る(web)
+      detail: |
+        `com.example.approval.web` に `RequestController` を作ります。中身はレッスン本文のとおりで、コンストラクタは
+        `public RequestController(RequestService requestService) { this.requestService = requestService; }` です。
+
+        **Ctrl+Shift+O** で `Model` を選ぶときは **`org.springframework.ui.Model`**、`RedirectAttributes` は
+        `org.springframework.web.servlet.mvc.support.RedirectAttributes` を選びます。
+        定数 `CURRENT_EMPLOYEE_ID` の上の `// TODO` は、**Window > Show View > Tasks**(ウィンドウ > ビューの表示 > タスク)に一覧で出ることを確かめておきましょう。
+    - title: テンプレートを2つ作る
+      detail: |
+        `src/main/resources/templates` を右クリック > **New > Folder**(新規 > フォルダー)で `requests` を作り、
+        **New > File**(新規 > ファイル)で `new.html` と `list.html` を作ります。
+
+        `new.html`:
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head><meta charset="UTF-8"><title>新規申請</title></head>
+        <body>
+        <h1>新規申請</h1>
+        <form th:action="@{/requests}" th:object="${requestForm}"
+              method="post">
+          <p>件名 <input type="text" th:field="*{title}">
+            <span th:errors="*{title}" class="err"></span></p>
+          <p>種類
+            <select th:field="*{type}">
+              <option value="">選択してください</option>
+              <option th:each="t : ${types}" th:value="${t}"
+                      th:text="${t.label()}">経費精算</option>
+            </select>
+            <span th:errors="*{type}" class="err"></span></p>
+          <p>金額 <input type="number" th:field="*{amount}">円
+            <span th:errors="*{amount}" class="err"></span>
+            <span th:errors="*{amountEntered}" class="err"></span></p>
+          <p>理由 <textarea th:field="*{reason}"></textarea>
+            <span th:errors="*{reason}" class="err"></span></p>
+          <button>下書き保存</button>
+        </form>
+        <a th:href="@{/requests}">一覧へ戻る</a>
+        </body>
+        </html>
+        ```
+
+        `list.html`:
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head><meta charset="UTF-8"><title>自分の申請</title></head>
+        <body>
+        <h1>自分の申請一覧</h1>
+        <p th:if="${message}" th:text="${message}"></p>
+        <a th:href="@{/requests/new}">新規申請</a>
+        <table>
+          <tr><th>No.</th><th>件名</th><th>種類</th>
+              <th>金額</th><th>状態</th><th>作成日時</th></tr>
+          <tr th:each="r : ${requests}">
+            <td th:text="${r.id}">1</td>
+            <td th:text="${r.title}">交通費</td>
+            <td th:text="${r.type.label()}">経費精算</td>
+            <td th:text="${r.amount == null ? '-' :
+                #numbers.formatInteger(r.amount, 1, 'COMMA') + '円'}">
+              1,200円</td>
+            <td th:text="${r.status.label()}">下書き</td>
+            <td th:text="${#temporals.format(r.createdAt,
+                'yyyy/MM/dd HH:mm')}">2026/04/01 09:00</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(requests)}">
+            <td colspan="6">申請はまだありません</td></tr>
+        </table>
+        </body>
+        </html>
+        ```
+
+        `.err` に色を付けたいときは `<head>` に `<style>.err{color:red}</style>` を足します。
+    - title: 起動して、エラーと相関チェックを確かめる
+      detail: |
+        **Boot Dashboard** で `approval-app` を選んで **(Re)start**、またはプロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
+        **Console**(コンソール)に `Tomcat started on port 8080` と出たら、ブラウザで `http://localhost:8080/requests/new` を開きます。
+
+        1. **何も入力せずに「下書き保存」**:件名・種類・理由の横に赤いメッセージが出て、**種類のセレクトボックスの選択肢が残っている** こと
+        2. 種類を **経費精算**、金額を空にして送信:「経費精算・備品購入は金額が必須です」が出ること
+        3. 金額に `0` を入れて送信:「金額は1円以上で入力してください」が出ること
+        4. 件名に51文字入れて送信:「件名は50文字以内で入力してください」が出ること
+    - title: 保存と PRG、一覧を確かめる
+      detail: |
+        正しく入力して送信すると、アドレスバーが `/requests` に変わり、「下書きを保存しました(No.○)」と、状態が **下書き** の行が表示されます。
+        ここで **F5** を押しても再送信の確認は出ず、行も増えません(PRG)。メッセージはフラッシュ属性なので消えます。
+
+        続けて種類を **休暇**、金額を空で登録し、一覧の金額が `-` になることを確認します。
+    - title: 「自分の申請だけ」になっているか確かめる
+      detail: |
+        `RequestController` の `CURRENT_EMPLOYEE_ID` を一時的に、初期データの **別の社員の id**(例:`2L`)に変えて保存します
+        (DevTools が入っていれば自動で再起動します。入っていなければ Boot Dashboard で **(Re)start**)。
+
+        `http://localhost:8080/requests` を開き、さっき登録した申請が **表示されない** ことを確認します(H2 をメモリで使っている場合は、再起動で登録した申請自体が消えるので、
+        その場合は社員2で1件登録 → 定数を `1L` に戻して再起動、の順で確かめます)。確認できたら `1L` に戻しておきます。
+checklist:
+  - key: enum-label
+    text: RequestType と RequestStatus に label() を足し、一覧に「経費精算」「下書き」と日本語で表示された
+  - key: blank-submit
+    text: 空欄で送信して各項目の横にエラーが出て、種類の選択肢も残っていた
+  - key: correlation-check
+    text: 経費精算で金額を空にすると相関チェックのエラーが出て、休暇なら金額なしで保存できた
+  - key: boundary
+    text: 金額0円・件名51文字でエラーになり、金額1円・件名50文字では保存できた
+  - key: prg
+    text: 保存後に /requests へリダイレクトされ、F5 を押しても申請が増えなかった
+  - key: only-mine
+    text: CURRENT_EMPLOYEE_ID を別の社員に変えると、他人の申請が一覧に出ないことを確認して元に戻した
+  - key: todo-task
+    text: 固定IDの TODO コメントが Tasks ビューに表示されることを確認した

@@ -1,0 +1,36 @@
+title: コンストラクタインジェクションで注文サービスを組み立てる
+className: OrderService
+difficulty: 1
+libraries: [spring]
+problem: |
+  注文を受けて、税込金額を計算し、保存する `OrderService` を完成させてください。
+  部品(依存)は2つあり、どちらも **インターフェース** で受け取ります。
+
+  | 部品 | 役割 | 用意済みの実装 |
+  |---|---|---|
+  | `TaxPolicy` | 税込金額を計算する | `TenPercentTax`(10%) |
+  | `OrderRepository` | 注文を保存する | `InMemoryOrderRepository` |
+
+  やること:
+  1. `OrderService` に `@Service` を付ける
+  2. フィールド `taxPolicy` と `orderRepository` を **`final`** にし、コンストラクタで受け取った値を代入する
+     (コンストラクタは1つだけなので `@Autowired` は不要です)
+  3. `placeOrder(orderId, unitPrice, quantity)` を実装する
+     - `quantity` が 0 以下なら `IllegalArgumentException` を投げる(保存はしない)
+     - 小計 `unitPrice * quantity` を `taxPolicy.withTax(...)` で税込にする
+     - `orderRepository.save(orderId, 税込金額)` で保存し、税込金額を返す
+
+  例:`placeOrder("A001", 1000, 3)` → `3300`(保存される内容は `A001=3300`)
+
+  採点では次のようにコンテナを作り、`OrderService` を取り出して確かめます。
+  ```java
+  var ctx = new AnnotationConfigApplicationContext(
+          TenPercentTax.class, InMemoryOrderRepository.class,
+          OrderService.class);
+  OrderService service = ctx.getBean(OrderService.class);
+  ```
+  さらに、Spring を使わずに `new OrderService(偽物の税計算, 偽物の保存先)` でも動くかを確かめます。
+  これがコンストラクタインジェクションの一番うれしいところです。
+
+  ※ STS で書くなら、`com.example.shop.order` パッケージに `OrderService.java`・`TaxPolicy.java`・
+  `TenPercentTax.java` などを1クラス1ファイルで置きます。採点用に1ファイルにまとめています。

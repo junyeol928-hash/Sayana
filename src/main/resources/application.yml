@@ -1,0 +1,49 @@
+server:
+  # ローカル専用。外部から接続させない
+  address: 127.0.0.1
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: java-dojo
+  datasource:
+    # 進捗・提出履歴は ./data/dojo.mv.db に保存される(.gitignore 済み)
+    url: jdbc:h2:file:./data/dojo;AUTO_SERVER=FALSE
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  thymeleaf:
+    cache: false
+  h2:
+    console:
+      enabled: false
+
+dojo:
+  content-dir: content
+  exec:
+    timeout: 10s
+    max-heap: 256m
+    max-output-chars: 20000
+    max-concurrent: 2
+  ai:
+    # APIキーは環境変数 ANTHROPIC_API_KEY から読む。未設定ならAI機能だけ無効になる
+    models:
+      tutor: claude-sonnet-5-5     # AIチューター(解説)
+      review: claude-sonnet-5-5    # コードレビュー
+      explain: claude-sonnet-5-5   # エラー翻訳(解説)
+      hint: claude-haiku-5-5       # 段階ヒント
+      generate: claude-haiku-5-5   # 類題(クイズ・演習)生成
+    refusal-fallback: true
+    chat-history-limit: 20
+    max-tokens: 8000
+
+logging:
+  level:
+    com.sayana.dojo: INFO

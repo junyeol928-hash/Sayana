@@ -1,0 +1,35 @@
+title: ログに出す前に個人情報をマスクする
+className: LogMasker
+difficulty: 2
+problem: |
+  ログイン処理のログに、メールアドレスやカード番号がそのまま出てしまっていました。ログに出す前に **マスク(伏せ字)** する部品 `LogMasker` を作ります。
+
+  **1. `maskEmail(String email)`**:先頭1文字と `@` 以降だけを残し、間を `***` にする
+
+  | 入力 | 結果 |
+  |---|---|
+  | `"taro.yamada@example.com"` | `"t***@example.com"` |
+  | `"a@example.jp"` | `"a***@example.jp"` |
+  | `null`、`@` が無い、`@` で始まる | `"***"` |
+
+  **2. `maskCard(String cardNumber)`**:ハイフン `-` と空白を取り除いたうえで、**末尾4桁だけ残して** 残りを `*` にする
+
+  | 入力 | 結果 |
+  |---|---|
+  | `"4111-1111-1111-1234"` | `"************1234"` |
+  | `"4111 1111 1111 1234"` | `"************1234"` |
+  | `"1234"`、`"12-3"`(取り除いた後が4桁以下)、`null` | `"****"` |
+
+  **3. `loginMessage(String userId, String email, String password)`**:ログイン試行のログメッセージを組み立てる。
+  メールはマスクし、パスワードは **長さも含めて一切出さず** 固定の `[MASKED]` にする
+
+  ```text
+  loginMessage("u001", "taro.yamada@example.com", "himitsu123")
+  → "ログイン試行 user=u001 email=t***@example.com password=[MASKED]"
+  ```
+
+  ヒント:`indexOf("@")`、`substring`、`replace`、`"*".repeat(n)` が使えます。
+
+  STS の本物のプロジェクトなら、`LogMasker` は `com.example.shop.support` パッケージなどに置き、ログを出す側で
+  `log.info("{}", LogMasker.loginMessage(...))` や `log.info("email={}", LogMasker.maskEmail(email))` のように使います。
+  (SLF4J の出力は採点で捕まえにくいので、この演習では「ログに渡す文字列を作る」部分だけを確かめます。)

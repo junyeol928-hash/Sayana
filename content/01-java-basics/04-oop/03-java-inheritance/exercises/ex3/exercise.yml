@@ -1,0 +1,30 @@
+title: 商品クラスに toString と equals を実装する
+className: Product
+difficulty: 3
+problem: |
+  在庫管理システムの商品クラス `Product` に、`Object` から引き継いだメソッドを **オーバーライド** して実装します。
+  さらに、値引き商品 `DiscountProduct` を `Product` の子クラスとして完成させてください。
+
+  **`Product(String code, String name, int price)`**
+  1. `toString()` … `"[商品コード] 商品名 価格円"` を返す。例: `"[A001] りんご 120円"`
+  2. `equals(Object o)` … **商品コードが同じなら同じ商品** とみなして `true`。
+     商品名や価格が違っても、コードが同じなら `true`。`null` や `Product` 以外のオブジェクトなら `false`
+  3. `hashCode()` … `equals` が `true` になる2つの商品で同じ値を返す(`code.hashCode()` を返せばOK)
+
+  **`DiscountProduct(String code, String name, int price, int rate)`**(`rate` は値引き率 %)
+  4. `salePrice()` … `price × (100 - rate) / 100`(小数切り捨て)
+  5. `toString()` … 親の `toString()` の後ろに `" → 値引き率%OFF 値引き後価格円"` を付ける。
+     例: `new DiscountProduct("B002", "みかん", 300, 20)` → `"[B002] みかん 300円 → 20%OFF 240円"`
+
+  ヒント:`equals` の型チェックとキャストは次のように書きます(`instanceof` とキャストは次回「ポリモーフィズム」で詳しくやります)。
+  ```java
+  if (!(o instanceof Product)) {
+      return false;   // null もここで false になる
+  }
+  Product other = (Product) o;
+  ```
+
+  注意:
+  - `equals` の引数は必ず **`Object` 型**。`equals(Product o)` にするとオーバーライドにならず、テストが落ちます。
+  - 文字列のコードは `==` ではなく `equals` で比べましょう。
+  - `DiscountProduct` の `toString()` は、親の書式を **コピペせず** `super.toString()` を使ってください。

@@ -1,0 +1,28 @@
+title: リソースのクローズ順と例外のラップを確かめる
+className: BatchJob
+difficulty: 3
+problem: |
+  夜間バッチの処理を題材に、**try-with-resources のクローズ順** と **ラップして再スロー** を確かめます。
+  画面に出す代わりに、何が起きたかを `StringBuilder log` に記録していきます。
+
+  **1. `TrackedResource.close()`**
+  - `AutoCloseable` を実装したリソースです。コンストラクタは `"open:名前;"` を記録済み
+  - `close()` で `"close:名前;"` を `log` に追記してください
+
+  **2. `BatchJob.run(boolean fail)`**:次の流れを書き、記録した文字列を返す
+  - try-with-resources で `TrackedResource` を **`"DB"` → `"FILE"` の順に** 2つ開く(どちらも同じ `log` を渡す)
+  - ブロックの中で `"work;"` を記録。`fail` が `true` なら続けて `IllegalStateException("書き込み失敗")` を投げる
+  - `IllegalStateException` を catch したら `"catch:" + メッセージ + ";"` を記録
+  - `finally` で `"finally;"` を記録
+
+  `run(false)` の結果:`"open:DB;open:FILE;work;close:FILE;close:DB;finally;"`
+
+  `run(true)` で catch と close のどちらが先に記録されるか、予想してから試してみましょう。
+
+  **3. `BatchJob.readLimit(String text)`**
+  - 設定値の文字列を `Integer.parseInt` で `int` にして返す
+  - `NumberFormatException` が起きたら、**原因の例外を渡して** `BatchConfigException` にラップして投げ直す
+    - メッセージは `"件数の設定が不正: 12x"`(末尾は `text`)
+  - `BatchConfigException` は `RuntimeException` を継承した非検査例外で、`(String message, Throwable cause)` のコンストラクタを用意済みです
+
+  注意:`close()` は `throws` を書かずに上書きしているので、`run` で `close()` の例外を catch する必要はありません。

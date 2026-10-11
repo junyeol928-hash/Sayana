@@ -1,0 +1,42 @@
+title: 在庫管理の3層を Spring のコンテナで組み立てる
+className: InventoryApp
+difficulty: 3
+libraries: [spring]
+problem: |
+  在庫管理の Controller・Service・Repository を、Spring の DI コンテナで組み立ててください。
+
+  **クラスの役割**
+
+  | クラス | 層 | やること |
+  |---|---|---|
+  | `InventoryController` | Controller | 入荷・出荷の結果を表示用の文字列にする(完成済み、DI の部分だけ TODO) |
+  | `InventoryService` | Service | 在庫数の計算と業務ルール |
+  | `StockRepository` / `InMemoryStockRepository` | Repository | 商品コード(SKU)ごとの在庫数を保存(完成済み) |
+
+  **やること**
+
+  1. 3つのクラスに、層に合った注釈(`@Controller` / `@Service` / `@Repository`)を付ける
+  2. **コンストラクタインジェクション** にする
+     - `InventoryController` は `InventoryService` を受け取る(Repository は知らない)
+     - `InventoryService` は **`StockRepository`(インターフェース)** を受け取る
+  3. `InventoryService` の業務ロジックを書く
+     - `receive(sku, quantity)`(入荷):`quantity` が 1 未満なら `IllegalArgumentException("数量は1以上にしてください")`。
+       今の在庫に足して保存し、**入荷後の在庫数** を返す
+     - `ship(sku, quantity)`(出荷):`quantity` が 1 未満なら同じく `IllegalArgumentException`。
+       在庫が足りなければ `IllegalStateException(sku + " の在庫が足りません(在庫 " + 今の在庫 + " 個)")`。
+       足りれば減らして保存し、**出荷後の在庫数** を返す(在庫ちょうどの出荷は OK で、残り 0 個)
+  4. `InventoryApp.createContext()` で、3つのクラスを登録した `AnnotationConfigApplicationContext` を作って返す
+
+  ```java
+  var ctx = InventoryApp.createContext();
+  var c = ctx.getBean(InventoryController.class);
+  c.receive("A-001", 10); // "入荷:A-001 在庫 10 個"
+  c.ship("A-001", 3);     // "出荷:A-001 残り 7 個"
+  c.ship("A-001", 8);     // "エラー:A-001 の在庫が足りません(在庫 7 個)"
+  ```
+
+  テストでは、注釈が付いているか、各フィールドの型が層のルール(Controller は Repository を持たない・Service はインターフェースに依存)
+  を守っているかも確かめます。
+
+  ※ STS(Spring Boot)では、各クラスを `com.example.inventory` 配下の別ファイルに置けば、コンポーネントスキャンが自動で見つけて組み立てます。
+  採点ではパッケージが無いので、`new AnnotationConfigApplicationContext(A.class, B.class, ...)` でクラスを明示して登録します。

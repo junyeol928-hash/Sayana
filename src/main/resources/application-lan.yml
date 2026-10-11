@@ -1,0 +1,9 @@
+# LANモード: 同じWi-Fiのスマホから開けるようにする
+#   ./mvnw spring-boot:run "-Dspring-boot.run.profiles=lan"
+# 起動ログに「スマホで開く URL(合言葉つき)」が出る。PC以外からは合言葉がないと開けない。
+server:
+  address: 0.0.0.0
+
+dojo:
+  lan:
+    enabled: true

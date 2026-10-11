@@ -1,0 +1,367 @@
+id: spring-thymeleaf
+title: Thymeleaf
+status: ready
+minutes: 15
+summary: Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、th:text と XSS、th:each・th:if、フラグメントによる共通レイアウトまで。
+goals:
+  - テンプレートエンジンの役割と、ビュー名から templates/ のファイルが選ばれる流れを説明できる
+  - "${...}・*{...}・@{...}・#{...} の4種類の式を使い分けられる"
+  - th:text と th:utext の違いを XSS と結びつけて説明し、正しく使い分けられる
+  - th:each(ステータス変数)と th:if / th:unless で一覧や条件付き表示を書ける
+  - th:fragment と th:replace で共通レイアウトを作り、#temporals・#numbers で整形できる
+samples:
+  - title: テンプレート文字列を描画してみる
+    libraries: [spring, thymeleaf]
+    description: |
+      Thymeleaf のエンジンに、テンプレート(文字列)と値を渡して HTML を作ります。`th:text` と `th:utext` の違い、
+      ステータス変数、`th:if` / `th:unless`、`#numbers` / `#temporals` の結果を確かめましょう。`th:` の属性が出力に残らないことにも注目。
+    code: |
+      // テンプレート文字列を Thymeleaf で描画してみる
+      // ここを変えてみよう:th:text を th:utext に / 在庫を 0 に / 商品を増やす
+      import java.time.LocalDate;
+      import java.util.*;
+      import org.thymeleaf.context.Context;
+      import org.thymeleaf.spring6.SpringTemplateEngine;
+      import org.thymeleaf.templateresolver.*;
+      
+      record Item(String name, int price, int stock) {}
+      
+      String template = """
+          <p th:text="${message}">ここにメッセージ</p>
+          <p th:utext="${message}">utext は HTML のまま</p>
+          <p th:text="${#temporals.format(today, 'M月d日(E)')}">
+            日付</p>
+          <ul>
+            <li th:each="item, st : ${items}"
+                th:classappend="${st.odd} ? 'odd'">
+              <span th:text="|${st.count}. ${item.name}|">名前</span>
+              <span th:text="|${#numbers.formatInteger(
+                      item.price, 1, 'COMMA')}円|">価格</span>
+              <b th:if="${item.stock == 0}">売り切れ</b>
+              <span th:unless="${item.stock == 0}"
+                    th:text="|残り${item.stock}個|">在庫</span>
+            </li>
+          </ul>
+          """;
+      
+      var engine = new SpringTemplateEngine();
+      engine.setTemplateResolver(new StringTemplateResolver());
+      
+      // Controller の Model の代わり。ここに入れた値を ${…} で読む
+      var ctx = new Context(Locale.JAPAN);
+      ctx.setVariable("message", "<b>本日</b>セール中");
+      ctx.setVariable("today", LocalDate.of(2026, 10, 11));
+      ctx.setVariable("items", List.of(
+              new Item("ボールペン", 120, 12),
+              new Item("<特価>ノート", 1500, 0),
+              new Item("万年筆", 32000, 1)));
+      
+      System.out.println(engine.process(template, ctx));
+  - title: Controller → Model → Thymeleaf をつなげる
+    libraries: [spring, thymeleaf]
+    description: |
+      `@Controller` が Model に値を入れてビュー名を返し、ThymeleafViewResolver がテンプレートを描画する、本物と同じ流れを MockMvc で動かします。
+      `templates/` フォルダの代わりに `Map` からテンプレートを探しています。共通ヘッダーのフラグメントと、コンテキストパス `/shop` が `@{...}` で自動的に付く様子も見られます。
+    code: |
+      // Controller → Model → ビュー名 → Thymeleaf の流れを MockMvc で動かす
+      // ここを変えてみよう:Model に入れる値 / テンプレート / コンテキストパス
+      import java.util.*;
+      import org.springframework.stereotype.Controller;
+      import org.springframework.ui.Model;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+      import org.thymeleaf.IEngineConfiguration;
+      import org.thymeleaf.spring6.SpringTemplateEngine;
+      import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+      import org.thymeleaf.templateresolver.StringTemplateResolver;
+      import org.thymeleaf.templateresource.*;
+      
+      record Item(int id, String name) {}
+      
+      @Controller
+      class ItemController {
+          @GetMapping("/items")
+          String list(Model model) {
+              model.addAttribute("items", List.of(
+                      new Item(1, "ボールペン"), new Item(2, "ノート")));
+              return "items/list";   // ビュー名
+          }
+      }
+      
+      // 本物の templates/ フォルダの代わり(ファイル名 → 中身)
+      class Templates extends StringTemplateResolver {
+          static final Map<String, String> FILES = Map.of(
+              "fragments/layout", """
+                  <header th:fragment="header(title)">
+                    <a th:href="@{/}">Java商店</a>
+                    <b th:text="${title}">ページ名</b>
+                  </header>
+                  """,
+              "items/list", """
+                  <header th:replace="~{fragments/layout :: header('商品一覧')}">
+                  </header>
+                  <ul>
+                    <li th:each="item : ${items}">
+                      <a th:href="@{/items/{id}(id=${item.id})}"
+                         th:text="${item.name}">商品名</a>
+                    </li>
+                  </ul>
+                  """);
+      
+          @Override
+          protected ITemplateResource computeTemplateResource(
+                  IEngineConfiguration conf, String owner, String name,
+                  Map<String, Object> attrs) {
+              return new StringTemplateResource(FILES.get(name));
+          }
+      }
+      
+      public class Main {
+          public static void main(String[] args) throws Exception {
+              // Spring Boot が自動でやってくれる設定を手で書いている
+              var engine = new SpringTemplateEngine();
+              engine.setTemplateResolver(new Templates());
+              var viewResolver = new ThymeleafViewResolver();
+              viewResolver.setTemplateEngine(engine);
+              viewResolver.setCharacterEncoding("UTF-8");
+      
+              MockMvc mvc = MockMvcBuilders
+                      .standaloneSetup(new ItemController())
+                      .setViewResolvers(viewResolver)
+                      .build();
+      
+              // アプリが /shop で公開されている想定(コンテキストパス)
+              var res = mvc.perform(get("/shop/items").contextPath("/shop"))
+                      .andReturn().getResponse();
+              System.out.println(res.getStatus() + " "
+                      + res.getContentType());
+              System.out.println(res.getContentAsString());
+          }
+      }
+quiz:
+  - question: |
+      Controller で `model.addAttribute("msg", "<b>重要</b>");` としたとき、次のテンプレートの出力は?
+      ```html
+      <p th:text="${msg}">メッセージ</p>
+      ```
+    choices: ["<p><b>重要</b></p>(太字で表示される)", "<p>&lt;b&gt;重要&lt;/b&gt;</p>", "<p>メッセージ</p>", "<p>${msg}</p>"]
+    answer: 1
+    explanation: |
+      `th:text` は値を **エスケープ** して出すので、`<` は `&lt;`、`>` は `&gt;` になり、ブラウザには `<b>重要</b>` という文字がそのまま表示されます。太字として解釈されるのは `th:utext` を使った場合です。
+      `メッセージ` はブラウザで直接開いたときのダミー文字で、描画すると置き換えられます。`${msg}` が文字として残ることはありません。
+  - question: |
+      `colors` が `List.of("赤", "青")` のとき、次のテンプレートの出力は?
+      ```html
+      <li th:each="c, st : ${colors}"
+          th:text="${st.index} + ':' + ${c}">色</li>
+      ```
+    choices: ["<li>0:赤</li><li>1:青</li>", "<li>1:赤</li><li>2:青</li>", "<li>0:赤 1:青</li>", "<li>0:赤</li><li>0:青</li>"]
+    answer: 0
+    explanation: |
+      `th:each` は **付けたタグごと** 要素の数だけ繰り返すので、`<li>` が2つできます。ステータス変数の `index` は **0始まり** なので `0:赤`、`1:青` です。
+      1始まりにしたいときは `count` を使います。`0:赤 1:青` のように1つの `<li>` にまとまることはありません。
+  - question: |
+      Spring Boot(Thymeleaf の既定の設定)で、Controller が次の値を返しました。描画されるファイルはどれ?
+      ```java
+      return "orders/detail";
+      ```
+    choices: ["src/main/resources/static/orders/detail.html", "src/main/webapp/orders/detail.html", "src/main/java/templates/orders/detail.html", "src/main/resources/templates/orders/detail.html"]
+    answer: 3
+    explanation: |
+      Spring Boot の Thymeleaf は、ビュー名の前に `classpath:/templates/`、後ろに `.html` を付けてテンプレートを探します。`src/main/resources` の中身がクラスパスに入るので、`src/main/resources/templates/orders/detail.html` です。
+      `static/` は CSS や画像のような **加工せずそのまま返す** ファイルの置き場で、テンプレートは置きません。`src/main/webapp` は JSP 時代の置き場所です。
+  - question: |
+      アプリがコンテキストパス `/shop` で公開されていて、`item.id` が `5` のとき、次のリンクの `href` は?
+      ```html
+      <a th:href="@{/items/{id}(id=${item.id}, sort='new')}">詳細</a>
+      ```
+    choices: ["/items/5?sort=new", "/shop/items/{id}?id=5&sort=new", "/shop/items/5?sort=new", "/shop/items/5/new"]
+    answer: 2
+    explanation: |
+      `@{...}` はパスの `{id}` を同名の引数で埋め、**余った引数(sort)をクエリ** にします。さらに `/` で始まるパスには **コンテキストパス** `/shop` を自動で付けます。よって `/shop/items/5?sort=new` です。
+      `/items/5?sort=new` は `href="/items/..."` と直書きしたときの結果で、`/shop` で公開されているとリンク切れになります。
+  - question: |
+      `templates/layout.html` に次のフラグメントがあります。
+      ```html
+      <footer th:fragment="foot"><small>© Java商店</small></footer>
+      ```
+      別のテンプレートで次のように書いたときの出力は?
+      ```html
+      <div th:insert="~{layout :: foot}"></div>
+      ```
+    choices: ["<footer><small>© Java商店</small></footer>", "<div><footer><small>© Java商店</small></footer></div>", "<div><small>© Java商店</small></div>", "<div></div>"]
+    answer: 1
+    explanation: |
+      `th:insert` は、自分のタグ(`<div>`)を残したまま、その **中に** フラグメント(`<footer>` ごと)を差し込みます。
+      `<div>` ごとフラグメントに置き換わって `<footer>...</footer>` だけになるのは `th:replace` のときです。フラグメントは `th:fragment` を付けたタグ全体なので、`<footer>` が消えることはありません。
+columns:
+  - type: mistake
+    title: Windows では動いたのに、サーバーで Error resolving template
+    body: |
+      開発者の PC(Windows)では動いていたのに、Linux サーバーに載せた途端、一部の画面だけがこうなりました。
+
+      ```text
+      Error resolving template [orders/orderList], template might
+      not exist or might not be accessible by any of the
+      configured Template Resolvers
+      ```
+
+      原因は **大文字小文字** です。Controller は `"orders/orderList"` を返していましたが、ファイル名は `orderlist.html` でした。Windows は大文字小文字を区別しないので、STS から動かすと見つかってしまいます。ところが Linux や **jar の中** は区別するので、本番で初めて見つからなくなります。
+
+      対策は、ファイル名とビュー名を **小文字+ハイフン**(`order-list.html`)などの命名規則で揃えることと、jar をビルドして動かす確認を CI で行うことです。
+  - type: genba
+    title: 「改行を出したいから th:utext」が XSS の入口
+    body: |
+      問い合わせ内容を表示したら「改行が消えて読みにくい」と言われ、こう書いてしまう例が後を絶ちません。
+
+      ```java
+      model.addAttribute("msg", msg.replace("\n", "<br>"));
+      ```
+      ```html
+      <p th:utext="${msg}"></p>
+      ```
+
+      改行は `<br>` になりますが、`th:utext` なので、ユーザーが `<script>` を書けばそのまま実行されます。管理画面を開いたスタッフのブラウザでスクリプトが動けば、ログイン中のセッションを盗まれるかもしれません。
+
+      改行を見せたいだけなら、`th:text` のまま CSS で `white-space: pre-wrap;` を指定すれば十分です。どうしても HTML を許すなら、許可するタグだけを残す **サニタイズ**(OWASP Java HTML Sanitizer などのライブラリ)を Java 側で通してから出します。「`th:utext` を見たらレビューで必ず止める」というチームも多いです。
+  - type: trivia
+    title: Spring Boot ではなぜ JSP より Thymeleaf?
+    body: |
+      Java の画面といえば、昔は **JSP**(JavaServer Pages)が定番でした。`.jsp` をサーブレットの Java コードに変換・コンパイルして動かす仕組みで、`src/main/webapp` に置くのが決まりでした。
+
+      ところが Spring Boot の主流である **実行可能 jar**(`java -jar app.jar` で動く形)では、組み込み Tomcat の制約で JSP がうまく動きません。公式ドキュメントも JSP はできるだけ避けるよう書いています。
+
+      一方 Thymeleaf のテンプレートは、jar の中の `templates/` から普通のファイルとして読めます。ナチュラルテンプレートでブラウザから直接プレビューできる点も好まれ、Spring Boot の画面開発では Thymeleaf がほぼ標準になりました。古いシステムの保守で JSP に出会ったら、「`<%= %>` や `${}`(EL 式)が Thymeleaf の `th:text` に当たる」と読み替えれば大丈夫です。
+sts:
+  intro: |
+    前のレッスンで作った Spring Web のプロジェクトに Thymeleaf を追加し、Controller から渡した一覧を HTML のページとして表示します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Thymeleaf を依存関係に追加する
+      detail: |
+        Package Explorer でプロジェクトを右クリックし、**Spring > Add Starters**(Spring > スターターの追加)を選びます。
+        検索欄に `thymeleaf` と入力して **Thymeleaf** にチェックを入れ、**Next**(次へ)で `pom.xml` の差分を確認して **Finish**(完了)。
+
+        メニューが見つからない場合は、`pom.xml` の `<dependencies>` に次を追加して保存し、プロジェクトを右クリック > **Maven > Update Project**(Maven > プロジェクトの更新、**Alt+F5**)を実行します。
+
+        ```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        ```
+
+        新しくプロジェクトを作る場合は、Spring Starter Project の Dependencies で **Spring Web** と **Thymeleaf** の両方にチェックを入れます。
+    - title: 開発中はキャッシュを切る
+      detail: |
+        `src/main/resources/application.properties` を開き、次の1行を足して保存します。
+
+        ```text
+        spring.thymeleaf.cache=false
+        ```
+
+        これで、HTML を直したらブラウザの再読み込みだけで反映されるようになります(Java のコードを直したときは再起動が必要です)。
+    - title: Controller を作る
+      detail: |
+        `com.example.demo` パッケージに `ItemController` クラスを作ります(右クリック > **New > Class**)。
+
+        ```java
+        package com.example.demo;
+
+        import java.util.List;
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+
+        @Controller
+        public class ItemController {
+
+            public record Item(String name, int price, int stock) {}
+
+            @GetMapping("/items")
+            public String list(Model model) {
+                model.addAttribute("items", List.of(
+                        new Item("ボールペン", 1200, 12),
+                        new Item("<b>特価</b>ノート", 98, 0)));
+                return "items/list";
+            }
+        }
+        ```
+
+        `@RestController` ではなく **`@Controller`** にするのがポイントです。
+    - title: テンプレートを作る
+      detail: |
+        `src/main/resources/templates` を右クリック > **New > Folder**(新規 > フォルダー)で `items` フォルダを作り、
+        その `items` を右クリック > **New > File**(新規 > ファイル)で `list.html` を作ります。
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <head><meta charset="UTF-8"><title>商品一覧</title></head>
+        <body>
+          <h1>商品一覧</h1>
+          <table border="1">
+            <tr th:each="item, st : ${items}">
+              <td th:text="${st.count}">1</td>
+              <td th:text="${item.name}">商品名</td>
+              <td th:text="|${#numbers.formatInteger(
+                      item.price, 1, 'COMMA')}円|">価格</td>
+              <td th:if="${item.stock == 0}">売り切れ</td>
+              <td th:unless="${item.stock == 0}"
+                  th:text="|残り${item.stock}個|">在庫</td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        ```
+    - title: 起動してブラウザで確認する
+      detail: |
+        **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動し、`http://localhost:8080/items` を開きます。表に2行が出れば成功です。
+        `<b>特価</b>ノート` が太字にならず、タグが文字のまま表示されていることを確認しましょう(`th:text` のエスケープ)。
+        ブラウザで右クリック > **ページのソースを表示**(**Ctrl+U**)すると、`th:` の属性が消え、`&lt;b&gt;` になっているのが見えます。
+    - title: th:utext に変えて違いを見る
+      detail: |
+        商品名の `th:text` を `th:utext` に変えて保存し、ブラウザを再読み込みします。今度は「特価」が **太字** になります。
+        これが「HTML として解釈される」ということです。ユーザー入力でこれをやると XSS になるので、確認したら `th:text` に戻してください。
+    - title: 共通ヘッダーをフラグメントにする
+      detail: |
+        `templates` の下に `fragments` フォルダと `layout.html` を作ります。
+
+        ```html
+        <!DOCTYPE html>
+        <html xmlns:th="http://www.thymeleaf.org">
+        <body>
+          <header th:fragment="header(title)">
+            <a th:href="@{/items}">Java商店</a> |
+            <span th:text="${title}">タイトル</span>
+          </header>
+        </body>
+        </html>
+        ```
+
+        `items/list.html` の `<h1>商品一覧</h1>` を次のように置き換えて再読み込みし、ヘッダーが表示されれば成功です。
+
+        ```html
+        <header th:replace="~{fragments/layout :: header('商品一覧')}">
+        </header>
+        ```
+    - title: テンプレートを直接ブラウザで開く
+      detail: |
+        Windows のエクスプローラーで、ワークスペースの `src/main/resources/templates/items/list.html` をダブルクリックして(サーバーを通さずに)開いてみましょう。
+        `商品名` や `価格` といったダミーの文字で表が表示されます。これが **ナチュラルテンプレート** です。
+checklist:
+  - key: add-thymeleaf
+    text: プロジェクトに Thymeleaf のスターターを追加し、spring.thymeleaf.cache=false を設定した
+  - key: model-view
+    text: "@Controller で Model に値を入れて items/list を返し、/items で商品一覧の表が表示された"
+  - key: escape-checked
+    text: "ページのソースを表示して、th: の属性が消えていることと、タグが &lt; などにエスケープされていることを確認した"
+  - key: utext-tried
+    text: th:utext に変えると HTML として解釈されることを確認し、th:text に戻した
+  - key: fragment
+    text: fragments/layout.html にヘッダーのフラグメントを作り、th:replace で表示できた
+  - key: natural-template
+    text: テンプレートの HTML ファイルを直接ブラウザで開き、ダミーの文字で表示されることを確認した

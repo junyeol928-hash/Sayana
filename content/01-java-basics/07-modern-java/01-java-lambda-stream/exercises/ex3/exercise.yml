@@ -1,0 +1,34 @@
+title: 売れ筋ランキングを1行で作る
+className: SalesRanking
+difficulty: 3
+problem: |
+  雑貨店の週報メールに「今週の売れ筋 TOP N」を1行で載せます。
+  商品は `Product` クラス(`getName()` 商品名、`getSold()` 販売数)のリストで渡されます(雛形に用意済み)。
+
+  `String topSellers(List<Product> products, int n)` を完成させてください。
+
+  ### ルール
+  1. 販売数が **0 の商品は除外** する(ランキングに載せない)
+  2. 販売数の **多い順** に並べる。販売数が同じなら **商品名の辞書順**(`String` の自然順序)
+  3. 先頭から **最大 n 件** の商品名を、`", "`(カンマ+半角スペース)でつないだ文字列を返す
+  4. `n` が 0 以下、または対象の商品が1つもないときは空文字 `""` を返す
+
+  ### 例
+  ```text
+  マグカップ  12
+  トートバッグ 30
+  ボールペン   12
+  ノート       0
+  付箋         7
+  ```
+  - `topSellers(products, 3)` → `"トートバッグ, ボールペン, マグカップ"`
+    (ボールペンとマグカップは同数なので辞書順)
+  - `topSellers(products, 10)` → `"トートバッグ, ボールペン, マグカップ, 付箋"`(ノートは0なので除外)
+  - `topSellers(products, 0)` → `""`
+
+  ### ヒント
+  - 並べ替えは `sorted(Comparator...)`。「販売数の多い順、同数なら名前順」は
+    `Comparator.comparing(Product::getSold).reversed().thenComparing(Product::getName)` で表せます。
+    ラムダ `p -> p.getSold()` で書くと `.reversed()` を付けた時点で型推論が効かずコンパイルエラーになるので、メソッド参照を使いましょう。
+  - 件数を絞るのは `limit(n)`。ただし **`limit` に負の数を渡すと `IllegalArgumentException`** です。
+  - つなぐのは `Collectors.joining(", ")`。要素が0個なら自動的に `""` になります。

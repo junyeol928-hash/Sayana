@@ -1,0 +1,216 @@
+id: sts-debugger
+title: デバッガ(ブレークポイント・ステップ実行・変数監視)
+status: ready
+minutes: 15
+summary: println デバッグを卒業。ブレークポイントで止めて、F5/F6/F7/F8 で1歩ずつ進め、変数・式・例外の瞬間を覗く。Spring Boot のリクエスト処理も止められる。
+goals:
+  - Debug As で起動し、ブレークポイントで止めて Debug パースペクティブの各ビューを読める
+  - Step Over(F6)/ Step Into(F5)/ Step Return(F7)/ Resume(F8)を使い分けられる
+  - Variables・Expressions ビューで値を確かめ、値の書き換えや Drop to Frame で仮説を試せる
+  - 条件付きブレークポイントと例外ブレークポイントで「止めたい瞬間」だけ止められる
+  - Spring Boot アプリをデバッグ起動し、リクエスト処理中のスレッドで止められる
+samples:
+  - title: off-by-one バグを再現する
+    description: レッスン本文の「平均点が低く出る」バグです。デバッガの Variables ビューで見える `i` と `sum` の変化を、ここでは println で再現しています。ループの開始値を直すと 80.0 になります。
+    code: |
+      // 平均点が低く出るバグ(off-by-one)を再現する
+      // ここを変えてみよう:int i = 1 を int i = 0 に直して再実行する
+      static double average(int[] a) {
+          int sum = 0;
+          for (int i = 1; i < a.length; i++) {
+              sum += a[i];
+              // デバッガなら Variables ビューで見える値
+              System.out.println("i=" + i + " a[i]=" + a[i]
+                      + " sum=" + sum);
+          }
+          return (double) sum / a.length;
+      }
+
+      int[] scores = {80, 90, 70};
+      System.out.println("平均: " + average(scores)); // 期待: 80.0
+  - title: 参照の共有バグを再現する
+    description: |
+      「コピーしたつもり」で同じ ArrayList を2つの変数から指しているバグです。デバッガの Variables ビューでは、2つの変数に同じ `(id=…)` が表示されます。ここでは代わりに `System.identityHashCode`(オブジェクトごとの識別用の数値)を出しています。この数値は実行するたびに変わります。
+    code: |
+      // 「コピーしたつもり」で同じリストを共有してしまうバグ
+      // ここを変えてみよう:orderB の行を new ArrayList<>(template) にする
+      List<String> template = new ArrayList<>(List.of("コピー用紙"));
+      List<String> orderA = template;   // コピーしたつもり
+      List<String> orderB = template;   // こちらもコピーしたつもり
+
+      orderA.add("ボールペン");          // A の注文にだけ足したい
+
+      System.out.println("A: " + orderA);
+      System.out.println("B: " + orderB);   // B にもボールペンが!
+      System.out.println("同じオブジェクト? " + (orderA == orderB));
+      System.out.println("識別番号: " + System.identityHashCode(orderA)
+              + " / " + System.identityHashCode(orderB));
+quiz:
+  - question: |
+      次の行で止まっています。`calcTax` の中身は信用できるので見なくてよく、`total` に代入された値を次の行で確かめたい。押すキーとして最も適切なのは?
+      ```java
+      int total = price + calcTax(price);   // ← ここで停止中
+      System.out.println(total);
+      ```
+    choices: ["F5(Step Into)", "F6(Step Over)", "F7(Step Return)", "F8(Resume)"]
+    answer: 1
+    explanation: |
+      **F6(Step Over)** はメソッド呼び出しの中に入らず、その行を丸ごと実行して次の行で止まります。止まった時点で Variables ビューに `total` が出ます。
+      F5(Step Into)は `calcTax` の中に入ってしまいます。F7(Step Return)は「今いるメソッドを最後まで実行して呼び出し元に戻る」ので、この行を含むメソッドから抜けてしまいます。F8(Resume)は次のブレークポイントまで進むので、次の行では止まりません。
+  - question: |
+      `sum += a[i];` の行に、条件 `i % 100 == 0` の条件付きブレークポイントを置いてデバッグ起動しました。何回止まる?
+      ```java
+      for (int i = 0; i < 1000; i++) {
+          sum += a[i];
+      }
+      ```
+    choices: ["1回", "9回", "10回", "1000回"]
+    answer: 2
+    explanation: |
+      条件付きブレークポイントは、その行に来るたびに条件式を評価し、**true のときだけ** 止まります。`i % 100 == 0` が true になるのは i が 0, 100, 200, …, 900 のときで、**10回** です。
+      0 を数え忘れると 9回 と答えてしまいます(これ自体が off-by-one です)。1000回 は条件なしのブレークポイントの場合です。
+  - question: |
+      ブレークポイントで止めたところ、Variables ビューにこう表示されていました。正しい説明はどれ?
+      ```text
+      ▶ a   ArrayList<E>  (id=31)
+      ▶ b   ArrayList<E>  (id=31)
+      ```
+    choices: ["a と b は中身が等しいだけの別のリストなので、b.add(\"x\") しても a は変わらない", "id は変数の宣言順に振られる番号で、オブジェクトとは関係ない", "id が同じなのは表示の不具合で、Drop to Frame すれば直る", "a と b は同じ ArrayList を指しているので、b.add(\"x\") すると a から見ても要素が増える"]
+    answer: 3
+    explanation: |
+      Variables ビューの `(id=…)` はデバッガがオブジェクトごとに振る識別番号で、**同じ番号なら同じオブジェクト** です。a と b は1つの ArrayList を共有しているので、どちらから変更してももう一方に見えます。参照の共有バグはこの番号を見比べると一発で分かります。
+      「中身が等しいだけの別のリスト」なら番号は別になります(`equals` は true、`==` は false の関係)。番号は宣言順の通し番号ではありません。
+  - question: |
+      次のメソッドで、1行目を通過して2行目で止まっている状態から **Drop to Frame** し、F8 で再開しました。出力は?(`counter` の初期値は 0、`work()` は1回だけ呼ばれる)
+      ```java
+      static int counter = 0;
+
+      static void work() {
+          counter++;                    // 1行目
+          System.out.println(counter);  // 2行目 ← ここで停止中
+      }
+      ```
+    choices: ["1", "2", "0", "static フィールドがあるメソッドでは Drop to Frame できない"]
+    answer: 1
+    explanation: |
+      Drop to Frame は `work()` のスタックフレームを捨てて **メソッドの先頭から実行し直す** 機能ですが、**副作用は元に戻りません**。1回目の `counter++` で 1 になった値はそのまま残り、やり直しでもう一度 `counter++` されて 2 になってから出力されます。
+      「時間が巻き戻る」と思うと 1 と答えてしまいます。フィールドへの代入・出力・DB 更新などが絡むときは、やり直した結果が通常の実行と変わる点に注意しましょう。
+  - question: |
+      Controller のメソッドにブレークポイントを置き、Boot Dashboard の **(Re)start** ボタン(Run As と同じ通常起動)で Spring Boot アプリを起動してブラウザからアクセスしました。どうなる?
+    choices: ["止まらずに、普通にレスポンスが返る", "ブレークポイントの行で止まり、Debug パースペクティブに切り替わる", "起動時にエラーになる", "ブラウザ側に「Suspended」と表示される"]
+    answer: 0
+    explanation: |
+      (Re)start で起動した JVM には、デバッガをつなぐための JDWP エージェントが付いていません。そのため **ブレークポイントは無視され**、普通にレスポンスが返ります。止めたいときは **(Re)debug** ボタン、または **Debug As > Spring Boot App** で起動します。
+      起動時にエラーになることはなく、ブラウザに「Suspended」が出ることもありません(デバッグ起動で止まった場合でも、ブラウザは読み込み中のまま待つだけです)。
+columns:
+  - type: trivia
+    title: 本物の「虫」がいたコンピューター
+    body: |
+      1947年9月9日、ハーバード大学の電気機械式計算機 Mark II が誤動作しました。調べてみると、リレー(電気で動くスイッチ)に **本物の蛾** が挟まっていました。運用チームはその蛾を作業日誌にテープで貼り、「First actual case of bug being found.(本物のバグが見つかった最初の例)」と書き添えました。この日誌はいまもスミソニアン博物館に保管されています。
+
+      面白いのは、メモが「**本物の** バグ」と書いている点です。機械の不具合を bug と呼ぶ習慣は、エジソンの時代(1870年代)からすでにありました。つまりこれは語源ではなく、「比喩のバグが本当に虫だった」という技術者のジョークなのです。このエピソードは、COBOL の生みの親グレース・ホッパーが好んで語ったことで有名になりました。
+
+      ちなみに今の「デバッガ」は、虫を取る代わりに、JDWP でJVMと会話して止めたり覗いたりしているわけです。
+  - type: genba
+    title: 止めずにログだけ出す、条件付きブレークポイントの裏技
+    body: |
+      STS(Eclipse)の条件付きブレークポイントの条件欄には、式だけでなく **複数の文** を書けます。最後に boolean を `return` すればよいので、こんな書き方ができます。
+
+      ```java
+      System.out.println("i=" + i + " sum=" + sum);
+      return false;
+      ```
+
+      `return false` なので **止まらず**、通るたびに Console へ値だけが出ます。ソースに println を書かないので、**消し忘れて本番に混ざる心配がない** のが利点です(IntelliJ IDEA でも、止めずに式の値をログに出すブレークポイント設定が用意されています)。
+
+      ただし、条件の評価は止まるたびにデバッガとの通信が発生するので、何十万回も回るループに付けると処理が目に見えて遅くなります。「ループが急に遅くなった」と思ったら、Breakpoints ビューに置き忘れた条件付きブレークポイントがないか確認しましょう。
+  - type: mistake
+    title: デバッガで見ると直ってしまう「ハイゼンバグ」
+    body: |
+      「普通に動かすと落ちるのに、デバッガで1行ずつ見ると落ちない」というバグがあります。観測すると状態が変わってしまうことから、量子力学の不確定性原理にちなんで **ハイゼンバグ(Heisenbug)** と呼ばれます。よくある原因は次の2つです。
+
+      - **toString() や getter の副作用**:Variables ビューは表示のために `toString()` を呼びます。JPA(第3部)の遅延ロードされる関連など、「呼んだ瞬間にデータを読み込む」オブジェクトは、ビューに表示しただけで読み込みが走り、本来起きるはずの `LazyInitializationException` が起きなくなることがあります
+      - **タイミング**:複数スレッドが絡むバグは、1つのスレッドを止めた時点で実行順が変わり、再現しなくなります
+
+      対策は、デバッガに頼り切らず **再現する JUnit テストを先に書く** こと。そして、怪しいところはログ(第3部で扱います)で「止めずに」観察することです。
+sts:
+  intro: |
+    わざとバグのあるコードを STS に貼り、ブレークポイント → ステップ実行 → 変数の確認で原因を突き止めます。後半では条件付き・例外ブレークポイント、Drop to Frame、Spring Boot アプリのデバッグまで一通り試します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: バグ入りのコードを用意して普通に実行する
+      detail: |
+        Java プロジェクト(前のレッスンで作ったものでOK)の `src` を右クリック → **New > Class**(新規 > クラス)で `Bug` クラスを作り、本文の「平均点が低く出る」コードを貼り付けて **Ctrl+S** で保存します。
+        右クリック → **Run As > Java Application**(実行 > Java アプリケーション)で実行し、**Console** に `53.333333333333336` と出る(期待は 80.0)ことを確認します。
+    - title: ブレークポイントを置く
+      detail: |
+        `int sum = 0;` の行の **行番号の左の余白(ルーラー)をダブルクリック** します。青い丸が付けば成功です(もう一度ダブルクリックすると消えます)。
+        行番号が表示されていない場合は、余白を右クリック → **Show Line Numbers**(行番号を表示)。
+    - title: Debug As で起動して Debug パースペクティブに切り替える
+      detail: |
+        エディター上で右クリック → **Debug As > Java Application**(デバッグ > Java アプリケーション)。
+        「**Confirm Perspective Switch**」(パースペクティブ切り替えの確認)ダイアログが出たら、**Remember my decision**(決定を記憶する)にチェックして **Switch**(切り替え)を押します。
+        画面が Debug パースペクティブに変わり、`int sum = 0;` の行が緑にハイライトされ、左上の **Debug** ビューに `Thread [main] (Suspended (breakpoint at line 9 in Bug))` と出れば成功です。
+    - title: F6 でステップ実行して Variables ビューを見る
+      detail: |
+        **F6**(Step Over)を押すたびに1行ずつ進みます。右上の **Variables**(変数)ビューで `a` を ▶ で展開し、`i` と `sum` の値を追ってください。
+        `sum += a[i];` に初めて来たとき `i` が **1** になっていて、`a[0]`(80)が一度も足されないことが分かれば、原因の特定は完了です。
+    - title: Expressions ビューに式を登録する
+      detail: |
+        **Window > Show View > Expressions**(ウィンドウ > ビューの表示 > 式)で Expressions ビューを開き、**Add new expression**(新しい式の追加)の欄に `a[i]` と `i < a.length` を入力します。
+        エディターで `a[i]` を選択して右クリック → **Watch**(監視)でも登録できます。F6 で進めるたびに値が更新されることを確認します。
+    - title: 値を書き換えて仮説を試す
+      detail: |
+        **F8**(Resume)で一度最後まで流してから、もう一度 Debug As で起動します。`sum += a[i];` の行にもブレークポイントを置き、そこで初めて止まったら Variables ビューの `i` の値(`1`)をクリックして `0` に書き換え、Enter。
+        **F8** で最後まで実行して Console に `80.0` と出れば、「ループの開始値が原因」という仮説が正しいと確かめられます。確認できたらコードの `int i = 1` を `int i = 0` に直して保存しましょう。
+    - title: 条件付きブレークポイントを使う
+      detail: |
+        `sum += a[i];` の行の青丸を右クリック → **Breakpoint Properties...**(ブレークポイント・プロパティー)を開き、**Conditional**(条件付き)にチェックして `i == 2` と入力し **Apply and Close**(適用して閉じる)。
+        青丸に「?」が付きます。デバッグ起動すると、`i` が 2 のときだけ止まることを確認します。
+    - title: 例外ブレークポイントで NullPointerException の瞬間に止める
+      detail: |
+        **Run > Add Java Exception Breakpoint...**(実行 > Java 例外ブレークポイントの追加)を開き、検索欄に `NullPointerException` と入力して選び **OK**。
+        main の `int[] scores = {80, 90, 70};` を `int[] scores = null;` に変えて(他のブレークポイントは **Breakpoints** ビューでチェックを外して)デバッグ起動すると、`a.length` を評価した行で止まります。Variables ビューで `a` が `null` であることを確認したら、コードを元に戻します。
+    - title: Drop to Frame でメソッドをやり直す
+      detail: |
+        `average` の中で止まっている状態で、左上の **Debug** ビューのスタック(`Bug.average(int[]) line: 11` のような行)を右クリック → **Drop to Frame**(フレームにドロップ)。
+        実行位置が `average` の先頭に戻り、`sum` や `i` もやり直しになることを確認します。F6 で通り過ぎてしまったときに使います。
+    - title: Spring Boot アプリをデバッグ起動してリクエスト処理中に止める
+      detail: |
+        Spring Web を依存に入れた Spring Boot プロジェクト(無ければ **File > New > Spring Starter Project** で **Dependencies** に **Spring Web** を選んで作成)の、`@SpringBootApplication` クラスと同じパッケージに次のクラスを作ります(Controller の詳しい説明は第3部で行います)。
+
+        ```java
+        @RestController
+        public class HelloController {
+            @GetMapping("/hello")
+            public String hello(
+                    @RequestParam(defaultValue = "World") String name) {
+                String message = "Hello, " + name;
+                return message;
+            }
+        }
+        ```
+
+        `String message = ...` の行にブレークポイントを置き、プロジェクトを右クリック → **Debug As > Spring Boot App**(デバッグ > Spring Boot アプリケーション)で起動します(**Boot Dashboard** で虫アイコンの **(Re)debug** を押しても同じ)。
+        ブラウザで `http://localhost:8080/hello?name=Haru` を開くと、ブラウザは読み込み中のまま STS 側で止まります。**Debug** ビューで止まっているスレッドが `http-nio-8080-exec-1` のような名前であること、Variables ビューに `name = "Haru"` が見えることを確認し、**F8** で再開するとブラウザに `Hello, Haru` が表示されます。
+    - title: 後片付け
+      detail: |
+        Debug ビューの赤い四角 **Terminate**(終了、**Ctrl+F2**)でアプリを止めます。
+        **Breakpoints** ビューの **Remove All Breakpoints**(すべてのブレークポイントを除去、二重の × アイコン)で置いたブレークポイントを消し、右上のパースペクティブ切り替えボタン(または **Window > Perspective > Open Perspective > Java**)で Java パースペクティブに戻ります。
+checklist:
+  - key: debug-launch
+    text: Debug As > Java Application で起動し、ブレークポイントの行で止まって Debug パースペクティブに切り替わった
+  - key: step-keys
+    text: F6(Step Over)・F5(Step Into)・F7(Step Return)・F8(Resume)をそれぞれ押して、動きの違いを確かめた
+  - key: find-off-by-one
+    text: Variables ビューで i と sum を追い、平均点が低く出る原因(ループが 1 から始まっている)を見つけた
+  - key: expressions-change-value
+    text: Expressions ビューに式を登録し、Variables ビューで値を書き換えて結果が変わることを確かめた
+  - key: conditional-exception-bp
+    text: 条件付きブレークポイント(i == 2)と、NullPointerException の例外ブレークポイントで止められた
+  - key: drop-to-frame
+    text: Drop to Frame でメソッドの先頭に戻って実行し直せた
+  - key: spring-boot-debug
+    text: Spring Boot アプリを Debug As > Spring Boot App で起動し、ブラウザからのリクエスト処理中(http-nio-… スレッド)で止めて F8 で再開できた
+  - key: junit-debug
+    text: 演習のテストを Debug As > JUnit Test で動かし、ブレークポイントで値を見てバグを直した

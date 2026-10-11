@@ -1,0 +1,26 @@
+title: 会員登録フォームに入力ルールを付ける
+className: SignupForm
+difficulty: 2
+libraries: [spring]
+problem: |
+  会員登録画面のフォームクラス `SignupForm` に、Bean Validation の注釈で入力ルールを付けてください。
+  フィールド・getter・setter はできています。`// TODO:` の場所に注釈(とメソッド1つ)を書くだけです。
+
+  | 項目 | ルール |
+  |---|---|
+  | `name`(氏名) | 必須(空白だけも不可)、20文字以内 |
+  | `email`(メール) | 必須、メールアドレスの形式 |
+  | `age`(年齢) | 必須、18以上 120以下 |
+  | `zipCode`(郵便番号) | 必須、`123-4567` の形(数字3桁-数字4桁) |
+  | `password` | 必須、8文字以上 |
+  | パスワード確認 | `password` と `passwordConfirm` が一致すること |
+
+  - 注釈は `jakarta.validation.constraints` パッケージのもの(`@NotBlank` `@Size` `@Email` `@NotNull` `@Min` `@Max` `@Pattern` `@AssertTrue`)を使います。
+  - パスワード確認は、`@AssertTrue` を付けた `public boolean isPasswordMatched()` を作ってください。
+    Bean Validation はこれを `passwordMatched` という項目として検証します。`password` が null のときは「一致しない」扱いにします。
+  - メッセージ(`message = ...`)は自由です。テストは「どの項目でエラーになったか」だけを見ます。
+
+  テストは `jakarta.validation.Validation` で作った `Validator` で、いろいろな入力を検証します。
+  `@Size` や `@Pattern` は null を OK とみなすので、**必須チェックの注釈と組み合わせる** のを忘れずに。
+
+  ※ STS では `com.example.member.web` パッケージの `SignupForm.java` に置くクラスです(採点用にパッケージなしにしています)。

@@ -1,0 +1,24 @@
+title: 文字コードを見分けて読み込む
+className: EncodingDoctor
+difficulty: 2
+problem: |
+  勤怠システムに、各拠点から CSV ファイルが送られてきます。新しい拠点は **UTF-8**、古い拠点(Excel で保存)は **MS932** です。
+  中身のバイト列を受け取り、文字コードを見分けて正しく文字列にする `EncodingDoctor` を完成させてください。
+
+  1. `isUtf8(byte[] data)`:`data` が **UTF-8 として正しいバイト列なら `true`**、UTF-8 では読めないバイトが1つでもあれば `false`
+  2. `decode(byte[] data)`:UTF-8 として正しければ UTF-8 で、そうでなければ **MS932** で文字列に変換して返す
+
+  例:
+  - `"勤怠,出勤"` を UTF-8 で保存したバイト列 → `isUtf8` は `true`、`decode` は `"勤怠,出勤"`
+  - `"勤怠,出勤"` を MS932 で保存したバイト列 → `isUtf8` は `false`、`decode` は `"勤怠,出勤"`
+  - `"id,name"`(英数字だけ)→ ASCII は UTF-8 としても正しいので `true`
+  - 空のバイト列 → `true`、`decode` は `""`
+
+  ヒント:
+  - `new String(data, StandardCharsets.UTF_8)` は **読めないバイトを `�` に置き換えて黙って続行** するので、判定には使えません。
+  - 判定には、読めないバイトを見つけたら例外を投げる **デコーダ** を使います。雛形に用意してある `strictUtf8()` の
+    `decode(ByteBuffer.wrap(data))` は、UTF-8 として不正なら `CharacterCodingException`(検査例外)を投げます。try-catch で受け止めましょう。
+  - MS932 は `Charset.forName("MS932")` で取得できます(Shift_JIS では `①` などの機種依存文字が読めません)。
+
+  STS のワークスペースの文字コード設定がずれると起きる「文字化け」は、まさに「バイト列を違う約束で読んだ」結果です。
+  STS で書くなら、たとえば `com.example.attendance` パッケージの `EncodingDoctor.java` に置くクラスです(採点用にパッケージなしにしています)。

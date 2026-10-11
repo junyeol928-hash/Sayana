@@ -1,0 +1,26 @@
+title: 申請エンティティ ApprovalRequest に注釈を付ける
+className: ApprovalRequest
+difficulty: 2
+libraries: [spring, jpa]
+problem: |
+  承認くんの中心になるエンティティ `ApprovalRequest`(申請)を完成させてください。
+  フィールド・コンストラクタ・getter はできていて、足りないのは **JPA のアノテーション** と **引数なしコンストラクタ** です。
+  `Employee`(社員)は完成済みなので、書き方の見本にしてください。
+
+  やること:
+
+  1. クラスに `@Entity`
+  2. `id` に `@Id` と `@GeneratedValue(strategy = GenerationType.IDENTITY)`
+  3. `type`(申請の種類)と `status`(状態)に `@Enumerated(EnumType.STRING)`。どちらも `@Column(nullable = false, length = 20)` も付ける
+  4. `applicant`(申請者)に `@ManyToOne(fetch = FetchType.LAZY, optional = false)` と `@JoinColumn(name = "applicant_id")`
+  5. `approver`(承認・差戻しした人。決まるまで null)に `@ManyToOne(fetch = FetchType.LAZY)` と `@JoinColumn(name = "approver_id")`
+  6. `onCreate()` に `@PrePersist` を付けて、保存の直前に作成日時 `createdAt` が入るようにする
+  7. JPA 用の引数なしコンストラクタ `protected ApprovalRequest() {}` を追加
+
+  ヒント:
+  - `@Enumerated` を付けないと、enum は **定数の順番(0, 1, 2…)** で保存されます。enum の途中に定数を足すと、既存データの意味がずれる事故になります。
+  - `@ManyToOne` の既定の取得方法は EAGER(いつも一緒に読む)です。一覧画面で無駄な SELECT が増えないよう、LAZY を明示します。
+
+  ※ 採点環境には DB がないので、テストは **リフレクション** でアノテーションを確認し、`@PrePersist` のメソッドは直接呼んで確かめます。
+  STS では `com.example.approval.domain` パッケージに `ApprovalRequest.java`・`Employee.java`(`public class`)と、
+  `Role.java`・`RequestType.java`・`RequestStatus.java`(`public enum`)を別ファイルで置きます。

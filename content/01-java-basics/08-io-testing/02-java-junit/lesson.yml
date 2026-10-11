@@ -1,0 +1,333 @@
+id: java-junit
+title: JUnit入門
+status: ready
+minutes: 15
+summary: JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、@ParameterizedTest、テストしやすい設計まで。この道場の採点の仕組みもこれ。
+goals:
+  - 自動テストを書く理由(デグレの早期発見・動く仕様書)を説明できる
+  - "@Test・@DisplayName・@BeforeEach と assertEquals / assertTrue / assertThrows / assertAll でテストを書ける"
+  - Arrange-Act-Assert と「1テスト1観点」で読みやすいテストを書ける
+  - 同値分割と境界値分析でテストケースを選び、@ParameterizedTest + @CsvSource で表のように書ける
+  - now() や入出力をロジックから切り離し、テストしやすい形に設計できる
+samples:
+  - title: assertEquals を自作して JUnit の気持ちを知る
+    description: |
+      JUnit の `assertEquals(期待値, 実際の値)` がやっていることは「比べて、違ったら expected / but was を報告する」だけ。
+      わざとバグを入れて、赤になるのを確かめましょう(JUnit 本体はこの画面では動かないので、仕組みを手作りしています)。
+    code: |
+      // JUnit の assertEquals がやっていることを自作して体験する
+      // ここを変えてみよう:fee の「>= 5000」を「> 5000」に変えて
+      //   (わざとバグを入れて)再実行。どのテストが赤になる?
+      public class MiniTest {
+          // テスト対象:5000円以上は送料無料、1〜4999円は500円、0以下は-1
+          static int fee(int amount) {
+              if (amount <= 0) {
+                  return -1;
+              }
+              return amount >= 5000 ? 0 : 500;
+          }
+
+          static int passed = 0;
+          static int failed = 0;
+
+          // JUnit の assertEquals(期待値, 実際の値) の超簡易版
+          static void assertEquals(int expected, int actual,
+                                   String name) {
+              if (expected == actual) {
+                  passed++;
+                  System.out.println("✔ " + name);
+              } else {
+                  failed++;
+                  System.out.println("✘ " + name
+                          + "  expected: <" + expected
+                          + "> but was: <" + actual + ">");
+              }
+          }
+
+          public static void main(String[] args) {
+              // Arrange・Act・Assert を1行にまとめた形
+              assertEquals(500, fee(4999), "4999円は送料500円");
+              assertEquals(0, fee(5000), "5000円ちょうどで無料");
+              assertEquals(-1, fee(0), "0円はエラー");
+
+              String bar = (failed == 0) ? "緑のバー" : "赤のバー";
+              System.out.println(passed + " 件成功 / "
+                      + failed + " 件失敗 → " + bar);
+          }
+      }
+  - title: 境界値の表をまとめて流す
+    description: |
+      `@ParameterizedTest` + `@CsvSource` は「入力と期待値の表を1行ずつテストする」仕組みです。ここでは配列とループで同じことをしてみます。
+      境界値の行を消すと、境目のバグを見逃すことを体験してください。
+    code: |
+      // 境界値の表をまとめて流す(@ParameterizedTest + @CsvSource の気持ち)
+      // ここを変えてみよう:①fee の 30 を 31 に変えてバグを入れる
+      //   ②表から境界値(30, 31)の行を消すと、バグに気づける?
+      public class TableTest {
+          // テスト対象:30分まで無料、超えたら30分ごと(切り上げ)に200円
+          static int fee(int minutes) {
+              if (minutes <= 30) {
+                  return 0;
+              }
+              return (minutes - 30 + 29) / 30 * 200;
+          }
+
+          public static void main(String[] args) {
+              int[][] cases = {
+                  // {入力, 期待値}
+                  {0, 0},      // 最小値
+                  {30, 0},     // 境界:無料の最後
+                  {31, 200},   // 境界:有料の最初
+                  {60, 200},
+                  {61, 400},
+              };
+              int failed = 0;
+              for (int[] c : cases) {
+                  int actual = fee(c[0]);
+                  boolean ok = actual == c[1];
+                  if (!ok) {
+                      failed++;
+                  }
+                  System.out.println((ok ? "✔ " : "✘ ")
+                          + c[0] + "分 → " + actual
+                          + "円(期待値 " + c[1] + "円)");
+              }
+              System.out.println(
+                      failed == 0 ? "全部緑!" : failed + " 件が赤");
+          }
+      }
+  - title: テストしやすい設計(今日を外から渡す)
+    description: |
+      `LocalDate.now()` をメソッドの中で呼ぶと、結果が実行日で変わりテストできません。「今日」を引数で受け取るか、`Clock` を固定して渡します。
+    code: |
+      // テストしやすい設計:「今日」を外から渡す
+      // ここを変えてみよう:today や limit の日付を変える /
+      //   Clock の日時を "2026-11-01T00:00:00Z" にしてみる
+      import java.time.*;
+
+      public class ClockDemo {
+          // テストしにくい版:結果が実行した日で変わる
+          static boolean isExpiredNow(LocalDate limit) {
+              return LocalDate.now().isAfter(limit);
+          }
+
+          // テストしやすい版:「今日」を引数で受け取る
+          static boolean isExpired(LocalDate limit,
+                                   LocalDate today) {
+              return today.isAfter(limit);
+          }
+
+          public static void main(String[] args) {
+              LocalDate limit = LocalDate.of(2026, 10, 31);
+
+              // 境界値:期限当日はまだ OK、翌日から期限切れ
+              System.out.println("10/31 → " + isExpired(limit,
+                      LocalDate.of(2026, 10, 31)));   // false
+              System.out.println("11/01 → " + isExpired(limit,
+                      LocalDate.of(2026, 11, 1)));    // true
+
+              // Clock を固定すれば now() も毎回同じ日になる
+              Clock fixed = Clock.fixed(
+                      Instant.parse("2026-10-31T00:00:00Z"),
+                      ZoneId.of("Asia/Tokyo"));
+              System.out.println("固定した今日: "
+                      + LocalDate.now(fixed));
+
+              // isExpiredNow(limit) の結果は実行した日によって変わる
+          }
+      }
+quiz:
+  - question: |
+      `Shipping.fee(5000)` は本当は `0` を返すべきですが、バグで `500` を返します。次のテストを実行したときの失敗メッセージは?
+      ```java
+      int actual = Shipping.fee(5000);
+      assertEquals(actual, 0);
+      ```
+    choices: ["expected: <0> but was: <500>", "expected: <500> but was: <0>", "テストは成功する", "コンパイルエラーになる"]
+    answer: 1
+    explanation: |
+      `assertEquals` の引数は **(期待値, 実際の値)** の順です。このコードは逆に渡しているので、JUnit は `actual`(500)を期待値、`0` を実際の値として扱い、`expected: <500> but was: <0>` と報告します。
+      成否(失敗すること)は変わりませんが、メッセージが「0 が返ってきた」と **嘘をつく** ので、調べる人が逆方向に迷い込みます。正しくは `assertEquals(0, actual)` です。
+  - question: |
+      次のテストクラスを実行したときの結果は?
+      ```java
+      class CounterTest {
+          int count = 0;
+
+          @BeforeEach
+          void setUp() { count++; }
+
+          @Test
+          void a() { assertEquals(1, count); }
+
+          @Test
+          void b() { assertEquals(1, count); }
+      }
+      ```
+    choices: ["a も b も成功する", "a は成功し、b は失敗する", "実行順によって、後に動いた方が失敗する", "両方とも失敗する"]
+    answer: 0
+    explanation: |
+      JUnit 5 は既定で **テストメソッドごとにテストクラスの新しいインスタンスを作ります**。`a` 用のインスタンスでも `b` 用のインスタンスでも `count` は 0 から始まり、`@BeforeEach` で 1 になってからテストが動くので、どちらも成功します。
+      テスト同士が状態を共有しないための設計です。ただし `static` なフィールドはインスタンスをまたいで共有されるので、`static int count` にすると後に動いた方が失敗します(実行順は保証されないので、どちらが失敗するかも決められません)。
+  - question: |
+      「65歳以上はシニア割引」という仕様の `isSenior(int age)` をテストします。`age >= 65` を `age > 65` や `age >= 64` と書き間違えるバグを **両方とも** 見つけられる、最小のテストケースの組はどれ?
+    choices: ["0 と 100", "65 だけ", "30, 50, 70", "64 と 65"]
+    answer: 3
+    explanation: |
+      **境界値分析** では、境目の **両側** を試します。`age > 65` のバグは 65 で(本当は true なのに false)、`age >= 64` のバグは 64 で(本当は false なのに true)見つかります。
+      65 だけでは `>= 64` のバグを見逃し、0 と 100 や 30, 50, 70 のような境目から遠い値では、どちらのバグも見つかりません。同値クラスの代表値(例:30 と 80)に加えて、境目の両側を必ず入れましょう。
+  - question: |
+      次のテストを実行したときの結果は?
+      ```java
+      @Test
+      void parse() {
+          assertThrows(IllegalArgumentException.class,
+                  () -> Integer.parseInt("abc"));
+      }
+      ```
+    choices: ["NumberFormatException なので失敗する", "成功する", "コンパイルエラーになる", "例外がテストの外に漏れてエラーになる"]
+    answer: 1
+    explanation: |
+      `Integer.parseInt("abc")` は `NumberFormatException` を投げますが、これは `IllegalArgumentException` の **サブクラス** です。`assertThrows` は「指定した型、またはそのサブクラスの例外」が投げられれば成功とみなすので、このテストは成功します。
+      投げられた例外は `assertThrows` が受け止めるので、テストの外には漏れません。型をぴったり一致させたいときは `assertThrowsExactly` を使います。
+  - question: |
+      次のメソッドをテストしやすくするための書き換えとして、最も適切なのはどれ?
+      ```java
+      static String greeting() {
+          int h = LocalTime.now().getHour();
+          return h < 12 ? "おはよう" : "こんにちは";
+      }
+      ```
+    choices: ["テストを午前と午後に1回ずつ実行する運用にする", "テストの中で12時になるまで待つ", "時刻を引数で受け取る greeting(LocalTime now) にする", "greeting を private にしてテストしない"]
+    answer: 2
+    explanation: |
+      結果が「実行した時刻」で変わるのは、メソッドの奥で `LocalTime.now()` を呼んでいるからです。時刻を引数で受け取れば、テストから `LocalTime.of(11, 59)` と `LocalTime.of(12, 0)` のような **境界値** を自由に渡せ、いつ実行しても同じ結果になります(呼ぶ側で `greeting(LocalTime.now())` とする)。
+      実行時刻に頼る運用や、時刻を待つテストは、自動テストの「いつでも何度でも同じ結果」という前提を壊します。テストしないのは論外です。
+columns:
+  - type: trivia
+    title: JUnit は飛行機の中で生まれた
+    body: |
+      JUnit の最初の版は1997年、Kent Beck と Erich Gamma(『デザインパターン』の著者の1人)が、チューリッヒからアメリカの学会へ向かう **飛行機の中でペアプログラミングして** 書いたと言われています。Kent Beck が以前 Smalltalk 用に作った SUnit が元で、そこから C# の NUnit や Python の unittest など、「xUnit」と呼ばれる兄弟が世界中に広がりました。
+
+      現在の JUnit 5(2017年〜)は3つの部品でできています。
+
+      - **JUnit Platform**:テストを見つけて実行する土台(STS や Maven はここを呼ぶ)
+      - **JUnit Jupiter**:`@Test` などを使って JUnit 5 のテストを書く部分
+      - **JUnit Vintage**:JUnit 3 / 4 の古いテストを動かすための部分
+
+      この道場の採点ログや STS の JUnit ビューに「JUnit Jupiter」「JUnit Vintage」と並んで見えるのはこのためです。
+  - type: genba
+    title: カバレッジ100%なのにバグった
+    body: |
+      **カバレッジ(網羅率)** は「テストでどれだけの行や分岐が実行されたか」を測る指標です。ある現場では「カバレッジ 80% 以上」を目標にしていました。ところが、送料計算で `amount >= 5000` を `amount > 5000` と書いたバグが本番まで漏れました。
+
+      テストは 3000 円と 8000 円の2ケース。どちらの分岐も通るのでカバレッジは 100% でしたが、**境目の 5000 円を誰も試していなかった** のです。
+
+      カバレッジが教えてくれるのは「実行されたか」だけで、「正しいか確かめたか」ではありません。数字を目標にしすぎると、assert の無いテストで数字だけ上げる、という本末転倒も起きます。カバレッジは「テストが足りない場所を探す道具」と割り切り、ケースは同値分割と境界値で選びましょう。
+  - type: mistake
+    title: 月末にだけ落ちるテスト
+    body: |
+      「支払期限は購入日のちょうど1か月後の同じ日」という仕様に、こんなテストを書きました。
+
+      ```java
+      LocalDate today = LocalDate.now();
+      LocalDate due = Billing.dueDate(today);
+      assertEquals(today.getDayOfMonth(),
+                   due.getDayOfMonth());
+      ```
+
+      普段は緑。ところが **1月31日** に CI が真っ赤になりました。`plusMonths(1)` は存在しない日付を月末に丸めるので、1/31 の1か月後は 2/28(うるう年は 2/29)になるからです。3/31、5/31 なども同様です。
+
+      原因は2つ。①テストが `now()` に依存し、日によって入力が変わる。②「月末」という境界値を試していなかった。日付は **固定値で渡し**、1/31 や 2/29 のような境界を明示的にケースに入れましょう。たまにしか落ちないテストは「不安定なテスト(flaky test)」と呼ばれ、放置するとテスト全体が信用されなくなります。
+sts:
+  intro: |
+    STS で JUnit 5 のテストを作って実行し、**緑のバー** と **赤のバー** を自分の目で見ます。前のレッスンで作った Java プロジェクト(`hello-java` など)を使います。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: テスト対象のクラスを作る
+      detail: |
+        `src` を右クリックして **New > Class**(新規 > クラス)で `Shipping` クラスを作り、次のメソッドを書いて **Ctrl+S** で保存します。
+
+        ```java
+        public class Shipping {
+            public static int fee(int amount) {
+                if (amount <= 0) {
+                    return -1;
+                }
+                return amount >= 5000 ? 0 : 500;
+            }
+        }
+        ```
+    - title: JUnit テストケースを作る
+      detail: |
+        Package Explorer で `Shipping.java` を右クリックし、**New > Other...**(新規 > その他...)から **Java > JUnit > JUnit Test Case**(Java > JUnit > JUnit テスト・ケース)を選んで **Next**(次へ)。
+        - 一番上で **New JUnit Jupiter test**(新規 JUnit Jupiter テスト)を選ぶ(これが JUnit 5)
+        - **Name**(名前)は自動で `ShippingTest` になります
+        - **Class under test**(テスト対象クラス)が `Shipping` になっていることを確認
+
+        **Finish**(完了)を押します。
+    - title: JUnit 5 をビルドパスに追加する
+      detail: |
+        初回は「**JUnit 5 is not on the build path. Do you want to add it?**」(JUnit 5 がビルド・パス上にありません。追加しますか?)と聞かれます。
+        **Add JUnit 5 library to the build path**(JUnit 5 ライブラリーをビルド・パスに追加)が選ばれた状態で **OK** を押してください。
+        Package Explorer のプロジェクトの下に **JUnit 5** というライブラリーが表示されれば成功です。`@Test` に赤い波線が出る場合は、この追加がされていません。
+    - title: テストを書く
+      detail: |
+        `ShippingTest` を次のように書いて保存します。
+
+        ```java
+        import static org.junit.jupiter.api.Assertions.*;
+        import org.junit.jupiter.api.DisplayName;
+        import org.junit.jupiter.api.Test;
+
+        class ShippingTest {
+            @Test
+            @DisplayName("5000円ちょうどで送料無料")
+            void free() {
+                assertEquals(0, Shipping.fee(5000));
+            }
+
+            @Test
+            @DisplayName("4999円は送料500円")
+            void notFree() {
+                assertEquals(500, Shipping.fee(4999));
+            }
+        }
+        ```
+
+        import が足りないときは **Ctrl+Shift+O**(インポートの編成)で自動的に追加できます。
+    - title: 実行して緑のバーを見る
+      detail: |
+        エディター上で右クリックし、**Run As > JUnit Test**(実行 > JUnit テスト)を選びます(ショートカットは **Alt+Shift+X → T**)。
+        **JUnit** ビューが開き、**緑のバー** と **Runs: 2/2 Errors: 0 Failures: 0**(実行: 2/2 エラー: 0 失敗: 0)が表示されれば全テスト成功です。
+        ツリーにはテストごとに `@DisplayName` の名前が並びます。
+    - title: わざとバグを入れて赤のバーを見る
+      detail: |
+        `Shipping` の `amount >= 5000` を `amount > 5000` に書き換えて保存し、もう一度 **Run As > JUnit Test** を実行します。
+        今度は **赤のバー** になり、失敗したテストに青い × が付きます。それを選ぶと、下の **Failure Trace**(障害トレース)に
+        `org.opentest4j.AssertionFailedError: expected: <0> but was: <500>` と表示されます。
+        Failure Trace のテストの行をダブルクリックすると、失敗した assert の行にジャンプできます。`>=` に戻して再実行し、緑に戻ることを確認しましょう。
+    - title: パラメーター化テストを試す
+      detail: |
+        `ShippingTest` に次のテストを追加して実行します(import は **Ctrl+Shift+O**)。
+
+        ```java
+        @ParameterizedTest
+        @CsvSource({ "0, -1", "1, 500", "4999, 500", "5000, 0" })
+        void 送料(int amount, int expected) {
+            assertEquals(expected, Shipping.fee(amount));
+        }
+        ```
+
+        JUnit ビューでは `送料(int, int)` の下に `[1] 0, -1` ……と、表の1行ごとに結果が並びます。STS の JUnit 5 ライブラリーにはパラメーター化テストの機能も含まれています。
+checklist:
+  - key: junit-library
+    text: STS のプロジェクトに JUnit 5 ライブラリーを追加し、JUnit Test Case ウィザードでテストクラスを作れた
+  - key: junit-green
+    text: Run As > JUnit Test で実行し、緑のバーと Runs / Errors / Failures の表示を確認した
+  - key: junit-red
+    text: わざとバグを入れて赤のバーを出し、Failure Trace の expected / but was を読んで原因の行にジャンプできた
+  - key: junit-parameterized
+    text: "@ParameterizedTest と @CsvSource で境界値の表を書き、1行ずつ結果が出ることを確認した"
+  - key: junit-tdd
+    text: テストを先に書いて赤を確認し、実装して緑にし、緑のまま整理する(Red → Green → Refactor)を1周した
