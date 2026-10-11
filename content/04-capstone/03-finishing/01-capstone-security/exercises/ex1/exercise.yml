@@ -1,0 +1,45 @@
+title: 「誰が何をできるか」を判定する AccessPolicy
+className: AccessPolicy
+difficulty: 2
+problem: |
+  承認くんの画面とサービスの両方から使う、権限判定のクラス `AccessPolicy` を作ります。
+  ログイン中の社員 `Actor`(社員ID とロール)・操作 `Operation`・申請 `RequestInfo`(申請者ID・状態・金額)を受け取り、
+  **許可か拒否か** と **拒否の理由** を `Decision` で返します。理由の文言は定数として用意してあります。
+
+  **`Decision check(Actor actor, Operation op, RequestInfo req)`** を、次の順番で判定してください(**最初に引っかかった理由** を返す)。
+
+  | 順 | 判定 | 拒否の理由(定数) |
+  |---|---|---|
+  | 0 | `actor` が `null`(未ログイン) | `LOGIN_REQUIRED` |
+  | 1 | `VIEW`:申請者本人か、`APPROVER`/`ADMIN` なら許可(状態は問わない) | `NO_VIEW` |
+  | 2 | `SUBMIT`・`WITHDRAW`:申請者本人でない(ルール1) | `NOT_OWNER` |
+  | 2 | `APPROVE`・`RETURN`:ロールが `APPLICANT`(ルール2) | `NOT_APPROVER` |
+  | 2 | `APPROVE`:自分の申請(ルール2) | `OWN_REQUEST` |
+  | 3 | 状態が `APPROVED` か `WITHDRAWN`(ルール5) | `FINAL_STATUS` |
+  | 3 | 状態遷移図に矢印がない操作 | `BAD_STATUS` |
+  | 4 | `APPROVE`:金額が 100,000 円以上で `ADMIN` でない(ルール3) | `HIGH_AMOUNT` |
+
+  状態ごとにできる操作(状態遷移図より):
+
+  | 操作 | できる状態 |
+  |---|---|
+  | `SUBMIT`(申請・再申請) | `DRAFT`、`RETURNED` |
+  | `WITHDRAW`(取下げ) | `DRAFT`、`RETURNED` |
+  | `APPROVE`・`RETURN` | `SUBMITTED` |
+
+  ```java
+  AccessPolicy policy = new AccessPolicy();
+  RequestInfo req = new RequestInfo(1, RequestStatus.SUBMITTED, 120_000);
+  policy.check(new Actor(2, Role.APPROVER), Operation.APPROVE, req);
+  // → Decision[allowed=false, reason=100,000円以上の申請を承認できるのは管理者だけです]
+  policy.check(new Actor(3, Role.ADMIN), Operation.APPROVE, req);
+  // → Decision[allowed=true, reason=]
+  ```
+
+  - 休暇(`LEAVE`)の申請は金額が `null` です。ルール3の対象外として扱います(`null` のまま比較すると `NullPointerException`)。
+  - ルール2が禁じているのは自分の申請の **承認** です。差戻し(`RETURN`)は本人チェックをしません。
+  - 「誰が」を先に、「状態」を後に判定するのは、権限のない人に申請の状態を教えないためです。
+
+  ※ STS では `com.example.approval.service` パッケージに `AccessPolicy.java`(`@Component`)、`Operation.java`、`Decision.java` を置き、
+  `Actor` の代わりにログイン中の社員の ID とロール、`RequestInfo` の代わりに `ApprovalRequest` を渡します。
+  採点用に1ファイルへまとめています(`Role`・`RequestStatus` は本物の承認くんと同じ値です)。

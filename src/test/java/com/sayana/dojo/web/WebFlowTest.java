@@ -60,8 +60,14 @@ class WebFlowTest {
         mvc.perform(get("/lessons/java-hello")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("STSでやってみよう")))
                 .andExpect(content().string(containsString("AI機能はオフです")));
+        // 準備中のレッスンが残っていれば、その表示も確かめる
+        var planned = content.allLessons().stream().filter(l -> !l.ready()).findFirst();
+        if (planned.isPresent()) {
+            mvc.perform(get("/lessons/" + planned.get().id())).andExpect(status().isOk())
+                    .andExpect(content().string(containsString("準備中")));
+        }
         mvc.perform(get("/lessons/spring-di")).andExpect(status().isOk())
-                .andExpect(content().string(containsString("準備中")));
+                .andExpect(content().string(containsString("DIとIoCコンテナ")));
         mvc.perform(get("/lessons/no-such-lesson")).andExpect(status().isNotFound());
         mvc.perform(get("/review")).andExpect(status().isOk());
         mvc.perform(get("/history")).andExpect(status().isOk());

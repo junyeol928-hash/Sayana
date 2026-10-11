@@ -62,6 +62,9 @@ final class LibraryClasspath {
                     "org.objectweb.asm.ClassReader",
                     "org.slf4j.LoggerFactory",
                     "org.hamcrest.Matcher",
+                    // MockMvc の content().json(...) が使う
+                    "org.skyscreamer.jsonassert.JSONCompareMode",
+                    "org.json.JSONObject",
                     // Bean Validation
                     "jakarta.validation.Validation",
                     "org.hibernate.validator.HibernateValidator",

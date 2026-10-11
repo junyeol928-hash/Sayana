@@ -1,0 +1,40 @@
+title: 承認 API と 404 / 409 の ProblemDetail
+className: RequestApiController
+difficulty: 3
+libraries: [spring]
+problem: |
+  承認くんの API に **承認** を足し、失敗したときのエラーを RFC 9457 の **ProblemDetail** で返してください。
+  承認の業務ルールは `RequestService`(テストではメモリ実装)が守っていて、違反なら `BusinessRuleException`、
+  申請がなければ `RequestNotFoundException` を投げます。Controller の仕事は、それを正しい HTTP に翻訳することです。
+
+  | リクエスト | レスポンス |
+  |---|---|
+  | `POST /api/requests/1/approve`(申請中) | `200` と承認後の詳細(`status` が `APPROVED`) |
+  | `POST /api/requests/3/approve`(承認済) | `409` の ProblemDetail |
+  | `POST /api/requests/99/approve`、`GET /api/requests/99` | `404` の ProblemDetail |
+
+  409 の例:
+
+  ```text
+  HTTP/1.1 409 Conflict
+  Content-Type: application/problem+json
+
+  {"type":"about:blank","title":"業務ルール違反","status":409,
+   "detail":"承認済の申請は変更できません","instance":"/api/requests/3/approve"}
+  ```
+
+  やること:
+  1. `approve` に `@PostMapping("/{id}/approve")` を付け、`id` を `@PathVariable` で受け取る。
+     `principal.getName()`(ログインID)を `service.approve(id, ...)` に渡し、結果を `RequestDetail.from` で返す
+  2. `onRule` に `@ExceptionHandler(BusinessRuleException.class)` を付け、
+     `ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage())` に `setTitle("業務ルール違反")` して返す
+  3. `onNotFound` に `@ExceptionHandler(RequestNotFoundException.class)` を付け、
+     404・title「申請が見つかりません」・detail に例外メッセージ、で返す
+
+  `Principal` は「ログイン中の人」を表す Java 標準のインターフェースで、引数に書くと Spring MVC が入れてくれます
+  (テストでは `post(...).principal(...)` で渡しています)。`@ExceptionHandler` は **同じ Controller の中で起きた例外** だけを受け持ちます。
+
+  **STS で書くなら**:`BusinessRuleException` と `RequestNotFoundException` は `com.example.approval.domain`、
+  `RequestApiController` は `com.example.approval.web.api` に置きます。`RequestService` の役目は、
+  見るだけの部分が `RequestQueryService`、承認が capstone-approve の `ApprovalService` です。
+  本物のアプリでは Spring Security が `/api/**` を APPROVER・ADMIN に絞るので、申請者が呼ぶと Controller に届く前に 403 になります。

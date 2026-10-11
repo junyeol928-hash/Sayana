@@ -1,0 +1,38 @@
+title: API のエラーを共通形式で返す @RestControllerAdvice
+className: ApiExceptionHandler
+difficulty: 3
+libraries: [spring]
+problem: |
+  承認くんの API(`RequestApiController`、完成済み)で起きた例外を、**1か所** でまとめて HTTP のエラーに翻訳する
+  `ApiExceptionHandler` を完成させてください。どのエラーも共通形式(RFC 9457 の **ProblemDetail**、`application/problem+json`)で返します。
+
+  | 起きた例外 | ステータス | title | detail |
+  |---|---|---|---|
+  | `BusinessRuleException` | 409 | 業務ルール違反 | 例外のメッセージ |
+  | `RequestNotFoundException` | 404 | 申請が見つかりません | 例外のメッセージ |
+  | それ以外の例外 | 500 | システムエラー | 時間をおいて再度お試しください |
+
+  500 の例(**例外のメッセージは返さない**。テストでは ID 500 の申請を読むと、接続先やパスワード入りのメッセージの例外が起きます):
+
+  ```json
+  {"type":"about:blank","title":"システムエラー","status":500,
+   "detail":"時間をおいて再度お試しください",
+   "instance":"/api/requests/500","errorId":"3f9a1c07"}
+  ```
+
+  やること:
+  1. クラスに `@RestControllerAdvice` を付け、`ResponseEntityExceptionHandler` を継承する
+  2. 3つのメソッドに `@ExceptionHandler(…class)` を付け、`ProblemDetail.forStatusAndDetail(...)` + `setTitle(...)` で上の表のとおり返す
+  3. 500 では `UUID.randomUUID().toString().substring(0, 8)` で `errorId` を作り、`log.error("想定外のエラー errorId={}", errorId, e)` でログに
+     (最後の引数に例外を渡すとスタックトレースも出ます)、`setProperty("errorId", errorId)` で本文に入れる
+
+  **なぜ継承が要るのか**:`@ExceptionHandler(Exception.class)` だけだと、`?status=submitted`(enum に変換できない)の 400 や、
+  `DELETE` を送ったときの 405 のような **Spring 標準のエラーまで横取りして 500** にしてしまいます。
+  `ResponseEntityExceptionHandler` はそれらを受け持つハンドラを持っていて、Spring は **例外の型がより近いハンドラ** を選ぶので、標準のエラーは元のステータスのまま返ります。
+  `BusinessRuleException` が `Exception` のほうに吸い込まれないのも同じ理由です。
+
+  テストは `MockMvcBuilders.standaloneSetup(...).setControllerAdvice(new ApiExceptionHandler())` で確かめます。
+
+  **STS で書くなら**:`ApiExceptionHandler.java` は `com.example.approval.web.api` に置き、
+  `@RestControllerAdvice(basePackageClasses = RequestApiController.class)` として範囲を API に絞ります(画面の例外はエラーページに任せるため)。
+  前回 `RequestApiController` の中に書いた `@ExceptionHandler` は削除します。

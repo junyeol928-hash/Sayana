@@ -156,6 +156,7 @@ public String search(
         Model model) {
     PageRequest pr = PagingParams.of(page, size, sort);
     model.addAttribute("page", service.search(cond, pr));
+    // プルダウン用の statuses・types も入れる(STS 手順)
     return "requests/search";
 }
 ```
@@ -198,7 +199,7 @@ public String search(
 - `?status=SUBMITTED&keyword=出張` → SQL の where が2条件だけになる
 - `?size=100000` → 50件ずつ。`?page=-1&sort=password` → エラーにならず先頭ページ
 - 「次へ」を押しても条件と並び順が URL に残っている
-- 申請者名の表示で、SELECT が `join employee` を含む1本(+count)になっている
+- 申請者名を出しても、SELECT は社員テーブルを `join` した1本(+count)だけ
 
 ::: sensei
 `/requests/search` と `/requests/{id}` が同居しても大丈夫。Spring MVC は変数のない **より具体的なパターンを優先** するから、`search` が `{id}` に吸われることはない。

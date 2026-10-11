@@ -183,7 +183,7 @@ columns:
       Bean Validation がメソッドを検証するのは、JavaBeans の **getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
       `Boolean` なら `getXxx()` でなければなりません。条件を外れたメソッドは **エラーも警告も出ずに無視** されます。
 
-      対策は、相関チェックにも必ずテストを書くこと。このレッスンの演習のように Validator で直接検証すれば、数ミリ秒で確かめられます。
+      対策は、相関チェックにも必ずテストを書くこと(演習のように Validator で直接検証できます)。
   - type: genba
     title: 「仮の固定ID」は1か所に閉じ込めて、目印を付ける
     body: |
@@ -262,7 +262,7 @@ sts:
         ```
 
         `ApplicantId` は「`applicant` プロパティの `id`」とたどって解釈されます。メソッド名を打ち間違えると、
-        **起動時に** `No property 'applicantld' found for type 'ApprovalRequest'` のような例外でアプリが起動しません(実行するまで分からないので、次の手順の起動で必ず確認)。
+        **起動時に** `No property 'applicantld' found for type 'ApprovalRequest'; Did you mean 'applicant'` のような例外でアプリが起動しません(実行するまで分からないので、次の手順の起動で必ず確認)。
     - title: フォームクラスを作る(web)
       detail: |
         `com.example.approval` を右クリック > **New > Package**(新規 > パッケージ)で `com.example.approval.web` を作り(既にあれば不要)、
