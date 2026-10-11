@@ -15,7 +15,6 @@ samples:
     description: |
       Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。
       パスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。`[...]` は Spring が内部で投げた例外の名前です。
-      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // Controller を MockMvc で呼んでみる(Web サーバーは起動しない)
       // ここを変えてみよう:URL やクエリを書き換える / name を消す

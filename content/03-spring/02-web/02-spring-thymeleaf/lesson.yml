@@ -62,7 +62,6 @@ samples:
     description: |
       `@Controller` が Model に値を入れてビュー名を返し、ThymeleafViewResolver がテンプレートを描画する、本物と同じ流れを MockMvc で動かします。
       `templates/` フォルダの代わりに `Map` からテンプレートを探しています。共通ヘッダーのフラグメントと、コンテキストパス `/shop` が `@{...}` で自動的に付く様子も見られます。
-      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // Controller → Model → ビュー名 → Thymeleaf の流れを MockMvc で動かす
       // ここを変えてみよう:Model に入れる値 / テンプレート / コンテキストパス

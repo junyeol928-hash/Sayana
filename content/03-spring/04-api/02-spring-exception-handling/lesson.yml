@@ -80,7 +80,8 @@ samples:
 
       System.out.println("■ ハンドラなし");
       try {
-          var r = build(false).perform(get("/api/tasks/" + id)).andReturn().getResponse();
+          var r = build(false).perform(get("/api/tasks/" + id))
+                  .andReturn().getResponse();
           System.out.println("  " + r.getStatus() + " " + r.getContentAsString());
       } catch (Exception e) {
           // Spring Boot なら、ここから先は Tomcat → /error で 500 になる
@@ -90,7 +91,8 @@ samples:
       }
 
       System.out.println("■ ハンドラあり");
-      var res = build(true).perform(get("/api/tasks/" + id)).andReturn().getResponse();
+      var res = build(true).perform(get("/api/tasks/" + id))
+              .andReturn().getResponse();
       System.out.println("  " + res.getStatus() + " " + res.getContentType());
       System.out.println("  " + res.getContentAsString());
   - title: 「Exception を全部 500 に」の落とし穴
@@ -276,45 +278,41 @@ columns:
       `You have an error in your SQL syntax ... near ''' AND deleted = 0'` と **実行した SQL の断片** が表示されていました。
       Controller の catch で `e.getMessage()` をそのまま画面に出していたのが原因です。
 
-      攻撃者にとって、これはテーブル名・列名・SQL の組み立て方を教えてくれる親切なヒントです。
-      SQL インジェクションの穴があるかどうかを、エラーメッセージを見ながら試せてしまいます。
+      攻撃者にとっては、テーブル名や SQL の組み立て方を教えてくれる親切なヒント。SQL インジェクションの穴を、エラーを見ながら探せてしまいます。
 
       Spring Boot も 2.3 から、既定のエラーレスポンスに例外メッセージやバリデーションの詳細を **含めない** 設定(`server.error.include-message=never` など)に変わりました。
-      現場の原則は「**詳細はログへ、利用者には固定の文言と問い合わせ用の ID**」。
-      ログと突き合わせられるように、エラーレスポンスにリクエストごとの ID(トレース ID)を入れておくと、問い合わせ対応がぐっと楽になります。
+      現場の原則は「**詳細はログへ、利用者には固定の文言と問い合わせ用の ID**」。リクエストごとの ID(トレース ID)をレスポンスとログの両方に入れておくと、問い合わせ対応がぐっと楽になります。
   - type: trivia
     title: RFC 7807 から RFC 9457 へ
     body: |
-      エラーレスポンスの標準形式は、2016年に **RFC 7807**「Problem Details for HTTP APIs」として定められ、
-      2023年に改訂版の **RFC 9457** に置き換えられました。基本の項目(`type`・`title`・`status`・`detail`・`instance`)は同じで、
-      よく使う problem type を登録しておく仕組み(レジストリ)などが追加されています。
+      エラーレスポンスの標準形式は、2016年に **RFC 7807**「Problem Details for HTTP APIs」として定められ、2023年に改訂版の **RFC 9457** に置き換えられました。
+      基本の5項目(`type`・`title`・`status`・`detail`・`instance`)は変わっていません。
 
-      `type` が `about:blank` のときは「HTTP のステータス以上の意味はない」という約束で、そのとき `title` はステータスの説明文(`Not Found` など)にするのが推奨です。
-      独自のエラー種別を表したいなら、`https://example.com/problems/out-of-stock` のような URI を `type` に入れ、その URL にエラーの説明ページを置いておくのが本来の使い方です。
+      `type` が `about:blank` なら「HTTP のステータス以上の意味はない」という約束で、`title` はステータスの説明文(`Not Found` など)にするのが推奨です。
+      独自のエラー種別なら `https://example.com/problems/out-of-stock` のような URI を `type` に入れ、そこに説明ページを置きます。
 
-      Spring Framework 6.0(2022年)で `ProblemDetail` が入り、Spring Boot 3 では `spring.mvc.problemdetails.enabled=true` の1行で、Spring MVC 自身の例外もこの形式で返せるようになりました。
+      Spring Framework 6.0 で `ProblemDetail` が入り、Spring Boot 3 では `spring.mvc.problemdetails.enabled=true` の1行で Spring MVC 自身の例外もこの形式になりました。
   - type: mistake
     title: catch して握りつぶすと、トランザクションも巻き戻らない
     body: |
-      「500 を出したくない」一心で、Service の中をこう書いてしまうことがあります。
+      「500 を出したくない」一心で、こう書いてしまうことがあります。
 
       ```java
       @Transactional
       public Order place(OrderForm form) {
           try {
-              stockService.reserve(form);   // 在庫を引き当て
+              stockService.reserve(form);
               return orderRepository.save(toOrder(form));
           } catch (Exception e) {
-              e.printStackTrace();
-              return null;                  // 握りつぶし
+              return null;   // 握りつぶし
           }
       }
       ```
 
-      例外がメソッドの外に出ないので、`@Transactional` は「正常終了」と判断して **コミット** します。在庫だけ引き当てられて注文が無い、という中途半端なデータが残ります(「トランザクション」のレッスン参照)。
-      しかも Controller には `null` が返り、API は 200 で空の本文を返します。
+      例外がメソッドの外に出ないので、`@Transactional` は正常終了と判断して **コミット** します。在庫だけ引き当てられて注文が無い、中途半端なデータが残ります。
+      しかも API は 200 で空の本文を返します。
 
-      例外は **握りつぶさず、そのまま投げる**(必要なら業務例外に包み直して投げる)。HTTP のステータスへの変換は `@RestControllerAdvice` に任せる、が正しい分担です。
+      例外は **握りつぶさず投げる**(必要なら業務例外に包み直す)。ステータスへの変換は `@RestControllerAdvice` に任せる、が正しい分担です。
 sts:
   intro: |
     「REST API」のレッスンで作った `todo-api` を使います。存在しない ID にアクセスしてわざと 500 を出し、

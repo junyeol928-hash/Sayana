@@ -1,0 +1,39 @@
+title: 申請の一覧と詳細を DTO で返す API
+className: RequestApiController
+difficulty: 2
+libraries: [spring]
+problem: |
+  承認くんの REST API のうち、**見るだけ** の2本を完成させてください。データは `RequestService`(インターフェース)から受け取ります。
+  テストではメモリ上の実装が渡されます。
+
+  | リクエスト | レスポンス |
+  |---|---|
+  | `GET /api/requests` | `200` と全件の配列(ID 順) |
+  | `GET /api/requests?status=SUBMITTED` | `200` とその状態の申請だけの配列 |
+  | `GET /api/requests/3` | `200` と申請1件の詳細 |
+  | `GET /api/requests/99` | `404`(本文なし) |
+
+  JSON の例(`GET /api/requests/3`):
+
+  ```json
+  {"id":3,"title":"モニター購入","type":"PURCHASE","amount":45000,
+   "reason":"在宅勤務用","status":"APPROVED","applicantName":"ハル",
+   "approverName":"モカ","comment":"OKです",
+   "createdAt":"2026-10-03T09:30:00","submittedAt":"2026-10-03T11:30:00",
+   "decidedAt":"2026-10-04T15:30:00"}
+  ```
+
+  やること:
+  1. `RequestSummary.from` と `RequestDetail.from` で、`ApprovalRequest` から DTO に詰め替える。
+     申請者・承認者は **名前だけ**(`applicant().name()`)を入れ、`Employee` ごと入れない(メールアドレスが漏れます)。
+     承認者がまだいない(`approver()` が `null`)なら `approverName` も `null`
+  2. `list` に `@GetMapping` を付け、`status` を `@RequestParam(required = false)` で受け取って `service.findByStatus(status)` の結果を `RequestSummary` に変換して返す
+  3. `detail` に `@GetMapping("/{id}")` を付け、`@PathVariable` で受け取る。見つからなければ 404
+     (`ResponseEntity.of(Optional)` を使うと、空なら 404・あれば 200 になります)
+
+  ヒント:一覧の変換は `stream().map(RequestSummary::from).toList()` で書けます。
+
+  **STS で書くなら**:`RequestType` / `RequestStatus` / `Employee` / `ApprovalRequest` は `com.example.approval.domain`
+  (`ApprovalRequest` と `Employee` は JPA のエンティティなので `r.id()` ではなく `r.getId()`)、
+  `RequestSummary.java` / `RequestDetail.java` / `RequestApiController.java` は `com.example.approval.web.api` に置きます。
+  `RequestService` の役目は `com.example.approval.service.RequestQueryService` が担います(解説では、見つからないときは `RequestNotFoundException` を投げて 404 にしています。その書き方は次の問題で)。

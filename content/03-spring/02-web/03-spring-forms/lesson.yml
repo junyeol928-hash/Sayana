@@ -11,7 +11,7 @@ goals:
   - エンティティを直接フォームにしない理由と、@AssertTrue による相関チェックを説明できる
 samples:
   - title: Validator で注釈のチェックを確かめる
-    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。初回は Hibernate Validator の起動ログが出ることがあります。
+    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。
     libraries: [spring]
     code: |
       import jakarta.validation.*;
