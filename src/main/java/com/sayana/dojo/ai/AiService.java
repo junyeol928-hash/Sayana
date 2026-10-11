@@ -334,28 +334,7 @@ public class AiService {
     /** 共通の前置き + レッスン教材。キャッシュが効くよう、同じレッスンなら毎回同じ文字列にする。 */
     String context(Lesson lesson) {
         String key = lesson == null ? "" : lesson.id();
-        return contextCache.computeIfAbsent(key, k -> {
-            StringBuilder sb = new StringBuilder(prompts.get("common")).append("\n\n");
-            if (lesson == null) {
-                sb.append("<lesson>\n(特定のレッスンではなく、自由に試すプレイグラウンドからの依頼です)\n</lesson>");
-                return sb.toString();
-            }
-            sb.append("<lesson id=\"").append(lesson.id()).append("\">\n");
-            sb.append("# ").append(lesson.title()).append("\n\n");
-            if (lesson.summary() != null) {
-                sb.append(lesson.summary()).append("\n\n");
-            }
-            sb.append("## 解説\n").append(lesson.bodyMarkdown().strip()).append("\n\n");
-            if (!lesson.exercises().isEmpty()) {
-                sb.append("## このレッスンの演習(問題文のみ)\n");
-                for (ExerciseDef e : lesson.exercises()) {
-                    sb.append("### ").append(e.title()).append("(クラス名: ").append(e.className()).append(")\n")
-                            .append(e.problemMarkdown().strip()).append("\n\n");
-                }
-            }
-            sb.append("</lesson>");
-            return sb.toString();
-        });
+        return contextCache.computeIfAbsent(key, k -> LessonContext.build(prompts.get("common"), lesson));
     }
 
     /** 教材を読み直したときに呼ぶ。 */
