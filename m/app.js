@@ -9,7 +9,9 @@ const INTERVALS = [1, 3, 7, 14];
 const SDK_URL = "https://esm.sh/@anthropic-ai/sdk@0.127.0";
 const MARKED_URL = "https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.esm.js";
 const MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
-const DEFAULT_MODELS = { tutor: "claude-sonnet-5-5", review: "claude-sonnet-5-5", hint: "claude-haiku-5-5" };
+// チューター=速さと質のバランス / レビュー=深く見てほしいので Opus / ヒント=短いので安いモデル
+const DEFAULT_MODELS = { tutor: "claude-sonnet-5-5", review: "claude-opus-5-5", hint: "claude-haiku-5-5" };
+const MODELS_VERSION = 2;
 
 // ------------------------------------------------------------ 保存
 
@@ -27,6 +29,18 @@ function loadState() {
 }
 
 let S = loadState();
+migrateSettings();
+
+function migrateSettings() {
+  if ((S.settings.modelsVersion ?? 1) >= MODELS_VERSION) return;
+  const m = S.settings.models;
+  // 以前は「チューター・レビュー」が1つの欄で、レビューにも同じモデルが入っていた
+  if (m && (!m.review || m.review === m.tutor)) {
+    m.review = DEFAULT_MODELS.review;
+  }
+  S.settings.modelsVersion = MODELS_VERSION;
+  save();
+}
 
 function save() {
   try {
@@ -602,8 +616,12 @@ function renderSettings() {
         もっと詳しい手順(Codespaces 版への登録も)は <a href="https://github.com/junyeol928-hash/Sayana#readme" target="_blank" rel="noopener">README の「APIキーをスマホで設定する」</a>。</p>
       </details>
       <label>モデル</label>
-      <p class="small muted">チューター・レビュー: <input type="text" id="m-tutor" value="${esc(models.tutor)}"><br>
-      ヒント: <input type="text" id="m-hint" value="${esc(models.hint)}"></p>
+      <p class="small muted">機能ごとに使うモデルです。Opus は Sonnet の約2倍の料金ですが、より深く見てくれます。</p>
+      <p class="small">AIチューター(質問への回答):<input type="text" id="m-tutor" value="${esc(models.tutor)}" autocapitalize="off"></p>
+      <p class="small">コードレビュー(AIに見てもらう):<input type="text" id="m-review" value="${esc(models.review)}" autocapitalize="off"></p>
+      <p class="small">AIヒント:<input type="text" id="m-hint" value="${esc(models.hint)}" autocapitalize="off"></p>
+      <p class="small muted">例: claude-opus-5-5 / claude-sonnet-5-5 / claude-haiku-5-5
+        <button class="link-button small" id="reset-models" type="button">おすすめに戻す</button></p>
       <button class="btn small" id="save-models">モデルを保存</button>
     </section>
     <section class="card settings">
@@ -636,9 +654,18 @@ function renderSettings() {
     }
   };
   $("#save-models").onclick = () => {
-    S.settings.models = { tutor: $("#m-tutor").value.trim(), review: $("#m-tutor").value.trim(), hint: $("#m-hint").value.trim() };
+    S.settings.models = { tutor: $("#m-tutor").value.trim() || DEFAULT_MODELS.tutor,
+      review: $("#m-review").value.trim() || DEFAULT_MODELS.review, hint: $("#m-hint").value.trim() || DEFAULT_MODELS.hint };
     save();
     toast("モデルを保存しました");
+  };
+  $("#reset-models").onclick = () => {
+    $("#m-tutor").value = DEFAULT_MODELS.tutor;
+    $("#m-review").value = DEFAULT_MODELS.review;
+    $("#m-hint").value = DEFAULT_MODELS.hint;
+    S.settings.models = { ...DEFAULT_MODELS };
+    save();
+    toast("おすすめのモデルに戻しました");
   };
   $("#export").onclick = async () => {
     const data = Object.assign({}, S, { settings: Object.assign({}, S.settings, { apiKey: undefined }) });
@@ -709,12 +736,13 @@ function friendlyError(e) {
 async function askClaude(feature, L, messages, effort) {
   const P = await prompts();
   const models = Object.assign({}, DEFAULT_MODELS, S.settings.models || {});
-  const model = feature === "hint" ? models.hint : models.tutor;
+  const model = feature === "hint" ? models.hint : feature === "review" ? models.review : models.tutor;
   try {
     const client = await anthropic();
     const res = await client.messages.create({
       model,
-      max_tokens: 4000,
+      // 考える時間(thinking)も上限に含まれるので、深く考えるレビューは多めにとる
+      max_tokens: feature === "review" ? 12000 : 4000,
       // レッスン教材はキャッシュ対象(同じレッスンなら2回目以降は安く速い)
       system: [
         { type: "text", text: L.aiContext, cache_control: { type: "ephemeral" } },
@@ -846,6 +874,15 @@ window.addEventListener("offline", updateHeader);
 window.addEventListener("load", () => decorate(document));
 
 if ("serviceWorker" in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    // 新しい版の Service Worker に入れ替わったら、1回だけ読み直して新しい画面にする
+    if (hadController && !reloaded) {
+      reloaded = true;
+      location.reload();
+    }
+  });
   navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service Worker を登録できませんでした", e));
 }
 

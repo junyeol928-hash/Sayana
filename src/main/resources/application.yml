@@ -36,10 +36,11 @@ dojo:
     # APIキーは環境変数 ANTHROPIC_API_KEY から読む。未設定ならAI機能だけ無効になる
     models:
       tutor: claude-sonnet-5-5     # AIチューター(解説)
-      review: claude-sonnet-5-5    # コードレビュー
+      review: claude-opus-5-5      # コードレビュー(深く見てほしいので Opus)
       explain: claude-sonnet-5-5   # エラー翻訳(解説)
       hint: claude-haiku-5-5       # 段階ヒント
       generate: claude-haiku-5-5   # 類題(クイズ・演習)生成
+    # Sonnet / Opus で拒否(refusal)されたとき、サーバー側で別モデルに回してもらう
     refusal-fallback: true
     chat-history-limit: 20
     max-tokens: 8000

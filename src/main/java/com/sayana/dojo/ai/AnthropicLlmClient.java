@@ -93,7 +93,8 @@ public class AnthropicLlmClient implements LlmClient {
                 params.addUserMessage(t.text());
             }
         }
-        if (config.isRefusalFallback() && request.model().startsWith("claude-sonnet")) {
+        if (config.isRefusalFallback()
+                && (request.model().startsWith("claude-sonnet") || request.model().startsWith("claude-opus"))) {
             // 安全分類器に誤って拒否されたとき、サーバー側で別モデルに回してもらう
             params.putAdditionalHeader("anthropic-beta", FALLBACK_BETA);
             params.putAdditionalBodyProperty("fallbacks", JsonValue.from("default"));
