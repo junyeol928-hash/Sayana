@@ -1,0 +1,41 @@
+title: 「全 N 件中 X〜Y 件目」を計算する
+className: PageView
+difficulty: 2
+problem: |
+  検索結果の下に出す「全 45 件中 21〜40 件目」「前へ」「次へ」を、Spring Data の `Page` と同じ考え方で自分で計算してみます。
+  絞り込み済みの申請の一覧 `all` と、ページ番号 `page`(**0 始まり**)、1ページの件数 `size` を受け取って、
+  そのページの中身と表示用の情報を持つ record `PageView<T>` を作ってください。
+
+  | メソッド | 返すもの |
+  |---|---|
+  | `static <T> PageView<T> of(List<T> all, int page, int size)` | `all` から `page` ページ目の分だけを切り出した `PageView`。`page < 0` か `size < 1` なら `IllegalArgumentException` |
+  | `totalPages()` | 全ページ数(切り上げ)。0 件なら `0` |
+  | `hasPrevious()` | 前のページがあるか(`number > 0`) |
+  | `hasNext()` | 次のページがあるか(`number + 1 < totalPages()`) |
+  | `label()` | 下の表のとおりの表示文字列 |
+
+  `label()` のルール(件数は `String.format("%,d", n)` で3桁区切り):
+
+  | 状況 | 文字列の例 |
+  |---|---|
+  | 0 件 | `該当する申請はありません` |
+  | 通常 | `全 45 件中 21〜40 件目`(X = number × size + 1、Y = X + このページの件数 − 1) |
+  | ページ番号が最後のページより後ろ(中身が空) | `全 45 件(このページに申請はありません)` |
+
+  ```java
+  List<String> titles = ...; // 45 件
+  PageView<String> p = PageView.of(titles, 2, 20);
+  p.content();      // 41〜45 件目の5件
+  p.totalPages();   // 3
+  p.hasPrevious();  // true
+  p.hasNext();      // false
+  p.label();        // "全 45 件中 41〜45 件目"
+  ```
+
+  - `content` はそのページの分だけのリストです。`subList` の範囲が `all.size()` を超えないように気をつけます(最後のページは件数が少ない)。
+  - ページ番号が範囲外でも例外にはせず、中身が空の `PageView` を返します(Spring Data の `Page` も同じ動きです)。
+  - `number * size` は `int` の掛け算なので、巨大な page では桁あふれします。`long` で計算してください。
+
+  ※ 本物の承認くんでは、この計算は `Page` が持っています(`getTotalPages()`・`hasNext()` など)。画面の「X〜Y 件目」は Thymeleaf で
+  `page.number * page.size + 1` のように計算します。ここでは中で何をしているかを確かめるために、素の Java で書きます。
+  STS に置くなら `com.example.approval.web` パッケージですが、実際には `Page` を使うので不要です。

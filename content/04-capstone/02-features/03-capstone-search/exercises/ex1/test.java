@@ -64,7 +64,7 @@ class PagingParamsTest {
     @DisplayName("許可していない項目・不正な方向・おかしな形は createdAt の降順に戻す")
     void invalidSort() {
         for (String s : new String[] {"password,asc", "applicant.email,desc", "title",
-                "amount,up", "amount,asc,id", ","}) {
+                "amount,up", "amount,asc,id", ",", "amount,"}) {
             assertSort("createdAt: DESC,id: DESC", PagingParams.of(null, null, s), "\"" + s + "\"");
         }
     }

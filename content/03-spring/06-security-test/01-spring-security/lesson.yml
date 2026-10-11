@@ -94,8 +94,8 @@ quiz:
         <button>注文</button>
       </form>
       ```
-    choices: ["method を get にしていないから", "th:action ではなく action なので CSRF トークンが入っていないから", "ログインしていないから", "/orders に @PreAuthorize が付いていないから"]
-    answer: 1
+    choices: ["method を get にしていないから", "ログインしていないから", "/orders に @PreAuthorize が付いていないから", "th:action ではなく action なので CSRF トークンが入っていないから"]
+    answer: 3
     explanation: |
       POST などの更新系リクエストには **CSRF トークン** が必要で、無いと `CsrfFilter` が 403 で拒否します。Thymeleaf は `th:action="@{/orders}"` と書いたときだけ、隠し項目 `_csrf` を自動で入れてくれます。素の `action` では入りません。
       GET にすれば通りますが、更新を GET でやるのは別の問題(URL を踏ませるだけで実行される)を生みます。未ログインならログイン画面へのリダイレクトになるので 403 にはなりません。
@@ -118,7 +118,7 @@ quiz:
     answer: 0
     explanation: |
       `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると **エラーも警告も出ずに無視される** ので、テストで「拒否されること」まで確かめるのが大切です。
-      `hasRole('ROLE_ADMIN')` は逆に誤りで、`hasRole` は自動で `ROLE_` を付けます。メソッドセキュリティはプロキシ経由で動くので、むしろ public メソッドであることが必要です(同じクラス内からの呼び出しには効かない点にも注意)。
+      `hasRole('ROLE_ADMIN')` は逆に誤りで、`hasRole` は自動で `ROLE_` を付けます。public であることも原因ではなく、むしろ他の Bean からプロキシ経由で呼ばれる public メソッドに付けるのが基本です(同じクラス内からの呼び出しには効かない点に注意)。
 columns:
   - type: genba
     title: 「403 が出たので csrf().disable() しました」

@@ -135,4 +135,18 @@ class JShellRunnerTest {
         assertThat(r.status()).as(r.errorText()).isEqualTo(RunResult.Status.OK);
         assertThat(r.output()).contains("[a, b] WEDNESDAY");
     }
+
+    @Test
+    void BeanValidationを使ってもライブラリの起動ログは出力に混ざらない() {
+        RunResult r = runner.run("""
+                import jakarta.validation.*;
+                import jakarta.validation.constraints.*;
+                record Form(@NotBlank String name) { }
+                try (var f = Validation.buildDefaultValidatorFactory()) {
+                    System.out.println("違反: " + f.getValidator().validate(new Form("")).size());
+                }
+                """, Duration.ofSeconds(30), java.util.List.of("spring"));
+        assertThat(r.status()).as(r.errorText() + r.output()).isEqualTo(RunResult.Status.OK);
+        assertThat(r.output().strip()).isEqualTo("違反: 1");
+    }
 }

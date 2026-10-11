@@ -1,3 +1,490 @@
 id: spring-exception-handling
 title: 例外ハンドリング
-status: planned
+status: ready
+minutes: 15
+summary: Controller から漏れた例外は 500 と Whitelabel Error Page に。@ExceptionHandler と @RestControllerAdvice で業務例外をステータスに対応させ、ProblemDetail(RFC 9457)でエラーの形をそろえる。
+goals:
+  - 処理されない例外が 500 / Whitelabel Error Page になるまでの流れを説明できる
+  - "@ExceptionHandler(Controller 単位)と @RestControllerAdvice(全体)を使い分け、どのハンドラが選ばれるかを説明できる"
+  - 業務例外(NotFound・状態の矛盾など)と 404 / 409 / 500 の対応を1か所に集められる。ResponseStatusException も使える
+  - ProblemDetail でエラーレスポンスの形をそろえ、バリデーションエラーを項目ごとのメッセージにできる
+  - ログには詳細、利用者には安全なメッセージ、という原則と、画面アプリの templates/error/404.html を説明できる
+samples:
+  - title: 例外ハンドラが「ない」とき・「ある」とき
+    libraries: [spring]
+    description: |
+      Controller は「見つからなければ例外を投げる」だけ。`@RestControllerAdvice` が無いと例外が外へ漏れ(Spring Boot なら 500)、
+      あると 404 の ProblemDetail(`application/problem+json`)に変わります。
+      最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
+    code: |
+      // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
+      // ここを変えてみよう:HttpStatus や setTitle の文言を変える / ID を 1 にする
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+
+      // 業務例外:「タスクが無い」
+      class TaskNotFoundException extends RuntimeException {
+          TaskNotFoundException(long id) {
+              super("タスク " + id + " は見つかりません");
+          }
+      }
+
+      record Task(long id, String title) {}
+
+      @RestController
+      @RequestMapping("/api/tasks")
+      class TaskController {
+          private final Map<Long, Task> store = Map.of(1L, new Task(1, "請求書を送る"));
+
+          @GetMapping("/{id}")
+          Task get(@PathVariable long id) {
+              Task t = store.get(id);
+              if (t == null) {
+                  throw new TaskNotFoundException(id);   // 404 を作らず、投げるだけ
+              }
+              return t;
+          }
+      }
+
+      // 全 Controller 共通の例外ハンドラ
+      @RestControllerAdvice
+      class ApiExceptionHandler {
+          @ExceptionHandler(TaskNotFoundException.class)
+          ProblemDetail handleNotFound(TaskNotFoundException ex) {
+              ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                      HttpStatus.NOT_FOUND, ex.getMessage());
+              pd.setTitle("タスクが見つかりません");
+              return pd;
+          }
+      }
+
+      MockMvc build(boolean withAdvice) {
+          var b = MockMvcBuilders.standaloneSetup(new TaskController());
+          if (withAdvice) {
+              b.setControllerAdvice(new ApiExceptionHandler());
+          }
+          return b.setMessageConverters(new StringHttpMessageConverter(UTF_8),
+                                        new MappingJackson2HttpMessageConverter())
+                  .defaultResponseCharacterEncoding(UTF_8)
+                  .build();
+      }
+
+      long id = 99;
+
+      System.out.println("■ ハンドラなし");
+      try {
+          var r = build(false).perform(get("/api/tasks/" + id)).andReturn().getResponse();
+          System.out.println("  " + r.getStatus() + " " + r.getContentAsString());
+      } catch (Exception e) {
+          // Spring Boot なら、ここから先は Tomcat → /error で 500 になる
+          Throwable c = e.getCause();
+          System.out.println("  例外が Controller の外へ漏れた: "
+              + c.getClass().getSimpleName() + ": " + c.getMessage());
+      }
+
+      System.out.println("■ ハンドラあり");
+      var res = build(true).perform(get("/api/tasks/" + id)).andReturn().getResponse();
+      System.out.println("  " + res.getStatus() + " " + res.getContentType());
+      System.out.println("  " + res.getContentAsString());
+  - title: 「Exception を全部 500 に」の落とし穴
+    libraries: [spring]
+    description: |
+      `@ExceptionHandler(Exception.class)` だけの Advice は、Spring MVC 自身の例外(405・415・壊れた JSON)まで 500 にしてしまいます。
+      `ResponseEntityExceptionHandler` を継承すると、それらは親クラスが正しいステータスの ProblemDetail にしてくれます。
+    code: |
+      // 「とりあえず Exception を全部 500 に」の落とし穴と、ResponseEntityExceptionHandler
+      // ここを変えてみよう:tryAll に渡す Advice を入れ替える / リクエストを足す
+      import static java.nio.charset.StandardCharsets.UTF_8;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.*;
+      import org.springframework.http.converter.json.*;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.web.servlet.mvc.method.annotation
+              .ResponseEntityExceptionHandler;
+      import org.springframework.test.web.servlet.*;
+      import org.springframework.test.web.servlet.setup.*;
+      import static org.springframework.test.web.servlet
+              .request.MockMvcRequestBuilders.*;
+
+      record Task(long id, String title) {}
+
+      @RestController
+      @RequestMapping("/api/tasks")
+      class TaskController {
+          @PostMapping
+          Task create(@RequestBody Task t) {
+              return t;
+          }
+      }
+
+      // ダメな例:Exception をまるごと 500 にしてしまう
+      @RestControllerAdvice
+      class CatchAllAdvice {
+          @ExceptionHandler(Exception.class)
+          ProblemDetail handle(Exception ex) {
+              return ProblemDetail.forStatusAndDetail(
+                      HttpStatus.INTERNAL_SERVER_ERROR, "システムエラーが発生しました");
+          }
+      }
+
+      // 良い例:Spring MVC 自身の例外は親クラスが正しいステータスにする
+      @RestControllerAdvice
+      class BetterAdvice extends ResponseEntityExceptionHandler {
+          @ExceptionHandler(Exception.class)
+          ProblemDetail handle(Exception ex) {
+              return ProblemDetail.forStatusAndDetail(
+                      HttpStatus.INTERNAL_SERVER_ERROR, "システムエラーが発生しました");
+          }
+      }
+
+      void tryAll(Object advice) throws Exception {
+          MockMvc mvc = MockMvcBuilders.standaloneSetup(new TaskController())
+                  .setControllerAdvice(advice)
+                  .setMessageConverters(new StringHttpMessageConverter(UTF_8),
+                                        new MappingJackson2HttpMessageConverter())
+                  .defaultResponseCharacterEncoding(UTF_8)
+                  .build();
+          System.out.println("■ " + advice.getClass().getSimpleName());
+          var r1 = mvc.perform(get("/api/tasks")).andReturn().getResponse();
+          System.out.println("  GET(未対応のメソッド)    → " + r1.getStatus());
+          var r2 = mvc.perform(post("/api/tasks").content("title=x"))
+                  .andReturn().getResponse();
+          System.out.println("  POST(Content-Type なし) → " + r2.getStatus());
+          var r3 = mvc.perform(post("/api/tasks")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"id\":1,")).andReturn().getResponse();
+          System.out.println("  POST(壊れた JSON)       → " + r3.getStatus());
+          System.out.println("    " + r3.getContentAsString());
+      }
+
+      tryAll(new CatchAllAdvice());
+      tryAll(new BetterAdvice());
+quiz:
+  - question: |
+      `GET /x` を呼んだときのレスポンスは?(`TaskNotFoundException` は `RuntimeException` のサブクラス)
+      ```java
+      @RestController
+      class TaskController {
+          @GetMapping("/x")
+          String x() { throw new TaskNotFoundException(); }
+
+          @ExceptionHandler(RuntimeException.class)
+          ResponseEntity<String> local(RuntimeException e) {
+              return ResponseEntity.status(400).body("controller");
+          }
+      }
+
+      @RestControllerAdvice
+      class ApiExceptionHandler {
+          @ExceptionHandler(TaskNotFoundException.class)
+          ResponseEntity<String> notFound(TaskNotFoundException e) {
+              return ResponseEntity.status(404).body("advice");
+          }
+      }
+      ```
+    choices:
+      - "404 で本文は advice(より近い型のハンドラが勝つ)"
+      - "500(ハンドラが2つあって決められない)"
+      - "400 で本文は controller"
+      - "起動時にエラーになる"
+    answer: 2
+    explanation: |
+      Spring はまず **例外が起きた Controller 自身の @ExceptionHandler** を探し、そこで見つかればそれを使います。`RuntimeException` 用のハンドラは `TaskNotFoundException` も受けられるので、400 / controller です。
+      「一番近い型が選ばれる」のは **同じクラスの中** で複数の候補があるときのルールです。Controller 内で見つからなかったときに初めて Advice が探されます。
+      別々のクラスにあるハンドラなので重複エラーにもなりません。
+  - question: |
+      Advice には次のハンドラ **だけ** があります。`@RequestBody` で JSON を受け取る API に、Content-Type を付けずに POST するとステータスは?
+      ```java
+      @RestControllerAdvice
+      class ApiExceptionHandler {
+          @ExceptionHandler(Exception.class)
+          ProblemDetail handle(Exception ex) {
+              return ProblemDetail.forStatusAndDetail(
+                  HttpStatus.INTERNAL_SERVER_ERROR, "システムエラーが発生しました");
+          }
+      }
+      ```
+    choices: ["415", "400", "404", "500"]
+    answer: 3
+    explanation: |
+      Content-Type の付け忘れは本来 415 です。しかしその正体は Spring MVC が投げる `HttpMediaTypeNotSupportedException` という **例外** なので、`Exception.class` のハンドラに捕まって 500 になります。
+      405・壊れた JSON(400)なども同じく 500 に化けます。Advice を `ResponseEntityExceptionHandler` の継承にすると、これらは親クラスのより近い型のハンドラで正しく処理されます(サンプル②)。
+  - question: |
+      次のハンドラが呼ばれたとき、レスポンスとして正しいのは?
+      ```java
+      @ExceptionHandler(OrderStateException.class)
+      public ProblemDetail conflict(OrderStateException ex) {
+          return ProblemDetail.forStatusAndDetail(
+                  HttpStatus.CONFLICT, ex.getMessage());
+      }
+      ```
+    choices:
+      - "409、Content-Type は application/problem+json、本文に type・title・status・detail・instance"
+      - "200(ResponseEntity で包まないとステータスは変わらない)で ProblemDetail の JSON"
+      - "409、text/plain で detail の文字列だけ"
+      - "500(ProblemDetail は Spring Boot の設定を有効にしないと使えない)"
+    answer: 0
+    explanation: |
+      `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は **その status をレスポンスのステータス** にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。`instance` にはリクエストのパスが自動で入ります。
+      `spring.mvc.problemdetails.enabled` は「Spring MVC 自身の例外を ProblemDetail にするか」の設定で、自分のハンドラで `ProblemDetail` を返すだけなら不要です。
+  - question: |
+      次の Advice を書いてアプリを起動すると、どうなる?
+      ```java
+      @RestControllerAdvice
+      public class ApiExceptionHandler
+              extends ResponseEntityExceptionHandler {
+
+          @ExceptionHandler(MethodArgumentNotValidException.class)
+          public ProblemDetail invalid(MethodArgumentNotValidException ex) {
+              // 項目ごとのエラーを詰める
+          }
+      }
+      ```
+    choices:
+      - "正常に起動し、自分の invalid が使われる"
+      - "起動時に IllegalStateException(Ambiguous @ExceptionHandler method mapped for ...)で失敗する"
+      - "正常に起動するが、親クラスのハンドラが使われ invalid は無視される"
+      - "コンパイルエラーになる"
+    answer: 1
+    explanation: |
+      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `Ambiguous @ExceptionHandler` で失敗します。
+      継承している場合は、`@ExceptionHandler` を書かずに `handleMethodArgumentNotValid(...)` を `@Override` するのが正解です。Java の文法としては正しいのでコンパイルは通ります。
+  - question: |
+      Thymeleaf を使った画面アプリで、**404 のときだけ** 独自のエラー画面を出したい。Spring Boot が自動で使ってくれるファイルの置き場所は?
+    choices:
+      - "src/main/resources/templates/404.html"
+      - "src/main/resources/templates/errors/not-found.html"
+      - "src/main/resources/templates/error/404.html"
+      - "src/main/resources/error-404.html"
+    answer: 2
+    explanation: |
+      Spring Boot の /error は、`templates/error/<ステータスコード>.html` → `templates/error/<系列>xx.html`(例:`5xx.html`)→ `templates/error.html` の順に探します。
+      フォルダ名は `error`(単数形)で、ファイル名はステータスコードそのもの。`templates/404.html` のように error フォルダの外に置くと使われず、Whitelabel Error Page のままです。
+      テンプレートの中では `${status}`・`${error}`・`${path}` などが使えます。
+columns:
+  - type: genba
+    title: エラー画面に SQL が丸見え
+    body: |
+      ある社内システムで、検索欄に `'`(シングルクォート)を1文字入れると、エラー画面に
+      `You have an error in your SQL syntax ... near ''' AND deleted = 0'` と **実行した SQL の断片** が表示されていました。
+      Controller の catch で `e.getMessage()` をそのまま画面に出していたのが原因です。
+
+      攻撃者にとって、これはテーブル名・列名・SQL の組み立て方を教えてくれる親切なヒントです。
+      SQL インジェクションの穴があるかどうかを、エラーメッセージを見ながら試せてしまいます。
+
+      Spring Boot も 2.3 から、既定のエラーレスポンスに例外メッセージやバリデーションの詳細を **含めない** 設定(`server.error.include-message=never` など)に変わりました。
+      現場の原則は「**詳細はログへ、利用者には固定の文言と問い合わせ用の ID**」。
+      ログと突き合わせられるように、エラーレスポンスにリクエストごとの ID(トレース ID)を入れておくと、問い合わせ対応がぐっと楽になります。
+  - type: trivia
+    title: RFC 7807 から RFC 9457 へ
+    body: |
+      エラーレスポンスの標準形式は、2016年に **RFC 7807**「Problem Details for HTTP APIs」として定められ、
+      2023年に改訂版の **RFC 9457** に置き換えられました。基本の項目(`type`・`title`・`status`・`detail`・`instance`)は同じで、
+      よく使う problem type を登録しておく仕組み(レジストリ)などが追加されています。
+
+      `type` が `about:blank` のときは「HTTP のステータス以上の意味はない」という約束で、そのとき `title` はステータスの説明文(`Not Found` など)にするのが推奨です。
+      独自のエラー種別を表したいなら、`https://example.com/problems/out-of-stock` のような URI を `type` に入れ、その URL にエラーの説明ページを置いておくのが本来の使い方です。
+
+      Spring Framework 6.0(2022年)で `ProblemDetail` が入り、Spring Boot 3 では `spring.mvc.problemdetails.enabled=true` の1行で、Spring MVC 自身の例外もこの形式で返せるようになりました。
+  - type: mistake
+    title: catch して握りつぶすと、トランザクションも巻き戻らない
+    body: |
+      「500 を出したくない」一心で、Service の中をこう書いてしまうことがあります。
+
+      ```java
+      @Transactional
+      public Order place(OrderForm form) {
+          try {
+              stockService.reserve(form);   // 在庫を引き当て
+              return orderRepository.save(toOrder(form));
+          } catch (Exception e) {
+              e.printStackTrace();
+              return null;                  // 握りつぶし
+          }
+      }
+      ```
+
+      例外がメソッドの外に出ないので、`@Transactional` は「正常終了」と判断して **コミット** します。在庫だけ引き当てられて注文が無い、という中途半端なデータが残ります(「トランザクション」のレッスン参照)。
+      しかも Controller には `null` が返り、API は 200 で空の本文を返します。
+
+      例外は **握りつぶさず、そのまま投げる**(必要なら業務例外に包み直して投げる)。HTTP のステータスへの変換は `@RestControllerAdvice` に任せる、が正しい分担です。
+sts:
+  intro: |
+    「REST API」のレッスンで作った `todo-api` を使います。存在しない ID にアクセスしてわざと 500 を出し、
+    `@RestControllerAdvice` を足して 404 の JSON(ProblemDetail)に変わるのを確かめます。最後に入力チェックのエラーも項目ごとに返します。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: Validation のスターターを追加する
+      detail: |
+        Package Explorer で `todo-api` を右クリックし、**Spring > Add Starters**(Spring > スターターの追加)を選びます。
+        検索欄に `validation` と入力して **I/O > Validation** にチェックを入れ、画面の指示に従って **Finish**(完了)まで進めます。
+        メニューが無い場合は、`pom.xml` の `<dependencies>` に次を追加して保存してください。
+
+        ```xml
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        ```
+
+        `pom.xml` を開いて `spring-boot-starter-validation` が入っていれば成功です。
+    - title: 業務例外を作り、Controller から投げる
+      detail: |
+        `com.example.todo.task` に **New > Class**(新規 > クラス)で `TaskNotFoundException` を作ります。
+
+        ```java
+        public class TaskNotFoundException extends RuntimeException {
+            public TaskNotFoundException(long id) {
+                super("タスク " + id + " は見つかりません");
+            }
+        }
+        ```
+
+        `TaskController` の `get` を、「無ければ例外を投げる」形に書き換えます。
+
+        ```java
+        @GetMapping("/{id}")
+        public TaskResponse get(@PathVariable long id) {
+            TaskResponse t = store.get(id);
+            if (t == null) {
+                throw new TaskNotFoundException(id);
+            }
+            return t;
+        }
+        ```
+    - title: わざと 500 を出す
+      detail: |
+        Boot Dashboard で `todo-api` を **(Re)start** し、ブラウザで `http://localhost:8080/api/tasks/99` を開きます。
+        **Whitelabel Error Page** と `There was an unexpected error (type=Internal Server Error, status=500).` が表示されれば「成功」です。
+
+        STS の **Console**(コンソール)には `Servlet.service() for servlet [dispatcherServlet] ... threw exception ... TaskNotFoundException: タスク 99 は見つかりません] with root cause` とスタックトレースが出ています。
+        PowerShell で `curl.exe -i http://localhost:8080/api/tasks/99` を実行すると、`HTTP/1.1 500` と `{"timestamp":"…","status":500,"error":"Internal Server Error","path":"/api/tasks/99"}` が返ります。
+        ブラウザには HTML、curl には JSON と、同じ /error が `Accept` ヘッダを見て形を変えています。本文に例外メッセージが出ていないことも確認しましょう。
+    - title: "@RestControllerAdvice を足して 404 にする"
+      detail: |
+        `com.example.todo` を右クリックして **New > Package**(新規 > パッケージ)で `com.example.todo.web` を作り、そこに `ApiExceptionHandler` クラスを作ります。
+
+        ```java
+        @RestControllerAdvice
+        public class ApiExceptionHandler {
+
+            @ExceptionHandler(TaskNotFoundException.class)
+            public ProblemDetail handleNotFound(
+                    TaskNotFoundException ex) {
+                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.NOT_FOUND, ex.getMessage());
+                pd.setTitle("タスクが見つかりません");
+                return pd;
+            }
+        }
+        ```
+
+        **Ctrl+Shift+O** で import を整えて保存し、**(Re)start** します。もう一度 `curl.exe -i http://localhost:8080/api/tasks/99` を実行し、
+        `HTTP/1.1 404`、`Content-Type: application/problem+json`、`"title":"タスクが見つかりません"` が見えれば成功です。ブラウザでも同じ JSON が表示されます。
+        日本語が化けて見えるときは、先に `chcp 65001` を実行してから curl.exe を打ってください(コンソールの文字コードを UTF-8 にします)。
+    - title: 入力チェックを付けて、400 の中身を見る
+      detail: |
+        `CreateTaskRequest` に制約を付け、`TaskController` の `create` の引数に `@Valid` を付けます。
+
+        ```java
+        public record CreateTaskRequest(
+                @NotBlank(message = "タイトルは必須です")
+                @Size(max = 50, message = "タイトルは50文字以内です")
+                String title,
+                LocalDate dueDate) {}
+        ```
+
+        ```java
+        public ResponseEntity<TaskResponse> create(
+                @Valid @RequestBody CreateTaskRequest req) {
+        ```
+
+        **(Re)start** して、PowerShell で空のタイトルを POST します(エラーのときは `catch` 側で本文を表示します)。
+
+        ```text
+        try {
+          Invoke-RestMethod -Method Post `
+            -Uri http://localhost:8080/api/tasks `
+            -ContentType "application/json" -Body '{"title":""}'
+        } catch { $_.ErrorDetails.Message }
+        ```
+
+        `"status":400,"error":"Bad Request"` だけで、**どの項目がなぜダメなのかが分からない** ことを確認します。
+    - title: ResponseEntityExceptionHandler を継承して完成させる
+      detail: |
+        `ApiExceptionHandler` を次のように書き換えます(import は **Ctrl+Shift+O**。`Logger` は `org.slf4j.Logger` を選ぶ)。
+
+        ```java
+        @RestControllerAdvice
+        public class ApiExceptionHandler
+                extends ResponseEntityExceptionHandler {
+
+            private static final Logger log =
+                    LoggerFactory.getLogger(ApiExceptionHandler.class);
+
+            @ExceptionHandler(TaskNotFoundException.class)
+            public ProblemDetail handleNotFound(
+                    TaskNotFoundException ex) {
+                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.NOT_FOUND, ex.getMessage());
+                pd.setTitle("タスクが見つかりません");
+                return pd;
+            }
+
+            @Override
+            protected ResponseEntity<Object> handleMethodArgumentNotValid(
+                    MethodArgumentNotValidException ex,
+                    HttpHeaders headers, HttpStatusCode status,
+                    WebRequest request) {
+                Map<String, String> errors = new LinkedHashMap<>();
+                for (FieldError fe :
+                        ex.getBindingResult().getFieldErrors()) {
+                    errors.putIfAbsent(fe.getField(),
+                            fe.getDefaultMessage());
+                }
+                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.BAD_REQUEST, "入力内容を確認してください");
+                pd.setTitle("入力エラー");
+                pd.setProperty("errors", errors);
+                return ResponseEntity.badRequest().body(pd);
+            }
+
+            @ExceptionHandler(Exception.class)
+            public ProblemDetail handleUnexpected(Exception ex) {
+                log.error("想定外のエラー", ex);
+                return ProblemDetail.forStatusAndDetail(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "システムエラーが発生しました");
+            }
+        }
+        ```
+
+        **(Re)start** して、前の手順の POST をもう一度実行します。`"title":"入力エラー"` と `"errors":{"title":"タイトルは必須です"}` が返れば成功です。
+        `handleMethodArgumentNotValid` を `@Override` せずに `@ExceptionHandler(MethodArgumentNotValidException.class)` と書くと、起動時に `Ambiguous @ExceptionHandler method mapped for ...` で落ちることも試してみましょう。
+    - title: 「全部 500」にならないことを確かめる
+      detail: |
+        `curl.exe -i http://localhost:8080/api/tasks/abc` を実行します(ID に数字以外を渡す)。
+        `HTTP/1.1 400` と `"detail":"Failed to convert 'id' with value: 'abc'"` が返れば成功です。
+
+        試しに `extends ResponseEntityExceptionHandler` と `handleMethodArgumentNotValid` をコメントアウトして再起動すると、同じリクエストが `Exception.class` のハンドラに捕まって **500** になります。
+        確認できたら元に戻しておきましょう。
+checklist:
+  - key: eh-whitelabel-500
+    text: 存在しない ID にアクセスして、ブラウザで Whitelabel Error Page(status=500)、curl.exe で 500 の JSON を確認した
+  - key: eh-console-trace
+    text: STS の Console で「threw exception ... with root cause」のスタックトレースを見つけ、原因の例外クラスを読み取った
+  - key: eh-advice-404
+    text: "@RestControllerAdvice を足して、同じリクエストが 404 + application/problem+json に変わるのを確認した"
+  - key: eh-validation-errors
+    text: 空のタイトルを POST して、errors に項目ごとのメッセージが入った 400 が返るのを確認した
+  - key: eh-ambiguous
+    text: ResponseEntityExceptionHandler の継承と @ExceptionHandler(MethodArgumentNotValidException) の重複で起動に失敗するのを見て、@Override に直した
+  - key: eh-not-all-500
+    text: /api/tasks/abc が Exception.class のハンドラで 500 に化けること、継承すると 400 になることを確かめた

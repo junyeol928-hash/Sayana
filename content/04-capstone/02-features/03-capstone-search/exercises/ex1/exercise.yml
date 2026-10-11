@@ -28,6 +28,7 @@ problem: |
 
   ヒント:
   - `Integer.parseInt` は不正な文字列で `NumberFormatException` を投げます。`try-catch` で既定値にします。
+  - `"amount,"`(方向が空)や `","` も不正です。`"amount,".split(",")` は末尾の空要素を捨てて `["amount"]` になってしまうので、`split(",", -1)` を使います。
   - 丸めは `Math.max(1, Math.min(50, n))` で書けます。
   - 方向は `Sort.Direction.fromOptionalString(s)`(`Optional` を返す)が便利です。`Sort.Direction.fromString` は不正な値で例外を投げます。
   - 並び順は `Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))` のように `Order` を並べて作れます。

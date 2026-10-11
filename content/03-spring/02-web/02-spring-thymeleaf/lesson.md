@@ -14,7 +14,9 @@
 
 ```mermaid
 flowchart LR
-    C["Controller<br>Model に値を入れる"] -->|"ビュー名 items/list"| R["ThymeleafViewResolver"]
+    C["Controller<br>Model に値を入れる"]
+    R["ThymeleafViewResolver"]
+    C -->|"ビュー名 items/list"| R
     R --> T["templates/items/list.html"]
     T --> E["Thymeleaf が<br>値を埋め込む"]
     E --> H["完成した HTML<br>をブラウザへ"]
@@ -65,25 +67,34 @@ public class ItemController {
 ```html
 <section th:object="${order}">
   <p th:text="*{customer}">お客様名</p>  <!-- order.customer -->
-  <a th:href="@{/orders/{id}/cancel(id=*{id}, from='detail')}">
-    キャンセル</a>
+  <a th:href="@{/orders/{id}/cancel(id=*{id},
+                from='detail')}">キャンセル</a>
 </section>
 <!-- href="/orders/1001/cancel?from=detail" -->
 ```
 
 `@{...}` は、`{id}` を値で埋め、余った `( )` 内の引数をクエリにします。さらに、アプリが `/shop` のような **コンテキストパス** で公開されていれば、先頭に自動で `/shop` を付けます。`href="/orders/..."` と直書きすると、公開場所が変わったときに全部リンク切れになります。
 
+`#{...}` は画面の文言を `messages.properties` に集めておく仕組みです(多言語対応にも使います)。
+
+```html
+<!-- messages.properties に item.title=商品一覧 -->
+<h1 th:text="#{item.title}">見出し</h1>
+```
+
 文字列と値をつなぐときは、`'合計: ' + ${total}` のほか、`|合計: ${total}円|` という **リテラル置換** も使えます。
 
 ## th:text と th:utext(XSS 対策)
 
 ```java
-model.addAttribute("comment", "<script>alert('!')</script>");
+model.addAttribute("comment",
+        "<script>alert('!')</script>");
 ```
 
 ```html
 <p th:text="${comment}"></p>
-<!-- <p>&lt;script&gt;alert(&#39;!&#39;)&lt;/script&gt;</p> -->
+<!-- <p>&lt;script&gt;alert(&#39;!&#39;)
+     &lt;/script&gt;</p> -->
 <p th:utext="${comment}"></p>
 <!-- <p><script>alert('!')</script></p>  ← 実行される! -->
 ```
@@ -109,6 +120,10 @@ model.addAttribute("comment", "<script>alert('!')</script>");
 - **`th:each`** は、付けたタグごと要素の数だけ繰り返します。2つ目の変数 `st` は **ステータス変数** で、`index`(0始まり)・`count`(1始まり)・`size`・`first`・`last`・`odd`・`even` が使えます。
 - **`th:if`** は条件が真のときだけタグを出し、**`th:unless`** はその逆です。真偽は Java より緩く、`null`・`false`・数値の `0`・文字列 `"false"` `"off"` `"no"` が偽、それ以外は真です。
 
+::: genba テンプレートは「表示するだけ」に
+`th:if="${o.status == 'ORDERED' and o.shippedAt == null}"` のような業務ルールをテンプレートに書き始めると危険です。テンプレートは **コンパイルされない** ので、綴りミスも型の間違いも、その画面を開くまで分かりません。JUnit でもテストしにくい。現場では判定を Java 側のメソッド(`order.cancellable()` など)にして、テンプレートは `th:if="${order.cancellable()}"` と呼ぶだけにします。
+:::
+
 ## 共通レイアウト:フラグメント
 
 ヘッダーやフッターは全ページ共通です。**フラグメント** として1か所に書き、各ページから呼び出します。
@@ -128,6 +143,10 @@ model.addAttribute("comment", "<script>alert('!')</script>");
 
 このアプリ(Java道場)自身も Thymeleaf で作られていて、どのページも `th:replace="~{fragments/layout :: header}"` で共通ヘッダーを読み込んでいます。
 
+::: trivia 「実行」ボタンの裏側は htmx + フラグメント
+このアプリのコード実行は **htmx** というライブラリで動いています。`<form hx-post="/run" hx-target="#playground-out">` が POST を送り、Controller は `return "fragments/run :: result";` と **フラグメントだけ** をビュー名として返します。届いた HTML の断片で `#playground-out` の中身だけを差し替えるので、ページ全体を再読み込みせずに結果が出るのです。JavaScript をほとんど書かずに「サクサク動く画面」が作れる、最近人気の組み合わせです。
+:::
+
 ## ユーティリティとキャッシュ
 
 `#` で始まる **ユーティリティオブジェクト** で整形できます。
@@ -135,8 +154,9 @@ model.addAttribute("comment", "<script>alert('!')</script>");
 ```html
 <span th:text="${#temporals.format(order.orderedAt,
                 'yyyy/MM/dd HH:mm')}">日時</span>
-<span th:text="${#numbers.formatInteger(price, 1, 'COMMA')}">
-  価格</span>   <!-- 1234567 → 1,234,567 -->
+<span th:text="${#numbers.formatInteger(
+                price, 1, 'COMMA')}">価格</span>
+<!-- 1234567 → 1,234,567 -->
 ```
 
 `#temporals` は `LocalDateTime` などの日時、`#numbers` は数値、ほかに `#strings`・`#lists` などがあります。
@@ -154,8 +174,9 @@ Spring Boot DevTools を入れていれば、開発中は自動でこの設定�
 **① テンプレートが見つからない**
 
 ```text
-Error resolving template [items/List], template might not exist
-or might not be accessible by any of the configured Template Resolvers
+Error resolving template [items/List], template might
+not exist or might not be accessible by any of the
+configured Template Resolvers
 ```
 
 ビュー名とファイルのパス・大文字小文字・`templates/` の下に置いたかを確認します。ビュー名に `.html` や `templates/` は付けません。

@@ -35,7 +35,7 @@ public class PagingParams {
         if (sort == null || sort.isBlank()) {
             return DEFAULT_ORDER;
         }
-        String[] parts = sort.split(",");
+        String[] parts = sort.split(",", -1);  // -1: 末尾の空要素も残す
         if (parts.length > 2) {
             return DEFAULT_ORDER;
         }

@@ -51,11 +51,15 @@ samples:
       System.out.println("body   = " + res.getContentAsString());
 
       // テストではこう書く(期待と違えば AssertionError)
-      mvc.perform(post("/stocks/ship").param("qty", "0"))
-              .andExpect(status().isBadRequest());
-      mvc.perform(post("/stocks/ship").param("qty", "1"))
-              .andExpect(status().isOk())
-              .andExpect(content().string("left: 8"));
+      void test() throws Exception {
+          mvc.perform(post("/stocks/ship").param("qty", "0"))
+                  .andExpect(status().isBadRequest());
+          mvc.perform(post("/stocks/ship").param("qty", "1"))
+                  .andExpect(status().isOk())
+                  .andExpect(content().string("left: 8"));
+      }
+
+      test();
       System.out.println("andExpect はすべて成功しました");
   - title: standaloneSetup の文字化けを再現する
     libraries: [spring]
@@ -140,8 +144,8 @@ quiz:
           .thenReturn(List.of(new Order("O-1", "ペン", 300)));
       ```
       ※ `findByCustomer` の戻り値の型は `List<Order>`
-    choices: ["ペンの注文1件のリスト", "null", "空のリスト", "例外が発生する"]
-    answer: 2
+    choices: ["空のリスト", "ペンの注文1件のリスト", "null", "例外が発生する"]
+    answer: 0
     explanation: |
       `when(...).thenReturn(...)` は **その引数で呼ばれたとき** だけ効きます。仕込んでいない引数 `"C002"` では Mockito の既定値が返り、戻り値が `List` などのコレクションなら **空のコレクション**、`int` なら `0`、普通のオブジェクトなら `null` です。
       「仕込み忘れても例外にならず空が返る」ので、テストが意図せず通ってしまうことがあります。`verify(service).findByCustomer("C001")` で「本当にその引数で呼ばれたか」も確かめるのが定石です。
@@ -157,8 +161,8 @@ quiz:
           }
       }
       ```
-    choices: ["@RestController にしていないから", "Model に空のリストを入れたから", "画面名 \"orders\" が URL /orders と同じで、自分自身に転送しようとしたから(Circular view path)", "テンプレートファイル orders.html が無いから"]
-    answer: 2
+    choices: ["@RestController にしていないから", "Model に空のリストを入れたから", "テンプレートファイル orders.html が無いから", "画面名 \"orders\" が URL /orders と同じで、自分自身に転送しようとしたから(Circular view path)"]
+    answer: 3
     explanation: |
       standaloneSetup は ViewResolver を設定しないと、画面名をそのまま転送先(forward)として扱います。画面名 `orders` は今の URL `/orders` と同じになるので `Circular view path [orders]: would dispatch back to the current handler URL [/orders] again.` で失敗します。
       画面名を `orders/list` のようにフォルダで分けるのが定番の回避策です(`view().name("orders/list")` で検証できます)。standaloneSetup ではテンプレートは描画されないので、`orders.html` が無いことは原因になりません。
@@ -175,9 +179,9 @@ columns:
     body: |
       長年使われてきた `@MockBean` は **Spring Boot** の機能(`org.springframework.boot.test.mock.mockito`)でした。Spring Framework 6.2 で、同じことをする `@MockitoBean`(`org.springframework.test.context.bean.override.mockito`)が **Spring Framework 本体** に入り、Spring Boot 3.4 で `@MockBean` は非推奨になりました。
 
-      理由は「Bean を差し替える仕組み」を Boot 専用ではなく、Spring のテスト基盤の標準にするため。`@MockitoBean` のほか、本物を包んで一部だけ偽物にする `@MockitoSpyBean`、任意の値に差し替える `@TestBean` もそろっています。
+      理由は「Bean の差し替え」を Boot 専用ではなく Spring のテスト基盤の標準にするため。本物を包んで一部だけ偽物にする `@MockitoSpyBean` もあります。
 
-      古い記事をコピペすると、STS で `@MockBean` に取り消し線(非推奨の印)が出ます。基本は import と名前を置き換えるだけで、Spring Boot 4 では `@MockBean` は削除されるので早めに移行しておきましょう。
+      古い記事をコピペすると、STS で `@MockBean` に取り消し線(非推奨の印)が出ます。基本は import と名前の置き換えだけ。Spring Boot 4 では削除されるので早めに移行しましょう。
   - type: genba
     title: CI が 40 分かかる理由は「@SpringBootTest + 毎回違う @MockitoBean」
     body: |
@@ -203,7 +207,7 @@ columns:
          .andExpect(jsonPath("$.fee").value(500));
       ```
 
-      どちらも通ります。8000 も 1000 も、境界から遠い「よくある値」だからです。5000 円ちょうどのお客様から「送料がかかった」と問い合わせが来て発覚しました。
+      どちらも通ります。8000 も 1000 も境界から遠い「よくある値」だからです。5000 円ちょうどのお客様からの問い合わせで発覚しました。
 
       テストが守ってくれるのは **書いたケースだけ**。境界値(4999 / 5000)と異常系(0 円・マイナス・存在しない ID → 404)を書いて初めて、テストは「バグを見つける道具」になります。演習3はまさにこれを体験する問題です。
 sts:

@@ -152,7 +152,7 @@ public class Grader {
         ProcessBuilder pb = new ProcessBuilder(javaExe,
                 "-Xmx" + config.getMaxHeap(), "-Xss1m", "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1",
                 "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
-                "-Duser.language=ja", "-Djava.awt.headless=true", "-Dslf4j.internal.verbosity=ERROR",
+                "-Duser.language=ja", "-Djava.awt.headless=true", "-Dslf4j.internal.verbosity=ERROR", "-Dorg.jboss.logging.provider=slf4j",
                 "-cp", cp, RUNNER_CLASS, className + "Test", resultFile.toString(), className)
                 .directory(work.toFile());
         pb.environment().remove("JAVA_TOOL_OPTIONS");
