@@ -126,6 +126,8 @@ class OrderService {
 
 `@Component` が基本形で、`@Service`(業務ロジック)・`@Repository`(データアクセス)・`@Controller`(画面)はその **役割別の別名** です。どれも中身に `@Component` を含んでいて、Bean になる点は同じです。ただし `@Repository` は DB の例外を Spring の例外に変換する仕組みの対象にもなります。
 
+`@Component` 系のクラスを探して登録することを **コンポーネントスキャン** と言います。Spring Boot では、起動クラス(`@SpringBootApplication` が付いたクラス)の **パッケージとその下のパッケージ** だけを探します。範囲の外にあるクラスは、`@Component` が付いていても Bean になりません(詳しくは次のレッスン「Spring Bootの起動の仕組み」)。
+
 **② `@Configuration` クラスの `@Bean` メソッドで作る**
 
 ```java

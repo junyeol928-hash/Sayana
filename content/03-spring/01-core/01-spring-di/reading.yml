@@ -54,7 +54,7 @@
     - "8行目で NullPointerException"
     - "コンパイルエラー"
   answer: 2
-  explanation: "@RequiredArgsConstructor が引数にするのは final フィールドだけなので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。"
+  explanation: "@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。"
   trace:
     - "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ"
     - "5行目: final がないため引数に含まれず、注入もされない → null"
