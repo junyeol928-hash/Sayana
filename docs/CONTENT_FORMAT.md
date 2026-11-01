@@ -141,3 +141,62 @@ spring-test(MockMvc)、Jackson、json-path、Bean Validation(Hibernate Validator
 登場人物:
 - **モカ先輩** ☕ … 現場15年のJavaエンジニア。コーヒー好き。軽口を叩くが、説明は正確で硬派。
 - **ハル** 🐣 … 新人エンジニア。素朴な疑問をぶつけ、よく間違える(読者の代弁者)。
+
+## 読解・仕事のコード・用語集(省略可)
+
+ローカル版 Java道場から移した教材。レッスンのディレクトリに置く(無ければその欄は出ない)。
+
+### reading.yml(コード読解問題のリスト)
+
+```yaml
+- title: 参照のコピー
+  level: 2                 # 1=やさしい 2=ふつう 3=むずかしい
+  code: |                  # 実行せずに読むコード
+    int[] a = {1, 2, 3};
+    int[] b = a;
+    b[0] = 99;
+    System.out.println(a[0]);
+  question: 出力は?         # 省略すると「出力は?」
+  choices: ["1", "99", "コンパイルエラー", "実行時エラー"]
+  answer: 1                # 0 始まり
+  explanation: |           # Markdown(生 HTML はエスケープされる)
+    配列は参照型なので…
+  trace:                   # 1 行ずつの追跡(省略可)
+    - "1行目: 配列 {1,2,3} を作り a が指す"
+```
+
+### atwork.yml(仕事のコードではこう出てくる)
+
+```yaml
+- title: クラスとインスタンス
+  intro: 業務の Spring Boot アプリでは…    # Markdown
+  code: |
+    @Service
+    public class UserService { … }
+  notes:                   # 行番号(1 始まり) → その行の説明。画面ではコードの左に番号の印が付く
+    1: "@Service で Bean として登録される"
+  points:                  # 読むときの着眼点
+    - コンストラクタの引数が依存の一覧
+```
+
+### content/glossary.yml(用語集)
+
+```yaml
+- term: 変数
+  read: へんすう
+  en: variable
+  def: 値を入れておく名前付きの箱。   # Markdown 1 行
+  lesson: java-variables              # その用語を扱うレッスン(存在しない ID だと起動時にエラー)
+```
+
+## 図(SVG)
+
+`lesson.md` に SVG の図をそのまま書ける。前後に空行を入れ、SVG は改行なしの 1 行にする。
+
+```
+<figure class="figure"><svg viewBox="0 0 600 220" …>…</svg><figcaption>説明</figcaption></figure>
+```
+
+- `viewBox` を必ず付け、`width` / `height` 属性は付けない
+- 色は CSS 変数だけ: `var(--ink)` `var(--ink-muted)` `var(--line)` `var(--accent)` `var(--accent-soft)` `var(--surface-2)`(暗い表示でも読めるように)
+- `<marker id>` などの id は、他のレッスンと重ならない接頭辞を付ける
