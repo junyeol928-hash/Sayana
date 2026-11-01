@@ -33,7 +33,6 @@
     </form>
     <div class="reading-answer" hidden aria-live="polite">
         <div class="verdict"></div>
-        <p class="small">正解: <b th:utext="${r.choicesHtml.get(r.answer)}"></b></p>
         <div class="md" th:utext="${r.explanationHtml}"></div>
         <th:block th:if="${!r.traceHtml.isEmpty()}">
             <p class="trace-title">1 行ずつの追跡</p>
@@ -46,7 +45,7 @@
 <div th:fragment="quizResult" class="quiz-result" th:with="a=${outcome.attempt()}, pass=${status.quizPassScore()}">
     <div class="quiz-score">
         <span class="big"><th:block th:text="${a.score}"></th:block><span class="slash">/</span><th:block th:text="${a.total}"></th:block></span>
-        <span class="score-stitches" aria-hidden="true"><i th:each="i : ${#numbers.sequence(1, a.total)}" th:classappend="${i <= a.score} ? 'on'"></i></span>
+        <span class="score-stitches" aria-hidden="true"><i th:each="ok : ${outcome.correct()}" th:classappend="${ok} ? 'on'"></i></span>
         <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格(' + pass + ' 問以上)' : 'あと ' + (pass - a.score) + ' 問で合格(' + pass + ' 問以上)')}"></span>
     </div>
     <p class="dyed-line" th:if="${dyedTo != null}"><span class="dye dye-burst" th:classappend="'dye-' + ${status.dyeLevel()}" aria-hidden="true"></span><span th:text="${#strings.substringBefore(dyedTo, '・')} + 'に染まった(' + ${#strings.substringAfter(dyedTo, '・')} + ')'"></span></p>
