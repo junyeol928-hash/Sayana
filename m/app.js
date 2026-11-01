@@ -328,7 +328,7 @@ async function renderHome() {
         ${all.map((l) => deepened.has(l.id) ? `<span class="dye-burst-cell" style="position:relative;display:block">${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink" style="position:absolute;inset:0"></span></span>` : dyeDot(levels[l.id])).join("")}
       </div>
       <details class="dye-key"${Object.keys(S.read).length ? "" : " open"}><summary><span class="dye-key-marks" aria-hidden="true">${DYE.map((_, i) => dyeSwatch(i)).join("")}</span>染まり方の見方</summary>
-        <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)}</span>${d.meaning} ${counts[i]}</span></li>`).join("")}</ul></details>
+        <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)} <b class="dye-count">${counts[i]}</b></span><span class="dye-meaning">${d.meaning}</span></span></li>`).join("")}</ul></details>
       <div class="home-stats">
         ${due ? `<div><div class="stat-label">復習で卒業</div><div class="stat-value">${graduated}<small>問</small></div></div>`
           : `<a href="#/review"><div class="stat-label">次の復習</div><div class="stat-value">${nextReview}</div></a>`}
@@ -393,10 +393,10 @@ async function homeSaveState(all) {
     if (!$("#save-state")) return;
     // 準備中は失敗ではないので、注意の朱ではなく静かな色の点
     el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
-    el.textContent = ready && figures ? `全 ${all.length} レッスンと図をこの端末に保存済み。電波がなくても読めます`
-      : ready ? `全 ${all.length} レッスンを保存済み。図の部品は、次に電波のある所で開いたときに保存されます`
-      : !navigator.serviceWorker.controller ? "オフライン保存の準備中。電波のある所でもう一度開くと、電波なしでも読めるようになります"
-      : `保存済み ${n} / ${all.length}。電波のある所でもう一度開くと、残りも保存されます`;
+    el.textContent = ready && figures ? `保存済み(全 ${all.length} レッスンと図)。電波なしで読めます`
+      : ready ? `保存済み(全 ${all.length} レッスン)。図は次に電波のある所で開くと保存`
+      : !navigator.serviceWorker.controller ? "保存の準備中。次に電波のある所で開くと、電波なしで読めます"
+      : `保存済み ${n} / ${all.length}。次に電波のある所で開くと残りも保存`;
   } catch (e) {
     console.warn("保存の状態を確かめられませんでした", e);
     el.textContent = "保存の状態を確かめられませんでした";
@@ -560,6 +560,9 @@ function trackLesson(id, keys) {
   const setCurrent = (key) => {
     if (key === current) return;
     current = key;
+    document.querySelectorAll(".step-menu a[data-scroll]").forEach((a) => {
+      if (a.dataset.scroll === key) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+    });
     stepper.querySelectorAll(".step").forEach((a) => {
       if (a.dataset.step === key) {
         a.setAttribute("aria-current", "true");
@@ -600,7 +603,9 @@ function trackLesson(id, keys) {
     sew?.style.setProperty("--p", (p * 100).toFixed(1) + "%");
   };
   let ticking = false;
+  const menu = $(".step-menu");
   const onScroll = () => {
+    if (menu?.open) menu.open = false;
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => { ticking = false; if (document.contains(stepper)) update(); });
@@ -916,11 +921,12 @@ function bindLesson(L, meta) {
     const nextKey = score >= pass ? (L.reading?.length ? "reading" : L.exercises.length ? "write" : null) : null;
     const level = meta ? dyeLevel(meta) : 0;
     $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>
-      <span>${score === L.quiz.length ? "満点" : score >= pass ? "合格ライン突破" : `合格ラインは ${pass} 問`}</span></div>${dyedLine(dyed)}
+      <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "書くへ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
-      <p class="muted small">${score >= pass && level === 2 && L.exercises.length ? "演習を「できた」にすると藍に。" : ""}各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
+      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai"><a href="#write" data-scroll="write">${dyeSwatch(3)}演習を「できた」にすると藍に → 書くへ</a></p>` : ""}
+      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
   };
@@ -1497,6 +1503,11 @@ async function decorate(root) {
   root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   inlineNotes(root);
+  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で
+  root.querySelectorAll(".choice > span").forEach((sp) => {
+    const t = sp.textContent.trim();
+    if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+  });
   root.querySelectorAll(".choice span, :not(pre) > code").forEach(softBreaks);
   if (window.hljs) {
     root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
@@ -1518,8 +1529,9 @@ function numberLines(code) {
     if (part === "\n") { lines.push(cur + "</span>".repeat(open.length)); cur = open.join(""); }
     else if (part.startsWith("<span")) { open.push(part); cur += part; }
     else if (part === "</span>") { open.pop(); cur += part; }
-    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)
-    else cur += part.replace(/\./g, "<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)。
+    // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
+    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
   }
   lines.push(cur);
   // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
@@ -1629,6 +1641,12 @@ window.addEventListener("offline", updateHeader);
 window.addEventListener("load", () => decorate(document));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && document.body.classList.contains("sheet-open")) document.body.classList.remove("sheet-open");
+  if (e.key === "Escape") document.querySelector(".step-menu[open]")?.removeAttribute("open");
+});
+// 段の一覧は、外側を押す・項目を選ぶと閉じる
+document.addEventListener("click", (e) => {
+  const menu = document.querySelector(".step-menu[open]");
+  if (menu && (!menu.contains(e.target) || e.target.closest("ol a"))) menu.removeAttribute("open");
 });
 
 if ("serviceWorker" in navigator) {
