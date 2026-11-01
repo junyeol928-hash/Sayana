@@ -143,21 +143,21 @@
   }, {
     "title" : "検査例外とロールバック",
     "level" : 2,
-    "code" : "@Transactional\npublic void issue(String cardId) throws HsmCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new HsmCommunicationException(\"HSM timeout\");\n}\n// HsmCommunicationException は Exception を直接継承した検査例外\n",
+    "code" : "@Transactional\npublic void issue(String cardId) throws CryptoCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new CryptoCommunicationException(\"crypto timeout\");\n}\n// CryptoCommunicationException は Exception を直接継承した検査例外\n",
     "questionHtml" : "issue(&quot;C001&quot;) を呼んだあと、DB の key_master テーブルは?",
     "choicesHtml" : [ "ロールバックされ、保存されていない", "保存された行がそのまま残る", "起動時に例外になる", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@Transactional の既定のロールバック対象は RuntimeException と Error だけです。HsmCommunicationException は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。</p>\n",
-    "traceHtml" : [ "3行目: save が実行される(まだ確定はしていない)", "4行目: 検査例外 HsmCommunicationException が投げられる", "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外", "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る" ]
+    "explanationHtml" : "<p>@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。</p>\n",
+    "traceHtml" : [ "3行目: save が実行される(まだ確定はしていない)", "4行目: 検査例外 CryptoCommunicationException が投げられる", "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外", "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る" ]
   }, {
     "title" : "rollbackFor を指定した場合",
     "level" : 2,
-    "code" : "@Transactional(rollbackFor = Exception.class)\npublic void issue(String cardId) throws HsmCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new HsmCommunicationException(\"HSM timeout\");\n}\n",
+    "code" : "@Transactional(rollbackFor = Exception.class)\npublic void issue(String cardId) throws CryptoCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new CryptoCommunicationException(\"crypto timeout\");\n}\n",
     "questionHtml" : "前の問題と同じ処理に <code>rollbackFor = Exception.class</code> を追加した。DB の状態は?",
     "choicesHtml" : [ "保存された行が残る", "ロールバックされ、保存されていない", "例外が発生しなくなる", "コンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>rollbackFor = Exception.class は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。</p>\n",
-    "traceHtml" : [ "1行目: rollbackFor で対象を Exception.class まで広げている", "3行目: save が実行される", "4行目: HsmCommunicationException(Exception のサブクラス)が投げられる", "rollbackFor の条件に一致するのでロールバックが実行される", "結果: 3行目の保存内容も取り消され、テーブルに行は残らない" ]
+    "traceHtml" : [ "1行目: rollbackFor で対象を Exception.class まで広げている", "3行目: save が実行される", "4行目: CryptoCommunicationException(Exception のサブクラス)が投げられる", "rollbackFor の条件に一致するのでロールバックが実行される", "結果: 3行目の保存内容も取り消され、テーブルに行は残らない" ]
   }, {
     "title" : "N+1 が起きる箇所を見つける",
     "level" : 2,
@@ -171,11 +171,11 @@
   "atWork" : [ {
     "title" : "データアクセス(JPA / JDBC / トランザクション)",
     "introHtml" : "<p>鍵発行と処理結果登録をまとめてトランザクションにした Service です。Repository は JPA、記録用のログ挿入は JdbcTemplate という、実務でよくある混在パターンにしています。</p>\n",
-    "code" : "@Service\n@RequiredArgsConstructor\n@Slf4j\npublic class KeyIssueService {\n\n    private final KeyRepository keyRepository;\n    private final ApduResultRepository apduResultRepository;\n\n    @Transactional(rollbackFor = Exception.class)\n    public KeyEntity issue(String cardId, int keyVersion) throws HsmCommunicationException {\n        boolean duplicated = keyRepository.existsByCardIdAndStatus(cardId, \"ACTIVE\");\n        if (duplicated) {\n            throw new IllegalStateException(\"active key already exists\");\n        }\n        KeyEntity entity = new KeyEntity(cardId, keyVersion, \"ACTIVE\");\n        KeyEntity saved = keyRepository.save(entity);\n        apduResultRepository.insertResult(cardId, \"00A4000C\", 0);\n        log.info(\"key issued cardId={} keyId={}\", cardId, saved.getKeyId());\n        return saved;\n    }\n}\n",
+    "code" : "@Service\n@RequiredArgsConstructor\n@Slf4j\npublic class KeyIssueService {\n\n    private final KeyRepository keyRepository;\n    private final CommandResultRepository commandResultRepository;\n\n    @Transactional(rollbackFor = Exception.class)\n    public KeyEntity issue(String cardId, int keyVersion) throws CryptoCommunicationException {\n        boolean duplicated = keyRepository.existsByCardIdAndStatus(cardId, \"ACTIVE\");\n        if (duplicated) {\n            throw new IllegalStateException(\"active key already exists\");\n        }\n        KeyEntity entity = new KeyEntity(cardId, keyVersion, \"ACTIVE\");\n        KeyEntity saved = keyRepository.save(entity);\n        commandResultRepository.insertResult(cardId, \"00A4000C\", 0);\n        log.info(\"key issued cardId={} keyId={}\", cardId, saved.getKeyId());\n        return saved;\n    }\n}\n",
     "notesHtml" : {
       "6" : "JPA の Repository。CRUD と派生クエリを担当",
       "7" : "JdbcTemplate ベースの Repository。ログ的なテーブルへの挿入を担当",
-      "9" : "rollbackFor = Exception.class で、検査例外の HsmCommunicationException でもロールバックするよう明示している",
+      "9" : "rollbackFor = Exception.class で、検査例外の CryptoCommunicationException(仕事では HsmCommunicationException)でもロールバックするよう明示している",
       "10" : "検査例外は throws で宣言が必要(例外の章を参照)",
       "11" : "existsByCardIdAndStatus は派生クエリ。SQL は書かれていない",
       "17" : "1つのメソッドの中で JPA と JdbcTemplate が同じトランザクションに参加している"

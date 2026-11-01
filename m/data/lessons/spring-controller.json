@@ -149,21 +149,21 @@
   }, {
     "title" : "バリデーションと例外ハンドラ",
     "level" : 2,
-    "code" : "@Data\npublic class SessionStartRequest {\n    @NotBlank private String cardId;\n    @Pattern(regexp = \"^[0-9A-F]{16}$\") private String hostChallenge;\n}\n\n@PostMapping(\"/api/sessions\")\npublic SessionResponse start(@Valid @RequestBody SessionStartRequest req) {\n    return sessionService.start(req);\n}\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(MethodArgumentNotValidException.class)\n    public ResponseEntity<ErrorResponse> v(MethodArgumentNotValidException e) {\n        return ResponseEntity.badRequest().body(new ErrorResponse(\"E400\"));\n    }\n}\n",
+    "code" : "@Data\npublic class HandshakeRequest {\n    @NotBlank private String cardId;\n    @Pattern(regexp = \"^[0-9A-F]{16}$\") private String hostChallenge;\n}\n\n@PostMapping(\"/api/sessions\")\npublic SessionResponse start(@Valid @RequestBody HandshakeRequest req) {\n    return sessionService.start(req);\n}\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(MethodArgumentNotValidException.class)\n    public ResponseEntity<ErrorResponse> v(MethodArgumentNotValidException e) {\n        return ResponseEntity.badRequest().body(new ErrorResponse(\"E400\"));\n    }\n}\n",
     "questionHtml" : "ボディ <code>{&quot;cardId&quot;:&quot;C001&quot;,&quot;hostChallenge&quot;:&quot;abcd&quot;}</code> を POST すると?",
     "choicesHtml" : [ "sessionService.start が呼ばれ 200", "400 と {&quot;code&quot;:&quot;E400&quot;}", "500", "404" ],
     "answer" : 1,
-    "explanationHtml" : "<p>hostChallenge の &quot;abcd&quot; は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。</p>\n",
-    "traceHtml" : [ "7〜8行目: POST /api/sessions に一致。JSON → SessionStartRequest に変換", "3行目: cardId = &quot;C001&quot; → @NotBlank OK", "4行目: hostChallenge = &quot;abcd&quot; → 小文字4桁で @Pattern NG", "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない", "14〜16行目: ハンドラが受けて 400 + ErrorResponse(E400)" ]
+    "explanationHtml" : "<p>(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の &quot;abcd&quot; は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。</p>\n",
+    "traceHtml" : [ "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換", "3行目: cardId = &quot;C001&quot; → @NotBlank OK", "4行目: hostChallenge = &quot;abcd&quot; → 小文字4桁で @Pattern NG", "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない", "14〜16行目: ハンドラが受けて 400 + ErrorResponse(E400)" ]
   }, {
     "title" : "例外の型と @ExceptionHandler の一致",
     "level" : 2,
-    "code" : "public class TsmException extends RuntimeException { }\npublic class HsmUnavailableException extends TsmException { }\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(TsmException.class)\n    public ResponseEntity<String> tsm(TsmException e) {\n        return ResponseEntity.status(503).body(\"tsm\");\n    }\n    @ExceptionHandler(Exception.class)\n    public ResponseEntity<String> other(Exception e) {\n        return ResponseEntity.status(500).body(\"other\");\n    }\n}\n\n// Service が throw new HsmUnavailableException() した\n",
+    "code" : "public class GatewayException extends RuntimeException { }\npublic class CryptoUnavailableException extends GatewayException { }\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(GatewayException.class)\n    public ResponseEntity<String> gateway(GatewayException e) {\n        return ResponseEntity.status(503).body(\"gateway\");\n    }\n    @ExceptionHandler(Exception.class)\n    public ResponseEntity<String> other(Exception e) {\n        return ResponseEntity.status(500).body(\"other\");\n    }\n}\n\n// Service が throw new CryptoUnavailableException() した\n",
     "questionHtml" : "応答は?",
-    "choicesHtml" : [ "503 &quot;tsm&quot;", "500 &quot;other&quot;", "両方のハンドラが実行される", "ハンドラが2つあるので起動時に例外" ],
+    "choicesHtml" : [ "503 &quot;gateway&quot;", "500 &quot;other&quot;", "両方のハンドラが実行される", "ハンドラが2つあるので起動時に例外" ],
     "answer" : 0,
-    "explanationHtml" : "<p>@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。HsmUnavailableException は TsmException のサブクラスなので、Exception よりも TsmException のハンドラが選ばれ、503 &quot;tsm&quot; です。両方が実行される(3)ことはありません。</p>\n",
-    "traceHtml" : [ "16行目: HsmUnavailableException が投げられ、Controller を通り抜けて Advice に届く", "6行目: TsmException.class → HsmUnavailableException は TsmException の子なので一致", "10行目: Exception.class も一致するが、より具体的な TsmException のハンドラが優先", "8行目: 503 + &quot;tsm&quot;" ]
+    "explanationHtml" : "<p>@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 &quot;gateway&quot; です。両方が実行される(3)ことはありません。</p>\n",
+    "traceHtml" : [ "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く", "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致", "10行目: Exception.class も一致するが、より具体的な GatewayException のハンドラが優先", "8行目: 503 + &quot;gateway&quot;" ]
   }, {
     "title" : "Filter が Controller を止める",
     "level" : 3,
@@ -174,27 +174,27 @@
     "explanationHtml" : "<p>token が null なので if に入り、401 をセットして return します。chain.doFilter を呼んでいないので DispatcherServlet にも Controller にも届かず、ping() は一度も実行されません。Filter は Controller より手前で動くことを確認する問題です。</p>\n",
     "traceHtml" : [ "6行目: X-Api-Token ヘッダなし → token = null", "7〜9行目: 条件成立 → ステータス 401 をセットして return", "11行目: chain.doFilter は実行されない → 後続に進まない", "15〜16行目: ping() は呼ばれない。応答は 401、ボディなし" ]
   }, {
-    "title" : "Front から Back への呼び出しをつなげて読む",
+    "title" : "受付サーバから業務サーバへの呼び出しをつなげて読む",
     "level" : 3,
-    "code" : "// Front サーバ\npublic ChallengeResponse requestChallenge(String cardId) {\n    return restTemplate.postForObject(baseUrl + \"/api/challenge\",\n            new ChallengeRequest(cardId), ChallengeResponse.class);\n}\n\n// Back サーバ\n@RestController\n@RequestMapping(\"/api\")\npublic class ChallengeController {\n    @PostMapping(\"/challenge\")\n    public ResponseEntity<ChallengeResponse> challenge(@RequestBody ChallengeRequest req) {\n        if (req.getCardId() == null) return ResponseEntity.badRequest().build();\n        return ResponseEntity.ok(new ChallengeResponse(\"0011223344556677\"));\n    }\n}\n// ChallengeRequest は @Data で cardId フィールドを持つ。Front 側は cardId = \"C001\"\n",
-    "questionHtml" : "Front の <code>requestChallenge(&quot;C001&quot;)</code> の結果は?",
-    "choicesHtml" : [ "Back の challenge() が呼ばれ、ChallengeResponse(&quot;0011223344556677&quot;) が返る", "Back で 400 になり Front で例外", "URL が一致せず 404", "Front で JSON 変換に失敗" ],
+    "code" : "// 受付サーバ(仕事では Front サーバ)\npublic ChallengeResponse requestChallenge(String cardId) {\n    return restTemplate.postForObject(baseUrl + \"/api/challenge\",\n            new ChallengeRequest(cardId), ChallengeResponse.class);\n}\n\n// 業務サーバ(仕事では Back サーバ)\n@RestController\n@RequestMapping(\"/api\")\npublic class ChallengeController {\n    @PostMapping(\"/challenge\")\n    public ResponseEntity<ChallengeResponse> challenge(@RequestBody ChallengeRequest req) {\n        if (req.getCardId() == null) return ResponseEntity.badRequest().build();\n        return ResponseEntity.ok(new ChallengeResponse(\"0011223344556677\"));\n    }\n}\n// ChallengeRequest は @Data で cardId フィールドを持つ。受付サーバ側は cardId = \"C001\"\n",
+    "questionHtml" : "受付サーバの <code>requestChallenge(&quot;C001&quot;)</code> の結果は?",
+    "choicesHtml" : [ "業務サーバの challenge() が呼ばれ、ChallengeResponse(&quot;0011223344556677&quot;) が返る", "業務サーバで 400 になり受付サーバで例外", "URL が一致せず 404", "受付サーバで JSON 変換に失敗" ],
     "answer" : 0,
-    "explanationHtml" : "<p>Front は POST {baseUrl}/api/challenge を送り、Back の @RequestMapping(&quot;/api&quot;) + @PostMapping(&quot;/challenge&quot;) に一致します。ボディ {&quot;cardId&quot;:&quot;C001&quot;} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、Front 側で ChallengeResponse.class に変換されます。</p>\n",
-    "traceHtml" : [ "3行目: Front が POST {baseUrl}/api/challenge、ボディは ChallengeRequest(&quot;C001&quot;) → {&quot;cardId&quot;:&quot;C001&quot;}", "9,11行目: Back の URL は /api + /challenge = /api/challenge、POST → 一致", "12行目: JSON → ChallengeRequest。cardId = &quot;C001&quot;", "13〜14行目: null でないので 200 + ChallengeResponse(&quot;0011223344556677&quot;)", "3〜4行目: Front は応答 JSON を ChallengeResponse に変換して返す" ]
+    "explanationHtml" : "<p>受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの @RequestMapping(&quot;/api&quot;) + @PostMapping(&quot;/challenge&quot;) に一致します。ボディ {&quot;cardId&quot;:&quot;C001&quot;} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。</p>\n",
+    "traceHtml" : [ "3行目: 受付サーバが POST {baseUrl}/api/challenge、ボディは ChallengeRequest(&quot;C001&quot;) → {&quot;cardId&quot;:&quot;C001&quot;}", "9,11行目: 業務サーバの URL は /api + /challenge = /api/challenge、POST → 一致", "12行目: JSON → ChallengeRequest。cardId = &quot;C001&quot;", "13〜14行目: null でないので 200 + ChallengeResponse(&quot;0011223344556677&quot;)", "3〜4行目: 受付サーバは応答 JSON を ChallengeResponse に変換して返す" ]
   } ],
   "atWork" : [ {
     "title" : "Spring MVC と REST API",
-    "introHtml" : "<p>Front サーバの APDU 送信 API を実務の形にした例です。URL、引数、バリデーション、ステータス、ログの要素がひととおり入っています。</p>\n",
-    "code" : "@RestController\n@RequestMapping(\"/api/sessions\")\n@RequiredArgsConstructor\n@Slf4j\npublic class SessionApiController {\n\n    private final ApduService apduService;\n\n    @PostMapping(\"/{sessionId}/apdu\")\n    public ResponseEntity<ApduResponse> sendApdu(\n            @PathVariable String sessionId,\n            @RequestHeader(\"X-Request-Id\") String requestId,\n            @Valid @RequestBody ApduRequest request) {\n\n        log.info(\"[{}] apdu in session={} len={}\", requestId, sessionId, request.getCommandHex().length());\n        ApduResult result = apduService.send(sessionId, request.getCommandHex());\n        ApduResponse body = ApduResponse.from(result);\n        return ResponseEntity.ok(body);\n    }\n}\n",
+    "introHtml" : "<p>受付サーバ(仕事では Front サーバ)のコマンド電文(仕事では APDU。クラス名も Command〜 は Apdu〜)の送信 API を実務の形にした例です。URL、引数、バリデーション、ステータス、ログの要素がひととおり入っています。</p>\n",
+    "code" : "@RestController\n@RequestMapping(\"/api/sessions\")\n@RequiredArgsConstructor\n@Slf4j\npublic class SessionApiController {\n\n    private final CommandService commandService;\n\n    @PostMapping(\"/{sessionId}/command\")\n    public ResponseEntity<CommandResponse> sendCommand(\n            @PathVariable String sessionId,\n            @RequestHeader(\"X-Request-Id\") String requestId,\n            @Valid @RequestBody CommandRequest request) {\n\n        log.info(\"[{}] command in session={} len={}\", requestId, sessionId, request.getCommandHex().length());\n        CommandResult result = commandService.send(sessionId, request.getCommandHex());\n        CommandResponse body = CommandResponse.from(result);\n        return ResponseEntity.ok(body);\n    }\n}\n",
     "notesHtml" : {
       "2" : "この Controller の URL はすべて /api/sessions で始まる",
       "4" : "Lombok。log フィールドを生成(Lombok 章)",
       "7" : "Service の注入。処理の本体はこちら",
-      "9" : "完全な URL は POST /api/sessions/{sessionId}/apdu",
-      "13" : "@Valid → ApduRequest の制約(@Pattern など)を先にチェック。失敗すると 400",
+      "9" : "完全な URL は POST /api/sessions/{sessionId}/command",
+      "13" : "@Valid → CommandRequest の制約(@Pattern など)を先にチェック。失敗すると 400",
       "16" : "Service に渡すのは DTO ではなく必要な値だけ、という書き方もよくある",
-      "17" : "Service の戻り(ApduResult)をレスポンス DTO に詰め替える。static メソッド from は変換専用",
+      "17" : "Service の戻り(CommandResult)をレスポンス DTO に詰め替える。static メソッド from は変換専用",
       "18" : "200 + JSON。Service が SessionNotFoundException を投げたら ExceptionHandler が 404 にする"
     },
     "pointsHtml" : [ "クラスの @RequestMapping とメソッドの @PostMapping を足して完全な URL を組み立てる", "引数のアノテーションで「どこから来る値か」を確認。@Valid があれば DTO の制約も読む", "Service の戻り型とレスポンス DTO の変換(from / toResponse など)がどこにあるか探す", "この Controller に try-catch がない = 例外は @RestControllerAdvice が受けている、と読む" ]

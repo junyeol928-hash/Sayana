@@ -101,7 +101,7 @@
     "type" : "genba",
     "label" : "現場あるある",
     "title" : "外部装置は「1つずつ順番に」しか受け付けないことがある",
-    "bodyHtml" : "<p>鍵の生成に使う HSM(ハードウェアセキュリティモジュール)や古い業務端末など、<strong>同時に1つの接続しか受け付けない</strong> 外部装置があります。Web アプリからは複数のリクエストが同時に来るので、そのまま呼ぶと装置側でエラーになります。</p>\n<p>こういうとき、Service の中に <code>Executors.newSingleThreadExecutor()</code>(スレッド1本だけのプール)を持たせ、装置へのアクセスは必ずそこに投げる形にします。何本のリクエストスレッドから呼ばれても、実際に装置に触るのは1本だけで、残りは順番待ちになります。</p>\n<p>現場のコードで <code>newSingleThreadExecutor</code> を見かけたら、「ここは直列化したい理由がある」という目印です。うっかり <code>newFixedThreadPool(4)</code> に「高速化」すると、装置が詰まって本番障害になります。</p>\n"
+    "bodyHtml" : "<p>鍵の生成に使う暗号装置(仕事では HSM。ハードウェアセキュリティモジュール)や古い業務端末など、<strong>同時に1つの接続しか受け付けない</strong> 外部装置があります。Web アプリからは複数のリクエストが同時に来るので、そのまま呼ぶと装置側でエラーになります。</p>\n<p>こういうとき、Service の中に <code>Executors.newSingleThreadExecutor()</code>(スレッド1本だけのプール)を持たせ、装置へのアクセスは必ずそこに投げる形にします。何本のリクエストスレッドから呼ばれても、実際に装置に触るのは1本だけで、残りは順番待ちになります。</p>\n<p>現場のコードで <code>newSingleThreadExecutor</code> を見かけたら、「ここは直列化したい理由がある」という目印です。うっかり <code>newFixedThreadPool(4)</code> に「高速化」すると、装置が詰まって本番障害になります。</p>\n"
   }, {
     "type" : "trivia",
     "label" : "豆知識",
@@ -158,10 +158,10 @@
   "atWork" : [ {
     "title" : "スレッドと並行処理の基礎",
     "introHtml" : "<p>業務コードでは、外部装置や外部APIへのアクセスを直列化するコード、タイムアウト付きの Future、CompletableFuture のチェーンがよく登場します。「誰と誰が同時に動き得るか」を意識して読みます。</p>\n",
-    "code" : "@Service\n@RequiredArgsConstructor\n@Slf4j\npublic class HsmKeyService {\n\n    private final ExecutorService hsmExecutor = Executors.newSingleThreadExecutor();\n    private final HsmClient hsmClient;\n\n    public String issueKey(String userId) {\n        Future<String> future = hsmExecutor.submit(() -> hsmClient.generateKey(userId));\n        try {\n            return future.get(5, TimeUnit.SECONDS);\n        } catch (TimeoutException e) {\n            future.cancel(true);\n            log.error(\"HSM timeout userId={}\", userId, e);\n            throw new KeyIssueException(\"hsm timeout\", e);\n        } catch (Exception e) {\n            throw new KeyIssueException(\"hsm error\", e);\n        }\n    }\n\n    public CompletableFuture<Void> notifyAsync(String userId) {\n        return CompletableFuture.runAsync(() -> notificationClient.send(userId))\n                .exceptionally(ex -> {\n                    log.warn(\"notify failed userId={}\", userId, ex);\n                    return null;\n                });\n    }\n}\n",
+    "code" : "@Service\n@RequiredArgsConstructor\n@Slf4j\npublic class CryptoKeyService {\n\n    private final ExecutorService cryptoExecutor = Executors.newSingleThreadExecutor();\n    private final CryptoClient cryptoClient;\n\n    public String issueKey(String userId) {\n        Future<String> future = cryptoExecutor.submit(() -> cryptoClient.generateKey(userId));\n        try {\n            return future.get(5, TimeUnit.SECONDS);\n        } catch (TimeoutException e) {\n            future.cancel(true);\n            log.error(\"crypto timeout userId={}\", userId, e);\n            throw new KeyIssueException(\"crypto timeout\", e);\n        } catch (Exception e) {\n            throw new KeyIssueException(\"crypto error\", e);\n        }\n    }\n\n    public CompletableFuture<Void> notifyAsync(String userId) {\n        return CompletableFuture.runAsync(() -> notificationClient.send(userId))\n                .exceptionally(ex -> {\n                    log.warn(\"notify failed userId={}\", userId, ex);\n                    return null;\n                });\n    }\n}\n",
     "notesHtml" : {
-      "6" : "単一スレッドの ExecutorService。HSM へのアクセスを常に1つずつに直列化する意図の目印",
-      "9" : "実際の装置アクセスは hsmExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる",
+      "6" : "単一スレッドの ExecutorService。暗号装置(仕事では HSM)へのアクセスを常に1つずつに直列化する意図の目印。CryptoKeyService・CryptoClient は仕事では HsmKeyService・HsmClient",
+      "9" : "実際の装置アクセスは cryptoExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる",
       "11" : "タイムアウト付きの get。5秒で応答が無ければ諦める",
       "21" : "通知は失敗しても本処理を止めたくないので、非同期(CompletableFuture)で別スレッドに任せている",
       "22" : "exceptionally は「失敗したときだけ」処理をつなぐ。Optional の orElseGet に近い発想"

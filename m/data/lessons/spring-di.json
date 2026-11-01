@@ -144,48 +144,48 @@
   "reading" : [ {
     "title" : "どの実装クラスが注入される?",
     "level" : 2,
-    "code" : "public interface ApduSender { String send(byte[] apdu); }\n\n@Component\npublic class SocketApduSender implements ApduSender {\n    public String send(byte[] apdu) { return \"socket\"; }\n}\n\n@Component @Primary\npublic class LoggingApduSender implements ApduSender {\n    public String send(byte[] apdu) { return \"logging\"; }\n}\n\n@Service @RequiredArgsConstructor\npublic class ApduService {\n    private final ApduSender sender;\n    public String run() { return sender.send(new byte[0]); }\n}\n",
-    "questionHtml" : "<code>apduService.run()</code> の戻り値は?",
+    "code" : "public interface CommandSender { String send(byte[] command); }\n\n@Component\npublic class SocketCommandSender implements CommandSender {\n    public String send(byte[] command) { return \"socket\"; }\n}\n\n@Component @Primary\npublic class LoggingCommandSender implements CommandSender {\n    public String send(byte[] command) { return \"logging\"; }\n}\n\n@Service @RequiredArgsConstructor\npublic class CommandService {\n    private final CommandSender sender;\n    public String run() { return sender.send(new byte[0]); }\n}\n",
+    "questionHtml" : "<code>commandService.run()</code> の戻り値は?",
     "choicesHtml" : [ "&quot;socket&quot;", "&quot;logging&quot;", "起動時に例外", "null" ],
     "answer" : 1,
-    "explanationHtml" : "<p>ApduSender 型の Bean は2つありますが、LoggingApduSender に @Primary が付いているので、型だけで要求している ApduService にはこちらが入ります。@Primary がなければ起動時に NoUniqueBeanDefinitionException(3)になります。</p>\n",
-    "traceHtml" : [ "3〜11行目: ApduSender の実装 Bean が2つ登録される(SocketApduSender と LoggingApduSender)", "13〜15行目: @RequiredArgsConstructor により ApduSender を1つ受け取るコンストラクタが生成される", "起動時: 候補2つのうち @Primary の LoggingApduSender が選ばれて注入される", "16行目: sender.send(...) → LoggingApduSender.send → &quot;logging&quot;" ]
+    "explanationHtml" : "<p>CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ起動時に NoUniqueBeanDefinitionException(3)になります。</p>\n",
+    "traceHtml" : [ "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)", "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される", "起動時: 候補2つのうち @Primary の LoggingCommandSender が選ばれて注入される", "16行目: sender.send(...) → LoggingCommandSender.send → &quot;logging&quot;" ]
   }, {
     "title" : "final が抜けたフィールド",
     "level" : 2,
-    "code" : "@Service\n@RequiredArgsConstructor\npublic class KeyIssueService {\n    private final KeyRepository keyRepository;\n    private HsmClient hsmClient;\n\n    public String issue(String cardId) {\n        byte[] key = hsmClient.generateKey();\n        keyRepository.save(cardId, key);\n        return \"OK\";\n    }\n}\n",
+    "code" : "@Service\n@RequiredArgsConstructor\npublic class KeyIssueService {\n    private final KeyRepository keyRepository;\n    private CryptoClient cryptoClient;\n\n    public String issue(String cardId) {\n        byte[] key = cryptoClient.generateKey();\n        keyRepository.save(cardId, key);\n        return \"OK\";\n    }\n}\n",
     "questionHtml" : "Spring が起動し、<code>issue(&quot;C001&quot;)</code> を呼ぶと?",
     "choicesHtml" : [ "&quot;OK&quot; が返る", "起動時に例外で失敗する", "8行目で NullPointerException", "コンパイルエラー" ],
     "answer" : 2,
-    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは final フィールドだけなので、生成されるコンストラクタは KeyRepository の1引数です。hsmClient は注入されず null のまま。起動は成功し、issue を呼んで hsmClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
-    "traceHtml" : [ "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ", "5行目: final がないため引数に含まれず、注入もされない → null", "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する", "8行目: hsmClient が null → generateKey() を呼んだ瞬間に NullPointerException" ]
+    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは final フィールドだけなので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
+    "traceHtml" : [ "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ", "5行目: final がないため引数に含まれず、注入もされない → null", "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する", "8行目: cryptoClient が null → generateKey() を呼んだ瞬間に NullPointerException" ]
   }, {
     "title" : "@Bean メソッドの引数と戻り値",
     "level" : 2,
-    "code" : "@Configuration\npublic class ClientConfig {\n    @Bean\n    public BackApiClient backApiClient(RestTemplate restTemplate) {\n        return new BackApiClient(restTemplate, \"http://back:8081\");\n    }\n    @Bean\n    public RestTemplate restTemplate() {\n        return new RestTemplate();\n    }\n}\n\n@Service @RequiredArgsConstructor\npublic class SessionService {\n    private final BackApiClient backApiClient;\n}\n",
+    "code" : "@Configuration\npublic class ClientConfig {\n    @Bean\n    public BackendClient backendClient(RestTemplate restTemplate) {\n        return new BackendClient(restTemplate, \"http://backend:8081\");\n    }\n    @Bean\n    public RestTemplate restTemplate() {\n        return new RestTemplate();\n    }\n}\n\n@Service @RequiredArgsConstructor\npublic class SessionService {\n    private final BackendClient backendClient;\n}\n",
     "questionHtml" : "起動時に何が起きる?",
-    "choicesHtml" : [ "BackApiClient が Bean にならず起動失敗", "restTemplate が先に作られ、backApiClient に渡され、SessionService に注入される", "backApiClient が2個作られる", "@Bean メソッドの順序が逆なのでエラー" ],
+    "choicesHtml" : [ "BackendClient が Bean にならず起動失敗", "restTemplate が先に作られ、backendClient に渡され、SessionService に注入される", "backendClient が2個作られる", "@Bean メソッドの順序が逆なのでエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backApiClient() の引数に渡します。メソッドの記述順(4)は関係ありません。Bean は singleton なので backApiClient は1個だけ(3)です。</p>\n",
-    "traceHtml" : [ "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される", "4行目: backApiClient は RestTemplate に依存すると分かる", "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる", "4〜5行目: その RestTemplate を引数に backApiClient() が呼ばれ、BackApiClient の Bean ができる", "15行目: SessionService のコンストラクタに BackApiClient の Bean が渡される" ]
+    "explanationHtml" : "<p>@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。メソッドの記述順(4)は関係ありません。Bean は singleton なので backendClient は1個だけ(3)です。</p>\n",
+    "traceHtml" : [ "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される", "4行目: backendClient は RestTemplate に依存すると分かる", "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる", "4〜5行目: その RestTemplate を引数に backendClient() が呼ばれ、BackendClient の Bean ができる", "15行目: SessionService のコンストラクタに BackendClient の Bean が渡される" ]
   }, {
     "title" : "スキャン範囲の外にあるクラス",
     "level" : 3,
-    "code" : "// jp.example.tsm.TsmFrontApplication\n@SpringBootApplication\npublic class TsmFrontApplication { /* main */ }\n\n// jp.example.tsm.service.KeyIssueService\n@Service @RequiredArgsConstructor\npublic class KeyIssueService {\n    private final HexUtil hexUtil;\n}\n\n// jp.example.common.HexUtil\n@Component\npublic class HexUtil { }\n",
+    "code" : "// jp.example.gateway.GatewayApplication\n@SpringBootApplication\npublic class GatewayApplication { /* main */ }\n\n// jp.example.gateway.service.KeyIssueService\n@Service @RequiredArgsConstructor\npublic class KeyIssueService {\n    private final HexUtil hexUtil;\n}\n\n// jp.example.common.HexUtil\n@Component\npublic class HexUtil { }\n",
     "questionHtml" : "アプリを起動すると?",
     "choicesHtml" : [ "正常に起動する", "HexUtil が見つからず起動時に例外", "KeyIssueService が Bean にならない", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>スキャンの基準は起動クラスのパッケージ jp.example.tsm です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。</p>\n",
-    "traceHtml" : [ "2行目: スキャンの基準パッケージは jp.example.tsm", "6〜8行目: jp.example.tsm.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している", "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない", "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止" ]
+    "explanationHtml" : "<p>スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。</p>\n",
+    "traceHtml" : [ "2行目: スキャンの基準パッケージは jp.example.gateway", "6〜8行目: jp.example.gateway.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している", "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない", "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止" ]
   } ],
   "atWork" : [ {
     "title" : "Spring 入門:DI と Bean",
-    "introHtml" : "<p>Front サーバの Service を、実務の形に近づけた例です。コンストラクタは Lombok の @RequiredArgsConstructor が生成します。「部品」(final フィールド)と「処理中の値」(引数とローカル変数)の区別に注目してください。</p>\n",
-    "code" : "@Service\n@RequiredArgsConstructor\npublic class SessionStartService {\n\n    private final SessionRepository sessionRepository;\n    private final HsmClient hsmClient;\n    private final BackApiClient backApiClient;\n    private final Clock clock;\n\n    public SessionStartResult start(String cardId, byte[] hostChallenge) {\n        byte[] cardChallenge = backApiClient.requestChallenge(cardId);\n        byte[] sessionKey = hsmClient.deriveSessionKey(cardId, hostChallenge, cardChallenge);\n        SessionEntity session = SessionEntity.open(cardId, clock.instant());\n        sessionRepository.save(session);\n        return new SessionStartResult(session.getId(), sessionKey);\n    }\n}\n",
+    "introHtml" : "<p>受付サーバ(仕事では Front サーバ)の Service を、実務の形に近づけた例です。名前は一般的なものにしてあります(仕事では Handshake〜 は SessionStart〜、CryptoClient は HsmClient、BackendClient は BackApiClient、deviceChallenge は cardChallenge)。コンストラクタは Lombok の @RequiredArgsConstructor が生成します。「部品」(final フィールド)と「処理中の値」(引数とローカル変数)の区別に注目してください。</p>\n",
+    "code" : "@Service\n@RequiredArgsConstructor\npublic class HandshakeService {\n\n    private final SessionRepository sessionRepository;\n    private final CryptoClient cryptoClient;\n    private final BackendClient backendClient;\n    private final Clock clock;\n\n    public HandshakeResult start(String cardId, byte[] hostChallenge) {\n        byte[] deviceChallenge = backendClient.requestChallenge(cardId);\n        byte[] sessionKey = cryptoClient.deriveSessionKey(cardId, hostChallenge, deviceChallenge);\n        SessionEntity session = SessionEntity.open(cardId, clock.instant());\n        sessionRepository.save(session);\n        return new HandshakeResult(session.getId(), sessionKey);\n    }\n}\n",
     "notesHtml" : {
       "1" : "Bean にする印。Spring が起動時にこのクラスを1個作る",
       "2" : "final フィールド4つを引数にとるコンストラクタが自動生成される = 4つとも注入",
-      "7" : "Back サーバを呼ぶ部品。中身は RestTemplate や WebClient を包んだクラス(Web 章)",
+      "7" : "業務サーバ(仕事では Back サーバ)を呼ぶ部品。中身は RestTemplate や WebClient を包んだクラス(Web 章)",
       "8" : "java.time.Clock も Bean にしておくと、テストで時刻を固定できる",
       "10" : "処理中の値(cardId など)は引数とローカル変数だけ。フィールドには置かない",
       "13" : "SessionEntity は Spring の Bean ではなく、処理のたびに new する普通のオブジェクト"

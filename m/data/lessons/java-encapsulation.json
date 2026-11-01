@@ -149,12 +149,12 @@
   }, {
     "title" : "final の有無でコンストラクタの引数が変わる",
     "level" : 2,
-    "code" : "@RequiredArgsConstructor\npublic class KeyIssueService {\n    private final KeyRepository keyRepository;\n    private HsmClient hsmClient;\n    private final Clock clock;\n}\n\n// 別の場所で:\nnew KeyIssueService(repo, clock);\n",
+    "code" : "@RequiredArgsConstructor\npublic class KeyIssueService {\n    private final KeyRepository keyRepository;\n    private CryptoClient cryptoClient;\n    private final Clock clock;\n}\n\n// 別の場所で:\nnew KeyIssueService(repo, clock);\n",
     "questionHtml" : "この呼び出しはコンパイルできる?",
     "choicesHtml" : [ "できる。final の2つを引数にとるコンストラクタが生成されているため", "できない。3引数のコンストラクタしか生成されないため", "できる。全フィールド4つを渡す必要があるため", "できない。@RequiredArgsConstructor は Service では使えないため" ],
     "answer" : 0,
-    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない hsmClient は対象外です。</p>\n",
-    "traceHtml" : [ "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される", "3行目: keyRepository は final → 対象", "4行目: hsmClient は final でない → 対象外", "5行目: clock は final → 対象", "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)", "8行目: 引数の型と順序が一致するのでコンパイルできる" ]
+    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。</p>\n",
+    "traceHtml" : [ "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される", "3行目: keyRepository は final → 対象", "4行目: cryptoClient は final でない → 対象外", "5行目: clock は final → 対象", "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)", "8行目: 引数の型と順序が一致するのでコンパイルできる" ]
   }, {
     "title" : "双方向関連の @Data と StackOverflowError",
     "level" : 3,
@@ -167,11 +167,11 @@
   }, {
     "title" : "Builder のメソッドチェーンを読む",
     "level" : 2,
-    "code" : "@Builder\n@ToString\npublic class ApduRequest {\n    private final String sessionId;\n    private final String commandHex;\n    private final int timeoutMillis;\n}\n\nApduRequest req = ApduRequest.builder()\n        .sessionId(\"S001\")\n        .commandHex(\"00A4040C\")\n        .build();\nSystem.out.println(req);\n",
+    "code" : "@Builder\n@ToString\npublic class CommandRequest {\n    private final String sessionId;\n    private final String commandHex;\n    private final int timeoutMillis;\n}\n\nCommandRequest req = CommandRequest.builder()\n        .sessionId(\"S001\")\n        .commandHex(\"00A4040C\")\n        .build();\nSystem.out.println(req);\n",
     "questionHtml" : "出力される timeoutMillis の値は?",
     "choicesHtml" : [ "0(セットされなかったので既定値)", "コンパイルエラー", "実行時例外", "null" ],
     "answer" : 0,
-    "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、ApduRequest が完成します。int は参照型ではないので null にはなりません。</p>\n",
+    "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。int は参照型ではないので null にはなりません。</p>\n",
     "traceHtml" : [ "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない", "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる", "int の既定値は 0 なので timeoutMillis は 0", "結果: toString() の出力に timeoutMillis=0 が含まれる" ]
   }, {
     "title" : "@SneakyThrows で隠れる検査例外",
