@@ -356,7 +356,7 @@ function phraseWrap(el) {
     if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
     else words.push(segment);
   }
-  el.innerHTML = words.map((w) => `<span class="phrase">${escHtml(w)}</span>`).join("");
+  el.innerHTML = words.map((w) => `<span class="phrase">${escHtml(w).replace(/ /g, " ")}</span>`).join("");
   el.dataset.phrased = "1";
 }
 function drawUnshin(row, nowKey) {
