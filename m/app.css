@@ -55,6 +55,8 @@
   --shadow-float: 0 1px 2px oklch(.24 .05 255 / .08), 0 8px 24px oklch(.24 .05 255 / .1);
   --r-s: 4px; --r-m: 8px; --r-l: 14px;
   --ease: cubic-bezier(.22, 1, .36, 1);
+  /* 見出しの書体: 道場の札のように太く短く。Zen Kaku Gothic New(OFL)を使う文字だけに絞って同梱(docs/design.md の書体の節) */
+  --head: "Zen Kaku Gothic New", "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", sans-serif;
   --font: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", system-ui, sans-serif;
   --mono: "Cascadia Code", "SF Mono", Menlo, Consolas, "BIZ UDGothic", monospace;
   --code-lh: 22px;
@@ -143,6 +145,8 @@
 }
 
 /* ================================================================ 土台 */
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 700; font-display: swap; src: url("fonts/zen-kaku-gothic-new-700.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 900; font-display: swap; src: url("fonts/zen-kaku-gothic-new-900.woff2") format("woff2"); }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 120px; -webkit-text-size-adjust: 100%; }
 body {
@@ -151,6 +155,7 @@ body {
   font-synthesis: none; line-break: strict; text-autospace: normal; overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased;
 }
+h1, h2 { font-family: var(--head); font-weight: 900; }
 h1, h2, h3, h4 { line-height: 1.4; letter-spacing: .01em; font-feature-settings: "palt"; text-wrap: balance; word-break: auto-phrase; }
 h1 { font-size: 2rem; margin: .2em 0 .35em; }
 h2 { font-size: 1.5rem; }
@@ -200,10 +205,10 @@ button { font: inherit; letter-spacing: inherit; }
 .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
 .header-inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 12px 28px; min-height: 60px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 1.2rem; letter-spacing: .03em; font-feature-settings: "palt"; }
+.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 900 1.25rem/1 var(--head); letter-spacing: .02em; font-feature-settings: "palt"; }
 .logo:hover { color: var(--ink); }
 .logo-mark { width: 28px; height: 28px; flex: none; border-radius: 6px; }
-.logo b { color: var(--accent-ink); font-weight: 700; }
+.logo b { color: var(--accent-ink); font-weight: 900; }
 .main-nav { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
 .main-nav a { color: var(--ink-muted); text-decoration: none; font-size: .9375rem; padding: 6px 12px; border-radius: var(--r-m); display: inline-flex; align-items: center; gap: 6px; }
 .main-nav a:hover { color: var(--ink); background: var(--surface-2); }
@@ -320,43 +325,77 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 }
 
 /* ================================================================ ホーム */
-.today {
-  position: relative; overflow: hidden; isolation: isolate; background: var(--kon); color: var(--kon-ink);
-  border-radius: var(--r-l); padding: 32px 32px 24px;
+/* 顔: 大きな札。左に藍の軸(稽古着の合わせ)を通し、縦書きで部と章を下げる。題は札の文字のように大きく太く */
+.today { display: grid; grid-template-columns: 56px minmax(0, 1fr); color: var(--ink); }
+.today-axis {
+  grid-row: 1; margin: 0; position: relative; overflow: hidden; isolation: isolate; background-color: var(--kon); color: var(--kon-ink);
+  writing-mode: vertical-rl; display: flex; align-items: center; gap: .9em; padding: 28px 0;
+  font: 700 .9375rem/1 var(--head); letter-spacing: .26em;
+  background-image: repeating-linear-gradient(180deg, var(--kon-muted) 0 7px, transparent 7px 13px); background-size: 1.5px 100%; background-repeat: no-repeat; background-position: 100% 0;
 }
-.today::before { /* 麻の葉の刺し子 */
-  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .16;
+.today-axis::before { /* 麻の葉の刺し子を、軸の布にだけ薄く */
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .14;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='69.28' viewBox='0 0 20 34.64'%3E%3Cpath d='M10 0V17.32M0 5.77L10 17.32 20 5.77M0 28.87L10 17.32 20 28.87M10 34.64V17.32M0 5.77V28.87M20 5.77V28.87M0 5.77L10 0 20 5.77M0 28.87L10 34.64 20 28.87' stroke='%23fff' stroke-width='.55' fill='none' stroke-dasharray='1.6 1'/%3E%3C/svg%3E");
   background-size: 40px 69.28px;
-  -webkit-mask-image: linear-gradient(115deg, transparent 38%, #000 88%); mask-image: linear-gradient(115deg, transparent 38%, #000 88%);
 }
-.today-kicker { font-size: .875rem; color: var(--kon-muted); margin: 0; display: flex; gap: 4px 10px; flex-wrap: wrap; }
-.today-title { font-size: clamp(1.9rem, 4.6vw, 2.75rem); font-weight: 700; line-height: 1.28; margin: 6px 0 10px; color: var(--kon-ink); }
+.today-axis small { font-size: .8125rem; letter-spacing: .2em; color: var(--kon-muted); }
+.today-body { padding: 24px 0 28px 24px; min-width: 0; }
+.today-kicker { font-size: .875rem; color: var(--ink-muted); margin: 0; display: flex; gap: 4px 14px; flex-wrap: wrap; }
+.today-title { font-weight: 900; line-height: 1.06; letter-spacing: -.03em; margin: 8px 0 24px; color: var(--ink); text-wrap: balance; }
 .today-title a { color: inherit; text-decoration: none; }
-.today-meta { font-size: .875rem; color: var(--kon-muted); margin: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; }
-.today-meta span { white-space: nowrap; }
-.today-links { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 4px; }
+.phrase { display: inline-block; max-width: 100%; } /* phraseWrap: 語の途中で折らない */
+.today-title a:hover { color: var(--accent-ink); }
+/* 題の長さで 3 段(app.js の titleSize)。長い英単語でもはみ出さない大きさに */
+.today-title.size-xl { font-size: 3.5rem; }
+.today-title.size-l { font-size: 2.625rem; letter-spacing: -.02em; }
+.today-title.size-m { font-size: 2rem; letter-spacing: -.01em; line-height: 1.18; }
+.today-links { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 8px; }
 .today-links .today-alt { min-height: 40px; font-size: .875rem; }
-.today-alt { display: block; margin-top: 0; color: var(--kon-ink); font-size: .9375rem; text-decoration-color: var(--kon-line); min-height: 44px; display: inline-flex; align-items: center; }
-.today-alt:hover { color: #fff; }
-.save-state { display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--kon-muted); margin: 12px 0 0; }
-.save-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--kon-muted); flex: none; margin-top: .5em; }
-.today-next { font-size: .875rem; color: var(--kon-ink); margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+.today-alt { color: var(--ink-muted); font-size: .9375rem; text-decoration-color: var(--line-strong); min-height: 44px; display: inline-flex; align-items: center; }
+.today-alt:hover { color: var(--ink); }
+.save-state { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--ink-muted); margin: 10px 0 0; }
+.save-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-muted); flex: none; margin-top: .5em; }
+.today-next { font-size: .9375rem; color: var(--ink); margin: 18px 0 20px; display: flex; align-items: center; gap: 10px; }
 .today-next .dye { width: 18px; height: 18px; }
-.today-next .tn-now, .today-next .tn-hint { display: block; }
-.today-next .tn-hint { color: var(--kon-muted); font-size: .8125rem; }
+.today-next .tn-hint { color: var(--ink-muted); font-size: .875rem; margin-left: .6em; }
 .install-hint .close { flex: none; min-width: 44px; min-height: 44px; margin: 0 0 0 -4px; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
 .save-state.ok::before { background: var(--ok); }
 .save-state.ng::before { background: var(--shu); }
-.today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
-.today .btn.primary { background: var(--kon-ink); border-color: var(--kon-ink); color: var(--kon); min-width: 220px; min-height: 52px; font-size: 1rem; }
-.today .btn.primary:hover { background: #fff; border-color: #fff; color: var(--kon); }
-.today-review { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding-top: 14px; color: var(--kon-ink); text-decoration: none; font-size: .9375rem; min-height: 44px;
-  background: repeating-linear-gradient(90deg, var(--kon-line) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat; }
-.today-review:hover { color: #fff; }
-.today-review b { font-size: 1.35rem; font-variant-numeric: tabular-nums; margin-right: 4px; }
-.today-review .zero { color: var(--kon-muted); }
-.today .talk-line { margin: 18px 0 0; color: var(--kon-muted); font-size: .875rem; }
+.today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.today .btn.primary { min-width: 240px; min-height: 56px; font-size: 1.0625rem; letter-spacing: .08em; }
+.today-review { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; color: var(--ink); text-decoration: none; font-size: .9375rem; min-height: 44px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 7px, transparent 7px 13px) top / 100% 1.5px no-repeat; }
+.today-review:hover { color: var(--accent-ink); }
+.today-review b { font: 900 1.875rem/1 var(--head); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.today-review .zero { color: var(--ink-muted); }
+.today .talk-line { grid-column: 1 / -1; margin: 18px 0 0; color: var(--ink-muted); font-size: .875rem; }
+
+.today-meta { color: var(--ink-muted); font-size: .9375rem; margin: 0 0 16px; }
+/* PC のホーム: 上の帯に「大きな札」と染まりの地図を並べ、下に記録と一覧の 2 列 */
+.dash-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 0 64px; align-items: start; margin: -28px 0 48px; }
+.dash-hero > .progress-block { padding-top: 40px; }
+@media (min-width: 1024px) {
+  .today { grid-template-columns: 64px minmax(0, 1fr); }
+  .today-axis { grid-row: 1 / span 4; font-size: 1.0625rem; padding: 44px 0; }
+  .today-body { padding: 48px 0 36px 48px; }
+  .today-review, .today .talk-line, .save-state { grid-column: 2; margin-left: 48px; }
+  .today-title.size-xl { font-size: 6rem; }
+  .today-title.size-l { font-size: 4.25rem; }
+  .today-title.size-m { font-size: 3.125rem; }
+  .today .btn.primary { min-width: 320px; }
+}
+@media (max-width: 1023px) { .dash-hero { grid-template-columns: minmax(0, 1fr); margin-top: 0; } }
+
+/* 運針(うんしん): レッスンの段を刺し子の針目で。済んだ段は糸、いまの段は玉結び(朱)、まだの段は針穴 */
+.unshin { display: grid; grid-template-columns: repeat(var(--steps, 7), minmax(0, 1fr)); gap: 6px; align-items: center; height: 14px; color: var(--ink); }
+.unshin i { height: 4px; }
+.unshin i.sewn { background: currentColor; border-radius: 2px; height: 3px; }
+.unshin i:not(.sewn):not(.now) { background: radial-gradient(circle, var(--ink-muted) 1.6px, transparent 1.9px) 0 50% / 50% 100% repeat-x; }
+.unshin i.now { position: relative; }
+.unshin i.now::before { content: ""; position: absolute; left: 0; right: 50%; top: .5px; height: 3px; border-radius: 2px; background: currentColor; }
+.unshin i.now::after { content: ""; position: absolute; left: calc(50% - 5.5px); top: -3.5px; width: 11px; height: 11px; border-radius: 50%; background: var(--shu); }
+.unshin-cap { display: flex; justify-content: space-between; gap: 12px; font-size: .8125rem; color: var(--ink-muted); margin: 8px 0 0; }
+.unshin-cap b { color: var(--ink); }
 
 .progress-block { padding: 28px 0 8px; }
 .progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -369,7 +408,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .home-stats > * + * { border-left: 1px solid var(--line); }
 .home-stats a:hover { background: var(--surface-2); color: var(--ink); }
 .stat-label { font-size: .75rem; color: var(--ink-muted); }
-.stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1.3; }
+.stat-value { font: 900 1.75rem/1.3 var(--head); }
 .stat-value small { font-size: .8125rem; margin-left: 2px; color: var(--ink-muted); font-weight: 400; }
 .stat-sub { font-size: .75rem; color: var(--ink-muted); }
 
@@ -431,8 +470,20 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .lesson-layout.no-tutor { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
 .lesson-layout.no-tutor .lesson-main { max-width: 860px; margin: 0 auto; width: 100%; }
 .ai-off-line { font-size: .8125rem; color: var(--ink-muted); }
-.lesson-hero { display: block; padding: 8px 0 4px; }
-.lesson-hero h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 4px 0 12px; }
+/* レッスンの冒頭もホームと同じ「大きな札」: 左に藍の軸(部と章を縦書き)、題は札の文字のように */
+.lesson-hero { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0 24px; padding: 8px 0 4px; }
+.lesson-axis {
+  margin: 0; background-color: var(--kon); color: var(--kon-ink); border-radius: 4px;
+  writing-mode: vertical-rl; display: flex; align-items: center; gap: .9em; padding: 20px 0;
+  font: 700 .875rem/1 var(--head); letter-spacing: .24em;
+  background-image: repeating-linear-gradient(180deg, var(--kon-muted) 0 7px, transparent 7px 13px); background-size: 1.5px 100%; background-repeat: no-repeat; background-position: 100% 0;
+}
+.lesson-axis small { font-size: .75rem; letter-spacing: .18em; color: var(--kon-muted); }
+.lesson-hero-body { min-width: 0; }
+.lesson-hero h1 { font-weight: 900; line-height: 1.12; letter-spacing: -.02em; margin: 4px 0 14px; }
+.lesson-hero h1.size-xl { font-size: 3.25rem; }
+.lesson-hero h1.size-l { font-size: 2.5rem; }
+.lesson-hero h1.size-m { font-size: 2rem; letter-spacing: -.01em; line-height: 1.2; }
 .lesson-hero .summary { font-size: 1.0625rem; margin: 0 0 12px; color: var(--ink); }
 .lesson-hero .meta { display: flex; gap: 6px 16px; align-items: center; flex-wrap: wrap; color: var(--ink-muted); font-size: .875rem; margin: 0; }
 .goals { margin: 20px 0 0; background: var(--surface-2); border: 0; border-radius: var(--r-l); padding: 16px 20px; }
@@ -941,13 +992,18 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 
   .container, .lesson-layout { padding: 16px var(--gutter); }
   .card { padding: 16px; border-radius: 12px; }
-  .today { margin: -16px calc(var(--gutter) * -1) 0; border-radius: 0; padding: 28px var(--gutter) 20px; }
+  .today { margin: -16px calc(var(--gutter) * -1) 0; }
+  .today-body { padding: 24px var(--gutter) 28px 20px; }
+  .today-review, .save-state, .today .talk-line { margin-left: var(--gutter); margin-right: var(--gutter); }
   .today .btn.primary { width: 100%; }
   .home-stats .stat-value { font-size: 1.4rem; }
   .home-stats > * { padding: 12px; }
   .part-block { grid-template-columns: 36px minmax(0, 1fr); gap: 0 14px; }
   .part-tag { width: 36px; line-height: 36px; font-size: .9375rem; top: 70px; }
-  .lesson-hero h1 { font-size: 1.75rem; }
+  .lesson-hero { grid-template-columns: 40px minmax(0, 1fr); gap: 0 16px; }
+  .lesson-hero h1.size-xl { font-size: 2.625rem; }
+  .lesson-hero h1.size-l { font-size: 2.125rem; }
+  .lesson-hero h1.size-m { font-size: 1.75rem; }
   .lesson-body h2 { font-size: 1.3rem; }
   .section-title { font-size: 1.3rem; }
   .stepper-wrap { top: 56px; margin: 16px calc(var(--gutter) * -1) 8px; }

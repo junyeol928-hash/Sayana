@@ -14,7 +14,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "java-variables",
         "title" : "変数と型",
@@ -23,7 +25,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-operators",
         "title" : "演算子",
@@ -32,7 +36,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/control-flow",
@@ -45,7 +51,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-loops",
         "title" : "ループ",
@@ -54,7 +62,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-arrays",
         "title" : "配列",
@@ -63,7 +73,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/methods-strings",
@@ -76,7 +88,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-strings",
         "title" : "文字列",
@@ -85,7 +99,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/oop",
@@ -98,7 +114,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 10
+        "reading" : 10,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-encapsulation",
         "title" : "カプセル化",
@@ -107,7 +125,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 9
+        "reading" : 9,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-inheritance",
         "title" : "継承",
@@ -116,7 +136,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-polymorphism",
         "title" : "ポリモーフィズム",
@@ -125,7 +147,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-abstract-interface",
         "title" : "抽象クラスとインターフェース",
@@ -134,7 +158,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 6
+        "reading" : 6,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-nested-classes",
         "title" : "ネストクラスと匿名クラス",
@@ -143,7 +169,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/exceptions",
@@ -156,7 +184,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/collections-generics",
@@ -169,7 +199,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-generics",
         "title" : "ジェネリクス",
@@ -178,7 +210,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/modern-java",
@@ -191,7 +225,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 10
+        "reading" : 10,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-optional",
         "title" : "Optional",
@@ -200,7 +236,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-record-enum",
         "title" : "recordとenum",
@@ -209,7 +247,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-datetime",
         "title" : "日付API",
@@ -218,7 +258,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-annotations",
         "title" : "アノテーションの仕組み",
@@ -227,7 +269,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     }, {
       "id" : "java-basics/io-testing",
@@ -240,7 +284,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-junit",
         "title" : "JUnit入門",
@@ -249,7 +295,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 5
       } ]
     }, {
       "id" : "java-basics/jvm-concurrency",
@@ -262,7 +310,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 6
+        "reading" : 6,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       }, {
         "id" : "java-concurrency",
         "title" : "スレッドと並行処理",
@@ -271,7 +321,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading" ],
+        "checklist" : 0
       } ]
     } ]
   }, {
@@ -289,7 +341,9 @@
         "ready" : true,
         "exercises" : 1,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "sts-projects",
         "title" : "プロジェクトの作成とインポート",
@@ -298,7 +352,9 @@
         "ready" : true,
         "exercises" : 1,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "quiz", "write", "sts" ],
+        "checklist" : 7
       } ]
     }, {
       "id" : "dev-tools/debug-refactor",
@@ -311,7 +367,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 8
       }, {
         "id" : "sts-shortcuts",
         "title" : "ショートカットとリファクタリング機能",
@@ -320,7 +378,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 8
       } ]
     }, {
       "id" : "dev-tools/build-vcs",
@@ -333,7 +393,9 @@
         "ready" : true,
         "exercises" : 1,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "tools-git",
         "title" : "Git連携",
@@ -342,7 +404,9 @@
         "ready" : true,
         "exercises" : 0,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "quiz", "sts" ],
+        "checklist" : 7
       } ]
     } ]
   }, {
@@ -360,7 +424,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "spring-boot-startup",
         "title" : "Spring Bootの起動の仕組み",
@@ -369,7 +435,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 6
       } ]
     }, {
       "id" : "spring/web",
@@ -382,7 +450,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "spring-thymeleaf",
         "title" : "Thymeleaf",
@@ -391,7 +461,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "spring-forms",
         "title" : "フォームとバリデーション",
@@ -400,7 +472,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       } ]
     }, {
       "id" : "spring/data",
@@ -413,7 +487,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 8
       }, {
         "id" : "spring-data-jpa",
         "title" : "Spring Data JPA",
@@ -422,7 +498,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "spring-transaction",
         "title" : "トランザクション",
@@ -431,7 +509,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       } ]
     }, {
       "id" : "spring/api",
@@ -444,7 +524,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "spring-exception-handling",
         "title" : "例外ハンドリング",
@@ -453,7 +535,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       } ]
     }, {
       "id" : "spring/ops",
@@ -466,7 +550,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "spring-logging",
         "title" : "ログ",
@@ -475,7 +561,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 4
+        "reading" : 4,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 7
       } ]
     }, {
       "id" : "spring/security-test",
@@ -488,7 +576,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "spring-mockmvc",
         "title" : "MockMvcによるテスト",
@@ -497,7 +587,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       } ]
     }, {
       "id" : "spring/reading-code",
@@ -510,7 +602,9 @@
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
-        "reading" : 5
+        "reading" : 5,
+        "steps" : [ "read", "atwork", "run", "quiz", "write", "reading", "sts" ],
+        "checklist" : 5
       } ]
     } ]
   }, {
@@ -528,7 +622,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       }, {
         "id" : "capstone-setup",
         "title" : "プロジェクト作成とエンティティ",
@@ -537,7 +633,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 6
       } ]
     }, {
       "id" : "capstone/features",
@@ -550,7 +648,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "capstone-approve",
         "title" : "承認・差戻しフロー",
@@ -559,7 +659,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "capstone-search",
         "title" : "検索とページング",
@@ -568,7 +670,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       } ]
     }, {
       "id" : "capstone/finishing",
@@ -581,7 +685,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "capstone-api-test",
         "title" : "REST APIとテスト",
@@ -590,7 +696,9 @@
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 7
       }, {
         "id" : "capstone-release",
         "title" : "例外・ログ・プロファイルで仕上げ",
@@ -599,7 +707,9 @@
         "ready" : true,
         "exercises" : 1,
         "quiz" : 5,
-        "reading" : 0
+        "reading" : 0,
+        "steps" : [ "read", "run", "quiz", "write", "sts" ],
+        "checklist" : 8
       } ]
     } ]
   } ]

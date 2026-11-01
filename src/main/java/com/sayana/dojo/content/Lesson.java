@@ -1,5 +1,6 @@
 package com.sayana.dojo.content;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,28 @@ public record Lesson(
 
     public boolean hasSts() {
         return sts != null;
+    }
+
+    /** レッスンにある段(読む → 仕事のコード → サンプル → クイズ → 演習 → 読解 → STSで試す)。レッスン画面の段の並びと同じ。 */
+    public List<String> stepKeys() {
+        List<String> keys = new ArrayList<>(List.of("read"));
+        if (!atWork.isEmpty()) {
+            keys.add("atwork");
+        }
+        if (!samples.isEmpty()) {
+            keys.add("run");
+        }
+        keys.add("quiz");
+        if (!exercises.isEmpty()) {
+            keys.add("write");
+        }
+        if (!reading.isEmpty()) {
+            keys.add("reading");
+        }
+        if (hasSts() || !checklist.isEmpty()) {
+            keys.add("sts");
+        }
+        return keys;
     }
 
     /** 1つのサンプル。libraries に "spring" などがあると、そのライブラリ入りの JShell で実行する。 */

@@ -3,6 +3,8 @@ package com.sayana.dojo.web;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import com.sayana.dojo.ai.AiService;
 import com.sayana.dojo.content.ContentRepository;
+import com.sayana.dojo.content.Lesson;
 import com.sayana.dojo.progress.ActivityService;
 import com.sayana.dojo.progress.ProgressService;
 import com.sayana.dojo.progress.ReviewService;
@@ -90,11 +93,40 @@ public class DashboardController {
                 model.addAttribute("nextHint", nextDyeHint(s));
             });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
+            model.addAttribute("nextTitleSize", titleSize(next.title()));
+            content.chapter(next.chapterId()).ifPresent(c -> {
+                model.addAttribute("nextAxisChapter", kanjiOrdinal(c.title()));
+                content.part(c.partId()).ifPresent(p -> model.addAttribute("nextAxisPart", kanjiOrdinal(p.title())));
+            });
             // 所属はスマホ版と同じ「部・章」(部の「第n部」は省く)
             model.addAttribute("nextChapter", content.chapter(next.chapterId()).map(c -> content.part(c.partId())
                     .map(p -> p.title().replaceFirst("^第\\d+部\\s*", "") + "・").orElse("") + c.title()).orElse(""));
         });
+        // 前回の続きに差し替えるとき(app.js)に使う、縦書きの軸の文字
+        model.addAttribute("axisLabels", content.readyLessons().stream().collect(Collectors.toMap(Lesson::id,
+                l -> content.chapter(l.chapterId()).map(c -> content.part(c.partId()).map(p -> kanjiOrdinal(p.title()))
+                        .orElse("") + "|" + kanjiOrdinal(c.title())).orElse("|"))));
         return "dashboard";
+    }
+
+    private static final Pattern ORDINAL = Pattern.compile("第(\\d+)");
+    private static final String[] KANJI_DIGIT = {"〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"};
+
+    /** 縦書きの軸では数字を漢数字に(「第3部」→「第三部」)。スマホ版 app.js の kanjiOrdinal と同じ。 */
+    public static String kanjiOrdinal(String text) {
+        Matcher m = ORDINAL.matcher(text);
+        if (!m.find()) {
+            return text;
+        }
+        int n = Integer.parseInt(m.group(1));
+        String k = n < 10 ? KANJI_DIGIT[n] : n < 20 ? "十" + (n % 10 > 0 ? KANJI_DIGIT[n % 10] : "") : String.valueOf(n);
+        return text.substring(0, m.start()) + "第" + k + text.substring(m.end());
+    }
+
+    /** 題の長さで見出しの大きさを 3 段に分ける。英数字は和字の約半分の幅で数える。スマホ版 app.js の titleSize と同じ。 */
+    public static String titleSize(String title) {
+        double width = title.codePoints().mapToDouble(c -> c < 0x2000 ? 0.55 : 1).sum();
+        return width <= 8 ? "size-xl" : width <= 14 ? "size-l" : "size-m";
     }
 
     /** 染めの名前の読み(スマホ版 app.js の DYE の read と同じ)。ヒーローでふりがなに使う。 */

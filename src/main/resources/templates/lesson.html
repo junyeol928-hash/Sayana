@@ -22,8 +22,11 @@
 <div class="lesson-layout" th:if="${lesson.ready()}" th:classappend="${aiAvailable} ? '' : 'no-tutor'">
 <main id="main" class="lesson-main">
     <header class="lesson-hero">
-        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
-        <h1 th:text="${lesson.title}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
+        <!--/* 部と章は左の軸に縦書きで。現在地の読み上げには残す */-->
+        <p class="lesson-axis" aria-hidden="true"><span th:text="${axisPart}">第三部 Spring</span><small th:text="${axisChapter}">第一章</small></p>
+        <div class="lesson-hero-body">
+        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></span></nav>
+        <h1 th:text="${lesson.title}" th:classappend="${titleSize}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
         <p class="summary" th:text="${lesson.summary}"></p>
         <p class="meta">
             <span class="lesson-dye"><span class="dye lesson-swatch" th:classappend="'dye-' + ${status.dyeLevel()}" role="img"
@@ -31,6 +34,7 @@
             <span>読む <span th:text="${lesson.minutes}">15</span> 分</span>
             <span th:if="${status.bestQuiz != null}" th:text="'クイズ最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal}"></span>
         </p>
+        </div>
     </header>
 
     <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→クイズ→読解→演習→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ */-->

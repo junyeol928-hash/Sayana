@@ -323,11 +323,56 @@ function pcSave(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.warn("記録を保存できませんでした", e); }
 }
 
+// ---- 顔(ホーム)。スマホ版 app.js の titleSize・stepStates・unshin と同じ
+function titleSize(title) {
+  const width = [...title].reduce((w, c) => w + (c.charCodeAt(0) < 0x2000 ? 0.55 : 1), 0);
+  return width <= 8 ? "size-xl" : width <= 14 ? "size-l" : "size-m";
+}
+// 一覧の行の data-*(サーバーの記録)に、このブラウザの記録(仕事のコードを読んだ・読解を全問)を足す
+function stepStates(row) {
+  const d = row.dataset;
+  const id = d.lesson;
+  const done = new Set((d.done || "").split(" ").filter(Boolean));
+  if ((pcStore(SECTIONS_KEY)[id] || []).includes("atwork")) done.add("atwork");
+  const rec = readingRecord();
+  const total = Number(d.reading || 0);
+  if (total > 0 && Array.from({ length: total }, (_, i) => rec[`${id}@${i}`]?.ok).every(Boolean)) done.add("reading");
+  return (d.steps || "read quiz").split(" ").map((key) => ({ key, done: done.has(key) }));
+}
+// 運針(うんしん): 段を刺し子の針目で見せる。済んだ段は糸、いまの段は玉結び、まだの段は針穴
+function unshin(steps, nowKey) {
+  const n = steps.filter((st) => st.done).length;
+  const label = `${steps.length} 段のうち ${n} 段済み${nowKey ? `。次は${SECTION_LABEL[nowKey]}` : ""}`;
+  return `<div class="unshin" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st) =>
+    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}"></i>`).join("")}</div>
+    <p class="unshin-cap" aria-hidden="true"><span>${steps.length} 段のうち <b>${n} 段</b>済み</span>${nowKey ? `<span>次は <b>${SECTION_LABEL[nowKey]}</b></span>` : ""}</p>`;
+}
+// 大きな題は語の途中で折らない(「コンテ/ナ」にならないように)。語ごとに折り返さない箱に入れ、助詞・記号は前の語につなぐ。
+// word-break: auto-phrase が効かないブラウザでも同じに見えるように、Intl.Segmenter で分ける
+function phraseWrap(el) {
+  if (!el || el.dataset.phrased || !("Segmenter" in Intl)) return;
+  const words = [];
+  for (const { segment, isWordLike } of new Intl.Segmenter("ja", { granularity: "word" }).segment(el.textContent)) {
+    if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
+    else words.push(segment);
+  }
+  el.innerHTML = words.map((w) => `<span class="phrase">${escHtml(w)}</span>`).join("");
+  el.dataset.phrased = "1";
+}
+function drawUnshin(row, nowKey) {
+  const slot = document.querySelector(".today .unshin-slot");
+  if (!slot || !row) return;
+  const steps = stepStates(row);
+  slot.innerHTML = unshin(steps, nowKey || steps.find((st) => !st.done)?.key);
+}
+
 /** ダッシュボード: 前回の続きがあれば主役にし、新しいレッスンは控えめに添える。読解の正解数も出す */
 function dashboardResume() {
   const ok = document.getElementById("reading-ok");
   if (ok) ok.textContent = Object.values(readingRecord()).filter((r) => r.ok).length;
   const hero = document.querySelector(".today");
+  const slot = document.querySelector(".today .unshin-slot");
+  if (slot) drawUnshin(document.querySelector(`.lesson-row a[data-lesson="${CSS.escape(slot.dataset.lesson)}"]`));
   try {
     const last = pcStore(LAST_KEY);
     const row = last.id && document.querySelector(`.lesson-row a[data-lesson="${CSS.escape(last.id)}"]`);
@@ -352,6 +397,7 @@ function dashboardResume() {
       btn.href = `/lessons/${encodeURIComponent(last.id)}#${go}`;
       hero.querySelector(".today-actions").insertAdjacentHTML("beforeend", `<a class="today-alt" data-back href="${href}">前回の位置(${escHtml(label)})へ戻る</a>`);
     }
+    drawUnshin(row, go);
     // 染まりの地図の朱の印も、前回の続きのマスへ
     document.querySelectorAll(".dye-cell.is-here").forEach((c) => c.classList.remove("is-here"));
     document.querySelector(`.dye-cell[data-lesson="${CSS.escape(last.id)}"]`)?.classList.add("is-here");
@@ -366,14 +412,18 @@ function dashboardResume() {
     const nextTitle = title.textContent;
     // 主役を前回の続きに差し替える。所属・時間・いまの染めと次の条件も、そのレッスンの値で組み立て直す
     const d = row.dataset;
-    hero.querySelector(".today-kicker").innerHTML = `<span>前回の続き</span><span>${escHtml(d.chapter)}</span>`;
+    hero.querySelector(".today-kicker").innerHTML = `<span>前回の続き</span><span class="visually-hidden">${escHtml(d.chapter)}</span><span>読む ${escHtml(d.minutes)} 分</span>`;
+    const [axisPart, axisChapter] = (d.axis || "|").split("|");
+    const axis = hero.querySelector(".today-axis");
+    if (axis) axis.innerHTML = `<span>${escHtml(axisPart)}</span><small>${escHtml(axisChapter)}</small>`;
     title.href = href;
     title.textContent = last.title;
-    const meta = hero.querySelector(".today-meta");
-    if (meta) meta.innerHTML = [`読む ${d.minutes} 分`, `演習 ${d.exercises}`, `クイズ ${d.quiz}`, d.reading !== "0" ? `読解 ${d.reading}` : ""].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
+    title.closest(".today-title").classList.remove("size-xl", "size-l", "size-m");
+    title.closest(".today-title").classList.add(titleSize(last.title));
+    slot.dataset.lesson = last.id;
     const next = hero.querySelector(".today-next");
     const [dyeName, dyeMeaning] = d.dyeLabel.split("・");
-    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span><span class="tn-now">いま <ruby>${escHtml(dyeName)}<rt>${DYE_READ[dyeName] || ""}</rt></ruby>(${escHtml(dyeMeaning)})</span><span class="tn-hint">次: ${escHtml(d.hint)}</span></span>`;
+    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span><span class="tn-now"><ruby>${escHtml(dyeName)}<rt>${DYE_READ[dyeName] || ""}</rt></ruby>(${escHtml(dyeMeaning)})</span><span class="tn-hint">${escHtml(d.hint)}</span></span>`;
     else next?.remove();
     hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
     // 先輩の一言も、続きの話に
@@ -706,6 +756,7 @@ await loadCodeMirror();
 initRoot(document);
 trackLesson();
 dashboardResume();
+document.querySelectorAll(".today-title a, .lesson-hero h1").forEach(phraseWrap);
 if (window.htmx) {
   window.htmx.onLoad((el) => initRoot(el));
 }

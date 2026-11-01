@@ -107,6 +107,27 @@ public class ProgressService {
             return reviewGraduated ? 4 : 3;
         }
 
+        /** ホームの運針に使う、記録から「済み」と分かる段。仕事のコードと読解はブラウザの記録なので、app.js が足す。 */
+        public String doneStepKeys() {
+            List<String> keys = new ArrayList<>();
+            if (read) {
+                keys.add("read");
+            }
+            if (sampleRun) {
+                keys.add("run");
+            }
+            if (bestQuiz != null && quizPassed()) {
+                keys.add("quiz");
+            }
+            if (exercisesTotal > 0 && exercisesDone()) {
+                keys.add("write");
+            }
+            if (checklistTotal > 0 && checklistComplete()) {
+                keys.add("sts");
+            }
+            return String.join(" ", keys);
+        }
+
         /** 染まり具合の名前と意味(色だけで伝えないため)。 */
         public String dyeLabel() {
             return switch (dyeLevel()) {

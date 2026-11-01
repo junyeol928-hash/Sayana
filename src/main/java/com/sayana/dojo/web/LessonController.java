@@ -49,6 +49,10 @@ public class LessonController {
         model.addAttribute("status", progress.status(lesson));
         model.addAttribute("part", content.part(lesson.partId()).orElseThrow());
         model.addAttribute("chapter", content.chapter(lesson.chapterId()).orElseThrow());
+        // 顔(ホームと同じ大きな札): 縦書きの軸の文字と、題の長さで決める見出しの大きさ
+        model.addAttribute("axisPart", DashboardController.kanjiOrdinal(content.part(lesson.partId()).orElseThrow().title()));
+        model.addAttribute("axisChapter", DashboardController.kanjiOrdinal(content.chapter(lesson.chapterId()).orElseThrow().title()));
+        model.addAttribute("titleSize", DashboardController.titleSize(lesson.title()));
         model.addAttribute("prev", content.previous(id).orElse(null));
         model.addAttribute("next", content.next(id).orElse(null));
         model.addAttribute("exercises", lesson.exercises().stream().map(exerciseViews::of).toList());

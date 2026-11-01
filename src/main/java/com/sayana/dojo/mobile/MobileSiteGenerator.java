@@ -48,6 +48,10 @@ public final class MobileSiteGenerator {
     static final List<String> STATIC_FILES = List.of("index.html", "app.js", "mobile.css", "icon.svg",
             "manifest.webmanifest");
 
+    /** 見出しの書体(使う文字だけに絞ったもの。作り方は scripts/subset-heading-font.py)とライセンス。 */
+    static final List<String> HEADING_FONT_FILES = List.of("zen-kaku-gothic-new-700.woff2",
+            "zen-kaku-gothic-new-900.woff2", "OFL.txt");
+
     /** AI 機能のプロンプト。 */
     static final List<String> PROMPTS = List.of("tutor", "hint", "review", "explain-error");
 
@@ -75,6 +79,10 @@ public final class MobileSiteGenerator {
         }
         // PC版と同じ見た目にするため、CSS は PC版のものをそのまま使う(スマホ用の追加は mobile.css)
         files.put("app.css", resource("static/css/app.css"));
+        // 見出しの書体も PC版と同じもの。app.css からの相対パス(fonts/)がそのまま使える場所に置く
+        for (String font : HEADING_FONT_FILES) {
+            files.put("fonts/" + font, resource("static/css/fonts/" + font));
+        }
 
         // 目次
         List<Object> parts = new ArrayList<>();
@@ -92,6 +100,9 @@ public final class MobileSiteGenerator {
                     m.put("exercises", l.exercises().size());
                     m.put("quiz", l.quiz().size());
                     m.put("reading", l.reading().size());
+                    // ホームの運針(段ごとの済み具合)に使う。段の並びはレッスン画面と同じ
+                    m.put("steps", l.stepKeys());
+                    m.put("checklist", l.checklist().size());
                     lessons.add(m);
                 }
                 chapters.add(ordered("id", c.id(), "title", c.title(), "lessons", lessons));

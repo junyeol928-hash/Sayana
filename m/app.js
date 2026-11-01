@@ -256,6 +256,51 @@ function nextDyeHint(meta, level) {
   return null;
 }
 
+// ---- 顔(ホームとレッスンの冒頭)。PC版 app.js にも同じものがある
+// 題の長さで見出しの大きさを 3 段に分ける(長い英単語が画面からはみ出さないように)。英数字は和字の約半分の幅で数える
+function titleSize(title) {
+  const width = [...title].reduce((w, c) => w + (c.charCodeAt(0) < 0x2000 ? 0.55 : 1), 0);
+  return width <= 8 ? "size-xl" : width <= 14 ? "size-l" : "size-m";
+}
+// 縦書きの軸では数字を漢数字に(「第3部」→「第三部」)。横倒しの算用数字は読みにくいので
+const KANJI_DIGIT = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+const kanjiOrdinal = (text) => text.replace(/第(\d+)/, (_, n) => "第" + (n < 10 ? KANJI_DIGIT[n] : n < 20 ? "十" + (n % 10 ? KANJI_DIGIT[n % 10] : "") : n));
+// レッスンの段ごとの済み具合(段の並びはレッスン画面と同じ)。curriculum.json の steps にある段だけ
+function stepStates(l) {
+  const keys = l.steps || ["read", "quiz"];
+  const done = {
+    read: !!S.read[l.id],
+    atwork: seenSection(l.id, "atwork"),
+    run: seenSection(l.id, "run"),
+    quiz: !!(S.quiz[l.id] && quizPassed(l)),
+    write: Array.from({ length: l.exercises || 0 }, (_, i) => S.exercise[`${l.id}/ex${i + 1}`]?.selfPass).every(Boolean),
+    reading: Array.from({ length: l.reading || 0 }, (_, i) => S.reading[`${l.id}@${i}`]?.ok).every(Boolean),
+    sts: (l.checklist || 0) > 0 && (S.checklist[l.id] || []).length >= l.checklist,
+  };
+  return keys.map((key) => ({ key, done: done[key] }));
+}
+// 運針(うんしん): 段を刺し子の針目で見せる。済んだ段は糸、いまの段は玉結び、まだの段は針穴
+function unshin(steps, nowKey) {
+  const n = steps.filter((st) => st.done).length;
+  const label = `${steps.length} 段のうち ${n} 段済み${nowKey ? `。次は${SECTION_LABEL[nowKey]}` : ""}`;
+  return `<div class="unshin" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st) =>
+    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}"></i>`).join("")}</div>
+    <p class="unshin-cap" aria-hidden="true"><span>${steps.length} 段のうち <b>${n} 段</b>済み</span>${nowKey ? `<span>次は <b>${SECTION_LABEL[nowKey]}</b></span>` : ""}</p>`;
+}
+
+// 大きな題は語の途中で折らない(「コンテ/ナ」にならないように)。語ごとに折り返さない箱に入れ、助詞・記号は前の語につなぐ。
+// word-break: auto-phrase が効かないブラウザでも同じに見えるように、Intl.Segmenter で分ける
+function phraseWrap(el) {
+  if (!el || el.dataset.phrased || !("Segmenter" in Intl)) return;
+  const words = [];
+  for (const { segment, isWordLike } of new Intl.Segmenter("ja", { granularity: "word" }).segment(el.textContent)) {
+    if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
+    else words.push(segment);
+  }
+  el.innerHTML = words.map((w) => `<span class="phrase">${esc(w)}</span>`).join("");
+  el.dataset.phrased = "1";
+}
+
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 
 // ------------------------------------------------------------ 画面
@@ -291,6 +336,7 @@ async function render() {
     view().innerHTML = `<div class="ai-error">読み込めませんでした: ${esc(e.message)}<br>
       電波が無いときは、一度電波のある所で開いてから使ってください(最初の1回で全レッスンが保存されます)。</div>`;
   }
+  document.querySelectorAll(".today-title a, .lesson-hero h1").forEach(phraseWrap);
   updateHeader();
 }
 
@@ -347,12 +393,15 @@ async function renderHome() {
   save();
   view().innerHTML = `
     <section class="today" aria-labelledby="today-title">
-      <p class="today-kicker"><span>${last ? "前回の続き" : "今日の稽古"}</span><span>${esc(hero.part.title.replace(/^第\d部\s*/, ""))} · ${esc(hero.chapter.title)}</span></p>
-      <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
-      <p class="today-meta"><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
-      ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">いま ${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">次: ${hint}</span></span></p>` : ""}
+      <p class="today-axis" aria-hidden="true"><span>${esc(kanjiOrdinal(hero.part.title))}</span><small>${esc(kanjiOrdinal(hero.chapter.title))}</small></p>
+      <div class="today-body">
+      <p class="today-kicker"><span>${last ? "前回の続き" : "今日の稽古"}</span><span class="visually-hidden">${esc(hero.part.title)} · ${esc(hero.chapter.title)}</span><span>読む ${hero.minutes} 分</span></p>
+      <h1 class="today-title ${titleSize(hero.title)}" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
+      ${unshin(stepStates(hero), last ? go : stepStates(hero).find((st) => !st.done)?.key)}
+      ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">${hint}</span></span></p>` : ""}
       <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(go || "") : ""}">${!last ? (levels[hero.id] ? "続きから稽古する" : "稽古をはじめる") : go !== S.last.section ? `${SECTION_LABEL[go]}へ進む` : resumeLabel(section)}</a></div>
       <div class="today-links">${last && go !== S.last.section ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="${esc(S.last.section)}">前回の位置(${section})へ戻る</a>` : ""}<a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
+      </div>
       <a class="today-review" href="#/review"><span>今日の復習</span>
         <span>${due ? `<b>${due}</b>問<small class="review-min">約 ${Math.max(1, Math.ceil(due / 3))} 分</small> ${icon("arrow", "sm")}` : `<span class="zero">なし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
       <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
@@ -493,11 +542,14 @@ async function renderLesson(id) {
   const total = { reading: L.reading?.length, write: L.exercises.length };
   view().innerHTML = `
     <header class="lesson-hero">
-      <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a> / ${esc(L.part)} / ${esc(L.chapter)}</nav>
-      <h1>${esc(L.title)}</h1>
+      <p class="lesson-axis" aria-hidden="true"><span>${esc(kanjiOrdinal(L.part))}</span><small>${esc(kanjiOrdinal(L.chapter))}</small></p>
+      <div class="lesson-hero-body">
+      <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a><span class="visually-hidden"> / ${esc(L.part)} / ${esc(L.chapter)}</span></nav>
+      <h1 class="${titleSize(L.title)}">${esc(L.title)}</h1>
       <p class="summary">${esc(L.summary)}</p>
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}(${DYE[level].meaning})</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
+      </div>
     </header>
     <div class="stepper-wrap">
       <div class="stepper-row">

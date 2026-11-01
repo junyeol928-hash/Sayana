@@ -6,14 +6,18 @@
 <script>try { if (JSON.parse(localStorage.getItem("javadojo-pc-last") || "{}").id) { document.body.classList.add("resume-pending"); setTimeout(function () { document.body.classList.remove("resume-pending"); }, 1500); } } catch (e) {}</script>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container">
-<div class="dash-grid">
-    <div class="dash-side">
+<!--/* 顔: 大きな札(docs/design.md)。左に藍の軸、題は大きく。右に染まりの地図 */-->
+<div class="dash-hero">
         <section class="today" aria-labelledby="today-title" th:if="${nextLesson}">
-            <p class="today-kicker"><span>今日の稽古</span><span th:text="${nextChapter}">第1章</span></p>
-            <h1 class="today-title" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
-            <p class="today-meta"><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span><span th:text="'演習 ' + ${nextLesson.exercises.size()}"></span><span th:text="'クイズ ' + ${nextLesson.quiz.size()}"></span><span th:unless="${nextLesson.reading.isEmpty()}" th:text="'読解 ' + ${nextLesson.reading.size()}"></span></p>
-            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now">いま <ruby><th:block th:text="${nextDyeName}">縹</th:block><rt th:text="${nextDyeRead}">はなだ</rt></ruby>(<th:block th:text="${nextDyeMeaning}"></th:block>)</span><span class="tn-hint" th:text="'次: ' + ${nextHint}"></span></span></p>
+            <p class="today-axis" aria-hidden="true"><span th:text="${nextAxisPart}">第三部 Spring</span><small th:text="${nextAxisChapter}">第一章</small></p>
+            <div class="today-body">
+            <p class="today-kicker"><span>今日の稽古</span><span class="visually-hidden" th:text="${nextChapter}">第1章</span><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span></p>
+            <h1 class="today-title" th:classappend="${nextTitleSize}" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
+            <!--/* 運針は、段ごとの済み具合(ブラウザの記録も合わせる)から app.js が描く */-->
+            <div class="unshin-slot" th:attr="data-lesson=${nextLesson.id}"></div>
+            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now"><ruby><th:block th:text="${nextDyeName}">縹</th:block><rt th:text="${nextDyeRead}">はなだ</rt></ruby>(<th:block th:text="${nextDyeMeaning}"></th:block>)</span><span class="tn-hint" th:text="${nextHint}"></span></span></p>
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
+            </div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
                 <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="'約 ' + ${(dueCount + 2) / 3} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
                 <span th:if="${dueCount == 0}" class="zero" th:text="'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
@@ -22,9 +26,12 @@
             <p class="talk-line" th:if="${streak > 0 and studiedToday}" th:text="'モカ先輩「今日もやったね。連続 ' + ${streak} + ' 日目」'"></p>
         </section>
         <section class="today" th:unless="${nextLesson}" aria-labelledby="today-title">
+            <p class="today-axis" aria-hidden="true"><span>稽古</span></p>
+            <div class="today-body">
             <p class="today-kicker"><span>今日の稽古</span></p>
-            <h1 class="today-title" id="today-title">全レッスン完了</h1>
+            <h1 class="today-title size-l" id="today-title">全レッスン完了</h1>
             <p class="today-meta">あとは復習で、藍を褐まで深めていきましょう。</p>
+            </div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span><span><b th:text="${dueCount}">0</b>問</span></a>
         </section>
 
@@ -57,6 +64,9 @@
             </div>
         </section>
 
+</div>
+<div class="dash-grid">
+    <div class="dash-side">
         <section class="card heatmap-card" aria-labelledby="heat-title">
             <div class="card-title" id="heat-title">直近8週間の稽古</div>
             <div class="heatmap">
@@ -95,7 +105,7 @@
                             <li th:each="ls : ${cp.lessons}" class="lesson-row"
                                 th:classappend="${(nextLesson != null and ls.lesson.id == nextLesson.id) ? 'is-next' : ''} + ' ' + ${ls.lesson.ready() ? '' : 'planned'}">
                                 <a th:href="@{/lessons/{id}(id=${ls.lesson.id})}"
-                                   th:attr="data-lesson=${ls.lesson.id}, data-minutes=${ls.lesson.minutes}, data-exercises=${ls.exercisesTotal}, data-quiz=${ls.quizTotal}, data-reading=${ls.lesson.reading.size()}, data-dye=${ls.dyeLevel()}, data-dye-label=${ls.dyeLabel()}, data-chapter=${#strings.substringAfter(pp.part.title, ' ') + '・' + cp.chapter.title}, data-hint=${dyeHints[ls.lesson.id]}">
+                                   th:attr="data-lesson=${ls.lesson.id}, data-minutes=${ls.lesson.minutes}, data-exercises=${ls.exercisesTotal}, data-quiz=${ls.quizTotal}, data-reading=${ls.lesson.reading.size()}, data-dye=${ls.dyeLevel()}, data-dye-label=${ls.dyeLabel()}, data-chapter=${#strings.substringAfter(pp.part.title, ' ') + '・' + cp.chapter.title}, data-hint=${dyeHints[ls.lesson.id]}, data-steps=${#strings.listJoin(ls.lesson.stepKeys(), ' ')}, data-done=${ls.doneStepKeys()}, data-axis=${axisLabels[ls.lesson.id]}">
                                     <span class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" role="img" th:attr="aria-label=${ls.dyeLabel()}"></span>
                                     <span class="row-title"><b th:if="${nextLesson != null and ls.lesson.id == nextLesson.id}">今日の稽古</b><span th:text="${ls.lesson.title}"></span></span>
                                     <span class="row-meta" th:if="${ls.lesson.ready()}">
