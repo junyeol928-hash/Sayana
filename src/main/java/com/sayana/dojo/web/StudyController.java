@@ -1,9 +1,12 @@
 package com.sayana.dojo.web;
 
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -54,15 +57,31 @@ public class StudyController {
         return Character.isLetter(c) && c < 0x80 || c == '@' ? "英字・記号" : "その他";
     }
 
+    /** 用語集の 1 枚。いくつかのレッスンに出る語は、レッスンごとの説明をまとめて持つ。 */
+    public record TermCard(String row, List<Term> terms) {
+        public Term first() {
+            return terms.getFirst();
+        }
+
+        public String en() {
+            // 英語が見出しと同じ綴りなら繰り返さない
+            return terms.stream().map(Term::en)
+                    .filter(e -> e != null && !e.isBlank() && !e.equalsIgnoreCase(first().term()))
+                    .findFirst().orElse(null);
+        }
+    }
+
     @GetMapping("/glossary")
     public String glossary(Model model) {
-        // 読み順に並べる(同じ用語がレッスンごとに別の説明で出るので、隣り合わせにする)
+        // 読み順に並べ、同じ語(大文字小文字は区別しない)を 1 枚にまとめる(スマホ版の renderGlossary と同じ)
         Collator ja = Collator.getInstance(Locale.JAPANESE);
-        List<Term> terms = content.glossary().stream()
+        Map<String, List<Term>> byTerm = new LinkedHashMap<>();
+        content.glossary().stream()
                 .sorted(Comparator.comparing((Term t) -> t.read() != null ? t.read() : t.term(), ja))
-                .toList();
-        model.addAttribute("terms", terms);
-        model.addAttribute("rows", terms.stream().map(StudyController::kanaRow).toList());
+                .forEach(t -> byTerm.computeIfAbsent(t.term().strip().toLowerCase(Locale.ROOT), k -> new ArrayList<>()).add(t));
+        List<TermCard> cards = byTerm.values().stream().map(g -> new TermCard(kanaRow(g.getFirst()), g)).toList();
+        model.addAttribute("cards", cards);
+        model.addAttribute("rows", cards.stream().map(TermCard::row).distinct().toList());
         model.addAttribute("lessonTitles", LessonTitles.of(content));
         return "glossary";
     }

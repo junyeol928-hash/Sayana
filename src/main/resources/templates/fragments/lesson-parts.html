@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="readDone" class="read-done done dyeing"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了。次は下のサンプルを動かしてみよう</div>
+<div th:fragment="readDone" class="read-done done"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了。次は下のサンプルを動かしてみよう</div>
 
 <li th:fragment="checklistItem" class="check-item" th:classappend="${checked} ? 'checked'">
     <form th:attr="hx-post=@{/lessons/{id}/checklist(id=${lesson.id})}" hx-target="closest li" hx-swap="outerHTML">
@@ -21,7 +21,7 @@
         </span>
     </div>
     <p class="reading-from muted" th:if="${from != null}"><a th:href="@{/lessons/{id}(id=${from.id})}" th:text="${from.title}"></a></p>
-    <pre><code class="language-java" th:text="${r.code}"></code></pre>
+    <pre class="code-lines"><code class="language-java" th:text="${r.code}"></code></pre>
     <form data-reading th:attr="data-answer=${r.answer}">
         <fieldset>
             <legend class="reading-question" th:utext="${r.questionHtml}"></legend>

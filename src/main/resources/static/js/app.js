@@ -161,11 +161,85 @@ function mermaidTheme() {
 
 function highlight(root) {
   if (!window.hljs) return;
-  root.querySelectorAll("pre code:not([data-highlighted])").forEach((el) => {
+  root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
+  root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
     if (!el.className.includes("language-")) el.classList.add("language-java");
     if (el.classList.contains("language-text")) return;
     window.hljs.highlightElement(el);
   });
+}
+
+const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/** コードを 1 行ずつの要素に分け、行番号を付ける(スマホ版 app.js の numberLines と同じ) */
+function numberLines(code) {
+  const text = code.textContent.replace(/\n$/, "");
+  const html = window.hljs ? window.hljs.highlight(text, { language: "java", ignoreIllegals: true }).value : escHtml(text);
+  const notes = new Set((code.parentElement.dataset.notes || "").split(",").filter(Boolean).map(Number));
+  const lines = [];
+  const open = [];
+  let cur = "";
+  for (const part of html.split(/(<span[^>]*>|<\/span>|\n)/)) {
+    if (part === "\n") { lines.push(cur + "</span>".repeat(open.length)); cur = open.join(""); }
+    else if (part.startsWith("<span")) { open.push(part); cur += part; }
+    else if (part === "</span>") { open.pop(); cur += part; }
+    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)
+    else cur += part.replace(/\./g, "<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+  }
+  lines.push(cur);
+  // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
+  const indent = text.split("\n").map((t) => t.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length);
+  code.innerHTML = lines.map((l, i) => `<span class="ln${notes.has(i + 1) ? " note" : ""}" data-n="${i + 1}" style="--ind:${indent[i] || 0}">${l || " "}</span>`).join("");
+  code.dataset.lines = "1";
+  code.classList.add("hljs");
+}
+
+/** 読んでいる段を段の並びに示し、縫い線を進める */
+function trackLesson() {
+  const stepper = document.querySelector(".stepper");
+  const sew = document.querySelector(".sew");
+  if (!stepper) return;
+  const steps = [...stepper.querySelectorAll(".step")];
+  const sections = steps.map((a) => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
+  if (!sections.length) return;
+  let current = null;
+  const update = () => {
+    const line = 140;
+    let key = sections[0].id;
+    for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
+    if (key !== current) {
+      current = key;
+      steps.forEach((a) => {
+        if (a.getAttribute("href") === "#" + key) {
+          a.setAttribute("aria-current", "true");
+          stepper.scrollTo({ left: a.offsetLeft - (stepper.clientWidth - a.offsetWidth) / 2 });
+        } else a.removeAttribute("aria-current");
+      });
+    }
+    const first = sections[0].getBoundingClientRect().top + scrollY;
+    const end = sections[sections.length - 1].getBoundingClientRect().bottom + scrollY - innerHeight;
+    const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
+    sew?.style.setProperty("--p", (p * 100).toFixed(1) + "%");
+  };
+  let ticking = false;
+  addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; update(); });
+  }, { passive: true });
+  update();
+}
+
+// 質問ボタンは、下へ読んでいる間は隠す(本文に重ならないように)
+{
+  let lastY = scrollY;
+  addEventListener("scroll", () => {
+    const fab = document.querySelector(".tutor-fab");
+    if (!fab) return;
+    if (scrollY > lastY + 6 && scrollY > 200) fab.classList.add("away");
+    else if (scrollY < lastY - 6) fab.classList.remove("away");
+    lastY = scrollY;
+  }, { passive: true });
 }
 
 function initRoot(root) {
@@ -279,6 +353,7 @@ window.addEventListener("load", () => highlight(document));
 
 await loadCodeMirror();
 initRoot(document);
+trackLesson();
 if (window.htmx) {
   window.htmx.onLoad((el) => initRoot(el));
 }

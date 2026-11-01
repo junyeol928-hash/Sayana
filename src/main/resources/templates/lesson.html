@@ -19,7 +19,7 @@
     </nav>
 </main>
 
-<div class="lesson-layout" th:if="${lesson.ready()}">
+<div class="lesson-layout" th:if="${lesson.ready()}" th:classappend="${aiAvailable} ? '' : 'no-tutor'">
 <main id="main" class="lesson-main">
     <header class="lesson-hero">
         <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ダッシュボード</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
@@ -31,13 +31,11 @@
             <span>読む <span th:text="${lesson.minutes}">15</span> 分</span>
             <span th:if="${status.bestQuiz != null}" th:text="'クイズ最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal}"></span>
         </p>
-        <div class="goals" th:if="${!lesson.goals.isEmpty()}">
-            <div class="goals-title">このレッスンのゴール</div>
-            <ul><li th:each="g : ${lesson.goals}" th:text="${g}"></li></ul>
-        </div>
+        <p class="ai-off-line" th:unless="${aiAvailable}"><b>AI機能はオフです。</b>環境変数 <code>ANTHROPIC_API_KEY</code> を設定して再起動すると、チューター・ヒント・講評が使えます(手順は README)。</p>
     </header>
 
     <!--/* 読む→動かす→書く→AIに見てもらう→読解→確かめる */-->
+    <div class="stepper-wrap">
     <nav class="stepper" aria-label="このレッスンの段">
         <a href="#read" class="step" th:classappend="${status.read} ? 'done'">読む</a>
         <a href="#atwork" class="step" th:if="${!lesson.atWork.isEmpty()}">仕事のコード</a>
@@ -50,6 +48,12 @@
         <a href="#quiz" class="step" th:classappend="${status.bestQuiz != null and status.quizPassed()} ? 'done'">確かめる
             <small th:if="${status.bestQuiz != null}" th:text="${status.bestQuiz} + '/' + ${status.quizTotal}"></small></a>
     </nav>
+    <div class="sew" aria-hidden="true"></div>
+    </div>
+    <details class="goals" th:if="${!lesson.goals.isEmpty()}" th:open="${!status.read}">
+        <summary class="goals-title" th:text="'このレッスンのゴール(' + ${lesson.goals.size()} + ')'">このレッスンのゴール</summary>
+        <ul><li th:each="g : ${lesson.goals}" th:text="${g}"></li></ul>
+    </details>
 
     <section id="read" class="lesson-section" aria-labelledby="read-title">
         <h2 class="visually-hidden" id="read-title">解説</h2>
@@ -68,8 +72,7 @@
             <h3 th:if="${a.title != null}" th:text="${a.title}"></h3>
             <div class="atwork-intro md" th:utext="${a.introHtml}"></div>
             <div class="code-notes">
-                <span class="pin" th:each="n : ${a.notesHtml}" th:style="'--n:' + ${n.key}" th:text="${n.key}" aria-hidden="true"></span>
-                <pre><code class="language-java" th:text="${a.code}"></code></pre>
+                <pre class="code-lines" th:attr="data-notes=${#strings.listJoin(a.notesHtml.keySet(), ',')}"><code class="language-java" th:text="${a.code}"></code></pre>
             </div>
             <ol class="line-notes" th:if="${!a.notesHtml.isEmpty()}">
                 <li th:each="n : ${a.notesHtml}"><span class="pin-label" th:text="${n.key} + '行'"></span><span th:utext="${n.value}"></span></li>
@@ -207,10 +210,12 @@
         <a th:if="${next}" class="next" th:href="@{/lessons/{id}(id=${next.id})}"><small>次のレッスン</small><span th:text="${next.title}"></span></a>
     </nav>
 </main>
+<th:block th:if="${aiAvailable}">
 <aside th:replace="~{fragments/ai :: tutor(${lesson.id}, ${chat})}"></aside>
 <!--/* 狭い画面: チューターを開くボタン */-->
 <button type="button" class="tutor-fab" data-tutor-toggle aria-label="AIチューターに質問する"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>質問する</button>
 <div class="tutor-backdrop" data-tutor-toggle></div>
+</th:block>
 </div>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>

@@ -9,7 +9,7 @@
         <section class="today" aria-labelledby="today-title" th:if="${nextLesson}">
             <p class="today-kicker"><span>今日の稽古</span><span th:text="${nextChapter}">第1章</span></p>
             <h1 class="today-title" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
-            <p class="today-meta" th:text="${nextIndex} + ' / ' + ${readyLessons} + ' レッスン目 · 読む ' + ${nextLesson.minutes} + ' 分 · 演習 ' + ${nextLesson.exercises.size()} + ' · クイズ ' + ${nextLesson.quiz.size()} + (${nextLesson.reading.isEmpty()} ? '' : ' · 読解 ' + ${nextLesson.reading.size()})"></p>
+            <p class="today-meta"><span th:text="${nextIndex} + ' / ' + ${readyLessons} + ' レッスン目'"></span><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span><span th:text="'演習 ' + ${nextLesson.exercises.size()}"></span><span th:text="'クイズ ' + ${nextLesson.quiz.size()}"></span><span th:unless="${nextLesson.reading.isEmpty()}" th:text="'読解 ' + ${nextLesson.reading.size()}"></span></p>
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
                 <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問 <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
@@ -28,12 +28,11 @@
         <section class="progress-block" aria-labelledby="dye-title">
             <div class="progress-head">
                 <h2 id="dye-title">染まり具合</h2>
-                <p><b th:text="${deepCount}">0</b> / <span th:text="${readyLessons}">55</span> が縹より深い</p>
+                <p>クイズ合格以上 <b th:text="${deepCount}">0</b> / <span th:text="${readyLessons}">55</span></p>
             </div>
-            <div class="dye-strip" role="list">
-                <a role="listitem" th:each="ls : ${flatLessons}" th:href="@{/lessons/{id}(id=${ls.lesson.id})}"
-                   th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"><span class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" role="img"
-                   th:attr="aria-label=${ls.dyeLabel()}"></span><span class="visually-hidden" th:text="${ls.lesson.title}"></span></a>
+            <div class="dye-strip" role="img"
+                 th:attr="aria-label=${readyLessons} + ' レッスンの染まり具合。まだ ' + ${dyeCounts[0]} + '、読んだ ' + ${dyeCounts[1]} + '、クイズ合格 ' + ${dyeCounts[2]} + '、演習もできた ' + ${dyeCounts[3]} + '、復習をすべて卒業 ' + ${dyeCounts[4]}">
+                <span th:each="ls : ${flatLessons}" class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"></span>
             </div>
             <ul class="dye-legend">
                 <li><span class="dye dye-0"></span>まだ <span th:text="${dyeCounts[0]}"></span></li>
@@ -43,11 +42,9 @@
                 <li><span class="dye dye-4"></span>復習をすべて卒業 <span th:text="${dyeCounts[4]}"></span></li>
             </ul>
             <div class="home-stats">
-                <a th:href="@{/review}"><div class="stat-label">今日の復習</div><div class="stat-value"><span th:text="${dueCount}">0</span><small>問</small></div>
-                    <div class="stat-sub" th:text="'卒業 ' + ${graduated} + ' 問'"></div></a>
                 <div><div class="stat-label">完了レッスン</div><div class="stat-value"><span th:text="${completedLessons}">0</span><small th:text="'/ ' + ${readyLessons}"></small></div></div>
-                <div><div class="stat-label">連続</div><div class="stat-value"><span th:text="${streak}">0</span><small>日</small></div>
-                    <div class="stat-sub" th:text="'通算 ' + ${totalDays} + ' 日'"></div></div>
+                <div><div class="stat-label">卒業した問題</div><div class="stat-value"><span th:text="${graduated}">0</span><small>問</small></div></div>
+                <div><div class="stat-label">通算の稽古</div><div class="stat-value"><span th:text="${totalDays}">0</span><small>日</small></div></div>
             </div>
         </section>
 

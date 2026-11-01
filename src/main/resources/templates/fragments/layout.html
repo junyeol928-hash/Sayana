@@ -41,7 +41,7 @@
             <a th:href="@{/playground}">プレイグラウンド</a>
         </nav>
         <div class="header-status">
-            <span class="streak" th:title="'連続学習 ' + ${streak} + '日'">連続 <b th:text="${streak}">0</b> 日</span>
+            <span class="streak" th:classappend="${streak == 0} ? 'zero'" th:title="'連続学習 ' + ${streak} + '日'">連続 <b th:text="${streak}">0</b> 日</span>
             <span th:if="${aiAvailable}" class="ai-badge on" title="ANTHROPIC_API_KEY が設定されています">AI ON</span>
             <span th:unless="${aiAvailable}" class="ai-badge off" title="ANTHROPIC_API_KEY が未設定です。AI機能以外は使えます">AI OFF</span>
         </div>
