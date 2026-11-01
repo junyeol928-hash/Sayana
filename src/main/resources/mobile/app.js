@@ -297,7 +297,8 @@ function phraseWrap(el) {
     if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
     else words.push(segment);
   }
-  el.innerHTML = words.map((w) => `<span class="phrase">${esc(w).replace(/ /g, " ")}</span>`).join("");
+  const latin = (c) => /[\x21-\x7e]/.test(c || "");
+  el.innerHTML = words.map((w, i) => `<span class="phrase${i < words.length - 1 && latin(w.slice(-1)) !== latin(words[i + 1][0]) && !/\s$/.test(w) ? " gap" : ""}">${esc(w).replace(/ /g, " ")}</span>`).join("");
   el.dataset.phrased = "1";
 }
 
@@ -725,6 +726,12 @@ function trackLesson(id, keys) {
   // 閉じたら、一覧の中にあったフォーカスを段のボタンへ戻す(キーボードで迷子にならないように)
   menu?.addEventListener("toggle", () => {
     if (!menu.open && menu.querySelector("ol")?.contains(document.activeElement)) menu.querySelector("summary").focus({ preventScroll: true });
+    // 開いた位置から下のメニューの上端までに収め、入りきらない分は一覧の中でスクロールする
+    // (冒頭で開くと一覧が下のメニューの裏へ伸び、6・7 段目を押せなかった。14 回目の指摘)
+    if (menu.open) {
+      const nav = $(".bottom-nav")?.getBoundingClientRect().height || 0;
+      menu.querySelector("ol").style.maxHeight = `${Math.max(160, innerHeight - menu.querySelector("summary").getBoundingClientRect().bottom - nav - 8)}px`;
+    }
   });
   const onScroll = () => {
     if (menu?.open) menu.open = false;
@@ -1741,9 +1748,9 @@ async function decorate(root) {
 
 /** コードを 1 行ずつの要素に分け、行番号を付ける(色付けの span が行をまたいでも、行ごとに閉じて開き直す) */
 function numberLines(code) {
-  // 400px 以下は字下げを半分にして 1 行の字数を稼ぐ(型と名前が折り返しで離れないように。行番号の列を詰めるより効く)
+  // 400px 以下は字下げを半分(深くても 6 文字まで)にして 1 行の字数を稼ぐ(文字は 14px のまま。型と名前が折り返しで離れないように)
   const narrow = matchMedia("(max-width: 400px)").matches;
-  const text = code.textContent.replace(/\n$/, "").replace(/^ +/gm, (m) => (narrow ? " ".repeat(Math.ceil(m.length / 2)) : m));
+  const text = code.textContent.replace(/\n$/, "").replace(/^ +/gm, (m) => (narrow ? " ".repeat(Math.min(6, Math.ceil(m.length / 2))) : m));
   const html = window.hljs ? window.hljs.highlight(text, { language: "java", ignoreIllegals: true }).value : esc(text);
   const notes = new Set((code.parentElement.dataset.notes || "").split(",").filter(Boolean).map(Number));
   const lines = [];

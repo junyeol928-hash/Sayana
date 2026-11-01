@@ -356,7 +356,8 @@ function phraseWrap(el) {
     if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
     else words.push(segment);
   }
-  el.innerHTML = words.map((w) => `<span class="phrase">${escHtml(w).replace(/ /g, " ")}</span>`).join("");
+  const latin = (c) => /[\x21-\x7e]/.test(c || "");
+  el.innerHTML = words.map((w, i) => `<span class="phrase${i < words.length - 1 && latin(w.slice(-1)) !== latin(words[i + 1][0]) && !/\s$/.test(w) ? " gap" : ""}">${escHtml(w).replace(/ /g, " ")}</span>`).join("");
   el.dataset.phrased = "1";
 }
 function drawUnshin(row, nowKey) {

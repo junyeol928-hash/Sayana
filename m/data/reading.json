@@ -1556,7 +1556,7 @@
   "questionHtml" : "Spring が起動し、<code>issue(&quot;C001&quot;)</code> を呼ぶと?",
   "choicesHtml" : [ "&quot;OK&quot; が返る", "起動時に例外で失敗する", "8行目で NullPointerException", "コンパイルエラー" ],
   "answer" : 2,
-  "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは final フィールドだけなので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
+  "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
   "traceHtml" : [ "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ", "5行目: final がないため引数に含まれず、注入もされない → null", "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する", "8行目: cryptoClient が null → generateKey() を呼んだ瞬間に NullPointerException" ],
   "ref" : "spring-di@1",
   "lesson" : "spring-di"

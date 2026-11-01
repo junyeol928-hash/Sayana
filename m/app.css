@@ -238,7 +238,7 @@ button { font: inherit; letter-spacing: inherit; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); padding: 20px 22px; margin: 16px 0; }
 .card-title { font-weight: 700; margin-bottom: 12px; display: flex; gap: 12px; align-items: baseline; justify-content: space-between; font-size: 1.05rem; }
 .breadcrumb { font-size: .8125rem; color: var(--ink-muted); margin: 0 0 6px; }
-.breadcrumb a { color: var(--ink-muted); }
+.breadcrumb a { color: var(--ink-muted); display: inline-flex; align-items: center; min-height: 44px; }
 .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 0 10px; font-size: .75rem; background: var(--surface-2); color: var(--ink-muted); line-height: 1.9; white-space: nowrap; font-weight: 700; }
 .pill.ok { background: var(--ok-soft); color: var(--ok); }
 .pill.ng { background: var(--ng-soft); color: var(--ng); }
@@ -291,7 +291,7 @@ button { font: inherit; letter-spacing: inherit; }
 /* 帯は一覧で見るためのもの(押す場所は下のレッスン一覧) */
 /* 染まりの地図: 部ごとに 1 行、章の切れ目はすき間。行を押すとその部の一覧へ */
 .dye-map { display: grid; gap: 4px; }
-.dye-part { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px; margin: 0 -6px; border-radius: var(--r-m); color: inherit; text-decoration: none; }
+.dye-part { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: start; min-height: 44px; padding: 6px; margin: 0 -6px; border-radius: var(--r-m); color: inherit; text-decoration: none; }
 .dye-part:hover { background: var(--surface-2); }
 .dye-part:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
 .dye-part-tag { align-self: stretch; font: 700 .8125rem/18px var(--font); color: var(--ink-muted); text-align: center; border-right: 1.5px dashed var(--line-strong); } /* 折れて 2 行になっても札の線は行の高さいっぱい */
@@ -344,13 +344,14 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-title { font-weight: 900; line-height: 1.06; letter-spacing: -.03em; margin: 8px 0 24px; color: var(--ink); text-wrap: balance; }
 .today-title a { color: inherit; text-decoration: none; }
 .phrase { display: inline-block; max-width: 100%; } /* phraseWrap: 語の途中で折らない */
+.phrase.gap { margin-inline-end: .22em; } /* 箱の切れ目では text-autospace が効かないので、和欧の空きを足す(後ろに付ければ、行末で折れても見えない) */
 .today-title a:hover { color: var(--accent-ink); }
 /* 題の長さで 3 段(app.js の titleSize)。長い英単語でもはみ出さない大きさに */
 .today-title.size-xl { font-size: 3.5rem; }
 .today-title.size-l { font-size: 2.625rem; letter-spacing: -.02em; }
 .today-title.size-m { font-size: 2rem; letter-spacing: -.01em; line-height: 1.18; }
 .today-links { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 8px; }
-.today-links .today-alt { min-height: 40px; font-size: .875rem; }
+.today-links .today-alt { min-height: 44px; font-size: .875rem; }
 .today-alt { color: var(--ink-muted); font-size: .9375rem; text-decoration-color: var(--line-strong); min-height: 44px; display: inline-flex; align-items: center; }
 .today-alt:hover { color: var(--ink); }
 .save-state { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--ink-muted); margin: 10px 0 0; }
@@ -390,7 +391,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .unshin { display: grid; grid-template-columns: repeat(var(--steps, 7), minmax(0, 1fr)); gap: 6px; align-items: center; height: 14px; color: var(--ink); }
 .unshin i { height: 4px; }
 .unshin i.sewn { background: currentColor; border-radius: 2px; height: 3px; }
-.unshin i:not(.sewn):not(.now) { background: radial-gradient(circle, var(--ink-muted) 1.6px, transparent 1.9px) 0 50% / 50% 100% repeat-x; }
+.unshin i:not(.sewn):not(.now) { background: radial-gradient(circle, var(--ink-muted) 2px, transparent 2.3px) 50% 50% / 100% 100% no-repeat; }
 .unshin i.now { position: relative; }
 .unshin i.now::before { content: ""; position: absolute; left: 0; right: 50%; top: .5px; height: 3px; border-radius: 2px; background: currentColor; }
 .unshin i.now::after { content: ""; position: absolute; left: calc(50% - 5.5px); top: -3.5px; width: 11px; height: 11px; border-radius: 50%; background: var(--shu); }
@@ -473,12 +474,18 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 /* レッスンの冒頭もホームと同じ「大きな札」: 左に藍の軸(部と章を縦書き)、題は札の文字のように */
 .lesson-hero { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0 24px; padding: 8px 0 4px; }
 .lesson-axis {
-  margin: 0; background-color: var(--kon); color: var(--kon-ink); border-radius: 4px;
+  margin: 0; align-self: stretch; background-color: var(--kon); color: var(--kon-ink);
   writing-mode: vertical-rl; display: flex; align-items: center; gap: .9em; padding: 20px 0;
   font: 700 .875rem/1 var(--head); letter-spacing: .24em;
   background-image: repeating-linear-gradient(180deg, var(--kon-muted) 0 7px, transparent 7px 13px); background-size: 1.5px 100%; background-repeat: no-repeat; background-position: 100% 0;
 }
 .lesson-axis small { font-size: .75rem; letter-spacing: .18em; color: var(--kon-muted); }
+/* 軸は本文の高さに合わせる(縦書きの文字の長さで本文より下へ垂れないように)。PC は本文が低いので、軸は部だけにして章は現在地の行に出す */
+.lesson-axis { contain: size; overflow: hidden; }
+@media (min-width: 1024px) {
+  .lesson-axis small { display: none; }
+  .lesson-hero .breadcrumb .visually-hidden { position: static !important; width: auto; height: auto; margin: 0; clip: auto; clip-path: none; overflow: visible; white-space: normal; }
+}
 .lesson-hero-body { min-width: 0; }
 .lesson-hero h1 { font-weight: 900; line-height: 1.12; letter-spacing: -.02em; margin: 4px 0 14px; }
 .lesson-hero h1.size-xl { font-size: 3.25rem; }
@@ -1000,7 +1007,8 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   .home-stats > * { padding: 12px; }
   .part-block { grid-template-columns: 36px minmax(0, 1fr); gap: 0 14px; }
   .part-tag { width: 36px; line-height: 36px; font-size: .9375rem; top: 70px; }
-  .lesson-hero { grid-template-columns: 40px minmax(0, 1fr); gap: 0 16px; }
+  .lesson-hero { grid-template-columns: 40px minmax(0, 1fr); gap: 0 16px; margin-left: calc(var(--gutter) * -1); margin-top: -16px; padding-top: 0; }
+  .lesson-hero-body { padding-top: 12px; }
   .lesson-hero h1.size-xl { font-size: 2.625rem; }
   .lesson-hero h1.size-l { font-size: 2.125rem; }
   .lesson-hero h1.size-m { font-size: 1.75rem; }
@@ -1056,11 +1064,11 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 [hidden] { display: none !important; }
 
 /* 400px 以下の差分は、760px 以下の基本の指定より後ろに置く(先に書くと後勝ちで上書きされて効かなかった) */
-@media (max-width: 400px) { /* 1 行に入る字数を増やす(行番号の列と右の余白を詰め、13px に。390px で 1 行 38 字ほど) */
-  pre.code-lines, .reading-q pre.code-lines { font-size: 13px; padding-right: 8px; }
-  pre.code-lines .ln { padding-left: calc(38px + var(--hang)); }
-  pre.code-lines .ln::before { width: 26px; }
-  pre.code-lines .ln { background-position: 16px 1.7em; }
-  pre.code-lines .ln.note::before { left: 8px; width: 26px; } /* 番号の札を画面の端から離す */
-  pre.code-lines .ln-note { margin-left: 36px; font-size: 12.5px; }
+@media (max-width: 400px) { /* 文字は 14px のまま(物差しの下限)、行番号の列と右の余白を詰めて 1 行の字数を稼ぐ */
+  pre.code-lines, .reading-q pre.code-lines { font-size: 14px; padding-right: 6px; }
+  pre.code-lines .ln { padding-left: calc(32px + var(--hang)); }
+  pre.code-lines .ln::before { width: 22px; }
+  pre.code-lines .ln { background-position: 14px 1.7em; }
+  pre.code-lines .ln.note::before { left: 6px; width: 22px; } /* 番号の札を画面の端から離す */
+  pre.code-lines .ln-note { margin-left: 30px; font-size: 14px; }
 }
