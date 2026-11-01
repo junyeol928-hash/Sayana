@@ -39,6 +39,7 @@ function loadState() {
 }
 
 let S = loadState();
+let savedAll = false; // 全レッスンと図を保存し終えたか(ヘッダーの印に使う)
 migrateSettings();
 applyTheme();
 
@@ -207,6 +208,9 @@ function dyeLevel(meta) {
 
 const dyeSwatch = (level, extra = "") => `<span class="dye dye-${level} ${extra}" role="img" aria-label="${DYE[level].name}(${DYE[level].meaning})"></span>`;
 const dyeDot = (level) => `<span class="dye dye-${level}"></span>`;
+// 染まりの地図の 1 マス。前に見たときより深まったマスは染み込ませ、主役のレッスンには朱の印を付ける
+const dyeCell = (l, levels, seen, deepened, hero) => `<span class="dye-cell${l.id === hero.id ? " is-here" : ""}">${deepened.has(l.id)
+  ? `${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink"></span>` : dyeDot(levels[l.id])}</span>`;
 
 /** 染まり具合が深まった瞬間を、押した場所のそばで見せる(古い色の上に新しい色が広がる) */
 function dyeBurst(from, to) {
@@ -268,8 +272,11 @@ function updateHeader() {
   $("#streak").innerHTML = `連続 <b>${days}</b> 日`;
   $("#streak").classList.toggle("zero", days === 0);
   const net = $("#net");
-  net.textContent = navigator.onLine ? "オンライン" : "オフライン";
+  // 全部保存できたら、ヒーローの説明の代わりにヘッダーの小さな印で知らせる(ヒーローは次の一手だけにする)
+  net.textContent = !navigator.onLine ? "オフライン" : savedAll ? "保存済み" : "オンライン";
+  net.title = savedAll ? "全レッスンと図を保存済み。電波なしで読めます" : "";
   net.classList.toggle("off", !navigator.onLine);
+  net.classList.toggle("saved", navigator.onLine && savedAll);
   const due = dueItems().length;
   const badge = $("#due-count");
   badge.hidden = due === 0;
@@ -312,8 +319,7 @@ async function renderHome() {
       <p class="today-meta"><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
       ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">いま ${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">次: ${hint}</span></span></p>` : ""}
       <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? `続きから${section ? `(${section})` : ""}` : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
-      <div class="today-links">${last && next.id !== last.id ? `<a class="today-alt" href="#/lesson/${esc(next.id)}">次の新しいレッスン: ${esc(next.title)}</a>` : ""}
-        <a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
+      <div class="today-links"><a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
       <a class="today-review" href="#/review"><span>今日の復習</span>
         <span>${due ? `<b>${due}</b>問 ${icon("arrow", "sm")}` : `<span class="zero">今日はなし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
       <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
@@ -324,9 +330,15 @@ async function renderHome() {
         <h2 id="dye-title">染まり具合</h2>
         <p>クイズ合格以上 <b>${deep}</b> / ${all.length}</p>
       </div>
-      <div class="dye-strip" role="img" aria-label="${all.length} レッスンの染まり具合。${DYE.map((d, i) => `${d.meaning} ${counts[i]}`).join("、")}">
-        ${all.map((l) => deepened.has(l.id) ? `<span class="dye-burst-cell" style="position:relative;display:block">${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink" style="position:absolute;inset:0"></span></span>` : dyeDot(levels[l.id])).join("")}
-      </div>
+      <nav class="dye-map" aria-label="部ごとの染まり具合">${cur.parts.map((p, pi) => {
+        const ls = p.chapters.flatMap((c) => c.lessons);
+        const n = [0, 0, 0, 0, 0];
+        ls.forEach((l) => n[levels[l.id]]++);
+        return `<a class="dye-part" href="#part-${pi + 1}" aria-label="${esc(p.title)}: ${ls.length} レッスン。${DYE.map((d, i) => n[i] ? `${d.meaning} ${n[i]}` : "").filter(Boolean).join("、")}。一覧へ">
+          <span class="dye-part-tag" aria-hidden="true">${["一", "二", "三", "四"][pi] ?? pi + 1}</span>
+          <span class="dye-cells" aria-hidden="true">${p.chapters.map((c) => `<span class="dye-ch">${c.lessons.map((l) => dyeCell(l, levels, seen, deepened, hero)).join("")}</span>`).join("")}</span></a>`;
+      }).join("")}</nav>
+      <p class="dye-map-note"><span class="dye-here" aria-hidden="true"></span>${last ? "前回の続き" : "今日の稽古"}。部の行を押すと、その部の一覧へ</p>
       <details class="dye-key"${Object.keys(S.read).length ? "" : " open"}><summary><span class="dye-key-marks" aria-hidden="true">${DYE.map((_, i) => dyeSwatch(i)).join("")}</span>染まり方の見方</summary>
         <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)} <b class="dye-count">${counts[i]}</b></span><span class="dye-meaning">${d.meaning}</span></span></li>`).join("")}</ul></details>
       <div class="home-stats">
@@ -342,7 +354,7 @@ async function renderHome() {
 
     <section class="curriculum" id="curriculum" aria-label="レッスン一覧">
       ${cur.parts.map((p, pi) => `
-        <div class="part-block">
+        <div class="part-block" id="part-${pi + 1}">
           <div class="part-tag" aria-hidden="true">${["第一部", "第二部", "第三部", "第四部"][pi] ?? esc(p.title)}</div>
           <div>
             <h2 class="part-title">${esc(p.title)}</h2>
@@ -393,6 +405,10 @@ async function homeSaveState(all) {
     if (!$("#save-state")) return;
     // 準備中は失敗ではないので、注意の朱ではなく静かな色の点
     el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
+    // 保存し終えたら説明はヘッダーの印に任せ、読み上げ用に残す。準備中や失敗のときだけヒーローに見せる
+    savedAll = ready && figures;
+    el.classList.toggle("visually-hidden", savedAll);
+    updateHeader();
     el.textContent = ready && figures ? `保存済み(全 ${all.length} レッスンと図)。電波なしで読めます`
       : ready ? `保存済み(全 ${all.length} レッスン)。図は次に電波のある所で開くと保存`
       : !navigator.serviceWorker.controller ? "保存の準備中。次に電波のある所で開くと、電波なしで読めます"
@@ -543,6 +559,7 @@ function trackLesson(id, keys) {
   // 右端のフェードを、段の一覧と質問ボタンの手前に合わせる
   const wrap = $(".stepper-wrap");
   wrap?.style.setProperty("--tail", `${wrap.offsetWidth - stepper.offsetWidth}px`);
+  watchOverflow(stepper, wrap);
   const resume = S.last?.id === id && pendingSection ? { section: S.last.section, off: S.last.off } : null;
   S.last = { id, section: S.last?.id === id ? S.last.section : "read", off: S.last?.id === id ? S.last.off || 0 : 0 };
   S.seen = Object.assign(S.seen || {}, { [id]: true });
@@ -912,13 +929,13 @@ function bindLesson(L, meta) {
       li.querySelectorAll("label.choice").forEach((label, j) => {
         label.classList.toggle("is-answer", j === q.answer);
         label.classList.toggle("is-wrong", j === chosen && !ok);
-        // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には読み上げ用の「正解」
+        // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
         label.querySelector(".choice-tag")?.remove();
         if (j === chosen && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
-        if (j === q.answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag visually-hidden">(正解)</span>`);
+        if (j === q.answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
       });
       li.insertAdjacentHTML("beforeend", `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</span>
-        ${ok ? "" : `<p class="small">正解: <b>${q.choicesHtml[q.answer]}</b></p>`}<div class="explanation md">${q.explanationHtml}</div></div>`);
+        <div class="explanation md">${q.explanationHtml}</div></div>`);
     });
     decorate(form);
     form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
@@ -1132,6 +1149,7 @@ async function renderGlossary() {
   show("");
   // いま読んでいる行を索引で強調し、索引の見える位置に送る
   const index$ = $("#kana-index");
+  watchOverflow(index$);
   const onScroll = () => {
     if (!document.contains(index$)) return removeEventListener("scroll", onScroll);
     const line = index$.getBoundingClientRect().bottom + 8;
@@ -1517,6 +1535,44 @@ function mermaidTheme() {
   };
 }
 
+// 横にはみ出す帯に、続きがある側だけフェードの印を付ける(はみ出していないのにフェードが残ると汚れに見える)
+function watchOverflow(scroller, target = scroller) {
+  if (!scroller || scroller.dataset.watched) return;
+  scroller.dataset.watched = "1";
+  const update = () => {
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    target.classList.toggle("has-more", max > 1 && scroller.scrollLeft < max - 1);
+    target.classList.toggle("has-prev", max > 1 && scroller.scrollLeft > 1);
+  };
+  scroller.addEventListener("scroll", update, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(update).observe(scroller);
+  update();
+}
+
+// はみ出す図は、流れの入口(最初のノード)が真ん中に来る位置から見せる。「図の全体を見る」で縮めた全体と行き来できる
+function fitFigures(nodes) {
+  nodes.forEach((n) => {
+    if (n.scrollWidth <= n.clientWidth + 1) return;
+    const first = n.querySelector("svg .node, svg .actor, svg .statediagram-state");
+    if (first) {
+      const r = first.getBoundingClientRect();
+      const box = n.getBoundingClientRect();
+      n.scrollLeft = Math.max(0, n.scrollLeft + r.left + r.width / 2 - box.left - n.clientWidth / 2);
+    }
+    watchOverflow(n);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "fig-fit";
+    btn.textContent = "図の全体を見る";
+    btn.addEventListener("click", () => {
+      const fit = n.classList.toggle("fit");
+      btn.textContent = fit ? "文字の大きさに戻す" : "図の全体を見る";
+      n.dispatchEvent(new Event("scroll"));
+    });
+    n.after(btn);
+  });
+}
+
 async function decorate(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
   blocks.forEach((code) => {
@@ -1531,8 +1587,7 @@ async function decorate(root) {
       mermaidModule.initialize(mermaidTheme());
       const nodes = [...root.querySelectorAll(".mermaid:not([data-processed])")];
       await mermaidModule.run({ nodes });
-      // 横にはみ出す図は、まず真ん中(縦に流れる図の幹)を見せる
-      nodes.forEach((n) => { if (n.scrollWidth > n.clientWidth) n.scrollLeft = (n.scrollWidth - n.clientWidth) / 2; });
+      fitFigures(nodes);
     } catch (e) {
       // 図を描けないとき(初回オフラインなど)は、図の元のテキストのまま見せる
       root.querySelectorAll(".mermaid:not([data-processed])").forEach((d) => { d.style.whiteSpace = "pre"; d.style.textAlign = "left"; });

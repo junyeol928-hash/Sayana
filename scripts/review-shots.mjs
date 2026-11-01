@@ -86,14 +86,14 @@ await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(
 await sleep(2500);
 await shot("m-home-light");
 await js(`document.querySelector(".dye-key").open = true;`);
-await scrollTo(".dye-strip", 120);
+await scrollTo(".dye-map", 120);
 await shot("m-home-lower");
 await view({ ...PHONE, dark: true });
 await open(mobileArg + "#/");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-home-dark");
 await js(`document.querySelector(".dye-key").open = true;`);
-await scrollTo(".dye-strip", 120);
+await scrollTo(".dye-map", 120);
 await shot("m-home-dark-lower");
 await view(PHONE);
 await open(mobileArg + "#/lesson/spring-di");
@@ -122,10 +122,10 @@ await open(mobileArg + "#/terms");
 await js(`const t = [...document.querySelectorAll(".term")].find((x) => x.querySelector(".term-count") && x.textContent.includes("equals")); window.scrollTo(0, t.getBoundingClientRect().top + scrollY - 200); await new Promise((r) => setTimeout(r, 600));`);
 await shot("m-terms");
 
-// ---- PC 版(前回の続きは「確かめる」)
+// ---- PC 版(前回の続きは「クイズ」)
 await view(DESK);
 await open(pcArg);
-await js(`localStorage.setItem("javadojo-pc-last", JSON.stringify({ id: "spring-di", title: "DIとIoCコンテナ", section: "quiz", label: "確かめる", off: 40, end: false })); location.reload();`);
+await js(`localStorage.setItem("javadojo-pc-last", JSON.stringify({ id: "spring-di", title: "DIとIoCコンテナ", section: "quiz", off: 40, end: false })); location.reload();`);
 await sleep(2500);
 await shot("pc-dashboard");
 await open(pcArg + "lessons/spring-di");
