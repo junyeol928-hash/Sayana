@@ -225,7 +225,7 @@ function nextDyeHint(meta, level) {
   return null;
 }
 
-const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "見る", sts: "STSで試す", write: "書く", reading: "読解", quiz: "確かめる" };
+const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "書く", reading: "読解", quiz: "確かめる" };
 
 // ------------------------------------------------------------ 画面
 
@@ -288,6 +288,7 @@ async function renderHome() {
   all.forEach((l) => counts[levels[l.id]]++);
   const deep = counts[2] + counts[3] + counts[4];
   const upcoming = Object.values(S.review).filter((it) => !it.graduated && it.due > today()).length;
+  const graduated = Object.values(S.review).filter((it) => it.graduated).length;
   const readingOk = Object.values(S.reading).filter((r) => r.ok).length;
   const pending = Object.values(S.review).filter((it) => !it.graduated).map((it) => it.due).sort();
   const nextReview = due ? "今日" : pending.length ? pending[0].slice(5).replace("-", "/") : "なし";
@@ -326,14 +327,15 @@ async function renderHome() {
       <div class="dye-strip" role="img" aria-label="${all.length} レッスンの染まり具合。${DYE.map((d, i) => `${d.meaning} ${counts[i]}`).join("、")}">
         ${all.map((l) => deepened.has(l.id) ? `<span class="dye-burst-cell" style="position:relative;display:block">${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink" style="position:absolute;inset:0"></span></span>` : dyeDot(levels[l.id])).join("")}
       </div>
-      <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)}</span>${d.meaning} ${counts[i]}</span></li>`).join("")}</ul>
+      <details class="dye-key"${Object.keys(S.read).length ? "" : " open"}><summary><span class="dye-key-marks" aria-hidden="true">${DYE.map((_, i) => dyeSwatch(i)).join("")}</span>染まり方の見方</summary>
+        <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)}</span>${d.meaning} ${counts[i]}</span></li>`).join("")}</ul></details>
       <div class="home-stats">
-        ${due ? `<div><div class="stat-label">この先の復習</div><div class="stat-value">${upcoming}<small>問</small></div>${pending.find((d) => d > today()) ? `<div class="stat-sub">次は ${pending.find((d) => d > today()).slice(5).replace("-", "/")}</div>` : ""}</div>`
+        ${due ? `<div><div class="stat-label">復習で卒業</div><div class="stat-value">${graduated}<small>問</small></div></div>`
           : `<a href="#/review"><div class="stat-label">次の復習</div><div class="stat-value">${nextReview}</div></a>`}
         <a href="#/reading"><div class="stat-label">読解の正解</div><div class="stat-value">${readingOk}<small>/ ${readingTotal}</small></div></a>
         <div><div class="stat-label">この7日の稽古</div><div class="stat-value">${weekDays}<small>日</small></div></div>
       </div>
-      ${standalone || S.settings.hideInstall ? "" : `<div class="install-hint" id="install-hint">${icon("phone")}<details><summary><b>ホーム画面に追加</b>するとアプリのように開けます</summary>
+      ${standalone || S.settings.hideInstall ? "" : `<div class="install-hint" id="install-hint"><details><summary>ホーム画面に追加する方法</summary>
         <p>iPhone は Safari の共有ボタン →「ホーム画面に追加」、Android は Chrome のメニュー →「ホーム画面に追加」。</p></details>
         <button class="close" type="button" data-hide-install aria-label="この案内を閉じる">${icon("cross")}</button></div>`}
     </section>
@@ -373,6 +375,8 @@ async function renderHome() {
 }
 
 let pendingSection = null;
+// 図の部品の URL を数えるので、読み込みの記録を多めに残す
+performance.setResourceTimingBufferSize?.(1000);
 
 /** ホームの「この端末に保存済みか」。全レッスンの JSON がキャッシュにあるかを数える */
 async function homeSaveState(all) {
@@ -385,7 +389,7 @@ async function homeSaveState(all) {
     const hits = await Promise.all(files.map((f) => caches.match(f)));
     const n = hits.slice(shell.length).filter(Boolean).length;
     const ready = !!navigator.serviceWorker.controller && hits.every(Boolean);
-    const figures = localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL && !!(await caches.match(MERMAID_URL));
+    const figures = await mermaidCached();
     if (!$("#save-state")) return;
     // 準備中は失敗ではないので、注意の朱ではなく静かな色の点
     el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
@@ -416,18 +420,25 @@ async function renderLesson(id) {
   const checked = S.checklist[id] || [];
   const quiz = S.quiz[id];
   const level = meta ? dyeLevel(meta) : 0;
+  const readingDone = (L.reading || []).filter((_, i) => S.reading[`${id}@${i}`]?.ok).length;
+  const writeDone = L.exercises.filter((e) => S.exercise[e.key]?.selfPass).length;
   const steps = [
     ["read", "読む", !!S.read[id]],
     L.atWork?.length ? ["atwork", "仕事のコード", seenSection(id, "atwork")] : null,
-    L.samples.length ? ["run", "見る", seenSection(id, "run")] : null,
+    L.samples.length ? ["run", SECTION_LABEL.run, seenSection(id, "run")] : null,
     // 段の順は染まりの順(読む → 確かめる → 書く)にそろえる
     ["quiz", "確かめる", !!(quiz && quiz.best >= Math.ceil(L.quiz.length * 0.8))],
-    L.reading?.length ? ["reading", "読解", L.reading.some((_, i) => S.reading[`${id}@${i}`]?.ok)] : null,
-    L.exercises.length ? ["write", "書く", L.exercises.some((e) => S.exercise[e.key]?.selfPass)] : null,
+    // 読解・書くは全問そろって「済み」。途中は「1/3」のように数を添える
+    L.reading?.length ? ["reading", "読解", readingDone === L.reading.length, false, readingDone] : null,
+    L.exercises.length ? ["write", "書く", writeDone === L.exercises.length, false, writeDone] : null,
     L.sts || L.checklist.length ? ["sts", "STSで試す", L.checklist.length > 0 && L.checklist.every((c) => checked.includes(c.key)), true] : null,
   ].filter(Boolean);
-  let no = 0;
-  const title = (key, text) => `<h2 class="section-title" id="${key}-title"><span class="no">${String(++no).padStart(2, "0")}</span>${text}</h2>`;
+  // 見出しの番号は段の並びの位置(読むが 01)。段にない節(用語など)は番号なし
+  const title = (key, text) => {
+    const n = steps.findIndex((st) => st[0] === key) + 1;
+    return `<h2 class="section-title" id="${key}-title">${n ? `<span class="no">${String(n).padStart(2, "0")}</span>` : ""}${text}</h2>`;
+  };
+  const total = { reading: L.reading?.length, write: L.exercises.length };
   view().innerHTML = `
     <header class="lesson-hero">
       <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a> / ${esc(L.part)} / ${esc(L.chapter)}</nav>
@@ -439,10 +450,10 @@ async function renderLesson(id) {
     <div class="stepper-wrap">
       <div class="stepper-row">
       <nav class="stepper" aria-label="このレッスンの段">
-        ${steps.map(([key, label, done, pcOnly]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${pcOnly ? ` <span class="pc-only" title="パソコンの STS で手を動かす段">PC</span>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
+        ${steps.map(([key, label, done, pcOnly, part]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${pcOnly ? ` <span class="pc-only" title="パソコンの STS で手を動かす段">PC</span>` : ""}${!done && part ? ` <small>${part}/${total[key]}</small>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
       </nav>
-      <details class="step-menu"><summary aria-label="段の一覧"><span id="step-count">1/${steps.length}</span></summary>
-        <ol>${steps.map(([key, label]) => `<li><a href="#${key}" data-scroll="${key}">${label}</a></li>`).join("")}</ol></details>
+      <details class="step-menu"><summary><span class="visually-hidden">段の一覧。いまの段は</span><span id="step-count">1/${steps.length}</span><span id="step-now">${steps[0][1]}</span></summary>
+        <ol>${steps.map(([key, label, done, pcOnly, part]) => `<li class="${done ? "is-done" : ""}" data-menu-step="${key}"><a href="#${key}" data-scroll="${key}">${label}${!done && part ? ` <small>${part}/${total[key]}</small>` : ""}${pcOnly ? ` <span class="pc-only">PC</span>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a></li>`).join("")}</ol></details>
       <button class="ask" type="button" data-action="tutor" aria-label="AIチューターに質問する">${icon("chat")}<span>質問</span></button>
       </div>
       <div class="sew" aria-hidden="true"></div>
@@ -456,7 +467,7 @@ async function renderLesson(id) {
     ${L.atWork?.length ? `
     <section id="atwork" class="lesson-section" aria-labelledby="atwork-title">
       ${title("atwork", "仕事のコードではこう出てくる")}
-      <p class="section-lead">業務の Spring Boot アプリで、このレッスンの知識が現れる場所です。番号の行を読んでから、下の説明と照らし合わせましょう。</p>
+      <p class="section-lead">業務の Spring Boot アプリで、このレッスンの知識が現れる場所です。番号の行と、その直後の説明を照らし合わせながら読みましょう。</p>
       ${L.atWork.map(atWorkBlock).join("")}
     </section>` : ""}
     ${L.samples.length ? `
@@ -477,7 +488,7 @@ async function renderLesson(id) {
     </section>
     ${L.reading?.length ? `
     <section id="reading" class="lesson-section" aria-labelledby="reading-title">
-      ${title("reading", "コードを読む")}
+      ${title("reading", "読解 — コードを読む")}
       <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
       <ol class="reading-list">${L.reading.map((r, i) => readingCard(r, `${id}@${i}`)).join("")}</ol>
     </section>` : ""}
@@ -575,6 +586,8 @@ function trackLesson(id, keys) {
     setCurrent(key);
     const count = $("#step-count");
     if (count) count.textContent = `${keys.indexOf(key) + 1}/${keys.length}`;
+    const now = $("#step-now");
+    if (now) now.textContent = SECTION_LABEL[key];
     // 読んでいる位置を覚える(「続きから」で同じ所へ戻る)。最後の前後リンクまで来たら読み切り
     const secTop = document.getElementById(key).getBoundingClientRect().top;
     pos = { section: key, off: Math.round(line - secTop), end: $(".lesson-nav")?.getBoundingClientRect().top < innerHeight };
@@ -612,6 +625,7 @@ function atWorkBlock(a) {
   return `<article class="atwork">
     ${a.title ? `<h3>${esc(a.title)}</h3>` : ""}
     <div class="atwork-intro md">${a.introHtml}</div>
+    ${notes.length ? `<button class="notes-toggle" type="button" data-notes-toggle aria-pressed="false">説明をたたむ</button>` : ""}
     <div class="code-notes"><pre class="code-lines" data-notes="${notes.map(([n]) => Number(n)).join(",")}"><code class="language-java">${esc(a.code)}</code></pre></div>
     ${notes.length ? `<ol class="line-notes">${notes.map(([n, html]) => `<li><span class="pin-label">${Number(n)}行</span><span>${html}</span></li>`).join("")}</ol>` : ""}
     ${a.pointsHtml?.length ? `<div class="points"><div class="points-title">読むときの着眼点</div><ul>${a.pointsHtml.map((p) => `<li>${p}</li>`).join("")}</ul></div>` : ""}
@@ -666,6 +680,9 @@ function bindReading(root, findQuestion) {
       out.innerHTML = readingAnswerHtml(r, ok);
       out.hidden = false;
       decorate(out);
+      // レッスンの中なら、段の並びの「読解 n/全部」を進める
+      const refs = [...root.querySelectorAll(".reading-q[data-ref]")].map((x) => x.dataset.ref);
+      if ($('.step[data-step="reading"]')) stepCount("reading", refs.filter((x) => S.reading[x]?.ok).length, refs.length);
     };
   });
 }
@@ -682,8 +699,8 @@ function termCard(g, titles) {
   // 英語が見出しと同じ綴りなら繰り返さない
   const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase());
   const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
-  if (g.length === 1) return `<li class="term">${head}<p class="term-def">${t.defHtml}</p>
-    ${t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}">${esc(titles[t.lesson] || t.lesson)}</a>` : ""}</li>`;
+  // どの語も「〇〇 で」(レッスン名)を説明の前に置く
+  if (g.length === 1) return `<li class="term">${head}${t.lesson ? `<a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}">${esc(titles[t.lesson] || t.lesson)}</a>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
   return `<li class="term">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}">${esc(titles[x.lesson] || x.lesson)}</a>` : ""}
     <p class="term-def">${x.defHtml}</p></li>`).join("")}</ul></li>`;
 }
@@ -754,12 +771,25 @@ function refreshDye(meta) {
   return level > from ? { from, to: level } : null;
 }
 
+/** 段の並びの「n/全部」を進め、全部そろったら「済み」にする */
+function stepCount(key, done, total) {
+  if (done >= total) return markStep(key);
+  for (const a of [$(`.step[data-step="${key}"]`), $(`[data-menu-step="${key}"] a`)]) {
+    if (!a || !done) continue;
+    const small = a.querySelector("small") || a.appendChild(document.createElement("small"));
+    small.textContent = `${done}/${total}`;
+  }
+}
+
 /** 段の並びの印を「済み」にする */
 function markStep(key) {
-  const a = $(`.step[data-step="${key}"]`);
-  if (!a || a.classList.contains("done")) return;
-  a.classList.add("done");
-  a.insertAdjacentHTML("beforeend", `<span class="visually-hidden">(済み)</span>`);
+  for (const a of [$(`.step[data-step="${key}"]`), $(`[data-menu-step="${key}"]`)]) {
+    const cls = a?.matches("li") ? "is-done" : "done";
+    if (!a || a.classList.contains(cls)) continue;
+    a.classList.add(cls);
+    a.querySelector("small")?.remove();
+    (a.querySelector("a") || a).insertAdjacentHTML("beforeend", `<span class="visually-hidden">(済み)</span>`);
+  }
 }
 
 const dyedLine = (d) => d ? `<span class="dyed-line">${dyeBurst(d.from, d.to)}<span>${DYE[d.to].name}に染まった(${DYE[d.to].meaning})</span></span>` : "";
@@ -822,7 +852,7 @@ function bindLesson(L, meta) {
       const dyed = refreshDye(meta);
       el.closest(".self-check").querySelector(".dyed-line")?.remove();
       if (dyed) el.closest(".self-check").insertAdjacentHTML("beforeend", dyedLine(dyed));
-      if (ok) markStep("write");
+      stepCount("write", L.exercises.filter((e) => S.exercise[e.key]?.selfPass).length, L.exercises.length);
       toast(ok ? "記録しました。1日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
     } else if (action === "ai-review" || action === "ai-hint") {
       const card = el.closest("article");
@@ -882,14 +912,15 @@ function bindLesson(L, meta) {
     if (score >= pass) markStep("quiz");
     const wrong = L.quiz.map((q, i) => i).filter((i) => !form.querySelectorAll(".quiz-q")[i].querySelector(".q-explain.correct"));
     form.querySelectorAll(".quiz-q").forEach((li, i) => { li.id = `q-${i + 1}`; });
-    // 次の一手: 合格なら次の段(書く / 読解)、届かなければ間違えた問の見直しと解き直し
-    const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
+    // 次の一手: 合格なら段の並びの次(読解 → 書く)、届かなければ間違えた問の見直しと解き直し
+    const nextKey = score >= pass ? (L.reading?.length ? "reading" : L.exercises.length ? "write" : null) : null;
+    const level = meta ? dyeLevel(meta) : 0;
     $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>
       <span>${score === L.quiz.length ? "満点" : score >= pass ? "合格ライン突破" : `合格ラインは ${pass} 問`}</span></div>${dyedLine(dyed)}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
-      <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "書くへ進む(演習で藍へ)" : "読解へ進む"}</a>` : ""}
+      <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "書くへ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
-      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
+      <p class="muted small">${score >= pass && level === 2 && L.exercises.length ? "演習を「できた」にすると藍に。" : ""}各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
   };
@@ -1047,7 +1078,7 @@ async function renderGlossary() {
     <h1 class="page-title">用語集</h1>
     <p class="page-lead">全レッスンの用語 ${index.length} 語を読み順に。読み・英語・説明のどれでも探せます。いくつかのレッスンに出る語は、レッスンごとの説明を 1 枚にまとめています。</p>
     <div class="search">${icon("search")}<input type="search" id="q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
-    <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ">${rows.map((r, i) => `<a href="#g-${i}">${r.replace("行", "").replace("英字・記号", "A-Z")}</a>`).join("")}</nav>
+    <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ"><a href="#q" class="kana-search" aria-label="用語を探す">${icon("search", "sm")}</a>${rows.map((r, i) => `<a href="#g-${i}" data-row="${i}">${r.replace("行", "").replace("英字・記号", "A-Z")}</a>`).join("")}</nav>
     <p class="glossary-count" id="count" aria-live="polite"></p>
     <ul class="term-list" id="terms"></ul>`;
   const list = $("#terms");
@@ -1065,7 +1096,27 @@ async function renderGlossary() {
     }).join("");
   };
   $("#q").addEventListener("input", (e) => show(e.target.value.trim()));
+  // 索引の虫めがね: 先頭まで戻って検索欄へ
+  $(".kana-search").onclick = (e) => {
+    e.preventDefault();
+    scrollTo({ top: 0, behavior: smooth() });
+    $("#q").focus({ preventScroll: true });
+  };
   show("");
+  // いま読んでいる行を索引で強調し、索引の見える位置に送る
+  const index$ = $("#kana-index");
+  const onScroll = () => {
+    if (!document.contains(index$)) return removeEventListener("scroll", onScroll);
+    const line = index$.getBoundingClientRect().bottom + 8;
+    let cur = null;
+    for (const h of list.querySelectorAll(".term-group")) { if (h.getBoundingClientRect().top <= line) cur = h.id.slice(2); else break; }
+    index$.querySelectorAll("a[data-row]").forEach((a) => {
+      const on = a.dataset.row === cur;
+      if (on && a.getAttribute("aria-current") !== "true") index$.scrollTo({ left: a.offsetLeft - index$.clientWidth / 2, behavior: smooth() });
+      on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current");
+    });
+  };
+  addEventListener("scroll", onScroll, { passive: true });
 }
 
 // ------------------------------------------------------------ 復習
@@ -1490,9 +1541,8 @@ function softBreaks(root) {
   }
 }
 
-/** スマホでは、仕事のコードの説明を、その行の直後に挟む(下の説明まで往復しないように) */
+/** 仕事のコードの説明を、その行の直後に挟む(下の説明まで往復しないように)。「説明をたたむ」でコードだけ通して読める */
 function inlineNotes(root) {
-  if (!matchMedia("(max-width: 760px)").matches) return;
   root.querySelectorAll(".atwork").forEach((art) => {
     const pre = art.querySelector("pre.code-lines");
     const list = art.querySelector(".line-notes");
@@ -1505,18 +1555,52 @@ function inlineNotes(root) {
     pre.dataset.inline = "1";
     list.classList.add("has-inline");
   });
+  applyNotesFold(root);
 }
 
+// 「説明をたたむ」: 行の間の説明を隠して、コードだけを通して読む(下に説明の一覧を出す)。選んだ形は覚えておく
+function applyNotesFold(root) {
+  const folded = !!S.settings.foldNotes;
+  root.querySelectorAll(".atwork").forEach((art) => {
+    art.classList.toggle("notes-folded", folded);
+    const b = art.querySelector("[data-notes-toggle]");
+    if (b) { b.setAttribute("aria-pressed", String(folded)); b.textContent = folded ? "説明を行の間に出す" : "説明をたたむ"; }
+  });
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-notes-toggle]")) return;
+  S.settings.foldNotes = !S.settings.foldNotes;
+  save();
+  applyNotesFold(document);
+});
+
 /** 電波のあるうちに、図の描画に使う部品を読み込んでおく(地下鉄で初めて図を開いても描けるように) */
-function warmMermaid() {
-  if (!navigator.onLine || !navigator.serviceWorker?.controller || localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL) return;
+const MERMAID_KEY = "javadojo-m-mermaid-files";
+/** 図の部品(入口 + 図の種類ごとに分割された部品)が全部この端末のキャッシュにあるか */
+async function mermaidCached() {
+  let files = [];
+  try { files = JSON.parse(localStorage.getItem(MERMAID_KEY) || "[]"); } catch (e) { files = []; }
+  if (!files.includes(MERMAID_URL)) return false;
+  const hits = await Promise.all(files.map((f) => caches.match(f)));
+  return hits.every(Boolean);
+}
+
+async function warmMermaid() {
+  if (!navigator.onLine || !navigator.serviceWorker?.controller || await mermaidCached()) return;
   const run = async () => {
     try {
       if (!mermaidModule) mermaidModule = (await import(MERMAID_URL)).default;
       mermaidModule.initialize(mermaidTheme());
       const samples = ["flowchart LR\n a-->b", "sequenceDiagram\n a->>b: x", "classDiagram\n A <|-- B", "erDiagram\n A ||--o{ B : has", "stateDiagram-v2\n [*] --> A"];
       for (const [i, src] of samples.entries()) await mermaidModule.render(`warm-${i}`, src);
-      localStorage.setItem("javadojo-m-mermaid", MERMAID_URL);
+      // 実際に読み込んだ部品の URL を覚える(Service Worker が同じ URL でキャッシュする)。少し待ってから数える
+      await new Promise((r) => setTimeout(r, 1500));
+      const base = MERMAID_URL.slice(0, MERMAID_URL.lastIndexOf("/") + 1);
+      const files = [...new Set([MERMAID_URL, ...performance.getEntriesByType("resource").map((e) => e.name).filter((n) => n.startsWith(base))])];
+      // 以前に Service Worker の外で読んだ部品は、ここで取り直してキャッシュに入れる
+      await Promise.all(files.map((f) => fetch(f, { mode: "cors" }).catch(() => null)));
+      localStorage.setItem(MERMAID_KEY, JSON.stringify(files));
+      localStorage.removeItem("javadojo-m-mermaid");
       if ($("#save-state")) homeSaveState(allLessons(await curriculum()));
     } catch (e) {
       console.warn("図の部品を先に読み込めませんでした", e);

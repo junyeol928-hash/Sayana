@@ -32,6 +32,7 @@
   --dye-empty: oklch(.72 .02 245);
   --dye-1: oklch(.88 .045 225);
   --dye-1-edge: oklch(.62 .08 230);
+  --dye-4-edge: var(--dye-4);
   --dye-2: oklch(.6 .11 240);
   --dye-3: oklch(.45 .11 245);
   --dye-4: oklch(.24 .06 260);
@@ -84,11 +85,12 @@
     --ki-soft: oklch(.29 .04 85);
     --dye-0: var(--bg);
     --dye-empty: oklch(.42 .03 250);
-    --dye-1: oklch(.6 .075 225);
-    --dye-1-edge: oklch(.6 .075 225);
-    --dye-2: oklch(.6 .1 238);
-    --dye-3: oklch(.55 .13 243);
-    --dye-4: oklch(.5 .13 250);
+    --dye-1: oklch(.72 .06 222);
+    --dye-1-edge: oklch(.72 .06 222);
+    --dye-2: oklch(.62 .1 238);
+    --dye-3: oklch(.53 .12 245);
+    --dye-4: oklch(.42 .09 255);
+    --dye-4-edge: oklch(.66 .09 240);
     --dye-mark: oklch(.97 .01 240);
     --on-shu: oklch(.17 .03 255);
     --kon: oklch(.3 .07 250);
@@ -121,11 +123,12 @@
   --ki-soft: oklch(.29 .04 85);
   --dye-0: var(--bg);
   --dye-empty: oklch(.42 .03 250);
-  --dye-1: oklch(.6 .075 225);
-  --dye-1-edge: oklch(.6 .075 225);
-  --dye-2: oklch(.6 .1 238);
-  --dye-3: oklch(.55 .13 243);
-  --dye-4: oklch(.5 .13 250);
+  --dye-1: oklch(.72 .06 222);
+  --dye-1-edge: oklch(.72 .06 222);
+  --dye-2: oklch(.62 .1 238);
+  --dye-3: oklch(.53 .12 245);
+  --dye-4: oklch(.42 .09 255);
+  --dye-4-edge: oklch(.66 .09 240);
   --dye-mark: oklch(.97 .01 240);
   --on-shu: oklch(.17 .03 255);
   --kon: oklch(.3 .07 250);
@@ -260,7 +263,7 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-2 { background: var(--dye-2); }
 .dye-3 { background: var(--dye-3); }
 /* 褐(卒業)には白い刺し子の目を入れ、色以外でも分かるように */
-.dye-4 { background: var(--dye-4); }
+.dye-4 { background: var(--dye-4); box-shadow: inset 0 0 0 1.5px var(--dye-4-edge); }
 .dye-4::after { content: ""; position: absolute; inset: 22%; border: 2px dashed var(--dye-mark); border-radius: 1px; }
 .dye-2::after, .dye-3::after { content: ""; position: absolute; left: 20%; right: 20%; top: 50%; height: 1.5px; transform: translateY(-50%);
   background: repeating-linear-gradient(90deg, var(--dye-mark) 0 3px, transparent 3px 5px); }
@@ -273,7 +276,7 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-burst > .dye.ink { animation: dye-in .56s var(--ease) .12s both; }
 .dyed-line { display: flex; flex-basis: 100%; align-items: center; gap: 12px; margin-top: 14px; font-weight: 700; color: var(--accent-ink); }
 @keyframes dye-in { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(75% at 50% 50%); } }
-.dye-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px 10px; font-size: .75rem; color: var(--ink-muted); margin: 12px 0 0; padding: 0; list-style: none; }
+.dye-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; font-size: .75rem; color: var(--ink-muted); margin: 12px 0 0; padding: 0; list-style: none; }
 .dye-legend li { display: inline-flex; align-items: flex-end; gap: 6px; }
 .dye-legend .dye { width: 14px; height: 14px; margin-bottom: 2px; }
 /* 帯は一覧で見るためのもの(押す場所は下のレッスン一覧) */
@@ -283,6 +286,15 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-legend .dye-name-sm { display: block; font-size: .75rem; color: var(--ink-muted); line-height: 1.6; }
 ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .dye-legend li:last-child { grid-column: span 2; } /* 「復習をすべて卒業」は長いので 2 列分 */
+.dye-key { margin-top: 12px; }
+.dye-key > summary { list-style: none; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; font-size: .8125rem; font-weight: 700; color: var(--ink-muted); }
+.dye-key > summary::-webkit-details-marker { display: none; }
+.dye-key > summary::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.dye-key[open] > summary::after { transform: rotate(-135deg); }
+.dye-key-marks { display: inline-flex; gap: 3px; }
+.dye-key-marks .dye { width: 12px; height: 12px; }
+.dye-key .dye-legend { margin-top: 4px; }
+@media (min-width: 1024px) { .dye-legend, .dye-legend .dye-name-sm, .stat-label { font-size: .875rem; } }
 
 /* ================================================================ ホーム */
 .today {
@@ -310,7 +322,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-next .dye { width: 18px; height: 18px; }
 .today-next .tn-now, .today-next .tn-hint { display: block; }
 .today-next .tn-hint { color: var(--kon-muted); font-size: .8125rem; }
-.install-hint .close { margin-left: auto; flex: none; min-width: 44px; min-height: 44px; margin: -12px -10px -12px auto; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
+.install-hint .close { margin-left: auto; flex: none; min-width: 44px; min-height: 44px; margin: 0 -10px 0 auto; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
 .save-state.ok::before { background: var(--ok); }
 .save-state.ng::before { background: var(--shu); }
 .today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
@@ -338,10 +350,11 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .stat-value small { font-size: .8125rem; margin-left: 2px; color: var(--ink-muted); font-weight: 400; }
 .stat-sub { font-size: .75rem; color: var(--ink-muted); }
 
-.install-hint { display: flex; gap: 12px; align-items: flex-start; font-size: .875rem; background: var(--surface-2); border-radius: var(--r-l); padding: 14px 16px; margin: 20px 0 0; }
+.install-hint { display: flex; gap: 12px; align-items: center; font-size: .8125rem; color: var(--ink-muted); border-top: 1px solid var(--line); padding: 4px 0 0; margin: 20px 0 0; }
+.install-hint summary { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
 .install-hint p { margin: 6px 0 0; }
 .install-hint details { flex: 1; }
-.install-hint summary { cursor: pointer; min-height: 24px; }
+.install-hint summary { cursor: pointer; }
 .install-hint + * { margin-top: 0; }
 
 .curriculum { margin-top: 24px; }
@@ -409,6 +422,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .stepper-wrap::after { /* 右端のフェード: 段が続いていることを見せる(段の一覧と質問ボタンの手前まで) */
   content: ""; position: absolute; top: 0; right: var(--tail, 128px); bottom: 3px; width: 36px; pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--bg)); }
+.stepper-wrap:not(:has(.stepper-row))::after { right: 0; } /* PC: 段の一覧も質問ボタンもないので、フェードは右端(段の余白の上) */
 .stepper { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 6px 36px 8px 0; scroll-padding: 0 48px; }
 .stepper::-webkit-scrollbar { display: none; }
 /* 下の線: 薄い実線の上を、読んだ分だけ藍の刺し子が縫い進む(縫い目の長さは変えず、見える範囲だけ広げる) */
@@ -423,7 +437,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step .no { display: none; }
 .step::before { content: ""; width: 10px; height: 10px; border-radius: 2px; outline: 1.5px dashed var(--dye-empty); outline-offset: -1.5px; flex: none; }
 .step.done::before { outline: none; width: 10px; height: 6px; margin: 0 1px 3px; border-radius: 0; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
-.step .pc-only { font-size: .6875rem; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; line-height: 1.5; }
+.step .pc-only, .step-menu .pc-only { font-size: .6875rem; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; line-height: 1.5; }
 .stepper-row { display: flex; align-items: center; --tail: 128px; }
 .stepper-row .stepper { flex: 1; min-width: 0; }
 .ask { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; margin: 0 0 2px 4px; padding: 0 12px;
@@ -441,6 +455,9 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step-menu li a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: var(--r-m); color: var(--ink); text-decoration: none; font-weight: 700; font-size: .9375rem; }
 .step-menu li a::before { content: counter(st); width: 1.4em; color: var(--ink-muted); font-variant-numeric: tabular-nums; font-size: .8125rem; }
 .step-menu li a:hover { background: var(--surface-2); }
+.step-menu li a small { color: var(--ink-muted); font-weight: 400; }
+.step-menu li.is-done a::after { content: ""; width: 10px; height: 6px; margin: 0 2px 3px auto; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
+#step-now { display: none; }
 .step.done { color: var(--ink); }
 .step[aria-current="true"] { color: var(--accent-ink); }
 .step[aria-current="true"]::after { content: ""; position: absolute; left: 8px; right: 12px; bottom: 2px; height: 2px; border-radius: 1px; background: var(--accent); }
@@ -520,6 +537,9 @@ pre.code-lines .ln-note { display: block; margin: 2px 0 8px 44px; padding: 8px 1
   background: oklch(1 0 0 / .06); color: var(--code-ink, #e8eef5); font: 400 .875rem/1.7 var(--font); white-space: normal; letter-spacing: .02em; }
 pre.code-lines .ln-note code { color: inherit; background: oklch(1 0 0 / .1); }
 .line-notes.has-inline { display: none; }
+.notes-toggle { display: inline-flex; align-items: center; min-height: 44px; margin: 6px 0 -6px; padding: 0 2px; border: 0; background: none; color: var(--accent-ink); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.atwork.notes-folded pre.code-lines .ln-note { display: none; }
+.atwork.notes-folded .line-notes.has-inline { display: grid; }
 pre.code-lines .ln.note::before { content: attr(data-n); left: 6px; width: 30px; text-align: center; border-radius: 9px; background: var(--dye-2); color: var(--code-bg); font-weight: 700; top: .2em; line-height: 1.5; }
 pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 
@@ -575,7 +595,10 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .term-def { margin: 4px 0 0; font-size: .9375rem; line-height: 1.75; }
 .term-from { font-size: .8125rem; display: inline-flex; align-items: center; min-height: 44px; }
 .term-defs { list-style: none; margin: 4px 0 0; padding: 0; }
-.term-defs li + li { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+/* 語の中のレッスンごとの説明は、左の藍の細線でひとまとまりに(カード同士の刺し子の区切りと分ける) */
+.term-defs li { padding-left: 12px; border-left: 2px solid var(--accent-soft); }
+.term-defs li + li { margin-top: 10px; }
+.term > .term-from-head { display: flex; min-height: 32px; margin-top: 2px; }
 .term-defs .term-def { margin: 0; }
 .term-from-head { min-height: 32px; font-weight: 700; }
 .term-from-head::after { content: "で"; color: var(--ink-muted); font-weight: 400; margin-left: 2px; }
@@ -585,6 +608,8 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .kana-index::-webkit-scrollbar { display: none; }
 .kana-index a { flex: 0 0 auto; min-width: 40px; min-height: 44px; display: grid; place-items: center; padding: 0 8px; border-radius: var(--r-m); text-decoration: none; color: var(--ink); font-weight: 700; font-size: .875rem; }
 .kana-index a:hover { background: var(--surface-2); }
+.kana-index a[aria-current="true"] { background: var(--accent); color: var(--on-accent, #fff); }
+.kana-index .kana-search { color: var(--ink-muted); }
 .term-group { scroll-margin-top: 120px; }
 .search { position: relative; margin: 8px 0 16px; }
 .search input { width: 100%; font: inherit; font-size: 16px; min-height: 48px; padding: 10px 14px 10px 44px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }

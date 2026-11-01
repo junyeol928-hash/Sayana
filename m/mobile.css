@@ -5,6 +5,15 @@ body.mobile-app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 .mobile-app .bottom-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface);
   padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -1px 0 var(--line), 0 -6px 18px oklch(.24 .05 255 / .06); }
 .mobile-app .stepper-wrap { top: 56px; }
+/* スマホの段: 横に並べると 2 段しか見えないので、「いまの段 n/全部」の 1 つのボタンにまとめ、押すと全部の段が開く */
+@media (max-width: 760px) {
+  .mobile-app .stepper-row .stepper, .mobile-app .stepper-wrap::after { display: none; }
+  .mobile-app .step-menu { flex: 1; min-width: 0; margin: 0 0 2px calc(var(--gutter) - 8px); }
+  .mobile-app .step-menu > summary { justify-content: flex-start; gap: 10px; width: 100%; color: var(--ink); font-size: 1rem; }
+  .mobile-app #step-now { display: inline; }
+  .mobile-app #step-count { color: var(--ink-muted); font-size: .8125rem; font-weight: 700; min-width: 2.2em; }
+  .mobile-app .step-menu ol { left: 0; right: auto; width: min(300px, calc(100vw - 2 * var(--gutter))); }
+}
 .mobile-app .header-inner { max-width: 760px; }
 @media (min-width: 761px) {
   .mobile-app .today { margin-top: 8px; }
@@ -16,7 +25,6 @@ body.mobile-app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 .lesson-dye { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 700; }
 .lesson-swatch { width: 18px; height: 18px; }
 .badge-ok { color: var(--ok); font-weight: 700; }
-.install-hint .icon { color: var(--accent-ink); margin-top: 2px; }
 .today-review .icon { vertical-align: -3px; }
 
 /* AIチューター(下から出るシート) */
