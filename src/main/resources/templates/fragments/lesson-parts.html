@@ -52,10 +52,10 @@
     <p class="quiz-wrong" th:if="${a.score < a.total}">間違えた問:
         <th:block th:each="q, st : ${lesson.quiz}"><a th:unless="${outcome.correct().get(st.index)}" th:href="'#q-' + ${st.count}" th:text="'問 ' + ${st.count}"></a> </th:block></p>
     <div class="quiz-next">
-        <a class="btn primary" th:if="${a.score >= pass and nextKey != null}" th:href="'#' + ${nextKey}" th:text="${nextKey == 'reading' ? '読解へ進む' : '書くへ進む'}"></a>
+        <a class="btn primary" th:if="${a.score >= pass and nextKey != null}" th:href="'#' + ${nextKey}" th:text="${nextKey == 'reading' ? '読解へ進む' : '演習へ進む'}"></a>
         <button class="btn" type="button" data-quiz-reset>もう一度解く</button>
     </div>
-    <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><a href="#write"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に → 書くへ</a></p>
+    <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><a href="#write"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に → 演習へ</a></p>
     <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
     <template class="q-explains">
         <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"

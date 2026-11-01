@@ -166,6 +166,11 @@ function mermaidTheme() {
       clusterBorder: v("--line"), edgeLabelBackground: v("--surface-2"), actorBkg: v("--surface"), actorBorder: v("--line-strong"),
       noteBkgColor: v("--ki-soft"), noteBorderColor: v("--line"),
     },
+    // 狭い画面では図を縮めない(縮めると文字が 8px ほどになる)。14px のまま組み、はみ出す分は横にスクロールする
+    ...(matchMedia("(max-width: 760px)").matches ? {
+      flowchart: { useMaxWidth: false, wrappingWidth: 150 }, sequence: { useMaxWidth: false }, class: { useMaxWidth: false },
+      er: { useMaxWidth: false }, state: { useMaxWidth: false },
+    } : {}),
   };
 }
 
@@ -436,7 +441,7 @@ document.addEventListener("htmx:afterSwap", (e) => {
   tpl.remove();
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
   form.querySelector("button[type=submit]").hidden = true;
-  // 合格なら段の並びの「確かめる」にレ点
+  // 合格なら段の並びの「クイズ」にレ点
   if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) document.querySelector('.stepper .step[href="#quiz"]')?.classList.add("done");
   highlight(form);
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });

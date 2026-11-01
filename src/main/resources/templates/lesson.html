@@ -34,16 +34,16 @@
         <p class="ai-off-line" th:unless="${aiAvailable}">AI機能はオフです。この画面は教材と自動採点だけで使えます。</p>
     </header>
 
-    <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→確かめる→読解→書く→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ */-->
+    <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→クイズ→読解→演習→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ */-->
     <div class="stepper-wrap">
     <nav class="stepper" aria-label="このレッスンの段">
         <a href="#read" class="step" th:classappend="${status.read} ? 'done'">読む</a>
         <a href="#atwork" class="step" th:if="${!lesson.atWork.isEmpty()}">仕事のコード</a>
         <a href="#run" class="step" th:if="${!lesson.samples.isEmpty()}" th:classappend="${status.sampleRun} ? 'done'">サンプル</a>
         <!--/* 段の「n/全部」は済んだ問の数だけ(クイズの最高点は冒頭の「クイズ最高」に任せる) */-->
-        <a href="#quiz" class="step" th:classappend="${status.bestQuiz != null and status.quizPassed()} ? 'done'">確かめる</a>
+        <a href="#quiz" class="step" th:classappend="${status.bestQuiz != null and status.quizPassed()} ? 'done'">クイズ</a>
         <a href="#reading" class="step" th:if="${!lesson.reading.isEmpty()}">読解</a>
-        <a href="#write" class="step" th:if="${!exercises.isEmpty()}" th:classappend="${status.exercisesPassed == status.exercisesTotal} ? 'done'">書く
+        <a href="#write" class="step" th:if="${!exercises.isEmpty()}" th:classappend="${status.exercisesPassed == status.exercisesTotal} ? 'done'">演習
             <small th:if="${status.exercisesPassed > 0 and status.exercisesPassed < status.exercisesTotal}" th:text="${status.exercisesPassed} + '/' + ${status.exercisesTotal}"></small></a>
         <a href="#sts" class="step" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}"
            th:classappend="${status.checklistTotal > 0 and status.checklistComplete()} ? 'done'">STSで試す</a>
@@ -108,7 +108,7 @@
     </section>
 
     <section id="quiz" class="lesson-section" th:if="${!lesson.quiz.isEmpty()}" aria-labelledby="quiz-title">
-        <h2 class="section-title" id="quiz-title">確かめる</h2>
+        <h2 class="section-title" id="quiz-title">クイズ</h2>
         <p class="section-lead">確認クイズ <span th:text="${lesson.quiz.size()}"></span> 問。<span th:text="${status.quizPassScore()}"></span> 問以上で合格。
             <span th:if="${status.bestQuiz != null}" th:text="'(これまでの最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal} + ')'"></span></p>
         <form class="quiz" th:attr="hx-post=@{/lessons/{id}/quiz(id=${lesson.id})}" hx-target="#quiz-result" hx-swap="innerHTML">
@@ -137,7 +137,7 @@
     </section>
 
     <section id="write" class="lesson-section" th:if="${!exercises.isEmpty()}" aria-labelledby="write-title">
-        <h2 class="section-title" id="write-title">書く・AIに見てもらう</h2>
+        <h2 class="section-title" id="write-title">演習・AIに見てもらう</h2>
         <p class="section-lead">提出すると別のJVMでJUnitが走って採点されます(10秒で打ち切り)。
             採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。</p>
         <th:block th:each="view : ${exercises}">

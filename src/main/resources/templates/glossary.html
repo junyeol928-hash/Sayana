@@ -8,10 +8,12 @@
     <p class="page-lead">全レッスンの用語 <span th:text="${cards.size()}">300</span> 語を読み順に。読み・英語・説明のどれでも探せます。いくつかのレッスンに出る語は、レッスンごとの説明を 1 枚にまとめています。</p>
     <div class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
         <input type="search" id="glossary-q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
+    <div class="kana-wrap">
     <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ">
         <a href="#glossary-q" class="kana-search" aria-label="用語を探す" data-kana-search><svg class="icon sm" aria-hidden="true"><use href="#i-search"/></svg></a>
         <a th:each="r, rs : ${rows}" th:attr="data-row=${rs.index}" th:href="'#g-' + ${rs.index}" th:text="${r == '英字・記号'} ? 'A-Z' : ${#strings.replace(r, '行', '')}">あ</a>
     </nav>
+    </div>
     <p class="glossary-count" id="glossary-count" aria-live="polite"></p>
     <ul class="term-list" id="terms">
         <th:block th:each="c, cs : ${cards}">
@@ -20,12 +22,12 @@
             <p class="term-name"><span th:text="${c.first.term}"></span><small th:if="${c.first.read != null}" th:text="${c.first.read}"></small><small lang="en" th:if="${c.en != null}" th:text="${c.en}"></small>
                 <span class="term-count" th:if="${c.terms.size() > 1}" th:text="${c.terms.size()} + ' レッスン'"></span></p>
             <th:block th:if="${c.terms.size() == 1}">
-                <a class="term-from term-from-head" th:if="${c.first.lessonId != null}" th:href="@{/lessons/{id}(id=${c.first.lessonId})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a>
+                <p class="term-from-line" th:if="${c.first.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${c.first.lessonId})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a><span class="term-de">で</span></p>
                 <p class="term-def" th:utext="${c.first.defHtml}"></p>
             </th:block>
             <ul class="term-defs" th:if="${c.terms.size() > 1}">
                 <li th:each="t : ${c.terms}">
-                    <a class="term-from term-from-head" th:if="${t.lessonId != null}" th:href="@{/lessons/{id}(id=${t.lessonId})}" th:text="${lessonTitles.get(t.lessonId)}"></a>
+                    <p class="term-from-line" th:if="${t.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${t.lessonId})}" th:text="${lessonTitles.get(t.lessonId)}"></a><span class="term-de">で</span></p>
                     <p class="term-def" th:utext="${t.defHtml}"></p>
                 </li>
             </ul>

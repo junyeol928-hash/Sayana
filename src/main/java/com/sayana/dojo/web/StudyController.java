@@ -46,6 +46,10 @@ public class StudyController {
 
     /** 読みの最初の文字から「あ行」「か行」…の見出しを決める(スマホ版の app.js の kanaRow と同じ)。 */
     static String kanaRow(Term t) {
+        // 英字で始まる語(equals・Iterator・@Bean など)は読みではなく「A-Z」に(索引の A-Z から探せるように)
+        if (!t.term().isBlank() && (t.term().strip().charAt(0) < 0x80 && Character.isLetter(t.term().strip().charAt(0)) || t.term().strip().charAt(0) == '@')) {
+            return "英字・記号";
+        }
         String s = (t.read() != null ? t.read() : t.term()).strip();
         char c = s.isEmpty() ? ' ' : s.charAt(0);
         char hira = c >= 'ァ' && c <= 'ヶ' ? (char) (c - 0x60) : c;
@@ -79,7 +83,13 @@ public class StudyController {
         content.glossary().stream()
                 .sorted(Comparator.comparing((Term t) -> t.read() != null ? t.read() : t.term(), ja))
                 .forEach(t -> byTerm.computeIfAbsent(t.term().strip().toLowerCase(Locale.ROOT), k -> new ArrayList<>()).add(t));
-        List<TermCard> cards = byTerm.values().stream().map(g -> new TermCard(kanaRow(g.getFirst()), g)).toList();
+        // 行の順に並べ、A-Z の中は綴りの順(スマホ版と同じ)
+        List<String> rowOrder = new ArrayList<>(List.of("英字・記号"));
+        "あかさたなはまやらわ".chars().forEach(k -> rowOrder.add((char) k + "行"));
+        rowOrder.add("その他");
+        Comparator<TermCard> order = Comparator.comparingInt((TermCard c) -> rowOrder.indexOf(c.row()))
+                .thenComparing(c -> c.row().equals("英字・記号") ? c.first().term().replaceFirst("^@", "").toLowerCase(Locale.ROOT) : "");
+        List<TermCard> cards = byTerm.values().stream().map(g -> new TermCard(kanaRow(g.getFirst()), g)).sorted(order).toList();
         model.addAttribute("cards", cards);
         model.addAttribute("rows", cards.stream().map(TermCard::row).distinct().toList());
         model.addAttribute("lessonTitles", LessonTitles.of(content));
