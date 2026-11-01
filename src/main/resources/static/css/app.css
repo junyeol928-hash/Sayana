@@ -84,12 +84,12 @@
     --ki-soft: oklch(.29 .04 85);
     --dye-0: var(--bg);
     --dye-empty: oklch(.42 .03 250);
-    --dye-1: oklch(.58 .05 238);
-    --dye-1-edge: oklch(.58 .05 238);
-    --dye-2: oklch(.6 .09 240);
-    --dye-3: oklch(.62 .13 241);
-    --dye-4: oklch(.64 .17 242);
-    --dye-mark: oklch(.17 .03 255);
+    --dye-1: oklch(.6 .075 225);
+    --dye-1-edge: oklch(.6 .075 225);
+    --dye-2: oklch(.6 .1 238);
+    --dye-3: oklch(.55 .13 243);
+    --dye-4: oklch(.5 .13 250);
+    --dye-mark: oklch(.97 .01 240);
     --on-shu: oklch(.17 .03 255);
     --kon: oklch(.3 .07 250);
     --kon-line: oklch(.45 .06 250);
@@ -121,12 +121,12 @@
   --ki-soft: oklch(.29 .04 85);
   --dye-0: var(--bg);
   --dye-empty: oklch(.42 .03 250);
-  --dye-1: oklch(.58 .05 238);
-  --dye-1-edge: oklch(.58 .05 238);
-  --dye-2: oklch(.6 .09 240);
-  --dye-3: oklch(.62 .13 241);
-  --dye-4: oklch(.64 .17 242);
-  --dye-mark: oklch(.17 .03 255);
+  --dye-1: oklch(.6 .075 225);
+  --dye-1-edge: oklch(.6 .075 225);
+  --dye-2: oklch(.6 .1 238);
+  --dye-3: oklch(.55 .13 243);
+  --dye-4: oklch(.5 .13 250);
+  --dye-mark: oklch(.97 .01 240);
   --on-shu: oklch(.17 .03 255);
   --kon: oklch(.3 .07 250);
   --kon-line: oklch(.45 .06 250);
@@ -154,7 +154,7 @@ a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 img, svg { max-width: 100%; }
 code, pre, kbd, samp { font-family: var(--mono); font-variant-ligatures: none; letter-spacing: 0; }
-:not(pre) > code { -webkit-box-decoration-break: clone; box-decoration-break: clone; background: var(--inline-code-bg); color: var(--ink); padding: .08em .38em; border-radius: var(--r-s); font-size: .9em; overflow-wrap: anywhere; }
+:not(pre) > code { -webkit-box-decoration-break: clone; box-decoration-break: clone; background: var(--inline-code-bg); color: var(--ink); padding: .08em .38em; border-radius: var(--r-s); font-size: .9em; overflow-wrap: break-word; }
 pre {
   background: var(--code-bg); color: var(--code-ink); padding: 14px 16px; border-radius: var(--r-m);
   overflow-x: auto; line-height: 1.65; font-size: 14px; margin: 14px 0; -webkit-overflow-scrolling: touch;
@@ -261,7 +261,7 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-3 { background: var(--dye-3); }
 /* 褐(卒業)には白い刺し子の目を入れ、色以外でも分かるように */
 .dye-4 { background: var(--dye-4); }
-.dye-4::after { content: ""; position: absolute; inset: 22%; border: 1.5px dashed var(--dye-mark); border-radius: 1px; }
+.dye-4::after { content: ""; position: absolute; inset: 22%; border: 2px dashed var(--dye-mark); border-radius: 1px; }
 .dye-2::after, .dye-3::after { content: ""; position: absolute; left: 20%; right: 20%; top: 50%; height: 1.5px; transform: translateY(-50%);
   background: repeating-linear-gradient(90deg, var(--dye-mark) 0 3px, transparent 3px 5px); }
 .dye-3::after { height: 6px; background:
@@ -273,14 +273,16 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-burst > .dye.ink { animation: dye-in .56s var(--ease) .12s both; }
 .dyed-line { display: flex; flex-basis: 100%; align-items: center; gap: 12px; margin-top: 14px; font-weight: 700; color: var(--accent-ink); }
 @keyframes dye-in { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(75% at 50% 50%); } }
-.dye-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .75rem; color: var(--ink-muted); margin: 12px 0 0; padding: 0; list-style: none; }
+.dye-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px 10px; font-size: .75rem; color: var(--ink-muted); margin: 12px 0 0; padding: 0; list-style: none; }
 .dye-legend li { display: inline-flex; align-items: flex-end; gap: 6px; }
 .dye-legend .dye { width: 14px; height: 14px; margin-bottom: 2px; }
 /* 帯は一覧で見るためのもの(押す場所は下のレッスン一覧) */
 .dye-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 4px; }
 .dye-strip .dye { width: 100%; height: auto; aspect-ratio: 1; display: block; }
 .dye-strip .dye.ink { animation: dye-in .56s var(--ease) .3s both; }
-.dye-legend .dye-name-sm { display: block; font-size: .75rem; color: var(--ink-muted); line-height: 1.3; }
+.dye-legend .dye-name-sm { display: block; font-size: .75rem; color: var(--ink-muted); line-height: 1.6; }
+ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
+.dye-legend li:last-child { grid-column: span 2; } /* 「復習をすべて卒業」は長いので 2 列分 */
 
 /* ================================================================ ホーム */
 .today {
@@ -298,12 +300,16 @@ button { font: inherit; letter-spacing: inherit; }
 .today-title a { color: inherit; text-decoration: none; }
 .today-meta { font-size: .875rem; color: var(--kon-muted); margin: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; }
 .today-meta span { white-space: nowrap; }
-.today-alt { display: block; margin-top: 14px; color: var(--kon-ink); font-size: .9375rem; text-decoration-color: var(--kon-line); min-height: 44px; display: inline-flex; align-items: center; }
+.today-links { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 4px; }
+.today-links .today-alt { min-height: 40px; }
+.today-alt { display: block; margin-top: 0; color: var(--kon-ink); font-size: .9375rem; text-decoration-color: var(--kon-line); min-height: 44px; display: inline-flex; align-items: center; }
 .today-alt:hover { color: #fff; }
 .save-state { display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--kon-muted); margin: 12px 0 0; }
 .save-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--kon-muted); flex: none; margin-top: .5em; }
 .today-next { font-size: .875rem; color: var(--kon-ink); margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
 .today-next .dye { width: 18px; height: 18px; }
+.today-next .tn-now, .today-next .tn-hint { display: block; }
+.today-next .tn-hint { color: var(--kon-muted); font-size: .8125rem; }
 .install-hint .close { margin-left: auto; flex: none; min-width: 44px; min-height: 44px; margin: -12px -10px -12px auto; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
 .save-state.ok::before { background: var(--ok); }
 .save-state.ng::before { background: var(--shu); }
@@ -333,9 +339,12 @@ button { font: inherit; letter-spacing: inherit; }
 .stat-sub { font-size: .75rem; color: var(--ink-muted); }
 
 .install-hint { display: flex; gap: 12px; align-items: flex-start; font-size: .875rem; background: var(--surface-2); border-radius: var(--r-l); padding: 14px 16px; margin: 20px 0 0; }
-.install-hint p { margin: 0; }
+.install-hint p { margin: 6px 0 0; }
+.install-hint details { flex: 1; }
+.install-hint summary { cursor: pointer; min-height: 24px; }
+.install-hint + * { margin-top: 0; }
 
-.curriculum { margin-top: 40px; }
+.curriculum { margin-top: 24px; }
 .curriculum > h2 { font-size: 1.125rem; margin: 0 0 4px; }
 .part-block { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 0 18px; padding: 24px 0 8px; }
 .part-tag {
@@ -356,7 +365,7 @@ button { font: inherit; letter-spacing: inherit; }
 .lesson-row .row-title { font-size: 1rem; line-height: 1.5; }
 .lesson-row .row-meta { font-size: .75rem; color: var(--ink-muted); white-space: nowrap; text-align: right; }
 .lesson-row.is-next a { background: var(--accent-soft); }
-.lesson-row.is-next .row-title b { display: block; font-size: .75rem; color: var(--accent-ink); }
+.lesson-row .row-title b { display: block; font-size: .75rem; color: var(--accent-ink); }
 .lesson-row.planned .row-title { color: var(--ink-muted); }
 
 /* PC のダッシュボード: 左に今日の稽古と進捗、右に一覧 */
@@ -397,8 +406,8 @@ details.goals[open] > summary { margin-bottom: 0; }
 
 /* 段(読む・見る・書く・読解・確かめる) — 下端の刺し子が読んだ分だけ藍で縫い進む */
 .stepper-wrap { position: sticky; top: 60px; z-index: 15; background: var(--bg); margin: 20px 0 8px; }
-.stepper-wrap::after { /* 右端のフェード: 段が続いていることを見せる */
-  content: ""; position: absolute; top: 0; right: var(--ask-w, 0px); bottom: 3px; width: 36px; pointer-events: none;
+.stepper-wrap::after { /* 右端のフェード: 段が続いていることを見せる(段の一覧と質問ボタンの手前まで) */
+  content: ""; position: absolute; top: 0; right: var(--tail, 128px); bottom: 3px; width: 36px; pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--bg)); }
 .stepper { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 6px 36px 8px 0; scroll-padding: 0 48px; }
 .stepper::-webkit-scrollbar { display: none; }
@@ -415,15 +424,28 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step::before { content: ""; width: 10px; height: 10px; border-radius: 2px; outline: 1.5px dashed var(--dye-empty); outline-offset: -1.5px; flex: none; }
 .step.done::before { outline: none; width: 10px; height: 6px; margin: 0 1px 3px; border-radius: 0; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
 .step .pc-only { font-size: .6875rem; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; line-height: 1.5; }
-.stepper-row { display: flex; align-items: stretch; }
+.stepper-row { display: flex; align-items: center; --tail: 128px; }
 .stepper-row .stepper { flex: 1; min-width: 0; }
-.ask { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; margin: 6px 0 8px 4px; padding: 0 10px;
-  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--accent-ink); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; position: relative; z-index: 1; }
+.ask { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; margin: 0 0 2px 4px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--accent-ink); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; position: relative; z-index: 1; }
 .ask:hover { background: var(--surface-2); }
+.step-menu { position: relative; flex: none; margin: 0 0 2px 4px; }
+.step-menu > summary { list-style: none; min-width: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; border-radius: var(--r-m); cursor: pointer;
+  font-size: .8125rem; font-weight: 700; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.step-menu > summary::-webkit-details-marker { display: none; }
+.step-menu > summary::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.step-menu[open] > summary { background: var(--surface-2); color: var(--ink); }
+.step-menu ol { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; margin: 0; padding: 6px; list-style: none; counter-reset: st;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: var(--shadow-float); }
+.step-menu li { counter-increment: st; }
+.step-menu li a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: var(--r-m); color: var(--ink); text-decoration: none; font-weight: 700; font-size: .9375rem; }
+.step-menu li a::before { content: counter(st); width: 1.4em; color: var(--ink-muted); font-variant-numeric: tabular-nums; font-size: .8125rem; }
+.step-menu li a:hover { background: var(--surface-2); }
 .step.done { color: var(--ink); }
 .step[aria-current="true"] { color: var(--accent-ink); }
 .step[aria-current="true"]::after { content: ""; position: absolute; left: 8px; right: 12px; bottom: 2px; height: 2px; border-radius: 1px; background: var(--accent); }
 .step small { color: var(--ink-muted); font-weight: 400; }
+@media (min-width: 1024px) { .step { font-size: 1rem; } }
 
 .lesson-section { margin: 64px 0; }
 .section-title { display: flex; gap: 12px; align-items: baseline; font-size: 1.5rem; margin: 0 0 16px; padding: 0; border: 0; }
@@ -491,9 +513,13 @@ details.goals[open] > summary { margin-bottom: 0; }
 /* 行番号つきのコード(読解・仕事のコード)。横に流さず折り返し、折り返した行は字下げして ↪ の印 */
 pre.code-lines { padding: 12px 14px 12px 0; white-space: pre-wrap; overflow-x: hidden; font-size: 13.5px; line-height: 1.7; counter-reset: ln; }
 pre.code-lines code { display: block; }
-pre.code-lines .ln { display: block; position: relative; --hang: calc((var(--ind, 0) + 2) * 1ch); padding-left: calc(52px + var(--hang)); text-indent: calc(var(--hang) * -1); overflow-wrap: break-word; min-height: 1.7em; }
+pre.code-lines .ln { display: block; position: relative; --hang: calc((min(var(--ind, 0), 8) + 2) * 1ch); padding-left: calc(52px + var(--hang)); text-indent: calc(var(--hang) * -1); overflow-wrap: break-word; min-height: 1.7em; }
 pre.code-lines .ln::before { content: attr(data-n); position: absolute; left: 0; text-indent: 0; width: 34px; text-align: right; color: var(--code-muted); font-size: 12px; }
 pre.code-lines .ln.note { margin-right: -14px; padding-right: 14px; } /* 説明のある行の帯は右端まで */
+pre.code-lines .ln-note { display: block; margin: 2px 0 8px 44px; padding: 8px 12px; border-left: 2px solid var(--dye-2); border-radius: 0 var(--r-s) var(--r-s) 0;
+  background: oklch(1 0 0 / .06); color: var(--code-ink, #e8eef5); font: 400 .875rem/1.7 var(--font); white-space: normal; letter-spacing: .02em; }
+pre.code-lines .ln-note code { color: inherit; background: oklch(1 0 0 / .1); }
+.line-notes.has-inline { display: none; }
 pre.code-lines .ln.note::before { content: attr(data-n); left: 6px; width: 30px; text-align: center; border-radius: 9px; background: var(--dye-2); color: var(--code-bg); font-weight: 700; top: .2em; line-height: 1.5; }
 pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 
@@ -551,10 +577,13 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .term-defs { list-style: none; margin: 4px 0 0; padding: 0; }
 .term-defs li + li { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
 .term-defs .term-def { margin: 0; }
+.term-from-head { min-height: 32px; font-weight: 700; }
+.term-from-head::after { content: "で"; color: var(--ink-muted); font-weight: 400; margin-left: 2px; }
 .term-count { font-size: .75rem; font-weight: 700; color: var(--accent-ink); }
-.kana-index { position: sticky; top: 56px; z-index: 10; background: var(--bg); display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1) 4px; padding: 4px var(--gutter); }
+.kana-index { position: sticky; top: 56px; z-index: 10; background: var(--bg); display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1) 4px; padding: 4px 36px 12px var(--gutter);
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
 .kana-index::-webkit-scrollbar { display: none; }
-.kana-index a { flex: 0 0 auto; min-width: 44px; min-height: 44px; display: grid; place-items: center; padding: 0 8px; border-radius: var(--r-m); text-decoration: none; color: var(--ink); font-weight: 700; font-size: .875rem; }
+.kana-index a { flex: 0 0 auto; min-width: 40px; min-height: 44px; display: grid; place-items: center; padding: 0 8px; border-radius: var(--r-m); text-decoration: none; color: var(--ink); font-weight: 700; font-size: .875rem; }
 .kana-index a:hover { background: var(--surface-2); }
 .term-group { scroll-margin-top: 120px; }
 .search { position: relative; margin: 8px 0 16px; }
@@ -654,7 +683,11 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 
 /* ================================================================ クイズ */
 .quiz ol { padding-left: 0; list-style: none; counter-reset: qq; margin: 0; }
-.quiz-q { counter-increment: qq; margin-bottom: 28px; }
+.quiz-q { counter-increment: qq; margin-bottom: 28px; scroll-margin-top: 130px; }
+.lesson-section { scroll-margin-top: 110px; }
+.quiz-wrong { margin: 10px 0 0; font-size: .9375rem; }
+.quiz-wrong a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; font-weight: 700; }
+.quiz-next { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .quiz-q .q-explain { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: .9375rem; }
 .quiz-q .q-explain.correct { background: var(--ok-soft); }
 .quiz-q .q-explain.wrong { background: var(--ng-soft); }
@@ -809,7 +842,7 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
   .md pre, .sample pre, .atwork .code-notes { margin-left: calc(var(--gutter) * -1); margin-right: calc(var(--gutter) * -1); }
   .md pre, .sample pre, .atwork .code-notes pre { border-radius: 0; padding-right: var(--gutter); }
   .md pre, .sample pre { padding-left: var(--gutter); }
-  pre.code-lines { font-size: 13px; }
+  pre.code-lines { font-size: 14px; }
   pre.code-lines .ln { padding-left: calc(44px + var(--hang)); }
   pre.code-lines .ln::before { width: 28px; }
   pre.code-lines .ln.note::before { left: 4px; width: 28px; }
@@ -840,3 +873,9 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
   .q-explain pre, .quiz-answer pre { margin-left: -14px; margin-right: -14px; }
   .review-quiz > .md pre { margin-left: -16px; margin-right: -16px; }
 }
+
+/* PC: 前回の続きに差し替えるまでヒーローを隠す(dashboard.html の短いスクリプトが付け外し) */
+.resume-pending .today { visibility: hidden; }
+
+/* hidden 属性は部品の display 指定より優先する(採点後の「採点する」など) */
+[hidden] { display: none !important; }
