@@ -197,7 +197,16 @@ function allLessons(cur) {
 const quizPassed = (meta) => meta.quiz === 0 || (S.quiz[meta.id]?.best ?? -1) >= Math.ceil(meta.quiz * 0.8);
 
 /** 染まり具合(0〜4)。meta は curriculum.json のレッスン */
+// 一度染まった段は戻さない(褐の卒業のあとに読解を解くと、新しい復習が増えて藍へ戻っていた。13 回目の Codex の指摘)。
+// 復習の残りは復習の画面とバッジで見せ、染まりは「ここまで身についた」記録として残す
 function dyeLevel(meta) {
+  const now = dyeLevelNow(meta);
+  S.dyeBest = S.dyeBest || {};
+  if (now > (S.dyeBest[meta.id] || 0)) S.dyeBest[meta.id] = now;
+  return Math.max(now, S.dyeBest[meta.id] || 0);
+}
+
+function dyeLevelNow(meta) {
   const read = !!S.read[meta.id];
   const passed = S.quiz[meta.id] && quizPassed(meta);
   if (!passed) return read || S.quiz[meta.id] ? 1 : 0;
@@ -224,8 +233,8 @@ function nextSectionFor(l, from) {
   return order.slice(order.indexOf(from) + 1).find((k) => k in done && has[k] !== false && !done[k]) || from;
 }
 const resumeLabel = (section) => !section ? "続きから" : section === "読む" ? "続きを読む" : `${section}の続きから`;
-// 採点の点を刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色
-const scoreStitches = (score, total) => `<span class="score-stitches" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${i < score ? "on" : ""}"></i>`).join("")}</span>`;
+// 採点の結果を問の順に刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色。何問目を落としたかが並びで分かる
+const scoreStitches = (results) => `<span class="score-stitches" aria-hidden="true">${results.map((ok) => `<i class="${ok ? "on" : ""}"></i>`).join("")}</span>`;
 // 染まりの地図の 1 マス。前に見たときより深まったマスは染み込ませ、主役のレッスンには朱の印を付ける
 const dyeCell = (l, levels, seen, deepened, hero) => `<span class="dye-cell${l.id === hero.id ? " is-here" : ""}">${deepened.has(l.id)
   ? `${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink"></span>` : dyeDot(levels[l.id])}</span>`;
@@ -661,6 +670,10 @@ function trackLesson(id, keys) {
   };
   let ticking = false;
   const menu = $(".step-menu");
+  // 閉じたら、一覧の中にあったフォーカスを段のボタンへ戻す(キーボードで迷子にならないように)
+  menu?.addEventListener("toggle", () => {
+    if (!menu.open && menu.querySelector("ol")?.contains(document.activeElement)) menu.querySelector("summary").focus({ preventScroll: true });
+  });
   const onScroll = () => {
     if (menu?.open) menu.open = false;
     if (ticking) return;
@@ -715,12 +728,39 @@ function readingCard(r, ref, from) {
 
 function readingAnswerHtml(r, ok) {
   return `<div class="verdict ${ok ? "correct" : "wrong"}">${icon(ok ? "check" : "cross")}${ok ? "正解" : "不正解"}</div>
-    <p class="small">正解: <b>${r.choicesHtml[r.answer]}</b></p>
     <div class="md">${r.explanationHtml}</div>
     ${r.traceHtml?.length ? `<p class="trace-title">1 行ずつの追跡</p><ol class="trace">${r.traceHtml.map((t) => `<li>${t}</li>`).join("")}</ol>` : ""}`;
 }
 
 /** 読解フォームの答え合わせ。記録して復習キューに入れる */
+// 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
+function lockAnswer(form, answer, choice, onReset) {
+  const ok = choice === answer;
+  form.querySelectorAll("label.choice").forEach((label, j) => {
+    label.classList.toggle("is-answer", j === answer);
+    label.classList.toggle("is-wrong", j === choice && !ok);
+    label.querySelector(".choice-tag")?.remove();
+    if (j === choice && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+    if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+  });
+  form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+  const submit = form.querySelector("button[type=submit]");
+  submit.hidden = true;
+  let again = form.querySelector("[data-answer-reset]");
+  if (!again) {
+    submit.insertAdjacentHTML("afterend", `<button class="btn" type="button" data-answer-reset>もう一度解く</button>`);
+    again = form.querySelector("[data-answer-reset]");
+  }
+  again.hidden = false;
+  again.onclick = () => {
+    form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; x.checked = false; });
+    form.querySelectorAll("label.choice").forEach((l) => { l.classList.remove("is-answer", "is-wrong"); l.querySelector(".choice-tag")?.remove(); });
+    submit.hidden = false;
+    again.hidden = true;
+    onReset();
+  };
+}
+
 function bindReading(root, findQuestion) {
   root.querySelectorAll("form[data-action=reading]").forEach((form) => {
     form.onsubmit = (ev) => {
@@ -734,11 +774,8 @@ function bindReading(root, findQuestion) {
       S.reading[ref] = { ok, at: today() };
       practice(ref, "reading", lessonId, ok);
       recordDay();
-      form.querySelectorAll("label.choice").forEach((label, j) => {
-        label.classList.toggle("is-answer", j === r.answer);
-        label.classList.toggle("is-wrong", j === choice && !ok);
-      });
       const out = li.querySelector(".reading-answer");
+      lockAnswer(form, r.answer, choice, () => { out.hidden = true; out.innerHTML = ""; });
       out.innerHTML = readingAnswerHtml(r, ok);
       out.hidden = false;
       decorate(out);
@@ -985,7 +1022,7 @@ function bindLesson(L, meta) {
     // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
     const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
     const level = meta ? dyeLevel(meta) : 0;
-    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(score, L.quiz.length)}
+    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(L.quiz.map((_, i) => !wrong.includes(i)))}
       <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}

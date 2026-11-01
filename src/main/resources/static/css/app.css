@@ -452,9 +452,7 @@ details.goals[open] > summary { margin-bottom: 0; }
   content: ""; position: absolute; top: 0; right: var(--tail, 128px); bottom: 3px; width: 36px; pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--bg)); }
 .stepper-wrap:not(:has(.stepper-row))::after { right: 0; }
-.stepper-wrap:not(.has-more)::after { display: none; }
-/* 段の帯の下端にも、地の色から透明への帯(下に潜りかけた本文やコードが欠片として残らないように。用語集の索引と同じ) */
-.stepper-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: linear-gradient(var(--bg), transparent); pointer-events: none; } /* 段が全部収まっているときや右端まで送ったときは、フェードを出さない */ /* PC: 段の一覧も質問ボタンもないので、フェードは右端(段の余白の上) */
+.stepper-wrap:not(.has-more)::after { display: none; } /* 段が全部収まっているときや右端まで送ったときは、フェードを出さない */ /* PC: 段の一覧も質問ボタンもないので、フェードは右端(段の余白の上) */
 .stepper { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 6px 36px 8px 0; scroll-padding: 0 48px; }
 .stepper::-webkit-scrollbar { display: none; }
 /* 下の線: 薄い実線の上を、読んだ分だけ藍の刺し子が縫い進む(縫い目の長さは変えず、見える範囲だけ広げる) */
@@ -597,14 +595,6 @@ pre.code-lines .hljs-comment { background-color: oklch(1 0 0 / .07); border-radi
 /* 説明はコードの注: コードより小さく、色も 1 段下げる(PC はコードを 15px に上げて主従を戻す) */
 pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 13px; }
 @media (min-width: 1024px) { pre.code-lines { font-size: 15px; } pre.code-lines .ln-note { font-size: 14px; } }
-@media (max-width: 400px) { /* 1 行に入る字数を増やす(行番号の列と右の余白を詰め、13px に。390px で 1 行 38 字ほど) */
-  pre.code-lines, .reading-q pre.code-lines { font-size: 13px; padding-right: 8px; }
-  pre.code-lines .ln { padding-left: calc(38px + var(--hang)); }
-  pre.code-lines .ln::before { width: 26px; }
-  pre.code-lines .ln { background-position: 16px 1.7em; }
-  pre.code-lines .ln.note::before { left: 8px; width: 26px; } /* 番号の札を画面の端から離す */
-  pre.code-lines .ln-note { margin-left: 36px; font-size: 12.5px; }
-}
 
 /* 仕事のコードではこう出てくる */
 .atwork { margin: 28px 0 40px; }
@@ -1008,3 +998,13 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 
 /* hidden 属性は部品の display 指定より優先する(採点後の「採点する」など) */
 [hidden] { display: none !important; }
+
+/* 400px 以下の差分は、760px 以下の基本の指定より後ろに置く(先に書くと後勝ちで上書きされて効かなかった) */
+@media (max-width: 400px) { /* 1 行に入る字数を増やす(行番号の列と右の余白を詰め、13px に。390px で 1 行 38 字ほど) */
+  pre.code-lines, .reading-q pre.code-lines { font-size: 13px; padding-right: 8px; }
+  pre.code-lines .ln { padding-left: calc(38px + var(--hang)); }
+  pre.code-lines .ln::before { width: 26px; }
+  pre.code-lines .ln { background-position: 16px 1.7em; }
+  pre.code-lines .ln.note::before { left: 8px; width: 26px; } /* 番号の札を画面の端から離す */
+  pre.code-lines .ln-note { margin-left: 36px; font-size: 12.5px; }
+}

@@ -571,6 +571,34 @@ document.querySelectorAll(".stepper .step").forEach((a, i) => {
   if (h && !h.querySelector(".no") && !h.classList.contains("visually-hidden")) h.insertAdjacentHTML("afterbegin", `<span class="no">${String(i + 1).padStart(2, "0")}</span>`);
 });
 readingStep();
+
+// 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
+function lockAnswer(form, answer, choice, onReset) {
+  const ok = choice === answer;
+  form.querySelectorAll("label.choice").forEach((label, j) => {
+    label.classList.toggle("is-answer", j === answer);
+    label.classList.toggle("is-wrong", j === choice && !ok);
+    label.querySelector(".choice-tag")?.remove();
+    if (j === choice && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+    if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+  });
+  form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+  const submit = form.querySelector("button[type=submit]");
+  submit.hidden = true;
+  let again = form.querySelector("[data-answer-reset]");
+  if (!again) {
+    submit.insertAdjacentHTML("afterend", `<button class="btn" type="button" data-answer-reset>もう一度解く</button>`);
+    again = form.querySelector("[data-answer-reset]");
+  }
+  again.hidden = false;
+  again.onclick = () => {
+    form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; x.checked = false; });
+    form.querySelectorAll("label.choice").forEach((l) => { l.classList.remove("is-answer", "is-wrong"); l.querySelector(".choice-tag")?.remove(); });
+    submit.hidden = false;
+    again.hidden = true;
+    onReset();
+  };
+}
 document.addEventListener("submit", (e) => {
   const form = e.target.closest("form[data-reading]");
   if (!form) return;
@@ -581,11 +609,8 @@ document.addEventListener("submit", (e) => {
   const choice = Number(checked.value);
   const answer = Number(form.dataset.answer);
   const ok = choice === answer;
-  form.querySelectorAll("label.choice").forEach((label, j) => {
-    label.classList.toggle("is-answer", j === answer);
-    label.classList.toggle("is-wrong", j === choice && !ok);
-  });
   const out = li.querySelector(".reading-answer");
+  lockAnswer(form, answer, choice, () => { out.hidden = true; });
   const verdict = out.querySelector(".verdict");
   verdict.className = "verdict " + (ok ? "correct" : "wrong");
   verdict.textContent = ok ? "✔ 正解" : "✘ 不正解";
