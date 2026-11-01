@@ -237,6 +237,7 @@ document.addEventListener("input", (e) => {
     li.hidden = !hit;
     if (hit) n++;
   });
+  document.querySelectorAll("#terms .term-group").forEach((g) => { g.hidden = words.length > 0; });
   const count = document.getElementById("glossary-count");
   if (count) count.textContent = words.length ? `${n} 語` : "";
 });

@@ -98,7 +98,8 @@ public class ProgressService {
                 return 0;
             }
             if (bestQuiz == null || !quizPassed()) {
-                return read || state != State.NOT_STARTED ? 1 : 0;
+                // 開いただけ(学習中)では染めない。読んだか、クイズを1回でも解いたら 1 段目
+                return read || bestQuiz != null ? 1 : 0;
             }
             if (!exercisesDone() || !checklistComplete()) {
                 return 2;

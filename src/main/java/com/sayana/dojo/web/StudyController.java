@@ -38,6 +38,22 @@ public class StudyController {
         return "reading";
     }
 
+    private static final String[] KANA_ROWS = {"あいうえおぁぃぅぇぉゔ", "かきくけこがぎぐげご", "さしすせそざじずぜぞ",
+            "たちつてとだぢづでどっ", "なにぬねの", "はひふへほばびぶべぼぱぴぷぺぽ", "まみむめも", "やゆよゃゅょ", "らりるれろ", "わをん"};
+
+    /** 読みの最初の文字から「あ行」「か行」…の見出しを決める(スマホ版の app.js の kanaRow と同じ)。 */
+    static String kanaRow(Term t) {
+        String s = (t.read() != null ? t.read() : t.term()).strip();
+        char c = s.isEmpty() ? ' ' : s.charAt(0);
+        char hira = c >= 'ァ' && c <= 'ヶ' ? (char) (c - 0x60) : c;
+        for (int i = 0; i < KANA_ROWS.length; i++) {
+            if (KANA_ROWS[i].indexOf(hira) >= 0) {
+                return "あかさたなはまやらわ".charAt(i) + "行";
+            }
+        }
+        return Character.isLetter(c) && c < 0x80 || c == '@' ? "英字・記号" : "その他";
+    }
+
     @GetMapping("/glossary")
     public String glossary(Model model) {
         // 読み順に並べる(同じ用語がレッスンごとに別の説明で出るので、隣り合わせにする)
@@ -46,6 +62,7 @@ public class StudyController {
                 .sorted(Comparator.comparing((Term t) -> t.read() != null ? t.read() : t.term(), ja))
                 .toList();
         model.addAttribute("terms", terms);
+        model.addAttribute("rows", terms.stream().map(StudyController::kanaRow).toList());
         model.addAttribute("lessonTitles", LessonTitles.of(content));
         return "glossary";
     }

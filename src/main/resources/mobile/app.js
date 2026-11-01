@@ -762,6 +762,16 @@ async function renderReadingPage() {
 
 // ------------------------------------------------------------ 用語集
 
+// 読みの最初の文字から「あ行」「か行」…の見出しを決める(英字・記号で始まるものはまとめて先頭に)
+const KANA_ROWS = ["あいうえおぁぃぅぇぉゔ", "かきくけこがぎぐげご", "さしすせそざじずぜぞ", "たちつてとだぢづでどっ",
+  "なにぬねの", "はひふへほばびぶべぼぱぴぷぺぽ", "まみむめも", "やゆよゃゅょ", "らりるれろ", "わをん"];
+function kanaRow(t) {
+  const c = (t.read || t.term).trim().charAt(0);
+  const hira = String.fromCharCode(c >= "ァ" && c <= "ヶ" ? c.charCodeAt(0) - 0x60 : c.charCodeAt(0));
+  const i = KANA_ROWS.findIndex((row) => row.includes(hira));
+  return i >= 0 ? "あかさたなはまやらわ"[i] + "行" : /[A-Za-z@]/.test(c) ? "英字・記号" : "その他";
+}
+
 async function renderGlossary() {
   const [terms, cur] = await Promise.all([glossary(), curriculum()]);
   const titles = Object.fromEntries(allLessons(cur).map((l) => [l.id, l.title]));
@@ -780,8 +790,14 @@ async function renderGlossary() {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
     const hit = index.filter((x) => words.every((w) => x.key.includes(w))).map((x) => x.t);
     count.textContent = q ? `${hit.length} 語` : "";
-    list.innerHTML = hit.slice(0, 150).map((t) => termItem(t, true, titles[t.lesson])).join("")
-      + (hit.length > 150 ? `<li class="muted small">ほかに ${hit.length - 150} 語。言葉を足して絞り込んでください。</li>` : "");
+    let row = "";
+    // 405 語なら全部描いても軽いので、区切らずに出す(行の見出しで飛べるように)
+    list.innerHTML = hit.map((t) => {
+      const r = kanaRow(t);
+      const head = !q && r !== row ? `<li class="term-group"><h2>${r}</h2></li>` : "";
+      row = r;
+      return head + termItem(t, true, titles[t.lesson]);
+    }).join("");
   };
   $("#q").addEventListener("input", (e) => show(e.target.value.trim()));
   show("");

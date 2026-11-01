@@ -10,11 +10,14 @@
         <input type="search" id="glossary-q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
     <p class="glossary-count" id="glossary-count" aria-live="polite"></p>
     <ul class="term-list" id="terms">
-        <li class="term" th:each="t : ${terms}">
+        <th:block th:each="t, ts : ${terms}">
+        <li class="term-group" th:if="${ts.index == 0 or rows[ts.index] != rows[ts.index - 1]}"><h2 th:text="${rows[ts.index]}">あ行</h2></li>
+        <li class="term">
             <p class="term-name"><span th:text="${t.term}"></span><small th:if="${t.read != null}" th:text="${t.read}"></small><small lang="en" th:if="${t.en != null}" th:text="${t.en}"></small></p>
             <p class="term-def" th:utext="${t.defHtml}"></p>
             <a class="term-from" th:if="${t.lessonId != null}" th:href="@{/lessons/{id}(id=${t.lessonId})}" th:text="${lessonTitles.get(t.lessonId)}"></a>
         </li>
+        </th:block>
     </ul>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
