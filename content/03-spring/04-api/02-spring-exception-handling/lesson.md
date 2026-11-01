@@ -14,14 +14,14 @@ Service が投げた例外を誰も処理しないと、次の順に流れてい
 
 ```mermaid
 flowchart TD
-    A["Controller / Service が例外を投げる"] --> B["DispatcherServlet"]
+    A["Controller / Service が<br>例外を投げる"] --> B["DispatcherServlet"]
     B --> C{"@ExceptionHandler がある?"}
-    C -- "ある" --> D["そのメソッドの戻り値をレスポンスに"]
+    C -- "ある" --> D["そのメソッドの戻り値を<br>レスポンスに"]
     C -- "ない" --> E{"Spring が知っている例外?<br>(@ResponseStatus・415 など)"}
     E -- "はい" --> F["決まったステータスに変換"]
     E -- "いいえ" --> G["Tomcat まで漏れる → 500"]
     G --> H["Spring Boot の /error"]
-    H --> I["ブラウザ: Whitelabel Error Page"]
+    H --> I["ブラウザ:<br>Whitelabel Error Page"]
     H --> J["API: JSON の 500"]
 ```
 

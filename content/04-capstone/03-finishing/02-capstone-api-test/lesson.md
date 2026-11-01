@@ -254,7 +254,7 @@ class ApprovalServiceTest {
 flowchart TB
     A["@SpringBootTest<br/>数本:全部つないで起動するか"]
     B["@WebMvcTest<br/>API ごと:URL・JSON・ステータス"]
-    C["単体テスト<br/>たくさん:業務ルールの組み合わせ"]
+    C["単体テスト<br/>たくさん:<br/>業務ルールの組み合わせ"]
     A --- B --- C
 ```
 

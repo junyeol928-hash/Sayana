@@ -121,7 +121,7 @@ String memo = null;   // どのオブジェクトも指していない
 
 ```mermaid
 flowchart LR
-  subgraph V["変数(メソッドの中のローカル変数)"]
+  subgraph V["変数<br/>(メソッドの中のローカル変数)"]
     A["age : int<br/>30"]
     N["name : String<br/>参照"]
     M["memo : String<br/>null"]

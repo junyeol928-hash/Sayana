@@ -35,8 +35,8 @@ for (int i = 1; i <= 5; i++) {
 
 ```mermaid
 flowchart TD
-    A["初期化: int i = 1(最初の1回だけ)"] --> B{"条件式: i <= 5 ?"}
-    B -- "true" --> C["本体: System.out.println(...)"]
+    A["初期化: int i = 1<br>(最初の1回だけ)"] --> B{"条件式: i <= 5 ?"}
+    B -- "true" --> C["本体:<br>System.out.println(...)"]
     C --> D["更新: i++"]
     D --> B
     B -- "false" --> E["ループの次の文へ"]

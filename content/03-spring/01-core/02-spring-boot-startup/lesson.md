@@ -33,13 +33,13 @@ public class DemoApplication {
 
 ```mermaid
 flowchart TD
-  A["SpringApplication.run"] --> B["Environment 準備<br>application.properties・引数を読む"]
+  A["SpringApplication.run"] --> B["Environment 準備<br>application.properties・<br>引数を読む"]
   B --> C["ApplicationContext を作る"]
   C --> D["コンポーネントスキャン<br>自分のクラスを登録"]
   D --> E["自動設定<br>足りない Bean を登録"]
   E --> F["Bean を new して DI"]
   F --> G["組み込み Tomcat 起動<br>(Web の場合)"]
-  G --> H["ログ: Started ... in x.xxx seconds"]
+  G --> H["ログ:<br>Started ... in x.xxx seconds"]
   H --> I["CommandLineRunner 実行"]
 ```
 

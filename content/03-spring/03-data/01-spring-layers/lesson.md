@@ -39,7 +39,7 @@ Spring アプリでは、処理を次の3つの **層(レイヤー)** に分け�
 ```mermaid
 flowchart TD
     B["ブラウザ / API クライアント"] --> C["Controller:入出力"]
-    C --> S["Service:業務ロジック・トランザクション境界"]
+    C --> S["Service:業務ロジック・<br>トランザクション境界"]
     S --> R["Repository:永続化"]
     R --> D[("DB")]
 ```

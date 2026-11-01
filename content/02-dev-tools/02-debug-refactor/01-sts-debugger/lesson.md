@@ -65,10 +65,10 @@ Debug As で起動すると、STS は JVM に `-agentlib:jdwp=...` というオ�
 
 ```mermaid
 flowchart TD
-    S["double avg = average(scores); で停止中"]
-    S -- "F6 Step Over" --> A["次の行 println へ(average は実行済み)"]
+    S["double avg = average(scores);<br>で停止中"]
+    S -- "F6 Step Over" --> A["次の行 println へ<br>(average は実行済み)"]
     S -- "F5 Step Into" --> B["average の1行目へ入る"]
-    B -- "F7 Step Return" --> C["average を最後まで実行して呼び出し元へ戻る"]
+    B -- "F7 Step Return" --> C["average を最後まで実行して<br>呼び出し元へ戻る"]
     S -- "F8 Resume" --> D["次のブレークポイントまで実行"]
 ```
 
