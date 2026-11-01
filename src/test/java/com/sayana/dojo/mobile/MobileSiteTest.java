@@ -39,7 +39,7 @@ class MobileSiteTest {
     @DisplayName("全レッスンのデータと、オフライン用にすべてのファイルを保存する Service Worker ができる")
     void buildsAllLessons(@TempDir Path tmp) throws Exception {
         Map<String, byte[]> files = new MobileSiteGenerator().build(Path.of("content"));
-        assertThat(files.keySet().stream().filter(k -> k.startsWith("data/lessons/"))).hasSize(50);
+        assertThat(files.keySet().stream().filter(k -> k.startsWith("data/lessons/"))).hasSize(55);
         String sw = new String(files.get("sw.js"), StandardCharsets.UTF_8);
         assertThat(sw).doesNotContain("__VERSION__").doesNotContain("__FILES__")
                 .contains("\"data/lessons/java-hello.json\"").contains("\"index.html\"");

@@ -1,12 +1,12 @@
 {
   "name": "Java道場",
   "short_name": "Java道場",
-  "description": "Java / STS / Spring Boot をスマホで学ぶ(オフライン対応)",
+  "description": "Java と Spring Boot を、読む・確かめる・書く・復習するで身につける稽古帳(オフライン対応)",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#faf7f2",
-  "theme_color": "#6b4226",
+  "background_color": "#f7f9fb",
+  "theme_color": "#14213d",
   "lang": "ja",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }

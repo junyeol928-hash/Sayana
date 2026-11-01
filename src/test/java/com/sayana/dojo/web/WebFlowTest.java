@@ -56,7 +56,13 @@ class WebFlowTest {
     @Test
     @DisplayName("主要な画面が表示できる")
     void pages() throws Exception {
-        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(containsString("第1部 Java基礎")));
+        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(containsString("第1部 Java基礎")))
+                .andExpect(content().string(containsString("染まり具合")));
+        mvc.perform(get("/reading")).andExpect(status().isOk()).andExpect(content().string(containsString("1 行ずつの追跡")));
+        mvc.perform(get("/glossary")).andExpect(status().isOk()).andExpect(content().string(containsString("用語集")));
+        mvc.perform(get("/lessons/java-classes")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("仕事のコードではこう出てくる")))
+                .andExpect(content().string(containsString("このレッスンの用語")));
         mvc.perform(get("/lessons/java-hello")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("STSでやってみよう")))
                 .andExpect(content().string(containsString("AI機能はオフです")));
@@ -140,9 +146,9 @@ class WebFlowTest {
     void checklist() throws Exception {
         String key = content.lesson("java-hello").orElseThrow().checklist().get(0).key();
         mvc.perform(post("/lessons/java-hello/checklist").param("key", key))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("✅")));
+                .andExpect(status().isOk()).andExpect(content().string(containsString("aria-pressed=\"true\"")));
         mvc.perform(post("/lessons/java-hello/checklist").param("key", key))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("⬜")));
+                .andExpect(status().isOk()).andExpect(content().string(containsString("aria-pressed=\"false\"")));
     }
 
     @Test
