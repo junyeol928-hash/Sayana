@@ -209,7 +209,7 @@ function mermaidTheme() {
     },
     // 狭い画面では図を縮めない(縮めると文字が 8px ほどになる)。14px のまま組み、はみ出す分は横にスクロールする
     ...(matchMedia("(max-width: 760px)").matches ? {
-      flowchart: { useMaxWidth: false, wrappingWidth: 150 }, sequence: { useMaxWidth: false }, class: { useMaxWidth: false },
+      flowchart: { useMaxWidth: false, wrappingWidth: 150, nodeSpacing: 20, rankSpacing: 28, padding: 8 }, sequence: { useMaxWidth: false }, class: { useMaxWidth: false },
       er: { useMaxWidth: false }, state: { useMaxWidth: false },
     } : {}),
   };
@@ -258,9 +258,13 @@ function numberLines(code) {
     else if (part === "</span>") { open.pop(); cur += part; }
     // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)。
     // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
+    // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)
+    else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, " ");
     else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
   }
   lines.push(cur);
+  // 行末の「 {」は前の語から離さない(「{」だけが次の行に落ちて、行の数が増えて見えないように)
+  for (let i = 0; i < lines.length; i++) lines[i] = lines[i].replace(/ (\{(?:<\/span>)*)\s*$/, " $1");
   // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
   const indent = text.split("\n").map((t) => t.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length);
   code.innerHTML = lines.map((l, i) => `<span class="ln${notes.has(i + 1) ? " note" : ""}" data-n="${i + 1}" style="--ind:${indent[i] || 0}">${l || " "}</span>`).join("");
