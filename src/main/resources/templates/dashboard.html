@@ -38,11 +38,11 @@
                 <span th:each="ls : ${flatLessons}" class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"></span>
             </div>
             <ul class="dye-legend">
-                <li><span class="dye dye-0"></span><span><span class="dye-name-sm"><ruby>生成り<rt>きなり</rt></ruby></span>まだ <span th:text="${dyeCounts[0]}"></span></span></li>
-                <li><span class="dye dye-1"></span><span><span class="dye-name-sm"><ruby>甕覗き<rt>かめのぞき</rt></ruby></span>読んだ <span th:text="${dyeCounts[1]}"></span></span></li>
-                <li><span class="dye dye-2"></span><span><span class="dye-name-sm"><ruby>縹<rt>はなだ</rt></ruby></span>クイズ合格 <span th:text="${dyeCounts[2]}"></span></span></li>
-                <li><span class="dye dye-3"></span><span><span class="dye-name-sm"><ruby>藍<rt>あい</rt></ruby></span>演習もできた <span th:text="${dyeCounts[3]}"></span></span></li>
-                <li><span class="dye dye-4"></span><span><span class="dye-name-sm"><ruby>褐<rt>かち</rt></ruby></span>復習をすべて卒業 <span th:text="${dyeCounts[4]}"></span></span></li>
+                <li><span class="dye dye-0"></span><span><span class="dye-name-sm"><ruby>生成り<rt>きなり</rt></ruby> <b class="dye-count" th:text="${dyeCounts[0]}"></b></span><span class="dye-meaning">まだ</span></span></li>
+                <li><span class="dye dye-1"></span><span><span class="dye-name-sm"><ruby>甕覗き<rt>かめのぞき</rt></ruby> <b class="dye-count" th:text="${dyeCounts[1]}"></b></span><span class="dye-meaning">読んだ</span></span></li>
+                <li><span class="dye dye-2"></span><span><span class="dye-name-sm"><ruby>縹<rt>はなだ</rt></ruby> <b class="dye-count" th:text="${dyeCounts[2]}"></b></span><span class="dye-meaning">クイズ合格</span></span></li>
+                <li><span class="dye dye-3"></span><span><span class="dye-name-sm"><ruby>藍<rt>あい</rt></ruby> <b class="dye-count" th:text="${dyeCounts[3]}"></b></span><span class="dye-meaning">演習もできた</span></span></li>
+                <li><span class="dye dye-4"></span><span><span class="dye-name-sm"><ruby>褐<rt>かち</rt></ruby> <b class="dye-count" th:text="${dyeCounts[4]}"></b></span><span class="dye-meaning">復習をすべて卒業</span></span></li>
             </ul>
             <div class="home-stats">
                 <a th:href="@{/review}"><div class="stat-label">次の復習</div><div class="stat-value" th:text="${nextReview}">なし</div></a>

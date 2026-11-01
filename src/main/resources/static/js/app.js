@@ -165,6 +165,12 @@ function highlight(root) {
   root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .quiz-review pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   inlineNotes(root);
+  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で
+  root.querySelectorAll(".choice > span").forEach((sp) => {
+    const t = sp.textContent.trim();
+    if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+  });
+
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
     if (!el.className.includes("language-")) el.classList.add("language-java");
     if (el.classList.contains("language-text")) return;
@@ -189,8 +195,9 @@ function numberLines(code) {
     if (part === "\n") { lines.push(cur + "</span>".repeat(open.length)); cur = open.join(""); }
     else if (part.startsWith("<span")) { open.push(part); cur += part; }
     else if (part === "</span>") { open.pop(); cur += part; }
-    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)
-    else cur += part.replace(/\./g, "<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)。
+    // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
+    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
   }
   lines.push(cur);
   // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
@@ -409,14 +416,8 @@ document.addEventListener("htmx:afterSwap", (e) => {
   tpl.remove();
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
   form.querySelector("button[type=submit]").hidden = true;
-  // 段の並びの「確かめる n/5」も今回の点に(合格ならレ点)
-  const step = document.querySelector('.stepper .step[href="#quiz"]');
-  const score = out.querySelector(".quiz-score .big")?.textContent.replace(/\s/g, "");
-  if (step && score) {
-    const small = step.querySelector("small") || step.appendChild(document.createElement("small"));
-    small.textContent = score;
-    if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) step.classList.add("done");
-  }
+  // 合格なら段の並びの「確かめる」にレ点
+  if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) document.querySelector('.stepper .step[href="#quiz"]')?.classList.add("done");
   highlight(form);
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
 });
@@ -449,6 +450,23 @@ const READING_KEY = "javadojo-pc-reading";
 function readingRecord() {
   try { return JSON.parse(localStorage.getItem(READING_KEY)) || {}; } catch (e) { return {}; }
 }
+/** レッスンの段の並びの「読解 n/全部」(全問そろったらレ点)。スマホ版と同じ数え方 */
+function readingStep() {
+  const step = document.querySelector('.stepper .step[href="#reading"]');
+  if (!step) return;
+  const rec = readingRecord();
+  const refs = [...document.querySelectorAll("#reading .reading-q[data-ref]")].map((li) => li.dataset.ref);
+  const done = refs.filter((r) => rec[r]?.ok).length;
+  step.querySelector("small")?.remove();
+  if (refs.length && done >= refs.length) step.classList.add("done");
+  else if (done > 0) step.insertAdjacentHTML("beforeend", ` <small>${done}/${refs.length}</small>`);
+}
+// 見出しの番号は段の並びの位置(スマホ版と同じ。読むが 01)
+document.querySelectorAll(".stepper .step").forEach((a, i) => {
+  const h = document.getElementById(a.getAttribute("href").slice(1) + "-title");
+  if (h && !h.querySelector(".no") && !h.classList.contains("visually-hidden")) h.insertAdjacentHTML("afterbegin", `<span class="no">${String(i + 1).padStart(2, "0")}</span>`);
+});
+readingStep();
 document.addEventListener("submit", (e) => {
   const form = e.target.closest("form[data-reading]");
   if (!form) return;
@@ -471,6 +489,7 @@ document.addEventListener("submit", (e) => {
   const rec = readingRecord();
   rec[li.dataset.ref] = { ok, at: new Date().toISOString().slice(0, 10) };
   try { localStorage.setItem(READING_KEY, JSON.stringify(rec)); } catch (err) { console.warn("読解の記録を保存できませんでした", err); }
+  readingStep();
 });
 
 // 用語集: 読み・英語・説明のどれでも絞り込む
