@@ -74,6 +74,7 @@ public class DashboardController {
             flat.stream().filter(s -> s.lesson().id().equals(next.id())).findFirst().ifPresent(s -> {
                 model.addAttribute("nextDye", s.dyeLevel());
                 model.addAttribute("nextDyeName", s.dyeLabel().split("・")[0]);
+                model.addAttribute("nextDyeMeaning", s.dyeLabel().split("・")[1]);
                 model.addAttribute("nextHint", nextDyeHint(s));
             });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);

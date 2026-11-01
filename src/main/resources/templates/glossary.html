@@ -9,7 +9,8 @@
     <div class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
         <input type="search" id="glossary-q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
     <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ">
-        <a th:each="r, rs : ${rows}" th:href="'#g-' + ${rs.index}" th:text="${r == '英字・記号'} ? 'A-Z' : ${#strings.replace(r, '行', '')}">あ</a>
+        <a href="#glossary-q" class="kana-search" aria-label="用語を探す" data-kana-search><svg class="icon sm" aria-hidden="true"><use href="#i-search"/></svg></a>
+        <a th:each="r, rs : ${rows}" th:attr="data-row=${rs.index}" th:href="'#g-' + ${rs.index}" th:text="${r == '英字・記号'} ? 'A-Z' : ${#strings.replace(r, '行', '')}">あ</a>
     </nav>
     <p class="glossary-count" id="glossary-count" aria-live="polite"></p>
     <ul class="term-list" id="terms">
@@ -19,8 +20,8 @@
             <p class="term-name"><span th:text="${c.first.term}"></span><small th:if="${c.first.read != null}" th:text="${c.first.read}"></small><small lang="en" th:if="${c.en != null}" th:text="${c.en}"></small>
                 <span class="term-count" th:if="${c.terms.size() > 1}" th:text="${c.terms.size()} + ' レッスン'"></span></p>
             <th:block th:if="${c.terms.size() == 1}">
+                <a class="term-from term-from-head" th:if="${c.first.lessonId != null}" th:href="@{/lessons/{id}(id=${c.first.lessonId})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a>
                 <p class="term-def" th:utext="${c.first.defHtml}"></p>
-                <a class="term-from" th:if="${c.first.lessonId != null}" th:href="@{/lessons/{id}(id=${c.first.lessonId})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a>
             </th:block>
             <ul class="term-defs" th:if="${c.terms.size() > 1}">
                 <li th:each="t : ${c.terms}">

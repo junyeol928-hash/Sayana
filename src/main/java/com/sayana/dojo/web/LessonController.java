@@ -77,9 +77,15 @@ public class LessonController {
                 answers.put(i, Integer.parseInt(v));
             }
         }
+        int before = progress.status(lesson).dyeLevel();
         model.addAttribute("lesson", lesson);
         model.addAttribute("outcome", learning.submitQuiz(lesson, answers));
-        model.addAttribute("status", progress.status(lesson));
+        var status = progress.status(lesson);
+        model.addAttribute("status", status);
+        // 染まったと知らせるのは、この採点で段が変わったときだけ(もう藍の人に「縹に染まりました」と出さない)
+        model.addAttribute("dyedTo", status.dyeLevel() > before ? status.dyeLabel() : null);
+        // 合格したときの次の段は、段の並び(確かめる → 読解 → 書く → STS)の次
+        model.addAttribute("nextKey", !lesson.reading().isEmpty() ? "reading" : !lesson.exercises().isEmpty() ? "write" : null);
         return "fragments/lesson-parts :: quizResult";
     }
 

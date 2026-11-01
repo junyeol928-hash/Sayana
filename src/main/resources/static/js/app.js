@@ -162,14 +162,18 @@ function mermaidTheme() {
 function highlight(root) {
   if (!window.hljs) return;
   // 読むためのコードは折り返す(スマホ版と同じ範囲)
-  root.querySelectorAll(".quiz-q .md pre, .quiz-review pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
+  root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .quiz-review pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
+  inlineNotes(root);
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
     if (!el.className.includes("language-")) el.classList.add("language-java");
     if (el.classList.contains("language-text")) return;
     window.hljs.highlightElement(el);
   });
 }
+
+// 動きを減らす設定の人には、スクロールも瞬時に
+const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -195,6 +199,41 @@ function numberLines(code) {
   code.dataset.lines = "1";
   code.classList.add("hljs");
 }
+
+/** 仕事のコードの説明を、その行の直後に挟む(スマホ版 app.js の inlineNotes と同じ) */
+function inlineNotes(root) {
+  root.querySelectorAll(".atwork").forEach((art) => {
+    const pre = art.querySelector("pre.code-lines");
+    const list = art.querySelector(".line-notes");
+    if (!pre || !list || pre.dataset.inline || !pre.querySelector(".ln")) return;
+    list.querySelectorAll("li").forEach((li) => {
+      const n = parseInt(li.querySelector(".pin-label").textContent, 10);
+      const line = pre.querySelector(`.ln[data-n="${n}"]`);
+      if (line) line.insertAdjacentHTML("afterend", `<span class="ln-note">${li.querySelector("span:last-child").innerHTML}</span>`);
+    });
+    pre.dataset.inline = "1";
+    list.classList.add("has-inline");
+  });
+  applyNotesFold(root);
+}
+
+// 「説明をたたむ」: 行の間の説明を隠して、コードだけを通して読む(下に説明の一覧を出す)。選んだ形はこのブラウザに覚える
+const FOLD_KEY = "javadojo-notes-folded";
+function applyNotesFold(root) {
+  let folded = false;
+  try { folded = localStorage.getItem(FOLD_KEY) === "1"; } catch (e) { /* 覚えられなくても動く */ }
+  root.querySelectorAll(".atwork").forEach((art) => {
+    art.classList.toggle("notes-folded", folded);
+    const b = art.querySelector("[data-notes-toggle]");
+    if (b) { b.setAttribute("aria-pressed", String(folded)); b.textContent = folded ? "説明を行の間に出す" : "説明をたたむ"; }
+  });
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-notes-toggle]")) return;
+  const folded = !e.target.closest(".atwork").classList.contains("notes-folded");
+  try { localStorage.setItem(FOLD_KEY, folded ? "1" : "0"); } catch (err) { console.warn("たたむ設定を保存できませんでした", err); }
+  applyNotesFold(document);
+});
 
 const LAST_KEY = "javadojo-pc-last";
 const RESUME_KEY = "javadojo-pc-resume";
@@ -233,9 +272,13 @@ function dashboardResume() {
     const meta = hero.querySelector(".today-meta");
     if (meta) meta.innerHTML = [`読む ${d.minutes} 分`, `演習 ${d.exercises}`, `クイズ ${d.quiz}`, d.reading !== "0" ? `読解 ${d.reading}` : ""].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
     const next = hero.querySelector(".today-next");
-    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span>いま ${escHtml(d.dyeLabel)} · ${escHtml(d.hint)}</span>`;
+    const [dyeName, dyeMeaning] = d.dyeLabel.split("・");
+    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span><span class="tn-now">いま ${escHtml(dyeName)}(${escHtml(dyeMeaning)})</span><span class="tn-hint">次: ${escHtml(d.hint)}</span></span>`;
     else next?.remove();
     hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
+    // 先輩の一言も、続きの話に
+    const talk = hero.querySelector(".talk-line");
+    if (talk) talk.textContent = `モカ先輩「続きは${last.label ? `「${last.label}」` : ""}から。前に読んでいた所へ戻るよ」`;
     // 一覧の札もヒーローと同じ言葉に(強調は主役の 1 行だけ)
     document.querySelectorAll(".lesson-row.is-next").forEach((li) => {
       li.classList.remove("is-next");
@@ -343,6 +386,52 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// クイズ: 採点結果の解説を各問の直下へ移し、答えを止める(スマホ版と同じ答え合わせ)
+document.addEventListener("htmx:afterSwap", (e) => {
+  const out = e.detail.target;
+  const tpl = out.id === "quiz-result" && out.querySelector("template.q-explains");
+  if (!tpl) return;
+  const form = document.querySelector("form.quiz");
+  const items = form.querySelectorAll(".quiz-q");
+  form.querySelectorAll(".q-explain").forEach((n) => n.remove());
+  tpl.content.querySelectorAll(".q-explain").forEach((ex) => {
+    const i = Number(ex.dataset.q);
+    const li = items[i];
+    if (!li) return;
+    li.id = `q-${i + 1}`;
+    const ok = ex.classList.contains("correct");
+    li.querySelectorAll("label.choice").forEach((label, j) => {
+      label.classList.toggle("is-answer", j === Number(ex.dataset.answer));
+      label.classList.toggle("is-wrong", !ok && j === Number(ex.dataset.chosen));
+    });
+    li.appendChild(document.importNode(ex, true));
+  });
+  tpl.remove();
+  form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+  form.querySelector("button[type=submit]").hidden = true;
+  // 段の並びの「確かめる n/5」も今回の点に(合格ならレ点)
+  const step = document.querySelector('.stepper .step[href="#quiz"]');
+  const score = out.querySelector(".quiz-score .big")?.textContent.replace(/\s/g, "");
+  if (step && score) {
+    const small = step.querySelector("small") || step.appendChild(document.createElement("small"));
+    small.textContent = score;
+    if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) step.classList.add("done");
+  }
+  highlight(form);
+  out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-quiz-reset]")) return;
+  const form = document.querySelector("form.quiz");
+  form.reset();
+  form.querySelectorAll(".q-explain").forEach((n) => n.remove());
+  form.querySelectorAll("label.choice").forEach((l) => l.classList.remove("is-answer", "is-wrong"));
+  form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; });
+  form.querySelector("button[type=submit]").hidden = false;
+  document.getElementById("quiz-result").innerHTML = "";
+  form.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
+});
+
 // スマホ: AIチューターを開く/閉じる
 document.addEventListener("click", (e) => {
   const toggle = e.target.closest("[data-tutor-toggle]");
@@ -398,6 +487,35 @@ document.addEventListener("input", (e) => {
   const count = document.getElementById("glossary-count");
   if (count) count.textContent = words.length ? `${n} 語` : "";
 });
+
+// 用語集の索引: 虫めがねで検索欄へ、いま読んでいる行を強調して見える位置へ送る
+{
+  const index = document.getElementById("kana-index");
+  if (index) {
+    index.querySelector("[data-kana-search]")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" });
+      document.getElementById("glossary-q")?.focus({ preventScroll: true });
+    });
+    const groups = [...document.querySelectorAll("#terms .term-group")];
+    let ticking = false;
+    addEventListener("scroll", () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const line = index.getBoundingClientRect().bottom + 8;
+        let cur = null;
+        for (const h of groups) { if (h.getBoundingClientRect().top <= line) cur = h.id.slice(2); else break; }
+        index.querySelectorAll("a[data-row]").forEach((a) => {
+          const on = a.dataset.row === cur;
+          if (on && a.getAttribute("aria-current") !== "true") index.scrollTo({ left: a.offsetLeft - index.clientWidth / 2 });
+          if (on) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+        });
+      });
+    }, { passive: true });
+  }
+}
 
 // いまいる画面のメニューに印を付ける(レッスンはダッシュボードの中)
 {

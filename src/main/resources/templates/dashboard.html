@@ -12,7 +12,7 @@
             <p class="today-kicker"><span>今日の稽古</span><span th:text="${nextChapter}">第1章</span></p>
             <h1 class="today-title" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
             <p class="today-meta"><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span><span th:text="'演習 ' + ${nextLesson.exercises.size()}"></span><span th:text="'クイズ ' + ${nextLesson.quiz.size()}"></span><span th:unless="${nextLesson.reading.isEmpty()}" th:text="'読解 ' + ${nextLesson.reading.size()}"></span></p>
-            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span th:text="'いま ' + ${nextDyeName} + ' · ' + ${nextHint}"></span></p>
+            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now" th:text="'いま ' + ${nextDyeName} + '(' + ${nextDyeMeaning} + ')'"></span><span class="tn-hint" th:text="'次: ' + ${nextHint}"></span></span></p>
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
                 <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問 <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
@@ -38,11 +38,11 @@
                 <span th:each="ls : ${flatLessons}" class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"></span>
             </div>
             <ul class="dye-legend">
-                <li><span class="dye dye-0"></span><span><span class="dye-name-sm">生成り</span>まだ <span th:text="${dyeCounts[0]}"></span></span></li>
-                <li><span class="dye dye-1"></span><span><span class="dye-name-sm">甕覗き</span>読んだ <span th:text="${dyeCounts[1]}"></span></span></li>
-                <li><span class="dye dye-2"></span><span><span class="dye-name-sm">縹</span>クイズ合格 <span th:text="${dyeCounts[2]}"></span></span></li>
-                <li><span class="dye dye-3"></span><span><span class="dye-name-sm">藍</span>演習もできた <span th:text="${dyeCounts[3]}"></span></span></li>
-                <li><span class="dye dye-4"></span><span><span class="dye-name-sm">褐</span>復習をすべて卒業 <span th:text="${dyeCounts[4]}"></span></span></li>
+                <li><span class="dye dye-0"></span><span><span class="dye-name-sm"><ruby>生成り<rt>きなり</rt></ruby></span>まだ <span th:text="${dyeCounts[0]}"></span></span></li>
+                <li><span class="dye dye-1"></span><span><span class="dye-name-sm"><ruby>甕覗き<rt>かめのぞき</rt></ruby></span>読んだ <span th:text="${dyeCounts[1]}"></span></span></li>
+                <li><span class="dye dye-2"></span><span><span class="dye-name-sm"><ruby>縹<rt>はなだ</rt></ruby></span>クイズ合格 <span th:text="${dyeCounts[2]}"></span></span></li>
+                <li><span class="dye dye-3"></span><span><span class="dye-name-sm"><ruby>藍<rt>あい</rt></ruby></span>演習もできた <span th:text="${dyeCounts[3]}"></span></span></li>
+                <li><span class="dye dye-4"></span><span><span class="dye-name-sm"><ruby>褐<rt>かち</rt></ruby></span>復習をすべて卒業 <span th:text="${dyeCounts[4]}"></span></span></li>
             </ul>
             <div class="home-stats">
                 <a th:href="@{/review}"><div class="stat-label">次の復習</div><div class="stat-value" th:text="${nextReview}">なし</div></a>

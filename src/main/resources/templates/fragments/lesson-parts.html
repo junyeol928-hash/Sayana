@@ -42,28 +42,28 @@
     </div>
 </li>
 
-<!--/* クイズの採点結果 */-->
-<div th:fragment="quizResult" class="quiz-result">
-    <div class="quiz-score" th:with="a=${outcome.attempt()}">
+<!--/* クイズの採点結果。各問の解説は static/js/app.js が問の直下へ移し、ここには点数・間違えた問・次の一手だけを残す */-->
+<div th:fragment="quizResult" class="quiz-result" th:with="a=${outcome.attempt()}, pass=${status.quizPassScore()}">
+    <div class="quiz-score">
         <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
-        <span th:if="${a.score == a.total}">満点。縹に染まりました</span>
-        <span th:if="${a.score < a.total and a.score >= status.quizPassScore()}">合格ライン突破。縹に染まりました</span>
-        <span th:if="${a.score < status.quizPassScore()}" th:text="'合格ラインは ' + ${status.quizPassScore()} + ' 問。解説を読んで、もう一度どうぞ。'"></span>
+        <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格ライン突破' : '合格ラインは ' + pass + ' 問')}"></span>
     </div>
-    <p class="muted small">解いた問題は復習キューに入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
-    <ol class="quiz-review">
-        <li th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
-            th:classappend="${ok} ? 'correct' : 'wrong'">
-            <div class="q-mark" th:text="'問 ' + ${st.count} + ' ' + (${ok} ? '正解' : (${chosen < 0} ? '未回答' : '不正解'))"></div>
-            <div class="md" th:utext="${q.questionHtml}"></div>
-            <p class="small">
-                <span th:if="${chosen >= 0}">あなたの答え: <span th:utext="${q.choicesHtml.get(chosen)}"></span> / </span>
-                正解: <b th:utext="${q.choicesHtml.get(q.answer)}"></b>
-            </p>
+    <p class="dyed-line" th:if="${dyedTo != null}"><span class="dye dye-burst" th:classappend="'dye-' + ${status.dyeLevel()}" aria-hidden="true"></span><span th:text="${#strings.substringBefore(dyedTo, '・')} + 'に染まった(' + ${#strings.substringAfter(dyedTo, '・')} + ')'"></span></p>
+    <p class="quiz-wrong" th:if="${a.score < a.total}">間違えた問:
+        <th:block th:each="q, st : ${lesson.quiz}"><a th:unless="${outcome.correct().get(st.index)}" th:href="'#q-' + ${st.count}" th:text="'問 ' + ${st.count}"></a> </th:block></p>
+    <div class="quiz-next">
+        <a class="btn primary" th:if="${a.score >= pass and nextKey != null}" th:href="'#' + ${nextKey}" th:text="${nextKey == 'reading' ? '読解へ進む' : '書くへ進む'}"></a>
+        <button class="btn" type="button" data-quiz-reset>もう一度解く</button>
+    </div>
+    <p class="muted small"><th:block th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}">演習に合格すると藍に。</th:block>各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
+    <template class="q-explains">
+        <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
+             class="q-explain" th:classappend="${ok} ? 'correct' : 'wrong'" th:attr="data-q=${st.index}, data-chosen=${chosen}, data-answer=${q.answer}">
+            <span class="q-mark"><svg class="icon sm" aria-hidden="true"><use th:href="${ok} ? '#i-check' : '#i-cross'"/></svg> <th:block th:text="${ok ? '正解' : (chosen < 0 ? '未回答' : '不正解')}"></th:block></span>
+            <p class="small" th:unless="${ok}">正解: <b th:utext="${q.choicesHtml.get(q.answer)}"></b></p>
             <div class="explanation md" th:utext="${q.explanationHtml}"></div>
-        </li>
-    </ol>
-    <p class="muted small">答えを選び直して、もう一度「採点する」を押せます。</p>
+        </div>
+    </template>
 </div>
 </body>
 </html>
