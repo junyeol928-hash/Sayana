@@ -1,0 +1,113 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "else if の評価順"
+  level: 1
+  code: |
+    int temp = 28;
+    String comment;
+    if (temp >= 30) {
+        comment = "暑い";
+    } else if (temp >= 20) {
+        comment = "過ごしやすい";
+    } else {
+        comment = "寒い";
+    }
+    System.out.println(comment);
+  question: "出力は?"
+  choices:
+    - "暑い"
+    - "過ごしやすい"
+    - "寒い"
+    - "何も出力されない"
+  answer: 1
+  explanation: "temp は 28 なので最初の条件(30以上)は false、次の条件(20以上)が true になり、そこで確定します。"
+  trace:
+    - "3行目: 28 >= 30 → false"
+    - "5行目: 28 >= 20 → true。comment = \"過ごしやすい\""
+    - "以降の else には進まない"
+    - "10行目: \"過ごしやすい\" と表示"
+- title: "break のない switch(フォールスルー)"
+  level: 2
+  code: |
+    int month = 2;
+    String season;
+    switch (month) {
+        case 12:
+        case 1:
+        case 2:
+            season = "冬";
+            break;
+        case 3:
+        case 4:
+        case 5:
+            season = "春";
+            break;
+        default:
+            season = "その他";
+    }
+    System.out.println(season);
+  question: "出力は?"
+  choices:
+    - "冬"
+    - "春"
+    - "その他"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month=2 は case 2 に一致し、\"冬\" を代入して break します。"
+  trace:
+    - "3行目: month(2) と case を照合"
+    - "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)"
+    - "7行目: season = \"冬\""
+    - "8行目: break で switch を抜ける"
+    - "17行目: \"冬\" と表示"
+- title: "短絡評価と NullPointerException"
+  level: 2
+  code: |
+    String[] names = { "Sato", null, "Suzuki" };
+    int count = 0;
+    for (String name : names) {
+        if (name != null && name.length() >= 5) {
+            count++;
+        }
+    }
+    System.out.println(count);
+  question: "出力は?(例外になるかも含めて考える)"
+  choices:
+    - "0"
+    - "1"
+    - "2"
+    - "NullPointerException が発生する"
+  answer: 1
+  explanation: "&& の左が name != null なので、null の要素は右の length() を評価する前に false 確定し、例外は起きません。\"Sato\"(4文字)は 5 以上でないため条件を満たさず、\"Suzuki\"(6文字)だけが条件を満たすので count は 1 になります。"
+  trace:
+    - "\"Sato\": null ではない → length()=4 → 5以上ではない → false(count 増えない)"
+    - "null: name != null が false → 短絡評価で length() は呼ばれない → 例外なし、false"
+    - "\"Suzuki\": null ではない → length()=6 → 5以上 → true → count++"
+    - "最終的な count は 1"
+- title: "ガード節への書き換えと動作の一致"
+  level: 3
+  code: |
+    public String check(Integer age) {
+        String result;
+        if (age != null) {
+            if (age >= 18) {
+                result = "成人";
+            } else {
+                result = "未成年";
+            }
+        } else {
+            result = "不明";
+        }
+        return result;
+    }
+  question: "このメソッドをガード節で書き直したとき、age = null での戻り値は元と比べて?"
+  choices:
+    - "\"成人\"に変わる"
+    - "\"未成年\"に変わる"
+    - "\"不明\"のまま変わらない"
+    - "例外が発生するようになる"
+  answer: 2
+  explanation: "ネストした if をガード節(if (age == null) return \"不明\"; if (age >= 18) return \"成人\"; return \"未成年\";)に書き換えても、条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。"
+  trace:
+    - "元のコード: age が null → 外側の else に入り result = \"不明\""
+    - "ガード節版: if (age == null) return \"不明\"; が最初に一致してそこで終了"
+    - "どちらも age=null のときは \"不明\" を返す点で同じ"

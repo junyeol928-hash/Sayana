@@ -1,0 +1,140 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "@Override の効果"
+  level: 1
+  code: |
+    class Base {
+        public String name() { return "base"; }
+    }
+    class Child extends Base {
+        @Override
+        public String Name() { return "child"; }
+    }
+    Base b = new Child();
+    System.out.println(b.name());
+  question: "どうなる?"
+  choices:
+    - "child と表示"
+    - "base と表示"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 2
+  explanation: "Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、\"base\" と表示されるバグが隠れたままになります。"
+  trace:
+    - "6行目: Name() は name() と別名 → 新しいメソッドの定義"
+    - "5行目: @Override は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
+    - "実行には至らない"
+- title: "要素のデフォルト値"
+  level: 2
+  code: |
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Retry {
+        int times() default 3;
+        long waitMillis() default 0;
+    }
+
+    class Client {
+        @Retry(times = 5)
+        public void call() {}
+
+        @Retry
+        public void ping() {}
+    }
+
+    Method m = Client.class.getMethod("ping");
+    Retry r = m.getAnnotation(Retry.class);
+    System.out.println(r.times() + " " + r.waitMillis());
+  question: "出力は?"
+  choices:
+    - "5 0"
+    - "3 0"
+    - "null"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "ping() には @Retry が引数なしで付いているので、要素はすべてデフォルト値(times = 3、waitMillis = 0)です。call() の 5 は関係ありません。RUNTIME なので getAnnotation で取り出せます。"
+  trace:
+    - "15行目: ping メソッドの Method オブジェクトを取得"
+    - "16行目: RUNTIME なので @Retry が取れる(null ではない)"
+    - "17行目: 引数なしで付けたので times は default の 3、waitMillis は 0"
+- title: "Retention と getAnnotation"
+  level: 2
+  code: |
+    @Retention(RetentionPolicy.SOURCE)
+    @interface Draft {}
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Stable {}
+
+    @Draft @Stable
+    class Api {}
+
+    System.out.println(Api.class.getAnnotation(Draft.class) != null);
+    System.out.println(Api.class.getAnnotation(Stable.class) != null);
+  question: "2行の出力は?"
+  choices:
+    - "true / true"
+    - "false / true"
+    - "true / false"
+    - "false / false"
+  answer: 1
+  explanation: "@Draft は SOURCE なのでコンパイル後には消え、実行時には null。@Stable は RUNTIME なので取れます。フレームワークが読むアノテーションが必ず RUNTIME なのはこのためです。"
+  trace:
+    - "7行目: 両方のアノテーションを付ける(ソース上は両方ある)"
+    - "10行目: Draft は class ファイルに残っていない → null → false"
+    - "11行目: Stable は実行時まで残る → 取れる → true"
+- title: "Aspect の proceed()"
+  level: 3
+  code: |
+    @Aspect @Component
+    class GuardAspect {
+        @Around("@annotation(RequiresAdmin)")
+        public Object guard(ProceedingJoinPoint pjp) throws Throwable {
+            if (!currentUserIsAdmin()) {
+                throw new AccessDeniedException("admin only");
+            }
+            return pjp.proceed();
+        }
+    }
+
+    @Service
+    class KeyService {
+        @RequiresAdmin
+        public void revokeAll() { log.info("revoked"); }
+    }
+    // 一般ユーザーとして、別の Bean から keyService.revokeAll() を呼ぶ
+  question: "何が起きる?"
+  choices:
+    - "\"revoked\" がログに出て正常終了"
+    - "AccessDeniedException が投げられ、\"revoked\" は出ない"
+    - "@RequiresAdmin は何もしないので普通に実行される"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "別の Bean からの呼び出しはプロキシを通るので、Aspect の guard が先に動きます。管理者でないので例外を投げ、proceed() に到達しません。よって revokeAll の本体は実行されず \"revoked\" も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。"
+  trace:
+    - "呼び出し: keyService はプロキシ → guard() が横取り"
+    - "5行目: 一般ユーザーなので条件が true"
+    - "6行目: AccessDeniedException を投げる → 8行目には行かない"
+    - "revokeAll() の本体は一度も実行されない"
+- title: "Jackson と @JsonProperty"
+  level: 2
+  code: |
+    record UserResponse(
+            @JsonProperty("user_id") Long userId,
+            String displayName,
+            @JsonIgnore String passwordHash) {}
+
+    String json = new ObjectMapper().writeValueAsString(
+            new UserResponse(1L, "Sato", "xxxx"));
+    System.out.println(json);
+  question: "出力に最も近いものは?"
+  choices:
+    - "{\"userId\":1,\"displayName\":\"Sato\",\"passwordHash\":\"xxxx\"}"
+    - "{\"user_id\":1,\"displayName\":\"Sato\"}"
+    - "{\"user_id\":1,\"display_name\":\"Sato\"}"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "@JsonProperty(\"user_id\") でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。"
+  trace:
+    - "2行目: userId → キー名を \"user_id\" に変更"
+    - "3行目: displayName はそのまま"
+    - "4行目: passwordHash は出力しない(機密情報を漏らさない定番の使い方)"
+    - "出力: {\"user_id\":1,\"displayName\":\"Sato\"}"

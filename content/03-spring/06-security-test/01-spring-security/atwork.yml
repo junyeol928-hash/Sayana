@@ -1,0 +1,39 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Spring Security の読み方(認証・認可・フィルタチェーン)"
+  intro: "実務の Spring Boot API では、SecurityConfig というクラスに SecurityFilterChain の Bean があり、そこに自作のフィルタや requestMatchers による制限が書かれています。まずこの Bean を探すのが読み始めの第一歩です。"
+  code: |
+    @Configuration
+    @EnableMethodSecurity
+    public class SecurityConfig {
+
+        private final ApiKeyFilter apiKeyFilter;
+
+        public SecurityConfig(ApiKeyFilter apiKeyFilter) {
+            this.apiKeyFilter = apiKeyFilter;
+        }
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/public/**").permitAll()
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .anyRequest().authenticated())
+                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        }
+    }
+  notes:
+    2: "このアノテーションがあるから、他のクラスの @PreAuthorize が効くようになる"
+    5: "自作フィルタもコンストラクタで DI してもらう(DI の章と同じ形)"
+    14: "CSRF 無効化。トークン認証の API では定番"
+    15: "セッションを作らない。ステートレスな API"
+    18: "requestMatchers は上から順に評価される。順番を変えると意味が変わる"
+    20: "addFilterBefore で、自作フィルタがどこに差し込まれているかが分かる"
+  points:
+    - "まず SecurityFilterChain を返す @Bean メソッド(たいてい SecurityConfig というクラス名)を探す"
+    - "requestMatchers の並び順を上から確認し、どの条件が先に評価されるか追う"
+    - "addFilterBefore / addFilterAfter で自作フィルタがどこに挟まっているかを見る"
+    - "Service のメソッドに @PreAuthorize があれば、それが同じクラス内呼び出しで素通りしていないかも確認する"

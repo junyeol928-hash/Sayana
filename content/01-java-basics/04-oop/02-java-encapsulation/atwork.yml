@@ -1,0 +1,74 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "パッケージと import"
+  intro: "Spring Boot の Controller は、ファイルの先頭に import が並びます。この import を読むだけで「HTTP を受け取り、Service を呼び、DTO を返す」という役割が分かります。"
+  code: |
+    package jp.co.example.app.controller;
+
+    import java.util.List;
+
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PathVariable;
+    import org.springframework.web.bind.annotation.RestController;
+
+    import jp.co.example.app.dto.UserDto;
+    import jp.co.example.app.service.UserService;
+    import lombok.RequiredArgsConstructor;
+
+    @RestController
+    @RequiredArgsConstructor
+    public class UserController {
+
+        private final UserService userService;
+
+        @GetMapping("/users/{id}")
+        public UserDto findOne(@PathVariable String id) {
+            return userService.findById(id);
+        }
+    }
+  notes:
+    1: "controller 層のクラス。逆ドメイン(jp.co.example)+ アプリ名(app)+ 層(controller)"
+    3: "java.util → 標準ライブラリ。List を返すメソッドがどこかにある予兆"
+    5: "org.springframework.* → Spring の機能。HTTP まわりのアノテーション"
+    9: "自分たちのアプリの dto 層に依存している"
+    10: "service 層に依存 → 処理の本体は UserService を読めば分かる"
+    11: "lombok.* → コンストラクタなどが自動生成されている印"
+    17: "final フィールド。Lombok がコンストラクタを作り、Spring が UserService を渡してくれる(DI)"
+  points:
+    - "import を上から3グループ(java.*、フレームワーク、自分たちのアプリ)に分けて眺めると、依存の全体像がつかめる"
+    - "jp.co.example.app.service のように「自分たちのパッケージ」への import があれば、それが次に読むべきクラス"
+    - "package 宣言の末尾(controller / service / repository)で、そのクラスの層と責任を判断する"
+    - "import に無いのに使われているクラスは java.lang か同じパッケージ内。ジャンプして確かめる"
+- title: "Lombok の読み方"
+  intro: "Lombok が3つのアノテーションで役割ごとに使い分けられている、よくある組み合わせです。DTO・Service・ログの読み方をまとめて確認します。"
+  code: |
+    @Data
+    @Builder
+    public class KeyIssueRequest {
+        private final String cardId;
+        private final int keyVersion;
+    }
+
+    @Service
+    @RequiredArgsConstructor
+    @Slf4j
+    public class KeyIssueService {
+
+        private final KeyRepository keyRepository;
+
+        public String issue(KeyIssueRequest req) {
+            log.info("issue cardId={}", req.getCardId());
+            keyRepository.save(new KeyEntity(req.getCardId(), req.getKeyVersion(), "ACTIVE"));
+            return "OK";
+        }
+    }
+  notes:
+    1: "@Data なので getCardId/getKeyVersion が生成される(setter も。final だが @Data の setter は final フィールドには生成されない点に注意)"
+    2: "@Builder なので KeyIssueRequest.builder().cardId(...).keyVersion(...).build() の形で呼べる"
+    8: "final フィールド(keyRepository)を引数にとるコンストラクタが生成される = DI"
+    9: "log フィールドが生成される。ソースに宣言はない"
+    15: "生成された getCardId() 経由で値を取り出している"
+  points:
+    - "クラス先頭のアノテーション一覧を先に確認し、どのメソッド群が生成されるか予測してから本文を読む"
+    - "final フィールド + @RequiredArgsConstructor は DI の部品一覧として読む"
+    - "builder() のメソッドチェーンは、メソッド名をフィールド名として読み替える"
+    - "log や getter/setter など「宣言のないメソッド・フィールド」に出会ったら、まず Lombok を疑う"

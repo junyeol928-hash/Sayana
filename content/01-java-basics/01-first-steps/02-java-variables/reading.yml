@@ -1,0 +1,94 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "値のコピーと参照のコピー"
+  level: 1
+  code: |
+    int a = 10;
+    int b = a;
+    b = 20;
+    int[] arr1 = {1, 2};
+    int[] arr2 = arr1;
+    arr2[0] = 50;
+    System.out.println(a + " " + arr1[0]);
+  question: "出力は?"
+  choices:
+    - "10 1"
+    - "20 50"
+    - "10 50"
+    - "20 1"
+  answer: 2
+  explanation: "int(基本データ型)は値がコピーされるので b を変えても a は 10 のまま。配列(参照型)は住所がコピーされるので arr2 経由の変更が arr1 にも見えます。"
+  trace:
+    - "1〜2行目: a=10、b にも 10 がコピーされる(別々の箱)"
+    - "3行目: b だけが 20 になる。a は 10 のまま"
+    - "4〜5行目: arr1 が配列 {1,2} を指し、arr2 も同じ配列を指す"
+    - "6行目: 同じ配列の [0] が 50 になる → arr1[0] も 50"
+    - "7行目: \"10 50\" と表示"
+- title: "整数の割り算とキャストの位置"
+  level: 2
+  code: |
+    int sum = 17;
+    int count = 4;
+    double avg1 = sum / count;
+    double avg2 = (double) sum / count;
+    double avg3 = (double) (sum / count);
+    System.out.println(avg1 + " " + avg2 + " " + avg3);
+  question: "出力は?"
+  choices:
+    - "4.25 4.25 4.25"
+    - "4.0 4.25 4.0"
+    - "4.0 4.25 4.25"
+    - "4 4.25 4"
+  answer: 1
+  explanation: "avg1 は int/int=4 を double に入れるので 4.0。avg2 は先に sum を 17.0 にしてから割るので 4.25。avg3 はカッコの中(17/4=4)を先に計算してから double にするので 4.0。**キャストがどこに掛かるか**で結果が変わります。"
+  trace:
+    - "3行目: 17 / 4 → int の 4 → double の箱に入れて 4.0"
+    - "4行目: (double) は sum だけに掛かる → 17.0 / 4 → 4.25"
+    - "5行目: (double) は (sum / count) 全体に掛かる → (4) → 4.0"
+    - "6行目: \"4.0 4.25 4.0\""
+- title: "文字列と数値の連結"
+  level: 2
+  code: |
+    int x = 1;
+    int y = 2;
+    System.out.println("結果: " + x + y);
+    System.out.println("結果: " + (x + y));
+    System.out.println(x + y + "円");
+  question: "3行の出力は?"
+  choices:
+    - "結果: 12 / 結果: 3 / 3円"
+    - "結果: 3 / 結果: 3 / 12円"
+    - "結果: 12 / 結果: 3 / 12円"
+    - "結果: 3 / 結果: 3 / 3円"
+  answer: 0
+  explanation: "+ は左から順に評価されます。文字列が左にあると以降は連結(\"結果: 1\" + 2 → \"結果: 12\")。カッコで先に足し算すれば 3。最後の行は x + y(数値の足し算=3)が先で、その後に \"円\" がつながります。"
+  trace:
+    - "3行目: \"結果: \" + 1 → \"結果: 1\"、+ 2 → \"結果: 12\""
+    - "4行目: (1 + 2) = 3 が先 → \"結果: 3\""
+    - "5行目: 1 + 2 = 3 が先(まだ文字列が出てきていない)→ \"3円\""
+- title: "final フィールドと null"
+  level: 3
+  code: |
+    public class Config {
+        private static final String ENV = "prod";
+        private String region;
+
+        public String describe() {
+            return ENV + "/" + region.toUpperCase();
+        }
+    }
+    // 別の場所で:
+    Config c = new Config();
+    System.out.println(c.describe());
+  question: "最後の行を実行すると?"
+  choices:
+    - "prod/ と表示"
+    - "prod/null と表示"
+    - "NullPointerException が発生"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "region は初期化されていないので null。null に対して toUpperCase() を呼んだ瞬間に NullPointerException です。ENV + \"/\" + region なら \"prod/null\" と表示されますが、メソッド呼び出しは別。**参照型フィールドを使う前に値が入っているか**を追うのが実務の読解の基本です。"
+  trace:
+    - "10行目: Config を作る。ENV は \"prod\"、region は何も入れていないので null"
+    - "11行目: describe() を呼ぶ"
+    - "6行目: region.toUpperCase() → region が null なので例外"
+    - "結果: NullPointerException で処理が止まる"

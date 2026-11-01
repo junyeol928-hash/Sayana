@@ -1,0 +1,137 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "enum の == と equals"
+  level: 1
+  code: |
+    enum Color { RED, BLUE }
+
+    Color a = Color.RED;
+    Color b = Color.valueOf("RED");
+    System.out.println(a == b);
+    System.out.println(a.equals(b));
+    System.out.println(a.ordinal() + " " + b.name());
+  question: "3行の出力は?"
+  choices:
+    - "true / true / 0 RED"
+    - "false / true / 0 RED"
+    - "true / true / 1 RED"
+    - "false / false / 0 RED"
+  answer: 0
+  explanation: "enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は \"RED\" です。"
+  trace:
+    - "3行目: a は RED(唯一のインスタンス)を指す"
+    - "4行目: valueOf(\"RED\") も同じ RED を返す"
+    - "5〜6行目: 同じインスタンスなので == も equals も true"
+    - "7行目: RED は 0 番目、name() は \"RED\""
+- title: "record の equals"
+  level: 2
+  code: |
+    record Point(int x, int y) {}
+
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(1, 2);
+    System.out.println(p1 == p2);
+    System.out.println(p1.equals(p2));
+    System.out.println(p1);
+  question: "3行の出力は?"
+  choices:
+    - "true / true / Point[x=1, y=2]"
+    - "false / true / Point[x=1, y=2]"
+    - "false / false / Point@1a2b3c"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "new を2回しているので別インスタンス → == は false。record は全フィールドを比べる equals を自動生成するので equals は true。toString も「型名[フィールド=値, ...]」の形で自動生成されます。"
+  trace:
+    - "3〜4行目: 別々の Point インスタンスを2つ作る(中身は同じ)"
+    - "5行目: == は参照比較 → 別物なので false"
+    - "6行目: record の equals は x と y を比較 → true"
+    - "7行目: 自動生成された toString → Point[x=1, y=2]"
+- title: "switch 式とフォールスルーの違い"
+  level: 2
+  code: |
+    enum Level { LOW, MID, HIGH }
+
+    static int oldStyle(Level lv) {
+        int n = 0;
+        switch (lv) {
+            case LOW:  n += 1;
+            case MID:  n += 10;
+            case HIGH: n += 100;
+        }
+        return n;
+    }
+    static int newStyle(Level lv) {
+        return switch (lv) {
+            case LOW -> 1;
+            case MID -> 10;
+            case HIGH -> 100;
+        };
+    }
+    System.out.println(oldStyle(Level.MID) + " " + newStyle(Level.MID));
+  question: "出力は?"
+  choices:
+    - "10 10"
+    - "110 10"
+    - "111 10"
+    - "110 110"
+  answer: 1
+  explanation: "古い switch 文は break が無いので、MID に入ったあと HIGH の処理まで落ちて(フォールスルー)10 + 100 = 110。矢印 case の switch 式はフォールスルーしないので 10 です。"
+  trace:
+    - "oldStyle: case MID から開始 → n = 10"
+    - "break が無いので case HIGH も実行 → n = 110"
+    - "newStyle: case MID -> 10 で終わり"
+    - "出力: \"110 10\""
+- title: "コンパクトコンストラクタの検証"
+  level: 2
+  code: |
+    record Email(String value) {
+        Email {
+            if (value == null || !value.contains("@")) {
+                throw new IllegalArgumentException("invalid: " + value);
+            }
+            value = value.toLowerCase();
+        }
+    }
+
+    Email e1 = new Email("Sato@Example.com");
+    System.out.println(e1.value());
+    Email e2 = new Email("sato");
+  question: "実行するとどうなる?"
+  choices:
+    - "sato@example.com と表示され、その後 IllegalArgumentException"
+    - "Sato@Example.com と表示され、その後 IllegalArgumentException"
+    - "sato@example.com と表示され、正常終了"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "e1 は @ を含むので検証を通り、小文字に変換された値がフィールドに入ります。e2 は @ が無いので検証で例外になり、Email は作られません。コンパクトコンストラクタは「不正な record を作らせない門番」です。"
+  trace:
+    - "10行目: 検証 OK → value を小文字化 → 末尾で自動的にフィールドに代入"
+    - "11行目: \"sato@example.com\" と表示"
+    - "12行目: \"sato\" は @ を含まない → IllegalArgumentException"
+- title: "sealed と switch の網羅"
+  level: 3
+  code: |
+    sealed interface Result permits Ok, Ng {}
+    record Ok(int value) implements Result {}
+    record Ng(String reason) implements Result {}
+
+    static String show(Result r) {
+        return switch (r) {
+            case Ok ok when ok.value() > 0 -> "positive " + ok.value();
+            case Ok ok -> "zero or negative";
+            case Ng ng -> "ng: " + ng.reason();
+        };
+    }
+    System.out.println(show(new Ok(0)));
+    System.out.println(show(new Ng("timeout")));
+  question: "2行の出力は?"
+  choices:
+    - "positive 0 / ng: timeout"
+    - "zero or negative / ng: timeout"
+    - "コンパイルエラー(default が無い)"
+    - "実行時エラー"
+  answer: 1
+  explanation: "Ok(0) は最初の case のガード(value > 0)を満たさないので次の case Ok に入り \"zero or negative\"。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので default は不要で、コンパイルも通ります。"
+  trace:
+    - "12行目: r は Ok(0)。1つ目の case は when 0 > 0 が false → スキップ"
+    - "2つ目の case Ok ok に一致 → \"zero or negative\""
+    - "13行目: r は Ng → 3つ目の case → \"ng: timeout\""

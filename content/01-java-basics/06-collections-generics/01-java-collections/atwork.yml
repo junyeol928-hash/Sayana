@@ -1,0 +1,45 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "コレクション"
+  intro: "Service は Repository から Entity の List を受け取り、DTO の List に変換して返す、というのが定番の形です。Map は「コード → 表示名」のような対応表に使われます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class UserService {
+
+        private static final Map<String, String> STATUS_LABEL = Map.of(
+                "ACTIVE", "有効",
+                "LOCKED", "ロック中");
+
+        private final UserRepository userRepository;
+
+        public List<UserDto> findActiveUsers() {
+            List<User> users = userRepository.findByStatus("ACTIVE");
+            List<UserDto> result = new ArrayList<>();
+            for (User u : users) {
+                String label = STATUS_LABEL.getOrDefault(u.getStatus(), "不明");
+                result.add(new UserDto(u.getId(), u.getName(), label));
+            }
+            return result;
+        }
+
+        public Set<String> collectDepartments(List<User> users) {
+            Set<String> departments = new HashSet<>();
+            for (User u : users) {
+                departments.add(u.getDepartment());
+            }
+            return departments;
+        }
+    }
+  notes:
+    5: "Map.of で作った不変の対応表を定数に。「コード値 → 画面表示」の変換テーブル"
+    11: "戻り値の型はインターフェースの List。呼ぶ側(Controller)は中身が ArrayList かどうか気にしない"
+    12: "Repository は Entity(DB の行)の List を返す。JPA なら内部は ArrayList であることが多い"
+    13: "変換結果を入れる可変の List を用意"
+    15: "無いコードでも落ちないように getOrDefault"
+    16: "Entity → DTO の詰め替え。実務で最も多いループの形"
+    22: "重複を消したいので Set。同じ部署が何人いても 1 つになる"
+  points:
+    - "メソッドの戻り値が List / Set / Map のどれかで、「順序が要るか」「重複を消したいか」「キーで引きたいか」の意図を読む"
+    - "for (Entity e : list) { result.add(new Dto(...)) } の詰め替えループを見たら、Entity と DTO のフィールド対応を確認する"
+    - "Map.get の結果が null になりうるか、getOrDefault や containsKey で守られているかを見る"
+    - "Map.of / List.of で作られたものは不変。あとで add している箇所があれば実行時例外の疑い"

@@ -1,0 +1,109 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "配列のデフォルト値と足し算"
+  level: 1
+  code: |
+    int[] a = new int[4];
+    a[1] = 7;
+    a[3] = a[1] * 2;
+    System.out.println(a[0] + a[1] + a[2] + a[3]);
+  question: "出力は?"
+  choices:
+    - "21"
+    - "07014"
+    - "14"
+    - "ArrayIndexOutOfBoundsException"
+  answer: 0
+  explanation: "new int[4] は {0, 0, 0, 0}。a[1] = 7、a[3] = 14 になり、残りは 0 のまま。全部 int なので + は足し算で 0 + 7 + 0 + 14 = 21。文字列が混ざっていないので連結にはなりません。"
+  trace:
+    - "1行目: a = {0, 0, 0, 0}"
+    - "2行目: a = {0, 7, 0, 0}"
+    - "3行目: a[1] * 2 = 14 → a = {0, 7, 0, 14}"
+    - "4行目: 0 + 7 + 0 + 14 = 21"
+- title: "remove と add(添え字付き)"
+  level: 2
+  code: |
+    List<String> q = new ArrayList<>();
+    q.add("A");
+    q.add("B");
+    q.add("C");
+    q.remove(0);
+    q.add(1, "X");
+    System.out.println(q.get(1) + q.size());
+  question: "出力は?"
+  choices:
+    - "X3"
+    - "B3"
+    - "X2"
+    - "IndexOutOfBoundsException"
+  answer: 0
+  explanation: "remove(0) で A が消え [B, C] に詰まる。add(1, \"X\") は「添え字 1 の位置に割り込む」ので [B, X, C]。get(1) は X、size() は 3。文字列 + 数値 で \"X3\"。"
+  trace:
+    - "2〜4行目: q = [A, B, C]"
+    - "5行目: 先頭を削除 → [B, C](後ろが前に詰まる)"
+    - "6行目: 添え字 1 に X を挿入 → [B, X, C]"
+    - "7行目: \"X\" + 3 → \"X3\""
+- title: "List<Integer> の remove 2 種類"
+  level: 2
+  code: |
+    List<Integer> nums = new ArrayList<>(List.of(10, 20, 30));
+    nums.remove(1);
+    nums.remove(Integer.valueOf(10));
+    System.out.println(nums);
+  question: "出力は?"
+  choices:
+    - "[30]"
+    - "[10, 30]"
+    - "[20, 30]"
+    - "IndexOutOfBoundsException"
+  answer: 0
+  explanation: "2行目の remove(1) は int 引数なので添え字 1 → 20 が消えて [10, 30]。3行目は Integer 引数なので「値 10」→ [30]。同じ remove でも引数の型で意味が変わります。"
+  trace:
+    - "1行目: [10, 20, 30] を可変のリストとしてコピー"
+    - "2行目: 添え字 1 を削除 → [10, 30]"
+    - "3行目: 値 10 を削除 → [30]"
+    - "4行目: [30]"
+- title: "List.of とコピーの独立性"
+  level: 3
+  code: |
+    List<String> base = List.of("a", "b");
+    List<String> copy = new ArrayList<>(base);
+    copy.add("c");
+    base.add("d");
+    System.out.println(copy.size());
+  question: "実行すると?"
+  choices:
+    - "3 と表示"
+    - "4 と表示"
+    - "UnsupportedOperationException"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "copy は new ArrayList<>(base) で作った別物なので add できます(3行目は成功)。しかし base は List.of で作った変更不可のリストなので、4行目で UnsupportedOperationException が発生し、5行目には到達しません。「どの行で落ちるか」まで追うのが読解のポイントです。"
+  trace:
+    - "1行目: base は変更不可の [a, b]"
+    - "2行目: copy は base の中身をコピーした可変の [a, b](別の本体)"
+    - "3行目: copy = [a, b, c]。base は影響を受けない"
+    - "4行目: base.add → 変更不可なので例外。ここで停止"
+- title: "二次元配列と参照"
+  level: 3
+  code: |
+    int[][] m = {{1, 2}, {3, 4}};
+    int[] row = m[0];
+    row[1] = 9;
+    int[] copy = m[1].clone();
+    copy[0] = 0;
+    System.out.println(m[0][1] + " " + m[1][0]);
+  question: "出力は?"
+  choices:
+    - "9 3"
+    - "2 3"
+    - "9 0"
+    - "2 0"
+  answer: 0
+  explanation: "m[0] は「0 行目の配列の住所」なので row は同じ本体を指し、row[1] = 9 は m[0][1] にも見えます。一方 clone() は新しい本体を作るので、copy[0] = 0 は m[1] に影響しません。**= は同じものを指す、clone / copyOf / new ArrayList<>(…) は別物を作る**という区別です。"
+  trace:
+    - "1行目: m は 2 つの行配列を指す"
+    - "2行目: row は m[0] と同じ配列 {1, 2} を指す"
+    - "3行目: その配列の [1] を 9 に → m[0] = {1, 9}"
+    - "4行目: copy は {3, 4} の複製(別の本体)"
+    - "5行目: copy = {0, 4}。m[1] は {3, 4} のまま"
+    - "6行目: \"9 3\""

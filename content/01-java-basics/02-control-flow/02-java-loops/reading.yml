@@ -1,0 +1,94 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "for の合計処理を1行ずつ追う"
+  level: 1
+  code: |
+    int sum = 0;
+    for (int i = 1; i <= 4; i++) {
+        sum += i;
+    }
+    System.out.println(sum);
+  question: "出力は?"
+  choices:
+    - "6"
+    - "10"
+    - "4"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "1から4までの整数を順に足しているので 1+2+3+4=10 です。"
+  trace:
+    - "初期化: i=1, sum=0"
+    - "i=1: 条件 1<=4 true → sum=0+1=1 → i=2"
+    - "i=2: 条件 true → sum=1+2=3 → i=3"
+    - "i=3: 条件 true → sum=3+3=6 → i=4"
+    - "i=4: 条件 true → sum=6+4=10 → i=5"
+    - "i=5: 条件 5<=4 false → ループ終了 → 10 と表示"
+- title: "while と do-while の違い(条件が最初から false)"
+  level: 2
+  code: |
+    int x = 10;
+    while (x < 5) {
+        System.out.println("while:" + x);
+        x++;
+    }
+    int y = 10;
+    do {
+        System.out.println("do-while:" + y);
+        y++;
+    } while (y < 5);
+  question: "出力は?"
+  choices:
+    - "何も出力されない"
+    - "\"do-while:10\" だけ出力される"
+    - "\"while:10\" だけ出力される"
+    - "両方とも1回ずつ出力される"
+  answer: 1
+  explanation: "while は条件(x<5)を先に判定するため、x=10 の時点で false となり1回も実行されません。do-while は先に本体を実行してから条件判定するため、y=10 でも \"do-while:10\" が必ず1回出力されます。"
+  trace:
+    - "while: x=10 で条件 10<5 は false → ループ本体は1度も実行されない"
+    - "do-while: 条件判定より先に本体を実行 → \"do-while:10\" を出力してから y++"
+    - "その後 y=11 で条件 11<5 を判定 → false → 終了"
+- title: "二重ループとbreakの範囲"
+  level: 2
+  code: |
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (j == 1) {
+                break;
+            }
+            System.out.print(i + "" + j + " ");
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "00 01 02 10 11 12 20 21 22"
+    - "00 10 20"
+    - "00"
+    - "何も表示されない"
+  answer: 1
+  explanation: "break は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について j=0 のときだけ表示されて j=1 で内側を抜ける、を3回くり返します。"
+  trace:
+    - "i=0: j=0で\"00 \"表示、j=1でbreak(内側だけ終了)"
+    - "i=1: j=0で\"10 \"表示、j=1でbreak"
+    - "i=2: j=0で\"20 \"表示、j=1でbreak"
+    - "結果: \"00 10 20 \""
+- title: "拡張 for の中で要素を書き換えても元は変わらない"
+  level: 3
+  code: |
+    int[] nums = { 1, 2, 3 };
+    for (int n : nums) {
+        n = n * 10;
+    }
+    System.out.println(nums[0] + " " + nums[1] + " " + nums[2]);
+  question: "出力は?"
+  choices:
+    - "10 20 30"
+    - "1 2 3"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 1
+  explanation: "拡張 for の n は、配列の各要素の値がコピーされたローカル変数です(int は基本データ型なので値コピー)。n を書き換えても元の配列 nums の中身には影響しません。"
+  trace:
+    - "1周目: n に nums[0]=1 がコピーされる → n=10 にしても nums[0] はそのまま"
+    - "2周目: n に nums[1]=2 がコピーされる → n=20 にしても nums[1] はそのまま"
+    - "3周目: n に nums[2]=3 がコピーされる → n=30 にしても nums[2] はそのまま"
+    - "結果: nums は変化せず \"1 2 3\""

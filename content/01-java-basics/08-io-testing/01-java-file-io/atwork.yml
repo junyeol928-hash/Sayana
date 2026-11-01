@@ -1,0 +1,42 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ファイル入出力とバイト列(java.io / java.nio)"
+  intro: "Spring Boot アプリでは、アップロードされたファイルを InputStream で読む Controller と、起動時に証明書や鍵をクラスパスから読み込む Configuration クラスの2パターンが定番です。どちらもこの章の形そのままです。"
+  code: |
+    @Service
+    public class TrustStoreLoader {
+
+        private static final String CERT_PATH = "certs/client.crt";
+
+        public byte[] loadCertificate() throws IOException {
+            ClassPathResource resource = new ClassPathResource(CERT_PATH);
+            try (InputStream in = resource.getInputStream()) {
+                return in.readAllBytes();
+            }
+        }
+    }
+
+    @RestController
+    @RequiredArgsConstructor
+    public class UploadController {
+
+        @PostMapping("/upload")
+        public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+            try (InputStream in = file.getInputStream();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                String firstLine = reader.readLine();
+                return ResponseEntity.ok("先頭行: " + firstLine);
+            }
+        }
+    }
+  notes:
+    1: "業務ロジック担当という Spring の目印(Spring 章で詳しく)"
+    7: "クラスパス上の証明書を Resource として扱う"
+    8: "InputStream を取り出して try-with-resources で必ず閉じる"
+    14: "REST の入口という Spring の目印"
+    18: "アップロードされたファイルの中身を InputStream として受け取れる Spring の型"
+    19: "ファイル本体を InputStream として取得し、文字コードを指定して重ね着する。この章の1節目と同じ形"
+  points:
+    - "InputStream / byte[] が出てきたら、まず「バイトか文字か」を見る"
+    - "文字コード(StandardCharsets.UTF_8)が明示されているか確認する。無ければ環境依存のバグ候補"
+    - "try-with-resources で閉じられているか、close 漏れがないかを見る"
+    - "ClassPathResource / getResourceAsStream が出てきたら、探している場所はファイルシステムではなくクラスパス(jarの中)"

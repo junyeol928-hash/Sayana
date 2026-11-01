@@ -1,0 +1,112 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "extends と implements の読み分け"
+  level: 1
+  code: |
+    interface Flyable {
+        void fly();
+    }
+    class Animal {
+        void eat() { }
+    }
+    class Bird extends Animal implements Flyable {
+        public void fly() { }
+    }
+  question: "Bird と Animal、Bird と Flyable のクラス図上の関係は、それぞれ何?"
+  choices:
+    - "両方とも継承"
+    - "Animal とは継承、Flyable とは実現"
+    - "Animal とは実現、Flyable とは継承"
+    - "両方とも実現"
+  answer: 1
+  explanation: "extends で継いでいる Animal との関係は「継承」、implements で実装している Flyable(インターフェース)との関係は「実現」です。キーワードを見れば関係の種類がそのまま分かります。"
+  trace:
+    - "6行目: class Bird extends Animal → Animal とは継承関係(白抜き三角+実線)"
+    - "6行目: implements Flyable → Flyable とは実現関係(白抜き三角+点線)"
+    - "7行目: fly() を具体的に実装しているのが「実現」の意味そのもの"
+- title: "集約かコンポジションか、コンストラクタで見分ける"
+  level: 2
+  code: |
+    class Library {
+        private List<Book> books = new ArrayList<>();   // (A)
+
+        void add(Book book) {
+            books.add(book);
+        }
+    }
+
+    class ReadingClub {
+        private List<Book> favoriteBooks;   // (B)
+
+        ReadingClub(List<Book> favoriteBooks) {
+            this.favoriteBooks = favoriteBooks;
+        }
+    }
+  question: "(A) の Library-Book、(B) の ReadingClub-Book は、それぞれどちらの関係?"
+  choices:
+    - "両方コンポジション"
+    - "(A)はコンポジション、(B)は集約"
+    - "(A)は集約、(B)はコンポジション"
+    - "両方集約"
+  answer: 1
+  explanation: "(A) は Library が自分のフィールド初期化子の中で new ArrayList<>() を生成しており、Book のリストのライフサイクルを自分で管理しているのでコンポジションです。(B) はコンストラクタの外で作られたリストを受け取っているだけなので集約です。"
+  trace:
+    - "(A) 2行目: books を自分の中で new している → 生成・管理は Library 自身 → コンポジション"
+    - "(B) 12〜14行目: favoriteBooks はコンストラクタの引数として外部から渡される → ReadingClub は生成に関与しない → 集約"
+- title: "シーケンス図のメッセージ順とメソッド呼び出しの対応"
+  level: 2
+  code: |
+    class OrderController {
+        OrderService service = new OrderService();
+        void handle() {
+            System.out.println("1: controller start");
+            service.place();
+            System.out.println("4: controller end");
+        }
+    }
+    class OrderService {
+        void place() {
+            System.out.println("2: service start");
+            System.out.println("3: service end");
+        }
+    }
+    new OrderController().handle();
+  question: "コンソールに出力される番号の順序は?"
+  choices:
+    - "1,2,3,4"
+    - "1,4,2,3"
+    - "2,3,1,4"
+    - "1,2,4,3"
+  answer: 0
+  explanation: "シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。controller が1を出力→ service.place() を呼ぶ(同期メッセージ)→ service が2,3を出力して戻る→ controller が続きの4を出力、という順です。"
+  trace:
+    - "handle() が呼ばれ \"1: controller start\" を出力"
+    - "service.place() を呼び出す(シーケンス図の同期メッセージに相当)"
+    - "place() の中で \"2: service start\"、\"3: service end\" を出力して呼び出し元に戻る(リプライメッセージ)"
+    - "controller に戻り、続きの \"4: controller end\" を出力"
+- title: "alt フラグメントとif-elseの対応"
+  level: 3
+  code: |
+    public Order place(OrderRequest request) {
+        if (request.getAmount() > 0) {
+            Order saved = repository.save(new Order(request));
+            return saved;
+        } else {
+            throw new IllegalArgumentException("amount must be positive");
+        }
+    }
+    // 呼び出し側:
+    OrderRequest badRequest = new OrderRequest(-100);
+    service.place(badRequest);
+  question: "この if-else をシーケンス図で表すとき使う複合フラグメントと、最後の呼び出しの結果は?"
+  choices:
+    - "opt を使う。savedOrder が返る"
+    - "alt を使う。IllegalArgumentException が発生する"
+    - "loop を使う。処理が3回くり返される"
+    - "複合フラグメントは使わない。savedOrder が返る"
+  answer: 1
+  explanation: "if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、IllegalArgumentException が発生します。"
+  trace:
+    - "2行目: request.getAmount() は -100 なので条件は false"
+    - "5行目の else に入る"
+    - "6行目: IllegalArgumentException を throw する"
+    - "この if-else 全体が、シーケンス図では alt [amount > 0] / [else] の2区画として描かれる"

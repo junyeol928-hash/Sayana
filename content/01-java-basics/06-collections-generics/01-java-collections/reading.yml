@@ -1,0 +1,123 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Map の get と getOrDefault"
+  level: 1
+  code: |
+    Map<String, Integer> stock = new HashMap<>();
+    stock.put("pen", 3);
+    stock.put("pen", 8);
+    stock.put("cup", 0);
+    System.out.println(stock.get("pen"));
+    System.out.println(stock.get("ink"));
+    System.out.println(stock.getOrDefault("ink", -1));
+    System.out.println(stock.size());
+  question: "4行の出力は?"
+  choices:
+    - "3 / null / -1 / 3"
+    - "8 / null / -1 / 2"
+    - "8 / 0 / -1 / 2"
+    - "8 / null / null / 3"
+  answer: 1
+  explanation: "\"pen\" は 3 → 8 に上書き。\"ink\" は無いので get は null、getOrDefault は -1。キーは pen と cup の2つなので size は 2。"
+  trace:
+    - "2〜3行目: pen = 3 のあと同じキーで put → pen = 8 に上書き"
+    - "4行目: cup = 0 を登録。ペアは 2 組"
+    - "5行目: get(\"pen\") → 8"
+    - "6行目: get(\"ink\") → 無いので null"
+    - "7行目: getOrDefault(\"ink\", -1) → -1"
+    - "8行目: size() → 2"
+- title: "Set に入れると何個になる?"
+  level: 1
+  code: |
+    List<String> raw = List.of("tokyo", "osaka", "tokyo", "nagoya", "osaka");
+    Set<String> unique = new HashSet<>(raw);
+    boolean added = unique.add("osaka");
+    System.out.println(raw.size() + " " + unique.size() + " " + added);
+  question: "出力は?"
+  choices:
+    - "5 5 true"
+    - "5 3 false"
+    - "3 3 false"
+    - "5 4 true"
+  answer: 1
+  explanation: "raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある \"osaka\" を add しても追加されず false が返ります。"
+  trace:
+    - "1行目: List は重複を許すので 5 要素"
+    - "2行目: Set に変換 → 重複が除かれ 3 要素"
+    - "3行目: \"osaka\" は既にある → 追加されず、戻り値は false"
+    - "4行目: \"5 3 false\""
+- title: "不変 List に add したら?"
+  level: 2
+  code: |
+    public static List<String> defaultRoles() {
+        return List.of("USER");
+    }
+
+    public static void main(String[] args) {
+        List<String> roles = defaultRoles();
+        System.out.println(roles.size());
+        roles.add("ADMIN");
+        System.out.println(roles.size());
+    }
+  question: "実行すると?"
+  choices:
+    - "1 と 2 が表示される"
+    - "1 が表示された後、UnsupportedOperationException"
+    - "コンパイルエラー(add できない型)"
+    - "2 と 2 が表示される"
+  answer: 1
+  explanation: "defaultRoles() が返すのは List.of で作った不変 List です。型は List なので add はコンパイルできますが、実行すると UnsupportedOperationException。7行目の 1 は表示された後に落ちます。戻り値の型だけでは不変かどうか分からない例です。"
+  trace:
+    - "6行目: List.of(\"USER\") を受け取る。型は List だが中身は不変"
+    - "7行目: size() は読み取りなので OK → 1"
+    - "8行目: add は変更操作 → UnsupportedOperationException で停止"
+    - "9行目: 実行されない"
+- title: "ループ中の削除"
+  level: 2
+  code: |
+    List<Integer> nums = new ArrayList<>(List.of(1, 2, 3, 4));
+    for (Integer n : nums) {
+        if (n % 2 == 0) {
+            nums.remove(n);
+        }
+    }
+    System.out.println(nums);
+  question: "実行すると?"
+  choices:
+    - "[1, 3]"
+    - "[1, 3, 4]"
+    - "ConcurrentModificationException"
+    - "[1, 2, 3, 4]"
+  answer: 2
+  explanation: "拡張 for の途中で nums.remove を呼んでいるので、次に next() が呼ばれた瞬間に ConcurrentModificationException が投げられます。なお n は Integer なので remove(Object) が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら nums.removeIf(n -> n % 2 == 0) です。"
+  trace:
+    - "2行目: Iterator が nums を回し始める"
+    - "n = 1: 奇数なので何もしない"
+    - "n = 2: 偶数 → nums.remove(2) で List の構造が変わる"
+    - "次の next(): 変更を検知 → ConcurrentModificationException"
+- title: "自作クラスをキーにしたら"
+  level: 3
+  code: |
+    class Point {
+        int x, y;
+        Point(int x, int y) { this.x = x; this.y = y; }
+    }
+
+    public static void main(String[] args) {
+        Map<Point, String> names = new HashMap<>();
+        names.put(new Point(1, 2), "A");
+        System.out.println(names.get(new Point(1, 2)));
+        System.out.println(names.containsKey(new Point(1, 2)));
+    }
+  question: "2行の出力は?"
+  choices:
+    - "A / true"
+    - "null / false"
+    - "A / false"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。@EqualsAndHashCode や record にすると A / true になります。"
+  trace:
+    - "8行目: 1つ目の Point インスタンス(#P1)をキーに \"A\" を登録"
+    - "9行目: 新しい Point(#P2)で get。hashCode が違う(または equals が false)→ 見つからず null"
+    - "10行目: 同じ理由で false"
+    - "対策: equals / hashCode を x, y に基づいて上書きする"

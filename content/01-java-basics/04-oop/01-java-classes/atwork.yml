@@ -1,0 +1,80 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "クラスとインスタンス"
+  intro: "Spring Boot では、DTO(データを運ぶだけのクラス)に Lombok の @Getter / @Setter を付けて、getter と setter を「書かずに」使うのが定番です。ソースに無いメソッドを呼んでいるように見えますが、コンパイル時に自動生成されています。"
+  code: |
+    @Getter
+    @Setter
+    public class UserResponse {
+        private Long id;
+        private String name;
+        private boolean active;
+    }
+
+    @Service
+    @RequiredArgsConstructor
+    public class UserService {
+
+        private static final int DEFAULT_PAGE_SIZE = 20;
+
+        private final UserRepository userRepository;
+
+        public UserResponse find(Long id) {
+            User user = userRepository.findById(id).orElseThrow();
+            UserResponse res = new UserResponse();
+            res.setId(user.getId());
+            res.setName(user.getName());
+            res.setActive(user.isActive());
+            return res;
+        }
+    }
+  notes:
+    1: "Lombok:全フィールドの getter をコンパイル時に自動生成。ソース上には getName() が「見えない」が存在する"
+    4: "private フィールド。外からは setter / getter 経由でしか触れない(カプセル化)"
+    13: "static final = クラスで共有する定数。インスタンスごとには持たない"
+    15: "private final のフィールド。インスタンスごとに持つが、一度入れたら差し替えない"
+    19: "new でインスタンス生成。DTO は「値を運ぶだけの箱」なので中身は空"
+    20: "見えない setter を呼んでいる。IDE で Ctrl+クリックすると Lombok 由来だと分かる"
+    22: "boolean の getter は getActive() ではなく isActive() になる"
+  points:
+    - "クラスの上のアノテーション(@Getter / @Setter / @Data)を先に見る。付いていれば getter / setter は「ある」と思って読む"
+    - "`private final` のフィールドは「このクラスが仕事に使う道具」。`static final` は定数。区別して読む"
+    - "`変数名.getXxx()` は「その実体の xxx フィールドを読む」、`setXxx(v)` は「書く」と読み替える"
+    - "new しているクラスは「値の入れ物(DTO)」であることが多く、Service や Repository は new せず注入される(Spring 章で詳しく)"
+- title: "コンストラクタ"
+  intro: "Controller は Lombok の @RequiredArgsConstructor で Service を注入され、レスポンス DTO は静的ファクトリメソッド from で Entity から変換されます。この2つの形は、ほぼすべての Spring Boot プロジェクトに出てきます。"
+  code: |
+    @RestController
+    @RequiredArgsConstructor
+    public class OrderController {
+
+        private final OrderService orderService;
+
+        @PostMapping("/orders")
+        public OrderResponse create(@RequestBody OrderRequest req) {
+            Order order = orderService.create(req);
+            return OrderResponse.from(order);
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public class OrderResponse {
+        private final Long id;
+        private final String status;
+
+        public static OrderResponse from(Order order) {
+            return new OrderResponse(order.getId(), order.getStatus().name());
+        }
+    }
+  notes:
+    2: "final フィールド(orderService)を引数に取るコンストラクタを Lombok が生成。Spring がそれを呼んで Service を渡す(コンストラクタ注入)"
+    5: "final + 未初期化 → コンストラクタで必ず入る。null の心配はしなくてよい"
+    10: "new が見えないがインスタンスを作っている。from にジャンプすると new がある"
+    15: "全フィールド(id, status)を引数に取るコンストラクタを自動生成。宣言順に (Long, String)"
+    20: "静的ファクトリ。Entity(Order) → レスポンス(OrderResponse) の変換をここに閉じ込める"
+    21: "Lombok が生成した (Long, String) のコンストラクタを呼んでいる。ソースには無いが存在する"
+  points:
+    - "クラスの上の @RequiredArgsConstructor / @AllArgsConstructor / @NoArgsConstructor を見て、「どんな引数のコンストラクタがあるか」を頭の中で補う"
+    - "`private final` のフィールドは、コンストラクタ(注入)で必ず入る。誰が入れるかは Spring"
+    - "`Xxx.from(...)` / `Xxx.of(...)` は new の言い換え。中で何か変換・チェックをしていないか、一度はジャンプして確認する"
+    - "Entity に @NoArgsConstructor が付いているのは JPA が引数なしで new するため。人が使う想定ではないことが多い"

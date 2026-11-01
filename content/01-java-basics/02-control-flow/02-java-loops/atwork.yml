@@ -1,0 +1,41 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "while 文・for 文・拡張 for 文"
+  intro: "Spring Boot の Service では、一覧(List)を拡張 for でチェックし、条件に合わないものを continue でスキップし、合計や件数を積み上げていく処理がよく出てきます。"
+  code: |
+    @Service
+    public class InvoiceService {
+
+        public int countUnpaid(List<Invoice> invoices) {
+            int count = 0;
+            for (Invoice invoice : invoices) {
+                if (invoice == null) {
+                    continue;
+                }
+                if (invoice.isPaid()) {
+                    continue;
+                }
+                count++;
+            }
+            return count;
+        }
+
+        public void retryFailedJobs(int maxRetry) {
+            int attempt = 0;
+            while (attempt < maxRetry && !jobSucceeded()) {
+                attempt++;
+            }
+        }
+
+        private boolean jobSucceeded() {
+            return false;
+        }
+    }
+  notes:
+    4: "`List` を拡張 for でくり返し処理する。何番目かは気にしない設計"
+    7: "null や条件外はガード節と同じ発想で continue して読みやすくする"
+    19: "回数の上限が決まった while。カウンタ attempt を必ず更新しないと無限ループになる"
+  points:
+    - "拡張 for が出てきたら「何のリストの各要素を処理しているか」をまず見る"
+    - "continue が並んでいたら、それぞれ何を除外しているかを読み取る"
+    - "while の条件に登場する変数が、ループの中で確実に更新されているか確認する"
+    - "ループ中に list.remove(...) がないか、あれば removeIf 等に直すべきバグの可能性を疑う"

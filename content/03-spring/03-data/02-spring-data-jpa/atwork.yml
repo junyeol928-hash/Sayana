@@ -1,0 +1,37 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "データアクセス(JPA / JDBC / トランザクション)"
+  intro: "鍵発行と処理結果登録をまとめてトランザクションにした Service です。Repository は JPA、記録用のログ挿入は JdbcTemplate という、実務でよくある混在パターンにしています。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    @Slf4j
+    public class KeyIssueService {
+
+        private final KeyRepository keyRepository;
+        private final ApduResultRepository apduResultRepository;
+
+        @Transactional(rollbackFor = Exception.class)
+        public KeyEntity issue(String cardId, int keyVersion) throws HsmCommunicationException {
+            boolean duplicated = keyRepository.existsByCardIdAndStatus(cardId, "ACTIVE");
+            if (duplicated) {
+                throw new IllegalStateException("active key already exists");
+            }
+            KeyEntity entity = new KeyEntity(cardId, keyVersion, "ACTIVE");
+            KeyEntity saved = keyRepository.save(entity);
+            apduResultRepository.insertResult(cardId, "00A4000C", 0);
+            log.info("key issued cardId={} keyId={}", cardId, saved.getKeyId());
+            return saved;
+        }
+    }
+  notes:
+    6: "JPA の Repository。CRUD と派生クエリを担当"
+    7: "JdbcTemplate ベースの Repository。ログ的なテーブルへの挿入を担当"
+    9: "rollbackFor = Exception.class で、検査例外の HsmCommunicationException でもロールバックするよう明示している"
+    10: "検査例外は throws で宣言が必要(例外の章を参照)"
+    11: "existsByCardIdAndStatus は派生クエリ。SQL は書かれていない"
+    17: "1つのメソッドの中で JPA と JdbcTemplate が同じトランザクションに参加している"
+  points:
+    - "Repository の型(JpaRepository か JdbcTemplate ラッパーか)をまず確認する"
+    - "@Transactional の属性(rollbackFor など)が既定から変更されていないか見る"
+    - "メソッド内で投げられる例外の種類(検査/非検査)を確認し、ロールバック範囲を判断する"
+    - "Entity のフィールドと @Column を突き合わせ、実際のテーブル定義と照らす"

@@ -1,0 +1,117 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "不変と変数の指し直し"
+  level: 1
+  code: |
+    String a = "spring";
+    String b = a;
+    a = a + " boot";
+    System.out.println(a);
+    System.out.println(b);
+  question: "2行の出力は?"
+  choices:
+    - "spring boot / spring boot"
+    - "spring boot / spring"
+    - "spring / spring"
+    - "spring / spring boot"
+  answer: 1
+  explanation: "3行目の + は新しい文字列 \"spring boot\" を作り、a がそれを指し直します。元の \"spring\" は変更されないので、b は \"spring\" のまま。参照型でも、不変オブジェクトは「共有していても書き換わらない」のがポイントです。"
+  trace:
+    - "1行目: \"spring\" を作り、a が指す"
+    - "2行目: b も同じ \"spring\" を指す"
+    - "3行目: 新しい \"spring boot\" が作られ、a だけがそれを指し直す。\"spring\" はそのまま"
+    - "4〜5行目: a は \"spring boot\"、b は \"spring\""
+- title: "== と equals の違い"
+  level: 2
+  code: |
+    String x = "admin";
+    String y = "ad" + "min";
+    String z = new String("admin");
+    String w = z.intern();
+    System.out.println((x == y) + " " + (x == z) + " " + x.equals(z) + " " + (x == w));
+  question: "出力は?"
+  choices:
+    - "true false true true"
+    - "true true true true"
+    - "false false true false"
+    - "true false true false"
+  answer: 0
+  explanation: "\"ad\" + \"min\" はリテラルどうしの連結なのでコンパイル時に \"admin\" にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。"
+  trace:
+    - "1行目: プールに \"admin\" が置かれ、x が指す"
+    - "2行目: リテラルどうしの + はコンパイル時に \"admin\" になる → x と同じものを指す"
+    - "3行目: new なのでプール外に別の \"admin\" が作られる"
+    - "4行目: intern はプールの \"admin\" を返す → x と同じ"
+    - "5行目: true false true true"
+- title: "StringBuilder の追跡"
+  level: 2
+  code: |
+    StringBuilder sb = new StringBuilder();
+    for (int i = 1; i <= 3; i++) {
+        sb.append(i).append("-");
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.insert(0, "[").append("]");
+    System.out.println(sb);
+  question: "出力は?"
+  choices:
+    - "[1-2-3]"
+    - "[1-2-3-]"
+    - "1-2-3"
+    - "[123]"
+  answer: 0
+  explanation: "ループで \"1-2-3-\" が作られ、deleteCharAt で末尾の \"-\" を消して \"1-2-3\"。insert(0, \"[\") で先頭に [ を入れ、append(\"]\") で末尾に ] を付けます。StringBuilder は自分自身を書き換えるので、戻り値を受け取らなくても反映されます。"
+  trace:
+    - "2〜4行目: append を繰り返して \"1-2-3-\""
+    - "5行目: length()-1 番目(末尾の \"-\")を削除 → \"1-2-3\""
+    - "6行目: 先頭に \"[\"、末尾に \"]\" → \"[1-2-3]\""
+    - "7行目: println は toString を呼ぶので \"[1-2-3]\""
+- title: "null 安全な比較と早期 return"
+  level: 2
+  code: |
+    public String normalize(String code) {
+        if (code == null || code.isBlank()) {
+            return "NONE";
+        }
+        if ("tmp".equalsIgnoreCase(code.strip())) {
+            return "TEMP";
+        }
+        return code.strip().toUpperCase();
+    }
+    // 呼び出し:
+    System.out.println(normalize("  Tmp ") + " " + normalize(" ") + " " + normalize(null));
+  question: "出力は?"
+  choices:
+    - "TMP NONE NONE"
+    - "TEMP NONE NONE"
+    - "TEMP  NONE"
+    - "NullPointerException が発生"
+  answer: 1
+  explanation: "\"  Tmp \" は null でも空白でもないので先に進み、strip して \"Tmp\"、大文字小文字を無視して \"tmp\" と一致するので \"TEMP\"。\" \" は isBlank が true で \"NONE\"。null は `code == null` が true になり、|| の右側(isBlank)は評価されないので例外にならず \"NONE\"。||(短絡評価)と定数を左に置く書き方が null を守っています。"
+  trace:
+    - "normalize(\"  Tmp \"): 2行目 false → 5行目 strip で \"Tmp\"、equalsIgnoreCase で true → \"TEMP\""
+    - "normalize(\" \"): 2行目 isBlank が true → \"NONE\""
+    - "normalize(null): 2行目 code == null が true。|| の右は評価されない → \"NONE\""
+    - "結果: TEMP NONE NONE"
+- title: "Base64 と文字コードの往復"
+  level: 3
+  code: |
+    String secret = "鍵";
+    byte[] raw = secret.getBytes(StandardCharsets.UTF_8);
+    String encoded = Base64.getEncoder().encodeToString(raw);
+    byte[] decoded = Base64.getDecoder().decode(encoded);
+    String restored = new String(decoded, StandardCharsets.UTF_8);
+    System.out.println(raw.length + " " + encoded.length() + " " + restored.equals(secret) + " " + (restored == secret));
+  question: "出力は?"
+  choices:
+    - "1 4 true true"
+    - "3 4 true false"
+    - "3 3 true true"
+    - "3 4 false false"
+  answer: 1
+  explanation: "\"鍵\" は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。"
+  trace:
+    - "2行目: 日本語1文字は UTF-8 で 3 バイト → raw.length は 3"
+    - "3行目: 3 バイト → Base64 で 4 文字(パディングなし)"
+    - "4行目: 4 文字 → 元の 3 バイトに戻る"
+    - "5行目: 同じ UTF-8 で戻すので中身は \"鍵\"。ただし新しいオブジェクト"
+    - "6行目: 3 4 true false"

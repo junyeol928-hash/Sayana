@@ -1,0 +1,33 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Spring 入門:DI と Bean"
+  intro: "Front サーバの Service を、実務の形に近づけた例です。コンストラクタは Lombok が生成し、設定値は @Value で入ります。「部品」と「処理中の値」の区別に注目してください。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class SessionStartService {
+
+        private final SessionRepository sessionRepository;
+        private final HsmClient hsmClient;
+        private final BackApiClient backApiClient;
+        private final Clock clock;
+
+        public SessionStartResult start(String cardId, byte[] hostChallenge) {
+            byte[] cardChallenge = backApiClient.requestChallenge(cardId);
+            byte[] sessionKey = hsmClient.deriveSessionKey(cardId, hostChallenge, cardChallenge);
+            SessionEntity session = SessionEntity.open(cardId, clock.instant());
+            sessionRepository.save(session);
+            return new SessionStartResult(session.getId(), sessionKey);
+        }
+    }
+  notes:
+    1: "Bean にする印。Spring が起動時にこのクラスを1個作る"
+    2: "final フィールド4つを引数にとるコンストラクタが自動生成される = 4つとも注入"
+    7: "Back サーバを呼ぶ部品。中身は RestTemplate や WebClient を包んだクラス(Web 章)"
+    8: "java.time.Clock も Bean にしておくと、テストで時刻を固定できる"
+    10: "処理中の値(cardId など)は引数とローカル変数だけ。フィールドには置かない"
+    13: "SessionEntity は Spring の Bean ではなく、処理のたびに new する普通のオブジェクト"
+  points:
+    - "final フィールドの一覧 = このクラスが使う部品の一覧。コンストラクタは Lombok が作っている"
+    - "各部品の型(SessionRepository など)を検索し、@Repository / @Component / @Bean のどれで作られているか確認する"
+    - "Entity や DTO(処理のたびに作るデータ)は Bean ではない。new しているのが正常"
+    - "フィールドに final でない「値」があったら、singleton での状態共有バグを疑う"

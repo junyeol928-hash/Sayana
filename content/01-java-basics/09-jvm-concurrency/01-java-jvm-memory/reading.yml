@@ -1,0 +1,142 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "参照のコピーとフィールドの書き換え"
+  level: 1
+  code: |
+    class Coupon {
+        int discount;
+    }
+
+    Coupon c1 = new Coupon();
+    c1.discount = 10;
+    Coupon c2 = c1;
+    c2.discount = 20;
+    System.out.println(c1.discount);
+  question: "出力は?"
+  choices:
+    - "10"
+    - "20"
+    - "0"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "c2 = c1 は住所のコピーなので、c1 と c2 は同じ Coupon の実体を指します。c2.discount を書き換えると、c1 から見ても 20 になります。"
+  trace:
+    - "5〜6行目: c1 が新しい Coupon(discount=10)を指す"
+    - "7行目: c2 にも c1 と同じ住所がコピーされる(実体はひとつ)"
+    - "8行目: 同じ実体の discount を 20 に書き換える"
+    - "9行目: c1 側から見ても discount は 20 になっている"
+- title: "引数として渡したオブジェクトのフィールド書き換え"
+  level: 2
+  code: |
+    static void applyDiscount(Coupon c) {
+        c.discount = c.discount - 5;
+    }
+
+    Coupon coupon = new Coupon();
+    coupon.discount = 20;
+    applyDiscount(coupon);
+    System.out.println(coupon.discount);
+  question: "出力は?"
+  choices:
+    - "20"
+    - "15"
+    - "0"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "coupon の住所が値渡しで c にコピーされるため、c と coupon は同じ実体を指します。c.discount への書き換えは、呼び出し元の coupon.discount にも反映されます。"
+  trace:
+    - "5〜6行目: coupon が discount=20 の実体を指す"
+    - "7行目: applyDiscount(coupon) → 引数 c に coupon と同じ住所がコピーされる"
+    - "2行目: c.discount を 20-5=15 に書き換える。c と coupon は同じ実体なので coupon.discount も 15 になる"
+    - "8行目: 15 と表示される"
+- title: "引数への再代入は呼び出し元に伝わらない"
+  level: 2
+  code: |
+    static void reset(Coupon c) {
+        c = new Coupon();
+        c.discount = 0;
+    }
+
+    Coupon coupon = new Coupon();
+    coupon.discount = 20;
+    reset(coupon);
+    System.out.println(coupon.discount);
+  question: "出力は?"
+  choices:
+    - "0"
+    - "20"
+    - "null"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "c = new Coupon(); は、コピーされた住所の箱 c を新しい実体に向け直しただけです。呼び出し元の coupon は、最初に指していた discount=20 の実体を指したままなので、reset を呼んでも変わりません。"
+  trace:
+    - "6〜7行目: coupon が discount=20 の実体を指す"
+    - "8行目: reset(coupon) → 引数 c に coupon と同じ住所がコピーされる"
+    - "2行目: c に新しい Coupon の住所を代入。ここで c だけが別の実体を指すようになる(coupon はそのまま)"
+    - "3行目: 新しい実体の discount を 0 にする。coupon が指す元の実体には影響しない"
+    - "9行目: coupon.discount は 20 のまま"
+- title: "null と NullPointerException"
+  level: 1
+  code: |
+    Coupon coupon = null;
+    System.out.println(coupon.discount);
+  question: "実行するとどうなる?"
+  choices:
+    - "0 と表示される"
+    - "null と表示される"
+    - "NullPointerException が発生する"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "coupon はどこも指していない状態です。フィールドアクセス(coupon.discount)をしようとした瞬間、実行時に NullPointerException が発生します。文法上は正しいのでコンパイルは通ります。"
+  trace:
+    - "1行目: coupon に null を代入。どこも指していない"
+    - "2行目: coupon.discount にアクセスしようとする"
+    - "行き先の実体がないため NullPointerException が発生し、処理が止まる"
+- title: "static フィールドとインスタンスフィールド"
+  level: 2
+  code: |
+    class Counter {
+        static int total = 0;
+        int id;
+        Counter() {
+            total++;
+            id = total;
+        }
+    }
+
+    Counter a = new Counter();
+    Counter b = new Counter();
+    System.out.println(a.id + " " + b.id + " " + Counter.total);
+  question: "出力は?"
+  choices:
+    - "1 1 1"
+    - "1 2 2"
+    - "0 1 2"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "total は static なので、a と b の間で同じ箱を共有しています。1個目の生成で total が 1 になり id=1、2個目の生成で total が 2 になり id=2。最後の Counter.total はその時点の共有値 2 です。"
+  trace:
+    - "9行目: Counter a を作る → コンストラクタ内で total が 0→1、a.id = 1"
+    - "10行目: Counter b を作る → 同じ total が 1→2、b.id = 2"
+    - "11行目: a.id(1)、b.id(2)、Counter.total(2)を表示 → \"1 2 2\""
+- title: "終わらない再帰と StackOverflowError"
+  level: 3
+  code: |
+    static int countDown(int n) {
+        System.out.println(n);
+        return countDown(n - 1);
+    }
+
+    countDown(5);
+  question: "実行するとどうなる?"
+  choices:
+    - "5, 4, 3, 2, 1, 0 と表示されて終わる"
+    - "5 から負の数までずっと表示され続け、やがて StackOverflowError が発生する"
+    - "コンパイルエラーになる"
+    - "0 を返してすぐに終了する"
+  answer: 1
+  explanation: "countDown には「ここで止まる」という終了条件(if文など)がありません。呼ばれるたびにスタックへ新しいフレームが積まれ続け、n はどんどん負の数へ進みます。スタックの上限を超えると StackOverflowError が発生し、強制的に処理が止まります。"
+  trace:
+    - "6行目: countDown(5) を呼ぶ → フレームが1つ積まれる"
+    - "3行目: 終了条件がないので、n-1 でさらに自分自身を呼ぶ → フレームがまた積まれる"
+    - "この繰り返しで n は 4, 3, 2, ... と際限なく続き、フレームが積み上がり続ける"
+    - "スタックの上限を超えた時点で StackOverflowError が発生し、処理が止まる"

@@ -1,0 +1,40 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ネストしたクラス・匿名クラス・初期化ブロック"
+  intro: "Spring Boot の Repository では、匿名クラスと static ネストクラスが同じクラスの中に同居することがよくあります。次のコードは、注文をデータベースから取得して変換する処理です。"
+  code: |
+    @Repository
+    public class OrderRepository {
+        private final JdbcTemplate jdbcTemplate;
+
+        public OrderRepository(JdbcTemplate jdbcTemplate) {
+            this.jdbcTemplate = jdbcTemplate;
+        }
+
+        private static final RowMapper<Order> ROW_MAPPER = new RowMapper<Order>() {
+            @Override
+            public Order mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return new Order(rs.getLong("id"), rs.getString("status"));
+            }
+        };
+
+        public List<Order> findRecent() {
+            String sql = "SELECT id, status FROM orders ORDER BY id DESC LIMIT 10";
+            return jdbcTemplate.query(sql, ROW_MAPPER);
+        }
+
+        static class CountByStatus {
+            final String status;
+            final int count;
+            CountByStatus(String status, int count) { this.status = status; this.count = count; }
+        }
+    }
+  notes:
+    1: "「このクラスはデータアクセス担当」という Spring の目印(Spring 章で詳しく)"
+    9: "匿名クラスで RowMapper(1行のResultSetをOrderに変換するインターフェース)を実装している"
+    11: "mapRow の中で this を使う必要は無いが、書けば「この匿名クラス自身」を指す"
+    16: "作っておいた ROW_MAPPER を使い回している。1回だけ生成して static final に持つのが定番"
+    21: "static ネストクラス。OrderRepository のインスタンスが無くても new CountByStatus(...) と書ける"
+  points:
+    - "private static final な匿名クラスは「1回だけ作って使い回す」ためのフィールドによく置かれる"
+    - "static class は外側のインスタンスと無関係。new するとき Outer のインスタンスは要らない"
+    - "RowMapper のような「抽象メソッドが1つだけのインターフェース」は本来ラムダにもできるが、複数行の処理や古いコードでは匿名クラスのまま残っていることが多い"

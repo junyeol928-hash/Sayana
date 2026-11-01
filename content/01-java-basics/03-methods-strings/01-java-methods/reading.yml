@@ -1,0 +1,129 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "呼び出しと戻り値の流れ"
+  level: 1
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            String a = greet("Taro");
+            String b = greet("Hana");
+            System.out.println(a + " / " + b);
+        }
+
+        static String greet(String name) {
+            return "Hi, " + name;
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "Hi, Taro / Hi, Hana"
+    - "Hi, Hana / Hi, Hana"
+    - "Taro / Hana"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "greet は呼ばれるたびに、渡された name で新しい文字列を作って返します。1回目は \"Hi, Taro\"、2回目は \"Hi, Hana\" が、それぞれ a と b に入ります。"
+  trace:
+    - "3行目: greet(\"Taro\") を呼ぶ → 8行目で name = \"Taro\" → 9行目で \"Hi, Taro\" を返す → a に入る"
+    - "4行目: greet(\"Hana\") を呼ぶ → name = \"Hana\" → \"Hi, Hana\" を返す → b に入る"
+    - "5行目: \"Hi, Taro / Hi, Hana\" と表示"
+- title: "基本データ型と配列を同時に渡す"
+  level: 2
+  code: |
+    static void update(int count, int[] scores) {
+        count = count + 1;
+        scores[0] = scores[0] + 1;
+    }
+
+    int c = 10;
+    int[] s = {10};
+    update(c, s);
+    System.out.println(c + " " + s[0]);
+  question: "出力は?"
+  choices:
+    - "10 10"
+    - "11 11"
+    - "10 11"
+    - "11 10"
+  answer: 2
+  explanation: "count には 10 のコピーが渡されるので、増やしても c は 10 のまま。scores には配列の住所のコピーが渡されるので、scores[0] を増やすと s[0] も 11 になります。"
+  trace:
+    - "8行目: update に c の値 10 と、s の住所を渡す"
+    - "2行目: メソッド内の count が 11 になる(c とは別の箱)"
+    - "3行目: 同じ配列の [0] が 11 になる → s[0] も 11"
+    - "9行目: \"10 11\" と表示"
+- title: "どのオーバーロードが選ばれる?"
+  level: 2
+  code: |
+    static void show(int n)    { System.out.println("int:" + n); }
+    static void show(double d) { System.out.println("double:" + d); }
+    static void show(String s) { System.out.println("String:" + s); }
+
+    show(5);
+    show(5.0);
+    show("5");
+    show('A');
+  question: "4行の出力は?"
+  choices:
+    - "int:5 / double:5.0 / String:5 / String:A"
+    - "int:5 / double:5.0 / String:5 / int:65"
+    - "int:5 / int:5 / String:5 / int:65"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "5 は int、5.0 は double、\"5\" は String なので、それぞれ一致する定義が選ばれます。'A' は char で、char 版が無いため「情報を失わずに変換できる」int 版が選ばれ、'A' の文字コード 65 が表示されます。"
+  trace:
+    - "5行目: 5 は int → show(int) → int:5"
+    - "6行目: 5.0 は double → show(double) → double:5.0"
+    - "7行目: \"5\" は String → show(String) → String:5"
+    - "8行目: 'A' は char。char 版は無い → char は int に自動変換できる → show(int) → int:65"
+- title: "早期リターンと void"
+  level: 2
+  code: |
+    static void process(int n) {
+        if (n < 0) {
+            System.out.println("skip");
+            return;
+        }
+        System.out.println("run:" + n);
+    }
+
+    process(3);
+    process(-1);
+    process(0);
+  question: "出力は?"
+  choices:
+    - "run:3 / skip / run:0"
+    - "run:3 / skip"
+    - "run:3 / skip / skip"
+    - "run:3 / run:-1 / run:0"
+  answer: 0
+  explanation: "n が負のときだけ skip を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。"
+  trace:
+    - "9行目: n = 3 → if は false → \"run:3\""
+    - "10行目: n = -1 → if は true → \"skip\" → return で終了(6行目は実行されない)"
+    - "11行目: n = 0 → 0 < 0 は false → \"run:0\""
+- title: "中身の変更と指し直し"
+  level: 3
+  code: |
+    static void modify(int[] a, int[] b) {
+        a[0] = 100;
+        b = new int[] {200};
+        b[0] = 300;
+    }
+
+    int[] x = {1};
+    int[] y = {2};
+    modify(x, y);
+    System.out.println(x[0] + " " + y[0]);
+  question: "出力は?"
+  choices:
+    - "100 300"
+    - "100 2"
+    - "1 2"
+    - "100 200"
+  answer: 1
+  explanation: "a は x と同じ配列を指すので a[0] = 100 は x[0] に見えます。b は最初 y と同じ配列を指していますが、3行目で新しい配列に向け直されます。以降の b[0] = 300 は新しい配列への変更で、y の配列は 2 のままです。"
+  trace:
+    - "9行目: a は x の配列(住所コピー)、b は y の配列(住所コピー)を指す"
+    - "2行目: a の配列の [0] を 100 に → x[0] も 100"
+    - "3行目: b が新しい配列 {200} を指し直す。y は元の {2} のまま"
+    - "4行目: 新しい配列の [0] を 300 に。y には無関係"
+    - "10行目: \"100 2\" と表示"

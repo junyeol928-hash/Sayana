@@ -1,0 +1,102 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ofNullable と orElse の基本"
+  level: 1
+  code: |
+    Map<String, Integer> scores = new HashMap<>();
+    scores.put("a", 90);
+
+    int a = Optional.ofNullable(scores.get("a")).orElse(0);
+    int b = Optional.ofNullable(scores.get("b")).orElse(0);
+    System.out.println(a + " " + b);
+  question: "出力は?"
+  choices:
+    - "90 0"
+    - "90 null"
+    - "NullPointerException"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "scores.get(\"a\") は 90、scores.get(\"b\") は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。"
+  trace:
+    - "1〜2行目: scores は {a=90}"
+    - "4行目: get(\"a\")=90 → ofNullable は中身ありの Optional → orElse(0) は 90"
+    - "5行目: get(\"b\")=null → ofNullable は空の Optional → orElse(0) は 0"
+    - "6行目: \"90 0\""
+- title: "orElseThrow と例外"
+  level: 2
+  code: |
+    public class NotFoundException extends RuntimeException {
+        public NotFoundException(String msg) { super(msg); }
+    }
+
+    Optional<String> name = Optional.empty();
+    try {
+        String n = name.orElseThrow(() -> new NotFoundException("no name"));
+        System.out.println(n);
+    } catch (NotFoundException e) {
+        System.out.println("caught: " + e.getMessage());
+    }
+  question: "出力は?"
+  choices:
+    - "null"
+    - "caught: no name"
+    - "何も出力されない"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "name は Optional.empty() なので orElseThrow のラムダが実行され、NotFoundException(\"no name\") が投げられます。try の中の println には到達せず、catch で捕まえて \"caught: no name\" と出力されます。"
+  trace:
+    - "5行目: name は空の Optional"
+    - "7行目: 中身が無いので orElseThrow のラムダが実行され例外が投げられる"
+    - "8行目: 到達しない"
+    - "9行目: catch で捕まえ \"caught: no name\" を表示"
+- title: "map の連鎖と null 混入"
+  level: 2
+  code: |
+    record Address(String city) {}
+    record Person(String name, Address address) {}
+
+    Person p1 = new Person("Sato", new Address("Tokyo"));
+    Person p2 = new Person("Ito", null);
+
+    String city1 = Optional.ofNullable(p1.address()).map(Address::city).orElse("unknown");
+    String city2 = Optional.ofNullable(p2.address()).map(Address::city).orElse("unknown");
+    System.out.println(city1 + " " + city2);
+  question: "出力は?"
+  choices:
+    - "Tokyo unknown"
+    - "Tokyo null"
+    - "NullPointerException"
+    - "unknown unknown"
+  answer: 0
+  explanation: "p1.address() は Address(\"Tokyo\") なので map で city() が呼ばれ \"Tokyo\"。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして orElse(\"unknown\") が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。"
+  trace:
+    - "7行目: p1.address()=Address(\"Tokyo\") → map で city() → \"Tokyo\""
+    - "8行目: p2.address()=null → ofNullable で空 → map は何もしない → orElse(\"unknown\")"
+    - "9行目: \"Tokyo unknown\""
+- title: "Service の findById と DTO 変換"
+  level: 3
+  code: |
+    public Optional<UserDto> findDto(Map<Long, User> store, Long id) {
+        return Optional.ofNullable(store.get(id))
+                .filter(User::isActive)
+                .map(UserDto::from);
+    }
+
+    Map<Long, User> store = new HashMap<>();
+    store.put(1L, new User(1L, "Sato", false)); // isActive = false
+
+    Optional<UserDto> result = findDto(store, 1L);
+    System.out.println(result.isPresent());
+  question: "最後の行の出力は?"
+  choices:
+    - "true"
+    - "false"
+    - "NullPointerException"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "id=1L の User は見つかりますが isActive が false なので、filter によって空の Optional に変わります。以降 map(UserDto::from) は何もせず素通りするので、最終的に result は空、isPresent() は false です。"
+  trace:
+    - "7行目: id=1L の User(isActive=false) を登録"
+    - "9行目: store.get(1L) は見つかるので中身あり"
+    - "3行目: filter(User::isActive) が false → ここで空になる"
+    - "4行目: map は空なので何もしない"
+    - "10行目: isPresent() → false"

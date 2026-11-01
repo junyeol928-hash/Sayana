@@ -1,0 +1,151 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "正常系:重複がない場合の呼び出し順"
+  level: 2
+  code: |
+    // POST /api/keys のボディ: {"cardId":"C100","keyVersion":1}
+    // C100 に ACTIVE な鍵はまだ存在しない
+
+    @PostMapping
+    public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+    }
+
+    public KeyIssueResponse issue(KeyIssueRequest request) {
+        if (keyRepository.existsByCardIdAndStatus(request.getCardId(), "ACTIVE")) {
+            throw new KeyAlreadyExistsException(request.getCardId());
+        }
+        KeyEntity saved = keyRepository.save(
+            new KeyEntity(request.getCardId(), request.getKeyVersion(), "ACTIVE"));
+        return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());
+    }
+  question: "呼ばれるメソッドの順と、最終的な応答は?"
+  choices:
+    - "issue → existsByCardIdAndStatus(true) → 例外 → 409"
+    - "issue → existsByCardIdAndStatus(false) → save → 201 + KeyIssueResponse"
+    - "issue → save → existsByCardIdAndStatus → 200"
+    - "バリデーションで弾かれて 400"
+  answer: 1
+  explanation: "cardId・keyVersion とも制約を満たすので @Valid は通過します。C100 に ACTIVE な鍵がまだないため existsByCardIdAndStatus は false を返し、if の中には入らず save が実行され、201 + KeyIssueResponse が返ります。"
+  trace:
+    - "@Valid: cardId=\"C100\"(空でない)、keyVersion=1(1〜255の範囲内)→ 制約OK"
+    - "issue が呼ばれ、existsByCardIdAndStatus(\"C100\",\"ACTIVE\") → 該当なしなので false"
+    - "if (false) なので例外は投げられず、次に進む"
+    - "save が実行され、KeyEntity が保存される"
+    - "KeyIssueResponse が組み立てられ、Controller が 201 + そのオブジェクトを返す"
+- title: "異常系:重複がある場合"
+  level: 2
+  code: |
+    // POST /api/keys のボディ: {"cardId":"C001","keyVersion":2}
+    // C001 には既に ACTIVE な鍵が存在する
+
+    public KeyIssueResponse issue(KeyIssueRequest request) {
+        if (keyRepository.existsByCardIdAndStatus(request.getCardId(), "ACTIVE")) {
+            throw new KeyAlreadyExistsException(request.getCardId());
+        }
+        KeyEntity saved = keyRepository.save(
+            new KeyEntity(request.getCardId(), request.getKeyVersion(), "ACTIVE"));
+        return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());
+    }
+
+    @RestControllerAdvice
+    public class ApiExceptionHandler {
+        @ExceptionHandler(KeyAlreadyExistsException.class)
+        public ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("E409", e.getMessage()));
+        }
+    }
+  question: "最終的な応答は?"
+  choices:
+    - "201 + KeyIssueResponse"
+    - "500 + 何もなし"
+    - "409 + ErrorResponse(\"E409\", ...)"
+    - "issueが2回呼ばれて201が返る"
+  answer: 2
+  explanation: "既に ACTIVE な鍵があるので existsByCardIdAndStatus は true を返し、if の中で KeyAlreadyExistsException が投げられます。save は実行されず、この例外は @RestControllerAdvice の handleDuplicate に届き、409 + ErrorResponse が返ります。"
+  trace:
+    - "existsByCardIdAndStatus(\"C001\",\"ACTIVE\") → 該当ありなので true"
+    - "if (true) → KeyAlreadyExistsException(\"C001\") が投げられる"
+    - "5〜9行目の save 以降は実行されない"
+    - "例外は Controller を素通りし、handleDuplicate が受け取る"
+    - "handleDuplicate が 409 + ErrorResponse(\"E409\", メッセージ) を返す"
+- title: "バリデーションで弾かれる場合"
+  level: 1
+  code: |
+    // POST /api/keys のボディ: {"cardId":"","keyVersion":2}
+
+    @Data
+    public class KeyIssueRequest {
+        @NotBlank
+        private String cardId;
+        @NotNull @Min(1) @Max(255)
+        private Integer keyVersion;
+    }
+
+    @PostMapping
+    public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+    }
+  question: "keyIssueService.issue(...) は呼ばれる?"
+  choices:
+    - "呼ばれ、201が返る"
+    - "呼ばれない。@Valid の時点で弾かれ、issue メソッドの中身は実行されない"
+    - "呼ばれるが、cardId が null に置き換わって処理される"
+    - "呼ばれるが、例外がその場でもみ消される"
+  answer: 1
+  explanation: "cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(11行目)の中には一度も入らず、@RestControllerAdvice 側の対応するハンドラ(この例では図示していないが400を返すハンドラ)が応答します。"
+  trace:
+    - "リクエストボディが KeyIssueRequest に変換される。cardId=\"\""
+    - "@Valid が @NotBlank をチェック → 空文字なので違反"
+    - "MethodArgumentNotValidException が投げられ、issue(11〜12行目)のメソッド本体には入らない"
+    - "対応する @ExceptionHandler(この例では未掲載)が400系の応答を返す"
+- title: "Repository の継承元まで確認する"
+  level: 2
+  code: |
+    public interface KeyRepository extends JpaRepository<KeyEntity, Long> {
+        boolean existsByCardIdAndStatus(String cardId, String status);
+    }
+
+    // Service の別のメソッド
+    public KeyEntity findLatest(Long keyId) {
+        return keyRepository.findById(keyId)
+            .orElseThrow(() -> new KeyNotFoundException(keyId));
+    }
+  question: "`findById` は KeyRepository のどこで定義されている?"
+  choices:
+    - "KeyRepository インターフェースの2行目"
+    - "KeyRepository インターフェースには書かれておらず、継承元の JpaRepository から来ている"
+    - "Service クラスの中で定義されている"
+    - "存在しないのでコンパイルエラーになる"
+  answer: 1
+  explanation: "KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元の JpaRepository が持つ基本 CRUD の1つで、extends の先まで確認しないと見つかりません。"
+  trace:
+    - "1行目: KeyRepository は JpaRepository<KeyEntity, Long> を継承している"
+    - "2行目: このインターフェース自身が宣言しているのは existsByCardIdAndStatus だけ"
+    - "7行目: findById が呼ばれているが、KeyRepository 自身には定義がない"
+    - "継承元の JpaRepository まで確認すると、findById(ID) が Optional<Entity> を返すメソッドとして定義されている"
+- title: "@Transactional の範囲を追う"
+  level: 3
+  code: |
+    @Transactional
+    public KeyIssueResponse issue(KeyIssueRequest request) {
+        if (keyRepository.existsByCardIdAndStatus(request.getCardId(), "ACTIVE")) {
+            throw new KeyAlreadyExistsException(request.getCardId());
+        }
+        KeyEntity saved = keyRepository.save(
+            new KeyEntity(request.getCardId(), request.getKeyVersion(), "ACTIVE"));
+        notifyAsync(saved);  // 別スレッドで通知を送るだけの、@Transactional の付いていないメソッド
+        return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());
+    }
+  question: "@Transactional の範囲に含まれる処理は?"
+  choices:
+    - "issue メソッドと notifyAsync メソッドの両方"
+    - "issue メソッドの中身だけ(notifyAsync は別スレッドなので範囲外)"
+    - "アプリ全体のすべての処理"
+    - "save のみ"
+  answer: 1
+  explanation: "@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(8行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
+  trace:
+    - "1行目: @Transactional の範囲は issue メソッドの本体(2〜9行目)"
+    - "3〜7行目: existsByCardIdAndStatus と save は同じトランザクション内"
+    - "8行目: notifyAsync は別スレッドで動くため、issue のトランザクションの外側で実行される"
+    - "9行目: return でメソッドが正常終了 → ここまでの変更(save)がコミットされる"

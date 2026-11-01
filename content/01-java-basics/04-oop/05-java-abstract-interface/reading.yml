@@ -1,0 +1,186 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "同じ呼び出し、違う動き"
+  level: 1
+  code: |
+    interface Greeter {
+        String greet();
+    }
+    class JapaneseGreeter implements Greeter {
+        public String greet() { return "こんにちは"; }
+    }
+    class EnglishGreeter implements Greeter {
+        public String greet() { return "Hello"; }
+    }
+
+    Greeter g = new EnglishGreeter();
+    System.out.println(g.greet());
+    g = new JapaneseGreeter();
+    System.out.println(g.greet());
+  question: "出力は?"
+  choices:
+    - "Hello / こんにちは"
+    - "こんにちは / Hello"
+    - "Hello / Hello"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "変数 g の型は Greeter のままですが、指している実体が EnglishGreeter → JapaneseGreeter と変わるので、動く greet() も変わります。同じ g.greet() という呼び出しで違う結果になるのがポリモーフィズムです。"
+  trace:
+    - "11行目: g は EnglishGreeter の実体を指す"
+    - "12行目: g.greet() → 実体 EnglishGreeter の greet → \"Hello\""
+    - "13行目: g が JapaneseGreeter の実体を指し直す(変数の型は Greeter のまま)"
+    - "14行目: g.greet() → 実体 JapaneseGreeter の greet → \"こんにちは\""
+- title: "リストの中の実体ごとに動きが変わる"
+  level: 2
+  code: |
+    abstract class Fee {
+        abstract int amount();
+    }
+    class AdultFee extends Fee {
+        int amount() { return 1200; }
+    }
+    class ChildFee extends Fee {
+        int amount() { return 500; }
+    }
+
+    List<Fee> fees = List.of(new AdultFee(), new ChildFee(), new AdultFee());
+    int total = 0;
+    for (Fee f : fees) {
+        total += f.amount();
+    }
+    System.out.println(total);
+  question: "出力は?"
+  choices:
+    - "2900"
+    - "3600"
+    - "1700"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "リストの型は List ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので 1200 + 500 + 1200 = 2900 です。"
+  trace:
+    - "11行目: Fee 型のリストに、子クラスの実体を3つ入れる(アップキャスト)"
+    - "13〜14行目 1周目: f は AdultFee → 1200"
+    - "2周目: f は ChildFee → 500(合計 1700)"
+    - "3周目: f は AdultFee → 1200(合計 2900)"
+    - "16行目: 2900"
+- title: "親の流れの中で、子のメソッドが動く"
+  level: 2
+  code: |
+    abstract class Exporter {
+        public String export() {
+            return header() + "|" + body();
+        }
+        protected String header() { return "H"; }
+        protected abstract String body();
+    }
+    class CsvExporter extends Exporter {
+        @Override
+        protected String body() { return "a,b,c"; }
+    }
+    class JsonExporter extends Exporter {
+        @Override
+        protected String header() { return "{"; }
+        @Override
+        protected String body() { return "x:1"; }
+    }
+
+    Exporter e1 = new CsvExporter();
+    Exporter e2 = new JsonExporter();
+    System.out.println(e1.export() + " " + e2.export());
+  question: "出力は?"
+  choices:
+    - "H|a,b,c H|x:1"
+    - "H|a,b,c {|x:1"
+    - "{|a,b,c {|x:1"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "export() は親に1つだけあり、その中で header() と body() を呼びます。CsvExporter は body() だけ上書きしているので header は親の \"H\"。JsonExporter は header() も上書きしているので \"{\"。どちらも「流れは親、中身は実体」で決まります。"
+  trace:
+    - "21行目: e1.export() → 親の export (2行目) → header() は上書きなし → \"H\"、body() は Csv の版 → \"a,b,c\" → \"H|a,b,c\""
+    - "21行目: e2.export() → 親の export → header() は Json の版 → \"{\"、body() は Json の版 → \"x:1\" → \"{|x:1\""
+- title: "フィールドは上書きされない"
+  level: 3
+  code: |
+    class Base {
+        String kind = "base";
+        String kind() { return "base"; }
+    }
+    class Sub extends Base {
+        String kind = "sub";
+        @Override
+        String kind() { return "sub"; }
+    }
+
+    Base b = new Sub();
+    System.out.println(b.kind + " " + b.kind());
+  question: "出力は?"
+  choices:
+    - "sub sub"
+    - "base base"
+    - "base sub"
+    - "sub base"
+  answer: 2
+  explanation: "メソッドは実体の型で決まる(動的ディスパッチ)ので b.kind() は Sub の版で \"sub\"。しかし**フィールドはオーバーライドされず、変数の型で決まります**。b の型は Base なので b.kind は Base のフィールド \"base\" です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。"
+  trace:
+    - "11行目: 変数の型 Base、実体 Sub(アップキャスト)"
+    - "12行目: b.kind → フィールドは変数の型 Base で解決 → \"base\""
+    - "12行目: b.kind() → メソッドは実体 Sub で解決 → \"sub\""
+    - "結果: \"base sub\""
+- title: "static メソッドはポリモーフィズムしない"
+  level: 3
+  code: |
+    class Base {
+        static String tag() { return "B"; }
+        String name() { return "base"; }
+    }
+    class Sub extends Base {
+        static String tag() { return "S"; }
+        @Override
+        String name() { return "sub"; }
+    }
+
+    Base x = new Sub();
+    System.out.println(x.tag() + " " + x.name());
+  question: "出力は?"
+  choices:
+    - "S sub"
+    - "B sub"
+    - "B base"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。x.tag() は変数の型 Base の tag() が選ばれて \"B\"。一方、インスタンスメソッド name() は実体 Sub の版で \"sub\" です。static メソッドを変数経由で呼ぶのは紛らわしいので、Base.tag() のようにクラス名で呼ぶのが作法です。"
+  trace:
+    - "11行目: 変数の型 Base、実体 Sub"
+    - "12行目: x.tag() → static は変数の型(Base)で決まる → \"B\""
+    - "12行目: x.name() → インスタンスメソッドは実体(Sub)で決まる → \"sub\""
+    - "結果: \"B sub\""
+- title: "instanceof で分岐する"
+  level: 2
+  code: |
+    interface Shape { double area(); }
+    class Square implements Shape {
+        double side = 2;
+        public double area() { return side * side; }
+    }
+    class Circle implements Shape {
+        public double area() { return 3.0; }
+    }
+
+    Shape s = new Square();
+    if (s instanceof Circle c) {
+        System.out.println("circle " + c.area());
+    } else if (s instanceof Square sq) {
+        System.out.println("square " + sq.side);
+    }
+  question: "出力は?"
+  choices:
+    - "circle 3.0"
+    - "square 2.0"
+    - "square 4.0"
+    - "ClassCastException"
+  answer: 1
+  explanation: "s の実体は Square なので、最初の instanceof Circle は false、次の instanceof Square が true になり、sq という Square 型の変数が使えます。sq.side はフィールド side(2.0)です。area() ではなく side を表示している点に注意してください。"
+  trace:
+    - "10行目: 変数の型 Shape、実体 Square"
+    - "11行目: s instanceof Circle → 実体は Square → false"
+    - "13行目: s instanceof Square → true → sq(Square 型)が使える"
+    - "14行目: sq.side は 2(double なので 2.0)→ \"square 2.0\""

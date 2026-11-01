@@ -1,0 +1,38 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Spring MVC と REST API"
+  intro: "Front サーバの APDU 送信 API を実務の形にした例です。URL、引数、バリデーション、ステータス、ログの要素がひととおり入っています。"
+  code: |
+    @RestController
+    @RequestMapping("/api/sessions")
+    @RequiredArgsConstructor
+    @Slf4j
+    public class SessionApiController {
+
+        private final ApduService apduService;
+
+        @PostMapping("/{sessionId}/apdu")
+        public ResponseEntity<ApduResponse> sendApdu(
+                @PathVariable String sessionId,
+                @RequestHeader("X-Request-Id") String requestId,
+                @Valid @RequestBody ApduRequest request) {
+
+            log.info("[{}] apdu in session={} len={}", requestId, sessionId, request.getCommandHex().length());
+            ApduResult result = apduService.send(sessionId, request.getCommandHex());
+            ApduResponse body = ApduResponse.from(result);
+            return ResponseEntity.ok(body);
+        }
+    }
+  notes:
+    2: "この Controller の URL はすべて /api/sessions で始まる"
+    4: "Lombok。log フィールドを生成(Lombok 章)"
+    7: "Service の注入。処理の本体はこちら"
+    9: "完全な URL は POST /api/sessions/{sessionId}/apdu"
+    13: "@Valid → ApduRequest の制約(@Pattern など)を先にチェック。失敗すると 400"
+    16: "Service に渡すのは DTO ではなく必要な値だけ、という書き方もよくある"
+    17: "Service の戻り(ApduResult)をレスポンス DTO に詰め替える。static メソッド from は変換専用"
+    18: "200 + JSON。Service が SessionNotFoundException を投げたら ExceptionHandler が 404 にする"
+  points:
+    - "クラスの @RequestMapping とメソッドの @PostMapping を足して完全な URL を組み立てる"
+    - "引数のアノテーションで「どこから来る値か」を確認。@Valid があれば DTO の制約も読む"
+    - "Service の戻り型とレスポンス DTO の変換(from / toResponse など)がどこにあるか探す"
+    - "この Controller に try-catch がない = 例外は @RestControllerAdvice が受けている、と読む"

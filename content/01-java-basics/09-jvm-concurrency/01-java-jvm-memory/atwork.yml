@@ -1,0 +1,33 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "JVM とメモリ:スタック・ヒープ・参照・GC"
+  intro: "Spring Boot の Service では、Entity や DTO を引数として受け渡ししたり、Bean 自身がフィールドを持ったりします。この章の「参照」「static とインスタンス」の知識がないと、気づかないうちに他のリクエストの値を壊してしまうことがあります。"
+  code: |
+    @Service
+    public class OrderService {
+
+        private final OrderRepository orderRepository;
+
+        // 良くない例:Bean は基本シングルトン(アプリ全体で1個)なので
+        // インスタンスフィールドに「リクエストごとの値」を持たせるのは危険
+        private Order lastProcessedOrder;
+
+        public void applyDiscount(Order order, int percent) {
+            int discounted = order.getPrice() * (100 - percent) / 100;
+            order.setPrice(discounted);      // 引数の実体を直接書き換えている
+            this.lastProcessedOrder = order; // 全リクエストで共有されるフィールドに保存
+        }
+
+        public OrderResponse toResponse(Order order) {
+            return OrderResponse.from(order);
+        }
+    }
+  notes:
+    1: "「このクラスは業務ロジック担当」という Spring の目印(Spring の章で詳しく)"
+    8: "一見ただのフィールドだが、Bean が1個しかないので実質「全リクエストで共有される変数」になる"
+    12: "order は呼び出し元と同じ実体を指しているので、この書き換えは呼び出し元にも見える"
+    13: "リクエストごとに違うはずの order を、共有フィールドに保存してしまっている"
+  points:
+    - "引数で受け取った Entity や DTO をメソッド内で書き換えていないか(呼び出し元にも影響する)"
+    - "Bean(Service / Controller など)は基本的に1個だけ作られる。インスタンスフィールドに状態を持たせると、他のリクエストの値が混ざる恐れがある"
+    - "static とインスタンスのどちらのフィールドに値を置いているかを見る"
+    - "戻り値として新しいオブジェクト(DTO)を作っているか、渡された実体をそのまま返しているか"

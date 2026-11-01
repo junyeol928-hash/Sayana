@@ -1,0 +1,103 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ログレベルのフィルタ"
+  level: 1
+  code: |
+    // logging.level.com.example: WARN として起動
+    log.debug("step1");
+    log.info("step2");
+    log.warn("step3");
+    log.error("step4");
+  question: "出力されるのはどれ?"
+  choices:
+    - "step1〜step4 すべて"
+    - "step3 と step4 のみ"
+    - "step4 のみ"
+    - "何も出力されない"
+  answer: 1
+  explanation: "基準が WARN のとき、WARN と ERROR は出力され、DEBUG と INFO は出力されません。「基準以上を出す、基準未満は無視する」というフィルタの考え方です。"
+  trace:
+    - "基準: WARN"
+    - "step1(DEBUG): WARN未満 → 出ない"
+    - "step2(INFO): WARN未満 → 出ない"
+    - "step3(WARN): 基準と同じ → 出る"
+    - "step4(ERROR): 基準より上 → 出る"
+- title: "try-catch とログ、例外の再スロー"
+  level: 2
+  code: |
+    public int safeDivide(int a, int b) {
+        try {
+            return a / b;
+        } catch (ArithmeticException e) {
+            log.warn("division failed a={} b={}", a, b, e);
+            return 0;
+        }
+    }
+    System.out.println(safeDivide(10, 0));
+  question: "出力は?(ログの内容は考えず、System.out の出力のみ答える)"
+  choices:
+    - "0"
+    - "5"
+    - "ArithmeticException が発生してプログラムが止まる"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "b が 0 のとき a / b は ArithmeticException を投げますが、catch で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。"
+  trace:
+    - "3行目: 10 / 0 で ArithmeticException"
+    - "4行目: catch で捕まえる"
+    - "5行目: WARN ログを出す(第3引数の e でスタックトレースも記録)"
+    - "6行目: 0 を返す(例外は外に伝わらない)"
+    - "9行目: 0 と表示"
+- title: "モックの戻り値が未設定のとき"
+  level: 2
+  code: |
+    @ExtendWith(MockitoExtension.class)
+    class UserServiceTest {
+        @Mock UserRepository userRepository;
+        @InjectMocks UserService userService;
+
+        @Test
+        void whenNotStubbed() {
+            // findById に when を設定しない
+            Optional<User> result = userRepository.findById(99L);
+            assertTrue(result.isEmpty());
+        }
+    }
+  question: "このテストはどうなる?"
+  choices:
+    - "成功する(result は空の Optional)"
+    - "失敗する(result に本物のデータが入る)"
+    - "NullPointerException でテストが落ちる"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "スタブ(when...thenReturn)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。Optional の既定値は null ではなく Optional.empty() 相当の空の Optional なので、result.isEmpty() は true になりテストは成功します。"
+  trace:
+    - "3行目: userRepository はモック(本物のDBには繋がらない)"
+    - "9行目: when を設定していないので、findById は既定の空 Optional を返す"
+    - "10行目: isEmpty() は true → assertTrue は成功"
+- title: "verify で呼び出し回数を確認する"
+  level: 3
+  code: |
+    @Test
+    void retriesOnceOnFailure() {
+        when(paymentClient.charge(anyString(), anyInt()))
+                .thenThrow(new PaymentException("timeout"))
+                .thenReturn(true);
+
+        boolean ok = retryService.chargeWithRetry("u1", 1000);
+
+        assertTrue(ok);
+        verify(paymentClient, times(2)).charge(anyString(), anyInt());
+    }
+  question: "このテストが検証している RetryService の振る舞いとして正しいのは?"
+  choices:
+    - "決済に1回失敗しても諦めて false を返す"
+    - "決済が失敗したら1回だけ再試行し、成功すれば true を返す"
+    - "決済は必ず3回試行する"
+    - "例外はそのまま呼び出し元に投げ直される"
+  answer: 1
+  explanation: "thenThrow(...).thenReturn(true) は「1回目は例外、2回目は成功」という順番のスタブです。最終的に ok は true、charge が2回呼ばれたことを verify(times(2)) が確認しているので、RetryService は失敗時に1回再試行してから成功を返す仕様だと読み取れます。"
+  trace:
+    - "3〜5行目: charge の1回目は例外、2回目は true を返すよう設定"
+    - "7行目: chargeWithRetry を呼ぶ(中でおそらく try-catchして再試行している)"
+    - "9行目: 最終的に true が返ったことを確認"
+    - "10行目: charge が合計2回呼ばれたことを確認 → 「1回失敗したら1回だけ再試行する」仕様と分かる"

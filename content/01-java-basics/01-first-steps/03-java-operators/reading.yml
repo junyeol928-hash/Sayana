@@ -1,0 +1,101 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "前置と後置の連続"
+  level: 1
+  code: |
+    int a = 3;
+    int b = a++;
+    int c = ++a;
+    System.out.println(a + " " + b + " " + c);
+  question: "出力は?"
+  choices:
+    - "5 3 5"
+    - "5 4 5"
+    - "4 3 4"
+    - "5 3 4"
+  answer: 0
+  explanation: "2行目は後置なので b には増やす前の 3 が入り、a は 4 になる。3行目は前置なので a を 5 にしてから c に 5 を渡す。最後は a=5、b=3、c=5。"
+  trace:
+    - "1行目: a = 3"
+    - "2行目: b = 3(元の値)、そのあと a = 4"
+    - "3行目: 先に a = 5、それから c = 5"
+    - "4行目: \"5 3 5\""
+- title: "達成率の計算"
+  level: 2
+  code: |
+    int done = 3;
+    int total = 8;
+    double rate1 = done / total * 100;
+    double rate2 = (double) done / total * 100;
+    double rate3 = done * 100 / total;
+    System.out.println(rate1 + " " + rate2 + " " + rate3);
+  question: "出力は?"
+  choices:
+    - "37.5 37.5 37.5"
+    - "0.0 37.5 37.0"
+    - "0.0 37.5 37.5"
+    - "0 37.5 37"
+  answer: 1
+  explanation: "rate1 は 3 / 8 が int で 0 になり、0 * 100 = 0 → 0.0。rate2 は先に done を 3.0 にするので 3.0 / 8 = 0.375、× 100 で 37.5。rate3 は 3 * 100 = 300 が先で、300 / 8 = 37(int の切り捨て)→ 37.0。**割る前に掛けるか、小数にしてから割るか**で結果が変わります。"
+  trace:
+    - "3行目: 3 / 8 → 0(int)、0 * 100 → 0、double の箱に入れて 0.0"
+    - "4行目: (double) 3 → 3.0、3.0 / 8 → 0.375、× 100 → 37.5"
+    - "5行目: 3 * 100 → 300、300 / 8 → 37(int)、double の箱に入れて 37.0"
+    - "6行目: \"0.0 37.5 37.0\""
+- title: "null と短絡評価"
+  level: 2
+  code: |
+    String code = null;
+    boolean a = code != null && code.startsWith("A");
+    boolean b = code == null || code.isEmpty();
+    System.out.println(a + " " + b);
+  question: "出力は?"
+  choices:
+    - "false true"
+    - "false false"
+    - "true true"
+    - "NullPointerException"
+  answer: 0
+  explanation: "2行目は左 (code != null) が false なので右は実行されず a = false。3行目は左 (code == null) が true なので右は実行されず b = true。どちらも code のメソッドは呼ばれないため例外は起きません。"
+  trace:
+    - "1行目: code は null"
+    - "2行目: code != null → false → && の右はスキップ → a = false"
+    - "3行目: code == null → true → || の右はスキップ → b = true"
+    - "4行目: \"false true\""
+- title: "複合代入の隠れたキャスト"
+  level: 3
+  code: |
+    int x = 10;
+    x += 2.5;
+    int y = x++ * 2;
+    System.out.println(x + " " + y);
+  question: "出力は?"
+  choices:
+    - "13 24"
+    - "13 26"
+    - "12 24"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "`x = x + 2.5;` と書くと double を int に入れられずコンパイルエラーですが、`x += 2.5;` は「暗黙のキャスト付き」で `x = (int)(x + 2.5)` と同じ扱い。12.5 が切り捨てられて x = 12 になります。3行目は後置なので 12 * 2 = 24 が y に入り、その後 x は 13。"
+  trace:
+    - "2行目: 10 + 2.5 = 12.5 → (int) で 12 → x = 12"
+    - "3行目: x++ は 12 を渡してから x = 13。y = 12 * 2 = 24"
+    - "4行目: \"13 24\""
+- title: "連結と比較の優先順位"
+  level: 3
+  code: |
+    int stock = 0;
+    String label1 = "在庫: " + stock + (stock > 0 ? "あり" : "なし");
+    String label2 = "在庫: " + stock > 0 ? "あり" : "なし";
+    System.out.println(label1 + " / " + label2);
+  question: "実行すると?"
+  choices:
+    - "在庫: 0なし / なし"
+    - "在庫: 0なし / 在庫: 0なし"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 2
+  explanation: "3行目は + が > より先に評価されるので、`(\"在庫: \" + stock) > 0` つまり「文字列 > 整数」の比較になり、これはコンパイルエラーです。2行目のようにカッコで三項演算子を囲めば意図どおり動きます。**三項演算子を連結に混ぜるときはカッコ必須**と覚えましょう。"
+  trace:
+    - "2行目: \"在庫: \" + 0 → \"在庫: 0\"、カッコの中は stock > 0 が false → \"なし\"、つないで \"在庫: 0なし\""
+    - "3行目: \"在庫: \" + stock → \"在庫: 0\"(String)、次に \"在庫: 0\" > 0 → String と int は比較できない"
+    - "結果: コンパイルエラー(実行されない)"

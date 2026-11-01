@@ -1,0 +1,142 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "共有フィールドと競合状態"
+  level: 1
+  code: |
+    @Service
+    class Counter {
+        private int value = 0;
+        public void inc() { value++; }
+        public int get() { return value; }
+    }
+    // 2つのスレッドが同時に inc() を50000回ずつ呼んだとする
+  question: "最終的な get() の値として正しい説明は?"
+  choices:
+    - "必ず100000になる"
+    - "100000になるとは限らない(それより小さくなることがある)"
+    - "必ず0のままになる"
+    - "コンパイルエラーになる"
+  answer: 1
+  explanation: "value++は複数ステップの操作なので、2つのスレッドが同時に実行すると加算が失われることがあります。結果は実行のタイミングに依存し、100000未満になることがあります。これが競合状態です。"
+  trace:
+    - "inc() は value を読む→1を足す→書き戻す、の3ステップ"
+    - "2つのスレッドがほぼ同時にこの3ステップを実行すると、片方の加算がもう片方に上書きされて消えることがある"
+    - "結果として合計回数(100000)より少ない値になることがある(常にではないが、保証されない)"
+- title: "synchronized の範囲"
+  level: 2
+  code: |
+    class Account {
+        private int balance = 100;
+
+        public synchronized void withdraw(int amount) {
+            if (balance >= amount) {
+                balance -= amount;
+            }
+        }
+
+        public int getBalance() {   // synchronized が付いていない
+            return balance;
+        }
+    }
+  question: "このクラスについて正しい説明は?"
+  choices:
+    - "withdraw だけでなく getBalance も synchronized なので完全に安全"
+    - "getBalance には synchronized が無いため、更新途中の値が見えてしまう可能性がある"
+    - "synchronized は balance フィールドには一切関係ない"
+    - "コンパイルエラーになる"
+  answer: 1
+  explanation: "withdraw は排他制御されていますが、getBalance には synchronized が付いていません。読み取り専用に見えても、書き込み中の値の可視性は保証されず、最新の値が見えないことがあります。読むメソッドにも保護が必要な場合があるのがポイントです。"
+  trace:
+    - "4行目: withdraw は synchronized なので1度に1スレッドしか実行できない"
+    - "10行目: getBalance には synchronized が無い"
+    - "他のスレッドが withdraw を実行中でも、getBalance は保護されずに balance を読みに行ける(可視性の問題が起きうる)"
+- title: "AtomicIntegerによる安全なカウンタ"
+  level: 2
+  code: |
+    AtomicInteger counter = new AtomicInteger(0);
+
+    Runnable task = () -> {
+        for (int i = 0; i < 1000; i++) {
+            counter.incrementAndGet();
+        }
+    };
+    Thread t1 = new Thread(task);
+    Thread t2 = new Thread(task);
+    t1.start(); t2.start();
+    t1.join(); t2.join();
+    System.out.println(counter.get());
+  question: "出力は?"
+  choices:
+    - "2000未満になることがある"
+    - "必ず2000になる"
+    - "必ず1000になる"
+    - "実行のたびにコンパイルエラー"
+  answer: 1
+  explanation: "AtomicIntegerのincrementAndGet()は不可分な(割り込まれない)操作として実装されているため、複数スレッドから同時に呼ばれても加算が失われません。join()で両スレッドの終了を待ってから読むので、必ず2000になります。"
+  trace:
+    - "t1とt2がそれぞれ1000回ずつincrementAndGetを呼ぶ"
+    - "AtomicIntegerは各呼び出しを安全に(割り込まれずに)実行する"
+    - "t1.join()とt2.join()で両方の完了を待ってからcounter.get()を読む"
+    - "合計2000になる"
+- title: "タイムアウト付きFutureの挙動"
+  level: 3
+  code: |
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<String> future = executor.submit(() -> {
+        Thread.sleep(5000);   // 5秒かかる重い処理
+        return "done";
+    });
+
+    try {
+        String result = future.get(1, TimeUnit.SECONDS);
+        System.out.println(result);
+    } catch (TimeoutException e) {
+        System.out.println("timeout");
+    } finally {
+        executor.shutdown();
+    }
+  question: "出力は?"
+  choices:
+    - "done"
+    - "timeout"
+    - "何も出力されない"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "処理は完了までに5秒かかりますが、get(1, TimeUnit.SECONDS)は1秒で諦めてTimeoutExceptionを投げます。catchブロックでそれを受け取り\"timeout\"と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。"
+  trace:
+    - "2〜5行目: 別スレッドで5秒かかる処理を投げる"
+    - "7行目: 1秒だけ待つように指定してget"
+    - "1秒経過してもまだ終わっていないのでTimeoutExceptionが発生"
+    - "9〜10行目: catchで捕まえ\"timeout\"と表示"
+- title: "デッドロックが起きるかどうかの判定"
+  level: 3
+  code: |
+    Object lockA = new Object();
+    Object lockB = new Object();
+
+    Runnable taskA = () -> {
+        synchronized (lockA) {
+            synchronized (lockB) {
+                System.out.println("A done");
+            }
+        }
+    };
+    Runnable taskB = () -> {
+        synchronized (lockA) {          // taskB もまず lockA から取得する
+            synchronized (lockB) {
+                System.out.println("B done");
+            }
+        }
+    };
+  question: "taskA と taskB を別々のスレッドでほぼ同時に実行すると?"
+  choices:
+    - "必ずデッドロックする"
+    - "デッドロックは起きず、いずれ両方とも完了する(片方が待たされるだけ)"
+    - "コンパイルエラーになる"
+    - "必ず例外が発生する"
+  answer: 1
+  explanation: "両方のタスクがロックを取得する順番(lockA → lockB)が同じなので、デッドロックは起きません。先にlockAを取ったスレッドがlockBも取って処理を終え、ロックを解放してからもう一方が実行されます。デッドロックが起きるのは、taskBがlockBを先に取るなど順番が逆になっている場合です。"
+  trace:
+    - "taskA: lockA → lockB の順で取得"
+    - "taskB: lockA → lockB の順で取得(taskAと同じ順番)"
+    - "先にlockAを確保した方が両方のロックを取り終えて処理を完了し、解放する"
+    - "もう一方はlockAが空くのを待ってから同様に実行される → 待たされるが、いずれ両方完了する"

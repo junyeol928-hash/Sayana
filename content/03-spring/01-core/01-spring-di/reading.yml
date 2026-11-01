@@ -1,0 +1,124 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "どの実装クラスが注入される?"
+  level: 2
+  code: |
+    public interface ApduSender { String send(byte[] apdu); }
+
+    @Component
+    public class SocketApduSender implements ApduSender {
+        public String send(byte[] apdu) { return "socket"; }
+    }
+
+    @Component @Primary
+    public class LoggingApduSender implements ApduSender {
+        public String send(byte[] apdu) { return "logging"; }
+    }
+
+    @Service @RequiredArgsConstructor
+    public class ApduService {
+        private final ApduSender sender;
+        public String run() { return sender.send(new byte[0]); }
+    }
+  question: "`apduService.run()` の戻り値は?"
+  choices:
+    - "\"socket\""
+    - "\"logging\""
+    - "起動時に例外"
+    - "null"
+  answer: 1
+  explanation: "ApduSender 型の Bean は2つありますが、LoggingApduSender に @Primary が付いているので、型だけで要求している ApduService にはこちらが入ります。@Primary がなければ起動時に NoUniqueBeanDefinitionException(3)になります。"
+  trace:
+    - "3〜11行目: ApduSender の実装 Bean が2つ登録される(SocketApduSender と LoggingApduSender)"
+    - "13〜15行目: @RequiredArgsConstructor により ApduSender を1つ受け取るコンストラクタが生成される"
+    - "起動時: 候補2つのうち @Primary の LoggingApduSender が選ばれて注入される"
+    - "16行目: sender.send(...) → LoggingApduSender.send → \"logging\""
+- title: "final が抜けたフィールド"
+  level: 2
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class KeyIssueService {
+        private final KeyRepository keyRepository;
+        private HsmClient hsmClient;
+
+        public String issue(String cardId) {
+            byte[] key = hsmClient.generateKey();
+            keyRepository.save(cardId, key);
+            return "OK";
+        }
+    }
+  question: "Spring が起動し、`issue(\"C001\")` を呼ぶと?"
+  choices:
+    - "\"OK\" が返る"
+    - "起動時に例外で失敗する"
+    - "8行目で NullPointerException"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "@RequiredArgsConstructor が引数にするのは final フィールドだけなので、生成されるコンストラクタは KeyRepository の1引数です。hsmClient は注入されず null のまま。起動は成功し、issue を呼んで hsmClient.generateKey() に到達した瞬間に NullPointerException です。"
+  trace:
+    - "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ"
+    - "5行目: final がないため引数に含まれず、注入もされない → null"
+    - "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する"
+    - "8行目: hsmClient が null → generateKey() を呼んだ瞬間に NullPointerException"
+- title: "@Bean メソッドの引数と戻り値"
+  level: 2
+  code: |
+    @Configuration
+    public class ClientConfig {
+        @Bean
+        public BackApiClient backApiClient(RestTemplate restTemplate) {
+            return new BackApiClient(restTemplate, "http://back:8081");
+        }
+        @Bean
+        public RestTemplate restTemplate() {
+            return new RestTemplate();
+        }
+    }
+
+    @Service @RequiredArgsConstructor
+    public class SessionService {
+        private final BackApiClient backApiClient;
+    }
+  question: "起動時に何が起きる?"
+  choices:
+    - "BackApiClient が Bean にならず起動失敗"
+    - "restTemplate が先に作られ、backApiClient に渡され、SessionService に注入される"
+    - "backApiClient が2個作られる"
+    - "@Bean メソッドの順序が逆なのでエラー"
+  answer: 1
+  explanation: "@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backApiClient() の引数に渡します。メソッドの記述順(4)は関係ありません。Bean は singleton なので backApiClient は1個だけ(3)です。"
+  trace:
+    - "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される"
+    - "4行目: backApiClient は RestTemplate に依存すると分かる"
+    - "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる"
+    - "4〜5行目: その RestTemplate を引数に backApiClient() が呼ばれ、BackApiClient の Bean ができる"
+    - "15行目: SessionService のコンストラクタに BackApiClient の Bean が渡される"
+- title: "スキャン範囲の外にあるクラス"
+  level: 3
+  code: |
+    // jp.example.tsm.TsmFrontApplication
+    @SpringBootApplication
+    public class TsmFrontApplication { /* main */ }
+
+    // jp.example.tsm.service.KeyIssueService
+    @Service @RequiredArgsConstructor
+    public class KeyIssueService {
+        private final HexUtil hexUtil;
+    }
+
+    // jp.example.common.HexUtil
+    @Component
+    public class HexUtil { }
+  question: "アプリを起動すると?"
+  choices:
+    - "正常に起動する"
+    - "HexUtil が見つからず起動時に例外"
+    - "KeyIssueService が Bean にならない"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "スキャンの基準は起動クラスのパッケージ jp.example.tsm です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。"
+  trace:
+    - "2行目: スキャンの基準パッケージは jp.example.tsm"
+    - "6〜8行目: jp.example.tsm.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している"
+    - "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない"
+    - "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止"

@@ -1,0 +1,40 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "演算子"
+  intro: "Service クラスの計算ロジックは、この章の演算子だけでできています。読むときは「1行ずつ、右辺を計算して左辺に入れる」を繰り返します。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class OrderService {
+
+        private static final int FREE_SHIPPING_THRESHOLD = 5000;
+        private static final double TAX_RATE = 0.10;
+
+        private final OrderRepository orderRepository;
+
+        public OrderSummary summarize(OrderRequest req) {
+            int subtotal = req.getUnitPrice() * req.getQuantity();
+            int discount = req.isMember() ? subtotal / 10 : 0;
+            int shipping = (subtotal - discount >= FREE_SHIPPING_THRESHOLD) ? 0 : 500;
+            int tax = (int) ((subtotal - discount) * TAX_RATE);
+            int total = subtotal - discount + shipping + tax;
+
+            boolean needsApproval = total >= 100_000
+                    && req.getApprover() != null
+                    && !req.getApprover().isBlank();
+
+            return new OrderSummary(subtotal, discount, shipping, tax, total, needsApproval);
+        }
+    }
+  notes:
+    2: "Lombok のアノテーション。final のフィールドを受け取るコンストラクタを自動生成する(Lombok 章で詳しく)"
+    11: "単価 × 数量。両方 int なので int。大きな注文なら long にすべきかを疑う目を持つ"
+    12: "三項演算子:会員なら小計の 1 割(int の割り算なので端数切り捨て)、非会員なら 0"
+    13: "比較 >= が三項演算子より先に評価される。カッコは読みやすさのため"
+    14: "int × double は double。(int) で切り捨てて円単位に戻す。外側のカッコが無いと結果が変わる"
+    17: "3 つの条件を && でつなぐ。1 つでも false なら以降は評価されない(短絡評価)"
+    18: "null チェックが isBlank() より左にあるので安全"
+  points:
+    - "= の右辺を「先に全部計算してから左に入れる」順で追う。三項演算子は「条件 ? A : B」を1つの値として読む"
+    - "int どうしの割り算(subtotal / 10)は切り捨て。端数の扱いが仕様どおりかを確認するポイント"
+    - "&& の並びは「安全確認 → 本題」の順になっているか。null チェックが右にあれば要注意"
+    - "金額に double が使われていたら誤差の可能性を頭に置く。BigDecimal なら正確な計算をしている"

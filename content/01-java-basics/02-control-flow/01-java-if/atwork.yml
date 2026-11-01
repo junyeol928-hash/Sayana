@@ -1,0 +1,32 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "if 文と switch 文"
+  intro: "Spring Boot の Service では、入力チェックをガード節(早期 return)で先に弾き、正常系の分岐は switch 式で書く、という組み合わせがよく出てきます。"
+  code: |
+    @Service
+    public class OrderService {
+
+        public String describeStatus(Order order) {
+            if (order == null) {
+                return "注文が見つかりません";
+            }
+            if (order.getStatus() == null) {
+                return "ステータス未設定";
+            }
+
+            return switch (order.getStatus()) {
+                case "NEW" -> "新規受付";
+                case "SHIPPED" -> "発送済み";
+                case "CANCELLED" -> "キャンセル済み";
+                default -> "不明なステータス";
+            };
+        }
+    }
+  notes:
+    5: "order が null ならここで終了。以降は order が null でないことが保証される"
+    8: "同様に status も null チェック。ここを抜けたら安心して使える"
+    12: "決まった文字列の値で分岐するので switch 式。default で未知の値にも備える"
+  points:
+    - "メソッドの先頭にガード節が並んでいたら、まず「何を弾いているか」を読む"
+    - "ガード節を抜けたあとの本体は、null の心配をしなくてよい前提で読める"
+    - "switch(または switch 式)を見たら、まず default があるかを確認する"
+    - "文字列比較は必ず equals(または switch の内部比較)。== が出てきたら要注意"
