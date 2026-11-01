@@ -48,7 +48,7 @@ public class StudyController {
     static String kanaRow(Term t) {
         // 英字で始まる語(equals・Iterator・@Bean など)は読みではなく「A-Z」に(索引の A-Z から探せるように)
         if (!t.term().isBlank() && (t.term().strip().charAt(0) < 0x80 && Character.isLetter(t.term().strip().charAt(0)) || t.term().strip().charAt(0) == '@')) {
-            return "英字・記号";
+            return "A-Z";
         }
         String s = (t.read() != null ? t.read() : t.term()).strip();
         char c = s.isEmpty() ? ' ' : s.charAt(0);
@@ -58,7 +58,7 @@ public class StudyController {
                 return "あかさたなはまやらわ".charAt(i) + "行";
             }
         }
-        return Character.isLetter(c) && c < 0x80 || c == '@' ? "英字・記号" : "その他";
+        return Character.isLetter(c) && c < 0x80 || c == '@' ? "A-Z" : "その他";
     }
 
     /** 用語集の 1 枚。いくつかのレッスンに出る語は、レッスンごとの説明をまとめて持つ。 */
@@ -84,11 +84,11 @@ public class StudyController {
                 .sorted(Comparator.comparing((Term t) -> t.read() != null ? t.read() : t.term(), ja))
                 .forEach(t -> byTerm.computeIfAbsent(t.term().strip().toLowerCase(Locale.ROOT), k -> new ArrayList<>()).add(t));
         // 行の順に並べ、A-Z の中は綴りの順(スマホ版と同じ)
-        List<String> rowOrder = new ArrayList<>(List.of("英字・記号"));
+        List<String> rowOrder = new ArrayList<>(List.of("A-Z"));
         "あかさたなはまやらわ".chars().forEach(k -> rowOrder.add((char) k + "行"));
         rowOrder.add("その他");
         Comparator<TermCard> order = Comparator.comparingInt((TermCard c) -> rowOrder.indexOf(c.row()))
-                .thenComparing(c -> c.row().equals("英字・記号") ? c.first().term().replaceFirst("^@", "").toLowerCase(Locale.ROOT) : "");
+                .thenComparing(c -> c.row().equals("A-Z") ? c.first().term().replaceFirst("^@", "").toLowerCase(Locale.ROOT) : "");
         List<TermCard> cards = byTerm.values().stream().map(g -> new TermCard(kanaRow(g.getFirst()), g)).sorted(order).toList();
         model.addAttribute("cards", cards);
         model.addAttribute("rows", cards.stream().map(TermCard::row).distinct().toList());

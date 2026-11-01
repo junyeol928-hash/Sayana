@@ -136,15 +136,16 @@ function watchOverflow(scroller, target = scroller) {
   update();
 }
 
-// はみ出す図は、流れの入口(最初のノード)が真ん中に来る位置から見せる。「図の全体を見る」で縮めた全体と行き来できる
+// はみ出す図は、ノードの重心(中心の平均)が真ん中に来る位置から見せる。SVG の真ん中だと戻りの線の分だけ幹からずれ、
+// 最初のノードだと横に出た枝(ループの本体など)が切れるため。「図の全体を見る」で縮めた全体と行き来できる
 function fitFigures(nodes) {
   nodes.forEach((n) => {
     if (n.scrollWidth <= n.clientWidth + 1) return;
-    const first = n.querySelector("svg .node, svg .actor, svg .statediagram-state");
-    if (first) {
-      const r = first.getBoundingClientRect();
+    const shapes = [...n.querySelectorAll("svg .node, svg .actor, svg .statediagram-state")];
+    if (shapes.length) {
       const box = n.getBoundingClientRect();
-      n.scrollLeft = Math.max(0, n.scrollLeft + r.left + r.width / 2 - box.left - n.clientWidth / 2);
+      const mid = shapes.reduce((sum, el) => { const r = el.getBoundingClientRect(); return sum + r.left + r.width / 2; }, 0) / shapes.length;
+      n.scrollLeft = Math.max(0, n.scrollLeft + mid - box.left - n.clientWidth / 2);
     }
     watchOverflow(n);
     const btn = document.createElement("button");
@@ -201,7 +202,7 @@ function mermaidTheme() {
     themeVariables: {
       fontFamily: v("--font"), fontSize: "14px", background: "transparent",
       primaryColor: v("--surface"), primaryBorderColor: v("--line-strong"), primaryTextColor: v("--ink"),
-      secondaryColor: v("--accent-soft"), tertiaryColor: v("--surface-2"), lineColor: v("--ink-muted"),
+      secondaryColor: v("--accent-soft"), tertiaryColor: v("--surface-2"), lineColor: v("--accent"),
       textColor: v("--ink"), mainBkg: v("--surface"), nodeBorder: v("--line-strong"), clusterBkg: v("--surface-2"),
       clusterBorder: v("--line"), edgeLabelBackground: v("--surface-2"), actorBkg: v("--surface"), actorBorder: v("--line-strong"),
       noteBkgColor: v("--ki-soft"), noteBorderColor: v("--line"),
@@ -224,6 +225,11 @@ function highlight(root) {
   root.querySelectorAll(".choice > span").forEach((sp) => {
     const t = sp.textContent.trim();
     if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+  });
+  // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
+  root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
+    const t = c.textContent;
+    if (t.length >= 24 && /\s/.test(t.trim())) c.classList.add("code-msg");
   });
 
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
@@ -422,7 +428,8 @@ function trackLesson() {
     const first = sections[0].getBoundingClientRect().top + scrollY;
     const end = sections[sections.length - 1].getBoundingClientRect().bottom + scrollY - innerHeight;
     const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
-    sew?.style.setProperty("--p", (p * 100).toFixed(1) + "%");
+    // 縫い目(9px の目 + 6px の間)の切れ目で止める(目の途中で切れた半端な欠片を出さない)
+    if (sew) sew.style.setProperty("--p", `${p >= 1 ? sew.clientWidth : Math.floor((p * sew.clientWidth) / 15) * 15 + (p > 0 ? 9 : 0)}px`);
   };
   let ticking = false;
   addEventListener("scroll", () => {

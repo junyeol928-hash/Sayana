@@ -11,7 +11,7 @@
     <div class="kana-wrap">
     <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ">
         <a href="#glossary-q" class="kana-search" aria-label="用語を探す" data-kana-search><svg class="icon sm" aria-hidden="true"><use href="#i-search"/></svg></a>
-        <a th:each="r, rs : ${rows}" th:attr="data-row=${rs.index}" th:href="'#g-' + ${rs.index}" th:text="${r == '英字・記号'} ? 'A-Z' : ${#strings.replace(r, '行', '')}">あ</a>
+        <a th:each="r, rs : ${rows}" th:attr="data-row=${rs.index}" th:href="'#g-' + ${rs.index}" th:text="${#strings.replace(r, '行', '')}">あ</a>
     </nav>
     </div>
     <p class="glossary-count" id="glossary-count" aria-live="polite"></p>
