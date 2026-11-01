@@ -145,7 +145,17 @@ async function renderMermaid(root) {
 // 図も藍の配色で描く(CSS の変数から色を読むので、暗い表示でもそろう)。スマホ版の app.js と同じ
 function mermaidTheme() {
   const css = getComputedStyle(document.documentElement);
-  const v = (name) => css.getPropertyValue(name).trim();
+  // Mermaid は oklch() を読めない(「Unsupported color format」で図ごと描けなくなる)ので、色は 1 点塗って #rrggbb に直して渡す
+  const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const v = (name) => {
+    const raw = css.getPropertyValue(name).trim();
+    if (!raw.startsWith("oklch") || !ctx) return raw;
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = raw;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+  };
   return {
     startOnLoad: false, securityLevel: "strict", theme: "base",
     themeVariables: {
@@ -242,6 +252,8 @@ document.addEventListener("click", (e) => {
   applyNotesFold(document);
 });
 
+// 染めの名前の読み(スマホ版 app.js の DYE の read と同じ)
+const DYE_READ = { 生成り: "きなり", 甕覗き: "かめのぞき", 縹: "はなだ", 藍: "あい", 褐: "かち" };
 const LAST_KEY = "javadojo-pc-last";
 const RESUME_KEY = "javadojo-pc-resume";
 const SECTIONS_KEY = "javadojo-pc-sections";
@@ -280,12 +292,12 @@ function dashboardResume() {
     if (meta) meta.innerHTML = [`読む ${d.minutes} 分`, `演習 ${d.exercises}`, `クイズ ${d.quiz}`, d.reading !== "0" ? `読解 ${d.reading}` : ""].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
     const next = hero.querySelector(".today-next");
     const [dyeName, dyeMeaning] = d.dyeLabel.split("・");
-    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span><span class="tn-now">いま ${escHtml(dyeName)}(${escHtml(dyeMeaning)})</span><span class="tn-hint">次: ${escHtml(d.hint)}</span></span>`;
+    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span><span class="tn-now">いま <ruby>${escHtml(dyeName)}<rt>${DYE_READ[dyeName] || ""}</rt></ruby>(${escHtml(dyeMeaning)})</span><span class="tn-hint">次: ${escHtml(d.hint)}</span></span>`;
     else next?.remove();
     hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
     // 先輩の一言も、続きの話に
     const talk = hero.querySelector(".talk-line");
-    if (talk) talk.textContent = `モカ先輩「続きは${last.label ? `「${last.label}」` : ""}から。前に読んでいた所へ戻るよ」`;
+    if (talk) talk.textContent = `モカ先輩「続きは${last.label ? `『${last.label}』` : ""}から。前に読んでいた所へ戻るよ」`;
     // 一覧の札もヒーローと同じ言葉に(強調は主役の 1 行だけ)
     document.querySelectorAll(".lesson-row.is-next").forEach((li) => {
       li.classList.remove("is-next");
@@ -321,11 +333,15 @@ function trackLesson() {
     if (sec && last.off > 0) requestAnimationFrame(() => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" }));
   }
   let saveTimer = null;
+  let atworkSince = null;
   const update = () => {
     const line = 140;
-    // 仕事のコードは、段の最後が画面に入ったら「済み」(PC版の記録はこのブラウザの中)
+    // 仕事のコードは、段が画面に 3 秒以上あって、その終わりが画面の中に見えたら「済み」(飛び越しただけでは付けない。PC版の記録はこのブラウザの中)
     const atwork = document.getElementById("atwork");
-    if (atwork && lessonId && atwork.getBoundingClientRect().bottom < innerHeight && !(seen[lessonId] || []).includes("atwork")) {
+    const ar = atwork?.getBoundingClientRect();
+    if (!(ar && ar.top < innerHeight && ar.bottom > 0)) atworkSince = null;
+    else if (atworkSince == null) { atworkSince = Date.now(); setTimeout(update, 3100); } // 止まって読んでいても 3 秒後に確かめ直す
+    if (atwork && lessonId && ar.bottom > 0 && ar.bottom < innerHeight && atworkSince && Date.now() - atworkSince >= 3000 && !(seen[lessonId] || []).includes("atwork")) {
       seen[lessonId] = [...(seen[lessonId] || []), "atwork"];
       pcSave(SECTIONS_KEY, seen);
       markDone("atwork");
@@ -410,6 +426,10 @@ document.addEventListener("htmx:afterSwap", (e) => {
     li.querySelectorAll("label.choice").forEach((label, j) => {
       label.classList.toggle("is-answer", j === Number(ex.dataset.answer));
       label.classList.toggle("is-wrong", !ok && j === Number(ex.dataset.chosen));
+      // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には読み上げ用の「正解」
+      label.querySelector(".choice-tag")?.remove();
+      if (!ok && j === Number(ex.dataset.chosen)) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+      if (j === Number(ex.dataset.answer)) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag visually-hidden">(正解)</span>`);
     });
     li.appendChild(document.importNode(ex, true));
   });
@@ -427,6 +447,7 @@ document.addEventListener("click", (e) => {
   form.reset();
   form.querySelectorAll(".q-explain").forEach((n) => n.remove());
   form.querySelectorAll("label.choice").forEach((l) => l.classList.remove("is-answer", "is-wrong"));
+  form.querySelectorAll(".choice-tag").forEach((n) => n.remove());
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; });
   form.querySelector("button[type=submit]").hidden = false;
   document.getElementById("quiz-result").innerHTML = "";
@@ -538,7 +559,8 @@ document.addEventListener("input", (e) => {
 
 // いまいる画面のメニューに印を付ける(レッスンはダッシュボードの中)
 {
-  const path = location.pathname.startsWith("/lessons/") ? "/" : location.pathname;
+  // レッスンはどのメニューの画面でもないので印を付けない(スマホ版と同じ)
+  const path = location.pathname.startsWith("/lessons/") ? null : location.pathname;
   document.querySelectorAll(".main-nav a, .bottom-nav a").forEach((a) => {
     if (a.getAttribute("href") === path) a.setAttribute("aria-current", "page");
   });

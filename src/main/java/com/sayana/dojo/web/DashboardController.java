@@ -74,21 +74,27 @@ public class DashboardController {
             flat.stream().filter(s -> s.lesson().id().equals(next.id())).findFirst().ifPresent(s -> {
                 model.addAttribute("nextDye", s.dyeLevel());
                 model.addAttribute("nextDyeName", s.dyeLabel().split("・")[0]);
+                model.addAttribute("nextDyeRead", DYE_READ[s.dyeLevel()]);
                 model.addAttribute("nextDyeMeaning", s.dyeLabel().split("・")[1]);
                 model.addAttribute("nextHint", nextDyeHint(s));
             });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
-            model.addAttribute("nextChapter", content.chapter(next.chapterId()).map(c -> c.title()).orElse(""));
+            // 所属はスマホ版と同じ「部・章」(部の「第n部」は省く)
+            model.addAttribute("nextChapter", content.chapter(next.chapterId()).map(c -> content.part(c.partId())
+                    .map(p -> p.title().replaceFirst("^第\\d+部\\s*", "") + "・").orElse("") + c.title()).orElse(""));
         });
         return "dashboard";
     }
+
+    /** 染めの名前の読み(スマホ版 app.js の DYE の read と同じ)。ヒーローでふりがなに使う。 */
+    static final String[] DYE_READ = {"きなり", "かめのぞき", "はなだ", "あい", "かち"};
 
     /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
     public static String nextDyeHint(ProgressService.LessonStatus s) {
         return switch (s.dyeLevel()) {
             case 0 -> "読み終えると甕覗きに";
             case 1 -> "クイズで " + s.quizPassScore() + " 問以上取ると縹に";
-            case 2 -> "演習に合格すると藍に";
+            case 2 -> "演習ができたら藍に";
             case 3 -> "復習をすべて卒業すると褐に";
             default -> null;
         };

@@ -12,7 +12,7 @@
             <p class="today-kicker"><span>今日の稽古</span><span th:text="${nextChapter}">第1章</span></p>
             <h1 class="today-title" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
             <p class="today-meta"><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span><span th:text="'演習 ' + ${nextLesson.exercises.size()}"></span><span th:text="'クイズ ' + ${nextLesson.quiz.size()}"></span><span th:unless="${nextLesson.reading.isEmpty()}" th:text="'読解 ' + ${nextLesson.reading.size()}"></span></p>
-            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now" th:text="'いま ' + ${nextDyeName} + '(' + ${nextDyeMeaning} + ')'"></span><span class="tn-hint" th:text="'次: ' + ${nextHint}"></span></span></p>
+            <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now">いま <ruby><th:block th:text="${nextDyeName}">縹</th:block><rt th:text="${nextDyeRead}">はなだ</rt></ruby>(<th:block th:text="${nextDyeMeaning}"></th:block>)</span><span class="tn-hint" th:text="'次: ' + ${nextHint}"></span></span></p>
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
                 <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問 <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
@@ -89,7 +89,7 @@
                             <li th:each="ls : ${cp.lessons}" class="lesson-row"
                                 th:classappend="${(nextLesson != null and ls.lesson.id == nextLesson.id) ? 'is-next' : ''} + ' ' + ${ls.lesson.ready() ? '' : 'planned'}">
                                 <a th:href="@{/lessons/{id}(id=${ls.lesson.id})}"
-                                   th:attr="data-lesson=${ls.lesson.id}, data-minutes=${ls.lesson.minutes}, data-exercises=${ls.exercisesTotal}, data-quiz=${ls.quizTotal}, data-reading=${ls.lesson.reading.size()}, data-dye=${ls.dyeLevel()}, data-dye-label=${ls.dyeLabel()}, data-chapter=${cp.chapter.title}, data-hint=${dyeHints[ls.lesson.id]}">
+                                   th:attr="data-lesson=${ls.lesson.id}, data-minutes=${ls.lesson.minutes}, data-exercises=${ls.exercisesTotal}, data-quiz=${ls.quizTotal}, data-reading=${ls.lesson.reading.size()}, data-dye=${ls.dyeLevel()}, data-dye-label=${ls.dyeLabel()}, data-chapter=${#strings.substringAfter(pp.part.title, ' ') + '・' + cp.chapter.title}, data-hint=${dyeHints[ls.lesson.id]}">
                                     <span class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" role="img" th:attr="aria-label=${ls.dyeLabel()}"></span>
                                     <span class="row-title"><b th:if="${nextLesson != null and ls.lesson.id == nextLesson.id}">今日の稽古</b><span th:text="${ls.lesson.title}"></span></span>
                                     <span class="row-meta" th:if="${ls.lesson.ready()}">
