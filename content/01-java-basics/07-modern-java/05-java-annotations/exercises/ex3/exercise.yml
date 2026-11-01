@@ -1,0 +1,39 @@
+title: "@Get で URL とメソッドを結ぶミニルーター"
+className: MiniRouter
+difficulty: 3
+problem: |
+  第3部で習う Spring の `@GetMapping("/users")` は、「この URL が来たらこのメソッドを呼ぶ」という目印です。
+  その仕組みの縮小版を、自作アノテーション `@Get` とリフレクションで作ります。
+
+  ```java
+  class ShopController {
+      @Get("/hello")
+      public String hello() { return "いらっしゃいませ"; }
+
+      @Get("/items")
+      public String items() { return "コーヒー, 紅茶"; }
+
+      public String secret() { return "裏メニュー"; }   // 目印なし → URL からは呼べない
+  }
+  ```
+
+  `@Get`(雛形に用意済み)は、メソッドに付ける RUNTIME のアノテーションで、要素 `String value()` に URL のパスを持ちます。
+
+  **1. `routes(Class<?> type)` … 対応表を作る**
+
+  - `type.getDeclaredMethods()` のうち `@Get` が付いたメソッドについて、「パス → メソッド名」の `Map<String, String>` を返す
+  - パスの昇順で並ぶよう `TreeMap` を使う(上の例なら `{/hello=hello, /items=items}`)
+  - 同じパスが2つのメソッドに付いていたら、どちらを呼べばよいか決まらないので `IllegalStateException` を投げる(メッセージにそのパスを含める)
+
+  **2. `dispatch(Object controller, String path)` … パスに対応するメソッドを呼ぶ**
+
+  - `controller` のクラスから、`@Get` の `value` が `path` と一致するメソッドを探し、`m.invoke(controller)` で **引数なしで** 呼んで、戻り値を `String` にして返す
+  - 見つからなければ `"404 Not Found"` を返す(`@Get` の付いていない `secret` も、URL からは呼べないので 404)
+  - `invoke` は `IllegalAccessException` と `InvocationTargetException` を投げます(どちらもチェック例外)。`IllegalStateException` に包んで投げ直してください
+
+  | 呼び出し | 結果 |
+  |---|---|
+  | `dispatch(new ShopController(), "/hello")` | `"いらっしゃいませ"` |
+  | `dispatch(new ShopController(), "/secret")` | `"404 Not Found"` |
+
+  呼び出されるメソッドは、すべて `public` で引数なし・`String` を返すものとします。
