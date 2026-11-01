@@ -246,7 +246,7 @@
   def: "&& や || で、左側の結果だけで全体が確定するとき右側を評価しない仕組み。"
   lesson: java-if
 - term: "ガード節"
-  read: "がードせつ"
+  read: "ガードせつ"
   en: "guard clause"
   def: "条件を満たさない場合に先に return してしまい、ネストを浅くする書き方。"
   lesson: java-if
