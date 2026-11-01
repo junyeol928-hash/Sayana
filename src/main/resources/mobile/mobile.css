@@ -4,7 +4,8 @@ body.mobile-app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 .mobile-app #view:focus { outline: none; }
 .mobile-app .bottom-nav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface);
   padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -1px 0 var(--line), 0 -6px 18px oklch(.24 .05 255 / .06); }
-.mobile-app .stepper { top: 56px; }
+.mobile-app .stepper-wrap { top: 56px; }
+.mobile-app .lesson-nav { margin-bottom: 72px; } /* 質問ボタンが最後の行に重ならないように */
 .mobile-app .header-inner { max-width: 760px; }
 @media (min-width: 761px) {
   .mobile-app .today { margin-top: 8px; }

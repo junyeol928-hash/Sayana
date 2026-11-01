@@ -204,6 +204,14 @@ function dyeLevel(meta) {
 }
 
 const dyeSwatch = (level, extra = "") => `<span class="dye dye-${level} ${extra}" role="img" aria-label="${DYE[level].name}(${DYE[level].meaning})"></span>`;
+const dyeDot = (level) => `<span class="dye dye-${level}"></span>`;
+
+/** 染まり具合が深まった瞬間を、押した場所のそばで見せる(古い色の上に新しい色が広がる) */
+function dyeBurst(from, to) {
+  return `<span class="dye-burst" role="img" aria-label="${DYE[to].name}に染まりました">${dyeDot(from)}<span class="dye dye-${to} ink"></span></span>`;
+}
+
+const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "見る", sts: "STS", write: "書く", reading: "読解", quiz: "確かめる" };
 
 // ------------------------------------------------------------ 画面
 
@@ -213,6 +221,7 @@ async function render() {
   const hash = location.hash.replace(/^#/, "") || "/";
   document.body.classList.remove("sheet-open");
   view().onclick = null;
+  lessonTracker?.disconnect();
   const tab = hash.startsWith("/lesson/") ? "/" : hash;
   document.querySelectorAll(".bottom-nav a").forEach((a) => {
     if (a.getAttribute("href") === "#" + tab) a.setAttribute("aria-current", "page");
@@ -241,7 +250,9 @@ async function render() {
 }
 
 function updateHeader() {
-  $("#streak").innerHTML = `連続 <b>${streak()}</b> 日`;
+  const days = streak();
+  $("#streak").innerHTML = `連続 <b>${days}</b> 日`;
+  $("#streak").classList.toggle("zero", days === 0);
   const net = $("#net");
   net.textContent = navigator.onLine ? "オンライン" : "オフライン";
   net.classList.toggle("off", !navigator.onLine);
@@ -263,16 +274,22 @@ async function renderHome() {
   all.forEach((l) => counts[levels[l.id]]++);
   const deep = counts[2] + counts[3] + counts[4];
   const upcoming = Object.values(S.review).filter((it) => !it.graduated && it.due > today()).length;
-  const readingDone = Object.keys(S.reading).length;
+  const readingOk = Object.values(S.reading).filter((r) => r.ok).length;
   const readingTotal = all.reduce((s, l) => s + (l.reading || 0), 0);
+  const weekDays = S.days.filter((d) => d > addDays(today(), -7)).length;
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  const nextIndex = all.indexOf(next) + 1;
+  // 前回の続き(途中で閉じたレッスン)があれば、それを主役にする。新しいレッスンは控えめに添える
+  const last = S.last && all.find((l) => l.id === S.last.id && levels[l.id] < 3);
+  const hero = last || next;
+  const heroIndex = all.indexOf(hero) + 1;
+  const section = last && SECTION_LABEL[S.last.section];
   view().innerHTML = `
     <section class="today" aria-labelledby="today-title">
-      <p class="today-kicker"><span>今日の稽古</span><span>${esc(next.part.title.replace(/^第\d部\s*/, ""))} · ${esc(next.chapter.title)}</span></p>
-      <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(next.id)}">${esc(next.title)}</a></h1>
-      <p class="today-meta">${nextIndex} / ${all.length} レッスン目 · 読む ${next.minutes} 分 · 演習 ${next.exercises} · クイズ ${next.quiz}${next.reading ? ` · 読解 ${next.reading}` : ""}</p>
-      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(next.id)}">${levels[next.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
+      <p class="today-kicker"><span>${last ? "前回の続き" : "今日の稽古"}</span><span>${esc(hero.part.title.replace(/^第\d部\s*/, ""))} · ${esc(hero.chapter.title)}</span></p>
+      <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
+      <p class="today-meta"><span>${heroIndex} / ${all.length} レッスン目</span><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
+      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? `続きから${section ? `(${section})` : ""}` : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
+      ${last && next.id !== last.id ? `<a class="today-alt" href="#/lesson/${esc(next.id)}">次の新しいレッスン: ${esc(next.title)}</a>` : ""}
       <a class="today-review" href="#/review"><span>今日の復習</span>
         <span>${due ? `<b>${due}</b>問 ${icon("arrow", "sm")}` : `<span class="zero">今日はなし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
     </section>
@@ -280,17 +297,18 @@ async function renderHome() {
     <section class="progress-block" aria-labelledby="dye-title">
       <div class="progress-head">
         <h2 id="dye-title">染まり具合</h2>
-        <p><b>${deep}</b> / ${all.length} が縹より深い</p>
+        <p>クイズ合格以上 <b>${deep}</b> / ${all.length}</p>
       </div>
-      <div class="dye-strip" role="list">
-        ${all.map((l) => `<a role="listitem" href="#/lesson/${esc(l.id)}" title="${esc(l.title)}:${DYE[levels[l.id]].meaning}">${dyeSwatch(levels[l.id])}<span class="visually-hidden">${esc(l.title)}</span></a>`).join("")}
+      <div class="dye-strip" role="img" aria-label="${all.length} レッスンの染まり具合。${DYE.map((d, i) => `${d.meaning} ${counts[i]}`).join("、")}">
+        ${all.map((l) => dyeDot(levels[l.id])).join("")}
       </div>
       <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}${d.meaning} ${counts[i]}</li>`).join("")}</ul>
       <div class="home-stats">
-        <a href="#/review"><div class="stat-label">今日の復習</div><div class="stat-value">${due}<small>問</small></div></a>
-        <a href="#/reading"><div class="stat-label">読解</div><div class="stat-value">${readingDone}<small>/ ${readingTotal}</small></div></a>
-        <div><div class="stat-label">連続</div><div class="stat-value">${streak()}<small>日</small></div></div>
+        <div><div class="stat-label">復習まで卒業</div><div class="stat-value">${counts[4]}<small>/ ${all.length}</small></div></div>
+        <a href="#/reading"><div class="stat-label">読解の正解</div><div class="stat-value">${readingOk}<small>/ ${readingTotal}</small></div></a>
+        <div><div class="stat-label">この7日の稽古</div><div class="stat-value">${weekDays}<small>日</small></div></div>
       </div>
+      <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
       ${standalone ? "" : `<div class="install-hint">${icon("phone")}<p><b>ホーム画面に追加</b>するとアプリのように開けます。
         iPhone は Safari の共有ボタン →「ホーム画面に追加」、Android は Chrome のメニュー →「ホーム画面に追加」。</p></div>`}
     </section>
@@ -315,6 +333,31 @@ async function renderHome() {
           </div>
         </div>`).join("")}
     </section>`;
+  view().onclick = (ev) => {
+    const a = ev.target.closest("[data-resume]");
+    if (a && a.dataset.resume) pendingSection = a.dataset.resume;
+  };
+  homeSaveState(all);
+}
+
+let pendingSection = null;
+
+/** ホームの「この端末に保存済みか」。全レッスンの JSON がキャッシュにあるかを数える */
+async function homeSaveState(all) {
+  const el = $("#save-state");
+  if (!el) return;
+  if (!("caches" in window) || !("serviceWorker" in navigator)) { el.textContent = "このブラウザはオフライン保存に対応していません"; el.className = "save-state ng"; return; }
+  try {
+    const hits = await Promise.all(all.map((l) => caches.match(`data/lessons/${encodeURIComponent(l.id)}.json`)));
+    const n = hits.filter(Boolean).length;
+    if (!$("#save-state")) return;
+    el.className = "save-state " + (n === all.length ? "ok" : "ng");
+    el.textContent = n === all.length ? `全 ${all.length} レッスンをこの端末に保存済み。電波がなくても読めます`
+      : `保存済み ${n} / ${all.length}。電波のある所でもう一度開くと、残りも保存されます`;
+  } catch (e) {
+    console.warn("保存の状態を確かめられませんでした", e);
+    el.textContent = "保存の状態を確かめられませんでした";
+  }
 }
 
 function stars(n) {
@@ -352,11 +395,14 @@ async function renderLesson(id) {
       <p class="summary">${esc(L.summary)}</p>
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
-      ${L.goals.length ? `<div class="goals"><div class="goals-title">このレッスンのゴール</div><ul>${L.goals.map((g) => `<li>${esc(g)}</li>`).join("")}</ul></div>` : ""}
     </header>
-    <nav class="stepper" aria-label="このレッスンの段">
-      ${steps.map(([key, label, done]) => `<a href="#${key}" data-scroll="${key}" class="step ${done ? "done" : ""}">${label}</a>`).join("")}
-    </nav>
+    <div class="stepper-wrap">
+      <nav class="stepper" aria-label="このレッスンの段">
+        ${steps.map(([key, label, done]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
+      </nav>
+      <div class="sew" aria-hidden="true"></div>
+    </div>
+    ${L.goals.length ? `<details class="goals"${S.read[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g)}</li>`).join("")}</ul></details>` : ""}
     <section id="read" class="lesson-section" aria-labelledby="read-title">
       <h2 class="visually-hidden" id="read-title">解説</h2>
       <article class="lesson-body md">${L.bodyHtml}</article>
@@ -426,6 +472,59 @@ async function renderLesson(id) {
     ${tutorSheet(L)}`;
   bindLesson(L, meta);
   decorate(view());
+  trackLesson(id, steps.map(([key]) => key));
+}
+
+/** 読んでいる段を段の並びに示し、縫い線を進め、「前回の続き」を覚える */
+let lessonTracker = null;
+function trackLesson(id, keys) {
+  lessonTracker?.disconnect();
+  const sections = keys.map((k) => document.getElementById(k)).filter(Boolean);
+  const stepper = $(".stepper");
+  const sew = $(".sew");
+  if (!stepper || !sections.length) return;
+  S.last = { id, section: S.last?.id === id ? S.last.section : "read" };
+  save();
+  let current = null;
+  const setCurrent = (key) => {
+    if (key === current) return;
+    current = key;
+    stepper.querySelectorAll(".step").forEach((a) => {
+      if (a.dataset.step === key) {
+        a.setAttribute("aria-current", "true");
+        // 横に並んだ段の中で、今の段が見える位置まで送る(縦のスクロールは動かさない)
+        const left = a.offsetLeft - (stepper.clientWidth - a.offsetWidth) / 2;
+        stepper.scrollTo({ left, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      } else a.removeAttribute("aria-current");
+    });
+    if (S.last?.id === id && S.last.section !== key) { S.last.section = key; save(); }
+  };
+  const update = () => {
+    const line = 140; // ヘッダーと段の並びの下あたりを「今読んでいる位置」とみなす
+    let key = keys[0];
+    for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
+    setCurrent(key);
+    const first = sections[0].getBoundingClientRect().top + scrollY;
+    const lastSec = sections[sections.length - 1];
+    const end = lastSec.getBoundingClientRect().bottom + scrollY - innerHeight;
+    const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
+    sew?.style.setProperty("--p", (p * 100).toFixed(1) + "%");
+  };
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; if (document.contains(stepper)) update(); });
+  };
+  addEventListener("scroll", onScroll, { passive: true });
+  lessonTracker = { disconnect: () => removeEventListener("scroll", onScroll) };
+  update();
+  if (pendingSection && pendingSection !== "read") {
+    const target = document.getElementById(pendingSection);
+    pendingSection = null;
+    requestAnimationFrame(() => target?.scrollIntoView());
+  }
+  pendingSection = null;
 }
 
 /** 仕事のコード。番号の付いた行を、下の説明と結びつける */
@@ -434,8 +533,7 @@ function atWorkBlock(a) {
   return `<article class="atwork">
     ${a.title ? `<h3>${esc(a.title)}</h3>` : ""}
     <div class="atwork-intro md">${a.introHtml}</div>
-    <div class="code-notes">${notes.map(([n]) => `<span class="pin" style="--n:${Number(n)}" aria-hidden="true">${Number(n)}</span>`).join("")}
-      <pre><code class="language-java">${esc(a.code)}</code></pre></div>
+    <div class="code-notes"><pre class="code-lines" data-notes="${notes.map(([n]) => Number(n)).join(",")}"><code class="language-java">${esc(a.code)}</code></pre></div>
     ${notes.length ? `<ol class="line-notes">${notes.map(([n, html]) => `<li><span class="pin-label">${Number(n)}行</span><span>${html}</span></li>`).join("")}</ol>` : ""}
     ${a.pointsHtml?.length ? `<div class="points"><div class="points-title">読むときの着眼点</div><ul>${a.pointsHtml.map((p) => `<li>${p}</li>`).join("")}</ul></div>` : ""}
   </article>`;
@@ -449,7 +547,7 @@ function readingCard(r, ref, from) {
     <div class="reading-head"><h3>${esc(r.title)}</h3>
       <span class="level" aria-label="難しさ ${lv} / 3">${[1, 2, 3].map((n) => `<i class="${n <= lv ? "on" : ""}"></i>`).join("")}<span>${["やさしい", "ふつう", "むずかしい"][lv - 1]}</span></span></div>
     ${from ? `<p class="reading-from muted">${from}</p>` : ""}
-    <pre><code class="language-java">${esc(r.code)}</code></pre>
+    <pre class="code-lines"><code class="language-java">${esc(r.code)}</code></pre>
     <form data-action="reading">
       <fieldset style="border:0;padding:0;margin:0"><legend class="reading-question">${r.questionHtml}</legend>
       ${r.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${c}</span></label>`).join("")}</fieldset>
@@ -497,6 +595,18 @@ function termItem(t, withLesson, lessonTitle) {
   return `<li class="term"><p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${t.en ? `<small lang="en">${esc(t.en)}</small>` : ""}</p>
     <p class="term-def">${t.defHtml}</p>
     ${withLesson && t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}">${esc(lessonTitle || t.lesson)}</a>` : ""}</li>`;
+}
+
+/** 用語集の 1 枚。同じ語がいくつかのレッスンで出るときは、レッスンごとの説明を 1 枚の中に並べる */
+function termCard(g, titles) {
+  const t = g[0];
+  // 英語が見出しと同じ綴りなら繰り返さない
+  const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase());
+  const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
+  if (g.length === 1) return `<li class="term">${head}<p class="term-def">${t.defHtml}</p>
+    ${t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}">${esc(titles[t.lesson] || t.lesson)}</a>` : ""}</li>`;
+  return `<li class="term">${head}<ul class="term-defs">${g.map((x) => `<li><p class="term-def">${x.defHtml}</p>
+    ${x.lesson ? `<a class="term-from" href="#/lesson/${esc(x.lesson)}">${esc(titles[x.lesson] || x.lesson)}</a>` : ""}</li>`).join("")}</ul></li>`;
 }
 
 function exerciseCard(e, i) {
@@ -553,15 +663,27 @@ function chatHtml(m) {
     : `<div class="chat-msg from-ai"><div class="chat-who">モカ先輩(AI)</div><div class="chat-body md" data-md="${esc(m.content)}">${esc(m.content)}</div></div>`;
 }
 
-/** 染まり具合が深まったら、名札の色を染み込ませる */
+/** 染まり具合を測り直して名札を更新する。深まったら { from, to } を返す(押した場所で染み込みを見せるため) */
 function refreshDye(meta) {
-  if (!meta) return;
+  if (!meta) return null;
   const level = dyeLevel(meta);
   const wrap = $(".lesson-dye");
-  if (!wrap || wrap.dataset.level === String(level)) return;
+  if (!wrap || wrap.dataset.level === String(level)) return null;
+  const from = Number(wrap.dataset.level || 0);
   wrap.dataset.level = level;
-  wrap.innerHTML = `${dyeSwatch(level, "lesson-swatch dyeing")} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span>`;
+  wrap.innerHTML = `${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span>`;
+  return level > from ? { from, to: level } : null;
 }
+
+/** 段の並びの印を「済み」にする */
+function markStep(key) {
+  const a = $(`.step[data-step="${key}"]`);
+  if (!a || a.classList.contains("done")) return;
+  a.classList.add("done");
+  a.insertAdjacentHTML("beforeend", `<span class="visually-hidden">(済み)</span>`);
+}
+
+const dyedLine = (d) => d ? `<span class="dyed-line">${dyeBurst(d.from, d.to)}<span>${DYE[d.to].name}に染まった(${DYE[d.to].meaning})</span></span>` : "";
 
 let lastCode = "";
 
@@ -595,8 +717,9 @@ function bindLesson(L, meta) {
     if (action === "read") {
       S.read[L.id] = true;
       recordDay();
-      el.outerHTML = `<div class="done">${icon("check")}読了。次はサンプルを読んで、演習に挑戦しよう</div>`;
-      refreshDye(meta);
+      const dyed = refreshDye(meta);
+      el.outerHTML = `<div class="done">${icon("check")}読了。次はサンプルを読んで、演習に挑戦しよう</div>${dyedLine(dyed)}`;
+      markStep("read");
     } else if (action === "check") {
       const list = new Set(S.checklist[L.id] || []);
       list.has(el.dataset.key) ? list.delete(el.dataset.key) : list.add(el.dataset.key);
@@ -616,7 +739,10 @@ function bindLesson(L, meta) {
       S.exercise[ex.key] = Object.assign(S.exercise[ex.key] || {}, { selfPass: ok || S.exercise[ex.key]?.selfPass === true });
       practice(ex.key, "exercise", L.id, ok);
       recordDay();
-      refreshDye(meta);
+      const dyed = refreshDye(meta);
+      el.closest(".self-check").querySelector(".dyed-line")?.remove();
+      if (dyed) el.closest(".self-check").insertAdjacentHTML("beforeend", dyedLine(dyed));
+      if (ok) markStep("write");
       toast(ok ? "記録しました。1日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
     } else if (action === "ai-review" || action === "ai-hint") {
       const card = el.closest("article");
@@ -653,10 +779,11 @@ function bindLesson(L, meta) {
     const prev = S.quiz[L.id];
     S.quiz[L.id] = { best: Math.max(score, prev?.best ?? 0), last: score };
     recordDay();
-    refreshDye(meta);
+    const dyed = refreshDye(meta);
     const pass = Math.ceil(L.quiz.length * 0.8);
+    if (score >= pass) markStep("quiz");
     $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>
-      <span>${score === L.quiz.length ? "満点。縹に染まりました" : score >= pass ? "合格ライン突破。縹に染まりました" : `合格ラインは ${pass} 問`}</span></div>
+      <span>${score === L.quiz.length ? "満点" : score >= pass ? "合格ライン突破" : `合格ラインは ${pass} 問`}</span></div>${dyedLine(dyed)}
       <p class="muted small">解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
       <ol class="quiz-review">${rows.join("")}</ol></div>`;
     decorate($("#quiz-result"));
@@ -732,32 +859,59 @@ function addSymbolBar(ta) {
 async function renderReadingPage() {
   const [items, cur] = await Promise.all([readingAll(), curriculum()]);
   const titles = Object.fromEntries(allLessons(cur).map((l) => [l.id, l.title]));
+  const lessons = allLessons(cur);
+  const partOf = Object.fromEntries(lessons.map((l) => [l.id, cur.parts.indexOf(l.part)]));
   const filter = S.settings.readingFilter || "todo";
+  const part = S.settings.readingPart ?? "all";
+  const level = S.settings.readingLevel ?? "all";
   const pick = (r) => {
     const st = S.reading[r.ref];
+    if (part !== "all" && String(partOf[r.lesson]) !== part) return false;
+    if (level !== "all" && String(Math.max(1, Math.min(3, r.level || 1))) !== level) return false;
     if (filter === "todo") return !st;
     if (filter === "wrong") return st && !st.ok;
     return true;
   };
   const shown = items.filter(pick);
   const correct = items.filter((r) => S.reading[r.ref]?.ok).length;
+  const PAGE = 20;
   view().innerHTML = `
     <h1 class="page-title">コードを読む</h1>
     <p class="page-lead">業務のコードを読む力を、実行せずに頭の中で追って鍛えます。全 ${items.length} 問のうち <b>${correct}</b> 問に正解。答えた問題は復習にも出ます。</p>
     <div class="reading-filter" role="group" aria-label="表示する問題">
       ${[["todo", "まだ解いていない"], ["wrong", "間違えた"], ["all", "すべて"]].map(([k, label]) =>
         `<button type="button" data-filter="${k}" aria-pressed="${filter === k}">${label}</button>`).join("")}
+      <select data-select="readingPart" aria-label="部で絞る"><option value="all">すべての部</option>
+        ${cur.parts.map((p, i) => `<option value="${i}" ${part === String(i) ? "selected" : ""}>${esc(p.title)}</option>`).join("")}</select>
+      <select data-select="readingLevel" aria-label="難しさで絞る"><option value="all">すべての難しさ</option>
+        ${["やさしい", "ふつう", "むずかしい"].map((t, i) => `<option value="${i + 1}" ${level === String(i + 1) ? "selected" : ""}>${t}</option>`).join("")}</select>
     </div>
-    ${shown.length ? `<ol class="reading-list">${shown.slice(0, 40).map((r) => readingCard(r, r.ref,
-      `<a href="#/lesson/${esc(r.lesson)}">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("")}</ol>
-      ${shown.length > 40 ? `<p class="muted small">ほかに ${shown.length - 40} 問あります。解き進めると次が出てきます。</p>` : ""}`
+    <p class="glossary-count">${shown.length} 問</p>
+    ${shown.length ? `<ol class="reading-list" id="reading-list"></ol><div class="more"><button class="btn" type="button" id="more" hidden></button></div>`
       : `<div class="card empty-state"><p>${filter === "wrong" ? "間違えた問題はありません。" : "この条件の問題はありません。"}</p></div>`}`;
   view().querySelectorAll("[data-filter]").forEach((b) => {
     b.onclick = () => { S.settings.readingFilter = b.dataset.filter; save(); renderReadingPage(); };
   });
+  view().querySelectorAll("[data-select]").forEach((sel) => {
+    sel.onchange = () => { S.settings[sel.dataset.select] = sel.value; save(); renderReadingPage(); };
+  });
   const byRef = Object.fromEntries(items.map((r) => [r.ref, r]));
-  bindReading(view(), (ref) => byRef[ref]);
-  decorate(view());
+  const list = $("#reading-list");
+  const more = $("#more");
+  let count = 0;
+  // 少しずつ描く(171 問を一度に描くと、スマホでコードの色付けが重い)
+  const showMore = () => {
+    const chunk = shown.slice(count, count + PAGE);
+    const tmp = document.createElement("ol");
+    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
+    bindReading(tmp, (ref) => byRef[ref]);
+    decorate(tmp);
+    list.append(...tmp.children);
+    count += chunk.length;
+    more.hidden = count >= shown.length;
+    more.textContent = `もっと見る(残り ${shown.length - count} 問)`;
+  };
+  if (list) { more.onclick = showMore; showMore(); }
 }
 
 // ------------------------------------------------------------ 用語集
@@ -775,28 +929,35 @@ function kanaRow(t) {
 async function renderGlossary() {
   const [terms, cur] = await Promise.all([glossary(), curriculum()]);
   const titles = Object.fromEntries(allLessons(cur).map((l) => [l.id, l.title]));
+  const plain = (html) => html.replace(/<[^>]+>/g, "");
+  // 同じ語(大文字小文字は区別しない)を 1 枚にまとめ、読み順に並べる
+  const groups = new Map();
+  [...terms].sort((a, b) => (a.read || a.term).localeCompare(b.read || b.term, "ja")).forEach((t) => {
+    const k = t.term.trim().toLowerCase();
+    groups.set(k, [...(groups.get(k) || []), t]);
+  });
+  const index = [...groups.values()].map((g) => ({ g, row: kanaRow(g[0]),
+    key: g.map((t) => [t.term, t.read, t.en, plain(t.defHtml), titles[t.lesson]].join(" ")).join(" ").toLowerCase() }));
+  const rows = [...new Set(index.map((x) => x.row))];
   view().innerHTML = `
     <h1 class="page-title">用語集</h1>
-    <p class="page-lead">全レッスンの用語 ${terms.length} 語を読み順に。読み・英語・説明のどれでも探せます。同じ用語はレッスンごとの説明が並びます。</p>
+    <p class="page-lead">全レッスンの用語 ${index.length} 語を読み順に。読み・英語・説明のどれでも探せます。いくつかのレッスンに出る語は、レッスンごとの説明を 1 枚にまとめています。</p>
     <div class="search">${icon("search")}<input type="search" id="q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
+    <nav class="kana-index" id="kana-index" aria-label="行で飛ぶ">${rows.map((r, i) => `<a href="#g-${i}">${r.replace("行", "").replace("英字・記号", "A-Z")}</a>`).join("")}</nav>
     <p class="glossary-count" id="count" aria-live="polite"></p>
     <ul class="term-list" id="terms"></ul>`;
   const list = $("#terms");
   const count = $("#count");
-  const plain = (html) => html.replace(/<[^>]+>/g, "");
-  // 読み順に並べる(同じ用語がレッスンごとに別の説明で出るので、隣り合わせにする)
-  const index = [...terms].sort((a, b) => (a.read || a.term).localeCompare(b.read || b.term, "ja")).map((t) => ({ t, key: [t.term, t.read, t.en, plain(t.defHtml), titles[t.lesson]].join(" ").toLowerCase() }));
   const show = (q) => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const hit = index.filter((x) => words.every((w) => x.key.includes(w))).map((x) => x.t);
+    const hit = index.filter((x) => words.every((w) => x.key.includes(w)));
     count.textContent = q ? `${hit.length} 語` : "";
+    $("#kana-index").hidden = !!q;
     let row = "";
-    // 405 語なら全部描いても軽いので、区切らずに出す(行の見出しで飛べるように)
-    list.innerHTML = hit.map((t) => {
-      const r = kanaRow(t);
-      const head = !q && r !== row ? `<li class="term-group"><h2>${r}</h2></li>` : "";
-      row = r;
-      return head + termItem(t, true, titles[t.lesson]);
+    list.innerHTML = hit.map((x) => {
+      const head = !q && x.row !== row ? `<li class="term-group" id="g-${rows.indexOf(x.row)}"><h2>${x.row}</h2></li>` : "";
+      row = x.row;
+      return head + termCard(x.g, titles);
     }).join("");
   };
   $("#q").addEventListener("input", (e) => show(e.target.value.trim()));
@@ -1177,12 +1338,53 @@ async function decorate(root) {
       root.querySelectorAll(".mermaid:not([data-processed])").forEach((d) => { d.style.whiteSpace = "pre"; d.style.textAlign = "left"; });
     }
   }
+  root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   if (window.hljs) {
-    root.querySelectorAll("pre code:not([data-highlighted])").forEach((el) => {
+    root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
       if (!el.className.includes("language-")) el.classList.add("language-java");
       if (!el.classList.contains("language-text")) window.hljs.highlightElement(el);
     });
   }
+}
+
+/** コードを 1 行ずつの要素に分け、行番号を付ける(色付けの span が行をまたいでも、行ごとに閉じて開き直す) */
+function numberLines(code) {
+  const text = code.textContent.replace(/\n$/, "");
+  const html = window.hljs ? window.hljs.highlight(text, { language: "java", ignoreIllegals: true }).value : esc(text);
+  const notes = new Set((code.parentElement.dataset.notes || "").split(",").filter(Boolean).map(Number));
+  const lines = [];
+  let open = [];
+  let cur = "";
+  for (const part of html.split(/(<span[^>]*>|<\/span>|\n)/)) {
+    if (part === "\n") { lines.push(cur + "</span>".repeat(open.length)); cur = open.join(""); }
+    else if (part.startsWith("<span")) { open.push(part); cur += part; }
+    else if (part === "</span>") { open.pop(); cur += part; }
+    // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)
+    else cur += part.replace(/\./g, "<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+  }
+  lines.push(cur);
+  // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
+  const indent = text.split("\n").map((t) => t.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length);
+  code.innerHTML = lines.map((l, i) => `<span class="ln${notes.has(i + 1) ? " note" : ""}" data-n="${i + 1}" style="--ind:${indent[i] || 0}">${l || " "}</span>`).join("");
+  code.dataset.lines = "1";
+  code.classList.add("hljs");
+}
+
+/** 電波のあるうちに、図の描画に使う部品を読み込んでおく(地下鉄で初めて図を開いても描けるように) */
+function warmMermaid() {
+  if (!navigator.onLine || localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL) return;
+  const run = async () => {
+    try {
+      if (!mermaidModule) mermaidModule = (await import(MERMAID_URL)).default;
+      mermaidModule.initialize(mermaidTheme());
+      const samples = ["flowchart LR\n a-->b", "sequenceDiagram\n a->>b: x", "classDiagram\n A <|-- B", "erDiagram\n A ||--o{ B : has", "stateDiagram-v2\n [*] --> A"];
+      for (const [i, src] of samples.entries()) await mermaidModule.render(`warm-${i}`, src);
+      localStorage.setItem("javadojo-m-mermaid", MERMAID_URL);
+    } catch (e) {
+      console.warn("図の部品を先に読み込めませんでした", e);
+    }
+  };
+  (window.requestIdleCallback || ((f) => setTimeout(f, 3000)))(run);
 }
 
 // ------------------------------------------------------------ 起動
@@ -1200,6 +1402,16 @@ window.addEventListener("hashchange", () => {
   render();
   window.scrollTo(0, 0);
 });
+let lastY = scrollY;
+addEventListener("scroll", () => {
+  const fab = $(".tutor-fab");
+  if (fab) {
+    const y = scrollY;
+    if (y > lastY + 6 && y > 200) fab.classList.add("away");
+    else if (y < lastY - 6) fab.classList.remove("away");
+    lastY = y;
+  }
+}, { passive: true });
 window.addEventListener("online", updateHeader);
 window.addEventListener("offline", updateHeader);
 window.addEventListener("load", () => decorate(document));
@@ -1221,3 +1433,4 @@ if ("serviceWorker" in navigator) {
 }
 
 render();
+warmMermaid();
