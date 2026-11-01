@@ -723,18 +723,34 @@ function trackLesson(id, keys) {
   };
   let ticking = false;
   const menu = $(".step-menu");
+  let skipClose = false; // 一覧を開くために段の帯を送ったときのスクロールでは閉じない
   // 閉じたら、一覧の中にあったフォーカスを段のボタンへ戻す(キーボードで迷子にならないように)
   menu?.addEventListener("toggle", () => {
     if (!menu.open && menu.querySelector("ol")?.contains(document.activeElement)) menu.querySelector("summary").focus({ preventScroll: true });
     // 開いた位置から下のメニューの上端までに収め、入りきらない分は一覧の中でスクロールする
     // (冒頭で開くと一覧が下のメニューの裏へ伸び、6・7 段目を押せなかった。14 回目の指摘)
+    // 残りが 3 段分に満たないときは、段の帯を上に貼り付く位置まで送ってから測る。
+    // 高さは「段の行 × n + 半行」にして、続きがあることを半分見えている次の段で示す
     if (menu.open) {
       const nav = $(".bottom-nav")?.getBoundingClientRect().height || 0;
-      menu.querySelector("ol").style.maxHeight = `${Math.max(160, innerHeight - menu.querySelector("summary").getBoundingClientRect().bottom - nav - 8)}px`;
+      const ol = menu.querySelector("ol");
+      ol.style.maxHeight = "";
+      const row = ol.querySelector("li")?.getBoundingClientRect().height || 44;
+      const room = () => innerHeight - menu.querySelector("summary").getBoundingClientRect().bottom - nav - 8;
+      if (room() < row * 3) {
+        skipClose = true;
+        menu.closest(".stepper-wrap").scrollIntoView({ block: "start", behavior: "instant" });
+      }
+      const lis = ol.querySelectorAll("li");
+      const pad = lis[0]?.offsetTop || 0; // 一覧の上の余白(ol が基準の箱)
+      const step = lis[1] ? lis[1].offsetTop - lis[0].offsetTop : row;
+      const r = room();
+      ol.style.maxHeight = ol.scrollHeight <= r ? "" : `${pad + Math.max(1, Math.floor((r - pad) / step - 0.5) + 0.5) * step}px`;
     }
   });
   const onScroll = () => {
-    if (menu?.open) menu.open = false;
+    if (skipClose) skipClose = false;
+    else if (menu?.open) menu.open = false;
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => { ticking = false; if (document.contains(stepper)) update(); });
