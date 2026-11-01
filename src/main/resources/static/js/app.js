@@ -246,7 +246,9 @@ const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<"
 
 /** コードを 1 行ずつの要素に分け、行番号を付ける(スマホ版 app.js の numberLines と同じ) */
 function numberLines(code) {
-  const text = code.textContent.replace(/\n$/, "");
+  // 400px 以下は字下げを半分にして 1 行の字数を稼ぐ(型と名前が折り返しで離れないように。行番号の列を詰めるより効く)
+  const narrow = matchMedia("(max-width: 400px)").matches;
+  const text = code.textContent.replace(/\n$/, "").replace(/^ +/gm, (m) => (narrow ? " ".repeat(Math.ceil(m.length / 2)) : m));
   const html = window.hljs ? window.hljs.highlight(text, { language: "java", ignoreIllegals: true }).value : escHtml(text);
   const notes = new Set((code.parentElement.dataset.notes || "").split(",").filter(Boolean).map(Number));
   const lines = [];
@@ -335,15 +337,30 @@ function dashboardResume() {
     const btn = hero.querySelector(".today-actions a");
     btn.href = href;
     const label = SECTION_LABEL[last.section];
+    // 前回いた段がもう済んでいたら、主ボタンは次のまだの段へ(「次:」の行と同じ段を指す)。染めの段で済んだかを見る
+    const rd = row.dataset;
+    const dye = Number(rd.dye);
+    const doneBy = { read: dye >= 1, quiz: dye >= 2, write: dye >= 3 };
+    const order = ["read", "atwork", "run", "quiz", "write", "reading", "sts"];
+    const has = { write: rd.exercises !== "0", reading: rd.reading !== "0" };
+    const go = doneBy[last.section]
+      ? order.slice(order.indexOf(last.section) + 1).find((k) => ["quiz", "write", "reading"].includes(k) && has[k] !== false && !doneBy[k]) || last.section
+      : last.section;
     // 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。スマホ版 app.js の resumeLabel と同じ
-    btn.textContent = !label ? "続きから" : label === "読む" ? "続きを読む" : `${label}の続きから`;
+    btn.textContent = go !== last.section ? `${SECTION_LABEL[go]}へ進む` : !label ? "続きから" : label === "読む" ? "続きを読む" : `${label}の続きから`;
+    if (go !== last.section) {
+      btn.href = `/lessons/${encodeURIComponent(last.id)}#${go}`;
+      hero.querySelector(".today-actions").insertAdjacentHTML("beforeend", `<a class="today-alt" data-back href="${href}">前回の位置(${escHtml(label)})へ戻る</a>`);
+    }
     // 染まりの地図の朱の印も、前回の続きのマスへ
     document.querySelectorAll(".dye-cell.is-here").forEach((c) => c.classList.remove("is-here"));
     document.querySelector(`.dye-cell[data-lesson="${CSS.escape(last.id)}"]`)?.classList.add("is-here");
     const here = document.querySelector(".dye-map-here");
     if (here) here.textContent = "前回の続き";
     // レッスンを開いたら、読んでいた位置へ戻す(レッスン側が読む)
-    [btn, title].forEach((a) => a.addEventListener("click", () => sessionStorage.setItem(RESUME_KEY, last.id)));
+    // 次の段へ進むボタンは段の先頭へ(位置は戻さない)
+    [go === last.section ? btn : null, title, hero.querySelector("[data-back]")].filter(Boolean)
+      .forEach((a) => a.addEventListener("click", () => sessionStorage.setItem(RESUME_KEY, last.id)));
     if (title.getAttribute("href").endsWith("/" + last.id)) return;
     const nextHref = title.getAttribute("href");
     const nextTitle = title.textContent;

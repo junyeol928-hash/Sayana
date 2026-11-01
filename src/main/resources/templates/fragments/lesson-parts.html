@@ -45,7 +45,7 @@
 <!--/* クイズの採点結果。各問の解説は static/js/app.js が問の直下へ移し、ここには点数・間違えた問・次の一手だけを残す */-->
 <div th:fragment="quizResult" class="quiz-result" th:with="a=${outcome.attempt()}, pass=${status.quizPassScore()}">
     <div class="quiz-score">
-        <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
+        <span class="big"><th:block th:text="${a.score}"></th:block><span class="slash">/</span><th:block th:text="${a.total}"></th:block></span>
         <span class="score-stitches" aria-hidden="true"><i th:each="i : ${#numbers.sequence(1, a.total)}" th:classappend="${i <= a.score} ? 'on'"></i></span>
         <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格(' + pass + ' 問以上)' : 'あと ' + (pass - a.score) + ' 問で合格(' + pass + ' 問以上)')}"></span>
     </div>

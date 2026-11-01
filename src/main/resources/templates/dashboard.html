@@ -15,8 +15,8 @@
             <p class="today-next" th:if="${nextHint != null}"><span class="dye" th:classappend="'dye-' + ${nextDye}"></span><span><span class="tn-now">いま <ruby><th:block th:text="${nextDyeName}">縹</th:block><rt th:text="${nextDyeRead}">はなだ</rt></ruby>(<th:block th:text="${nextDyeMeaning}"></th:block>)</span><span class="tn-hint" th:text="'次: ' + ${nextHint}"></span></span></p>
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
-                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問 <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
-                <span th:if="${dueCount == 0}" class="zero" th:text="'今日はなし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
+                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="'約 ' + ${(dueCount + 2) / 3} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+                <span th:if="${dueCount == 0}" class="zero" th:text="'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
             <p class="talk-line" th:if="${streak == 0}">モカ先輩「まずは1レッスン、15分だけやってみよう」</p>
             <p class="talk-line" th:if="${streak > 0 and !studiedToday}" th:text="'モカ先輩「連続 ' + ${streak} + ' 日。今日もちょっとだけやって記録をつなごう」'"></p>
             <p class="talk-line" th:if="${streak > 0 and studiedToday}" th:text="'モカ先輩「今日もやったね。連続 ' + ${streak} + ' 日目」'"></p>
