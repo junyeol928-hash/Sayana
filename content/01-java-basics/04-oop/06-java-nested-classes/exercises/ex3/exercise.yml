@@ -1,0 +1,34 @@
+title: 内部クラスで整理券を発行する
+className: TicketMachine
+difficulty: 2
+problem: |
+  役所の窓口の **整理券発行機** `TicketMachine` を作ります。発行した整理券 `Ticket` は **内部クラス**(static なし)で、
+  自分を発行した発行機の **窓口名** と **最新の発行枚数** を、外側のフィールドから直接読みます。
+
+  ```java
+  TicketMachine a = new TicketMachine("A窓口");
+  TicketMachine.Ticket t1 = a.issue();
+  TicketMachine.Ticket t2 = a.issue();
+  TicketMachine.Ticket t3 = a.issue();
+
+  t1.label();     // "A窓口-001"
+  t3.label();     // "A窓口-003"
+  t1.behind();    // 2 (t1 より後に発行された枚数)
+  a.issuedCount(); // 3
+  ```
+
+  次のメソッドを完成させてください。
+
+  **外側 `TicketMachine`**
+  - `Ticket issue()`:発行枚数を1増やし、その番号(1から始まる連番)の `Ticket` を作って返す
+  - `int issuedCount()`:これまでに発行した枚数
+
+  **内部クラス `Ticket`**
+  - `String label()`:`"窓口名-番号"`。番号は **3桁のゼロ埋め**(`String.format("%03d", number)` で `7` → `"007"`)
+  - `int behind()`:**自分より後に発行された枚数**。外側の発行枚数は発行が進むと増えるので、呼んだ時点の最新の値で計算する
+
+  発行機は窓口ごとに別々です。`B窓口` の発行機で発行しても、`A窓口` の番号は進みません。
+
+  注意:
+  - `Ticket` に `static` を付けないでください(付けると外側の窓口名や発行枚数を読めなくなります)。
+  - 外側のフィールドは `Ticket` の中からそのまま(`counterName`、`issued` と)書けば読めます。明示したいときは `TicketMachine.this.issued` です。
