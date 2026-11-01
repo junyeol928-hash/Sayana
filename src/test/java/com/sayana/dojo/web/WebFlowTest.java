@@ -2,6 +2,7 @@ package com.sayana.dojo.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -65,7 +66,8 @@ class WebFlowTest {
                 .andExpect(content().string(containsString("このレッスンの用語")));
         mvc.perform(get("/lessons/java-hello")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("STSでやってみよう")))
-                .andExpect(content().string(containsString("AI機能はオフです")));
+                .andExpect(content().string(containsString("AI は未設定です")))
+                .andExpect(content().string(not(containsString("AI OFF"))));
         // 準備中のレッスンが残っていれば、その表示も確かめる
         var planned = content.allLessons().stream().filter(l -> !l.ready()).findFirst();
         if (planned.isPresent()) {

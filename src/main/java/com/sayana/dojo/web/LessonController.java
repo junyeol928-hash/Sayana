@@ -84,8 +84,8 @@ public class LessonController {
         model.addAttribute("status", status);
         // 染まったと知らせるのは、この採点で段が変わったときだけ(もう藍の人に「縹に染まりました」と出さない)
         model.addAttribute("dyedTo", status.dyeLevel() > before ? status.dyeLabel() : null);
-        // 合格したときの次の段は、段の並び(クイズ → 読解 → 演習 → STS)の次
-        model.addAttribute("nextKey", !lesson.reading().isEmpty() ? "reading" : !lesson.exercises().isEmpty() ? "write" : null);
+        // 合格したときの次の段は、段の並び(クイズ → 演習 → 読解 → STS)の次。読解は染まりの条件に入らないので演習の後ろ
+        model.addAttribute("nextKey", !lesson.exercises().isEmpty() ? "write" : !lesson.reading().isEmpty() ? "reading" : null);
         return "fragments/lesson-parts :: quizResult";
     }
 

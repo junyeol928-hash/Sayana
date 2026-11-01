@@ -33,7 +33,7 @@
     <div class="header-inner">
         <a class="logo" th:href="@{/}"><img class="logo-mark" th:src="@{/img/icon.svg}" alt="" width="28" height="28"><span>Java<b>道場</b></span></a>
         <nav class="main-nav" aria-label="メニュー">
-            <a th:href="@{/}">ダッシュボード</a>
+            <a th:href="@{/}">ホーム</a>
             <a th:href="@{/reading}">読解</a>
             <a th:href="@{/review}">復習<span class="count" th:if="${dueCount > 0}" th:text="${dueCount}">3</span></a>
             <a th:href="@{/glossary}">用語集</a>
@@ -42,8 +42,7 @@
         </nav>
         <div class="header-status">
             <span class="streak" th:classappend="${streak == 0} ? 'zero'" th:title="'連続学習 ' + ${streak} + '日'">連続 <b th:text="${streak}">0</b> 日</span>
-            <span th:if="${aiAvailable}" class="ai-badge on" title="ANTHROPIC_API_KEY が設定されています">AI ON</span>
-            <span th:unless="${aiAvailable}" class="ai-badge off" title="ANTHROPIC_API_KEY が未設定です。AI機能以外は使えます">AI OFF</span>
+            <!--/* AI の設定の有無はヘッダーに出さない(学習者には雑音)。AI の入口(チューターの欄・講評のボタン)の中で知らせる */-->
         </div>
     </div>
     <!--/* スマホ用の下部ナビ(狭い画面だけ表示) */-->
@@ -51,7 +50,7 @@
         <a th:href="@{/}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><span>ホーム</span></a>
         <a th:href="@{/reading}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg></span><span>読解</span></a>
         <a th:href="@{/review}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-repeat"/></svg><span class="bn-count" th:if="${dueCount > 0}" th:text="${dueCount}">3</span></span><span>復習</span></a>
-        <a th:href="@{/glossary}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-terms"/></svg></span><span>用語</span></a>
+        <a th:href="@{/glossary}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-terms"/></svg></span><span>用語集</span></a>
         <a th:href="@{/playground}"><span class="bn-icon"><svg class="icon" aria-hidden="true"><use href="#i-flask"/></svg></span><span>試す</span></a>
     </nav>
 </header>

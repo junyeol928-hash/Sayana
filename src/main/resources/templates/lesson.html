@@ -6,7 +6,7 @@
 
 <!--/* 準備中のレッスン */-->
 <main id="main" class="container narrow" th:unless="${lesson.ready()}">
-    <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ダッシュボード</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
+    <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
     <h1 th:text="${lesson.title}"></h1>
     <div class="card planned-note">
         <p>このレッスンは<b>準備中</b>です。章立てだけ先に置いてあります(docs/PLAN.md のチェックリスト参照)。</p>
@@ -22,7 +22,7 @@
 <div class="lesson-layout" th:if="${lesson.ready()}" th:classappend="${aiAvailable} ? '' : 'no-tutor'">
 <main id="main" class="lesson-main">
     <header class="lesson-hero">
-        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ダッシュボード</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
+        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
         <h1 th:text="${lesson.title}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
         <p class="summary" th:text="${lesson.summary}"></p>
         <p class="meta">
@@ -31,7 +31,6 @@
             <span>読む <span th:text="${lesson.minutes}">15</span> 分</span>
             <span th:if="${status.bestQuiz != null}" th:text="'クイズ最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal}"></span>
         </p>
-        <p class="ai-off-line" th:unless="${aiAvailable}">AI機能はオフです。この画面は教材と自動採点だけで使えます。</p>
     </header>
 
     <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→クイズ→読解→演習→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ */-->
@@ -42,9 +41,9 @@
         <a href="#run" class="step" th:if="${!lesson.samples.isEmpty()}" th:classappend="${status.sampleRun} ? 'done'">サンプル</a>
         <!--/* 段の「n/全部」は済んだ問の数だけ(クイズの最高点は冒頭の「クイズ最高」に任せる) */-->
         <a href="#quiz" class="step" th:classappend="${status.bestQuiz != null and status.quizPassed()} ? 'done'">クイズ</a>
-        <a href="#reading" class="step" th:if="${!lesson.reading.isEmpty()}">読解</a>
         <a href="#write" class="step" th:if="${!exercises.isEmpty()}" th:classappend="${status.exercisesPassed == status.exercisesTotal} ? 'done'">演習
             <small th:if="${status.exercisesPassed > 0 and status.exercisesPassed < status.exercisesTotal}" th:text="${status.exercisesPassed} + '/' + ${status.exercisesTotal}"></small></a>
+        <a href="#reading" class="step" th:if="${!lesson.reading.isEmpty()}">読解</a>
         <a href="#sts" class="step" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}"
            th:classappend="${status.checklistTotal > 0 and status.checklistComplete()} ? 'done'">STSで試す</a>
     </nav>
@@ -126,6 +125,17 @@
         <div id="quiz-result" aria-live="polite"></div>
     </section>
 
+    <section id="write" class="lesson-section" th:if="${!exercises.isEmpty()}" aria-labelledby="write-title">
+        <h2 class="section-title" id="write-title">演習・AIに見てもらう</h2>
+        <p class="section-lead">提出すると別のJVMでJUnitが走って採点されます(10秒で打ち切り)。
+            採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。</p>
+        <!--/* AI の設定の有無は、AI の入口(この段)でだけ知らせる。ヘッダーやレッスンの冒頭には出さない */-->
+        <p class="muted small" th:unless="${aiAvailable}">AI は未設定です(教材と自動採点はそのまま使えます。設定の手順は README)。</p>
+        <th:block th:each="view : ${exercises}">
+            <article th:replace="~{fragments/exercise :: card(${view})}"></article>
+        </th:block>
+    </section>
+
     <section id="reading" class="lesson-section" th:if="${!lesson.reading.isEmpty()}" aria-labelledby="reading-title">
         <h2 class="section-title" id="reading-title">読解 — コードを読む</h2>
         <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
@@ -134,15 +144,6 @@
                 <li th:replace="~{fragments/lesson-parts :: readingCard(${r}, ${lesson.id} + '@' + ${rs.index}, null)}"></li>
             </th:block>
         </ol>
-    </section>
-
-    <section id="write" class="lesson-section" th:if="${!exercises.isEmpty()}" aria-labelledby="write-title">
-        <h2 class="section-title" id="write-title">演習・AIに見てもらう</h2>
-        <p class="section-lead">提出すると別のJVMでJUnitが走って採点されます(10秒で打ち切り)。
-            採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。</p>
-        <th:block th:each="view : ${exercises}">
-            <article th:replace="~{fragments/exercise :: card(${view})}"></article>
-        </th:block>
     </section>
 
     <section id="sts" class="lesson-section" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}" aria-labelledby="sts-title">

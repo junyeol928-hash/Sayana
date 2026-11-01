@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('ダッシュボード')}"></head>
+<head th:replace="~{fragments/layout :: head('ホーム')}"></head>
 <body class="page-dashboard">
 <!--/* 前回の続きがこのブラウザに記録されていれば、JS が主役を差し替えるまでヒーローを隠す(ちらつかないように)。JS が動かなくても 1.5 秒で出す */-->
 <script>try { if (JSON.parse(localStorage.getItem("javadojo-pc-last") || "{}").id) { document.body.classList.add("resume-pending"); setTimeout(function () { document.body.classList.remove("resume-pending"); }, 1500); } } catch (e) {}</script>

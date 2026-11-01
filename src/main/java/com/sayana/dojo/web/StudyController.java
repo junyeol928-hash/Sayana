@@ -68,9 +68,10 @@ public class StudyController {
         }
 
         public String en() {
-            // 英語が見出しと同じ綴りなら繰り返さない
+            // 英語が見出しと同じ綴りなら繰り返さない(「final(クラス・メソッド)」の括弧の前とも比べる)
+            String base = first().term().replaceFirst("[((].*$", "").strip();
             return terms.stream().map(Term::en)
-                    .filter(e -> e != null && !e.isBlank() && !e.equalsIgnoreCase(first().term()))
+                    .filter(e -> e != null && !e.isBlank() && !e.equalsIgnoreCase(first().term()) && !e.equalsIgnoreCase(base))
                     .findFirst().orElse(null);
         }
     }

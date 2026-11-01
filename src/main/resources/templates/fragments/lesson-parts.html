@@ -46,6 +46,7 @@
 <div th:fragment="quizResult" class="quiz-result" th:with="a=${outcome.attempt()}, pass=${status.quizPassScore()}">
     <div class="quiz-score">
         <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
+        <span class="score-stitches" aria-hidden="true"><i th:each="i : ${#numbers.sequence(1, a.total)}" th:classappend="${i <= a.score} ? 'on'"></i></span>
         <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格(' + pass + ' 問以上)' : 'あと ' + (pass - a.score) + ' 問で合格(' + pass + ' 問以上)')}"></span>
     </div>
     <p class="dyed-line" th:if="${dyedTo != null}"><span class="dye dye-burst" th:classappend="'dye-' + ${status.dyeLevel()}" aria-hidden="true"></span><span th:text="${#strings.substringBefore(dyedTo, '・')} + 'に染まった(' + ${#strings.substringAfter(dyedTo, '・')} + ')'"></span></p>
@@ -55,7 +56,7 @@
         <a class="btn primary" th:if="${a.score >= pass and nextKey != null}" th:href="'#' + ${nextKey}" th:text="${nextKey == 'reading' ? '読解へ進む' : '演習へ進む'}"></a>
         <button class="btn" type="button" data-quiz-reset>もう一度解く</button>
     </div>
-    <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><a href="#write"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に → 演習へ</a></p>
+    <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に</p>
     <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
     <template class="q-explains">
         <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"

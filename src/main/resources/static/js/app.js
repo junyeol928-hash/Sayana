@@ -335,7 +335,8 @@ function dashboardResume() {
     const btn = hero.querySelector(".today-actions a");
     btn.href = href;
     const label = SECTION_LABEL[last.section];
-    btn.textContent = `続きから${label ? `(${label})` : ""}`;
+    // 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。スマホ版 app.js の resumeLabel と同じ
+    btn.textContent = !label ? "続きから" : label === "読む" ? "続きを読む" : `${label}の続きから`;
     // 染まりの地図の朱の印も、前回の続きのマスへ
     document.querySelectorAll(".dye-cell.is-here").forEach((c) => c.classList.remove("is-here"));
     document.querySelector(`.dye-cell[data-lesson="${CSS.escape(last.id)}"]`)?.classList.add("is-here");
