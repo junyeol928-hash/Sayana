@@ -54,6 +54,7 @@ public class LessonController {
         model.addAttribute("exercises", lesson.exercises().stream().map(exerciseViews::of).toList());
         model.addAttribute("generated", catalog.generatedFor(id).stream().map(exerciseViews::of).toList());
         model.addAttribute("chat", ai.chatHistory(id));
+        model.addAttribute("terms", content.glossary().stream().filter(t -> id.equals(t.lessonId())).toList());
         return "lesson";
     }
 

@@ -1,5 +1,7 @@
 package com.sayana.dojo.web;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +50,18 @@ public class DashboardController {
         model.addAttribute("readyLessons", content.readyLessons().size());
         model.addAttribute("totalLessons", content.allLessons().size());
         model.addAttribute("lessonTitles", LessonTitles.of(content));
+        // 染まり具合(公開レッスンを順に並べた帯と、段ごとの数)
+        List<ProgressService.LessonStatus> flat = parts.stream().flatMap(p -> p.chapters().stream())
+                .flatMap(c -> c.lessons().stream()).filter(s -> s.lesson().ready()).toList();
+        int[] dyeCounts = new int[5];
+        flat.forEach(s -> dyeCounts[s.dyeLevel()]++);
+        model.addAttribute("flatLessons", flat);
+        model.addAttribute("dyeCounts", dyeCounts);
+        model.addAttribute("deepCount", dyeCounts[2] + dyeCounts[3] + dyeCounts[4]);
+        progress.nextLesson().ifPresent(next -> {
+            model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
+            model.addAttribute("nextChapter", content.chapter(next.chapterId()).map(c -> c.title()).orElse(""));
+        });
         return "dashboard";
     }
 

@@ -1,29 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="readDone" class="read-done done">✅ 読了!次は下のサンプルを動かしてみよう。</div>
+<div th:fragment="readDone" class="read-done done dyeing"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了。次は下のサンプルを動かしてみよう</div>
 
 <li th:fragment="checklistItem" class="check-item" th:classappend="${checked} ? 'checked'">
     <form th:attr="hx-post=@{/lessons/{id}/checklist(id=${lesson.id})}" hx-target="closest li" hx-swap="outerHTML">
         <input type="hidden" name="key" th:value="${item.key}">
-        <button type="submit" class="check-button" th:text="${checked} ? '✅' : '⬜'"></button>
+        <button type="submit" class="check-button" th:attr="aria-pressed=${checked}, aria-label=${item.text}"></button>
         <span th:text="${item.text}"></span>
     </form>
+</li>
+
+<!--/* 読解の1問(答え合わせは static/js/app.js がその場で行う) */-->
+<li th:fragment="readingCard(r, ref, from)" class="reading-q" th:attr="data-ref=${ref}">
+    <div class="reading-head">
+        <h3 th:text="${r.title}"></h3>
+        <span class="level" th:with="lv=${r.level < 1 ? 1 : (r.level > 3 ? 3 : r.level)}" th:attr="aria-label='難しさ ' + ${lv} + ' / 3'">
+            <i th:each="n : ${#numbers.sequence(1, 3)}" th:classappend="${n <= lv} ? 'on'"></i>
+            <span th:text="${lv == 1 ? 'やさしい' : (lv == 2 ? 'ふつう' : 'むずかしい')}"></span>
+        </span>
+    </div>
+    <p class="reading-from muted" th:if="${from != null}"><a th:href="@{/lessons/{id}(id=${from.id})}" th:text="${from.title}"></a></p>
+    <pre><code class="language-java" th:text="${r.code}"></code></pre>
+    <form data-reading th:attr="data-answer=${r.answer}">
+        <fieldset>
+            <legend class="reading-question" th:utext="${r.questionHtml}"></legend>
+            <label class="choice" th:each="c, cs : ${r.choicesHtml}">
+                <input type="radio" name="c" th:value="${cs.index}" required><span th:utext="${c}"></span>
+            </label>
+        </fieldset>
+        <button class="btn" type="submit">答え合わせ</button>
+    </form>
+    <div class="reading-answer" hidden aria-live="polite">
+        <div class="verdict"></div>
+        <p class="small">正解: <b th:utext="${r.choicesHtml.get(r.answer)}"></b></p>
+        <div class="md" th:utext="${r.explanationHtml}"></div>
+        <th:block th:if="${!r.traceHtml.isEmpty()}">
+            <p class="trace-title">1 行ずつの追跡</p>
+            <ol class="trace"><li th:each="t : ${r.traceHtml}" th:utext="${t}"></li></ol>
+        </th:block>
+    </div>
 </li>
 
 <!--/* クイズの採点結果 */-->
 <div th:fragment="quizResult" class="quiz-result">
     <div class="quiz-score" th:with="a=${outcome.attempt()}">
         <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
-        <span th:if="${a.score == a.total}">満点!🎉</span>
-        <span th:if="${a.score < a.total and a.score >= status.quizPassScore()}">合格ライン突破!</span>
+        <span th:if="${a.score == a.total}">満点。縹に染まりました</span>
+        <span th:if="${a.score < a.total and a.score >= status.quizPassScore()}">合格ライン突破。縹に染まりました</span>
         <span th:if="${a.score < status.quizPassScore()}" th:text="'合格ラインは ' + ${status.quizPassScore()} + ' 問。解説を読んで、もう一度どうぞ。'"></span>
-        <p class="muted small">解いた問題は復習キューに入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
     </div>
+    <p class="muted small">解いた問題は復習キューに入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
     <ol class="quiz-review">
         <li th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
             th:classappend="${ok} ? 'correct' : 'wrong'">
-            <div class="q-mark" th:text="${ok} ? '⭕ 正解' : (${chosen < 0} ? '— 未回答' : '❌ 不正解')"></div>
+            <div class="q-mark" th:text="'問 ' + ${st.count} + ' ' + (${ok} ? '正解' : (${chosen < 0} ? '未回答' : '不正解'))"></div>
             <div class="md" th:utext="${q.questionHtml}"></div>
             <p class="small">
                 <span th:if="${chosen >= 0}">あなたの答え: <span th:utext="${q.choicesHtml.get(chosen)}"></span> / </span>

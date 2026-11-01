@@ -134,12 +134,29 @@ async function renderMermaid(root) {
   try {
     if (!mermaidModule) {
       mermaidModule = (await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")).default;
-      mermaidModule.initialize({ startOnLoad: false, theme: "neutral", securityLevel: "strict" });
     }
+    mermaidModule.initialize(mermaidTheme());
     await mermaidModule.run({ nodes: root.querySelectorAll(".mermaid:not([data-processed])") });
   } catch (e) {
     console.warn("Mermaid を描画できませんでした", e);
   }
+}
+
+// 図も藍の配色で描く(CSS の変数から色を読むので、暗い表示でもそろう)。スマホ版の app.js と同じ
+function mermaidTheme() {
+  const css = getComputedStyle(document.documentElement);
+  const v = (name) => css.getPropertyValue(name).trim();
+  return {
+    startOnLoad: false, securityLevel: "strict", theme: "base",
+    themeVariables: {
+      fontFamily: v("--font"), fontSize: "14px", background: "transparent",
+      primaryColor: v("--surface"), primaryBorderColor: v("--line-strong"), primaryTextColor: v("--ink"),
+      secondaryColor: v("--accent-soft"), tertiaryColor: v("--surface-2"), lineColor: v("--ink-muted"),
+      textColor: v("--ink"), mainBkg: v("--surface"), nodeBorder: v("--line-strong"), clusterBkg: v("--surface-2"),
+      clusterBorder: v("--line"), edgeLabelBackground: v("--surface-2"), actorBkg: v("--surface"), actorBorder: v("--line-strong"),
+      noteBkgColor: v("--ki-soft"), noteBorderColor: v("--line"),
+    },
+  };
 }
 
 function highlight(root) {
@@ -179,6 +196,62 @@ document.addEventListener("click", (e) => {
     const log = document.getElementById("chat-log");
     if (log) log.scrollTop = log.scrollHeight;
   }
+});
+
+// 読解: その場で答え合わせする。PC版の記録はこのブラウザの中(localStorage)だけ
+const READING_KEY = "javadojo-pc-reading";
+function readingRecord() {
+  try { return JSON.parse(localStorage.getItem(READING_KEY)) || {}; } catch (e) { return {}; }
+}
+document.addEventListener("submit", (e) => {
+  const form = e.target.closest("form[data-reading]");
+  if (!form) return;
+  e.preventDefault();
+  const li = form.closest(".reading-q");
+  const checked = form.querySelector("input:checked");
+  if (!checked) return;
+  const choice = Number(checked.value);
+  const answer = Number(form.dataset.answer);
+  const ok = choice === answer;
+  form.querySelectorAll("label.choice").forEach((label, j) => {
+    label.classList.toggle("is-answer", j === answer);
+    label.classList.toggle("is-wrong", j === choice && !ok);
+  });
+  const out = li.querySelector(".reading-answer");
+  const verdict = out.querySelector(".verdict");
+  verdict.className = "verdict " + (ok ? "correct" : "wrong");
+  verdict.textContent = ok ? "✔ 正解" : "✘ 不正解";
+  out.hidden = false;
+  const rec = readingRecord();
+  rec[li.dataset.ref] = { ok, at: new Date().toISOString().slice(0, 10) };
+  try { localStorage.setItem(READING_KEY, JSON.stringify(rec)); } catch (err) { console.warn("読解の記録を保存できませんでした", err); }
+});
+
+// 用語集: 読み・英語・説明のどれでも絞り込む
+document.addEventListener("input", (e) => {
+  if (!e.target.matches("#glossary-q")) return;
+  const words = e.target.value.toLowerCase().split(/\s+/).filter(Boolean);
+  let n = 0;
+  document.querySelectorAll("#terms .term").forEach((li) => {
+    const hit = words.every((w) => li.textContent.toLowerCase().includes(w));
+    li.hidden = !hit;
+    if (hit) n++;
+  });
+  const count = document.getElementById("glossary-count");
+  if (count) count.textContent = words.length ? `${n} 語` : "";
+});
+
+// いまいる画面のメニューに印を付ける(レッスンはダッシュボードの中)
+{
+  const path = location.pathname.startsWith("/lessons/") ? "/" : location.pathname;
+  document.querySelectorAll(".main-nav a, .bottom-nav a").forEach((a) => {
+    if (a.getAttribute("href") === path) a.setAttribute("aria-current", "page");
+  });
+}
+
+// シートは Escape で閉じる
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.body.classList.contains("tutor-open")) document.body.classList.remove("tutor-open");
 });
 
 // チャット欄は Ctrl+Enter で送信
