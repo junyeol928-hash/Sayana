@@ -5,21 +5,21 @@
     @Service
     @RequiredArgsConstructor
     @Slf4j
-    public class HsmKeyService {
+    public class CryptoKeyService {
 
-        private final ExecutorService hsmExecutor = Executors.newSingleThreadExecutor();
-        private final HsmClient hsmClient;
+        private final ExecutorService cryptoExecutor = Executors.newSingleThreadExecutor();
+        private final CryptoClient cryptoClient;
 
         public String issueKey(String userId) {
-            Future<String> future = hsmExecutor.submit(() -> hsmClient.generateKey(userId));
+            Future<String> future = cryptoExecutor.submit(() -> cryptoClient.generateKey(userId));
             try {
                 return future.get(5, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 future.cancel(true);
-                log.error("HSM timeout userId={}", userId, e);
-                throw new KeyIssueException("hsm timeout", e);
+                log.error("crypto timeout userId={}", userId, e);
+                throw new KeyIssueException("crypto timeout", e);
             } catch (Exception e) {
-                throw new KeyIssueException("hsm error", e);
+                throw new KeyIssueException("crypto error", e);
             }
         }
 
@@ -32,8 +32,8 @@
         }
     }
   notes:
-    6: "単一スレッドの ExecutorService。HSM へのアクセスを常に1つずつに直列化する意図の目印"
-    9: "実際の装置アクセスは hsmExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる"
+    6: "単一スレッドの ExecutorService。暗号装置(仕事では HSM)へのアクセスを常に1つずつに直列化する意図の目印。CryptoKeyService・CryptoClient は仕事では HsmKeyService・HsmClient"
+    9: "実際の装置アクセスは cryptoExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる"
     11: "タイムアウト付きの get。5秒で応答が無ければ諦める"
     21: "通知は失敗しても本処理を止めたくないので、非同期(CompletableFuture)で別スレッドに任せている"
     22: "exceptionally は「失敗したときだけ」処理をつなぐ。Optional の orElseGet に近い発想"

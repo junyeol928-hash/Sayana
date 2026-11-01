@@ -33,13 +33,13 @@
   level: 2
   code: |
     @Data
-    public class SessionStartRequest {
+    public class HandshakeRequest {
         @NotBlank private String cardId;
         @Pattern(regexp = "^[0-9A-F]{16}$") private String hostChallenge;
     }
 
     @PostMapping("/api/sessions")
-    public SessionResponse start(@Valid @RequestBody SessionStartRequest req) {
+    public SessionResponse start(@Valid @RequestBody HandshakeRequest req) {
         return sessionService.start(req);
     }
 
@@ -57,9 +57,9 @@
     - "500"
     - "404"
   answer: 1
-  explanation: "hostChallenge の \"abcd\" は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。"
+  explanation: "(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の \"abcd\" は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。"
   trace:
-    - "7〜8行目: POST /api/sessions に一致。JSON → SessionStartRequest に変換"
+    - "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換"
     - "3行目: cardId = \"C001\" → @NotBlank OK"
     - "4行目: hostChallenge = \"abcd\" → 小文字4桁で @Pattern NG"
     - "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない"
@@ -67,14 +67,14 @@
 - title: "例外の型と @ExceptionHandler の一致"
   level: 2
   code: |
-    public class TsmException extends RuntimeException { }
-    public class HsmUnavailableException extends TsmException { }
+    public class GatewayException extends RuntimeException { }
+    public class CryptoUnavailableException extends GatewayException { }
 
     @RestControllerAdvice
     public class Handler {
-        @ExceptionHandler(TsmException.class)
-        public ResponseEntity<String> tsm(TsmException e) {
-            return ResponseEntity.status(503).body("tsm");
+        @ExceptionHandler(GatewayException.class)
+        public ResponseEntity<String> gateway(GatewayException e) {
+            return ResponseEntity.status(503).body("gateway");
         }
         @ExceptionHandler(Exception.class)
         public ResponseEntity<String> other(Exception e) {
@@ -82,20 +82,20 @@
         }
     }
 
-    // Service が throw new HsmUnavailableException() した
+    // Service が throw new CryptoUnavailableException() した
   question: "応答は?"
   choices:
-    - "503 \"tsm\""
+    - "503 \"gateway\""
     - "500 \"other\""
     - "両方のハンドラが実行される"
     - "ハンドラが2つあるので起動時に例外"
   answer: 0
-  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。HsmUnavailableException は TsmException のサブクラスなので、Exception よりも TsmException のハンドラが選ばれ、503 \"tsm\" です。両方が実行される(3)ことはありません。"
+  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 \"gateway\" です。両方が実行される(3)ことはありません。"
   trace:
-    - "16行目: HsmUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
-    - "6行目: TsmException.class → HsmUnavailableException は TsmException の子なので一致"
-    - "10行目: Exception.class も一致するが、より具体的な TsmException のハンドラが優先"
-    - "8行目: 503 + \"tsm\""
+    - "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
+    - "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致"
+    - "10行目: Exception.class も一致するが、より具体的な GatewayException のハンドラが優先"
+    - "8行目: 503 + \"gateway\""
 - title: "Filter が Controller を止める"
   level: 3
   code: |
@@ -128,16 +128,16 @@
     - "7〜9行目: 条件成立 → ステータス 401 をセットして return"
     - "11行目: chain.doFilter は実行されない → 後続に進まない"
     - "15〜16行目: ping() は呼ばれない。応答は 401、ボディなし"
-- title: "Front から Back への呼び出しをつなげて読む"
+- title: "受付サーバから業務サーバへの呼び出しをつなげて読む"
   level: 3
   code: |
-    // Front サーバ
+    // 受付サーバ(仕事では Front サーバ)
     public ChallengeResponse requestChallenge(String cardId) {
         return restTemplate.postForObject(baseUrl + "/api/challenge",
                 new ChallengeRequest(cardId), ChallengeResponse.class);
     }
 
-    // Back サーバ
+    // 業務サーバ(仕事では Back サーバ)
     @RestController
     @RequestMapping("/api")
     public class ChallengeController {
@@ -147,18 +147,18 @@
             return ResponseEntity.ok(new ChallengeResponse("0011223344556677"));
         }
     }
-    // ChallengeRequest は @Data で cardId フィールドを持つ。Front 側は cardId = "C001"
-  question: "Front の `requestChallenge(\"C001\")` の結果は?"
+    // ChallengeRequest は @Data で cardId フィールドを持つ。受付サーバ側は cardId = "C001"
+  question: "受付サーバの `requestChallenge(\"C001\")` の結果は?"
   choices:
-    - "Back の challenge() が呼ばれ、ChallengeResponse(\"0011223344556677\") が返る"
-    - "Back で 400 になり Front で例外"
+    - "業務サーバの challenge() が呼ばれ、ChallengeResponse(\"0011223344556677\") が返る"
+    - "業務サーバで 400 になり受付サーバで例外"
     - "URL が一致せず 404"
-    - "Front で JSON 変換に失敗"
+    - "受付サーバで JSON 変換に失敗"
   answer: 0
-  explanation: "Front は POST {baseUrl}/api/challenge を送り、Back の @RequestMapping(\"/api\") + @PostMapping(\"/challenge\") に一致します。ボディ {\"cardId\":\"C001\"} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、Front 側で ChallengeResponse.class に変換されます。"
+  explanation: "受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの @RequestMapping(\"/api\") + @PostMapping(\"/challenge\") に一致します。ボディ {\"cardId\":\"C001\"} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。"
   trace:
-    - "3行目: Front が POST {baseUrl}/api/challenge、ボディは ChallengeRequest(\"C001\") → {\"cardId\":\"C001\"}"
-    - "9,11行目: Back の URL は /api + /challenge = /api/challenge、POST → 一致"
+    - "3行目: 受付サーバが POST {baseUrl}/api/challenge、ボディは ChallengeRequest(\"C001\") → {\"cardId\":\"C001\"}"
+    - "9,11行目: 業務サーバの URL は /api + /challenge = /api/challenge、POST → 一致"
     - "12行目: JSON → ChallengeRequest。cardId = \"C001\""
     - "13〜14行目: null でないので 200 + ChallengeResponse(\"0011223344556677\")"
-    - "3〜4行目: Front は応答 JSON を ChallengeResponse に変換して返す"
+    - "3〜4行目: 受付サーバは応答 JSON を ChallengeResponse に変換して返す"

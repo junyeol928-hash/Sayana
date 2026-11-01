@@ -8,17 +8,17 @@
     public class KeyIssueService {
 
         private final KeyRepository keyRepository;
-        private final ApduResultRepository apduResultRepository;
+        private final CommandResultRepository commandResultRepository;
 
         @Transactional(rollbackFor = Exception.class)
-        public KeyEntity issue(String cardId, int keyVersion) throws HsmCommunicationException {
+        public KeyEntity issue(String cardId, int keyVersion) throws CryptoCommunicationException {
             boolean duplicated = keyRepository.existsByCardIdAndStatus(cardId, "ACTIVE");
             if (duplicated) {
                 throw new IllegalStateException("active key already exists");
             }
             KeyEntity entity = new KeyEntity(cardId, keyVersion, "ACTIVE");
             KeyEntity saved = keyRepository.save(entity);
-            apduResultRepository.insertResult(cardId, "00A4000C", 0);
+            commandResultRepository.insertResult(cardId, "00A4000C", 0);
             log.info("key issued cardId={} keyId={}", cardId, saved.getKeyId());
             return saved;
         }
@@ -26,7 +26,7 @@
   notes:
     6: "JPA の Repository。CRUD と派生クエリを担当"
     7: "JdbcTemplate ベースの Repository。ログ的なテーブルへの挿入を担当"
-    9: "rollbackFor = Exception.class で、検査例外の HsmCommunicationException でもロールバックするよう明示している"
+    9: "rollbackFor = Exception.class で、検査例外の CryptoCommunicationException(仕事では HsmCommunicationException)でもロールバックするよう明示している"
     10: "検査例外は throws で宣言が必要(例外の章を参照)"
     11: "existsByCardIdAndStatus は派生クエリ。SQL は書かれていない"
     17: "1つのメソッドの中で JPA と JdbcTemplate が同じトランザクションに参加している"

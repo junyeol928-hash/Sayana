@@ -61,15 +61,15 @@ class KeyRotationServiceTest {
         }
     }
 
-    /** テスト用の HSM。down = true のときは通信エラーになる */
-    static class FakeHsm implements HsmClient {
+    /** テスト用の暗号装置。down = true のときは通信エラーになる */
+    static class FakeCrypto implements CryptoClient {
         boolean down;
         int seq = 100;
 
         @Override
-        public String generateKey(String cardId) throws HsmException {
+        public String generateKey(String cardId) throws CryptoException {
             if (down) {
-                throw new HsmException("HSM に接続できません(タイムアウト)");
+                throw new CryptoException("暗号装置に接続できません(タイムアウト)");
             }
             return "K-0" + (seq++);
         }
@@ -86,8 +86,8 @@ class KeyRotationServiceTest {
         }
 
         @Bean
-        FakeHsm hsm() {
-            return new FakeHsm();
+        FakeCrypto crypto() {
+            return new FakeCrypto();
         }
 
         @Bean
@@ -99,7 +99,7 @@ class KeyRotationServiceTest {
     private AnnotationConfigApplicationContext ctx;
     private KeyRotationService service;
     private KeyStore store;
-    private FakeHsm hsm;
+    private FakeCrypto crypto;
     private List<String> log;
 
     @BeforeEach
@@ -107,7 +107,7 @@ class KeyRotationServiceTest {
         ctx = new AnnotationConfigApplicationContext(TestConfig.class, KeyRotationService.class);
         service = ctx.getBean(KeyRotationService.class);
         store = ctx.getBean(KeyStore.class);
-        hsm = ctx.getBean(FakeHsm.class);
+        crypto = ctx.getBean(FakeCrypto.class);
         log = ctx.getBean(RecordingTxManager.class).log;
     }
 
@@ -117,44 +117,44 @@ class KeyRotationServiceTest {
     }
 
     @Test
-    @DisplayName("HSM が動いていれば、新しい鍵が ACTIVE になりコミットされる")
+    @DisplayName("暗号装置が動いていれば、新しい鍵が ACTIVE になりコミットされる")
     void rotateCommits() {
         assertTrue(AopUtils.isAopProxy(service),
                 "KeyRotationService がプロキシになっていません。rotate の @Transactional を消していませんか");
         String newKeyId = service.rotate("C001");
-        assertEquals("K-0100", newKeyId, "rotate は HSM が作った新しい鍵 ID(K-0100)を返すはずです");
+        assertEquals("K-0100", newKeyId, "rotate は暗号装置が作った新しい鍵 ID(K-0100)を返すはずです");
         assertEquals(Optional.of("K-0100"), store.activeKeyOf("C001"), "C001 の ACTIVE な鍵は新しい K-0100 になるはずです");
         assertEquals(List.of("begin", "commit"), log, "成功したときは begin → commit のはずです");
     }
 
     @Test
-    @DisplayName("HSM が失敗したら KeyRotationFailedException を投げる(原因は HsmException)")
+    @DisplayName("暗号装置が失敗したら KeyRotationFailedException を投げる(原因は CryptoException)")
     void failureIsThrown() {
-        hsm.down = true;
+        crypto.down = true;
         try {
             String result = service.rotate("C001");
-            fail("HSM が失敗したのに、rotate が例外を投げずに " + result + " を返しました。"
+            fail("暗号装置が失敗したのに、rotate が例外を投げずに " + result + " を返しました。"
                     + "catch で握りつぶすと、呼び出し元も Spring も失敗に気づけません。KeyRotationFailedException を投げてください");
         } catch (KeyRotationFailedException e) {
-            assertInstanceOf(HsmException.class, e.getCause(),
-                    "KeyRotationFailedException の原因(cause)に HsmException を渡してください。"
+            assertInstanceOf(CryptoException.class, e.getCause(),
+                    "KeyRotationFailedException の原因(cause)に CryptoException を渡してください。"
                             + "渡さないとスタックトレースから Caused by が消え、ログから原因をたどれません");
         }
     }
 
     @Test
-    @DisplayName("HSM が失敗したらロールバックされ、元の鍵が ACTIVE に戻る")
+    @DisplayName("暗号装置が失敗したらロールバックされ、元の鍵が ACTIVE に戻る")
     void failureRollsBack() {
-        hsm.down = true;
+        crypto.down = true;
         try {
             service.rotate("C001");
         } catch (RuntimeException e) {
             // 例外の型は failureIsThrown で確かめる
         }
         assertEquals(List.of("begin", "rollback"), log,
-                "HSM が失敗したのにトランザクションがコミットされています(実際: " + log + ")。"
+                "暗号装置が失敗したのにトランザクションがコミットされています(実際: " + log + ")。"
                         + "例外を catch してメソッドが普通に終わるとコミットになります。"
-                        + "また HsmException は検査例外なので、そのまま投げても既定ではロールバックされません。RuntimeException の KeyRotationFailedException にして投げ直してください");
+                        + "また CryptoException は検査例外なので、そのまま投げても既定ではロールバックされません。RuntimeException の KeyRotationFailedException にして投げ直してください");
         assertEquals(Optional.of("K-0001"), store.activeKeyOf("C001"),
                 "ロールバックにより、失効させた元の鍵 K-0001 が ACTIVE に戻るはずです。今のままだと C001 は有効な鍵が1つも無いカードになります");
     }

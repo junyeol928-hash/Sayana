@@ -99,7 +99,7 @@ Service は **この API の本体** です。呼び出し・分岐・例外を1
 @RequiredArgsConstructor
 public class KeyIssueService {
     private final KeyRepository keyRepository;
-    private final HsmClient hsmClient;
+    private final CryptoClient cryptoClient;
 
     @Transactional
     public KeyIssueResponse issue(KeyIssueRequest req) {
@@ -107,7 +107,7 @@ public class KeyIssueService {
                 req.cardId(), "ACTIVE")) {           // 分岐(異常系)
             throw new KeyAlreadyExistsException(req.cardId());
         }
-        byte[] key = hsmClient.generateKey();        // 外部装置の呼び出し
+        byte[] key = cryptoClient.generateKey();        // 外部装置の呼び出し
         KeyEntity saved = keyRepository.save(
                 new KeyEntity(req.cardId(), req.keyVersion(), key));
         return new KeyIssueResponse(saved.getKeyId(), saved.getStatus());
@@ -123,7 +123,7 @@ public class KeyIssueService {
 - **見えない処理**:`@Transactional` があるので、このメソッド全体が1つのトランザクション
 
 ::: warn 正常系だけ読んで満足しない
-「HSM で鍵を作って保存するだけ」と読むと、重複のときの動きを見落とします。`if`・`throw`・`for`・`catch` が出てきたら必ず立ち止まり、**どの条件で、どこへ分かれるか** を確かめてください。問い合わせの多くは異常系から来ます。
+「暗号装置(仕事では HSM。コードの CryptoClient は HsmClient)で鍵を作って保存するだけ」と読むと、重複のときの動きを見落とします。`if`・`throw`・`for`・`catch` が出てきたら必ず立ち止まり、**どの条件で、どこへ分かれるか** を確かめてください。問い合わせの多くは異常系から来ます。
 :::
 
 ### ステップ4:Repository はメソッド名と継承元を見る
@@ -209,8 +209,8 @@ com.example.keys.exception.KeyIssueFailedException: 鍵の発行に失敗しま�
     at com.example.keys.controller.KeyIssueController.issue(KeyIssueController.java:24)
     at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(...)
     ...
-Caused by: com.example.keys.hsm.HsmException: HSM に接続できません
-    at com.example.keys.hsm.HsmClient.generateKey(HsmClient.java:57)
+Caused by: com.example.keys.crypto.CryptoException: 暗号装置に接続できません
+    at com.example.keys.crypto.CryptoClient.generateKey(CryptoClient.java:57)
     at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:38)
     ... 92 common frames omitted
 ```
@@ -219,7 +219,7 @@ Caused by: com.example.keys.hsm.HsmException: HSM に接続できません
 
 1. **1行目**:何の例外か、メッセージは何か
 2. **一番下の `Caused by`**:根本原因。第1部5章「例外処理」で見たとおり、ここが本当の失敗箇所です
-3. **自分たちのパッケージ(`com.example.keys`)の最初の行**:ファイル名と行番号を開きます。上の例なら `HsmClient.java:57`、それを呼んだのが `KeyIssueService.java:38`
+3. **自分たちのパッケージ(`com.example.keys`)の最初の行**:ファイル名と行番号を開きます。上の例なら `CryptoClient.java:57`、それを呼んだのが `KeyIssueService.java:38`
 4. **Spring の行は読み飛ばす。ただし「通った部品の地図」として使う**:`$$SpringCGLIB$$` や `TransactionInterceptor` があればトランザクションの中、`InvocableHandlerMethod` や `DispatcherServlet` は Controller の呼び出し、`FilterChain` や `security` の行は Filter・Spring Security(第3部6章)を通ったことを表します
 5. **同じ `requestId` のログを集める**:第3部5章「ログ」の MDC で付けた ID で検索すると、そのリクエストの入力値や途中の INFO ログが時系列で並び、呼び出し順を再現できます
 

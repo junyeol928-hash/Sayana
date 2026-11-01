@@ -222,8 +222,8 @@ samples:
       class KeyRotationService {
           @Transactional
           public void rotate(String cardId) {
-              System.out.println("  [Service] 今の鍵を失効 → HSM に新しい鍵を依頼");
-              throw new IllegalStateException("HSM に接続できません cardId=" + cardId);
+              System.out.println("  [Service] 今の鍵を失効 →暗号装置に新しい鍵を依頼");
+              throw new IllegalStateException("暗号装置に接続できません cardId=" + cardId);
           }
       }
 
@@ -307,16 +307,16 @@ quiz:
       `KeyRepository` 自身が宣言しているのは `existsByCardIdAndStatus` だけです。`findById`・`save`・`deleteById` などの基本的な操作は、`extends` している **`JpaRepository` 側**(正確にはその親の `CrudRepository`)で宣言されていて、実装は Spring Data が起動時に用意します。
       Repository を読むときは、インターフェースの中身が短くても **継承元まで見る** のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
   - question: |
-      次の Service で、`hsm.generateKey` が `HsmException`(`Exception` を継承した検査例外)を投げた。DB はどうなる?
+      次の Service で、`crypto.generateKey` が `CryptoException`(仕事では HsmException。`Exception` を継承した検査例外)を投げた。DB はどうなる?
       ```java
       @Transactional
       public String rotate(String cardId) {
           store.revokeActive(cardId);   // 今の鍵を失効させる(UPDATE)
           try {
-              String id = hsm.generateKey(cardId);
+              String id = crypto.generateKey(cardId);
               store.saveActive(cardId, id);
               return id;
-          } catch (HsmException e) {
+          } catch (CryptoException e) {
               return null;
           }
       }
@@ -329,7 +329,7 @@ quiz:
     answer: 1
     explanation: |
       ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
-      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`HsmException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。catch しているのでコンパイルエラーにはなりません。
+      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。catch しているのでコンパイルエラーにはなりません。
   - question: |
       エラーログに次のスタックトレースがあった(一部省略)。原因を調べるために、まず開くべき場所はどれ?
       ```text
@@ -339,19 +339,19 @@ quiz:
           at com.example.keys.controller.KeyIssueController.issue(KeyIssueController.java:24)
           at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(...)
           ...
-      Caused by: com.example.keys.hsm.HsmException: HSM に接続できません
-          at com.example.keys.hsm.HsmClient.generateKey(HsmClient.java:57)
+      Caused by: com.example.keys.crypto.CryptoException: 暗号装置に接続できません
+          at com.example.keys.crypto.CryptoClient.generateKey(CryptoClient.java:57)
           at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:38)
           ...
       ```
     choices:
       - "KeyIssueController.java の 24 行目"
       - "InvocableHandlerMethod(Spring の内部)"
-      - "HsmClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
+      - "CryptoClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
       - "KeyIssueService$$SpringCGLIB$$0(<generated>)"
     answer: 2
     explanation: |
-      根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `HsmClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
+      根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
       Controller の行は呼び出し元をたどるときに使いますが、出発点ではありません。`InvocableHandlerMethod` は Spring が Controller を呼ぶまでの内部処理、`$$SpringCGLIB$$` は `@Transactional` のためのプロキシで、ソースファイルが無いので `<generated>` と表示されます。どちらも「通った部品の地図」としては役立ちますが、直す場所ではありません。
 columns:
   - type: mistake
@@ -362,7 +362,7 @@ columns:
       逆に、本当に危ないのは **catch して何もしない** コードです。
 
       ```java
-      } catch (HsmException e) {
+      } catch (CryptoException e) {
           return null;   // ログも出さない。トランザクションはコミットされる
       }
       ```

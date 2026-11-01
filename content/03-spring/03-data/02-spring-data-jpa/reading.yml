@@ -27,11 +27,11 @@
   level: 2
   code: |
     @Transactional
-    public void issue(String cardId) throws HsmCommunicationException {
+    public void issue(String cardId) throws CryptoCommunicationException {
         keyRepository.save(new KeyEntity(cardId, 1, "ACTIVE"));
-        throw new HsmCommunicationException("HSM timeout");
+        throw new CryptoCommunicationException("crypto timeout");
     }
-    // HsmCommunicationException は Exception を直接継承した検査例外
+    // CryptoCommunicationException は Exception を直接継承した検査例外
   question: "issue(\"C001\") を呼んだあと、DB の key_master テーブルは?"
   choices:
     - "ロールバックされ、保存されていない"
@@ -39,19 +39,19 @@
     - "起動時に例外になる"
     - "コンパイルエラー"
   answer: 1
-  explanation: "@Transactional の既定のロールバック対象は RuntimeException と Error だけです。HsmCommunicationException は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。"
+  explanation: "@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。"
   trace:
     - "3行目: save が実行される(まだ確定はしていない)"
-    - "4行目: 検査例外 HsmCommunicationException が投げられる"
+    - "4行目: 検査例外 CryptoCommunicationException が投げられる"
     - "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外"
     - "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る"
 - title: "rollbackFor を指定した場合"
   level: 2
   code: |
     @Transactional(rollbackFor = Exception.class)
-    public void issue(String cardId) throws HsmCommunicationException {
+    public void issue(String cardId) throws CryptoCommunicationException {
         keyRepository.save(new KeyEntity(cardId, 1, "ACTIVE"));
-        throw new HsmCommunicationException("HSM timeout");
+        throw new CryptoCommunicationException("crypto timeout");
     }
   question: "前の問題と同じ処理に `rollbackFor = Exception.class` を追加した。DB の状態は?"
   choices:
@@ -64,7 +64,7 @@
   trace:
     - "1行目: rollbackFor で対象を Exception.class まで広げている"
     - "3行目: save が実行される"
-    - "4行目: HsmCommunicationException(Exception のサブクラス)が投げられる"
+    - "4行目: CryptoCommunicationException(Exception のサブクラス)が投げられる"
     - "rollbackFor の条件に一致するのでロールバックが実行される"
     - "結果: 3行目の保存内容も取り消され、テーブルに行は残らない"
 - title: "N+1 が起きる箇所を見つける"

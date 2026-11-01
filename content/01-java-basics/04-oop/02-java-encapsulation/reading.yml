@@ -140,7 +140,7 @@
     @RequiredArgsConstructor
     public class KeyIssueService {
         private final KeyRepository keyRepository;
-        private HsmClient hsmClient;
+        private CryptoClient cryptoClient;
         private final Clock clock;
     }
 
@@ -153,11 +153,11 @@
     - "できる。全フィールド4つを渡す必要があるため"
     - "できない。@RequiredArgsConstructor は Service では使えないため"
   answer: 0
-  explanation: "@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない hsmClient は対象外です。"
+  explanation: "@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。"
   trace:
     - "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される"
     - "3行目: keyRepository は final → 対象"
-    - "4行目: hsmClient は final でない → 対象外"
+    - "4行目: cryptoClient は final でない → 対象外"
     - "5行目: clock は final → 対象"
     - "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)"
     - "8行目: 引数の型と順序が一致するのでコンパイルできる"
@@ -200,13 +200,13 @@
   code: |
     @Builder
     @ToString
-    public class ApduRequest {
+    public class CommandRequest {
         private final String sessionId;
         private final String commandHex;
         private final int timeoutMillis;
     }
 
-    ApduRequest req = ApduRequest.builder()
+    CommandRequest req = CommandRequest.builder()
             .sessionId("S001")
             .commandHex("00A4040C")
             .build();
@@ -218,7 +218,7 @@
     - "実行時例外"
     - "null"
   answer: 0
-  explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、ApduRequest が完成します。int は参照型ではないので null にはなりません。"
+  explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。int は参照型ではないので null にはなりません。"
   trace:
     - "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない"
     - "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる"
