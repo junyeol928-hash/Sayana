@@ -62,7 +62,7 @@ System.out.println(names.contains("田中")); // true
 | メモリ | 小さい | 要素ごとにノード |
 
 ::: genba
-現場では9割以上 `ArrayList`。理屈では LinkedList が速い場面でも、実測すると CPU キャッシュに優しい ArrayList が勝つことが多い。
+現場で使うリストは、まず `ArrayList`。理屈では LinkedList が速い場面でも、実測すると CPU キャッシュに優しい ArrayList が勝つことが多い。
 :::
 
 ## Set と Map
