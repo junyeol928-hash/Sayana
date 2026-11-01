@@ -41,6 +41,8 @@ error: cannot find symbol
   location: variable a of type Animal
 ```
 
+<figure class="figure"><svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-polymorphism-arr10c" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><text x="20" y="26" font-size="14" fill="var(--ink-muted)">Animal a = new Dog();</text><rect x="20" y="44" width="200" height="120" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="68" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">変数 a(型: Animal)</text><text x="120" y="96" font-size="13" text-anchor="middle" fill="var(--ink)">呼べるメソッド:</text><text x="120" y="116" font-size="13" text-anchor="middle" fill="var(--ink)">sound() のみ</text><text x="120" y="146" font-size="12" text-anchor="middle" fill="var(--ink-muted)">コンパイル時にここを見る</text><path d="M224 104 L346 104" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-polymorphism-arr10c)"/><text x="285" y="94" font-size="12" text-anchor="middle" fill="var(--ink-muted)">参照</text><rect x="350" y="44" width="230" height="120" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="465" y="68" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">実体(型: Dog)</text><text x="465" y="96" font-size="13" text-anchor="middle" fill="var(--ink)">sound() → ワン</text><text x="465" y="116" font-size="13" text-anchor="middle" fill="var(--ink-muted)">fetch()(a からは見えない)</text><text x="465" y="146" font-size="12" text-anchor="middle" fill="var(--ink-muted)">実行時にここの sound が動く</text><text x="300" y="200" font-size="14" text-anchor="middle" fill="var(--ink)">a.sound() → 「Animal に sound はある?」→ ある → 実体 Dog の sound を実行</text><text x="300" y="224" font-size="13" text-anchor="middle" fill="var(--ink-muted)">この「実行時に実体を見て決める」仕組みを動的ディスパッチと呼ぶ</text></svg><figcaption>呼べるかどうかは「変数の型」、どれが動くかは「実体の型」で決まる</figcaption></figure>
+
 ## 動的ディスパッチ
 
 `a.sound()` では、変数の型 Animal の `……` ではなく、実体 Dog の `ワン` が返りました。オーバーライドされたメソッドを **実行時の実体の型で選ぶ** 仕組みを **動的ディスパッチ(動的束縛)** と呼びます。ポリモーフィズムの心臓部です。
@@ -185,6 +187,40 @@ System.out.println(p.hello());  // 親
 ```
 
 static メソッドはインスタンスではなくクラスに属するので、動的ディスパッチの対象外です。子の同名 static メソッドはオーバーライドではなく **隠蔽(hiding)** で、`@Override` を付けると `static methods cannot be annotated with @Override` になります。インスタンス経由で static を呼ぶのは誤解の元なので、`Parent.hello()` とクラス名で呼びましょう。
+
+## クラス図の読み方
+
+::: haru
+配属先の設計書に、箱と矢印だらけの図が載ってました。継承の回に出てきたやつの仲間っすか?
+:::
+
+::: sensei
+そう、**UML のクラス図**。クラスどうしの関係を1枚で見せる図だ。コードを1行ずつ追う前にこれを読むと、「誰が誰を継承して、誰を使っているか」が先に分かる。読み方は箱と線の2つだけ覚えればいい。
+:::
+
+1つのクラスは3段の箱で描きます。上段がクラス名、中段が **属性**(フィールド)、下段が **操作**(メソッド)です。
+
+<figure class="figure"><svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><rect x="70" y="20" width="200" height="150" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><line x1="70" y1="56" x2="270" y2="56" stroke="var(--ink)" stroke-width="1.5"/><line x1="70" y1="104" x2="270" y2="104" stroke="var(--ink)" stroke-width="1.5"/><text x="170" y="43" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">User</text><text x="84" y="75" font-size="12" fill="var(--ink)">- name : String</text><text x="84" y="93" font-size="12" fill="var(--ink)">- age : int</text><text x="84" y="124" font-size="12" fill="var(--ink)">+ getName() : String</text><text x="84" y="142" font-size="12" fill="var(--ink)">+ isAdult() : boolean</text><text x="170" y="185" font-size="12" text-anchor="middle" fill="var(--ink-muted)">上段=クラス名 / 中段=属性 / 下段=操作</text></svg><figcaption>クラス図の箱:上段がクラス名、中段が属性(フィールド)、下段が操作(メソッド)</figcaption></figure>
+
+先頭の記号は可視性で、`+` が public、`-` が private、`#` が protected。書き順は `名前 : 型` で、Java の `String name` とは **型と名前が逆** なので注意します。`isAdult() : boolean` なら「`boolean` を返す `isAdult()`」です。
+
+クラスどうしの関係は、線の種類(実線か点線か)と先端の形で見分けます。
+
+<figure class="figure"><svg viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-polymorphism-u1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L8 4.5 L0 9" fill="none" stroke="var(--ink)" stroke-width="1.5"/></marker></defs><text x="20" y="18" font-size="11" fill="var(--ink-muted)">依存</text><rect x="20" y="24" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="80" y="43" font-size="11" text-anchor="middle" fill="var(--ink)">OrderService</text><path d="M140 38 L380 38" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#java-polymorphism-u1)"/><rect x="380" y="24" width="150" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="455" y="43" font-size="11" text-anchor="middle" fill="var(--ink)">OrderRepository</text><text x="260" y="30" font-size="10" text-anchor="middle" fill="var(--ink-muted)">点線+矢印</text><text x="20" y="78" font-size="11" fill="var(--ink-muted)">集約</text><rect x="20" y="84" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="80" y="103" font-size="11" text-anchor="middle" fill="var(--ink)">CarShop(全体)</text><polygon points="149,98 160,90 171,98 160,106" fill="none" stroke="var(--ink)" stroke-width="1.5"/><path d="M171 98 L380 98" stroke="var(--ink)" stroke-width="1.5" fill="none"/><rect x="380" y="84" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="440" y="103" font-size="11" text-anchor="middle" fill="var(--ink)">Car(部分)</text><text x="260" y="90" font-size="10" text-anchor="middle" fill="var(--ink-muted)">白抜き菱形(全体側)</text><text x="20" y="138" font-size="11" fill="var(--ink-muted)">コンポジション</text><rect x="20" y="144" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="80" y="163" font-size="11" text-anchor="middle" fill="var(--ink)">Order(全体)</text><polygon points="149,158 160,150 171,158 160,166" fill="var(--ink)" stroke="var(--ink)" stroke-width="1.5"/><path d="M171 158 L380 158" stroke="var(--ink)" stroke-width="1.5" fill="none"/><rect x="380" y="144" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="440" y="163" font-size="11" text-anchor="middle" fill="var(--ink)">OrderItem(部分)</text><text x="260" y="150" font-size="10" text-anchor="middle" fill="var(--ink-muted)">黒塗り菱形(全体側)</text><text x="20" y="198" font-size="11" fill="var(--ink-muted)">継承</text><rect x="20" y="204" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="80" y="223" font-size="11" text-anchor="middle" fill="var(--ink)">Dog(サブ)</text><path d="M140 218 L378 218" stroke="var(--ink)" stroke-width="1.5" fill="none"/><polygon points="378,208 400,218 378,228" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><rect x="400" y="204" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="460" y="223" font-size="11" text-anchor="middle" fill="var(--ink)">Animal(スーパー)</text><text x="260" y="210" font-size="10" text-anchor="middle" fill="var(--ink-muted)">白抜き三角+実線(スーパークラス側)</text><text x="20" y="258" font-size="11" fill="var(--ink-muted)">実現</text><rect x="20" y="264" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="80" y="283" font-size="11" text-anchor="middle" fill="var(--ink)">Bird(実装)</text><path d="M140 278 L378 278" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-dasharray="5 3"/><polygon points="378,268 400,278 378,288" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><rect x="400" y="264" width="120" height="28" rx="5" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="460" y="283" font-size="11" text-anchor="middle" fill="var(--ink)">Flyable(IF)</text><text x="260" y="270" font-size="10" text-anchor="middle" fill="var(--ink-muted)">白抜き三角+点線(インターフェース側)</text></svg><figcaption>クラス間の5つの関係。線が実線か点線か、先端が矢印・三角・菱形のどれかで見分ける</figcaption></figure>
+
+| 関係 | 図の形 | Java ではこう現れる |
+|---|---|---|
+| 継承 | 白抜き三角+実線(親の側) | `class Dog extends Animal` |
+| 実現 | 白抜き三角+点線(インターフェースの側) | `class Bird implements Flyable`(次のレッスン) |
+| 依存 | 点線+矢印(使われる側) | 引数やメソッドの中で一時的に使う |
+| 集約 | 白抜き菱形(全体の側) | 外で作られた部品を受け取ってフィールドに持つ |
+| コンポジション | 黒塗り菱形(全体の側) | 自分の中で `new` して持ち、一緒に生まれて一緒に消える |
+
+集約とコンポジションの差は「部品を作ったのは誰か」です。コンストラクタの引数で受け取るだけなら集約、自分の初期化子やコンストラクタで `new` しているならコンポジション。迷ったらコードのコンストラクタを見れば決まります。
+
+::: genba 図とコードが食い違ったら
+設計書の図は、改修のたびに更新されるとは限りません。図とコードがずれていたら、実際に動いているのはコードの方。図で全体をつかみ、細部はコードで確かめる、という順番で読みます。
+:::
 
 ::: point まとめ
 - 親の型の変数に子のインスタンスを入れられる。**呼べるメソッドは変数の型、動くメソッドは実体の型** で決まる

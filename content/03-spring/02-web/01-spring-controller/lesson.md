@@ -10,6 +10,10 @@
 
 ## HTTP を3分でおさらい
 
+Web アプリのやりとりは、いつも **1往復** です。クライアント(ブラウザや別のサーバー)が **リクエスト**(要求)を送り、サーバーが **レスポンス**(応答)を1つ返す。これで1回分が終わります。
+
+<figure class="figure"><svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-controller-arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="40" width="140" height="130" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="90" y="100" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">ブラウザ</text><text x="90" y="122" font-size="12" text-anchor="middle" fill="var(--ink-muted)">(クライアント)</text><rect x="420" y="40" width="160" height="130" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="500" y="88" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">Spring Boot</text><text x="500" y="108" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">アプリ</text><text x="500" y="134" font-size="12" text-anchor="middle" fill="var(--ink-muted)">Controller が処理</text><path d="M165 75 L412 75" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-controller-arr)"/><text x="290" y="60" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">① リクエスト</text><text x="290" y="97" font-size="13" text-anchor="middle" fill="var(--ink)">GET /api/users</text><path d="M415 140 L168 140" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-controller-arr)"/><text x="290" y="128" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">② レスポンス</text><text x="290" y="162" font-size="13" text-anchor="middle" fill="var(--ink)">200 OK + JSON</text><text x="290" y="194" font-size="12" text-anchor="middle" fill="var(--ink-muted)">[{"id":1,"name":"Haru"}]</text></svg><figcaption>1往復:ブラウザが GET /api/users を送り、アプリが 200 OK と JSON を返す</figcaption></figure>
+
 ブラウザが `http://localhost:8080/hello?name=Haru` を開くと、サーバーには次のような **リクエスト** が届きます。
 
 ```text
@@ -37,6 +41,28 @@ Host: localhost:8080
 | 500 | サーバー内エラー | コードの例外 |
 
 GET は「取得」なので、何度送っても結果が変わらない処理に使います。データを登録・更新するフォーム送信は POST です。
+
+メソッドは GET と POST のほかにもあり、API では「何をしたいか」を次の4つで言い分けるのが基本です。
+
+| メソッド | 何をしたいか | 例 |
+|---|---|---|
+| `GET` | 取得 | `GET /api/users` … 一覧をもらう |
+| `POST` | 作成 | `POST /api/users` … 新しいユーザーを登録する |
+| `PUT` | 更新 | `PUT /api/users/1` … 1番の内容を送ったもので置き換える |
+| `DELETE` | 削除 | `DELETE /api/users/1` … 1番を消す |
+
+HTML のフォームから送れるのは GET と POST だけなので、PUT と DELETE は主に API で使います(使い分けは「REST API」のレッスンで詳しく)。
+
+レスポンスの中身は、上の図の②を文字で書くとこうなります。
+
+```text
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[{"id":1,"name":"Haru"}]
+```
+
+1行目が **ステータス**、続く数行が **ヘッダー**(付帯情報。`Content-Type` は「本体は JSON です」という宣言)、空行のあとが **ボディ**(本体)です。リクエストも同じ形で、POST や PUT では送りたいデータをボディに入れます。
 
 ## DispatcherServlet が振り分ける
 

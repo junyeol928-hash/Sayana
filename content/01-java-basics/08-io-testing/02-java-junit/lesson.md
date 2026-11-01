@@ -133,6 +133,27 @@ static boolean isExpired(LocalDate limit,
 
 同じように、ファイル入出力や画面表示といった **副作用** と、計算ロジックは分けます。「読む」「集計する」「書く」を別メソッドにすれば、集計は `List` を渡すだけでテストできます。前回、メソッドが `Path` を引数で受け取ったのも同じ考え方です。
 
+::: haru
+DB からユーザーを読むクラスは、どうテストするんすか? テストのたびに DB を用意するのはつらいっす。
+:::
+
+::: sensei
+同じ発想だよ。DB を読む部品(Repository)を外から渡す形にしておけば、テストでは「決めた通りに答える偽物」を渡せる。偽物を手軽に作るライブラリが **Mockito** で、第3部の MockMvc のレッスンで本格的に使う。
+:::
+
+<figure class="figure"><svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-junit-arr24b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="55" width="150" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">テスト対象</text><text x="95" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">UserService(本物)</text><path d="M170 85 L232 85" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arr24a)"/><rect x="238" y="55" width="170" height="60" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="323" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">UserRepository(モック)</text><text x="323" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">DB には触らない</text><text x="280" y="140" font-size="13" text-anchor="middle" fill="var(--ink)">when(...).thenReturn(...) で「呼ばれたらこう答える」を決めておく</text></svg><figcaption>モックは依存先を「決めた通りに答える偽物」に置き換える</figcaption></figure>
+
+```java
+UserRepository repo = mock(UserRepository.class);   // 偽物を作る
+when(repo.findById(1L))                              // 「1 で呼ばれたら」
+    .thenReturn(Optional.of(new User(1L, "Sato"))); // 「こう答える」
+UserService service = new UserService(repo);         // 偽物を渡す
+assertEquals("Sato", service.getUserName(1L));
+verify(repo).findById(1L);                           // 呼ばれたか確かめる
+```
+
+テストを読むときは、`when(...)` の行を「入力」、`assertEquals` や `verify` の行を「期待される結果」と読みます。仕様書が無いプロジェクトでは、テストが一番正確な仕様書になっていることも珍しくありません。
+
 ## TDD:テストを先に書く
 
 **テスト駆動開発(TDD)** は、①失敗するテストを先に書く(**Red**)②それを通す最小限のコードを書く(**Green**)③緑のまま整理する(**Refactor**)を小さく繰り返す開発スタイルです。先にテストを書くと「何ができたら完成か」が実装前にはっきりし、自然とテストしやすい形になります。
@@ -158,5 +179,5 @@ STS では **Run As > JUnit Test** で実行し、JUnit ビューのバーが緑
 :::
 
 ::: sensei
-これで第1部は卒業。演習ではテストが先にある開発(TDD)も体験してみよう。赤を緑にする快感、クセになるよ。
+演習ではテストが先にある開発(TDD)も体験してみよう。赤を緑にする快感、クセになるよ。次は第9章「JVMと並行処理」の最初、「JVMとメモリ」。これまで「箱」や「住所」と呼んできたものが、JVM の中で実際にどこに置かれているのかを見に行こう。
 :::

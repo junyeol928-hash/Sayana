@@ -32,6 +32,12 @@ names.sort((a, b) -> b.length() - a.length());
 
 `(引数) -> 式` がラムダ式の形です。引数の型は `Comparator<String>` から **推論** されます。引数1つなら括弧を省略でき(`s -> s.length()`)、複数行なら `{ ...; return 値; }` と書きます。
 
+::: sensei
+ポイントは、`sort` に渡したのは「値」じゃなくて「比べ方という **処理**」だってこと。渡した時点ではまだ動かない。いつ・何回呼ぶかは、受け取った `sort` の側が決めるんだ。`->` は「を受け取って」と読むといい。`(a, b) -> b.length() - a.length()` は「a と b を受け取って、長さの差を返す」。
+:::
+
+<figure class="figure"><svg viewBox="0 0 620 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-lambda-stream-arrow18a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="30" width="200" height="120" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">呼び出す側</text><rect x="40" y="72" width="160" height="58" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="120" y="96" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">x -&gt; x * 2</text><text x="120" y="118" font-size="12" text-anchor="middle" fill="var(--ink-muted)">処理(まだ実行していない)</text><path d="M225 100 L335 100" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-lambda-stream-arrow18a)"/><text x="280" y="88" font-size="12" text-anchor="middle" fill="var(--ink-muted)">引数として渡す</text><rect x="340" y="30" width="260" height="120" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="470" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">受け取った側(例:map)</text><text x="360" y="84" font-size="13" fill="var(--ink)">for (要素 : リスト) {</text><text x="380" y="106" font-size="13" fill="var(--ink)">    結果 = <tspan fill="var(--accent)" font-weight="700">処理.apply(要素)</tspan>;</text><text x="360" y="128" font-size="13" fill="var(--ink)">}</text><text x="310" y="178" font-size="13" text-anchor="middle" fill="var(--ink-muted)">「いつ・何回呼ぶか」は受け取った側が決める。渡す側は「何をするか」だけ書く</text></svg><figcaption>ラムダのイメージ:値を渡すのではなく「処理」を渡し、相手がそれを呼ぶ</figcaption></figure>
+
 ラムダ式を書けるのは、**関数型インターフェース**(抽象メソッドがちょうど1つのインターフェース)型が期待される所だけです。1つだから「どのメソッドの実装か」が曖昧になりません。自作するなら `@FunctionalInterface` を付けると、抽象メソッドを2つにした瞬間コンパイルエラーで教えてくれます。
 
 ## 標準の関数型インターフェースとメソッド参照
@@ -85,6 +91,10 @@ List<String> top = orders.stream()      // 生成
 ```
 
 for 文だと `Set` で重複を管理し、ソートし、件数を数えて……と10行を超え、意図が手順に埋もれます。Stream は **「何をするか」を宣言的に並べる** ので上から読めば意図がわかります。逆に `break` したい、インデックスが要る、検査例外を投げる、といった処理は for 文が素直です。
+
+::: point 長い Stream は「流れている型」をメモして読む
+1行(1つの `.xxx(...)`)を1工程として上から読み、各行の右に **今流れている要素の型** を書き出すと迷いません。上の例なら `Order` → `Order` → `String`(`map` で型が変わる)→ `String` → `String` → `String` → `List<String>`。型が変わるのは `map` 系だけなので、そこを押さえれば全体がつかめます。
+:::
 
 ::: haru
 `.toList()` と `collect(Collectors.toList())`、ネットで両方見るっす。
