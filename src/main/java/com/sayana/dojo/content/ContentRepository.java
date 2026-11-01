@@ -204,9 +204,31 @@ public class ContentRepository {
                 exercises.add(loadExercise(e, id));
             }
         }
-        return new Lesson(id, partId, chapterId, str(y, "title"), status, intVal(y, "minutes", 15),
+        return new Lesson(id, partId, chapterId, str(y, "title"), status, readingMinutes(body),
                 str(y, "summary"), strList(y, "goals"), body, markdown.render(body), samples, List.copyOf(quiz),
                 columns, sts, checklist, List.copyOf(exercises), loadReading(dir, id), loadAtWork(dir));
+    }
+
+    /**
+     * 本文を読む目安(分)。手で書いた値は全レッスン同じ 15 分になっていて当てにならないので、本文から数える。
+     * 文章は 1 分に 500 字、コードは 1 分に 12 行(空行を除く)で読む前提。
+     */
+    static int readingMinutes(String body) {
+        int codeLines = 0;
+        StringBuilder prose = new StringBuilder();
+        boolean inCode = false;
+        for (String line : body.split("\\R")) {
+            if (line.strip().startsWith("```")) {
+                inCode = !inCode;
+            } else if (inCode) {
+                if (!line.isBlank()) {
+                    codeLines++;
+                }
+            } else {
+                prose.append(line.replaceAll("[\\s#>*|`\\-]", ""));
+            }
+        }
+        return Math.max(1, (int) Math.ceil(prose.length() / 500.0 + codeLines / 12.0));
     }
 
     /** reading.yml(コード読解問題のリスト)。無ければ空。 */

@@ -27,7 +27,7 @@ content/
 id: java-hello            # 全体で一意なスラッグ。URLや進捗の保存キーになるので後から変えない
 title: 環境とHello World
 status: ready             # ready = 公開 / planned = 章立てのみ(本文なし)
-minutes: 15               # 読む目安(分)
+minutes: 15               # 準備中のレッスンの読む目安(分)。公開(ready)のレッスンは lesson.md から数える(文章 500 字・コード 12 行で 1 分)
 summary: 一行の説明
 goals:                    # このレッスンのゴール(3〜5個)
   - ...
