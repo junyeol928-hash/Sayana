@@ -18,8 +18,10 @@ import java.util.stream.Stream;
 
 import org.springframework.core.io.ClassPathResource;
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sayana.dojo.ai.LessonContext;
 import com.sayana.dojo.ai.PromptLibrary;
 import com.sayana.dojo.config.DojoProperties;
@@ -49,7 +51,9 @@ public final class MobileSiteGenerator {
     /** AI 機能のプロンプト。 */
     static final List<String> PROMPTS = List.of("tutor", "hint", "review", "explain-error");
 
-    private final ObjectMapper json = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    // 改行は OS によらず LF に固定する(Windows で作り直しても差分が出ないように)
+    private final ObjectWriter json = new ObjectMapper().writer(new DefaultPrettyPrinter()
+            .withObjectIndenter(new DefaultIndenter("  ", "\n")));
 
     public static void main(String[] args) throws IOException {
         Path out = Path.of(args.length > 0 ? args[0] : "m");
