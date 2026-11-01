@@ -10,7 +10,6 @@ const FILES = [
 const CDN = [
   "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs",
   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.10.0/build/highlight.min.js",
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.10.0/build/styles/github.min.css",
   "https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.esm.js",
 ];
 

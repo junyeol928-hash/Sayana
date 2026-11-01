@@ -91,6 +91,7 @@ public final class MobileSiteGenerator {
                     m.put("ready", l.ready());
                     m.put("exercises", l.exercises().size());
                     m.put("quiz", l.quiz().size());
+                    m.put("reading", l.reading().size());
                     lessons.add(m);
                 }
                 chapters.add(ordered("id", c.id(), "title", c.title(), "lessons", lessons));
@@ -108,9 +109,32 @@ public final class MobileSiteGenerator {
 
         // レッスンごとのデータ
         String common = prompts.get("common");
+        List<Object> reading = new ArrayList<>();
         for (Lesson l : content.readyLessons()) {
-            files.put("data/lessons/" + l.id() + ".json", toJson(lessonData(content, l, common)));
+            Map<String, Object> data = lessonData(content, l, common);
+            files.put("data/lessons/" + l.id() + ".json", toJson(data));
+            // 「読解」画面は全レッスンの問題を1つのファイルから読む(55 ファイルを開かずに済むように)
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> rs = (List<Map<String, Object>>) data.get("reading");
+            for (int i = 0; i < rs.size(); i++) {
+                Map<String, Object> r = new LinkedHashMap<>(rs.get(i));
+                r.put("ref", l.id() + "@" + i);
+                r.put("lesson", l.id());
+                reading.add(r);
+            }
         }
+        files.put("data/reading.json", toJson(reading));
+
+        // 用語集
+        files.put("data/glossary.json", toJson(content.glossary().stream().map(t -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("term", t.term());
+            x.put("read", t.read());
+            x.put("en", t.en());
+            x.put("defHtml", t.defHtml());
+            x.put("lesson", t.lessonId());
+            return x;
+        }).toList()));
 
         // Service Worker(全ファイルを先に取っておき、電波が無くても開けるようにする)
         files.put("sw.js", serviceWorker(files));
@@ -126,7 +150,9 @@ public final class MobileSiteGenerator {
         m.put("part", content.part(l.partId()).map(Part::title).orElse(""));
         m.put("chapter", content.chapter(l.chapterId()).map(Chapter::title).orElse(""));
         m.put("prev", content.previous(l.id()).map(Lesson::id).orElse(null));
+        m.put("prevTitle", content.previous(l.id()).map(Lesson::title).orElse(null));
         m.put("next", content.next(l.id()).map(Lesson::id).orElse(null));
+        m.put("nextTitle", content.next(l.id()).map(Lesson::title).orElse(null));
         m.put("goals", l.goals());
         m.put("bodyHtml", l.bodyHtml());
         m.put("samples", l.samples().stream().map(s -> {
@@ -161,6 +187,29 @@ public final class MobileSiteGenerator {
             m.put("sts", sts);
         }
         m.put("checklist", l.checklist().stream().map(c -> ordered("key", c.key(), "text", c.text())).toList());
+        m.put("reading", l.reading().stream().map(r -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("title", r.title());
+            x.put("level", r.level());
+            x.put("code", r.code());
+            x.put("questionHtml", r.questionHtml());
+            x.put("choicesHtml", r.choicesHtml());
+            x.put("answer", r.answer());
+            x.put("explanationHtml", r.explanationHtml());
+            x.put("traceHtml", r.traceHtml());
+            return x;
+        }).toList());
+        m.put("atWork", l.atWork().stream().map(a -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("title", a.title());
+            x.put("introHtml", a.introHtml());
+            x.put("code", a.code());
+            Map<String, String> notes = new LinkedHashMap<>();
+            a.notesHtml().forEach((k, v) -> notes.put(String.valueOf(k), v));
+            x.put("notesHtml", notes);
+            x.put("pointsHtml", a.pointsHtml());
+            return x;
+        }).toList());
         // AI に渡す文脈(PC版と同じ文字列。プロンプトキャッシュが効く)
         m.put("aiContext", LessonContext.build(commonPrompt, l));
         return m;
