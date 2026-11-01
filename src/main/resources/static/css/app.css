@@ -192,10 +192,7 @@ button { font: inherit; letter-spacing: inherit; }
 .icon.sm { width: 18px; height: 18px; }
 
 /* ================================================================ ヘッダー・フッター */
-.site-header {
-  position: sticky; top: 0; z-index: 30; background: color-mix(in oklch, var(--bg) 92%, transparent);
-  backdrop-filter: saturate(1.2) blur(10px); -webkit-backdrop-filter: saturate(1.2) blur(10px);
-}
+.site-header { position: sticky; top: 0; z-index: 30; background: var(--bg); } /* 不透明(マットで透けない。下を流れるコードがにじまないように) */
 .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
 .header-inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 12px 28px; min-height: 60px; }
@@ -328,7 +325,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-next .dye { width: 18px; height: 18px; }
 .today-next .tn-now, .today-next .tn-hint { display: block; }
 .today-next .tn-hint { color: var(--kon-muted); font-size: .8125rem; }
-.install-hint .close { margin-left: auto; flex: none; min-width: 44px; min-height: 44px; margin: 0 -10px 0 auto; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
+.install-hint .close { flex: none; min-width: 44px; min-height: 44px; margin: 0 0 0 -4px; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
 .save-state.ok::before { background: var(--ok); }
 .save-state.ng::before { background: var(--shu); }
 .today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
@@ -359,13 +356,13 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .install-hint { display: flex; gap: 12px; align-items: center; font-size: .8125rem; color: var(--ink-muted); padding: 0; margin: 8px 0 0; }
 .install-hint summary { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
 .install-hint p { margin: 6px 0 0; }
-.install-hint details { flex: 1; }
+.install-hint details { flex: 0 1 auto; }
 .install-hint summary { cursor: pointer; }
 .install-hint + * { margin-top: 0; }
 
 .curriculum { margin-top: 24px; }
 /* スマホのホーム: 部の前は 48px と刺し子の区切りで、節の始まりに見せる(PC は右の列なので付けない) */
-.mobile-app .curriculum { margin-top: 48px; padding-top: 32px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 1px no-repeat; }
+.mobile-app .curriculum { margin-top: 16px; padding-top: 24px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 1px no-repeat; }
 .curriculum > h2 { font-size: 1.125rem; margin: 0 0 4px; }
 .part-block { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 0 18px; padding: 24px 0 8px; }
 .part-tag {
@@ -500,6 +497,11 @@ details.goals[open] > summary { margin-bottom: 0; }
 .figure svg { display: block; margin: 0 auto; width: 100%; min-width: 480px; max-width: 680px; height: auto; font-family: var(--font); }
 .figure figcaption { font-size: .8125rem; color: var(--ink-muted); margin-top: 12px; text-align: left; }
 .mermaid svg { max-width: 100%; height: auto; }
+@media (max-width: 760px) {
+  /* 図は縮めずに横スクロール(右端のフェードで続きを示す) */
+  .mermaid { text-align: left; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+  .mermaid svg { max-width: none; }
+}
 .read-action { margin: 28px 0 0; display: flex; justify-content: flex-start; }
 .done { color: var(--ok); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
 
@@ -517,7 +519,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .talk-bubble pre { font-size: .8125rem; }
 .talk-haru { grid-template-columns: minmax(0, 1fr) 40px; }
 .talk-haru .talk-avatar { order: 2; }
-.talk-haru .talk-icon { background: var(--surface); color: var(--accent-ink); box-shadow: inset 0 0 0 2px var(--accent); }
+.talk-haru .talk-icon { background: var(--accent); color: var(--on-accent); } /* 名札は面の札(枠だけの形は押せる部品に見えるので使わない) */
 .talk-haru .talk-bubble { background: var(--surface-2); border-color: transparent; border-radius: var(--r-l) 4px var(--r-l) var(--r-l); justify-self: end; }
 
 /* 囲み: 印(ラベル)+地の色。左の色帯は使わない */
@@ -610,12 +612,17 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 /* 語の中のレッスンごとの説明は、左の藍の細線でひとまとまりに(カード同士の刺し子の区切りと分ける) */
 .term-defs li { padding-left: 12px; border-left: 2px solid var(--accent-soft); }
 .term-defs li + li { margin-top: 10px; }
-.term > .term-from-head { display: flex; min-height: 32px; margin-top: 2px; }
 .term-defs .term-def { margin: 0; }
 .term-from-head { min-height: 32px; font-weight: 700; }
-.term-from-head::after { content: "で"; display: inline-block; text-decoration: none; color: var(--ink-muted); font-weight: 400; margin-left: 2px; }
+/* 「〇〇 で」の「で」はリンクの外(押せる範囲にも下線にも入れない) */
+.term-from-line { display: flex; align-items: center; gap: 2px; margin: 2px 0 0; }
+.term-from-line .term-from { min-height: 32px; }
+.term-de { font-size: .8125rem; color: var(--ink-muted); }
 .term-count { font-size: .75rem; font-weight: 400; color: var(--ink-muted); }
-.kana-index { position: sticky; top: 56px; z-index: 10; background: var(--bg); display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1) 4px; padding: 4px 36px 12px var(--gutter);
+/* 固定するのは外の入れ物。下に地の色から透明への帯を出し、本文が下に潜る境目にする(横のフェードの mask は内側の索引だけ) */
+.kana-wrap { position: sticky; top: 56px; z-index: 10; background: var(--bg); margin: 0 calc(var(--gutter) * -1) 4px; }
+.kana-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 16px; background: linear-gradient(var(--bg), transparent); pointer-events: none; }
+.kana-index { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; padding: 4px 36px 12px var(--gutter);
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
 .kana-index::-webkit-scrollbar { display: none; }
 /* 索引の下端に 2px の刺し子: 本文が下に潜る境目(横のフェードの mask があるので、外側に帯は描けない) */
@@ -624,7 +631,7 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .kana-index a:hover { background: var(--surface-2); }
 .kana-index a[aria-current="true"] { color: var(--accent-ink); box-shadow: inset 0 -3px 0 var(--accent); border-radius: 0; }
 .kana-index .kana-search { color: var(--ink-muted); }
-.term-group { scroll-margin-top: 120px; }
+.term-group, .term { scroll-margin-top: 140px; } /* 行へ飛んでも語の名前が索引の下に隠れないように */
 .search { position: relative; margin: 8px 0 16px; }
 .search input { width: 100%; font: inherit; font-size: 16px; min-height: 48px; padding: 10px 14px 10px 44px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }
 .search .icon { position: absolute; left: 14px; top: 13px; color: var(--ink-muted); }
