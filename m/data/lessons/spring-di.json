@@ -97,7 +97,7 @@
   }, {
     "type" : "mistake",
     "label" : "よくあるミス",
-    "title" : "「Bean が見つからない」の9割はアノテーションの付け忘れ",
+    "title" : "「Bean が見つからない」で最初に確かめる 3 点",
     "bodyHtml" : "<p>Spring Boot の起動時に、こんなエラーで止まることがあります。</p>\n<pre><code class=\"language-text\">APPLICATION FAILED TO START\nParameter 0 of constructor in com.example.demo.OrderService\nrequired a bean of type 'com.example.demo.MailSender'\nthat could not be found.\n</code></pre>\n<p>「<code>OrderService</code> のコンストラクタの0番目の引数に渡す <code>MailSender</code> 型の Bean が無い」という意味です。まず疑うのは次の3つ。</p>\n<ol>\n<li>実装クラス(<code>SmtpMailSender</code>)に <code>@Component</code> / <code>@Service</code> を付け忘れていないか</li>\n<li>インターフェース側にだけアノテーションを付けていないか(Bean になるのは実装クラス)</li>\n<li>実装クラスが、メインクラスの外のパッケージに置かれていないか(次のレッスンで詳しく)</li>\n</ol>\n"
   } ],
   "sts" : {
