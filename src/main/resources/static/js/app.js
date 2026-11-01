@@ -197,6 +197,7 @@ function numberLines(code) {
 }
 
 const LAST_KEY = "javadojo-pc-last";
+const RESUME_KEY = "javadojo-pc-resume";
 const SECTIONS_KEY = "javadojo-pc-sections";
 function pcStore(key) {
   try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
@@ -210,27 +211,43 @@ function dashboardResume() {
   const ok = document.getElementById("reading-ok");
   if (ok) ok.textContent = Object.values(readingRecord()).filter((r) => r.ok).length;
   const hero = document.querySelector(".today");
-  const last = pcStore(LAST_KEY);
-  if (!hero || !last.id || last.end || !document.querySelector(".today-title a")) return;
-  const title = hero.querySelector(".today-title a");
-  const href = `/lessons/${encodeURIComponent(last.id)}#${last.section || "read"}`;
-  if (title.getAttribute("href").endsWith("/" + last.id)) {
-    hero.querySelector(".today-actions a").href = href;
-    hero.querySelector(".today-actions a").textContent = `続きから${last.label ? `(${last.label})` : ""}`;
-    return;
+  try {
+    const last = pcStore(LAST_KEY);
+    const row = last.id && document.querySelector(`.lesson-row a[data-lesson="${CSS.escape(last.id)}"]`);
+    if (!hero || !row || last.end || !hero.querySelector(".today-title a")) return;
+    const title = hero.querySelector(".today-title a");
+    const href = `/lessons/${encodeURIComponent(last.id)}#${last.section || "read"}`;
+    const btn = hero.querySelector(".today-actions a");
+    btn.href = href;
+    btn.textContent = `続きから${last.label ? `(${last.label})` : ""}`;
+    // レッスンを開いたら、読んでいた位置へ戻す(レッスン側が読む)
+    [btn, title].forEach((a) => a.addEventListener("click", () => sessionStorage.setItem(RESUME_KEY, last.id)));
+    if (title.getAttribute("href").endsWith("/" + last.id)) return;
+    const nextHref = title.getAttribute("href");
+    const nextTitle = title.textContent;
+    // 主役を前回の続きに差し替える。所属・時間・いまの染めと次の条件も、そのレッスンの値で組み立て直す
+    const d = row.dataset;
+    hero.querySelector(".today-kicker").innerHTML = `<span>前回の続き</span><span>${escHtml(d.chapter)}</span>`;
+    title.href = href;
+    title.textContent = last.title;
+    const meta = hero.querySelector(".today-meta");
+    if (meta) meta.innerHTML = [`読む ${d.minutes} 分`, `演習 ${d.exercises}`, `クイズ ${d.quiz}`, d.reading !== "0" ? `読解 ${d.reading}` : ""].filter(Boolean).map((t) => `<span>${t}</span>`).join("");
+    const next = hero.querySelector(".today-next");
+    if (next && d.hint) next.innerHTML = `<span class="dye dye-${d.dye}"></span><span>いま ${escHtml(d.dyeLabel)} · ${escHtml(d.hint)}</span>`;
+    else next?.remove();
+    hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
+    // 一覧の札もヒーローと同じ言葉に(強調は主役の 1 行だけ)
+    document.querySelectorAll(".lesson-row.is-next").forEach((li) => {
+      li.classList.remove("is-next");
+      const b = li.querySelector(".row-title b");
+      if (b) b.textContent = "次の新しいレッスン";
+    });
+    const li = row.closest(".lesson-row");
+    li.classList.add("is-next");
+    li.querySelector(".row-title").insertAdjacentHTML("afterbegin", "<b>前回の続き</b>");
+  } finally {
+    document.body.classList.remove("resume-pending");
   }
-  const nextHref = title.getAttribute("href");
-  const nextTitle = title.textContent;
-  hero.querySelector(".today-kicker span").textContent = "前回の続き";
-  hero.querySelectorAll(".today-kicker span")[1]?.remove();
-  title.href = href;
-  title.textContent = last.title;
-  hero.querySelector(".today-meta")?.remove();
-  hero.querySelector(".today-next")?.remove();
-  const btn = hero.querySelector(".today-actions a");
-  btn.href = href;
-  btn.textContent = `続きから${last.label ? `(${last.label})` : ""}`;
-  hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
 }
 
 /** 読んでいる段を段の並びに示し、縫い線を進める */
@@ -247,6 +264,12 @@ function trackLesson() {
   const seen = pcStore(SECTIONS_KEY);
   const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
   (seen[lessonId] || []).forEach(markDone);
+  if (lessonId && sessionStorage.getItem(RESUME_KEY) === lessonId) {
+    sessionStorage.removeItem(RESUME_KEY);
+    const last = pcStore(LAST_KEY);
+    const sec = last.id === lessonId && document.getElementById(last.section);
+    if (sec && last.off > 0) requestAnimationFrame(() => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" }));
+  }
   let saveTimer = null;
   const update = () => {
     const line = 140;
@@ -262,7 +285,8 @@ function trackLesson() {
     saveTimer = setTimeout(() => {
       if (!lessonId) return;
       const end = document.querySelector(".lesson-nav")?.getBoundingClientRect().top < innerHeight;
-      pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, label: stepper.querySelector(`.step[href="#${current}"]`)?.firstChild?.textContent.trim(), y: Math.round(scrollY), end });
+      const top = document.getElementById(current)?.getBoundingClientRect().top ?? line;
+      pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, label: stepper.querySelector(`.step[href="#${current}"]`)?.firstChild?.textContent.trim(), off: Math.round(line - top), end });
     }, 400);
     let key = sections[0].id;
     for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;

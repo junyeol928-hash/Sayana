@@ -2,6 +2,8 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('ダッシュボード')}"></head>
 <body class="page-dashboard">
+<!--/* 前回の続きがこのブラウザに記録されていれば、JS が主役を差し替えるまでヒーローを隠す(ちらつかないように)。JS が動かなくても 1.5 秒で出す */-->
+<script>try { if (JSON.parse(localStorage.getItem("javadojo-pc-last") || "{}").id) { document.body.classList.add("resume-pending"); setTimeout(function () { document.body.classList.remove("resume-pending"); }, 1500); } } catch (e) {}</script>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container">
 <div class="dash-grid">
@@ -86,12 +88,13 @@
                         <ul class="lesson-rows">
                             <li th:each="ls : ${cp.lessons}" class="lesson-row"
                                 th:classappend="${(nextLesson != null and ls.lesson.id == nextLesson.id) ? 'is-next' : ''} + ' ' + ${ls.lesson.ready() ? '' : 'planned'}">
-                                <a th:href="@{/lessons/{id}(id=${ls.lesson.id})}">
+                                <a th:href="@{/lessons/{id}(id=${ls.lesson.id})}"
+                                   th:attr="data-lesson=${ls.lesson.id}, data-minutes=${ls.lesson.minutes}, data-exercises=${ls.exercisesTotal}, data-quiz=${ls.quizTotal}, data-reading=${ls.lesson.reading.size()}, data-dye=${ls.dyeLevel()}, data-dye-label=${ls.dyeLabel()}, data-chapter=${cp.chapter.title}, data-hint=${dyeHints[ls.lesson.id]}">
                                     <span class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" role="img" th:attr="aria-label=${ls.dyeLabel()}"></span>
                                     <span class="row-title"><b th:if="${nextLesson != null and ls.lesson.id == nextLesson.id}">今日の稽古</b><span th:text="${ls.lesson.title}"></span></span>
                                     <span class="row-meta" th:if="${ls.lesson.ready()}">
-                                        <span th:if="${ls.bestQuiz != null}" th:text="'クイズ ' + ${ls.bestQuiz} + '/' + ${ls.quizTotal}"></span>
-                                        <span th:if="${ls.bestQuiz == null}" th:text="${ls.lesson.minutes} + '分'"></span>
+                                        <span th:if="${ls.dyeLevel() > 0}" th:text="${#strings.substringAfter(ls.dyeLabel(), '・')}"></span>
+                                        <span th:if="${ls.dyeLevel() == 0}" th:text="${ls.lesson.minutes} + '分'"></span>
                                     </span>
                                     <span class="row-meta" th:unless="${ls.lesson.ready()}">準備中</span>
                                 </a>

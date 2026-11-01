@@ -2,6 +2,8 @@ package com.sayana.dojo.web;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -57,6 +59,9 @@ public class DashboardController {
         int[] dyeCounts = new int[5];
         flat.forEach(s -> dyeCounts[s.dyeLevel()]++);
         model.addAttribute("flatLessons", flat);
+        // 前回の続きに差し替えるとき(static/js/app.js)に使う、レッスンごとの「次の段へ進む条件」
+        model.addAttribute("dyeHints", flat.stream().collect(Collectors.toMap(st -> st.lesson().id(),
+                st -> Objects.requireNonNullElse(nextDyeHint(st), ""))));
         model.addAttribute("dyeCounts", dyeCounts);
         model.addAttribute("deepCount", dyeCounts[2] + dyeCounts[3] + dyeCounts[4]);
         // 数字の欄はスマホ版とそろえる(次の復習・読解の正解はブラウザ側で数える・この 7 日の稽古)
@@ -78,7 +83,7 @@ public class DashboardController {
     }
 
     /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
-    static String nextDyeHint(ProgressService.LessonStatus s) {
+    public static String nextDyeHint(ProgressService.LessonStatus s) {
         return switch (s.dyeLevel()) {
             case 0 -> "読み終えると甕覗きに";
             case 1 -> "クイズで " + s.quizPassScore() + " 問以上取ると縹に";

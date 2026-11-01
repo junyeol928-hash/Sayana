@@ -24,8 +24,8 @@
             </th:block>
             <ul class="term-defs" th:if="${c.terms.size() > 1}">
                 <li th:each="t : ${c.terms}">
+                    <a class="term-from term-from-head" th:if="${t.lessonId != null}" th:href="@{/lessons/{id}(id=${t.lessonId})}" th:text="${lessonTitles.get(t.lessonId)}"></a>
                     <p class="term-def" th:utext="${t.defHtml}"></p>
-                    <a class="term-from" th:if="${t.lessonId != null}" th:href="@{/lessons/{id}(id=${t.lessonId})}" th:text="${lessonTitles.get(t.lessonId)}"></a>
                 </li>
             </ul>
         </li>
