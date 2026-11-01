@@ -87,8 +87,8 @@
        (明るさの順のままだと浅い甕覗きがいちばん目立ち、深いほど明るく鮮やかにすると「深い色」の比喩が崩れて藤色に転ぶため) */
     --dye-0: var(--bg);
     --dye-empty: oklch(.42 .03 250);
-    --dye-1: oklch(.3 .045 234);
-    --dye-1-edge: oklch(.6 .075 234);
+    --dye-1: oklch(.36 .05 234);
+    --dye-1-edge: oklch(.66 .075 234);
     --dye-2: oklch(.6 .09 230);
     --dye-3: oklch(.58 .13 248);
     --dye-4: oklch(.5 .11 256);
@@ -126,8 +126,8 @@
   --ki-soft: oklch(.29 .04 85);
   --dye-0: var(--bg);
   --dye-empty: oklch(.42 .03 250);
-  --dye-1: oklch(.3 .045 234);
-  --dye-1-edge: oklch(.6 .075 234);
+  --dye-1: oklch(.36 .05 234);
+  --dye-1-edge: oklch(.66 .075 234);
   --dye-2: oklch(.6 .09 230);
   --dye-3: oklch(.58 .13 248);
   --dye-4: oklch(.5 .11 256);
@@ -212,7 +212,7 @@ button { font: inherit; letter-spacing: inherit; }
 .header-status { display: flex; align-items: center; gap: 14px; font-size: .875rem; color: var(--ink-muted); margin-left: auto; }
 .streak { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
 .streak b { color: var(--ink); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
-.streak.zero b { color: var(--ink-muted); }
+.streak.zero { display: none; } /* 0 日は出さない(始めたばかりの人に減点の表示を見せない) */
 .net-badge:not(.off) { display: none; }
 .ai-badge, .net-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 700; white-space: nowrap; color: var(--ink-muted); }
 .ai-badge::before, .net-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
@@ -220,7 +220,8 @@ button { font: inherit; letter-spacing: inherit; }
 .net-badge.off { color: var(--shu); }
 .net-badge.off::before { background: var(--shu); }
 .net-badge.saved { display: inline-flex; }
-.net-badge.saved::before { background: var(--accent); } /* 有彩色は藍と朱だけ。朱は地図の主役の印と復習の数にとっておく */
+.net-badge.saved::before { background: var(--accent); }
+.is-offline .ask { color: var(--ink-muted); } /* 電波がない間は AI に聞けないので弱く(押すと理由を出す) */ /* 有彩色は藍と朱だけ。朱は地図の主役の印と復習の数にとっておく */
 .ai-badge.on { color: var(--ok); }
 .site-footer { max-width: 1320px; margin: 72px auto 24px; padding: 20px 28px 0; display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: .8125rem; flex-wrap: wrap;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat; }
@@ -404,7 +405,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .lesson-row.is-next a { background: var(--accent-soft); }
 .lesson-row .row-title b { display: block; font-size: .75rem; color: var(--accent-ink); }
 .lesson-row.planned .row-title { color: var(--ink-muted); }
-.lesson-row .dye-0 { outline: none; background: repeating-linear-gradient(90deg, var(--dye-empty) 0 6px, transparent 6px 10px) center / 16px 2px no-repeat; } /* 刺し子 2 目(欠けた値の「---」に見えないように)*/
+.lesson-row .dye-0 { outline: none; background: none; } /* 一覧の「まだ」は印を置かず幅だけ取る(短い線は欠けた値の「--」に見えた。印は甕覗きから) */
 
 /* PC のダッシュボード: 左に今日の稽古と進捗、右に一覧 */
 .dash-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; }
@@ -569,7 +570,7 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 .sample h3 { margin: 0 0 4px; font-size: 1.1rem; }
 .run-note { background: var(--surface-2); border-radius: var(--r-m); padding: 10px 14px; font-size: .875rem; margin: 8px 0 16px; }
 
-/* 行番号つきのコード(読解・仕事のコード)。横に流さず折り返し、折り返した行は字下げして ↪ の印 */
+/* 行番号つきのコード(読解・仕事のコード)。横に流さず折り返し、折り返した続きは字下げし、行番号の列に縦線 */
 pre.code-lines { padding: 12px 14px 12px 0; white-space: pre-wrap; overflow-x: hidden; font-size: 13.5px; line-height: 1.7; counter-reset: ln; }
 pre.code-lines code { display: block; }
 pre.code-lines .ln { display: block; position: relative; --hang: calc((min(var(--ind, 0), 8) + 2) * 1ch); padding-left: calc(52px + var(--hang)); text-indent: calc(var(--hang) * -1); overflow-wrap: break-word; min-height: 1.7em; }
@@ -583,7 +584,11 @@ pre.code-lines .ln-note code { color: inherit; background: oklch(1 0 0 / .1); }
 .atwork.notes-folded pre.code-lines .ln-note { display: none; }
 .atwork.notes-folded .line-notes.has-inline { display: grid; }
 pre.code-lines .ln.note::before { content: attr(data-n); left: 6px; width: 30px; text-align: center; border-radius: 9px; background: var(--dye-2); color: var(--code-bg); font-weight: 700; top: .2em; line-height: 1.5; }
-pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
+pre.code-lines .ln.note { background-color: oklch(1 0 0 / .05); }
+/* 折り返した続きの行は、行番号の列に細い縦線を引いて見分ける(1 行目の高さより下だけ) */
+pre.code-lines .ln { background-image: linear-gradient(var(--code-muted), var(--code-muted)); background-position: 22px 1.7em; background-size: 1px calc(100% - 1.9em); background-repeat: no-repeat; }
+/* コメントは範囲を薄い面で示す(割れても、どこまでがコメントか分かるように) */
+pre.code-lines .hljs-comment { background-color: oklch(1 0 0 / .07); border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 /* 説明はコードの注: コードより小さく、色も 1 段下げる(PC はコードを 15px に上げて主従を戻す) */
 pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 13px; }
 @media (min-width: 1024px) { pre.code-lines { font-size: 15px; } pre.code-lines .ln-note { font-size: 14px; } }
@@ -591,6 +596,7 @@ pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 13px; }
   pre.code-lines, .reading-q pre.code-lines { font-size: 13px; padding-right: 8px; }
   pre.code-lines .ln { padding-left: calc(38px + var(--hang)); }
   pre.code-lines .ln::before { width: 26px; }
+  pre.code-lines .ln { background-position: 16px 1.7em; }
   pre.code-lines .ln-note { margin-left: 36px; font-size: 12.5px; }
 }
 
@@ -793,8 +799,7 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .quiz-wrong { margin: 10px 0 0; font-size: .9375rem; }
 .quiz-wrong a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; font-weight: 700; }
 .quiz-next { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-.quiz-ai { margin: 12px 0 0; }
-.quiz-ai a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; }
+.quiz-ai { margin: 12px 0 0; display: flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: .9375rem; } /* 次の段の条件(ボタンが演習へ行くので、ここはリンクにしない) */
 .quiz-q .q-explain { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: .9375rem; }
 .quiz-q .q-explain { border-left: 3px solid var(--accent); border-radius: 0 var(--r-m) var(--r-m) 0; }
 .quiz-q .q-explain.wrong { border-left-color: var(--shu); }
@@ -826,6 +831,10 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
 .quiz-result { margin-top: 20px; }
 .quiz-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+/* 点を刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色。数字の横に、布に縫った跡として */
+.score-stitches { display: inline-flex; gap: 4px; align-self: center; }
+.score-stitches i { width: 14px; height: 3px; border-radius: 2px; background: var(--line-strong); }
+.score-stitches i.on { background: var(--accent); }
 .quiz-score .big, .q-mark.big { font-size: 2.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .quiz-review { list-style: none; padding: 0; }
 .quiz-review > li { margin: 12px 0; padding: 14px 16px; border-radius: var(--r-m); }

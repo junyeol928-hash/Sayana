@@ -39,7 +39,8 @@ function loadState() {
 }
 
 let S = loadState();
-let savedAll = false; // 全レッスンと図を保存し終えたか(ヘッダーの印に使う)
+// 全レッスンと図を保存し終えたか(ヘッダーの印に使う)。ホームで確かめた結果を覚えておき、オフラインでレッスンから開いても使う
+let savedAll = !!S.allSaved;
 migrateSettings();
 applyTheme();
 
@@ -208,6 +209,10 @@ function dyeLevel(meta) {
 
 const dyeSwatch = (level, extra = "") => `<span class="dye dye-${level} ${extra}" role="img" aria-label="${DYE[level].name}(${DYE[level].meaning})"></span>`;
 const dyeDot = (level) => `<span class="dye dye-${level}"></span>`;
+// 前回の続きのボタン: 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。PC 版 app.js と同じ
+const resumeLabel = (section) => !section ? "続きから" : section === "読む" ? "続きを読む" : `${section}の続きから`;
+// 採点の点を刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色
+const scoreStitches = (score, total) => `<span class="score-stitches" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${i < score ? "on" : ""}"></i>`).join("")}</span>`;
 // 染まりの地図の 1 マス。前に見たときより深まったマスは染み込ませ、主役のレッスンには朱の印を付ける
 const dyeCell = (l, levels, seen, deepened, hero) => `<span class="dye-cell${l.id === hero.id ? " is-here" : ""}">${deepened.has(l.id)
   ? `${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink"></span>` : dyeDot(levels[l.id])}</span>`;
@@ -273,10 +278,14 @@ function updateHeader() {
   $("#streak").classList.toggle("zero", days === 0);
   const net = $("#net");
   // 全部保存できたら、ヒーローの説明の代わりにヘッダーの小さな印で知らせる(ヒーローは次の一手だけにする)
-  net.textContent = !navigator.onLine ? "オフライン" : savedAll ? "保存済み" : "オンライン";
+  // 電波がなくても全部保存してあれば、警告ではなく「読める」と言う(朱は、保存が欠けていて読めないものがあるときだけ)
+  net.textContent = !navigator.onLine ? (savedAll ? "電波なし・保存済み" : "オフライン") : savedAll ? "保存済み" : "オンライン";
   net.title = savedAll ? "全レッスンと図を保存済み。電波なしで読めます" : "";
-  net.classList.toggle("off", !navigator.onLine);
-  net.classList.toggle("saved", navigator.onLine && savedAll);
+  net.classList.toggle("off", !navigator.onLine && !savedAll);
+  net.classList.toggle("saved", savedAll);
+  // 電波がない間は、AI に聞く「質問」を弱くして先に知らせる
+  document.body.classList.toggle("is-offline", !navigator.onLine);
+  document.querySelectorAll(".ask").forEach((b) => { b.title = navigator.onLine ? "" : "電波が戻ったら使えます"; });
   const due = dueItems().length;
   const badge = $("#due-count");
   badge.hidden = due === 0;
@@ -318,7 +327,7 @@ async function renderHome() {
       <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
       <p class="today-meta"><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
       ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">いま ${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">次: ${hint}</span></span></p>` : ""}
-      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? `続きから${section ? `(${section})` : ""}` : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
+      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? resumeLabel(section) : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
       <div class="today-links"><a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
       <a class="today-review" href="#/review"><span>今日の復習</span>
         <span>${due ? `<b>${due}</b>問 ${icon("arrow", "sm")}` : `<span class="zero">今日はなし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
@@ -407,6 +416,8 @@ async function homeSaveState(all) {
     el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
     // 保存し終えたら説明はヘッダーの印に任せ、読み上げ用に残す。準備中や失敗のときだけヒーローに見せる
     savedAll = ready && figures;
+    S.allSaved = savedAll;
+    save();
     el.classList.toggle("visually-hidden", savedAll);
     updateHeader();
     el.textContent = ready && figures ? `保存済み(全 ${all.length} レッスンと図)。電波なしで読めます`
@@ -442,11 +453,12 @@ async function renderLesson(id) {
     ["read", "読む", !!S.read[id]],
     L.atWork?.length ? ["atwork", "仕事のコード", seenSection(id, "atwork")] : null,
     L.samples.length ? ["run", SECTION_LABEL.run, seenSection(id, "run")] : null,
-    // 段の順は染まりの順(読む → クイズ → 演習)にそろえる。段の名前はヒーローや条件の言葉(クイズ・演習)と同じ
+    // 段の順は染まりの順(読む → クイズ → 演習)。読解は染まりの条件に入らない腕試しなので、その後ろに置く
+    // (合格後の「次へ」と、ヒーローの「演習ができたら藍に」が別の段を指さないように)。段の名前は条件の言葉と同じ
     ["quiz", SECTION_LABEL.quiz, !!(quiz && quiz.best >= Math.ceil(L.quiz.length * 0.8))],
-    // 読解・書くは全問そろって「済み」。途中は「1/3」のように数を添える
-    L.reading?.length ? ["reading", "読解", readingDone === L.reading.length, false, readingDone] : null,
+    // 演習・読解は全問そろって「済み」。途中は「1/3」のように数を添える
     L.exercises.length ? ["write", SECTION_LABEL.write, writeDone === L.exercises.length, false, writeDone] : null,
+    L.reading?.length ? ["reading", "読解", readingDone === L.reading.length, false, readingDone] : null,
     L.sts || L.checklist.length ? ["sts", "STSで試す", L.checklist.length > 0 && L.checklist.every((c) => checked.includes(c.key)), true] : null,
   ].filter(Boolean);
   // 見出しの番号は段の並びの位置(読むが 01)。段にない節(用語など)は番号なし
@@ -502,18 +514,18 @@ async function renderLesson(id) {
       </form>
       <div id="quiz-result" aria-live="polite"></div>
     </section>
-    ${L.reading?.length ? `
-    <section id="reading" class="lesson-section" aria-labelledby="reading-title">
-      ${title("reading", "読解 — コードを読む")}
-      <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
-      <ol class="reading-list">${L.reading.map((r, i) => readingCard(r, `${id}@${i}`)).join("")}</ol>
-    </section>` : ""}
     ${L.exercises.length ? `
     <section id="write" class="lesson-section" aria-labelledby="write-title">
       ${title("write", "演習")}
       <p class="run-note">スマホ版は自動採点できないので、<b>採点テスト</b>を読んで自分で確かめ、「できた/まだ」を記録します。
       本物の採点は PC版か Codespaces 版で。電波と APIキーがあれば AI にも見てもらえます。</p>
       ${L.exercises.map((e, i) => exerciseCard(e, i)).join("")}
+    </section>` : ""}
+    ${L.reading?.length ? `
+    <section id="reading" class="lesson-section" aria-labelledby="reading-title">
+      ${title("reading", "読解 — コードを読む")}
+      <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
+      <ol class="reading-list">${L.reading.map((r, i) => readingCard(r, `${id}@${i}`)).join("")}</ol>
     </section>` : ""}
     ${L.sts || L.checklist.length ? `
     <section id="sts" class="lesson-section" aria-labelledby="sts-title">
@@ -730,8 +742,9 @@ function termItem(t, withLesson, lessonTitle) {
 /** 用語集の 1 枚。同じ語がいくつかのレッスンで出るときは、レッスンごとの説明を 1 枚の中に並べる */
 function termCard(g, titles) {
   const t = g[0];
-  // 英語が見出しと同じ綴りなら繰り返さない
-  const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase());
+  // 英語が見出しと同じ綴りなら繰り返さない(「final(クラス・メソッド)」の括弧の前とも比べる)
+  const base = t.term.replace(/[((].*$/, "").trim().toLowerCase();
+  const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase() && e.toLowerCase() !== base);
   const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
   // どの語も「〇〇 で」(レッスン名)を説明の前に置く
   if (g.length === 1) return `<li class="term">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
@@ -953,15 +966,15 @@ function bindLesson(L, meta) {
     if (score >= pass) markStep("quiz");
     const wrong = L.quiz.map((q, i) => i).filter((i) => !form.querySelectorAll(".quiz-q")[i].querySelector(".q-explain.correct"));
     form.querySelectorAll(".quiz-q").forEach((li, i) => { li.id = `q-${i + 1}`; });
-    // 次の一手: 合格なら段の並びの次(読解 → 書く)、届かなければ間違えた問の見直しと解き直し
-    const nextKey = score >= pass ? (L.reading?.length ? "reading" : L.exercises.length ? "write" : null) : null;
+    // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
+    const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
     const level = meta ? dyeLevel(meta) : 0;
-    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>
+    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>${scoreStitches(score, L.quiz.length)}
       <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
-      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai"><a href="#write" data-scroll="write">${dyeSwatch(3)}演習ができたら藍に → 演習へ</a></p>` : ""}
+      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai">${dyeSwatch(3)}演習ができたら藍に</p>` : ""}
       <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
