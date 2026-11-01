@@ -1,0 +1,238 @@
+id: java-jvm-memory
+title: JVMとメモリ
+status: ready
+minutes: 15
+summary: 変数やオブジェクトは実行中どこにあるのか。スタックとフレーム、ヒープと参照、値渡しの正体、GC と到達可能性、メモリリーク、OutOfMemoryError と StackOverflowError を1枚の絵でつなぐ。
+goals:
+  - スタック(メソッド呼び出しごとのフレーム)とヒープ(new した実体の置き場所)の役割と寿命の違いを説明できる
+  - 参照型の変数に入っているのは実体ではなく「矢印(参照)」だと説明し、フィールドの書き換えと引数の指し直しを区別できる
+  - ガベージコレクションが「到達できるかどうか」で回収を決めることと、Java でもメモリリークが起きる理由を説明できる
+  - OutOfMemoryError と StackOverflowError がそれぞれどの領域の不足で起きるかを区別し、再帰をループに直せる
+samples:
+  - title: フレームが積まれて消える様子を見る
+    description: |
+      メソッドを呼ぶたびにスタックにフレームが積まれ、`return` すると消えます。字下げの深さが「いま積まれているフレームの数」です。`subtotal` や `result` はそれぞれのフレームの中だけにあるローカル変数です。
+    code: |
+      // 呼び出しの深さを字下げで表して、フレームが積まれて消える様子を見る
+      static String indent(int depth) {
+          return "  ".repeat(depth);
+      }
+
+      static int tax(int price, int depth) {
+          System.out.println(indent(depth) + "→ tax(" + price + ") のフレームを積む");
+          int result = price * 10 / 100;    // result は tax のフレームにあるローカル変数
+          System.out.println(indent(depth) + "← tax が " + result + " を返して、フレームが消える");
+          return result;
+      }
+
+      static int total(int price, int qty, int depth) {
+          System.out.println(indent(depth) + "→ total(" + price + ", " + qty + ") のフレームを積む");
+          int subtotal = price * qty;       // subtotal は total のフレームにある
+          int sum = subtotal + tax(subtotal, depth + 1);
+          System.out.println(indent(depth) + "← total が " + sum + " を返して、フレームが消える");
+          return sum;
+      }
+
+      // ここを変えてみよう:total の中で tax を2回呼ぶと、積まれ方はどう変わる?
+      System.out.println("main のフレームから呼び出す");
+      int answer = total(500, 3, 1);
+      System.out.println("main に戻った: " + answer);
+      // ここで subtotal や result を使おうとするとエラー(フレームごと消えている)
+  - title: 中身を書き換える / 矢印を付け替える
+    description: |
+      引数には「矢印(参照)のコピー」が渡ります。矢印の先の実体を書き換えると呼び出し元から見えますが、引数の矢印を別の実体に付け替えても呼び出し元は変わりません。`==` は「同じ実体を指しているか」を比べます。
+    code: |
+      class Cart {
+          String owner;
+          int points;
+
+          Cart(String owner, int points) {
+              this.owner = owner;
+              this.points = points;
+          }
+      }
+
+      static void addPoints(Cart c, int p) {
+          c.points += p;              // 矢印の先(同じ実体)を書き換える → 呼び出し元から見える
+      }
+
+      static void replace(Cart c) {
+          c = new Cart("別人", 0);    // 引数 c の矢印を付け替えただけ → 呼び出し元は変わらない
+          c.points = 9999;
+      }
+
+      static void addOne(int n) {
+          n++;                        // n は値のコピー。呼び出し元の int は変わらない
+      }
+
+      Cart cart = new Cart("ハル", 100);
+      addPoints(cart, 50);
+      System.out.println("addPoints 後: " + cart.owner + " " + cart.points);
+      replace(cart);
+      System.out.println("replace 後:   " + cart.owner + " " + cart.points);
+
+      int count = 10;
+      addOne(count);
+      System.out.println("addOne 後:    " + count);
+
+      // ここを変えてみよう:other を new せずに cart を代入すると == はどうなる?
+      Cart alias = cart;
+      Cart other = new Cart("ハル", 150);
+      System.out.println("cart == alias ? " + (cart == alias));
+      System.out.println("cart == other ? " + (cart == other) + "(中身が同じでも別の実体)");
+  - title: static なリストから辿れる限り GC されない
+    description: |
+      リクエストを処理するたびに `Report` を static なリストへ「取っておく」と、メソッドが終わってローカル変数が消えても、実体はリストから辿れるので回収されません。これがメモリリークの典型です。表示する KB は計算上の値で、実測ではありません。
+    code: |
+      import java.util.ArrayList;
+      import java.util.List;
+
+      class Report {
+          final String name;
+          final int[] data = new int[1000];   // int 1000 個 = 4000 バイト(約4KB)
+
+          Report(String name) {
+              this.name = name;
+          }
+      }
+
+      class ReportCache {
+          // static はクラスが使われている間ずっと生きている = ここから辿れる実体も生き続ける
+          static final List<Report> ALL = new ArrayList<>();
+      }
+
+      static void handleRequest(int no) {
+          Report r = new Report("report-" + no);
+          ReportCache.ALL.add(r);   // 「あとで使うかも」と取っておく
+          // r(ローカル変数)はメソッドを出ると消えるが、ALL から辿れるので実体は GC されない
+      }
+
+      // ここを変えてみよう:1000 を 10 倍にすると、溜まる量も 10 倍になる
+      for (int i = 1; i <= 1000; i++) {
+          handleRequest(i);
+      }
+      int kept = ReportCache.ALL.size();
+      System.out.println("リクエストは終わったのに残っている Report: " + kept + " 個");
+      System.out.println("配列だけで約 " + (kept * 4000 / 1000) + "KB(計算上の値)");
+
+      ReportCache.ALL.clear();      // 参照を外せば、次の GC で回収できる状態になる
+      System.out.println("clear 後: " + ReportCache.ALL.size() + " 個");
+  - title: StackOverflowError を起こして捕まえる
+    description: |
+      終了条件のない再帰はフレームを積み続け、スタックの上限で `StackOverflowError` になります。ここでは確かめるためだけに catch しています。実際に何段まで潜れたかは JVM の設定や実行ごとに変わるので、「1000 段を超えたか」だけを表示します。
+    code: |
+      class Deep {
+          static int depth = 0;
+
+          static void dive() {
+              depth++;
+              dive();               // 終了条件がないので、フレームを積み続ける
+          }
+
+          static long sumLoop(int n) {
+              long sum = 0;
+              for (int i = 1; i <= n; i++) {
+                  sum += i;         // ループならフレームは1つのまま
+              }
+              return sum;
+          }
+      }
+
+      try {
+          Deep.dive();
+      } catch (StackOverflowError e) {
+          // 確かめるために捕まえているだけ。本番のコードで Error を catch して続行してはいけない
+          System.out.println("StackOverflowError を捕まえた");
+          System.out.println("1000 段より深く潜れていた? " + (Deep.depth > 1000));
+          // 実際の段数は JVM の設定や実行のたびに変わるので、ここでは表示しない
+      }
+
+      // ここを変えてみよう:1_000_000 を 10_000_000 にしても、ループならあふれない
+      System.out.println("ループで 1〜100万を合計: " + Deep.sumLoop(1_000_000));
+quiz:
+  - question: |
+      スタックとヒープの説明として正しいのはどれ?
+    choices:
+      - "ヒープにはローカル変数が置かれ、スタックには new で作ったオブジェクトの実体が置かれる"
+      - "スタックにはメソッドの引数やローカル変数が置かれ、ヒープには new で作ったオブジェクトの実体が置かれる"
+      - "スタックとヒープには同じものが置かれ、片方はバックアップ用である"
+      - "スタックはメモリではなく、ディスク上に作られる一時ファイルである"
+    answer: 1
+    explanation: |
+      スタックはメソッド呼び出しごとの **フレーム**(引数・ローカル変数)の置き場所で、`return` するとフレームごと消えます。ヒープは `new` で作った **実体** の置き場所で、どこからも辿れなくなるまで残ります。
+      1つ目は逆です。役割も寿命も違うので「同じものが置かれる」わけではなく、どちらもディスクではなくメモリ(RAM)上の領域です。
+  - question: |
+      `static void f(Cart c) { ... }` の `...` に書いたとき、呼び出し元の `Cart` に **影響しない** のはどれ?
+    choices:
+      - "`c.points = 0;`(引数のフィールドに代入する)"
+      - "`c = new Cart(\"別人\", 0);`(引数そのものに新しいインスタンスを代入する)"
+      - "`c.setOwner(\"モカ\");`(引数のセッターを呼ぶ)"
+      - "`c.items.add(\"ペン\");`(引数が持つリストに要素を追加する)"
+    answer: 1
+    explanation: |
+      引数 `c` に入っているのは、呼び出し元の変数と同じ実体を指す **矢印のコピー** です。`c = new Cart(...)` はそのコピーの矢印を別の実体に付け替えるだけなので、呼び出し元の変数は元の実体を指したままです。
+      フィールドへの代入・セッター呼び出し・リストへの追加は、どれも **同じ実体の中身** を書き換えるので、呼び出し元からも変わって見えます。
+  - question: |
+      次のコードの最後の行を実行した直後、GC の対象に **なれる** `Item` はどれ?
+      ```java
+      Item a = new Item("A");
+      Item b = new Item("B");
+      Item c = a;
+      a = b;
+      ```
+    choices:
+      - "A だけ"
+      - "B だけ"
+      - "A と B の両方"
+      - "どちらも対象にならない"
+    answer: 3
+    explanation: |
+      GC は「どこかの変数やフィールドから辿れるか(到達可能か)」で決めます。`a = b;` で `a` は B を指すようになりましたが、その前に `c = a;` で `c` も A を指しているので、A はまだ `c` から辿れます。B は `a` と `b` の両方から辿れます。
+      どちらも到達可能なので、GC の対象にはなりません。もし `c = a;` の行がなければ、A は誰からも指されなくなり対象になれます。
+  - question: |
+      **StackOverflowError** が起きやすいのはどれ?
+    choices:
+      - "終了条件のない再帰呼び出しを続けたとき"
+      - "static な List に要素を add し続け、削除しないとき"
+      - "巨大な配列を何度も new し、参照を持ち続けたとき"
+      - "null の変数のメソッドを呼んだとき"
+    answer: 0
+    explanation: |
+      再帰呼び出しは呼ぶたびにスタックへフレームを積むので、終わらなければスタックの上限を超えて `StackOverflowError` になります。
+      2つ目と3つ目はヒープにオブジェクトを溜め続けるパターンで、起きるのは `OutOfMemoryError` です。足りなくなる領域(スタックかヒープか)が違います。4つ目は `NullPointerException` です。
+  - question: |
+      次のうち、**メモリリーク** の原因になりやすいのはどれ?
+    choices:
+      - "メソッドの中のローカル変数に大きな配列を new する"
+      - "static な Map に、削除する処理を書かずに put し続ける"
+      - "使い終わったローカル変数に null を代入する"
+      - "for 文の中で毎回 new して、ループの外に持ち出さない"
+    answer: 1
+    explanation: |
+      static なフィールドはクラスが使われている間ずっと生きているので、そこから辿れるオブジェクトは **いつまでも到達可能** なままで、GC が回収できません。削除しなければ溜まる一方です。
+      ローカル変数だけが指すオブジェクトは、メソッドが終わってフレームが消えれば辿れなくなり回収されます(1つ目・4つ目)。3つ目は害はありませんが、メソッドの最後で null を入れる意味はほとんどありません。
+columns:
+  - type: trivia
+    title: GC は「オブジェクトは若いうちに死ぬ」に賭けている
+    body: |
+      プログラムで `new` されるオブジェクトの多くは、メソッドの中で一時的に使われてすぐ要らなくなります。文字列の連結途中の値、ループの中の一時オブジェクト、などです。これを **世代別仮説**(weak generational hypothesis)と呼びます。
+
+      HotSpot JVM の GC はこれを利用して、ヒープを **若い世代** と **古い世代** に分けています。新しいオブジェクトは若い世代に作られ、そこを頻繁に・素早く掃除します。何度掃除しても生き残ったものだけが古い世代に移り、こちらはたまにしか調べません。Java 9 からの既定の GC である **G1** もこの考え方の上に作られています。
+
+      ちなみに `System.gc()` は「GC してください」という **お願い** で、すぐ実行される保証はありません。メモリの問題を `System.gc()` の呼び出しで直そうとするのは、たいてい筋違いです。
+  - type: genba
+    title: "本番で「OutOfMemoryError: Java heap space」が出たら"
+    body: |
+      夜間バッチや Web アプリが、何日か動いたあとに突然 `java.lang.OutOfMemoryError: Java heap space` で止まる。現場ではそこそこ見る光景です。
+
+      まずやりがちなのが `-Xmx`(ヒープの上限)を2倍にすること。リークが原因なら、止まるまでの日数が延びるだけです。調べるときは、起動オプションに `-XX:+HeapDumpOnOutOfMemoryError` を付けておき、落ちた瞬間のヒープの中身(**ヒープダンプ**)をファイルに残します。それを Eclipse Memory Analyzer(MAT)などで開くと、「どのオブジェクトが、誰から辿れているせいで残っているか」が分かります。
+
+      犯人は static な `Map` のキャッシュ、削除し忘れたセッション情報、解除し忘れたリスナー、のどれかであることが多いです。どれも「もう使わないのに、どこかから矢印が残っている」パターンです。
+  - type: mistake
+    title: catch (Throwable e) で OutOfMemoryError まで握りつぶす
+    body: |
+      「何があっても止めたくない」と、処理全体を `catch (Throwable e)` で囲んでログだけ出して続行するコードがあります。`Throwable` には `Exception` だけでなく `OutOfMemoryError` や `StackOverflowError` などの **Error** も含まれます。
+
+      OutOfMemoryError が起きた時点で、どこかのオブジェクトが作りかけのまま中途半端な状態になっているかもしれません。そのまま動かし続けると、別の場所で意味の分からないエラーが出たり、壊れたデータを書き込んだりします。しかもメモリはまだ足りないままなので、すぐまた落ちます。
+
+      例外処理の章のとおり、アプリが catch するのは `Exception` まで。Error は止まるに任せて、監視で検知し、再起動とヒープダンプの調査で対処するのが定石です。
