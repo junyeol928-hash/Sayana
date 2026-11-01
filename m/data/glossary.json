@@ -318,7 +318,7 @@
   "lesson" : "java-if"
 }, {
   "term" : "ガード節",
-  "read" : "がードせつ",
+  "read" : "ガードせつ",
   "en" : "guard clause",
   "defHtml" : "条件を満たさない場合に先に return してしまい、ネストを浅くする書き方。",
   "lesson" : "java-if"

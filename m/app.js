@@ -468,7 +468,7 @@ async function renderLesson(id) {
       <nav class="stepper" aria-label="このレッスンの段">
         ${steps.map(([key, label, done, pcOnly, part]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${pcOnly ? ` <span class="pc-only" title="パソコンの STS で手を動かす段">PC</span>` : ""}${!done && part ? ` <small>${part}/${total[key]}</small>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
       </nav>
-      <details class="step-menu"><summary><span class="visually-hidden">段の一覧。いまの段は</span><span id="step-count">1/${steps.length}</span><span id="step-now">${steps[0][1]}</span></summary>
+      <details class="step-menu"><summary><span class="visually-hidden">段の一覧。いまの段は</span><span id="step-count">${steps.length}段中1</span><span id="step-now">${steps[0][1]}</span></summary>
         <ol>${steps.map(([key, label, done, pcOnly, part]) => `<li class="${done ? "is-done" : ""}" data-menu-step="${key}"><a href="#${key}" data-scroll="${key}">${label}${!done && part ? ` <small>${part}/${total[key]}</small>` : ""}${pcOnly ? ` <span class="pc-only">PC</span>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a></li>`).join("")}</ol></details>
       <button class="ask" type="button" data-action="tutor" aria-label="AIチューターに質問する">${icon("chat")}<span>質問</span></button>
       </div>
@@ -615,7 +615,8 @@ function trackLesson(id, keys) {
     }
     setCurrent(key);
     const count = $("#step-count");
-    if (count) count.textContent = `${keys.indexOf(key) + 1}/${keys.length}`;
+    // 分数の形は「済んだ問の数」だけに使うので、いまの位置は「7段中3」と言葉で
+    if (count) count.textContent = `${keys.length}段中${keys.indexOf(key) + 1}`;
     const now = $("#step-now");
     if (now) now.textContent = SECTION_LABEL[key];
     // 読んでいる位置を覚える(「続きから」で同じ所へ戻る)。最後の前後リンクまで来たら読み切り
@@ -627,7 +628,8 @@ function trackLesson(id, keys) {
     const lastSec = sections[sections.length - 1];
     const end = lastSec.getBoundingClientRect().bottom + scrollY - innerHeight;
     const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
-    sew?.style.setProperty("--p", (p * 100).toFixed(1) + "%");
+    // 縫い目(9px の目 + 6px の間)の切れ目で止める(目の途中で切れた半端な欠片を出さない)
+    if (sew) sew.style.setProperty("--p", `${p >= 1 ? sew.clientWidth : Math.floor((p * sew.clientWidth) / 15) * 15 + (p > 0 ? 9 : 0)}px`);
   };
   let ticking = false;
   const menu = $(".step-menu");
@@ -799,7 +801,9 @@ function refreshDye(meta) {
   if (!wrap || wrap.dataset.level === String(level)) return null;
   const from = Number(wrap.dataset.level || 0);
   wrap.dataset.level = level;
-  wrap.innerHTML = `${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span>`;
+  // 深まったときは、メタ行の色見本もボタンのそばと同じ 560ms で 1 回だけ染み込ませる
+  const swatch = level > from ? `<span class="dye-burst lesson-swatch" role="img" aria-label="${DYE[level].name}">${dyeDot(from)}<span class="dye dye-${level} ink"></span></span>` : dyeSwatch(level, "lesson-swatch");
+  wrap.innerHTML = `${swatch} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span>`;
   return level > from ? { from, to: level } : null;
 }
 
@@ -1089,16 +1093,16 @@ async function renderReadingPage() {
 
 // ------------------------------------------------------------ 用語集
 
-// 読みの最初の文字から「あ行」「か行」…の見出しを決める(英字・記号で始まるものはまとめて先頭に)
+// 読みの最初の文字から「あ行」「か行」…の見出しを決める(英字・記号で始まるものは「A-Z」にまとめて先頭に)
 const KANA_ROWS = ["あいうえおぁぃぅぇぉゔ", "かきくけこがぎぐげご", "さしすせそざじずぜぞ", "たちつてとだぢづでどっ",
   "なにぬねの", "はひふへほばびぶべぼぱぴぷぺぽ", "まみむめも", "やゆよゃゅょ", "らりるれろ", "わをん"];
 function kanaRow(t) {
   // 英字で始まる語(equals・Iterator・@Bean など)は読みではなく「A-Z」に(索引の A-Z から探せるように)
-  if (/^[A-Za-z@]/.test(t.term.trim())) return "英字・記号";
+  if (/^[A-Za-z@]/.test(t.term.trim())) return "A-Z";
   const c = (t.read || t.term).trim().charAt(0);
   const hira = String.fromCharCode(c >= "ァ" && c <= "ヶ" ? c.charCodeAt(0) - 0x60 : c.charCodeAt(0));
   const i = KANA_ROWS.findIndex((row) => row.includes(hira));
-  return i >= 0 ? "あかさたなはまやらわ"[i] + "行" : /[A-Za-z@]/.test(c) ? "英字・記号" : "その他";
+  return i >= 0 ? "あかさたなはまやらわ"[i] + "行" : /[A-Za-z@]/.test(c) ? "A-Z" : "その他";
 }
 
 async function renderGlossary() {
@@ -1111,18 +1115,18 @@ async function renderGlossary() {
     const k = t.term.trim().toLowerCase();
     groups.set(k, [...(groups.get(k) || []), t]);
   });
-  const ROW_ORDER = ["英字・記号", ..."あかさたなはまやらわ".split("").map((k) => k + "行"), "その他"];
+  const ROW_ORDER = ["A-Z", ..."あかさたなはまやらわ".split("").map((k) => k + "行"), "その他"];
   const index = [...groups.values()].map((g) => ({ g, row: kanaRow(g[0]),
     key: g.map((t) => [t.term, t.read, t.en, plain(t.defHtml), titles[t.lesson]].join(" ")).join(" ").toLowerCase() }))
     // 行の順に並べ、A-Z の中は綴りの順
     .sort((a, b) => ROW_ORDER.indexOf(a.row) - ROW_ORDER.indexOf(b.row)
-      || (a.row === "英字・記号" ? a.g[0].term.replace(/^@/, "").localeCompare(b.g[0].term.replace(/^@/, ""), "en", { sensitivity: "base" }) : 0));
+      || (a.row === "A-Z" ? a.g[0].term.replace(/^@/, "").localeCompare(b.g[0].term.replace(/^@/, ""), "en", { sensitivity: "base" }) : 0));
   const rows = [...new Set(index.map((x) => x.row))];
   view().innerHTML = `
     <h1 class="page-title">用語集</h1>
     <p class="page-lead">全レッスンの用語 ${index.length} 語を読み順に。読み・英語・説明のどれでも探せます。いくつかのレッスンに出る語は、レッスンごとの説明を 1 枚にまとめています。</p>
     <div class="search">${icon("search")}<input type="search" id="q" placeholder="例: Bean、ちゅうにゅう、injection" aria-label="用語を探す" autocomplete="off"></div>
-    <div class="kana-wrap"><nav class="kana-index" id="kana-index" aria-label="行で飛ぶ"><a href="#q" class="kana-search" aria-label="用語を探す">${icon("search", "sm")}</a>${rows.map((r, i) => `<a href="#g-${i}" data-row="${i}">${r.replace("行", "").replace("英字・記号", "A-Z")}</a>`).join("")}</nav></div>
+    <div class="kana-wrap"><nav class="kana-index" id="kana-index" aria-label="行で飛ぶ"><a href="#q" class="kana-search" aria-label="用語を探す">${icon("search", "sm")}</a>${rows.map((r, i) => `<a href="#g-${i}" data-row="${i}">${r.replace("行", "")}</a>`).join("")}</nav></div>
     <p class="glossary-count" id="count" aria-live="polite"></p>
     <ul class="term-list" id="terms"></ul>`;
   const list = $("#terms");
@@ -1522,7 +1526,7 @@ function mermaidTheme() {
     themeVariables: {
       fontFamily: v("--font"), fontSize: "14px", background: "transparent",
       primaryColor: v("--surface"), primaryBorderColor: v("--line-strong"), primaryTextColor: v("--ink"),
-      secondaryColor: v("--accent-soft"), tertiaryColor: v("--surface-2"), lineColor: v("--ink-muted"),
+      secondaryColor: v("--accent-soft"), tertiaryColor: v("--surface-2"), lineColor: v("--accent"),
       textColor: v("--ink"), mainBkg: v("--surface"), nodeBorder: v("--line-strong"), clusterBkg: v("--surface-2"),
       clusterBorder: v("--line"), edgeLabelBackground: v("--surface-2"), actorBkg: v("--surface"), actorBorder: v("--line-strong"),
       noteBkgColor: v("--ki-soft"), noteBorderColor: v("--line"),
@@ -1549,15 +1553,16 @@ function watchOverflow(scroller, target = scroller) {
   update();
 }
 
-// はみ出す図は、流れの入口(最初のノード)が真ん中に来る位置から見せる。「図の全体を見る」で縮めた全体と行き来できる
+// はみ出す図は、ノードの重心(中心の平均)が真ん中に来る位置から見せる。SVG の真ん中だと戻りの線の分だけ幹からずれ、
+// 最初のノードだと横に出た枝(ループの本体など)が切れるため。「図の全体を見る」で縮めた全体と行き来できる
 function fitFigures(nodes) {
   nodes.forEach((n) => {
     if (n.scrollWidth <= n.clientWidth + 1) return;
-    const first = n.querySelector("svg .node, svg .actor, svg .statediagram-state");
-    if (first) {
-      const r = first.getBoundingClientRect();
+    const shapes = [...n.querySelectorAll("svg .node, svg .actor, svg .statediagram-state")];
+    if (shapes.length) {
       const box = n.getBoundingClientRect();
-      n.scrollLeft = Math.max(0, n.scrollLeft + r.left + r.width / 2 - box.left - n.clientWidth / 2);
+      const mid = shapes.reduce((sum, el) => { const r = el.getBoundingClientRect(); return sum + r.left + r.width / 2; }, 0) / shapes.length;
+      n.scrollLeft = Math.max(0, n.scrollLeft + mid - box.left - n.clientWidth / 2);
     }
     watchOverflow(n);
     const btn = document.createElement("button");
@@ -1601,6 +1606,11 @@ async function decorate(root) {
   root.querySelectorAll(".choice > span").forEach((sp) => {
     const t = sp.textContent.trim();
     if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+  });
+  // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
+  root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
+    const t = c.textContent;
+    if (t.length >= 24 && /\s/.test(t.trim())) c.classList.add("code-msg");
   });
   root.querySelectorAll(".choice span, :not(pre) > code").forEach(softBreaks);
   if (window.hljs) {
