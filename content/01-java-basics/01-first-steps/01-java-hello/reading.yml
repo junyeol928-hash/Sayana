@@ -101,14 +101,14 @@
             System.out.println("run");
         }
     }
-  question: "javac App.java は成功した。続けて java App を実行すると?"
+  question: "JDK 21(プレビュー機能なし)で、javac App.java は成功した。続けて java App を実行すると?"
   choices:
     - "run と表示される"
     - "何も表示されず正常終了"
     - "コンパイルエラー"
     - "実行時エラー(main が見つからない)"
   answer: 3
-  explanation: "static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として探すのは `public static void main(String[] args)` だけ。見つからないので起動時にエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。"
+  explanation: "static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として探すのは `public static void main(String[] args)` だけ。見つからないので起動時にエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。"
   trace:
     - "javac: 文法エラーは無いので App.class ができる"
     - "java App: JVM が public static void main(String[]) を探す"

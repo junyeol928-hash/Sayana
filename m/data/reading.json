@@ -46,10 +46,10 @@
   "title" : "static のない main",
   "level" : 3,
   "code" : "public class App {\n    public void main(String[] args) {\n        System.out.println(\"run\");\n    }\n}\n",
-  "questionHtml" : "javac App.java は成功した。続けて java App を実行すると?",
+  "questionHtml" : "JDK 21(プレビュー機能なし)で、javac App.java は成功した。続けて java App を実行すると?",
   "choicesHtml" : [ "run と表示される", "何も表示されず正常終了", "コンパイルエラー", "実行時エラー(main が見つからない)" ],
   "answer" : 3,
-  "explanationHtml" : "<p>static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として探すのは <code>public static void main(String[] args)</code> だけ。見つからないので起動時にエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。</p>\n",
+  "explanationHtml" : "<p>static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として探すのは <code>public static void main(String[] args)</code> だけ。見つからないので起動時にエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。</p>\n",
   "traceHtml" : [ "javac: 文法エラーは無いので App.class ができる", "java App: JVM が public static void main(String[]) を探す", "2行目の main には static が無いので条件に合わない", "結果: 「main メソッドが static ではありません」という趣旨のエラーで停止" ],
   "ref" : "java-hello@4",
   "lesson" : "java-hello"
