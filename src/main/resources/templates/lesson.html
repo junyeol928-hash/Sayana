@@ -23,7 +23,7 @@
 <main id="main" class="lesson-main">
     <header class="lesson-hero">
         <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ダッシュボード</a> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></nav>
-        <h1 th:text="${lesson.title}">タイトル</h1>
+        <h1 th:text="${lesson.title}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
         <p class="summary" th:text="${lesson.summary}"></p>
         <p class="meta">
             <span class="lesson-dye"><span class="dye lesson-swatch" th:classappend="'dye-' + ${status.dyeLevel()}" role="img"
@@ -31,7 +31,7 @@
             <span>読む <span th:text="${lesson.minutes}">15</span> 分</span>
             <span th:if="${status.bestQuiz != null}" th:text="'クイズ最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal}"></span>
         </p>
-        <p class="ai-off-line" th:unless="${aiAvailable}"><b>AI機能はオフです。</b>環境変数 <code>ANTHROPIC_API_KEY</code> を設定して再起動すると、チューター・ヒント・講評が使えます(手順は README)。</p>
+        <p class="ai-off-line" th:unless="${aiAvailable}">AI機能はオフです。この画面は教材と自動採点だけで使えます。</p>
     </header>
 
     <!--/* 読む→動かす→書く→AIに見てもらう→読解→確かめる */-->
@@ -41,7 +41,7 @@
         <a href="#atwork" class="step" th:if="${!lesson.atWork.isEmpty()}">仕事のコード</a>
         <a href="#run" class="step" th:if="${!lesson.samples.isEmpty()}" th:classappend="${status.sampleRun} ? 'done'">動かす</a>
         <a href="#sts" class="step" th:if="${lesson.hasSts() or !lesson.checklist.isEmpty()}"
-           th:classappend="${status.checklistTotal > 0 and status.checklistComplete()} ? 'done'">STS</a>
+           th:classappend="${status.checklistTotal > 0 and status.checklistComplete()} ? 'done'">STSで試す</a>
         <a href="#write" class="step" th:if="${!exercises.isEmpty()}" th:classappend="${status.exercisesPassed > 0} ? 'done'">書く
             <small th:text="${status.exercisesPassed} + '/' + ${status.exercisesTotal}"></small></a>
         <a href="#reading" class="step" th:if="${!lesson.reading.isEmpty()}">読解</a>

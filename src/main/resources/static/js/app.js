@@ -161,6 +161,8 @@ function mermaidTheme() {
 
 function highlight(root) {
   if (!window.hljs) return;
+  // 読むためのコードは折り返す(スマホ版と同じ範囲)
+  root.querySelectorAll(".quiz-q .md pre, .quiz-review pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
     if (!el.className.includes("language-")) el.classList.add("language-java");
@@ -194,6 +196,43 @@ function numberLines(code) {
   code.classList.add("hljs");
 }
 
+const LAST_KEY = "javadojo-pc-last";
+const SECTIONS_KEY = "javadojo-pc-sections";
+function pcStore(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
+}
+function pcSave(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.warn("記録を保存できませんでした", e); }
+}
+
+/** ダッシュボード: 前回の続きがあれば主役にし、新しいレッスンは控えめに添える。読解の正解数も出す */
+function dashboardResume() {
+  const ok = document.getElementById("reading-ok");
+  if (ok) ok.textContent = Object.values(readingRecord()).filter((r) => r.ok).length;
+  const hero = document.querySelector(".today");
+  const last = pcStore(LAST_KEY);
+  if (!hero || !last.id || last.end || !document.querySelector(".today-title a")) return;
+  const title = hero.querySelector(".today-title a");
+  const href = `/lessons/${encodeURIComponent(last.id)}#${last.section || "read"}`;
+  if (title.getAttribute("href").endsWith("/" + last.id)) {
+    hero.querySelector(".today-actions a").href = href;
+    hero.querySelector(".today-actions a").textContent = `続きから${last.label ? `(${last.label})` : ""}`;
+    return;
+  }
+  const nextHref = title.getAttribute("href");
+  const nextTitle = title.textContent;
+  hero.querySelector(".today-kicker span").textContent = "前回の続き";
+  hero.querySelectorAll(".today-kicker span")[1]?.remove();
+  title.href = href;
+  title.textContent = last.title;
+  hero.querySelector(".today-meta")?.remove();
+  hero.querySelector(".today-next")?.remove();
+  const btn = hero.querySelector(".today-actions a");
+  btn.href = href;
+  btn.textContent = `続きから${last.label ? `(${last.label})` : ""}`;
+  hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
+}
+
 /** 読んでいる段を段の並びに示し、縫い線を進める */
 function trackLesson() {
   const stepper = document.querySelector(".stepper");
@@ -203,8 +242,28 @@ function trackLesson() {
   const sections = steps.map((a) => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
   if (!sections.length) return;
   let current = null;
+  const h1 = document.querySelector("h1[data-lesson-id]");
+  const lessonId = h1?.dataset.lessonId;
+  const seen = pcStore(SECTIONS_KEY);
+  const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
+  (seen[lessonId] || []).forEach(markDone);
+  let saveTimer = null;
   const update = () => {
     const line = 140;
+    // 仕事のコードは、段の最後が画面に入ったら「済み」(PC版の記録はこのブラウザの中)
+    const atwork = document.getElementById("atwork");
+    if (atwork && lessonId && atwork.getBoundingClientRect().bottom < innerHeight && !(seen[lessonId] || []).includes("atwork")) {
+      seen[lessonId] = [...(seen[lessonId] || []), "atwork"];
+      pcSave(SECTIONS_KEY, seen);
+      markDone("atwork");
+    }
+    // 前回の続き(ダッシュボードの主役にする)
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      if (!lessonId) return;
+      const end = document.querySelector(".lesson-nav")?.getBoundingClientRect().top < innerHeight;
+      pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, label: stepper.querySelector(`.step[href="#${current}"]`)?.firstChild?.textContent.trim(), y: Math.round(scrollY), end });
+    }, 400);
     let key = sections[0].id;
     for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
     if (key !== current) {
@@ -354,6 +413,7 @@ window.addEventListener("load", () => highlight(document));
 await loadCodeMirror();
 initRoot(document);
 trackLesson();
+dashboardResume();
 if (window.htmx) {
   window.htmx.onLoad((el) => initRoot(el));
 }

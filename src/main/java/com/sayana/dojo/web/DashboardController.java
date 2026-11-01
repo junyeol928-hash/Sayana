@@ -1,5 +1,6 @@
 package com.sayana.dojo.web;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -58,11 +59,33 @@ public class DashboardController {
         model.addAttribute("flatLessons", flat);
         model.addAttribute("dyeCounts", dyeCounts);
         model.addAttribute("deepCount", dyeCounts[2] + dyeCounts[3] + dyeCounts[4]);
+        // 数字の欄はスマホ版とそろえる(次の復習・読解の正解はブラウザ側で数える・この 7 日の稽古)
+        var upcomingItems = review.upcoming();
+        model.addAttribute("nextReview", !review.due().isEmpty() ? "今日"
+                : upcomingItems.isEmpty() ? "なし" : upcomingItems.getFirst().getDueDate().format(DateTimeFormatter.ofPattern("M/d")));
+        model.addAttribute("weekDays", activity.recentDays(7).stream().filter(d -> d.actions() > 0).count());
+        model.addAttribute("readingTotal", content.readyLessons().stream().mapToInt(l -> l.reading().size()).sum());
         progress.nextLesson().ifPresent(next -> {
+            flat.stream().filter(s -> s.lesson().id().equals(next.id())).findFirst().ifPresent(s -> {
+                model.addAttribute("nextDye", s.dyeLevel());
+                model.addAttribute("nextDyeName", s.dyeLabel().split("・")[0]);
+                model.addAttribute("nextHint", nextDyeHint(s));
+            });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
             model.addAttribute("nextChapter", content.chapter(next.chapterId()).map(c -> c.title()).orElse(""));
         });
         return "dashboard";
+    }
+
+    /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
+    static String nextDyeHint(ProgressService.LessonStatus s) {
+        return switch (s.dyeLevel()) {
+            case 0 -> "読み終えると甕覗きに";
+            case 1 -> "クイズで " + s.quizPassScore() + " 問以上取ると縹に";
+            case 2 -> "演習に合格すると藍に";
+            case 3 -> "復習をすべて卒業すると褐に";
+            default -> null;
+        };
     }
 
     /** 教材を読み直す(教材を書きながら確認する用)。 */
