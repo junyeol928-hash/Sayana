@@ -116,8 +116,10 @@ class JdbcOrderRepository implements OrderRepository { }
 @Service
 class OrderService {
     private final OrderRepository repo;
-    OrderService(OrderRepository repo) {
+    private final MailSender mail;
+    OrderService(OrderRepository repo, MailSender mail) {
         this.repo = repo;
+        this.mail = mail;
     }
 }
 ```
@@ -142,11 +144,11 @@ class MailConfig {
 
 ```java
 var ctx = new AnnotationConfigApplicationContext(
-        MailConfig.class, OrderService.class);
+        MailConfig.class, JdbcOrderRepository.class, OrderService.class);
 OrderService s = ctx.getBean(OrderService.class);
 ```
 
-`OrderService` のコンストラクタが `MailSender` を要求しているのを見て、コンテナが `mailSender()` の結果を渡してくれます。
+`OrderService` のコンストラクタが `OrderRepository` と `MailSender` を要求しているのを見て、コンテナが `JdbcOrderRepository` の Bean と `mailSender()` の結果を渡してくれます(下の図)。
 
 <figure class="figure"><svg viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-di-ar26a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="20" width="560" height="190" rx="12" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="36" y="44" font-size="14" fill="var(--ink-muted)">IoC コンテナ(ApplicationContext)</text><rect x="220" y="70" width="170" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="305" y="96" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">OrderService</text><text x="305" y="116" font-size="13" text-anchor="middle" fill="var(--ink-muted)">@Service</text><rect x="30" y="150" width="170" height="48" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="115" y="171" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">JdbcOrderRepository</text><text x="115" y="189" font-size="12" text-anchor="middle" fill="var(--ink-muted)">@Repository</text><rect x="410" y="150" width="160" height="48" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="490" y="171" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">SmtpMailSender</text><text x="490" y="189" font-size="12" text-anchor="middle" fill="var(--ink-muted)">@Bean mailSender()</text><path d="M150 150 L250 132" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-di-ar26a)"/><path d="M450 150 L360 132" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-di-ar26a)"/><text x="170" y="128" font-size="12" fill="var(--ink)">注入</text><text x="415" y="128" font-size="12" fill="var(--ink)">注入</text></svg><figcaption>DI の関係:OrderService は部品を「もらう」だけ。作って渡すのはコンテナ</figcaption></figure>
 

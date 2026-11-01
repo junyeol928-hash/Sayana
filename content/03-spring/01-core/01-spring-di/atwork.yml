@@ -1,6 +1,6 @@
 # ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
 - title: "Spring 入門:DI と Bean"
-  intro: "Front サーバの Service を、実務の形に近づけた例です。コンストラクタは Lombok が生成し、設定値は @Value で入ります。「部品」と「処理中の値」の区別に注目してください。"
+  intro: "Front サーバの Service を、実務の形に近づけた例です。コンストラクタは Lombok の @RequiredArgsConstructor が生成します。「部品」(final フィールド)と「処理中の値」(引数とローカル変数)の区別に注目してください。"
   code: |
     @Service
     @RequiredArgsConstructor
