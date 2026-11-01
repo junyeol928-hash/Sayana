@@ -34,6 +34,12 @@ public class Invoice {
 
 定義側の `price` を **仮引数**、呼び出し側の `1000` を **実引数** と呼びます。実引数の値が仮引数にコピーされて本体が動き、`return` の値が呼び出し元に戻ります。値を返さないなら戻り値の型は **`void`**。引数の数・型・順番が合わなければコンパイルエラー(`cannot be applied to given types`)です。
 
+<figure class="figure"><svg viewBox="0 0 580 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-methods-arr06a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="40" width="200" height="120" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="66" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">呼び出し元(main)</text><text x="120" y="98" font-size="14" text-anchor="middle" fill="var(--ink)">int result = add(3, 5);</text><text x="120" y="136" font-size="13" text-anchor="middle" fill="var(--ink-muted)">result に 8 が入る</text><rect x="360" y="40" width="200" height="120" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="66" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">メソッド add</text><text x="460" y="98" font-size="14" text-anchor="middle" fill="var(--ink)">a = 3, b = 5</text><text x="460" y="122" font-size="14" text-anchor="middle" fill="var(--ink)">sum = 8</text><text x="460" y="146" font-size="13" text-anchor="middle" fill="var(--ink-muted)">return sum;</text><path d="M222 78 L355 78" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-methods-arr06a)"/><text x="290" y="70" font-size="13" text-anchor="middle" fill="var(--ink)">引数 3, 5</text><path d="M358 130 L225 130" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-methods-arr06a)"/><text x="290" y="150" font-size="13" text-anchor="middle" fill="var(--ink)">戻り値 8</text></svg><figcaption>呼び出しの流れ(例は add(3, 5)):引数がコピーされて渡り、処理が終わると戻り値が呼び出し元に返る</figcaption></figure>
+
+::: sensei
+読むときのコツは、呼び出し式 `withTax(1000)` を **「その場所が戻り値に置き換わる」** と見ること。`int a = withTax(1000);` は、処理が終わった時点で `int a = 1100;` と同じ意味になる。
+:::
+
 ### public static の正体
 
 - **`public`** … アクセス修飾子。どのクラスからでも呼べる。
@@ -74,6 +80,8 @@ static void ship(int qty) {
     System.out.println(qty + "個 出荷");
 }
 ```
+
+なお、`return` で返せる値は **1つだけ** です。「最小値と最大値の両方を返したい」ときは、配列(`return new int[]{min, max};`)や、後で習うクラス・`record` などの **入れ物1つにまとめて** 返します。
 
 ## オーバーロード
 

@@ -1,0 +1,41 @@
+title: スタックトレースから逆にたどって、入力チェックを直す
+className: KeyIssueController
+difficulty: 2
+libraries: [spring]
+problem: |
+  本番の鍵発行 API で、ときどき 500 エラーが出ています。エラーログにはこう残っていました(Spring の内部の行は一部省略)。
+
+  ```text
+  2026-10-28T09:12:44.381+09:00 ERROR 2280 --- [key-api] [nio-8080-exec-7] [requestId=7f3a9c]
+    o.a.c.c.C.[.[.[/].[dispatcherServlet] : Servlet.service() for servlet [dispatcherServlet] in context
+    with path [] threw exception [Request processing failed: java.lang.NullPointerException: Cannot invoke
+    "java.lang.Integer.intValue()" because the return value of
+    "com.example.keys.dto.KeyIssueRequest.keyVersion()" is null] with root cause
+
+  java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "com.example.keys.dto.KeyIssueRequest.keyVersion()" is null
+      at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:31)
+      at com.example.keys.controller.KeyIssueController.issue(KeyIssueController.java:24)
+      at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+      at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+      ...
+      at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+      ...
+  ```
+
+  同じ `requestId=7f3a9c` のアクセスログを探すと、送られてきた本文は `{"cardId":"C100"}` でした(`keyVersion` が無い)。
+
+  このログを手がかりにコードを逆にたどり、原因を直してください。仕様では `keyVersion` は **必須で、1〜255 の整数** です。範囲外や未指定は、Service に入る前に **400 Bad Request** で弾きます。
+
+  ```text
+  POST /api/keys {"cardId":"C100","keyVersion":1}   → 201
+  POST /api/keys {"cardId":"C100"}                  → 400(今は 500)
+  POST /api/keys {"cardId":"C100","keyVersion":0}   → 400(今は 201 で発行されてしまう)
+  POST /api/keys {"cardId":"C100","keyVersion":256} → 400(今は 201 で発行されてしまう)
+  ```
+
+  読むときのヒント:
+  - スタックトレースは、まず1行目(何の例外か・メッセージ)、次に **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** を見ます。`org.springframework` や `jdk.internal` の行は、Spring が自分たちのメソッドを呼ぶまでの道のりなので読み飛ばして構いません
+  - NPE が起きた行(Service)を直すと、`null` を受け付けた上で黙って動くコードになりがちです。そもそも **どこで止めるべき値だったか** を考えてください。入力チェックの場所は、`@Valid` が付いている入口です(第3部2章「フォームとバリデーション」)
+  - 直すのは `KeyIssueRequest` の制約アノテーションだけで足ります。`@Valid` に引っかかると、Spring が `MethodArgumentNotValidException` を投げ、何もしなければ 400 になります
+
+  ※ 採点のために Controller・DTO・Service を1ファイルにまとめています(本番では `controller` / `dto` / `service` パッケージに分かれています)。

@@ -1,0 +1,35 @@
+title: 匿名クラスの Comparator で商品を並べる
+className: ProductSorter
+difficulty: 2
+problem: |
+  商品一覧の画面で、商品を **「価格の高い順。価格が同じなら商品名の辞書順」** に並べます。
+  並べ方のルールは `Comparator<Product>` で表し、**匿名クラス**(`new Comparator<Product>() { ... }`)で書きます。
+
+  ```java
+  class Product {
+      final String name;
+      final int price;
+      ...
+  }
+  ```
+
+  次の2つのメソッドを完成させてください。
+
+  **1. `static Comparator<Product> byPriceDesc()`**
+  - 匿名クラスで実装した `Comparator<Product>` を返す
+  - `compare(a, b)` は、`a` を前にしたいなら負、同じ順位なら 0、後にしたいなら正を返す
+  - 価格の **高い方が前**。価格が同じなら `name` の辞書順(`a.name.compareTo(b.name)`)
+
+  **2. `static void sortForShelf(Product[] items)`**
+  - `Arrays.sort(items, byPriceDesc())` で、受け取った配列をその場で並べ替える(戻り値なし)
+
+  | 並べ替え前 | 並べ替え後 |
+  |---|---|
+  | `ノート(120), ペン(150), 付箋(120), ファイル(300)` | `ファイル(300), ペン(150), ノート(120), 付箋(120)` |
+
+  ヒント:
+  - 整数の比較は `Integer.compare(x, y)` を使うと安全です(前回の Comparable と同じ)。高い順にしたいときは引数の順番を考えましょう。
+  - 「ノート」と「付箋」の辞書順は `"ノート".compareTo("付箋")` の結果に任せれば OK です。
+
+  注意:
+  - ラムダ式(第7章で習います)ではなく、**匿名クラス** で書いてください。テストで匿名クラスかどうかを確かめます。

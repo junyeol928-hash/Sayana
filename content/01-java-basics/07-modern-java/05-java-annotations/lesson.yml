@@ -1,0 +1,295 @@
+id: java-annotations
+title: アノテーションの仕組み
+status: ready
+minutes: 15
+summary: "@ は「目印」で、それ自体は何もしない。標準の @Override から、@interface による自作、@Retention / @Target の意味、リフレクション(getAnnotation / isAnnotationPresent)で目印を読んで処理を挟む仕組みまで。Spring の @Service や @Transactional がどう読まれているかの予告つき。"
+goals:
+  - アノテーションは「コードに付けた目印(メタデータ)」で、それ自体は何もせず、読む側(コンパイラ / 実行時のプログラム)が意味を決めることを説明できる
+  - "@Override / @Deprecated / @SuppressWarnings / @FunctionalInterface の役割と、@Override が防ぐミスを説明できる"
+  - "@interface でアノテーションを定義し、要素・default・value の省略を使い分けられる"
+  - "@Retention(SOURCE / CLASS / RUNTIME)と @Target の意味を説明でき、実行時に読むには RUNTIME が必要だと分かる"
+  - リフレクション(getDeclaredMethods / getDeclaredFields / getAnnotation / isAnnotationPresent)で自作アノテーションを読み、処理を切り替えられる
+samples:
+  - title: 標準アノテーションは実行時まで残る?
+    description: "`@Override` は `SOURCE` なのでコンパイル後には消えています。`@Deprecated` と `@FunctionalInterface` は `RUNTIME` なので、実行時に読めます。"
+    code: |
+      // 標準アノテーションのうち、実行時まで残るのはどれ?
+      // ここを変えてみよう:Override.class を Deprecated.class に / 12800 を別の金額に
+      import java.lang.reflect.Method;
+
+      @FunctionalInterface interface Formatter {   // 抽象メソッドは1つだけ
+          String format(int yen);
+      }
+
+      class Report {
+          @Override
+          public String toString() { return "Report"; }
+
+          @Deprecated(since = "2.0", forRemoval = true)
+          public String oldTitle() { return "旧タイトル"; }
+      }
+
+      Method ts = Report.class.getMethod("toString");
+      Method old = Report.class.getMethod("oldTitle");
+      System.out.println("toString に @Override は?   " + ts.isAnnotationPresent(Override.class));
+      System.out.println("oldTitle に @Deprecated は? " + old.isAnnotationPresent(Deprecated.class));
+      Deprecated d = old.getAnnotation(Deprecated.class);
+      System.out.println("  since=" + d.since() + " forRemoval=" + d.forRemoval());
+      System.out.println("Formatter に @FunctionalInterface は? "
+              + Formatter.class.isAnnotationPresent(FunctionalInterface.class));
+
+      Formatter f = yen -> String.format("%,d円", yen);   // 抽象メソッド1つなのでラムダで書ける
+      System.out.println(f.format(12800));
+  - title: "@Audited を自作して読む"
+    description: "要素の値は `a.value()` のようにメソッド呼び出しの形で取り出します。`RUNTIME` を `SOURCE` に変えると、全部「目印なし」になります。"
+    code: |
+      // @Audited を自作して、リフレクションで読む
+      // ここを変えてみよう:revoke の category を消す / RUNTIME を SOURCE に変える
+      import java.lang.annotation.*;
+      import java.lang.reflect.Method;
+      import java.util.*;
+
+      @Retention(RetentionPolicy.RUNTIME)   // 実行時まで残す
+      @Target(ElementType.METHOD)           // メソッドにだけ付けられる
+      @interface Audited {
+          String value();                       // 要素(必須)
+          String category() default "general";  // 要素(省略したら general)
+      }
+
+      class KeyService {
+          @Audited("ISSUE_KEY")
+          public String issue(String user) { return "key-for-" + user; }
+
+          @Audited(value = "REVOKE_KEY", category = "security")
+          public void revoke(String keyId) { }
+
+          public int count() { return 3; }
+      }
+
+      Method[] methods = KeyService.class.getDeclaredMethods();
+      Arrays.sort(methods, Comparator.comparing(Method::getName)); // 並び順は保証されないので名前順に
+      for (Method m : methods) {
+          Audited a = m.getAnnotation(Audited.class);   // 付いていなければ null
+          if (a == null) {
+              System.out.println(m.getName() + " : 目印なし");
+          } else {
+              System.out.println(m.getName() + " : " + a.value() + " / " + a.category());
+          }
+      }
+      System.out.println("普通に呼ぶ : " + new KeyService().issue("haru") + "(目印だけでは何も起きない)");
+  - title: 目印を見て前後に処理を挟む
+    description: "`call` が「読む側」です。`@Audited` が付いたメソッドだけ、前後にログを出してから `invoke` で本来のメソッドを呼びます。Spring の `@Transactional` も、発想はこれと同じです。"
+    code: |
+      // @Audited が付いたメソッドだけ、前後にログを挟んで呼ぶ(フレームワークの縮小版)
+      // ここを変えてみよう:hello にも @Audited("HELLO") を付ける
+      import java.lang.annotation.*;
+      import java.lang.reflect.Method;
+
+      @Retention(RetentionPolicy.RUNTIME)
+      @Target(ElementType.METHOD)
+      @interface Audited { String value(); }
+
+      class KeyService {
+          @Audited("ISSUE_KEY")
+          public String issue(String user) { return "key-for-" + user; }
+
+          public String hello(String user) { return "hello " + user; }
+      }
+
+      // 「読む側」:目印を見て、付いていれば前後に処理を挟む
+      Object call(Object target, String name, String arg) throws Exception {
+          Method m = target.getClass().getMethod(name, String.class);
+          Audited a = m.getAnnotation(Audited.class);
+          if (a != null) System.out.println("  [AUDIT start] " + a.value());
+          Object result = m.invoke(target, arg);          // 本来のメソッドを呼ぶ
+          if (a != null) System.out.println("  [AUDIT end]   " + a.value());
+          return result;
+      }
+
+      KeyService service = new KeyService();
+      System.out.println("issue を呼ぶ");
+      Object r1 = call(service, "issue", "haru");
+      System.out.println("  結果: " + r1);
+      System.out.println("hello を呼ぶ");
+      Object r2 = call(service, "hello", "haru");
+      System.out.println("  結果: " + r2);
+  - title: フィールドの目印で入力チェック
+    description: "入力チェックのライブラリ(`@NotBlank` / `@Max`)の縮小版です。`private` フィールドは `setAccessible(true)` してから `get` で読みます。"
+    code: |
+      // フィールドの目印を読んで入力チェック(@NotBlank / @Max の縮小版)
+      // ここを変えてみよう:age を 38 に / memo にも @NotBlank を付ける
+      import java.lang.annotation.*;
+      import java.lang.reflect.Field;
+      import java.util.*;
+
+      @Retention(RetentionPolicy.RUNTIME)
+      @Target(ElementType.FIELD)
+      @interface NotBlank {}
+
+      @Retention(RetentionPolicy.RUNTIME)
+      @Target(ElementType.FIELD)
+      @interface Max { int value(); }
+
+      class SignupForm {
+          @NotBlank private String name;
+          @NotBlank private String email;
+          @Max(150) private int age;
+          private String memo;                  // 目印なし → チェックしない
+
+          SignupForm(String name, String email, int age, String memo) {
+              this.name = name; this.email = email; this.age = age; this.memo = memo;
+          }
+      }
+
+      List<String> validate(Object form) throws IllegalAccessException {
+          List<String> errors = new ArrayList<>();
+          Field[] fields = form.getClass().getDeclaredFields();
+          Arrays.sort(fields, Comparator.comparing(Field::getName));
+          for (Field f : fields) {
+              f.setAccessible(true);            // private フィールドも読めるようにする
+              Object v = f.get(form);
+              if (f.isAnnotationPresent(NotBlank.class) && (v == null || v.toString().isBlank())) {
+                  errors.add(f.getName() + " は必須です");
+              }
+              Max max = f.getAnnotation(Max.class);
+              if (max != null && (int) v > max.value()) {
+                  errors.add(f.getName() + " は " + max.value() + " 以下にしてください");
+              }
+          }
+          return errors;
+      }
+
+      System.out.println(validate(new SignupForm("ハル", "", 200, null)));
+      System.out.println(validate(new SignupForm("モカ", "moka@example.com", 38, "")));
+quiz:
+  - question: |
+      アノテーションそのものについて、正しい説明は?
+    choices:
+      - "付けるだけで、自動的に何かの処理が実行される"
+      - "コードに付けた目印で、読む側(コンパイラやフレームワーク)が意味を決める"
+      - "コメントの一種で、コンパイル後には必ず消える"
+      - "付けたメソッドの戻り値を書き換える"
+    answer: 1
+    explanation: |
+      アノテーションは **目印(メタデータ)** で、それ自体は何もしません。`@Override` ならコンパイラが、`@Service` なら Spring が読んで、初めて意味を持ちます。
+      「付けるだけで処理が動く」ように見えるのは、裏で読む側が動いているからです。コメントとは違い、`@Retention(RetentionPolicy.RUNTIME)` なら実行時まで残り、リフレクションで読めます。戻り値を変える機能はありません。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      @Retention(RetentionPolicy.SOURCE)
+      @interface Draft {}
+
+      @Retention(RetentionPolicy.RUNTIME)
+      @interface Stable {}
+
+      @Draft @Stable
+      class Api {}
+
+      System.out.println(Api.class.getAnnotation(Draft.class) != null);
+      System.out.println(Api.class.getAnnotation(Stable.class) != null);
+      ```
+    choices: ["false / true", "true / true", "true / false", "false / false"]
+    answer: 0
+    explanation: |
+      `@Draft` は `SOURCE` なので、コンパイルした時点で消えて class ファイルに残りません。実行時に `getAnnotation` すると `null` になり、`false` です。`@Stable` は `RUNTIME` なので実行時まで残り、`true` です。
+      ソース上は両方付いていても、実行時に読めるのは `RUNTIME` だけ。Spring や JUnit が読むアノテーションがすべて `RUNTIME` なのはこのためです。
+  - question: |
+      `@Audited("X")` のように、要素の名前を書かずに値だけ渡せるのは、`@interface Audited` にどの要素があるから?
+    choices: ["String name();", "String text();", "String value();", "要素の名前は何でもよい"]
+    answer: 2
+    explanation: |
+      **`value` という名前の要素だけ** は、それ1つしか指定しないとき `value =` を省略できます。Spring の `@GetMapping("/users")` や `@Qualifier("main")` が名前なしで書けるのも同じ理由です。
+      `name` や `text` のような他の名前だと、`@Audited(name = "X")` と名前を書かないとコンパイルエラーになります。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      @Retention(RetentionPolicy.RUNTIME)
+      @interface Retry {
+          int times() default 3;
+          long waitMillis() default 0;
+      }
+
+      class Client {
+          @Retry(times = 5)
+          public void call() {}
+
+          @Retry
+          public void ping() {}
+      }
+
+      Method m = Client.class.getMethod("ping");
+      Retry r = m.getAnnotation(Retry.class);
+      System.out.println(r.times() + " " + r.waitMillis());
+      ```
+    choices: ["5 0", "null", "コンパイルエラー", "3 0"]
+    answer: 3
+    explanation: |
+      取り出しているのは `ping()` のアノテーションです。`ping()` には `@Retry` が要素なしで付いているので、どちらの要素も `default` の値(`times` = 3、`waitMillis` = 0)になり、`3 0` と出ます。
+      `5` は `call()` に付けた値なので関係ありません。`RUNTIME` なので `getAnnotation` は `null` にならず、全要素に `default` があるので `@Retry` とだけ書いてもコンパイルできます。
+  - question: |
+      プロジェクトの中で、見慣れない自作アノテーション `@RequiresRole("ADMIN")` を見つけました。「このアノテーションが何をしているか」を知る一番確実な方法は?
+    choices:
+      - "@interface RequiresRole の定義を読む"
+      - "Java の公式ドキュメントで RequiresRole を調べる"
+      - "RequiresRole.class でプロジェクトを検索し、このアノテーションを読んでいるクラスを探す"
+      - "@RequiresRole が付いたメソッドの本体を読む"
+    answer: 2
+    explanation: |
+      アノテーションの定義には要素の宣言しかなく、処理は書かれていません。処理があるのは、`getAnnotation(RequiresRole.class)` などで **読んでいる側** です。`RequiresRole.class` で検索するのが早道です。
+      付いているメソッドの本体には、権限チェックの処理は書かれていません(本体の外側で動くから目印にしている)。自作なので、Java の公式ドキュメントにも載っていません。
+columns:
+  - type: mistake
+    title: "@Retention を書き忘れて、ずっと null"
+    body: |
+      自作アノテーションを作って `getAnnotation` したのに、何度やっても `null`。原因の大半は **`@Retention` の書き忘れ** です。
+
+      ```java
+      @Target(ElementType.METHOD)
+      @interface Audited { String value(); }   // @Retention が無い
+
+      m.getAnnotation(Audited.class);          // いつも null
+      ```
+
+      `@Retention` を省略すると既定値の `CLASS` になり、class ファイルには残っても **実行時には読めません**。エラーも警告も出ないので、「付け方が悪いのか」「読み方が悪いのか」と延々悩むことになります。
+
+      実行時に読むアノテーションには、必ず `@Retention(RetentionPolicy.RUNTIME)` を書きましょう。もう一つの定番は、`getMethod`(public だけ)で private メソッドを探して `NoSuchMethodException` になるミスです。全部見たいなら `getDeclaredMethods` です。
+  - type: genba
+    title: 「付けたのに効かない」アノテーション
+    body: |
+      Spring の現場で、毎年のように新人がハマる話があります。
+
+      ```java
+      @Service
+      public class OrderService {
+          public void placeAll(List<Order> orders) {
+              for (Order o : orders) {
+                  this.place(o);     // 同じクラスの中から呼ぶ
+              }
+          }
+
+          @Transactional
+          public void place(Order o) { ... }
+      }
+      ```
+
+      `@Transactional` を付けたのに、トランザクションが効いていない。理由は、Spring がアノテーションを読んで処理を挟むのが **外から呼ばれたとき** だけだからです。Spring は Bean を代理のオブジェクト(プロキシ)で包み、外からの呼び出しを横取りして前後に処理を挟みます。`this.place()` は代理を通らないので、目印があっても何も起きません。
+
+      詳しくは第3部でやりますが、「アノテーションは読む側がいて初めて動く。**読む側を通らなければ、ただの飾り**」と覚えておくと、こういうバグの原因に早く気づけます。
+  - type: trivia
+    title: "@Service を開くと @Component がいる"
+    body: |
+      STS で `@Service` を Ctrl+クリックして定義を開くと、だいたい次のような形をしています(説明用に省略しています)。
+
+      ```java
+      @Target(ElementType.TYPE)
+      @Retention(RetentionPolicy.RUNTIME)
+      @Documented
+      @Component
+      public @interface Service {
+          String value() default "";
+      }
+      ```
+
+      `RUNTIME` で、クラス(`TYPE`)に付ける目印。そして **アノテーションの上に `@Component` が付いています**。Spring は「`@Component` が付いたアノテーションが付いたクラス」もたどって Bean にするので、`@Service` も `@Repository` も `@Controller` も、根っこは同じ `@Component` です。名前を分けているのは、読む人に役割を伝えるためです。
+
+      ちなみに、アノテーションが Java に入ったのは 2004年の Java 5 から。Spring でアノテーションによる Bean の登録が使えるようになったのは 2007年の Spring 2.5 からで、それまでは「このクラスを Bean にする」を XML ファイルにずらりと書いていました。アノテーションは「設定をコードのすぐそばに置く」ための仕組みでもあるのです。

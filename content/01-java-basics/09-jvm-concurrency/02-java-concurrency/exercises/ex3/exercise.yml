@@ -1,0 +1,27 @@
+title: 外部APIの価格を並べて取ってくる
+className: PriceFetcher
+difficulty: 3
+problem: |
+  商品IDのリストを受け取り、外部の価格API(`lookup`)で単価を調べて返す `fetchAll` を作ってください。API は1回の呼び出しに時間がかかるので、1件ずつ順番に呼ぶのではなく **ExecutorService で同時に呼び出します**。
+
+  ```java
+  static List<Integer> fetchAll(List<String> ids, Function<String, Integer> lookup)
+  ```
+
+  **満たすこと**
+
+  1. 結果は **`ids` と同じ順番** で返す(先に終わった順ではない)
+  2. `Executors.newFixedThreadPool(ids.size())` でプールを作り、全部の `lookup` を **同時に** 走らせる
+  3. 各 `Future` の結果は **1秒のタイムアウト付き** の `get(1, TimeUnit.SECONDS)` で受け取る。間に合わない・失敗したときは `IllegalStateException` を投げる
+  4. 終わったら(例外のときも)**必ずプールを止める**(`finally` で `shutdownNow()`)
+  5. `ids` が空なら、プールを作らずに空のリストを返す(`newFixedThreadPool(0)` は例外になるため)
+
+  ```java
+  Map<String, Integer> api = Map.of("A001", 120, "B002", 250, "C003", 80);
+  fetchAll(List.of("B002", "A001", "C003"), api::get);   // [250, 120, 80]
+  fetchAll(List.of(), api::get);                         // []
+  ```
+
+  ヒント:
+  - `pool.submit(() -> lookup.apply(id))` が `Future<Integer>` を返します。まず全部 submit して `List<Future<Integer>>` に入れ、そのあと順番に `get` します(submit のたびに get すると、1件ずつ順番に待つことになります)。
+  - `get` は `InterruptedException` / `ExecutionException` / `TimeoutException` を投げるので、まとめて `catch (Exception e)` して `throw new IllegalStateException("価格の取得に失敗しました", e);` とすれば十分です。

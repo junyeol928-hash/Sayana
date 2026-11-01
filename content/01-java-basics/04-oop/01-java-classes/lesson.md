@@ -83,6 +83,31 @@ Employee a = new Employee("佐藤", 300000);
 
 `new` は「①ヒープに領域を確保し既定値で埋める → ②コンストラクタを実行 → ③参照を返す」という順に動きます。
 
+::: haru
+フィールドの宣言に `int timeout = 30;` って最初から値を書いてあるクラスも見ました。あれはコンストラクタより先なんすか、後なんすか?
+:::
+
+::: sensei
+先。宣言のところの `= 30` は **フィールド初期化子** といって、既定値で埋めたあと、コンストラクタ本体より前に上から順に動く。だからコンストラクタの中で読むともう 30 が入っているし、本体で 60 を入れれば最後は 60 だ。
+:::
+
+```java
+class Session {
+    private int timeout = 30;   // 初期化子
+    private String id;
+
+    Session(String id) {
+        System.out.println(timeout); // 30(初期化子はもう済んでいる)
+        this.id = id;
+        timeout = 60;                // 最終的には 60
+    }
+}
+```
+
+<figure class="figure"><svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-classes-arr08b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="30" width="160" height="70" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">① 既定値</text><text x="100" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">timeout = 0, id = null</text><path d="M184 65 L216 65" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-classes-arr08b)"/><rect x="220" y="30" width="160" height="70" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="300" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">② 初期化子</text><text x="300" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">timeout = 30</text><path d="M384 65 L416 65" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-classes-arr08b)"/><rect x="420" y="30" width="160" height="70" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="500" y="56" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">③ コンストラクタ本体</text><text x="500" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">id = &quot;abc&quot;, timeout = 60</text><text x="300" y="120" font-size="13" text-anchor="middle" fill="var(--ink-muted)">後のものが勝つ。最終値はコンストラクタ本体の結果</text></svg><figcaption>初期化の順序:既定値 → フィールド初期化子 → コンストラクタ本体。後から動いたものが勝つ</figcaption></figure>
+
+`List` のフィールドに `= new ArrayList<>()` と初期化子を書いておくと、どのコンストラクタを通っても `null` にならない、というのが実務でよく見る使い方です。
+
 `this` は「今まさに処理しているインスタンス自身」への参照です。引数の `name` とフィールドの `name` が同名なので、フィールドの方を `this.name` と書いて区別します。
 
 ### オーバーロードと this(...)
@@ -132,6 +157,12 @@ class Employee {
 ```
 
 `a.raise(10000)` なら `a` の、`b.raise(10000)` なら `b` の給料が上がります。一方 `static` のフィールドやメソッドはインスタンスではなく **クラスに属し**、全インスタンスで1つを共有します。呼ぶときは `Employee.count` のようにクラス名で書きます。
+
+箱で描くと違いがはっきりします。下は発券機クラス `TicketCounter`(発行枚数 `issuedCount` を static、座席番号 `seatNo` をインスタンスフィールドに持つ)で2枚発券したところです。
+
+<figure class="figure"><svg viewBox="0 0 580 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><rect x="20" y="30" width="200" height="150" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="56" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">クラス TicketCounter</text><rect x="40" y="76" width="160" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="120" y="101" font-size="14" text-anchor="middle" fill="var(--ink)">issuedCount = 2</text><rect x="40" y="126" width="160" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="120" y="151" font-size="14" text-anchor="middle" fill="var(--ink)">MAX = 100</text><text x="120" y="200" font-size="13" text-anchor="middle" fill="var(--ink-muted)">static:1つだけ、共有</text><rect x="260" y="30" width="140" height="80" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="330" y="54" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">実体 A</text><text x="330" y="84" font-size="14" text-anchor="middle" fill="var(--ink)">seatNo = 1</text><rect x="420" y="30" width="140" height="80" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="490" y="54" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">実体 B</text><text x="490" y="84" font-size="14" text-anchor="middle" fill="var(--ink)">seatNo = 2</text><path d="M330 112 L330 140 L140 140" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 4" fill="none"/><path d="M490 112 L490 160 L140 160" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 4" fill="none"/><text x="410" y="200" font-size="13" text-anchor="middle" fill="var(--ink-muted)">インスタンスフィールド:実体ごとに別の箱</text></svg><figcaption>static の箱(発行枚数・定数 MAX)はクラス側に1つだけ。座席番号の箱は実体ごとに別々</figcaption></figure>
+
+実体 A から見ても B から見ても `issuedCount` は同じ1つの箱なので、どちらで発券しても数字は通しで増えていきます。
 
 `static` メソッドには `this` がないので、インスタンスのフィールドを直接触れません。`main` から書くとよく出るエラーです。
 

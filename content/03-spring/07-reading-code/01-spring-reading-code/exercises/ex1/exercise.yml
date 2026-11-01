@@ -1,0 +1,36 @@
+title: 処理詳細と突き合わせて、鍵発行 API を直す
+className: KeyIssueService
+difficulty: 2
+libraries: [spring]
+problem: |
+  配属先の鍵発行 API `POST /api/keys` に、こんな問い合わせが来ました。
+
+  > 新しいカードに鍵を発行しようとすると、毎回 500 エラーになります。
+
+  雛形には Controller・DTO・Service・Repository・例外ハンドラが1ファイルに入っています。
+  解説の順番(Controller → DTO → Service → Repository → レスポンス・例外ハンドラ)で読み、次の **処理詳細(仕様書)** と食い違っている所を見つけて `KeyIssueService` を直してください。食い違いは **2か所** です。
+
+  | 項番 | 処理内容 |
+  |---|---|
+  | 1 | リクエストから `cardId`・`keyVersion` を受け取る |
+  | 2 | その `cardId` に `ACTIVE` な鍵がすでにあるか確認する |
+  | 3 | ある場合は重複エラー(409・コード `E409`)とする。鍵は保存しない |
+  | 4 | 鍵 ID を採番する(`K-0003` の形。Repository の `save` がやる) |
+  | 5 | 鍵を `ACTIVE` で保存する |
+  | 6 | `keyId` と `status` を返す(201 Created) |
+
+  ```text
+  POST /api/keys  {"cardId":"C100","keyVersion":1}
+  → 201 {"keyId":"K-0003","status":"ACTIVE"}
+
+  POST /api/keys  {"cardId":"C001","keyVersion":2}   ← C001 には ACTIVE な鍵がある
+  → 409 {"code":"E409","message":"カード C001 には有効な鍵がすでにあります"}
+  ```
+
+  読むときのヒント:
+  - Service の各行の右に、処理詳細の項番をコメントで書き込んでみましょう。どの項番にも当たらない行や、順番が入れ替わっている行が怪しい所です
+  - 409 に変えているのは誰か? Controller に try-catch はありません。`@RestControllerAdvice` の `@ExceptionHandler` が **どの型の例外を受けているか** を確かめてください
+  - Controller・Repository・例外ハンドラは正しく書かれています。直すのは `KeyIssueService` だけです
+
+  採点では最初に `C001`(`ACTIVE` の鍵あり)と `C002`(`REVOKED` の鍵だけ)のデータが入っています。
+  ※ 本物のアプリでは Repository は Spring Data JPA のインターフェース、Service は `@Service`、DTO は別ファイルです。採点のために1ファイルにまとめ、DB の代わりにメモリ上のリストを使っています。

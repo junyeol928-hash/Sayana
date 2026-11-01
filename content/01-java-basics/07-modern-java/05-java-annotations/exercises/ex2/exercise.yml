@@ -1,0 +1,37 @@
+title: "@Mask の付いた項目を伏せてログに出す"
+className: LogMasker
+difficulty: 2
+problem: |
+  ログにパスワードやカード番号がそのまま出てしまう事故を防ぐため、伏せたいフィールドに `@Mask` を付けておき、
+  ログ用の文字列を作るときに **リフレクションで目印を読んで** 伏せ字にする仕組みを作ります。
+
+  ```java
+  class LoginForm {
+      private String userId = "haru";
+      @Mask private String password = "s3cret!";
+      @Mask(keep = 4) private String cardNo = "4111222233334444";
+      private int retry = 2;
+  }
+
+  LogMasker.toLog(new LoginForm());
+  // LoginForm{cardNo=************4444, password=***, retry=2, userId=haru}
+  ```
+
+  `@Mask`(雛形に用意済み)には要素 `int keep() default 0` があり、「末尾を何文字残すか」を表します。
+
+  **1. `mask(String value, int keep)` … 1つの値を伏せ字にする**
+
+  - `keep` が 0 なら、長さに関係なく `***`(アスタリスク3つ)
+  - `keep` が 1 以上なら、末尾 `keep` 文字を残し、それより前を **1文字ずつ** `*` にする(`"4111222233334444"`, 4 → `"************4444"`)
+  - 値の長さが `keep` 以下なら、全部を `*` にする(短い値を丸見えにしないため。`"123"`, 4 → `"***"`)
+  - `value` が `null` なら `"null"`
+
+  **2. `toLog(Object obj)` … ログ用の文字列を作る**
+
+  - 形式は `クラスの単純名{名前=値, 名前=値, ...}`。クラス名は `obj.getClass().getSimpleName()`
+  - フィールドは `getDeclaredFields()` で全部取り、**フィールド名の昇順** に並べる(返る順番は決まっていないため)
+  - `private` フィールドを読むには `f.setAccessible(true)` してから `f.get(obj)`
+  - `@Mask` が付いたフィールドは `mask(値の文字列, keep)` の結果を、付いていないフィールドはそのままの値を出す(`null` は `null`)
+  - `f.get` が投げる `IllegalAccessException` はチェック例外です。`IllegalStateException` に包んで投げ直してください
+
+  `static` フィールド(定数など)は今回のテストには出てきません。

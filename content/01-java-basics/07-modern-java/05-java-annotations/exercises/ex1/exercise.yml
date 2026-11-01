@@ -1,0 +1,37 @@
+title: "@Owner を読んで担当者一覧を作る"
+className: OwnerReport
+difficulty: 1
+problem: |
+  チームの共有クラスで、「このメソッドは誰の担当か」を自作アノテーション `@Owner` で書いておくことにしました。
+  付いている目印を **リフレクションで読んで** 担当者一覧を作ってください。
+
+  ```java
+  class PaymentService {
+      @Owner("佐藤")
+      public void charge() { }
+
+      @Owner(value = "鈴木", team = "経理")
+      public void refund() { }
+
+      public void ping() { }          // 担当者なし
+  }
+  ```
+
+  **0. `@Owner` を実行時に読めるようにする**
+
+  雛形の `@Owner` は `@Retention(RetentionPolicy.SOURCE)` になっていて、コンパイルした時点で消えてしまいます。
+  `getAnnotation` で読めるように **RUNTIME** に直してください(要素 `value` と `team` はそのままでOK)。
+
+  **1. `owners(Class<?> type)` … 担当者一覧**
+
+  - `type.getDeclaredMethods()` のうち `@Owner` が付いたものについて、`"メソッド名: 担当者(チーム)"` を作って返す
+  - **メソッド名の昇順** に並べる(`getDeclaredMethods` が返す順番は決まっていないため。雛形で並べ替え済み)
+  - 上の例なら `["charge: 佐藤(未所属)", "refund: 鈴木(経理)"]`(`team` を省略すると既定値の `未所属`)
+
+  **2. `unowned(Class<?> type)` … 担当者がいないメソッド**
+
+  - `@Owner` が **付いていない** メソッドの名前を、名前の昇順で返す(`isAnnotationPresent` を使うと短く書けます)
+  - 上の例なら `["ping"]`
+  - `public` かどうかは関係なく、`getDeclaredMethods` が返すメソッドを全部見ます
+
+  ヒント:`m.getAnnotation(Owner.class)` は、付いていなければ `null` を返します。要素の値は `owner.value()`・`owner.team()` のようにメソッド呼び出しの形で取り出します。

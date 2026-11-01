@@ -1,0 +1,22 @@
+title: あふれる再帰をループに直す
+className: SumCalculator
+difficulty: 2
+problem: |
+  `SumCalculator` には合計を求めるメソッドが2つあります。雛形は **再帰** で書かれていて、小さい入力では正しく動きますが、入力が大きいと呼び出しのたびにスタックにフレームが積まれ、`StackOverflowError` で止まります。
+  **同じ結果を返したまま、ループ(for 文)で書き直して** ください。
+
+  | メソッド | 動き |
+  |---|---|
+  | `static long sumTo(int n)` | 1 + 2 + … + n を返す。`n` が 0 以下なら 0 |
+  | `static long sumOf(int[] values)` | 配列の全要素の合計を返す。空の配列なら 0 |
+
+  ```java
+  SumCalculator.sumTo(10);          // 55
+  SumCalculator.sumTo(1_000_000);   // 500000500000(再帰版はここで StackOverflowError)
+  SumCalculator.sumOf(new int[]{3, 4, 5});  // 12
+  ```
+
+  ヒント:
+  - 合計は `int` だとあふれるので、`long` の変数に足していきます。
+  - ループなら、何回まわってもフレームは `sumTo` の1つだけです。
+  - 雛形の `sumFrom` はループ版では要らなくなります。消してかまいません。

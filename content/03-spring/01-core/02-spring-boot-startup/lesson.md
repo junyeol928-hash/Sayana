@@ -139,6 +139,8 @@ Started DemoApplication in 1.873 seconds
 
 `Started` が出たら起動完了。止まったときは `APPLICATION FAILED TO START` の下の **Description(原因)と Action(対処)** を読みます。定番は `Port 8080 was already in use`(前に起動したアプリが動きっぱなし)です。
 
+その形で出ずに例外のスタックトレースが長々と続くときは、ログを **下から上へ** 読んで、いちばん下の `Caused by:` を探します。そこが根本の原因です。たとえば `Could not resolve placeholder 'app.mail.host'` なら、コードが読もうとした設定キーが `application.properties` に無い、という意味です(設定値の読み方は第5章「設定ファイルとプロファイル」で扱います)。
+
 ## --debug で自動設定レポートを見る
 
 起動引数に `--debug` を付ける(または `application.properties` に `debug=true`)と、**CONDITIONS EVALUATION REPORT** が出ます。どの自動設定が、なぜ使われた/使われなかったかの一覧です。
@@ -163,10 +165,48 @@ Negative matches:
 
 速い理由は、クラスローダーを2つに分けているからです。変わらない jar は **base** クラスローダーに置いたまま、自分のクラスだけを **restart** クラスローダーごと作り直します。DevTools 使用時はスレッド名が `[restartedMain]` になるので、ログで見分けられます。`java -jar` で動かす本番では自動で無効になります。
 
+## Spring Boot のバージョンと javax → jakarta
+
+::: haru
+ネットの記事のコードを写したら、`import javax.persistence.Entity;` に赤線が出ました。記事が間違ってるんすか?
+:::
+
+::: sensei
+記事が古いだけだね。Spring Boot は「系列」ごとに中身もサポート期間も違う。調べものをする前に、バージョンの見方を押さえておこう。
+:::
+
+Spring Boot は `3.5` や `4.0` のように、2つ目の数字までを1つの **系列** として、系列ごとにサポート期間が決まっています。**OSS サポート**は無償で修正版が出る期間で、これが終わるとセキュリティの修正も無償では出なくなります。**商用サポート**は、有償契約をした場合に延長される期間です。
+
+| 系列 | 初回リリース | OSS サポート終了 | 商用サポート終了 |
+|---|---|---|---|
+| 4.1 | 2026-06 | 2027-07-31 | 2028-07-31 |
+| 4.0 | 2025-11 | 2026-12-31 | 2027-12-31 |
+| 3.5 | 2025-05 | 2026-06-30(終了済み) | 2032-06-30 |
+| 2.7 | 2022-05 | 2023-06-30(終了済み) | 2029-06-30 |
+
+2026年11月時点。最新は spring.io のサポート表([系列ごとのサポート期間](https://api.spring.io/projects/spring-boot/generations)・[動作環境](https://docs.spring.io/spring-boot/system-requirements.html))で確かめてください。
+
+この時点の最新の正式版(GA)は **4.1.2** で、Java 17 以上(27 まで対応)で動きます。次の 4.2 は 2026年11月の予定で、いまはリリース候補(RC)の段階です。自分のプロジェクトの系列は、`pom.xml` の `spring-boot-starter-parent` の `<version>` で分かります。
+
+ハルが踏んだのは、**Spring Boot 3.0 で起きた大きな引っ越し** です。3.0 から土台が Jakarta EE 9 になり、`javax.*` で始まっていたパッケージが `jakarta.*` に変わりました。
+
+| 2系の記事 | 3系以降 |
+|---|---|
+| `javax.persistence.Entity` | `jakarta.persistence.Entity` |
+| `javax.servlet.http.HttpServletRequest` | `jakarta.servlet.http.HttpServletRequest` |
+| `javax.validation.constraints.NotNull` | `jakarta.validation.constraints.NotNull` |
+
+ネットの古い記事(2系)のコードは、この読み替えが要ります。ただし `javax.crypto` や `javax.sql` のように **JDK 自体に入っている** `javax` パッケージは変わりません。変わったのは、もともと Java EE(サーバ向けの仕様)から来ていたものです。
+
+::: genba この道場のアプリ自体は 3.5 系
+正直に言うと、この道場アプリは 3.5 系(`spring-boot-starter-parent` 3.5.16)で動いていて、3.5 の OSS サポートは 2026-06-30 に終わっています。第3部で習うアノテーションや書き方は 4.x でもほぼ同じですが、新しくプロジェクトを始めるなら、OSS サポート中の系列を選ぶのが基本です。現場でも「いまの系列のサポートはいつまでか」は、定期的に確かめる習慣にしておきましょう。
+:::
+
 ::: point まとめ
 - `@SpringBootApplication` = `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan`。
 - `run` は Environment 準備 → スキャン → 自動設定 → DI → Tomcat 起動 → Runner 実行。
 - 自動設定は条件付き `@Bean` の集まり。`@ConditionalOnClass`(jar があれば)と `@ConditionalOnMissingBean`(自分で定義していなければ)。
 - スキャン範囲はメインクラスのパッケージ以下。外に置くと Bean が見つからない。
 - 困ったら起動ログの Description / Action と `--debug` のレポートを読む。
+- 3.0 から `javax.*` は `jakarta.*` に。系列ごとのサポート期間は spring.io で確かめる。
 :::

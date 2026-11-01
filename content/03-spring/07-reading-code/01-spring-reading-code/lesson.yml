@@ -1,0 +1,429 @@
+id: spring-reading-code
+title: 業務コードの読み方(実践)
+status: ready
+minutes: 20
+summary: 知らない Spring Boot プロジェクトに入ったときの読む順番。1本の API を Controller → DTO → Service → Repository → 例外ハンドラの順に追い、トランザクションの境界、スタックトレースからの逆引き、ソースに書かれていない「見えない処理」まで。
+goals:
+  - 知らないプロジェクトを、README・依存・パッケージ構成・設定・テストの順に眺めて、層と役割の見当をつけられる
+  - 1本の API を、URL → Controller → リクエスト DTO → Service → Repository → レスポンス・例外ハンドラの順に自分で追える
+  - "@Transactional の境界と、例外が投げられたときにロールバック・Advice が動く順番を、コードから読み取れる"
+  - エラーログのスタックトレースを「1行目・一番下の Caused by・最初の自分の行」の順に読み、原因の行まで逆にたどれる
+  - Lombok・DI・AOP・Jackson・バリデーション・Filter など、ソースに書かれていない処理を意識して読める
+samples:
+  - title: 例外が下の層から上の層へ戻る道のりを見る
+    description: |
+      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を Service が原因付きの例外に包み直し、スタックトレースには `Caused by` として残ります。
+      自分のクラスの行だけを抜き出すと、**上が例外の起きた場所、下へ行くほど呼び出し元** だと分かります。最後に「一番下の Caused by」(根本原因)をたどります。
+    code: |
+      // Controller → Service → Repository の呼び出しと、例外が戻る道のりを観察する
+      // ここを変えてみよう:post("C100") を post("C200") に / Service の new KeyIssueFailedException(..., e) の e を null にすると Caused by はどうなる?
+      class RepositoryException extends RuntimeException {
+          RepositoryException(String message) { super(message); }
+      }
+      class KeyIssueFailedException extends RuntimeException {
+          KeyIssueFailedException(String message, Throwable cause) { super(message, cause); }
+      }
+
+      class KeyRepository {
+          boolean existsActive(String cardId) {
+              System.out.println("    [Repository] existsActive(" + cardId + ")");
+              if (cardId.equals("C100")) {
+                  throw new RepositoryException("DB 接続がタイムアウトしました");
+              }
+              return cardId.equals("C001");
+          }
+      }
+
+      class KeyIssueService {
+          private final KeyRepository repository = new KeyRepository();
+          String issue(String cardId) {
+              System.out.println("  [Service] issue(" + cardId + ")");
+              try {
+                  if (repository.existsActive(cardId)) {
+                      return "409 重複";
+                  }
+                  return "201 発行";
+              } catch (RepositoryException e) {
+                  throw new KeyIssueFailedException("鍵の発行に失敗しました cardId=" + cardId, e);
+              }
+          }
+      }
+
+      class KeyIssueController {
+          private final KeyIssueService service = new KeyIssueService();
+          String post(String cardId) {
+              System.out.println("[Controller] POST /api/keys cardId=" + cardId);
+              return service.issue(cardId);
+          }
+      }
+
+      // スタックトレースのうち、自分たちのクラスの行だけを抜き出して表示する
+      Set<String> mine = Set.of("KeyRepository", "KeyIssueService", "KeyIssueController");
+      String simpleName(String className) {
+          return className.substring(Math.max(className.lastIndexOf('$'), className.lastIndexOf('.')) + 1);
+      }
+      void printTrace(Throwable t) {
+          String prefix = "";
+          while (t != null) {
+              System.out.println(prefix + t.getClass().getSimpleName() + ": " + t.getMessage());
+              for (StackTraceElement f : t.getStackTrace()) {
+                  String name = simpleName(f.getClassName());
+                  if (mine.contains(name)) {
+                      System.out.println("    at " + name + "." + f.getMethodName());
+                  }
+              }
+              prefix = "Caused by: ";
+              t = t.getCause();
+          }
+      }
+
+      var controller = new KeyIssueController();
+      System.out.println("結果: " + controller.post("C001"));
+      System.out.println();
+      try {
+          controller.post("C100");
+      } catch (RuntimeException e) {
+          System.out.println();
+          System.out.println("--- スタックトレース(自分のクラスの行だけ) ---");
+          printTrace(e);
+          Throwable root = e;
+          while (root.getCause() != null) {
+              root = root.getCause();
+          }
+          System.out.println("--- 根本原因(一番下の Caused by) ---");
+          System.out.println(root.getClass().getSimpleName() + ": " + root.getMessage());
+      }
+  - title: 1本の API を通しで動かして、呼ばれる順番を確かめる
+    libraries: [spring]
+    description: |
+      解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。
+      入力エラーのときは Controller のメソッドに入る前に止まり、Advice にハンドラが無いので本文の無い 400 になります(Spring が出す WARN のログも読んでみましょう)。
+    code: |
+      // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
+      // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に / Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
+      import java.nio.charset.StandardCharsets;
+      import org.springframework.http.*;
+      import org.springframework.http.converter.StringHttpMessageConverter;
+      import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+      import org.springframework.web.bind.annotation.*;
+      import org.springframework.test.web.servlet.MockMvc;
+      import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+      import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+      import jakarta.validation.Valid;
+      import jakarta.validation.constraints.*;
+      import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+      record KeyIssueRequest(@NotBlank String cardId, @NotNull @Min(1) @Max(255) Integer keyVersion) {}
+      record KeyIssueResponse(String keyId, String status) {}
+      record ErrorResponse(String code, String message) {}
+
+      class KeyAlreadyExistsException extends RuntimeException {
+          KeyAlreadyExistsException(String cardId) { super("カード " + cardId + " には有効な鍵がすでにあります"); }
+      }
+
+      class KeyRepository {
+          private final Set<String> activeCards = new HashSet<>(Set.of("C001"));
+          private int seq = 1;
+          boolean existsByCardIdAndStatus(String cardId, String status) {
+              System.out.println("      [Repository] existsByCardIdAndStatus(" + cardId + ", " + status + ")");
+              return activeCards.contains(cardId);
+          }
+          String save(String cardId) {
+              System.out.println("      [Repository] save(" + cardId + ")");
+              activeCards.add(cardId);
+              return String.format("K-%04d", ++seq);
+          }
+      }
+
+      class KeyIssueService {
+          private final KeyRepository keyRepository;
+          KeyIssueService(KeyRepository keyRepository) { this.keyRepository = keyRepository; }
+          KeyIssueResponse issue(KeyIssueRequest request) {
+              System.out.println("    [Service] issue 開始");
+              if (keyRepository.existsByCardIdAndStatus(request.cardId(), "ACTIVE")) {
+                  System.out.println("    [Service] 重複 → 例外を投げる");
+                  throw new KeyAlreadyExistsException(request.cardId());
+              }
+              String keyId = keyRepository.save(request.cardId());
+              return new KeyIssueResponse(keyId, "ACTIVE");
+          }
+      }
+
+      @RestController
+      @RequestMapping("/api/keys")
+      class KeyIssueController {
+          private final KeyIssueService keyIssueService;
+          KeyIssueController(KeyIssueService keyIssueService) { this.keyIssueService = keyIssueService; }
+          @PostMapping
+          ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+              System.out.println("  [Controller] issue " + request);
+              return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+          }
+      }
+
+      @RestControllerAdvice
+      class ApiExceptionHandler {
+          @ExceptionHandler(KeyAlreadyExistsException.class)
+          ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {
+              System.out.println("  [Advice] handleDuplicate が受け取った");
+              return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("E409", e.getMessage()));
+          }
+      }
+
+      var validator = new LocalValidatorFactoryBean();
+      validator.afterPropertiesSet();
+      MockMvc mvc = MockMvcBuilders
+              .standaloneSetup(new KeyIssueController(new KeyIssueService(new KeyRepository())))
+              .setControllerAdvice(new ApiExceptionHandler())
+              .setValidator(validator)
+              .setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8),
+                      new MappingJackson2HttpMessageConverter())
+              .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+              .build();
+
+      void send(String json) throws Exception {
+          System.out.println("POST /api/keys " + json);
+          var res = mvc.perform(post("/api/keys").contentType(MediaType.APPLICATION_JSON).content(json))
+                  .andReturn().getResponse();
+          System.out.println("→ " + res.getStatus() + " " + res.getContentAsString());
+          System.out.println();
+      }
+
+      send("{\"cardId\":\"C100\",\"keyVersion\":1}");   // 正常系
+      send("{\"cardId\":\"C001\",\"keyVersion\":2}");   // 異常系:重複
+      send("{\"cardId\":\"C200\",\"keyVersion\":0}");   // 異常系:入力エラー
+  - title: "@Transactional のプロキシをスタックトレースで見破る"
+    libraries: [spring]
+    description: |
+      `@Transactional` の付いた Service は、Spring が作ったプロキシ(`$$SpringCGLIB$$`)に包まれています。例外のスタックトレースを、自分のコードの行・Spring の行・プロキシの行に分けて表示します。
+      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。ロールバックが例外が外へ出る途中で起きていることも、`[TX]` の表示で確かめましょう。
+    code: |
+      // @Transactional の Service は、Spring が作った「プロキシ」に包まれている。スタックトレースでそれを見る
+      // ここを変えてみよう:rotate の @Transactional を消すと、Bean のクラス名とスタックトレースはどう変わる?
+      import org.springframework.context.annotation.*;
+      import org.springframework.transaction.TransactionDefinition;
+      import org.springframework.transaction.annotation.*;
+      import org.springframework.transaction.support.*;
+
+      // DB の代わりに「開始・コミット・ロールバック」を表示するだけのトランザクションマネージャ(読み飛ばしてOK)
+      class LogTxManager extends AbstractPlatformTransactionManager {
+          protected Object doGetTransaction() { return TransactionSynchronizationManager.isActualTransactionActive(); }
+          protected boolean isExistingTransaction(Object tx) { return (Boolean) tx; }
+          protected void doBegin(Object tx, TransactionDefinition def) { System.out.println("  [TX] 開始"); }
+          protected void doCommit(DefaultTransactionStatus s) { System.out.println("  [TX] コミット"); }
+          protected void doRollback(DefaultTransactionStatus s) { System.out.println("  [TX] ロールバック"); }
+      }
+
+      @Configuration @EnableTransactionManagement
+      class TxConfig {
+          @Bean LogTxManager transactionManager() { return new LogTxManager(); }
+      }
+
+      class KeyRotationService {
+          @Transactional
+          public void rotate(String cardId) {
+              System.out.println("  [Service] 今の鍵を失効 → HSM に新しい鍵を依頼");
+              throw new IllegalStateException("HSM に接続できません cardId=" + cardId);
+          }
+      }
+
+      var ctx = new AnnotationConfigApplicationContext(TxConfig.class, KeyRotationService.class);
+      var service = ctx.getBean(KeyRotationService.class);
+      System.out.println("Bean のクラス: " + service.getClass().getName().replaceAll("^REPL\\.\\$JShell\\$\\d+\\$", ""));
+      System.out.println();
+
+      try {
+          service.rotate("C001");
+      } catch (IllegalStateException e) {
+          System.out.println();
+          System.out.println(e);
+          // 自分のクラスの行はそのまま、Spring の行は「どの部品を通ったか」だけを表示する
+          String lastSpring = "";
+          for (StackTraceElement f : e.getStackTrace()) {
+              String c = f.getClassName();
+              if (c.contains("KeyRotationService") && !c.contains("$$")) {
+                  System.out.println("    at KeyRotationService." + f.getMethodName() + "   ← 自分のコード");
+              } else if (c.startsWith("org.springframework")) {
+                  String part = c.substring(c.lastIndexOf('.') + 1);
+                  if (!part.equals(lastSpring)) {
+                      System.out.println("    at (Spring) " + part);
+                      lastSpring = part;
+                  }
+              } else if (c.contains("$$SpringCGLIB$$")) {
+                  System.out.println("    at KeyRotationService$$SpringCGLIB$$0." + f.getMethodName() + "   ← プロキシ");
+              }
+          }
+      }
+      ctx.close();
+quiz:
+  - question: |
+      初めて触るプロジェクトで、`POST /api/orders` の動きを調べることになった。1本の API を追う順番として最も適切なのは?
+    choices:
+      - "Repository → Service → Controller → DTO"
+      - "Controller(URL の特定)→ リクエスト DTO → Service → Repository → レスポンス・例外ハンドラ"
+      - "例外ハンドラ → Controller → Service → Repository"
+      - "Entity をすべて読んでから、Controller を全部読む"
+    answer: 1
+    explanation: |
+      リクエストが **実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
+      逆順や飛び飛びで読むと、Service の分岐やどの例外がどこへ行くかがつながりません。Entity を先に全部読むのは、頼まれた API に関係ない所まで読むことになり、時間がかかるだけです。
+  - question: |
+      Service が次の例外を投げている。Controller にも Service にも try-catch は無い。プロジェクトには下の Advice がある。`C001` に有効な鍵がすでにあるとき、応答はどうなる?
+      ```java
+      // Service
+      if (keyRepository.existsByCardIdAndStatus(cardId, "ACTIVE")) {
+          throw new KeyAlreadyExistsException(cardId); // RuntimeException の子
+      }
+      ```
+      ```java
+      @RestControllerAdvice
+      public class ApiExceptionHandler {
+          @ExceptionHandler(KeyAlreadyExistsException.class)
+          public ResponseEntity<ErrorResponse> dup(KeyAlreadyExistsException e) {
+              return ResponseEntity.status(HttpStatus.CONFLICT)
+                      .body(new ErrorResponse("E409", e.getMessage()));
+          }
+      }
+      ```
+    choices: ["誰も catch していないので 500", "Advice が受け取り、409 + ErrorResponse", "例外は無視され、201 が返る", "コンパイルエラーになる(throws 宣言が無い)"]
+    answer: 1
+    explanation: |
+      業務例外は Controller を素通りして DispatcherServlet まで届き、`@RestControllerAdvice` の **同じ型(または親の型)を受ける `@ExceptionHandler`** が呼ばれます。ここでは `dup` が 409 + `ErrorResponse` を返します。
+      try-catch が見当たらなくても「処理されていない」とは限りません。受けるハンドラが本当に無いときだけ 500 になります。`RuntimeException` の子(非検査例外)なので、`throws` 宣言が無くてもコンパイルできます。
+  - question: |
+      Service でこう書かれている。`findById` はどこで定義されている?
+      ```java
+      public interface KeyRepository extends JpaRepository<KeyEntity, Long> {
+          boolean existsByCardIdAndStatus(String cardId, String status);
+      }
+      ```
+      ```java
+      KeyEntity key = keyRepository.findById(keyId)
+              .orElseThrow(() -> new KeyNotFoundException(keyId));
+      ```
+    choices: ["KeyRepository の中に書かれている", "継承元の JpaRepository(とその親)で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
+    answer: 1
+    explanation: |
+      `KeyRepository` 自身が宣言しているのは `existsByCardIdAndStatus` だけです。`findById`・`save`・`deleteById` などの基本的な操作は、`extends` している **`JpaRepository` 側**(正確にはその親の `CrudRepository`)で宣言されていて、実装は Spring Data が起動時に用意します。
+      Repository を読むときは、インターフェースの中身が短くても **継承元まで見る** のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
+  - question: |
+      次の Service で、`hsm.generateKey` が `HsmException`(`Exception` を継承した検査例外)を投げた。DB はどうなる?
+      ```java
+      @Transactional
+      public String rotate(String cardId) {
+          store.revokeActive(cardId);   // 今の鍵を失効させる(UPDATE)
+          try {
+              String id = hsm.generateKey(cardId);
+              store.saveActive(cardId, id);
+              return id;
+          } catch (HsmException e) {
+              return null;
+          }
+      }
+      ```
+    choices:
+      - "例外が起きたので、失効もロールバックされる"
+      - "メソッドが普通に return したのでコミットされ、今の鍵は失効したまま残る"
+      - "検査例外なので、コンパイルエラーになる"
+      - "@Transactional が例外を自動で投げ直し、500 になる"
+    answer: 1
+    explanation: |
+      ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
+      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`HsmException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。catch しているのでコンパイルエラーにはなりません。
+  - question: |
+      エラーログに次のスタックトレースがあった(一部省略)。原因を調べるために、まず開くべき場所はどれ?
+      ```text
+      com.example.keys.exception.KeyIssueFailedException: 鍵の発行に失敗しました
+          at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:41)
+          at com.example.keys.service.KeyIssueService$$SpringCGLIB$$0.issue(<generated>)
+          at com.example.keys.controller.KeyIssueController.issue(KeyIssueController.java:24)
+          at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(...)
+          ...
+      Caused by: com.example.keys.hsm.HsmException: HSM に接続できません
+          at com.example.keys.hsm.HsmClient.generateKey(HsmClient.java:57)
+          at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:38)
+          ...
+      ```
+    choices:
+      - "KeyIssueController.java の 24 行目"
+      - "InvocableHandlerMethod(Spring の内部)"
+      - "HsmClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
+      - "KeyIssueService$$SpringCGLIB$$0(<generated>)"
+    answer: 2
+    explanation: |
+      根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `HsmClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
+      Controller の行は呼び出し元をたどるときに使いますが、出発点ではありません。`InvocableHandlerMethod` は Spring が Controller を呼ぶまでの内部処理、`$$SpringCGLIB$$` は `@Transactional` のためのプロキシで、ソースファイルが無いので `<generated>` と表示されます。どちらも「通った部品の地図」としては役立ちますが、直す場所ではありません。
+columns:
+  - type: mistake
+    title: 「try-catch が無い = エラー処理が抜けている」とレビューに書いてしまう
+    body: |
+      新人のレビューコメントで多いのが「この Service、例外を投げっぱなしで catch していません」。でも Spring の業務アプリでは、業務例外を **投げっぱなしにして `@RestControllerAdvice` で受ける** のが普通の形です。Controller や Service に try-catch を書かないこと自体が設計です。
+
+      逆に、本当に危ないのは **catch して何もしない** コードです。
+
+      ```java
+      } catch (HsmException e) {
+          return null;   // ログも出さない。トランザクションはコミットされる
+      }
+      ```
+
+      レビューで探すべきは「catch が無い所」ではなく、「catch して握りつぶしている所」と「受けるハンドラが無い例外」です。例外クラス名でプロジェクト全体を検索すれば、どちらも見つかります。
+  - type: genba
+    title: 読んで分からなければ、動かして確かめる
+    body: |
+      コードを1時間にらんで分からなかったことが、ブレークポイント1つで5分で分かることはよくあります。現場でよく使う手はこの3つです。
+
+      - **デバッガ**:Service の入口にブレークポイントを置き、実際のリクエストを送る。変数の中身と、どの分岐に入ったかがその場で見える(第2部2章「デバッガ」)
+      - **テストを読む・足す**:MockMvc のテストがあれば、それが一番正確な仕様書。分からない動きは、テストを1本足して確かめる
+      - **ログレベルを上げる**:開発環境で `logging.level.com.example.keys=DEBUG` にしたり、`logging.level.org.hibernate.SQL=DEBUG` で実際に飛んでいる SQL を見たりする
+
+      ただし本番の DB やデータは触らないこと。確かめるのは、手元か開発環境で。
+  - type: trivia
+    title: スタックトレースに出る「$$SpringCGLIB$$0」と「<generated>」の正体
+    body: |
+      `KeyIssueService$$SpringCGLIB$$0.issue(<generated>)` という行は、Spring が起動時に作った **プロキシのクラス** です。`@Transactional` などの AOP を効かせるために、元のクラスを継承したクラスを CGLIB というライブラリで実行時に生成しています。ソースファイルが無いので、行番号の代わりに `<generated>` と表示されます。
+
+      Spring Framework 6.0 より前は `$$EnhancerBySpringCGLIB$$1a2b3c` のような名前でした。古いブログ記事のスタックトレースと見た目が違うのはそのためです。
+
+      この行が見えたら「このメソッドには何かのアノテーション(多くは `@Transactional`)が効いている」と読めます。逆に、`@Transactional` を付けたのにこの行が出てこないなら、自己呼び出しなどでプロキシを通っていない合図です(第3部3章「トランザクション」)。
+sts:
+  intro: |
+    STS(Eclipse)の「読むための機能」を使って、1本の API を入口から最後まで追い、スタックトレースから該当行へジャンプします。題材は自分で作ったプロジェクト(「例外ハンドリング」のレッスンの `todo-api` など)で構いません。
+    メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+  steps:
+    - title: URL の文字列から Controller を探す
+      detail: |
+        **Search > File...**(検索 > ファイル)または **Ctrl+H** で検索ダイアログを開き、**File Search**(ファイル検索)タブの **Containing text**(含まれるテキスト)に `"/api/tasks"` のような URL の一部を入れ、**File name patterns**(ファイル名パターン)を `*.java` にして **Search**(検索)。
+        見つからなければ `tasks` のように短くして探し直します(クラスとメソッドで URL が分かれていることがあるため)。クラス名が分かっているなら **Ctrl+Shift+T**(Open Type / 型を開く)、`application.yml` などは **Ctrl+Shift+R**(Open Resource / リソースを開く)で直接開けます。
+    - title: 定義へジャンプし、戻る
+      detail: |
+        Controller の中の `service.find(id)` のメソッド名にカーソルを置いて **F3**(Open Declaration / 宣言を開く)。Ctrl を押しながらクリックしても同じです。Service のメソッドへジャンプしたら、**Alt+←** で元の場所へ戻れます。
+        この「F3 で潜る → Alt+← で戻る」を繰り返して、Controller → Service → Repository と進みます。**Ctrl+O**(Quick Outline / クイック・アウトライン)を押すと、今のクラスのメソッド一覧が出ます。
+    - title: インターフェースの実装クラスと継承元を探す
+      detail: |
+        Service がインターフェース型の依存を呼んでいるとき、メソッド名の上で **Ctrl+T**(Quick Type Hierarchy / クイック型階層)を押すと、そのメソッドを実装しているクラスの一覧が出ます。DI で実際に渡されるのはこの中のどれかです。
+        Repository の `findById` の上で F3 を押すと、`CrudRepository` などの継承元のインターフェースが開きます(ソースが無ければクラスファイルの表示になります)。
+    - title: 呼び出し元を逆にたどる
+      detail: |
+        Service のメソッド名の上で **Ctrl+Alt+H**(Navigate > Open Call Hierarchy / ナビゲート > 呼び出し階層を開く)。**Call Hierarchy**(呼び出し階層)ビューに「このメソッドを呼んでいる所」が木の形で出ます。
+        「この Service を変えたら、どの API に影響するか」を調べるときの定番です。例外クラス名で同じことをすると、どこで投げているかが一覧できます。
+    - title: スタックトレースを貼り付けて、該当行へ飛ぶ
+      detail: |
+        **Console**(コンソール)ビューの右上にある **Open Console**(コンソールを開く)ボタンの ▼ から **Java Stack Trace Console**(Java スタック・トレース・コンソール)を選びます。
+        ログからコピーしたスタックトレースを貼り付けると、`(TaskService.java:42)` のような部分がリンクになり、クリックするとその行が開きます。自分のパッケージの最初の行から開いていきましょう。
+    - title: デバッガで実際の値を見る
+      detail: |
+        Service のメソッドの1行目の左端(行番号のあたり)をダブルクリックしてブレークポイントを置きます。プロジェクトを右クリック → **Debug As > Spring Boot App**(デバッグ > Spring Boot App)で起動し、curl やブラウザでその API を呼びます。
+        止まったら **Variables**(変数)ビューで引数の中身を確認し、**F6**(Step Over / ステップ・オーバー)で1行ずつ進めます。メソッドの中へ入るのは **F5**(Step Into)、抜けるのは **F7**(Step Return)、再開は **F8**(Resume)です。どの if に入ったかが目で見えます。
+        デバッガの操作は第2部2章「デバッガ」で詳しく扱いました。
+checklist:
+  - key: read-order
+    text: 自分のプロジェクトの pom.xml・@SpringBootApplication のパッケージ・application.yml を順に開き、依存と構成を説明できた
+  - key: trace-api
+    text: 1本の API を Controller → DTO → Service → Repository → 例外ハンドラの順に F3 で追い、呼び出し先と分岐を書き出した
+  - key: call-hierarchy
+    text: Ctrl+Alt+H(Open Call Hierarchy)で、Service のメソッドを呼んでいる所を逆にたどった
+  - key: stack-trace-console
+    text: Java Stack Trace Console にスタックトレースを貼り付け、リンクから該当行を開いた
+  - key: debugger
+    text: ブレークポイントを置いて Debug As > Spring Boot App で起動し、Variables ビューで引数の値を確かめた

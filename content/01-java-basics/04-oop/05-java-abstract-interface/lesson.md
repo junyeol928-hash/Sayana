@@ -144,6 +144,8 @@ List<String> names = new ArrayList<>();
 
 料金計算なら `interface PriceRule { int apply(int price); }` を用意し、レジ側は `PriceRule` 型だけを相手にします。通常価格・セール・会員割引を **レジに触らず差し替え** られ、テストでは偽物も差し込めます。Spring の DI(依存性注入)は、この差し替えを自動化する仕組みです。
 
+<figure class="figure"><svg viewBox="0 0 580 230" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-abstract-interface-tri10a" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M0 0 L12 7 L0 14 z" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/></marker></defs><rect x="190" y="16" width="200" height="60" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="7 4"/><text x="290" y="38" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">«interface» PriceRule</text><text x="290" y="62" font-size="13" text-anchor="middle" fill="var(--ink)">+ apply(price)</text><path d="M100 150 L100 110 L290 110 L290 80" stroke="var(--ink)" stroke-width="2" fill="none" marker-end="url(#java-abstract-interface-tri10a)" stroke-dasharray="6 4"/><path d="M290 150 L290 110" stroke="var(--ink)" stroke-width="2" fill="none" stroke-dasharray="6 4"/><path d="M480 150 L480 110 L290 110" stroke="var(--ink)" stroke-width="2" fill="none" stroke-dasharray="6 4"/><rect x="20" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">NormalPrice</text><text x="100" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 定価のまま</text><rect x="210" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="290" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">SalePrice</text><text x="290" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 2割引</text><rect x="400" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="480" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">MemberPrice</text><text x="480" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 会員割引</text><text x="440" y="100" font-size="12" fill="var(--ink-muted)">implements(点線)</text></svg><figcaption>レジが知っているのは PriceRule の約束だけ。下の実装は何個増えても、レジ側のコードは変わらない</figcaption></figure>
+
 ### Comparable:「並べ替えられる」という約束
 
 ```java
@@ -181,5 +183,5 @@ Arrays.sort(items);   // compareTo で安い順に
 :::
 
 ::: sensei
-次は「例外処理」。作ったクラスが「失敗したとき」どう振る舞うべきか。現場で一番差がつくところだ。
+次は「ネストクラスと匿名クラス」。クラスの中にクラスを書く書き方だ。今日のインターフェースを「その場で1回だけ実装する」匿名クラスも出てくるから、テストや古い業務コードで見かけても慌てなくなるよ。
 :::

@@ -153,6 +153,29 @@ TaxCategory.REDUCED.taxOf(1000);  // 80
 
 コンストラクタは暗黙に `private` で、外から `new` できません。定数はこのソースに書いたものだけ、と保証されるのが強みです。
 
+この仕組みを使うと、さっきの「DB にはコード値を保存する」が素直に書けます。業務コードで一番よく見る enum の形です。
+
+```java
+enum OrderStatus {
+    ORDERED("01"), SHIPPED("02"), DELIVERED("03"), CANCELLED("09");
+
+    private final String code;
+    OrderStatus(String code) { this.code = code; }
+
+    String getCode() { return code; }        // enum → DB
+    static OrderStatus fromCode(String code) { // DB → enum
+        for (OrderStatus s : values()) {
+            if (s.code.equals(code)) return s;
+        }
+        throw new IllegalArgumentException("不明なコード: " + code);
+    }
+}
+```
+
+`valueOf("03")` は **定数名** で探すので例外になります。コード値で引くときは自分で書いた `fromCode` を使います。`name()` を保存する方法も、定数名をリネームした瞬間に壊れるので、長く使うデータほどコード値が安全です。
+
+<figure class="figure"><svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="20" y="24" font-size="14" fill="var(--ink-muted)">DB の列 status</text><rect x="20" y="36" width="120" height="150" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="80" y="66" font-size="15" text-anchor="middle" fill="var(--ink)">"01"</text><text x="80" y="96" font-size="15" text-anchor="middle" fill="var(--ink)">"02"</text><text x="80" y="126" font-size="15" text-anchor="middle" fill="var(--ink)">"03"</text><text x="80" y="156" font-size="15" text-anchor="middle" fill="var(--ink)">"09"</text><defs><marker id="java-record-enum-arr21a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><path d="M150 90 L250 90" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-record-enum-arr21a)"/><text x="200" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">fromCode</text><path d="M250 130 L150 130" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-record-enum-arr21a)"/><text x="200" y="150" font-size="13" text-anchor="middle" fill="var(--ink)">getCode</text><text x="260" y="24" font-size="14" fill="var(--ink-muted)">enum OrderStatus(インスタンスは4つだけ)</text><rect x="260" y="36" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="57" font-size="14" text-anchor="middle" fill="var(--ink)">ORDERED</text><rect x="260" y="76" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="97" font-size="14" text-anchor="middle" fill="var(--ink)">SHIPPED</text><rect x="260" y="116" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="137" font-size="14" text-anchor="middle" fill="var(--ink)">DELIVERED</text><rect x="260" y="156" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="177" font-size="14" text-anchor="middle" fill="var(--ink)">CANCELLED</text><rect x="440" y="36" width="140" height="150" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="510" y="60" font-size="13" text-anchor="middle" fill="var(--ink-muted)">各定数が持つ値</text><text x="510" y="90" font-size="13" text-anchor="middle" fill="var(--ink)">code = "03"</text><text x="510" y="112" font-size="13" text-anchor="middle" fill="var(--ink)">ほかの値も持てる</text><text x="510" y="145" font-size="13" text-anchor="middle" fill="var(--ink)">getCode()</text><text x="510" y="165" font-size="13" text-anchor="middle" fill="var(--ink)">→ "03"</text><path d="M410 132 L440 110" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 3"/></svg><figcaption>enum の定数はインスタンスが1つずつ。DB のコード値とは fromCode / getCode で行き来する</figcaption></figure>
+
 ## switch 式と EnumMap
 
 enum は switch 式と相性抜群です。**全定数を case に書けば default は不要**で、コンパイラが網羅性をチェックします。

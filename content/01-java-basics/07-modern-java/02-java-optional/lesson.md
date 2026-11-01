@@ -36,6 +36,8 @@ null 参照を発明した Tony Hoare 自身が、2009年の講演で「**10億�
 
 **`Optional<T>`** は「T 型の値が1つ入っているか、空か」を表す箱です。戻り値を `Optional<String>` にすれば「ないかもしれない」ことが **型で** 伝わり、呼ぶ側は空の場合を考えずには値を取り出せません。
 
+<figure class="figure"><svg viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="20" y="26" font-size="14" fill="var(--ink-muted)">Optional&lt;User&gt; found</text><rect x="20" y="40" width="200" height="90" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><rect x="45" y="65" width="150" height="40" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="120" y="90" font-size="14" text-anchor="middle" fill="var(--ink)">User(中身)</text><text x="120" y="148" font-size="13" text-anchor="middle" fill="var(--ink)">isPresent() = true</text><text x="340" y="26" font-size="14" fill="var(--ink-muted)">Optional&lt;User&gt; notFound</text><rect x="340" y="40" width="200" height="90" rx="12" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="440" y="92" font-size="14" text-anchor="middle" fill="var(--ink-muted)">中身なし</text><text x="440" y="148" font-size="13" text-anchor="middle" fill="var(--ink)">isPresent() = false</text><text x="280" y="178" font-size="13" text-anchor="middle" fill="var(--ink)">どちらの場合も「箱そのもの」は null ではない</text></svg><figcaption>Optional は「中身があるかもしれない箱」。箱そのものは null にならない</figcaption></figure>
+
 ```java
 Optional<String> a = Optional.of("Sato");     // 値あり
 Optional<String> b = Optional.empty();        // 空
@@ -159,6 +161,25 @@ Optional は Java 8 で、**メソッドの戻り値で「結果なし」を表�
 | コレクションの中身 | ✕ | 「ない」は空リストや要素なしで表せる |
 
 `List` を返すメソッドなら、Optional で包まず **空のリスト** を返しましょう。
+
+::: haru
+じゃあ引数やフィールドの null は、どう守ればいいんすか?
+:::
+
+::: sensei
+Optional 以外の道具を使う。`java.util.Objects` の2つは覚えておこう。
+:::
+
+```java
+UserService(UserRepository repo) {
+    // null なら、ここで即 NPE(メッセージ付き)
+    this.repo = Objects.requireNonNull(repo, "repo は必須");
+}
+// 片方が null でも NPE にならない比較
+boolean same = Objects.equals(a.getEmail(), b.getEmail());
+```
+
+`requireNonNull` は「入口で止める」ための道具です。null がずっと奥まで運ばれてから落ちるより、渡された瞬間に落ちたほうが犯人を探しやすくなります。業務コードで見かける `@Nullable` / `@NonNull` は「ここは null が来うる/来てはいけない」を読む人や IDE に伝える目印で、多くはコンパイラが強制するものではありません。
 
 ::: warn Optional 型の変数に null を入れない
 `Optional<String> x = null;` は最悪です。「Optional なら null チェック不要」と信じて `x.orElse(...)` を呼んだ瞬間に NPE。Optional を返すメソッドは、どんな場合も **null ではなく `Optional.empty()`** を返します。

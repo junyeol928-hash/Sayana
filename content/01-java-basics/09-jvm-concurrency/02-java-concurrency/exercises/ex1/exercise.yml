@@ -1,0 +1,27 @@
+title: アクセスカウンタをスレッドセーフにする
+className: SafeCounter
+difficulty: 1
+problem: |
+  Web アプリのページ閲覧数を数える `SafeCounter` があります。1つのインスタンスを全リクエスト(全スレッド)が共有して使う想定です。
+  今のコードは素の `int` で `count++` しているので、同時に呼ばれると数え漏れが起きます。**`AtomicInteger` を使って** スレッドセーフに直してください。
+
+  **作るもの**
+
+  | メソッド | 動き |
+  |---|---|
+  | `void increment()` | 1 増やす |
+  | `void add(int n)` | `n` 増やす |
+  | `int get()` | 今の値を返す |
+
+  ```java
+  SafeCounter c = new SafeCounter();
+  c.increment();
+  c.add(5);
+  c.get();   // 6
+  // 8 本のスレッドが 1 万回ずつ increment() → get() は必ず 80000
+  ```
+
+  ヒント:
+  - フィールドを `private final AtomicInteger count = new AtomicInteger();` に変えます(`java.util.concurrent.atomic.AtomicInteger` を import)。
+  - 増やすのは `incrementAndGet()` / `addAndGet(n)`、読むのは `get()` です。
+  - `synchronized` で守る方法でも合格します(どちらか片方で十分です)。

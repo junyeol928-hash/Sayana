@@ -12,6 +12,8 @@
 
 前回の「演算子」で、比較演算子・論理演算子・三項演算子を覚えました。今回はそれらが作る **boolean の値** を使って、プログラムの流れを分ける方法を学びます。
 
+<figure class="figure"><svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="60" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">順次構造</text><rect x="10" y="36" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">処理1</text><rect x="10" y="78" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="100" font-size="13" text-anchor="middle" fill="var(--ink)">処理2</text><text x="270" y="24" font-size="14" text-anchor="middle" fill="var(--accent)">選択構造(今回)</text><rect x="230" y="36" width="80" height="34" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="270" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">条件</text><rect x="190" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="225" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理A</text><rect x="280" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="315" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理B</text><path d="M245 70 L225 90" stroke="var(--ink)" stroke-width="2" fill="none"/><path d="M295 70 L315 90" stroke="var(--ink)" stroke-width="2" fill="none"/><text x="460" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">反復構造(次回)</text><rect x="420" y="36" width="80" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">終了条件</text><rect x="420" y="90" width="80" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理</text><path d="M500 105 L510 105 L510 53 L500 53" stroke="var(--ink-muted)" stroke-width="2" fill="none"/></svg><figcaption>3つの基本構造。今回は「選択」、次回のループで「反復」を扱う</figcaption></figure>
+
 ## if / else if / else の基本
 
 `if` 文は「条件が `true` のときだけ、ブロックを実行する」構文です。
@@ -325,6 +327,12 @@ Exception in thread "main" java.lang.NullPointerException:
 
 ::: trivia Java 21 なら case null も書ける
 Java 21 で正式になった「switch のパターンマッチング」では、`case null -> "未入力";` のように **null 専用の case** を書けるようになりました。`case null` を書いた switch だけは null で NPE になりません。パターンマッチングは「モダンJava」の章で詳しくやります。
+:::
+
+::: point if と switch の使い分け
+- **switch**:決まった値(数値・文字列・enum)の **どれと一致するか** で分ける。注文ステータスや会員ランクの振り分けなど。case が並ぶだけで見通しがよい
+- **if**:**範囲**(`score >= 70`)、`&&` / `||` の **組み合わせ**、**null チェック** など、値の一致では書けない条件。入力チェックや境界の判定
+- 迷ったら「等しいかどうかだけで分けられるなら switch、それ以外は if」
 :::
 
 ## よくあるミス集

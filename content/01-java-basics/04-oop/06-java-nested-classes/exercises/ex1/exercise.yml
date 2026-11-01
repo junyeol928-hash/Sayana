@@ -1,0 +1,33 @@
+title: Builder で注文を組み立てる
+className: Order
+difficulty: 1
+problem: |
+  ネットショップの注文 `Order` を、**static ネストクラスの Builder** で組み立てられるようにします。
+  `Order` のコンストラクタは `private` なので、外からは `Order.Builder` を通してしか作れません。
+
+  ```java
+  Order o = new Order.Builder()
+          .customer("佐藤")
+          .item(1200)
+          .item(800)
+          .build();
+
+  o.customer();   // "佐藤"
+  o.itemCount();  // 2
+  o.total();      // 2000
+  o.summary();    // "佐藤様: 2点 2000円"
+  ```
+
+  `Order.Builder` の次のメソッドを完成させてください(`Order` 側はすでに完成しています)。
+
+  | メソッド | すること |
+  |---|---|
+  | `customer(String name)` | 顧客名を覚える。**呼ばなかったときは `"ゲスト"`** |
+  | `item(int price)` | 商品を1つ追加する(点数を1増やし、合計金額に `price` を足す)。何回でも呼べる |
+  | `build()` | 覚えた内容で `Order` を作って返す |
+
+  - `customer` と `item` は、続けて `.` でつなげられるように **`this`(Builder 自身)を返して** ください。
+  - `item` を1回も呼ばなければ、点数 0・合計 0 の注文になります(例:`"ゲスト様: 0点 0円"`)。
+
+  注意:
+  - `Builder` の `static` を消さないでください(`new Order.Builder()` で作れなくなります)。

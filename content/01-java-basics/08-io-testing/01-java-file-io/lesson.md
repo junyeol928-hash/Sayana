@@ -80,6 +80,27 @@ try (BufferedReader r =
 
 `readLine()` は終端で `null` を返します。書き込みは `Files.newBufferedWriter(path)` で、`write(...)` と `newLine()` を使います。
 
+::: haru
+古いコードだと `new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"))` みたいに、`new` が3重になってるのを見ました。
+:::
+
+::: sensei
+java.io の「重ね着」だね。単純な部品を、別の部品で包んで機能を足していく作りなんだ。`Files.newBufferedReader` は、これを1行でやってくれている。
+:::
+
+<figure class="figure"><svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><rect x="20" y="95" width="100" height="70" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="70" y="128" font-size="13" text-anchor="middle" fill="var(--ink)">client.txt</text><text x="70" y="146" font-size="11" text-anchor="middle" fill="var(--ink-muted)">(ファイル)</text><defs><marker id="java-file-io-ioArrow0" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-muted)"/></marker></defs><path d="M120 130 L156 130" stroke="var(--ink-muted)" stroke-width="2" marker-end="url(#java-file-io-ioArrow0)"/><rect x="160" y="20" width="460" height="215" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="178" y="42" font-size="13" font-weight="700" fill="var(--ink)">③ BufferedReader(一番外側)</text><text x="178" y="58" font-size="11" fill="var(--ink-muted)">readLine() で1行ずつ文字列にして渡す</text><rect x="185" y="70" width="410" height="140" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 4"/><text x="200" y="92" font-size="13" font-weight="700" fill="var(--ink)">② InputStreamReader(UTF-8)</text><text x="200" y="108" font-size="11" fill="var(--ink-muted)">文字コードを指定し、byte を文字(char)に変換する</text><rect x="210" y="120" width="360" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="225" y="142" font-size="13" font-weight="700" fill="var(--ink)">① FileInputStream(一番内側)</text><text x="225" y="158" font-size="11" fill="var(--ink-muted)">ファイルから byte を1つずつ読み出す</text><text x="185" y="250" font-size="12" fill="var(--ink-muted)">外側を使うほど便利になるが、中で流れているのは同じ1つのデータ</text></svg><figcaption>内側から FileInputStream(バイト)→ InputStreamReader(文字に変換)→ BufferedReader(1行ずつ)と重ね着する</figcaption></figure>
+
+```java
+try (FileInputStream fis = new FileInputStream("client.txt");
+     InputStreamReader isr =
+         new InputStreamReader(fis, StandardCharsets.UTF_8);
+     BufferedReader br = new BufferedReader(isr)) {
+    System.out.println(br.readLine());
+}
+```
+
+クラス名に `Stream` が付けば **バイト** 単位(`FileInputStream`)、`Reader` / `Writer` が付けば **文字** 単位(`BufferedReader`)と、ほぼ機械的に見分けられます。`InputStreamReader` は、バイトを文字コードに従って文字に変える橋渡し役です。なお、この `InputStream` の「ストリーム」と、前に習った `list.stream()` の **Stream API** は、名前が同じなだけの別物です。
+
 ファイルを開くと OS の **ファイルハンドル** を占有します。`try (...)` の **try-with-resources** は、ブロックを抜けるとき(例外でも)自動で `close()` してくれる構文です。**`Files.lines` と `Files.list` も Stream の裏でファイルを開いている** ので、同じく try-with-resources が必須です。
 
 ```java
@@ -181,5 +202,5 @@ for (String line : lines.subList(1, lines.size())) {
 :::
 
 ::: sensei
-次はいよいよ第1部の最終回「JUnit入門」。この道場の採点の裏側をのぞいてみよう。
+次は「JUnit入門」。この道場の採点の裏側をのぞいてみよう。
 :::
