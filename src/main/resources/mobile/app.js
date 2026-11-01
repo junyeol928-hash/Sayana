@@ -210,6 +210,19 @@ function dyeLevel(meta) {
 const dyeSwatch = (level, extra = "") => `<span class="dye dye-${level} ${extra}" role="img" aria-label="${DYE[level].name}(${DYE[level].meaning})"></span>`;
 const dyeDot = (level) => `<span class="dye dye-${level}"></span>`;
 // 前回の続きのボタン: 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。PC 版 app.js と同じ
+// 前回いた段が済んでいれば、段の並びで次のまだの段を返す(仕事のコード・サンプル・STS は「済み」を問わずそのまま)
+function nextSectionFor(l, from) {
+  const order = ["read", "atwork", "run", "quiz", "write", "reading", "sts"];
+  const done = {
+    read: !!S.read[l.id],
+    quiz: !!(S.quiz[l.id] && quizPassed(l)),
+    write: Array.from({ length: l.exercises || 0 }, (_, i) => S.exercise[`${l.id}/ex${i + 1}`]?.selfPass).every(Boolean),
+    reading: Array.from({ length: l.reading || 0 }, (_, i) => S.reading[`${l.id}@${i}`]?.ok).every(Boolean),
+  };
+  const has = { write: (l.exercises || 0) > 0, reading: (l.reading || 0) > 0 };
+  if (!(from in done) || !done[from]) return from;
+  return order.slice(order.indexOf(from) + 1).find((k) => k in done && has[k] !== false && !done[k]) || from;
+}
 const resumeLabel = (section) => !section ? "続きから" : section === "読む" ? "続きを読む" : `${section}の続きから`;
 // 採点の点を刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色
 const scoreStitches = (score, total) => `<span class="score-stitches" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${i < score ? "on" : ""}"></i>`).join("")}</span>`;
@@ -315,6 +328,8 @@ async function renderHome() {
   const last = S.last && !S.last.end && all.find((l) => l.id === S.last.id);
   const hero = last || next;
   const section = last && SECTION_LABEL[S.last.section];
+  // 前回いた段がもう済んでいたら、主ボタンは次のまだの段へ(「次:」の行と同じ段を指す)。前回の位置へは副リンクで戻れる
+  const go = last ? nextSectionFor(hero, S.last.section) : null;
   const hint = nextDyeHint(hero, levels[hero.id]);
   // ホームに戻ったとき、前に見たときより深まったマスだけ染み込ませる
   const seen = S.seenLevels || {};
@@ -327,10 +342,10 @@ async function renderHome() {
       <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
       <p class="today-meta"><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
       ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">いま ${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">次: ${hint}</span></span></p>` : ""}
-      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? resumeLabel(section) : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
-      <div class="today-links"><a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
+      <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(go || "") : ""}">${!last ? (levels[hero.id] ? "続きから稽古する" : "稽古をはじめる") : go !== S.last.section ? `${SECTION_LABEL[go]}へ進む` : resumeLabel(section)}</a></div>
+      <div class="today-links">${last && go !== S.last.section ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="${esc(S.last.section)}">前回の位置(${section})へ戻る</a>` : ""}<a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
       <a class="today-review" href="#/review"><span>今日の復習</span>
-        <span>${due ? `<b>${due}</b>問 ${icon("arrow", "sm")}` : `<span class="zero">今日はなし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
+        <span>${due ? `<b>${due}</b>問<small class="review-min">約 ${Math.max(1, Math.ceil(due / 3))} 分</small> ${icon("arrow", "sm")}` : `<span class="zero">なし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
       <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
     </section>
 
@@ -572,7 +587,8 @@ function trackLesson(id, keys) {
   const wrap = $(".stepper-wrap");
   wrap?.style.setProperty("--tail", `${wrap.offsetWidth - stepper.offsetWidth}px`);
   watchOverflow(stepper, wrap);
-  const resume = S.last?.id === id && pendingSection ? { section: S.last.section, off: S.last.off } : null;
+  // 前回の位置へ戻るのは、前回いた段を指して開いたときだけ(次の段を指したときは、その段の先頭へ)
+  const resume = S.last?.id === id && pendingSection && pendingSection === S.last.section ? { section: S.last.section, off: S.last.off } : null;
   S.last = { id, section: S.last?.id === id ? S.last.section : "read", off: S.last?.id === id ? S.last.off || 0 : 0 };
   S.seen = Object.assign(S.seen || {}, { [id]: true });
   save();
@@ -969,7 +985,7 @@ function bindLesson(L, meta) {
     // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
     const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
     const level = meta ? dyeLevel(meta) : 0;
-    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>${scoreStitches(score, L.quiz.length)}
+    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(score, L.quiz.length)}
       <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
@@ -1636,7 +1652,9 @@ async function decorate(root) {
 
 /** コードを 1 行ずつの要素に分け、行番号を付ける(色付けの span が行をまたいでも、行ごとに閉じて開き直す) */
 function numberLines(code) {
-  const text = code.textContent.replace(/\n$/, "");
+  // 400px 以下は字下げを半分にして 1 行の字数を稼ぐ(型と名前が折り返しで離れないように。行番号の列を詰めるより効く)
+  const narrow = matchMedia("(max-width: 400px)").matches;
+  const text = code.textContent.replace(/\n$/, "").replace(/^ +/gm, (m) => (narrow ? " ".repeat(Math.ceil(m.length / 2)) : m));
   const html = window.hljs ? window.hljs.highlight(text, { language: "java", ignoreIllegals: true }).value : esc(text);
   const notes = new Set((code.parentElement.dataset.notes || "").split(",").filter(Boolean).map(Number));
   const lines = [];
@@ -1767,7 +1785,8 @@ document.addEventListener("keydown", (e) => {
 // 段の一覧は、外側を押す・項目を選ぶと閉じる
 document.addEventListener("click", (e) => {
   const menu = document.querySelector(".step-menu[open]");
-  if (menu && (!menu.contains(e.target) || e.target.closest("ol a"))) menu.removeAttribute("open");
+  // 後ろの幕(details 自身の ::before)を押したときは、押した先が details そのものになる
+  if (menu && (!menu.contains(e.target) || e.target === menu || e.target.closest("ol a"))) menu.removeAttribute("open");
 });
 
 if ("serviceWorker" in navigator) {

@@ -12,7 +12,11 @@ body.mobile-app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .mobile-app .step-menu > summary { justify-content: flex-start; gap: 10px; width: 100%; color: var(--ink); font-size: 1rem; }
   .mobile-app #step-now { display: inline; }
   .mobile-app #step-count { color: var(--ink-muted); font-size: .8125rem; font-weight: 700; min-width: 3.6em; white-space: nowrap; }
-  .mobile-app .step-menu ol { left: 0; right: auto; width: min(300px, calc(100vw - 2 * var(--gutter))); }
+  /* 段の一覧は段の帯と同じ幅のシートにし、後ろの本文は幕で沈める(本文の切れ端が一覧とぶつからないように) */
+  .mobile-app .step-menu { position: static; }
+  .mobile-app .step-menu ol { left: 0; right: 0; width: auto; top: 100%; border-radius: 0 0 var(--r-l) var(--r-l); }
+  .mobile-app .step-menu[open] > summary { position: relative; z-index: 31; }
+  .mobile-app .step-menu[open]::before { content: ""; position: fixed; inset: 0; z-index: 29; background: color-mix(in oklch, var(--bg) 78%, transparent); }
 }
 .mobile-app .header-inner { max-width: 760px; }
 @media (min-width: 761px) {
