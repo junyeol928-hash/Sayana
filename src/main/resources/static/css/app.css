@@ -83,15 +83,15 @@
     --ok-soft: oklch(.28 .045 165);
     --ki: oklch(.82 .1 85);
     --ki-soft: oklch(.29 .04 85);
-    /* 暗い地では、甕覗きは沈んだ面に縁だけ。縹から先は明るさをそろえ、深いほど藍が濃く鮮やかになる
-       (明るさの順のままだと浅い甕覗きがいちばん目立ち、逆に深いほど明るくすると「深い色」の比喩が崩れるため) */
+    /* 暗い地では、甕覗きは沈んだ面に縁だけ。縹から先は深いほど藍に寄って少しずつ沈み、褐は四角の目で見分ける
+       (明るさの順のままだと浅い甕覗きがいちばん目立ち、深いほど明るく鮮やかにすると「深い色」の比喩が崩れて藤色に転ぶため) */
     --dye-0: var(--bg);
     --dye-empty: oklch(.42 .03 250);
     --dye-1: oklch(.3 .045 234);
     --dye-1-edge: oklch(.6 .075 234);
     --dye-2: oklch(.6 .09 230);
     --dye-3: oklch(.58 .13 248);
-    --dye-4: oklch(.56 .15 264);
+    --dye-4: oklch(.5 .11 256);
     --dye-4-edge: var(--dye-4);
     --dye-mark: oklch(.17 .03 255);
     --on-shu: oklch(.17 .03 255);
@@ -129,7 +129,7 @@
   --dye-1-edge: oklch(.6 .075 234);
   --dye-2: oklch(.6 .09 230);
   --dye-3: oklch(.58 .13 248);
-  --dye-4: oklch(.56 .15 264);
+  --dye-4: oklch(.5 .11 256);
   --dye-4-edge: var(--dye-4);
   --dye-mark: oklch(.17 .03 255);
   --on-shu: oklch(.17 .03 255);
@@ -209,7 +209,7 @@ button { font: inherit; letter-spacing: inherit; }
 .count { background: var(--shu); color: #fff; border-radius: 999px; padding: 0 7px; font-size: .75rem; font-weight: 700; line-height: 1.6; }
 .header-status { display: flex; align-items: center; gap: 14px; font-size: .875rem; color: var(--ink-muted); margin-left: auto; }
 .streak { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
-.streak b { color: var(--shu); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.streak b { color: var(--ink); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 .streak.zero b { color: var(--ink-muted); }
 .net-badge:not(.off) { display: none; }
 .ai-badge, .net-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 700; white-space: nowrap; color: var(--ink-muted); }
@@ -218,7 +218,7 @@ button { font: inherit; letter-spacing: inherit; }
 .net-badge.off { color: var(--shu); }
 .net-badge.off::before { background: var(--shu); }
 .net-badge.saved { display: inline-flex; }
-.net-badge.saved::before { background: var(--ok); }
+.net-badge.saved::before { background: var(--accent); } /* 有彩色は藍と朱だけ。朱は地図の主役の印と復習の数にとっておく */
 .ai-badge.on { color: var(--ok); }
 .site-footer { max-width: 1320px; margin: 72px auto 24px; padding: 20px 28px 0; display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: .8125rem; flex-wrap: wrap;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat; }
@@ -286,9 +286,9 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-part { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px; margin: 0 -6px; border-radius: var(--r-m); color: inherit; text-decoration: none; }
 .dye-part:hover { background: var(--surface-2); }
 .dye-part:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
-.dye-part-tag { font: 700 .8125rem/18px var(--font); color: var(--ink-muted); text-align: center; border-right: 1.5px dashed var(--line-strong); }
+.dye-part-tag { align-self: stretch; font: 700 .8125rem/18px var(--font); color: var(--ink-muted); text-align: center; border-right: 1.5px dashed var(--line-strong); } /* 折れて 2 行になっても札の線は行の高さいっぱい */
 .dye-cells { display: flex; flex-wrap: wrap; gap: 4px 9px; }
-.dye-ch { display: flex; flex-wrap: wrap; gap: 3px; }
+.dye-ch { display: flex; flex-wrap: nowrap; gap: 3px; } /* 章の途中では折らない(折れるのは章の切れ目だけ) */
 .dye-cell { position: relative; display: block; width: 18px; height: 18px; }
 .dye-cell > .dye { position: absolute; inset: 0; width: 100%; height: 100%; }
 .dye-map .dye.ink { animation: dye-in .56s var(--ease) .3s both; }
@@ -452,7 +452,8 @@ details.goals[open] > summary { margin-bottom: 0; }
 /* 下の線: 薄い実線の上を、読んだ分だけ藍の刺し子が縫い進む(縫い目の長さは変えず、見える範囲だけ広げる) */
 .sew { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(var(--line), var(--line)) bottom / 100% 1px no-repeat; }
 .sew::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, var(--accent) 0 9px, transparent 9px 15px) 0 0 / 100% 3px;
-  clip-path: inset(0 calc(100% - var(--p, 0%)) 0 0); border-radius: 2px; }
+  clip-path: inset(0 calc(100% - var(--p, 0px)) 0 0); border-radius: 2px; transition: clip-path .16s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .sew::after { transition: none; } }
 .step {
   flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: var(--r-m);
   text-decoration: none; color: var(--ink-muted); font-size: .875rem; font-weight: 700; min-height: 44px; position: relative;
@@ -465,7 +466,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .stepper-row { display: flex; align-items: center; --tail: 128px; }
 .stepper-row .stepper { flex: 1; min-width: 0; }
 .ask { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; margin: 0 0 2px 4px; padding: 0 12px;
-  border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--accent-ink); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; position: relative; z-index: 1; }
+  border: 0; border-radius: var(--r-m); background: none; color: var(--accent-ink); font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; position: relative; z-index: 1; } /* 枠は付けない: 段のボタンが主、質問は従 */
 .ask:hover { background: var(--surface-2); }
 .step-menu { position: relative; flex: none; margin: 0 0 2px 4px; }
 .step-menu > summary { list-style: none; min-width: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; border-radius: var(--r-m); cursor: pointer;
@@ -481,6 +482,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step-menu li a:hover { background: var(--surface-2); }
 .step-menu li a[aria-current="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--accent); color: var(--accent-ink); }
 .choice .code-choice { font-family: var(--mono); font-size: .9375rem; }
+code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; background: none; border-left: 2px solid var(--accent); border-radius: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; }
 .choice-tag { display: block; margin-top: 2px; font: 700 .75rem/1.5 var(--font); color: var(--ng); letter-spacing: .02em; }
 .choice-tag.is-ok { color: var(--accent-ink); } /* 誤答の「× あなたの答え」と左右対称に、正解にも目に見える文字を付ける */
 .step-menu li a small { color: var(--ink-muted); font-weight: 400; }
@@ -516,6 +518,9 @@ details.goals[open] > summary { margin-bottom: 0; }
 .figure svg { display: block; margin: 0 auto; width: 100%; min-width: 480px; max-width: 680px; height: auto; font-family: var(--font); }
 .figure figcaption { font-size: .8125rem; color: var(--ink-muted); margin-top: 12px; text-align: left; }
 .mermaid svg { max-width: 100%; height: auto; }
+/* 図も画面と同じ言葉で: 箱は角丸 8px、判断の菱形は藍の薄い面(Mermaid の内部の CSS は id 付きで強いので !important) */
+.mermaid .node rect, .mermaid .node .label-container { rx: 8px; ry: 8px; }
+.mermaid .node polygon { fill: var(--accent-soft) !important; stroke: var(--accent) !important; }
 .fig-fit { display: none; }
 @media (max-width: 760px) {
   /* 図は縮めずに横スクロール。続きがある側だけフェードを付ける(左に何もないのに箱が硬く切れて見えないように) */
@@ -599,11 +604,11 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 /* 読解 */
 .reading-list { counter-reset: rq; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin: 0; padding: 0; list-style: none; }
 .reading-q { counter-increment: rq; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); padding: 18px 20px; }
-.reading-head { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.reading-head { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; } /* 難しさは「読解 n」と同じ行に */
 .reading-head h3 { margin: 0; font-size: 1.05rem; }
 .reading-head h3::before { content: "読解 " counter(rq); display: block; font-size: .75rem; color: var(--accent-ink); letter-spacing: .06em; }
 .reading-q[data-n] .reading-head h3::before { content: attr(data-n); }
-.level { font-size: .75rem; color: var(--ink-muted); white-space: nowrap; display: inline-flex; gap: 3px; align-items: center; }
+.level { font-size: .75rem; line-height: 1.5; color: var(--ink-muted); white-space: nowrap; display: inline-flex; gap: 3px; align-items: center; }
 .level { align-items: flex-end; }
 /* 難しさは高さの違う棒にする(四角と藍は染まり具合のためだけに取っておく) */
 .level i { width: 3px; border-radius: 1px; background: var(--line-strong); display: inline-block; }
@@ -629,7 +634,7 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .reading-filter button { border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; min-height: 44px; cursor: pointer; font-size: .875rem; }
 .reading-filter button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
 .reading-from { font-size: .8125rem; margin: 2px 0 0; }
-.reading-filter select { font: inherit; font-size: 16px; min-height: 44px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
+.reading-filter select { font: inherit; font-size: 16px; min-height: 44px; padding: 6px 10px; border-radius: var(--r-m); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
 .more { display: flex; justify-content: center; margin: 24px 0; }
 
 /* 用語 */
@@ -652,7 +657,9 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .term-count { font-size: .75rem; font-weight: 400; color: var(--ink-muted); }
 /* 固定するのは外の入れ物。下に地の色から透明への帯を出し、本文が下に潜る境目にする(横のフェードの mask は内側の索引だけ) */
 .kana-wrap { position: sticky; top: 56px; z-index: 10; background: var(--bg); margin: 0 calc(var(--gutter) * -1) 4px; }
-.kana-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 16px; background: linear-gradient(var(--bg), transparent); pointer-events: none; }
+.kana-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 24px; background: linear-gradient(var(--bg) 8px, transparent); pointer-events: none; } /* 最初の 8px は不透明: 潜った語のリンクの下線の切れ端を残さない */
+/* 用語集では索引の刺し子が区切りになるので、ヘッダーの破線は引かない(二重の区切りにしない) */
+body:has(.kana-wrap) .site-header::after { display: none; }
 .kana-index { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; padding: 4px 36px 12px var(--gutter);
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
 .kana-index::-webkit-scrollbar { display: none; }
@@ -669,10 +676,15 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .search .icon { position: absolute; left: 14px; top: 13px; color: var(--ink-muted); }
 .glossary-count { font-size: .875rem; color: var(--ink-muted); }
 .term-group { grid-column: 1 / -1; padding: 28px 0 4px; }
-/* 用語集は段組みにする(格子だと、説明の長い語に行の高さが引っ張られて短い語の下が空く)。行の見出しは段をまたぐ */
-#terms.term-list { display: block; columns: 300px auto; column-gap: 36px; }
-#terms .term { break-inside: avoid; }
-#terms .term-group { column-span: all; }
+/* 用語集の一覧は 1 列で上から順に読む。PC は語の名前を左、説明を右に分けた辞書の組み
+   (格子だと説明の長い語に行の高さが引っ張られて短い語の下が空き、段組みだと読む順が画面の上下を往復する) */
+#terms.term-list { display: block; }
+@media (min-width: 1024px) {
+  #terms .term { display: grid; grid-template-columns: 280px minmax(0, 46em); gap: 0 40px; align-items: start; }
+  #terms .term > .term-name { grid-column: 1; grid-row: 1 / span 4; flex-direction: column; align-items: flex-start; gap: 2px; }
+  #terms .term > :not(.term-name) { grid-column: 2; }
+  #terms .term > .term-from-line:first-child + *, #terms .term > .term-name + .term-from-line { margin-top: 0; }
+}
 .term-group h2 { margin: 0; font-size: 1rem; color: var(--accent-ink); display: flex; align-items: center; gap: 10px; }
 .term-group h2::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
 .term-group:first-child { padding-top: 4px; }
