@@ -2,7 +2,7 @@
   "id" : "sts-setup",
   "title" : "STSの導入と画面構成",
   "summary" : "STS(Spring Tool Suite 4)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。",
-  "minutes" : 15,
+  "minutes" : 11,
   "part" : "第2部 開発ツール",
   "chapter" : "第1章 STSの基本",
   "prev" : "java-concurrency",

@@ -2,7 +2,7 @@
   "id" : "java-nested-classes",
   "title" : "ネストクラスと匿名クラス",
   "summary" : "クラスの中のクラス(static ネスト・内部・ローカル・匿名)を見分け、Builder や匿名クラスの Comparator を読み書きする。初期化ブロックと new したときの実行順まで。",
-  "minutes" : 15,
+  "minutes" : 22,
   "part" : "第1部 Java基礎",
   "chapter" : "第4章 オブジェクト指向",
   "prev" : "java-abstract-interface",

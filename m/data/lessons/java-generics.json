@@ -2,7 +2,7 @@
   "id" : "java-generics",
   "title" : "ジェネリクス",
   "summary" : "List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。",
-  "minutes" : 15,
+  "minutes" : 17,
   "part" : "第1部 Java基礎",
   "chapter" : "第6章 コレクションとジェネリクス",
   "prev" : "java-collections",

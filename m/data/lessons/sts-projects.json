@@ -2,7 +2,7 @@
   "id" : "sts-projects",
   "title" : "プロジェクトの作成とインポート",
   "summary" : "Java Project・Maven Project・Spring Starter Project の違いを知り、Spring Boot の雛形を作って Boot Dashboard で起動する。既存プロジェクトのインポート、エラーが消えないときの対処、ポート 8080 の衝突まで。",
-  "minutes" : 15,
+  "minutes" : 12,
   "part" : "第2部 開発ツール",
   "chapter" : "第1章 STSの基本",
   "prev" : "sts-setup",

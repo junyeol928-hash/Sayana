@@ -2,7 +2,7 @@
   "id" : "java-jvm-memory",
   "title" : "JVMとメモリ",
   "summary" : "変数やオブジェクトは実行中どこにあるのか。スタックとフレーム、ヒープと参照、値渡しの正体、GC と到達可能性、メモリリーク、OutOfMemoryError と StackOverflowError を1枚の絵でつなぐ。",
-  "minutes" : 15,
+  "minutes" : 22,
   "part" : "第1部 Java基礎",
   "chapter" : "第9章 JVMと並行処理",
   "prev" : "java-junit",

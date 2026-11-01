@@ -1,6 +1,6 @@
 // Java道場 スマホ版の Service Worker(MobileSiteGenerator が生成。直接編集しない)
 // 最初に開いたときに全レッスンを保存して、電波が無くても開けるようにする。
-const VERSION = "c0a14b41e726";
+const VERSION = "06e2bc3b3dfb";
 const CACHE = "javadojo-m-" + VERSION;
 const RUNTIME = "javadojo-m-runtime";
 const FILES = [

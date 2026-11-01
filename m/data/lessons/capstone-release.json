@@ -2,7 +2,7 @@
   "id" : "capstone-release",
   "title" : "例外・ログ・プロファイルで仕上げ",
   "summary" : "承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の @RestControllerAdvice を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。",
-  "minutes" : 15,
+  "minutes" : 17,
   "part" : "第4部 総合演習",
   "chapter" : "第3章 仕上げ",
   "prev" : "capstone-api-test",

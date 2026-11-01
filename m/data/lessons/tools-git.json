@@ -2,7 +2,7 @@
   "id" : "tools-git",
   "title" : "Git連携",
   "summary" : "作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、.gitignore、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。",
-  "minutes" : 15,
+  "minutes" : 12,
   "part" : "第2部 開発ツール",
   "chapter" : "第3章 ビルドとバージョン管理",
   "prev" : "tools-maven",

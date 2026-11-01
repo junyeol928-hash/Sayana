@@ -2,7 +2,7 @@
   "id" : "java-operators",
   "title" : "演算子",
   "summary" : "整数除算・剰余・複合代入・インクリメント・短絡評価・文字列連結・三項演算子・優先順位まで、「静かに間違う」演算子の落とし穴をまとめて潰す",
-  "minutes" : 15,
+  "minutes" : 20,
   "part" : "第1部 Java基礎",
   "chapter" : "第1章 はじめの一歩",
   "prev" : "java-variables",

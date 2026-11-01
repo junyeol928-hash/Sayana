@@ -2,7 +2,7 @@
   "id" : "java-datetime",
   "title" : "日付API",
   "summary" : "Date / Calendar の地雷(可変・月が0始まり)を避けて java.time へ。LocalDate から Instant までの使い分け、不変ゆえの「戻り値を捨てる」罠、Period と Duration、YYYY と mm の取り違え、テストのための Clock 注入まで。",
-  "minutes" : 15,
+  "minutes" : 11,
   "part" : "第1部 Java基礎",
   "chapter" : "第7章 モダンJava",
   "prev" : "java-record-enum",

@@ -2,7 +2,7 @@
   "id" : "spring-thymeleaf",
   "title" : "Thymeleaf",
   "summary" : "Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、th:text と XSS、th:each・th:if、フラグメントによる共通レイアウトまで。",
-  "minutes" : 15,
+  "minutes" : 12,
   "part" : "第3部 Spring",
   "chapter" : "第2章 Webの基本",
   "prev" : "spring-controller",

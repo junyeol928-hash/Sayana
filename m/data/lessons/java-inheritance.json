@@ -2,7 +2,7 @@
   "id" : "java-inheritance",
   "title" : "継承",
   "summary" : "extends で既存クラスを土台にする。super とコンストラクタの順番、@Override、Object の toString/equals、そして「継承より委譲」まで。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第1部 Java基礎",
   "chapter" : "第4章 オブジェクト指向",
   "prev" : "java-encapsulation",

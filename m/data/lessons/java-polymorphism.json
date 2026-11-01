@@ -2,7 +2,7 @@
   "id" : "java-polymorphism",
   "title" : "ポリモーフィズム",
   "summary" : "親の型の変数で子のインスタンスを扱い、実行時の型でメソッドが選ばれる。型の if 連鎖を消す技と、キャスト・instanceof・効かないものの罠まで。",
-  "minutes" : 15,
+  "minutes" : 26,
   "part" : "第1部 Java基礎",
   "chapter" : "第4章 オブジェクト指向",
   "prev" : "java-inheritance",

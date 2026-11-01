@@ -2,7 +2,7 @@
   "id" : "spring-reading-code",
   "title" : "業務コードの読み方(実践)",
   "summary" : "知らない Spring Boot プロジェクトに入ったときの読む順番。1本の API を Controller → DTO → Service → Repository → 例外ハンドラの順に追い、トランザクションの境界、スタックトレースからの逆引き、ソースに書かれていない「見えない処理」まで。",
-  "minutes" : 20,
+  "minutes" : 23,
   "part" : "第3部 Spring",
   "chapter" : "第7章 業務コードを読む",
   "prev" : "spring-mockmvc",

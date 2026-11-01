@@ -2,7 +2,7 @@
   "id" : "java-record-enum",
   "title" : "recordとenum",
   "summary" : "値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、ordinal を保存してはいけない理由、switch 式の網羅性、EnumMap まで。",
-  "minutes" : 15,
+  "minutes" : 18,
   "part" : "第1部 Java基礎",
   "chapter" : "第7章 モダンJava",
   "prev" : "java-optional",

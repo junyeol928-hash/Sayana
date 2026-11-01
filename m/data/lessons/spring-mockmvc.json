@@ -2,7 +2,7 @@
   "id" : "spring-mockmvc",
   "title" : "MockMvcによるテスト",
   "summary" : "サーバーを起動せずに Controller を叩く MockMvc。perform → andExpect の基本、standaloneSetup と @WebMvcTest、@MockitoBean での差し替え、文字化けとコンテキストキャッシュまで。",
-  "minutes" : 15,
+  "minutes" : 11,
   "part" : "第3部 Spring",
   "chapter" : "第6章 セキュリティとテスト",
   "prev" : "spring-security",

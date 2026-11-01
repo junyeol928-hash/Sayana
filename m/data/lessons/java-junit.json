@@ -2,7 +2,7 @@
   "id" : "java-junit",
   "title" : "JUnit入門",
   "summary" : "JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、@ParameterizedTest、テストしやすい設計まで。この道場の採点の仕組みもこれ。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第1部 Java基礎",
   "chapter" : "第8章 入出力とテスト",
   "prev" : "java-file-io",

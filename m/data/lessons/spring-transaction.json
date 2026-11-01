@@ -2,7 +2,7 @@
   "id" : "spring-transaction",
   "title" : "トランザクション",
   "summary" : "@Transactional で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、readOnly・伝播・楽観ロックの入口まで。",
-  "minutes" : 15,
+  "minutes" : 10,
   "part" : "第3部 Spring",
   "chapter" : "第3章 設計とデータアクセス",
   "prev" : "spring-data-jpa",

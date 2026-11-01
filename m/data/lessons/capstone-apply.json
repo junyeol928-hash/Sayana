@@ -2,7 +2,7 @@
   "id" : "capstone-apply",
   "title" : "申請の登録と一覧",
   "summary" : "承認くんに新規申請フォームと「自分の申請一覧」を作る。相関チェック・DRAFT での保存・PRG・状態の日本語表示まで。",
-  "minutes" : 15,
+  "minutes" : 16,
   "part" : "第4部 総合演習",
   "chapter" : "第2章 業務機能の実装",
   "prev" : "capstone-setup",

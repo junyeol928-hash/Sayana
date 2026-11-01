@@ -2,7 +2,7 @@
   "id" : "java-encapsulation",
   "title" : "カプセル化",
   "summary" : "フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、final と不変オブジェクト、防御的コピーまで。",
-  "minutes" : 15,
+  "minutes" : 20,
   "part" : "第1部 Java基礎",
   "chapter" : "第4章 オブジェクト指向",
   "prev" : "java-classes",

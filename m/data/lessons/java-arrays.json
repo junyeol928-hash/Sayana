@@ -2,7 +2,7 @@
   "id" : "java-arrays",
   "title" : "配列",
   "summary" : "同じ型の値をまとめて扱う配列。宣言・生成、インデックスと範囲外例外、ループでの処理、参照型としての振る舞い、Arrays クラス、二次元配列まで。",
-  "minutes" : 15,
+  "minutes" : 25,
   "part" : "第1部 Java基礎",
   "chapter" : "第2章 制御構文と配列",
   "prev" : "java-loops",

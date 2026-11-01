@@ -2,7 +2,7 @@
   "id" : "spring-di",
   "title" : "DIとIoCコンテナ",
   "summary" : "new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。",
-  "minutes" : 15,
+  "minutes" : 17,
   "part" : "第3部 Spring",
   "chapter" : "第1章 Springの核",
   "prev" : "tools-git",

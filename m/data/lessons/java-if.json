@@ -2,7 +2,7 @@
   "id" : "java-if",
   "title" : "条件分岐",
   "summary" : "if / else if / else と switch 式で処理を分ける。波括弧・フォールスルー・文字列の == という三大地雷の避け方まで。",
-  "minutes" : 15,
+  "minutes" : 27,
   "part" : "第1部 Java基礎",
   "chapter" : "第2章 制御構文と配列",
   "prev" : "java-operators",

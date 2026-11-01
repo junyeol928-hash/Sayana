@@ -2,7 +2,7 @@
   "id" : "java-strings",
   "title" : "文字列",
   "summary" : "String は不変、比較は equals。substring・split・strip などの定番メソッド、書式指定とテキストブロック、StringBuilder、数値変換まで、業務で毎日使う文字列操作を固める。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第1部 Java基礎",
   "chapter" : "第3章 メソッドと文字列",
   "prev" : "java-methods",

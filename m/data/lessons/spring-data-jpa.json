@@ -2,7 +2,7 @@
   "id" : "spring-data-jpa",
   "title" : "Spring Data JPA",
   "summary" : "エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。",
-  "minutes" : 15,
+  "minutes" : 18,
   "part" : "第3部 Spring",
   "chapter" : "第3章 設計とデータアクセス",
   "prev" : "spring-layers",

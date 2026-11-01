@@ -2,7 +2,7 @@
   "id" : "java-concurrency",
   "title" : "スレッドと並行処理",
   "summary" : "同時に動く複数のスレッドと、共有される1つの状態。競合状態、synchronized・volatile・AtomicInteger、ExecutorService・Future・CompletableFuture、シングルトン Bean のフィールドの危険まで。",
-  "minutes" : 20,
+  "minutes" : 22,
   "part" : "第1部 Java基礎",
   "chapter" : "第9章 JVMと並行処理",
   "prev" : "java-jvm-memory",

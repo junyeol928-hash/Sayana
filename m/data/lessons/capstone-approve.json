@@ -2,7 +2,7 @@
   "id" : "capstone-approve",
   "title" : "承認・差戻しフロー",
   "summary" : "承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第4部 総合演習",
   "chapter" : "第2章 業務機能の実装",
   "prev" : "capstone-apply",

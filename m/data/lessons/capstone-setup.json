@@ -2,7 +2,7 @@
   "id" : "capstone-setup",
   "title" : "プロジェクト作成とエンティティ",
   "summary" : "承認くんの土台を作る。Spring Starter Project の作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。",
-  "minutes" : 15,
+  "minutes" : 14,
   "part" : "第4部 総合演習",
   "chapter" : "第1章 設計と土台",
   "prev" : "capstone-requirements",

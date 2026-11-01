@@ -2,7 +2,7 @@
   "id" : "java-optional",
   "title" : "Optional",
   "summary" : "「値がないかもしれない」を型で表す Optional。作り方・取り出し方、map / flatMap で null チェックを消す書き方、orElse と orElseGet の違い、使ってはいけない場所まで。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第1部 Java基礎",
   "chapter" : "第7章 モダンJava",
   "prev" : "java-lambda-stream",

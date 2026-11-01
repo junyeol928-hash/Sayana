@@ -2,7 +2,7 @@
   "id" : "java-classes",
   "title" : "クラスとオブジェクト",
   "summary" : "バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・this・static、参照の代入と null、toString まで。",
-  "minutes" : 15,
+  "minutes" : 21,
   "part" : "第1部 Java基礎",
   "chapter" : "第4章 オブジェクト指向",
   "prev" : "java-strings",

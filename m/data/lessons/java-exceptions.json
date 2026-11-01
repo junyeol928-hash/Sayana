@@ -2,7 +2,7 @@
   "id" : "java-exceptions",
   "title" : "例外処理",
   "summary" : "try / catch / finally、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。",
-  "minutes" : 15,
+  "minutes" : 17,
   "part" : "第1部 Java基礎",
   "chapter" : "第5章 例外処理",
   "prev" : "java-nested-classes",

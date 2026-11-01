@@ -2,7 +2,7 @@
   "id" : "capstone-security",
   "title" : "ログインと権限",
   "summary" : "承認くんに Spring Security でログインを付け、固定の社員ID をログイン中の社員に置き換える。URL はロールで、業務ルールは Service で、と2段で守る。",
-  "minutes" : 15,
+  "minutes" : 14,
   "part" : "第4部 総合演習",
   "chapter" : "第3章 仕上げ",
   "prev" : "capstone-search",

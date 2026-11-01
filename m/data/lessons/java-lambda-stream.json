@@ -2,7 +2,7 @@
   "id" : "java-lambda-stream",
   "title" : "ラムダとStream",
   "summary" : "匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。",
-  "minutes" : 15,
+  "minutes" : 14,
   "part" : "第1部 Java基礎",
   "chapter" : "第7章 モダンJava",
   "prev" : "java-generics",

@@ -2,7 +2,7 @@
   "id" : "tools-maven",
   "title" : "Maven(pom.xml・依存関係・ライフサイクル)",
   "summary" : "このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第2部 開発ツール",
   "chapter" : "第3章 ビルドとバージョン管理",
   "prev" : "sts-shortcuts",

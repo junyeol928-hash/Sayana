@@ -2,7 +2,7 @@
   "id" : "spring-logging",
   "title" : "ログ",
   "summary" : "System.out.println を卒業して SLF4J + Logback でログを出す。レベルの使い分け、{} と例外の渡し方、logging.level での絞り込み、個人情報を出さない作法まで。",
-  "minutes" : 15,
+  "minutes" : 12,
   "part" : "第3部 Spring",
   "chapter" : "第5章 設定とログ",
   "prev" : "spring-config",

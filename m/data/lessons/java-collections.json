@@ -2,7 +2,7 @@
   "id" : "java-collections",
   "title" : "コレクション",
   "summary" : "配列の限界を超える List / Set / Map。ArrayList・HashMap の基本操作から、不変コレクション、ループ中の削除、equals と hashCode、並べ替えまで。",
-  "minutes" : 15,
+  "minutes" : 18,
   "part" : "第1部 Java基礎",
   "chapter" : "第6章 コレクションとジェネリクス",
   "prev" : "java-exceptions",

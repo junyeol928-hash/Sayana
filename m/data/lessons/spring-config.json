@@ -2,7 +2,7 @@
   "id" : "spring-config",
   "title" : "設定ファイルとプロファイル",
   "summary" : "application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。",
-  "minutes" : 15,
+  "minutes" : 12,
   "part" : "第3部 Spring",
   "chapter" : "第5章 設定とログ",
   "prev" : "spring-exception-handling",

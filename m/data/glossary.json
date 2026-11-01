@@ -132,7 +132,7 @@
   "lesson" : "java-variables"
 }, {
   "term" : "null",
-  "read" : "ぬる",
+  "read" : "ヌル",
   "en" : "null",
   "defHtml" : "参照型の変数が「どこも指していない」状態。null のまま使うと NullPointerException。",
   "lesson" : "java-variables"
@@ -642,7 +642,7 @@
   "lesson" : "java-jvm-memory"
 }, {
   "term" : "NullPointerException",
-  "read" : "ぬるぽ",
+  "read" : "ヌルポインターエクセプション",
   "en" : "NullPointerException",
   "defHtml" : "null の変数に対してメソッド呼び出しやフィールドアクセスをしたときに発生する実行時エラー。",
   "lesson" : "java-jvm-memory"
@@ -1560,7 +1560,7 @@
   "lesson" : "java-record-enum"
 }, {
   "term" : "enum(列挙型)",
-  "read" : "れっきょがた",
+  "read" : "イーナム(れっきょがた)",
   "en" : "enum",
   "defHtml" : "取りうる値をあらかじめ列挙した型。各定数はそのクラスのインスタンスで、フィールドやメソッドを持てる。",
   "lesson" : "java-record-enum"
@@ -1734,7 +1734,7 @@
   "lesson" : "java-file-io"
 }, {
   "term" : "EOF",
-  "read" : "いーおーえふ",
+  "read" : "イーオーエフ",
   "en" : "end of file",
   "defHtml" : "ファイル(ストリーム)の終わり。byte 版の read() が -1 を返すことで分かる。",
   "lesson" : "java-file-io"

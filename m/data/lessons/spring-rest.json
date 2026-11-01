@@ -2,7 +2,7 @@
   "id" : "spring-rest",
   "title" : "REST API",
   "summary" : "URL は名詞・操作は HTTP メソッド・結果はステータスコード。@RestController と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第3部 Spring",
   "chapter" : "第4章 APIと例外",
   "prev" : "spring-transaction",

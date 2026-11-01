@@ -2,7 +2,7 @@
   "id" : "spring-controller",
   "title" : "Controllerとルーティング",
   "summary" : "HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。",
-  "minutes" : 15,
+  "minutes" : 17,
   "part" : "第3部 Spring",
   "chapter" : "第2章 Webの基本",
   "prev" : "spring-boot-startup",

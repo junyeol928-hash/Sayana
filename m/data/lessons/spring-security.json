@@ -2,7 +2,7 @@
   "id" : "spring-security",
   "title" : "Spring Security入門",
   "summary" : "認証(誰か)と認可(何をしてよいか)。SecurityFilterChain で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。",
-  "minutes" : 15,
+  "minutes" : 16,
   "part" : "第3部 Spring",
   "chapter" : "第6章 セキュリティとテスト",
   "prev" : "spring-logging",

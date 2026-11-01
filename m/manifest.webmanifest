@@ -1,7 +1,7 @@
 {
   "name": "Java道場",
   "short_name": "Java道場",
-  "description": "Java と Spring Boot を、読む・確かめる・書く・復習するで身につける稽古帳(オフライン対応)",
+  "description": "Java と Spring Boot を、読む・クイズ・演習・復習で身につける稽古帳(オフライン対応)",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

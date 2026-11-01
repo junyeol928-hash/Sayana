@@ -2,7 +2,7 @@
   "id" : "capstone-requirements",
   "title" : "要件整理と画面・テーブル設計",
   "summary" : "第4部で作る申請・承認システム「承認くん」の設計図を描く。要件・ユースケース・画面遷移図・ER図・状態遷移図を書き、業務ルールの「仕様の穴」を潰してから実装に入る。",
-  "minutes" : 15,
+  "minutes" : 13,
   "part" : "第4部 総合演習",
   "chapter" : "第1章 設計と土台",
   "prev" : "spring-reading-code",
