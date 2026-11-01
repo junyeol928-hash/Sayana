@@ -92,6 +92,7 @@
     --dye-2: oklch(.6 .09 230);
     --dye-3: oklch(.58 .13 248);
     --dye-4: oklch(.5 .11 256);
+    --dye-4-mark: oklch(.95 .012 245); /* 褐だけ目を藍白に: 仕上げた札として形の強さで目立たせる(面との差 5.2:1) */
     --dye-4-edge: var(--dye-4);
     --dye-mark: oklch(.17 .03 255);
     --on-shu: oklch(.17 .03 255);
@@ -130,6 +131,7 @@
   --dye-2: oklch(.6 .09 230);
   --dye-3: oklch(.58 .13 248);
   --dye-4: oklch(.5 .11 256);
+  --dye-4-mark: oklch(.95 .012 245); /* 褐だけ目を藍白に: 仕上げた札として形の強さで目立たせる(面との差 5.2:1) */
   --dye-4-edge: var(--dye-4);
   --dye-mark: oklch(.17 .03 255);
   --on-shu: oklch(.17 .03 255);
@@ -265,7 +267,7 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-3 { background: var(--dye-3); }
 /* 褐(卒業)には白い刺し子の目を入れ、色以外でも分かるように */
 .dye-4 { background: var(--dye-4); box-shadow: inset 0 0 0 1.5px var(--dye-4-edge); }
-.dye-4::after { content: ""; position: absolute; inset: 22%; border: 2px dashed var(--dye-mark); border-radius: 1px; }
+.dye-4::after { content: ""; position: absolute; inset: 22%; border: 2px dashed var(--dye-4-mark, var(--dye-mark)); border-radius: 1px; }
 .dye-2::after, .dye-3::after { content: ""; position: absolute; left: 20%; right: 20%; top: 50%; height: 1.5px; transform: translateY(-50%);
   background: repeating-linear-gradient(90deg, var(--dye-mark) 0 3px, transparent 3px 5px); }
 .dye-3::after { height: 6px; background:
@@ -296,7 +298,7 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-cell.is-here::after { position: absolute; right: -3px; top: -3px; }
 .dye-map-note { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: .8125rem; color: var(--ink-muted); }
 .dye-here { display: inline-block; flex: none; }
-@media (min-width: 1024px) { .dye-cell { width: 20px; height: 20px; } }
+@media (min-width: 1024px) { .dye-cell { width: 22px; height: 22px; } .dye-ch { gap: 4px; } } /* PC は左の列の第 2 の主役として大きく */
 .dye-legend .dye-name-sm { display: block; font-size: .75rem; color: var(--ink-muted); line-height: 1.6; }
 ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .dye-legend .dye-meaning { white-space: nowrap; }
@@ -402,7 +404,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .lesson-row.is-next a { background: var(--accent-soft); }
 .lesson-row .row-title b { display: block; font-size: .75rem; color: var(--accent-ink); }
 .lesson-row.planned .row-title { color: var(--ink-muted); }
-.lesson-row .dye-0 { outline: none; background: repeating-linear-gradient(90deg, var(--dye-empty) 0 4px, transparent 4px 7px) center / 100% 2px no-repeat; }
+.lesson-row .dye-0 { outline: none; background: repeating-linear-gradient(90deg, var(--dye-empty) 0 6px, transparent 6px 10px) center / 16px 2px no-repeat; } /* 刺し子 2 目(欠けた値の「---」に見えないように)*/
 
 /* PC のダッシュボード: 左に今日の稽古と進捗、右に一覧 */
 .dash-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; }
@@ -483,7 +485,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step-menu li a[aria-current="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--accent); color: var(--accent-ink); }
 .choice .code-choice { font-family: var(--mono); font-size: .9375rem; }
 code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; background: none; border-left: 2px solid var(--accent); border-radius: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; }
-.choice-tag { display: block; margin-top: 2px; font: 700 .75rem/1.5 var(--font); color: var(--ng); letter-spacing: .02em; }
+.choice-tag { display: block; margin-top: 2px; font: 700 .875rem/1.5 var(--font); color: var(--ng); letter-spacing: .02em; }
 .choice-tag.is-ok { color: var(--accent-ink); } /* 誤答の「× あなたの答え」と左右対称に、正解にも目に見える文字を付ける */
 .step-menu li a small { color: var(--ink-muted); font-weight: 400; }
 .step-menu li.is-done a::after { content: ""; width: 10px; height: 6px; margin: 0 2px 3px auto; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
@@ -536,19 +538,15 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 .done { color: var(--ok); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
 
 /* 掛け合い: 名札と吹き出し */
-.talk { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; margin: 22px 0; align-items: start; }
+.talk { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 22px 0; align-items: start; } /* 名札は吹き出しの上に横書きで(縦書きは部の札だけ) */
 .talk-avatar { display: block; }
-.talk-icon {
-  writing-mode: vertical-rl; text-orientation: upright; display: flex; align-items: center; justify-content: center;
-  width: 40px; min-height: 64px; padding: 8px 0; border-radius: 5px; font-size: .8125rem; font-weight: 700; letter-spacing: .12em; line-height: 1;
-  background: var(--kon); color: var(--kon-ink);
-}
+.talk-icon { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; line-height: 1.5;
+  background: var(--kon); color: var(--kon-ink); }
 .talk-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .talk-bubble { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 4px var(--r-l) var(--r-l) var(--r-l); padding: 10px 18px; max-width: 680px; }
 .talk-bubble p { margin: .35em 0; }
 .talk-bubble pre { font-size: .8125rem; }
-.talk-haru { grid-template-columns: minmax(0, 1fr) 40px; }
-.talk-haru .talk-avatar { order: 2; }
+.talk-haru .talk-avatar { justify-self: end; }
 .talk-haru .talk-icon { background: var(--accent); color: var(--on-accent); } /* 名札は面の札(枠だけの形は押せる部品に見えるので使わない) */
 .talk-haru .talk-bubble { background: var(--surface-2); border-color: transparent; border-radius: var(--r-l) 4px var(--r-l) var(--r-l); justify-self: end; }
 
@@ -586,6 +584,15 @@ pre.code-lines .ln-note code { color: inherit; background: oklch(1 0 0 / .1); }
 .atwork.notes-folded .line-notes.has-inline { display: grid; }
 pre.code-lines .ln.note::before { content: attr(data-n); left: 6px; width: 30px; text-align: center; border-radius: 9px; background: var(--dye-2); color: var(--code-bg); font-weight: 700; top: .2em; line-height: 1.5; }
 pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
+/* 説明はコードの注: コードより小さく、色も 1 段下げる(PC はコードを 15px に上げて主従を戻す) */
+pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 13px; }
+@media (min-width: 1024px) { pre.code-lines { font-size: 15px; } pre.code-lines .ln-note { font-size: 14px; } }
+@media (max-width: 400px) { /* 1 行に入る字数を増やす(行番号の列と右の余白を詰め、13px に。390px で 1 行 38 字ほど) */
+  pre.code-lines, .reading-q pre.code-lines { font-size: 13px; padding-right: 8px; }
+  pre.code-lines .ln { padding-left: calc(38px + var(--hang)); }
+  pre.code-lines .ln::before { width: 26px; }
+  pre.code-lines .ln-note { margin-left: 36px; font-size: 12.5px; }
+}
 
 /* 仕事のコードではこう出てくる */
 .atwork { margin: 28px 0 40px; }
@@ -660,6 +667,10 @@ pre.code-lines .ln.note { background: oklch(1 0 0 / .05); }
 .kana-wrap::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 24px; background: linear-gradient(var(--bg) 8px, transparent); pointer-events: none; } /* 最初の 8px は不透明: 潜った語のリンクの下線の切れ端を残さない */
 /* 用語集では索引の刺し子が区切りになるので、ヘッダーの破線は引かない(二重の区切りにしない) */
 body:has(.kana-wrap) .site-header::after { display: none; }
+@media (min-width: 761px) { /* PC は索引の線を本文の左右の端にそろえる(はみ出さない) */
+  .kana-wrap { margin-inline: 0; }
+  .kana-index { padding-left: 0; }
+}
 .kana-index { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; padding: 4px 36px 12px var(--gutter);
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
 .kana-index::-webkit-scrollbar { display: none; }
@@ -807,8 +818,12 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 /* 答え合わせの後は、選んだ印より正誤の色を優先する(:has の詳細度に負けないよう同じ形で書く) */
 .choice.is-answer, .choice.is-answer:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--surface); }
 .choice.is-wrong, .choice.is-wrong:has(input:checked) { border-color: var(--shu); background: var(--surface); }
-.choice.is-wrong input:checked { border-color: var(--shu); }
-.choice.is-wrong input::after { background: var(--shu); }
+/* 採点後のラジオ: いちばん強い記号を正解に。正解は藍の丸にレ点、選んだ誤答は朱の枠に ×(塗らない) */
+.choice.is-answer input { border-color: var(--accent); background: var(--accent); }
+.choice.is-answer input::after { width: 9px; height: 5px; border-radius: 0; background: none; border-left: 2px solid var(--on-accent); border-bottom: 2px solid var(--on-accent); transform: translate(0, -1px) rotate(-45deg); }
+.choice.is-wrong input:checked { border-color: var(--shu); background: var(--surface); }
+.choice.is-wrong input::after { width: 10px; height: 10px; border-radius: 0; transform: none;
+  background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
 .quiz-result { margin-top: 20px; }
 .quiz-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
 .quiz-score .big, .q-mark.big { font-size: 2.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -930,9 +945,6 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   .stepper { padding: 4px 36px 6px var(--gutter); }
   .stepper-row .ask { margin-right: var(--gutter); }
   .lesson-section { margin: 48px 0; }
-  .talk { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
-  .talk-haru { grid-template-columns: minmax(0, 1fr) 34px; }
-  .talk-icon { width: 34px; min-height: 56px; font-size: .75rem; }
   .talk-bubble { padding: 9px 14px; }
   .figure { margin: 20px calc(var(--gutter) * -1); border-radius: 0; padding: 16px var(--gutter); }
   .figure svg { min-width: 520px; }
