@@ -220,7 +220,7 @@ const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "
 function nextDyeHint(meta, level) {
   if (level === 0) return "読み終えると甕覗きに";
   if (level === 1) return `クイズで ${Math.ceil(meta.quiz * 0.8)} 問以上取ると縹に`;
-  if (level === 2) return "演習を「できた」にすると藍に";
+  if (level === 2) return "演習ができたら藍に";
   if (level === 3) return "復習をすべて卒業すると褐に";
   return null;
 }
@@ -573,6 +573,9 @@ function trackLesson(id, keys) {
     });
     if (S.last?.id === id && S.last.section !== key) { S.last.section = key; save(); }
   };
+  // 仕事のコード・サンプルを「読んだ」とみなすのは、段が画面に 3 秒以上あって、その終わりが画面の中に見えたとき
+  // (段の一覧で飛び越した・続きから後ろへ戻っただけの段に、レ点を付けないように)
+  const shownSince = {};
   const update = () => {
     const line = 140; // ヘッダーと段の並びの下あたりを「今読んでいる位置」とみなす
     let key = keys[0];
@@ -580,7 +583,14 @@ function trackLesson(id, keys) {
       const r = sec.getBoundingClientRect();
       if (r.top <= line) key = sec.id;
       // 仕事のコード・見るは、段の最後が画面に入ったら「済み」
-      if ((sec.id === "atwork" || sec.id === "run") && r.bottom < innerHeight && !seenSection(id, sec.id)) {
+      const onScreen = r.top < innerHeight && r.bottom > 0;
+      if (!onScreen) delete shownSince[sec.id];
+      else if (shownSince[sec.id] == null) {
+        shownSince[sec.id] = Date.now();
+        // スクロールを止めて読んでいても 3 秒後に確かめ直す
+        setTimeout(() => { if (document.contains(stepper)) update(); }, 3100);
+      }
+      if ((sec.id === "atwork" || sec.id === "run") && r.bottom > 0 && r.bottom < innerHeight && Date.now() - shownSince[sec.id] >= 3000 && !seenSection(id, sec.id)) {
         S.sections = Object.assign(S.sections || {}, { [id]: [...(S.sections?.[id] || []), sec.id] });
         save();
         markStep(sec.id);
@@ -874,6 +884,7 @@ function bindLesson(L, meta) {
       form.reset();
       form.querySelectorAll(".q-explain").forEach((n) => n.remove());
       form.querySelectorAll("label.choice").forEach((l) => l.classList.remove("is-answer", "is-wrong"));
+      form.querySelectorAll(".choice-tag").forEach((n) => n.remove());
       form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; });
       form.querySelector("button[type=submit]").hidden = false;
       $("#quiz-result").innerHTML = "";
@@ -901,6 +912,10 @@ function bindLesson(L, meta) {
       li.querySelectorAll("label.choice").forEach((label, j) => {
         label.classList.toggle("is-answer", j === q.answer);
         label.classList.toggle("is-wrong", j === chosen && !ok);
+        // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には読み上げ用の「正解」
+        label.querySelector(".choice-tag")?.remove();
+        if (j === chosen && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+        if (j === q.answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag visually-hidden">(正解)</span>`);
       });
       li.insertAdjacentHTML("beforeend", `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</span>
         ${ok ? "" : `<p class="small">正解: <b>${q.choicesHtml[q.answer]}</b></p>`}<div class="explanation md">${q.explanationHtml}</div></div>`);
@@ -925,7 +940,7 @@ function bindLesson(L, meta) {
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "書くへ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
-      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai"><a href="#write" data-scroll="write">${dyeSwatch(3)}演習を「できた」にすると藍に → 書くへ</a></p>` : ""}
+      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai"><a href="#write" data-scroll="write">${dyeSwatch(3)}演習ができたら藍に → 書くへ</a></p>` : ""}
       <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
@@ -1467,7 +1482,17 @@ let mermaidModule = null;
 function mermaidTheme() {
   // 図も藍の配色で描く(CSS の変数から色を読むので、暗い表示でもそろう)
   const css = getComputedStyle(document.documentElement);
-  const v = (name) => css.getPropertyValue(name).trim();
+  // Mermaid は oklch() を読めない(「Unsupported color format」で図ごと描けなくなる)ので、色は 1 点塗って #rrggbb に直して渡す
+  const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const v = (name) => {
+    const raw = css.getPropertyValue(name).trim();
+    if (!raw.startsWith("oklch") || !ctx) return raw;
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = raw;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
+  };
   return {
     startOnLoad: false, securityLevel: "strict", theme: "base",
     themeVariables: {
