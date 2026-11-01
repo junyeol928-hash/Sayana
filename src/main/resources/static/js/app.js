@@ -122,6 +122,44 @@ function setEditorText(ta, text) {
   }
 }
 
+// 横にはみ出す帯に、続きがある側だけフェードの印を付ける(はみ出していないのにフェードが残ると汚れに見える)
+function watchOverflow(scroller, target = scroller) {
+  if (!scroller || scroller.dataset.watched) return;
+  scroller.dataset.watched = "1";
+  const update = () => {
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    target.classList.toggle("has-more", max > 1 && scroller.scrollLeft < max - 1);
+    target.classList.toggle("has-prev", max > 1 && scroller.scrollLeft > 1);
+  };
+  scroller.addEventListener("scroll", update, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(update).observe(scroller);
+  update();
+}
+
+// はみ出す図は、流れの入口(最初のノード)が真ん中に来る位置から見せる。「図の全体を見る」で縮めた全体と行き来できる
+function fitFigures(nodes) {
+  nodes.forEach((n) => {
+    if (n.scrollWidth <= n.clientWidth + 1) return;
+    const first = n.querySelector("svg .node, svg .actor, svg .statediagram-state");
+    if (first) {
+      const r = first.getBoundingClientRect();
+      const box = n.getBoundingClientRect();
+      n.scrollLeft = Math.max(0, n.scrollLeft + r.left + r.width / 2 - box.left - n.clientWidth / 2);
+    }
+    watchOverflow(n);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "fig-fit";
+    btn.textContent = "図の全体を見る";
+    btn.addEventListener("click", () => {
+      const fit = n.classList.toggle("fit");
+      btn.textContent = fit ? "文字の大きさに戻す" : "図の全体を見る";
+      n.dispatchEvent(new Event("scroll"));
+    });
+    n.after(btn);
+  });
+}
+
 async function renderMermaid(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
   if (blocks.length === 0) return;
@@ -136,7 +174,9 @@ async function renderMermaid(root) {
       mermaidModule = (await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")).default;
     }
     mermaidModule.initialize(mermaidTheme());
-    await mermaidModule.run({ nodes: root.querySelectorAll(".mermaid:not([data-processed])") });
+    const nodes = [...root.querySelectorAll(".mermaid:not([data-processed])")];
+    await mermaidModule.run({ nodes });
+    fitFigures(nodes);
   } catch (e) {
     console.warn("Mermaid を描画できませんでした", e);
   }
@@ -260,6 +300,8 @@ document.addEventListener("click", (e) => {
 // 染めの名前の読み(スマホ版 app.js の DYE の read と同じ)
 const DYE_READ = { 生成り: "きなり", 甕覗き: "かめのぞき", 縹: "はなだ", 藍: "あい", 褐: "かち" };
 const LAST_KEY = "javadojo-pc-last";
+// 段の名前は記録せず、表示のたびに段の id から引く(名前を変えても古い名前が残らないように)。スマホ版 app.js と同じ表
+const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 const RESUME_KEY = "javadojo-pc-resume";
 const SECTIONS_KEY = "javadojo-pc-sections";
 function pcStore(key) {
@@ -282,7 +324,13 @@ function dashboardResume() {
     const href = `/lessons/${encodeURIComponent(last.id)}#${last.section || "read"}`;
     const btn = hero.querySelector(".today-actions a");
     btn.href = href;
-    btn.textContent = `続きから${last.label ? `(${last.label})` : ""}`;
+    const label = SECTION_LABEL[last.section];
+    btn.textContent = `続きから${label ? `(${label})` : ""}`;
+    // 染まりの地図の朱の印も、前回の続きのマスへ
+    document.querySelectorAll(".dye-cell.is-here").forEach((c) => c.classList.remove("is-here"));
+    document.querySelector(`.dye-cell[data-lesson="${CSS.escape(last.id)}"]`)?.classList.add("is-here");
+    const here = document.querySelector(".dye-map-here");
+    if (here) here.textContent = "前回の続き";
     // レッスンを開いたら、読んでいた位置へ戻す(レッスン側が読む)
     [btn, title].forEach((a) => a.addEventListener("click", () => sessionStorage.setItem(RESUME_KEY, last.id)));
     if (title.getAttribute("href").endsWith("/" + last.id)) return;
@@ -302,7 +350,7 @@ function dashboardResume() {
     hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
     // 先輩の一言も、続きの話に
     const talk = hero.querySelector(".talk-line");
-    if (talk) talk.textContent = `モカ先輩「続きは${last.label ? `『${last.label}』` : ""}から。前に読んでいた所へ戻るよ」`;
+    if (talk) talk.textContent = `モカ先輩「続きは${label ? `『${label}』` : ""}から。前に読んでいた所へ戻るよ」`;
     // 一覧の札もヒーローと同じ言葉に(強調は主役の 1 行だけ)
     document.querySelectorAll(".lesson-row.is-next").forEach((li) => {
       li.classList.remove("is-next");
@@ -322,6 +370,7 @@ function trackLesson() {
   const stepper = document.querySelector(".stepper");
   const sew = document.querySelector(".sew");
   if (!stepper) return;
+  watchOverflow(stepper, stepper.closest(".stepper-wrap"));
   const steps = [...stepper.querySelectorAll(".step")];
   const sections = steps.map((a) => document.getElementById(a.getAttribute("href").slice(1))).filter(Boolean);
   if (!sections.length) return;
@@ -357,7 +406,7 @@ function trackLesson() {
       if (!lessonId) return;
       const end = document.querySelector(".lesson-nav")?.getBoundingClientRect().top < innerHeight;
       const top = document.getElementById(current)?.getBoundingClientRect().top ?? line;
-      pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, label: stepper.querySelector(`.step[href="#${current}"]`)?.firstChild?.textContent.trim(), off: Math.round(line - top), end });
+      pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, off: Math.round(line - top), end });
     }, 400);
     let key = sections[0].id;
     for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
@@ -431,10 +480,10 @@ document.addEventListener("htmx:afterSwap", (e) => {
     li.querySelectorAll("label.choice").forEach((label, j) => {
       label.classList.toggle("is-answer", j === Number(ex.dataset.answer));
       label.classList.toggle("is-wrong", !ok && j === Number(ex.dataset.chosen));
-      // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には読み上げ用の「正解」
+      // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
       label.querySelector(".choice-tag")?.remove();
       if (!ok && j === Number(ex.dataset.chosen)) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
-      if (j === Number(ex.dataset.answer)) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag visually-hidden">(正解)</span>`);
+      if (j === Number(ex.dataset.answer)) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
     });
     li.appendChild(document.importNode(ex, true));
   });
@@ -537,6 +586,7 @@ document.addEventListener("input", (e) => {
 {
   const index = document.getElementById("kana-index");
   if (index) {
+    watchOverflow(index);
     index.querySelector("[data-kana-search]")?.addEventListener("click", (e) => {
       e.preventDefault();
       scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" });

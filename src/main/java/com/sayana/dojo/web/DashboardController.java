@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -59,6 +60,16 @@ public class DashboardController {
         int[] dyeCounts = new int[5];
         flat.forEach(s -> dyeCounts[s.dyeLevel()]++);
         model.addAttribute("flatLessons", flat);
+        // 染まりの地図の行ごとの読み上げ(部の名前・数・段ごとの数)
+        model.addAttribute("partMapLabels", parts.stream().map(p -> {
+            List<ProgressService.LessonStatus> ls = p.chapters().stream().flatMap(c -> c.lessons().stream())
+                    .filter(s -> s.lesson().ready()).toList();
+            int[] n = new int[5];
+            ls.forEach(s -> n[s.dyeLevel()]++);
+            String counts = IntStream.range(0, 5).filter(i -> n[i] > 0)
+                    .mapToObj(i -> DYE_MEANING[i] + " " + n[i]).collect(Collectors.joining("、"));
+            return p.part().title() + ": " + ls.size() + " レッスン。" + counts + "。一覧へ";
+        }).toList());
         // 前回の続きに差し替えるとき(static/js/app.js)に使う、レッスンごとの「次の段へ進む条件」
         model.addAttribute("dyeHints", flat.stream().collect(Collectors.toMap(st -> st.lesson().id(),
                 st -> Objects.requireNonNullElse(nextDyeHint(st), ""))));
@@ -88,6 +99,9 @@ public class DashboardController {
 
     /** 染めの名前の読み(スマホ版 app.js の DYE の read と同じ)。ヒーローでふりがなに使う。 */
     static final String[] DYE_READ = {"きなり", "かめのぞき", "はなだ", "あい", "かち"};
+
+    /** 段の意味(地図の読み上げ用。スマホ版 app.js の DYE の meaning と同じ)。 */
+    static final String[] DYE_MEANING = {"まだ", "読んだ", "クイズ合格", "演習もできた", "復習をすべて卒業"};
 
     /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
     public static String nextDyeHint(ProgressService.LessonStatus s) {

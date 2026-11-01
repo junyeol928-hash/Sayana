@@ -33,10 +33,16 @@
                 <h2 id="dye-title">染まり具合</h2>
                 <p>クイズ合格以上 <b th:text="${deepCount}">0</b> / <span th:text="${readyLessons}">55</span></p>
             </div>
-            <div class="dye-strip" role="img"
-                 th:attr="aria-label=${readyLessons} + ' レッスンの染まり具合。まだ ' + ${dyeCounts[0]} + '、読んだ ' + ${dyeCounts[1]} + '、クイズ合格 ' + ${dyeCounts[2]} + '、演習もできた ' + ${dyeCounts[3]} + '、復習をすべて卒業 ' + ${dyeCounts[4]}">
-                <span th:each="ls : ${flatLessons}" class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}" th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"></span>
-            </div>
+            <nav class="dye-map" aria-label="部ごとの染まり具合">
+                <a class="dye-part" th:each="pp, ps : ${parts}" th:href="'#part-' + ${ps.count}" th:attr="aria-label=${partMapLabels[ps.index]}">
+                    <span class="dye-part-tag" aria-hidden="true" th:text="${ps.index == 0 ? '一' : (ps.index == 1 ? '二' : (ps.index == 2 ? '三' : '四'))}">一</span>
+                    <span class="dye-cells" aria-hidden="true">
+                        <span class="dye-ch" th:each="cp : ${pp.chapters}"><th:block th:each="ls : ${cp.lessons}" th:if="${ls.lesson.ready()}"><span class="dye-cell"
+                            th:classappend="${nextLesson != null and ls.lesson.id == nextLesson.id} ? 'is-here'" th:attr="data-lesson=${ls.lesson.id}" th:title="${ls.lesson.title} + ':' + ${ls.dyeLabel()}"><span class="dye" th:classappend="'dye-' + ${ls.dyeLevel()}"></span></span></th:block></span>
+                    </span>
+                </a>
+            </nav>
+            <p class="dye-map-note" th:if="${nextLesson != null}"><span class="dye-here" aria-hidden="true"></span><span><span class="dye-map-here">今日の稽古</span>。部の行を押すと、その部の一覧へ</span></p>
             <ul class="dye-legend">
                 <li><span class="dye dye-0"></span><span><span class="dye-name-sm"><ruby>生成り<rt>きなり</rt></ruby> <b class="dye-count" th:text="${dyeCounts[0]}"></b></span><span class="dye-meaning">まだ</span></span></li>
                 <li><span class="dye dye-1"></span><span><span class="dye-name-sm"><ruby>甕覗き<rt>かめのぞき</rt></ruby> <b class="dye-count" th:text="${dyeCounts[1]}"></b></span><span class="dye-meaning">読んだ</span></span></li>
@@ -78,7 +84,7 @@
 
     <div class="dash-main">
         <section class="curriculum" aria-label="レッスン一覧">
-            <div class="part-block" th:each="pp, ps : ${parts}">
+            <div class="part-block" th:each="pp, ps : ${parts}" th:id="'part-' + ${ps.count}">
                 <div class="part-tag" aria-hidden="true" th:text="${ps.index == 0 ? '第一部' : (ps.index == 1 ? '第二部' : (ps.index == 2 ? '第三部' : '第四部'))}">第一部</div>
                 <div>
                     <h2 class="part-title" th:text="${pp.part.title}">第1部</h2>

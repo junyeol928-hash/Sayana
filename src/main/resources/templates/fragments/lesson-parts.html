@@ -61,7 +61,6 @@
         <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
              class="q-explain" th:classappend="${ok} ? 'correct' : 'wrong'" th:attr="data-q=${st.index}, data-chosen=${chosen}, data-answer=${q.answer}">
             <span class="q-mark"><svg class="icon sm" aria-hidden="true"><use th:href="${ok} ? '#i-check' : '#i-cross'"/></svg> <th:block th:text="${ok ? '正解' : (chosen < 0 ? '未回答' : '不正解')}"></th:block></span>
-            <p class="small" th:unless="${ok}">正解: <b th:utext="${q.choicesHtml.get(q.answer)}"></b></p>
             <div class="explanation md" th:utext="${q.explanationHtml}"></div>
         </div>
     </template>
