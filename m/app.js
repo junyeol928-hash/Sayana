@@ -211,6 +211,18 @@ function dyeBurst(from, to) {
   return `<span class="dye-burst" role="img" aria-label="${DYE[to].name}に染まりました">${dyeDot(from)}<span class="dye dye-${to} ink"></span></span>`;
 }
 
+// 「視差効果を減らす」設定のときは、スクロールも即時に
+const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+
+/** 次の段へ進む条件(ヒーローで「次は何色へ・何をすれば」を見せる) */
+function nextDyeHint(meta, level) {
+  if (level === 0) return "読み終えると甕覗きに";
+  if (level === 1) return `クイズで ${Math.ceil(meta.quiz * 0.8)} 問以上取ると縹に`;
+  if (level === 2) return "演習を「できた」にすると藍に";
+  if (level === 3) return "復習をすべて卒業すると褐に";
+  return null;
+}
+
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "見る", sts: "STS", write: "書く", reading: "読解", quiz: "確かめる" };
 
 // ------------------------------------------------------------ 画面
@@ -275,23 +287,32 @@ async function renderHome() {
   const deep = counts[2] + counts[3] + counts[4];
   const upcoming = Object.values(S.review).filter((it) => !it.graduated && it.due > today()).length;
   const readingOk = Object.values(S.reading).filter((r) => r.ok).length;
+  const pending = Object.values(S.review).filter((it) => !it.graduated).map((it) => it.due).sort();
+  const nextReview = due ? "今日" : pending.length ? pending[0].slice(5).replace("-", "/") : "なし";
   const readingTotal = all.reduce((s, l) => s + (l.reading || 0), 0);
   const weekDays = S.days.filter((d) => d > addDays(today(), -7)).length;
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  // 前回の続き(途中で閉じたレッスン)があれば、それを主役にする。新しいレッスンは控えめに添える
-  const last = S.last && all.find((l) => l.id === S.last.id && levels[l.id] < 3);
+  // 前回の続き(最後まで読み切っていないレッスン)があれば、それを主役にする。新しいレッスンは控えめに添える
+  const last = S.last && !S.last.end && all.find((l) => l.id === S.last.id);
   const hero = last || next;
-  const heroIndex = all.indexOf(hero) + 1;
   const section = last && SECTION_LABEL[S.last.section];
+  const hint = nextDyeHint(hero, levels[hero.id]);
+  // ホームに戻ったとき、前に見たときより深まったマスだけ染み込ませる
+  const seen = S.seenLevels || {};
+  const deepened = new Set(all.filter((l) => seen[l.id] != null && levels[l.id] > seen[l.id]).map((l) => l.id));
+  S.seenLevels = levels;
+  save();
   view().innerHTML = `
     <section class="today" aria-labelledby="today-title">
       <p class="today-kicker"><span>${last ? "前回の続き" : "今日の稽古"}</span><span>${esc(hero.part.title.replace(/^第\d部\s*/, ""))} · ${esc(hero.chapter.title)}</span></p>
       <h1 class="today-title" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
-      <p class="today-meta"><span>${heroIndex} / ${all.length} レッスン目</span><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
+      <p class="today-meta"><span>読む ${hero.minutes} 分</span><span>演習 ${hero.exercises}</span><span>クイズ ${hero.quiz}</span>${hero.reading ? `<span>読解 ${hero.reading}</span>` : ""}</p>
+      ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span>いま ${DYE[levels[hero.id]].name} · ${hint}</span></p>` : ""}
       <div class="today-actions"><a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${last ? `続きから${section ? `(${section})` : ""}` : levels[hero.id] ? "続きから稽古する" : "稽古をはじめる"}</a></div>
       ${last && next.id !== last.id ? `<a class="today-alt" href="#/lesson/${esc(next.id)}">次の新しいレッスン: ${esc(next.title)}</a>` : ""}
       <a class="today-review" href="#/review"><span>今日の復習</span>
         <span>${due ? `<b>${due}</b>問 ${icon("arrow", "sm")}` : `<span class="zero">今日はなし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>
+      <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
     </section>
 
     <section class="progress-block" aria-labelledby="dye-title">
@@ -300,17 +321,17 @@ async function renderHome() {
         <p>クイズ合格以上 <b>${deep}</b> / ${all.length}</p>
       </div>
       <div class="dye-strip" role="img" aria-label="${all.length} レッスンの染まり具合。${DYE.map((d, i) => `${d.meaning} ${counts[i]}`).join("、")}">
-        ${all.map((l) => dyeDot(levels[l.id])).join("")}
+        ${all.map((l) => deepened.has(l.id) ? `<span class="dye-burst-cell" style="position:relative;display:block">${dyeDot(seen[l.id])}<span class="dye dye-${levels[l.id]} ink" style="position:absolute;inset:0"></span></span>` : dyeDot(levels[l.id])).join("")}
       </div>
-      <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}${d.meaning} ${counts[i]}</li>`).join("")}</ul>
+      <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${d.name}</span>${d.meaning} ${counts[i]}</span></li>`).join("")}</ul>
       <div class="home-stats">
-        <div><div class="stat-label">復習まで卒業</div><div class="stat-value">${counts[4]}<small>/ ${all.length}</small></div></div>
+        <a href="#/review"><div class="stat-label">次の復習</div><div class="stat-value">${nextReview}</div></a>
         <a href="#/reading"><div class="stat-label">読解の正解</div><div class="stat-value">${readingOk}<small>/ ${readingTotal}</small></div></a>
         <div><div class="stat-label">この7日の稽古</div><div class="stat-value">${weekDays}<small>日</small></div></div>
       </div>
-      <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
-      ${standalone ? "" : `<div class="install-hint">${icon("phone")}<p><b>ホーム画面に追加</b>するとアプリのように開けます。
-        iPhone は Safari の共有ボタン →「ホーム画面に追加」、Android は Chrome のメニュー →「ホーム画面に追加」。</p></div>`}
+      ${standalone || S.settings.hideInstall ? "" : `<div class="install-hint" id="install-hint">${icon("phone")}<p><b>ホーム画面に追加</b>するとアプリのように開けます。
+        iPhone は Safari の共有ボタン →「ホーム画面に追加」、Android は Chrome のメニュー →「ホーム画面に追加」。</p>
+        <button class="close" type="button" data-hide-install aria-label="この案内を閉じる">${icon("cross")}</button></div>`}
     </section>
 
     <section class="curriculum" aria-label="レッスン一覧">
@@ -327,13 +348,19 @@ async function renderHome() {
                   const isNext = l.id === next.id;
                   return `<li class="lesson-row ${isNext ? "is-next" : ""}"><a href="#/lesson/${esc(l.id)}">${dyeSwatch(levels[l.id])}
                     <span class="row-title">${isNext ? "<b>今日の稽古</b>" : ""}${esc(l.title)}</span>
-                    <span class="row-meta">${S.quiz[l.id] ? `クイズ ${S.quiz[l.id].best}/${l.quiz}` : `${l.minutes}分`}</span></a></li>`;
+                    <span class="row-meta">${levels[l.id] ? DYE[levels[l.id]].meaning : `${l.minutes}分`}</span></a></li>`;
                 }).join("")}
               </ul>`).join("")}
           </div>
         </div>`).join("")}
     </section>`;
   view().onclick = (ev) => {
+    if (ev.target.closest("[data-hide-install]")) {
+      S.settings.hideInstall = true;
+      save();
+      $("#install-hint")?.remove();
+      return;
+    }
     const a = ev.target.closest("[data-resume]");
     if (a && a.dataset.resume) pendingSection = a.dataset.resume;
   };
@@ -348,11 +375,18 @@ async function homeSaveState(all) {
   if (!el) return;
   if (!("caches" in window) || !("serviceWorker" in navigator)) { el.textContent = "このブラウザはオフライン保存に対応していません"; el.className = "save-state ng"; return; }
   try {
-    const hits = await Promise.all(all.map((l) => caches.match(`data/lessons/${encodeURIComponent(l.id)}.json`)));
-    const n = hits.filter(Boolean).length;
+    const shell = ["./", "app.js", "app.css", "mobile.css", "data/curriculum.json", "data/reading.json", "data/glossary.json"];
+    const files = [...shell, ...all.map((l) => `data/lessons/${encodeURIComponent(l.id)}.json`)];
+    const hits = await Promise.all(files.map((f) => caches.match(f)));
+    const n = hits.slice(shell.length).filter(Boolean).length;
+    const ready = !!navigator.serviceWorker.controller && hits.every(Boolean);
+    const figures = localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL;
     if (!$("#save-state")) return;
-    el.className = "save-state " + (n === all.length ? "ok" : "ng");
-    el.textContent = n === all.length ? `全 ${all.length} レッスンをこの端末に保存済み。電波がなくても読めます`
+    // 準備中は失敗ではないので、注意の朱ではなく静かな色の点
+    el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
+    el.textContent = ready && figures ? `全 ${all.length} レッスンと図をこの端末に保存済み。電波がなくても読めます`
+      : ready ? `全 ${all.length} レッスンを保存済み。図の部品は、次に電波のある所で開いたときに保存されます`
+      : !navigator.serviceWorker.controller ? "オフライン保存の準備中。電波のある所でもう一度開くと、電波なしでも読めるようになります"
       : `保存済み ${n} / ${all.length}。電波のある所でもう一度開くと、残りも保存されます`;
   } catch (e) {
     console.warn("保存の状態を確かめられませんでした", e);
@@ -379,9 +413,9 @@ async function renderLesson(id) {
   const level = meta ? dyeLevel(meta) : 0;
   const steps = [
     ["read", "読む", !!S.read[id]],
-    L.atWork?.length ? ["atwork", "仕事のコード", false] : null,
-    L.samples.length ? ["run", "見る", false] : null,
-    L.sts || L.checklist.length ? ["sts", "STS", L.checklist.length > 0 && L.checklist.every((c) => checked.includes(c.key))] : null,
+    L.atWork?.length ? ["atwork", "仕事のコード", seenSection(id, "atwork")] : null,
+    L.samples.length ? ["run", "見る", seenSection(id, "run")] : null,
+    L.sts || L.checklist.length ? ["sts", "STSで試す", L.checklist.length > 0 && L.checklist.every((c) => checked.includes(c.key)), true] : null,
     L.exercises.length ? ["write", "書く", L.exercises.some((e) => S.exercise[e.key]?.selfPass)] : null,
     L.reading?.length ? ["reading", "読解", L.reading.some((_, i) => S.reading[`${id}@${i}`]?.ok)] : null,
     ["quiz", "確かめる", !!(quiz && quiz.best >= Math.ceil(L.quiz.length * 0.8))],
@@ -396,13 +430,16 @@ async function renderLesson(id) {
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}・${DYE[level].meaning}</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
     </header>
-    <div class="stepper-wrap">
+    <div class="stepper-wrap" style="--ask-w: 56px">
+      <div class="stepper-row">
       <nav class="stepper" aria-label="このレッスンの段">
-        ${steps.map(([key, label, done]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
+        ${steps.map(([key, label, done, pcOnly]) => `<a href="#${key}" data-scroll="${key}" data-step="${key}" class="step ${done ? "done" : ""}">${label}${pcOnly ? ` <span class="pc-only" title="パソコンの STS で手を動かす段">PC</span>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a>`).join("")}
       </nav>
+      <button class="ask" type="button" data-action="tutor" aria-label="AIチューターに質問する">${icon("chat")}</button>
+      </div>
       <div class="sew" aria-hidden="true"></div>
     </div>
-    ${L.goals.length ? `<details class="goals"${S.read[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g)}</li>`).join("")}</ul></details>` : ""}
+    ${L.goals.length ? `<details class="goals"${S.seen?.[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g)}</li>`).join("")}</ul></details>` : ""}
     <section id="read" class="lesson-section" aria-labelledby="read-title">
       <h2 class="visually-hidden" id="read-title">解説</h2>
       <article class="lesson-body md">${L.bodyHtml}</article>
@@ -467,13 +504,14 @@ async function renderLesson(id) {
       ${L.prev ? `<a href="#/lesson/${esc(L.prev)}"><small>前のレッスン</small>${esc(L.prevTitle || "")}</a>` : "<span></span>"}
       ${L.next ? `<a class="next" href="#/lesson/${esc(L.next)}"><small>次のレッスン</small>${esc(L.nextTitle || "")}</a>` : ""}
     </nav>
-    <button class="tutor-fab" data-action="tutor" aria-label="AIチューターに質問する">${icon("chat")}質問する</button>
     <div class="sheet-backdrop" data-action="tutor"></div>
     ${tutorSheet(L)}`;
   bindLesson(L, meta);
   decorate(view());
   trackLesson(id, steps.map(([key]) => key));
 }
+
+const seenSection = (id, key) => !!S.sections?.[id]?.includes(key);
 
 /** 読んでいる段を段の並びに示し、縫い線を進め、「前回の続き」を覚える */
 let lessonTracker = null;
@@ -483,8 +521,11 @@ function trackLesson(id, keys) {
   const stepper = $(".stepper");
   const sew = $(".sew");
   if (!stepper || !sections.length) return;
-  S.last = { id, section: S.last?.id === id ? S.last.section : "read" };
+  const resumeY = S.last?.id === id && pendingSection ? S.last.y : null;
+  S.last = { id, section: S.last?.id === id ? S.last.section : "read", y: S.last?.id === id ? S.last.y : 0 };
+  S.seen = Object.assign(S.seen || {}, { [id]: true });
   save();
+  let saveTimer = null;
   let current = null;
   const setCurrent = (key) => {
     if (key === current) return;
@@ -494,7 +535,7 @@ function trackLesson(id, keys) {
         a.setAttribute("aria-current", "true");
         // 横に並んだ段の中で、今の段が見える位置まで送る(縦のスクロールは動かさない)
         const left = a.offsetLeft - (stepper.clientWidth - a.offsetWidth) / 2;
-        stepper.scrollTo({ left, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        stepper.scrollTo({ left, behavior: smooth() });
       } else a.removeAttribute("aria-current");
     });
     if (S.last?.id === id && S.last.section !== key) { S.last.section = key; save(); }
@@ -502,8 +543,25 @@ function trackLesson(id, keys) {
   const update = () => {
     const line = 140; // ヘッダーと段の並びの下あたりを「今読んでいる位置」とみなす
     let key = keys[0];
-    for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
+    for (const sec of sections) {
+      const r = sec.getBoundingClientRect();
+      if (r.top <= line) key = sec.id;
+      // 仕事のコード・見るは、段の最後が画面に入ったら「済み」
+      if ((sec.id === "atwork" || sec.id === "run") && r.bottom < innerHeight && !seenSection(id, sec.id)) {
+        S.sections = Object.assign(S.sections || {}, { [id]: [...(S.sections?.[id] || []), sec.id] });
+        save();
+        markStep(sec.id);
+      }
+    }
     setCurrent(key);
+    // 読んでいる位置を覚える(「続きから」で同じ所へ戻る)。最後の前後リンクまで来たら読み切り
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      if (S.last?.id !== id) return;
+      S.last.y = Math.round(scrollY);
+      S.last.end = $(".lesson-nav")?.getBoundingClientRect().top < innerHeight;
+      save();
+    }, 400);
     const first = sections[0].getBoundingClientRect().top + scrollY;
     const lastSec = sections[sections.length - 1];
     const end = lastSec.getBoundingClientRect().bottom + scrollY - innerHeight;
@@ -519,10 +577,12 @@ function trackLesson(id, keys) {
   addEventListener("scroll", onScroll, { passive: true });
   lessonTracker = { disconnect: () => removeEventListener("scroll", onScroll) };
   update();
-  if (pendingSection && pendingSection !== "read") {
+  if (pendingSection) {
     const target = document.getElementById(pendingSection);
-    pendingSection = null;
-    requestAnimationFrame(() => target?.scrollIntoView());
+    requestAnimationFrame(() => {
+      if (resumeY) scrollTo({ top: resumeY, behavior: "auto" });
+      else if (pendingSection !== "read") target?.scrollIntoView();
+    });
   }
   pendingSection = null;
 }
@@ -707,7 +767,7 @@ function bindLesson(L, meta) {
     const jump = ev.target.closest("[data-scroll]");
     if (jump) {
       ev.preventDefault();
-      document.getElementById(jump.dataset.scroll)?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById(jump.dataset.scroll)?.scrollIntoView({ behavior: smooth() });
       return;
     }
     const el = ev.target.closest("[data-action]");
@@ -766,16 +826,22 @@ function bindLesson(L, meta) {
     ev.preventDefault();
     const form = ev.target;
     let score = 0;
-    const rows = L.quiz.map((q, i) => {
+    form.querySelectorAll(".q-explain").forEach((n) => n.remove());
+    L.quiz.forEach((q, i) => {
       const v = form.querySelector(`input[name=q${i}]:checked`);
       const chosen = v ? Number(v.value) : -1;
       const ok = chosen === q.answer;
       if (ok) score++;
       if (chosen >= 0) practice(`${L.id}#${i}`, "quiz", L.id, ok);
-      return `<li class="${ok ? "correct" : "wrong"}"><div class="q-mark">問 ${i + 1} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</div>
-        <div class="md">${q.questionHtml}</div><p class="small">正解: <b>${q.choicesHtml[q.answer]}</b></p>
-        <div class="explanation md">${q.explanationHtml}</div></li>`;
+      const li = form.querySelectorAll(".quiz-q")[i];
+      li.querySelectorAll("label.choice").forEach((label, j) => {
+        label.classList.toggle("is-answer", j === q.answer);
+        label.classList.toggle("is-wrong", j === chosen && !ok);
+      });
+      li.insertAdjacentHTML("beforeend", `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</span>
+        ${ok ? "" : `<p class="small">正解: <b>${q.choicesHtml[q.answer]}</b></p>`}<div class="explanation md">${q.explanationHtml}</div></div>`);
     });
+    decorate(form);
     const prev = S.quiz[L.id];
     S.quiz[L.id] = { best: Math.max(score, prev?.best ?? 0), last: score };
     recordDay();
@@ -784,10 +850,9 @@ function bindLesson(L, meta) {
     if (score >= pass) markStep("quiz");
     $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score} / ${L.quiz.length}</span>
       <span>${score === L.quiz.length ? "満点" : score >= pass ? "合格ライン突破" : `合格ラインは ${pass} 問`}</span></div>${dyedLine(dyed)}
-      <p class="muted small">解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
-      <ol class="quiz-review">${rows.join("")}</ol></div>`;
+      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
-    $("#quiz-result").scrollIntoView({ behavior: "smooth" });
+    $("#quiz-result").scrollIntoView({ behavior: smooth() });
   };
 
   root.querySelector("form[data-action=chat]").onsubmit = async (ev) => {
@@ -1338,6 +1403,8 @@ async function decorate(root) {
       root.querySelectorAll(".mermaid:not([data-processed])").forEach((d) => { d.style.whiteSpace = "pre"; d.style.textAlign = "left"; });
     }
   }
+  // 読むためのコードは折り返す。書き写す・実行するもの(サンプル・演習・本文の例)はそのまま
+  root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   if (window.hljs) {
     root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
@@ -1372,7 +1439,7 @@ function numberLines(code) {
 
 /** 電波のあるうちに、図の描画に使う部品を読み込んでおく(地下鉄で初めて図を開いても描けるように) */
 function warmMermaid() {
-  if (!navigator.onLine || localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL) return;
+  if (!navigator.onLine || !navigator.serviceWorker?.controller || localStorage.getItem("javadojo-m-mermaid") === MERMAID_URL) return;
   const run = async () => {
     try {
       if (!mermaidModule) mermaidModule = (await import(MERMAID_URL)).default;
@@ -1395,23 +1462,13 @@ window.addEventListener("hashchange", () => {
   if (location.hash && !location.hash.startsWith("#/")) {
     const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
     history.replaceState(null, "", currentRoute);
-    target?.scrollIntoView({ behavior: "smooth" });
+    target?.scrollIntoView({ behavior: smooth() });
     return;
   }
   currentRoute = location.hash || "#/";
   render();
   window.scrollTo(0, 0);
 });
-let lastY = scrollY;
-addEventListener("scroll", () => {
-  const fab = $(".tutor-fab");
-  if (fab) {
-    const y = scrollY;
-    if (y > lastY + 6 && y > 200) fab.classList.add("away");
-    else if (y < lastY - 6) fab.classList.remove("away");
-    lastY = y;
-  }
-}, { passive: true });
 window.addEventListener("online", updateHeader);
 window.addEventListener("offline", updateHeader);
 window.addEventListener("load", () => decorate(document));
@@ -1434,3 +1491,4 @@ if ("serviceWorker" in navigator) {
 
 render();
 warmMermaid();
+navigator.serviceWorker?.addEventListener("controllerchange", warmMermaid);
