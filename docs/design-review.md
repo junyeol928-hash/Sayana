@@ -42,6 +42,8 @@ Claude と Codex が交互にレビューし、Awwwards の 4 項目(Design / Us
 | 14 | Claude | 8.0 | 8.0 | 9.0 | 8.5 | いいえ(同上) |
 | 15 | Codex | 8.5 | 8.0 | 9.0 | 8.5 | いいえ(Usability だけ 8.0) |
 | 15 | Claude | 8.5 | 8.5 | 9.0 | 8.5 | **はい**(初めて全項目 8.5 以上) |
+| 16 | Codex | 8.5 | 8.0 | 9.0 | 8.5 | いいえ(Usability だけ 8.0) |
+| 16 | Claude | 8.5 | 8.5 | 9.0 | 8.5 | **はい**(2 回続けて) |
 
 ## 1 回目(撮影: `docs/screenshots/round1/`、全文: [reviews/round1-codex.md](reviews/round1-codex.md)・[reviews/round1-claude.md](reviews/round1-claude.md))
 
@@ -434,3 +436,18 @@ Claude は初めて全項目 8.5 以上(8.5 / 8.5 / 9.0 / 8.5)。Codex は Usabi
 | 用語集のリンク | 押せる高さを 44px に(字の大きさは同じ) |
 | オフラインの撮影 | 撮り直した(16 回目) |
 | 長音記号 | 直していない(見出しの書体に palt がなく、字形の空き。読むのに困らないと両方が判断) |
+
+## 16 回目(撮影: `docs/screenshots/round16/`、全文: [reviews/round16-codex.md](reviews/round16-codex.md)・[reviews/round16-claude.md](reviews/round16-claude.md))
+Claude は 2 回続けて全項目 8.5 以上。Codex は Usability だけ 8.0 で、15 回目の指摘 3 件はどちらも「直った」と判定。Codex は利用上限のため、数時間あとに同じ凍結コミットで審査した。
+
+### 主な指摘
+- スマホの本文の例・サンプルのコード(`pre`)が 760px 以下で 13px。14px にしたのは `pre.code-lines` だけだった(Codex)
+- 用語集の索引の札が幅 40px、虫めがねが幅 32px(高さは 44px)(両方)
+- 「コードを読む」の長音記号の空き(Claude。8.5 には影響しない)
+
+### 直したこと(17 回目の前)
+| 指摘 | 直し方 |
+|---|---|
+| コード 13px | 760px 以下の `pre` も 14px(長い行は横スクロールのまま) |
+| 索引の幅 | 索引の札と虫めがねを幅 44px(字とアイコンの大きさは同じ) |
+| 長音記号 | 見出し(h1)の「ー」だけを包み、両側を -.15em 詰める(中に要素がある見出しは崩さない) |
