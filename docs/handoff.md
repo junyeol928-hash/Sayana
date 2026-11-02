@@ -27,6 +27,6 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - レビュー用の撮影は `scripts/review-shots.mjs`、オフラインの確認は `scripts/offline-check.mjs`(どちらもヘッドレスの Edge)
 
 ## 次に依頼すること
-- Codex の 17 回目の審査(2026-11-05 20:02 以降)。そのときの HEAD を `git worktree add --detach ../Sayana-r18 HEAD` で凍結して審査する(17 回目のあとに AI の回答のコードを 14px にした)。頼む文は 16 回目の文の回数と撮影フォルダ(`docs/screenshots/round17/`)を差し替えたもの。全項目 8.5 以上なら相互レビューは終わり。届かなければ直して撮り直し、もう 1 回
+- 相互レビューはユーザーの判断で 17 回目で終えた(Codex の最後の確認はしていない。design-review.md の末尾)。続けるなら 2026-11-05 20:02 以降に、そのときの HEAD を `git worktree add --detach ../Sayana-r18 HEAD` で凍結して Codex に頼む
 - 終わったら、上の「公開前の確認事項」をユーザーに聞く
 - 後回しにしていること: Spring Boot 3.5 の OSS サポートは 2026-06-30 で終わっている見込み(endoflife.date による。spring.io のページには表が出ず、一次資料では未確認)。4.x への移行は、spring.io の公式の表で確かめてから別の作業として相談
