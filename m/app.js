@@ -291,14 +291,14 @@ function unshin(steps, nowKey) {
 // 大きな題は語の途中で折らない(「コンテ/ナ」にならないように)。語ごとに折り返さない箱に入れ、助詞・記号は前の語につなぐ。
 // word-break: auto-phrase が効かないブラウザでも同じに見えるように、Intl.Segmenter で分ける
 function phraseWrap(el) {
-  if (!el || el.dataset.phrased || !("Segmenter" in Intl)) return;
+  if (!el || el.dataset.phrased || el.children.length || !("Segmenter" in Intl)) return; // 中に要素がある見出しは崩さない
   const words = [];
   for (const { segment, isWordLike } of new Intl.Segmenter("ja", { granularity: "word" }).segment(el.textContent)) {
     if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
     else words.push(segment);
   }
   const latin = (c) => /[\x21-\x7e]/.test(c || "");
-  el.innerHTML = words.map((w, i) => `<span class="phrase${i < words.length - 1 && latin(w.slice(-1)) !== latin(words[i + 1][0]) && !/\s$/.test(w) ? " gap" : ""}">${esc(w).replace(/ /g, " ")}</span>`).join("");
+  el.innerHTML = words.map((w, i) => `<span class="phrase${i < words.length - 1 && latin(w.slice(-1)) !== latin(words[i + 1][0]) && !/\s$/.test(w) ? " gap" : ""}">${esc(w).replace(/ /g, "\u00a0").replace(/ー/g, '<span class="choon">ー</span>')}</span>`).join("");
   el.dataset.phrased = "1";
 }
 
@@ -337,7 +337,7 @@ async function render() {
     view().innerHTML = `<div class="ai-error">読み込めませんでした: ${esc(e.message)}<br>
       電波が無いときは、一度電波のある所で開いてから使ってください(最初の1回で全レッスンが保存されます)。</div>`;
   }
-  document.querySelectorAll(".today-title a, .lesson-hero h1").forEach(phraseWrap);
+  document.querySelectorAll(".today-title a, main h1:not(.today-title)").forEach(phraseWrap);
   updateHeader();
 }
 
