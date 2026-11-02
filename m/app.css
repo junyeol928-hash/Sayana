@@ -916,6 +916,7 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .chat-body { padding: 10px 14px; border-radius: var(--r-l); font-size: .9375rem; line-height: 1.75; }
 .chat-body p { margin: .3em 0; }
 .chat-body pre { font-size: 12.5px; }
+@media (max-width: 760px) { .chat-body pre { font-size: 14px; } } /* スマホは AI の回答のコードも下限の 14px */
 .from-user { text-align: right; }
 .from-user .chat-body { background: var(--accent-soft); display: inline-block; text-align: left; white-space: pre-wrap; max-width: 92%; border-radius: var(--r-l) 4px var(--r-l) var(--r-l); }
 .from-ai .chat-body { background: var(--surface); border: 1px solid var(--line); border-radius: 4px var(--r-l) var(--r-l) var(--r-l); }
