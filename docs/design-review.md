@@ -44,6 +44,8 @@ Claude と Codex が交互にレビューし、Awwwards の 4 項目(Design / Us
 | 15 | Claude | 8.5 | 8.5 | 9.0 | 8.5 | **はい**(初めて全項目 8.5 以上) |
 | 16 | Codex | 8.5 | 8.0 | 9.0 | 8.5 | いいえ(Usability だけ 8.0) |
 | 16 | Claude | 8.5 | 8.5 | 9.0 | 8.5 | **はい**(2 回続けて) |
+| 17 | Codex | — | — | — | — | 利用上限のため未実行(次に使えるのは 2026-11-05 20:02) |
+| 17 | Claude | 9.0 | 8.5 | 9.0 | 8.5 | **はい**(3 回続けて) |
 
 ## 1 回目(撮影: `docs/screenshots/round1/`、全文: [reviews/round1-codex.md](reviews/round1-codex.md)・[reviews/round1-claude.md](reviews/round1-claude.md))
 
@@ -451,3 +453,12 @@ Claude は 2 回続けて全項目 8.5 以上。Codex は Usability だけ 8.0 �
 | コード 13px | 760px 以下の `pre` も 14px(長い行は横スクロールのまま) |
 | 索引の幅 | 索引の札と虫めがねを幅 44px(字とアイコンの大きさは同じ) |
 | 長音記号 | 見出し(h1)の「ー」だけを包み、両側を -.15em 詰める(中に要素がある見出しは崩さない) |
+
+## 17 回目(撮影: `docs/screenshots/round17/`、全文: [reviews/round17-claude.md](reviews/round17-claude.md))
+Claude は 3 回続けて全項目 8.5 以上(Design は 9.0)。16 回目の指摘 3 件はどれも直ったと判定。Codex は利用上限に当たり、審査できなかった(次に使えるのは 2026-11-05 20:02)。
+
+### 直したこと(参考の指摘)
+| 指摘 | 直し方 |
+|---|---|
+| AI の回答のコード 12.5px | 760px 以下は 14px |
+| design.md の古い一文 | スマホはどのコードも 14px、PC はコード 15px・説明 14px に書き直した |

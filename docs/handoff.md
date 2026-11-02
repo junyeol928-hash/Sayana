@@ -10,6 +10,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - Claude ↔ Codex の相互レビューを、両方が Awwwards の 4 項目すべて 8.5 以上になるまで回している。点数と直したことは [design-review.md](design-review.md)、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は利用上限で 5〜12 回目を審査できず、13 回目で 8.1 / 7.7 / 8.3 / 8.2。Claude は 8〜12 回目で 7.6〜8.4 の間で頭打ち(採点者を毎回入れ替えると、毎回別の指摘が出る)
   - 頭打ちを受けて、ユーザーの判断で「顔」(ホームとレッスンの冒頭)を作り直した(3 案から A「大きな札」)。14 回目からは決まった物差し [review-rubric.md](review-rubric.md) で採点する
+  - 点数: Claude は 15・16・17 回目で全項目 8.5 以上(17 回目 9.0 / 8.5 / 9.0 / 8.5)。Codex は 15・16 回目とも Usability だけ 8.0(ほかは 8.5 以上)。指摘はどれも直した。17 回目の Codex は利用上限で審査できていない(次に使えるのは 2026-11-05 20:02)
 - 公開前の確認事項(ユーザーの判断待ち)
   - push・PR・GitHub Pages への公開は、ユーザーが見て OK を出してから
   - ローカル版 Java道場(`C:\Users\yeol0\Claude\Work\Java道場`)とガイドの Artifact を消してよいか(こちらでは消さない)
@@ -26,6 +27,6 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - レビュー用の撮影は `scripts/review-shots.mjs`、オフラインの確認は `scripts/offline-check.mjs`(どちらもヘッドレスの Edge)
 
 ## 次に依頼すること
-- 14 回目の相互レビュー(決まった物差し)を回し、両方が全項目 8.5 以上になるまで続ける。撮影は `docs/screenshots/round14/`
+- Codex の 17 回目の審査(2026-11-05 20:02 以降)。そのときの HEAD を `git worktree add --detach ../Sayana-r18 HEAD` で凍結して審査する(17 回目のあとに AI の回答のコードを 14px にした)。頼む文は 16 回目の文の回数と撮影フォルダ(`docs/screenshots/round17/`)を差し替えたもの。全項目 8.5 以上なら相互レビューは終わり。届かなければ直して撮り直し、もう 1 回
 - 終わったら、上の「公開前の確認事項」をユーザーに聞く
 - 後回しにしていること: Spring Boot 3.5 の OSS サポートは 2026-06-30 で終わっている見込み(endoflife.date による。spring.io のページには表が出ず、一次資料では未確認)。4.x への移行は、spring.io の公式の表で確かめてから別の作業として相談
