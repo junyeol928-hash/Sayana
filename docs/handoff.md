@@ -15,6 +15,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - 実機のスマホでの見た目と操作は、まだ確かめていない(ヘッドレスの Edge の撮影とオフラインの確認だけ)
 
 ## 変更内容(直近)
+- 公開中の `m/sw.js` の `VERSION` が中身と合っていなかった(新しく checkout した `main` で `MobileSiteTest` が落ちた)ので作り直した。中身のファイルは同じで、保存の版の名前だけが変わる
 - PR #7 を `main` にマージして公開した。公開後に Pages のファイル(画面・CSS・JS・見出しの書体・教材のデータ)が取れること、Service Worker が手元の最新版と同じこと、公開 URL でホームとレッスンの冒頭が新しい顔で出ることを確かめた
 - 顔の作り直し(14 回目): 見出しの書体 Zen Kaku Gothic New(OFL)を使う文字だけに絞って同梱(`scripts/subset-heading-font.py`、題の字が足りないと `HeadingFontTest` が落ちる)。ホームとレッスンの冒頭に藍の軸と縦書きの部・章、題は長さで 3 段の大きさ(`titleSize`)と語の途中で折らない `phraseWrap`。レッスンの段を針目で見せる「運針」。PC のホームは上の帯に大きな札と染まりの地図
 - 仕事に見える名前を一般的な名前に置き換え、仕事での呼び名を括弧で添えた(例: CryptoClient(仕事では HsmClient)、受付サーバ(仕事では Front サーバ)、コマンド電文(仕事では APDU))。ユーザーの指示で、仕事の名前は括弧の中に残している
@@ -29,4 +30,6 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 ## 次に依頼すること
 - 相互レビューはユーザーの判断で 17 回目で終えた(Codex の最後の確認はしていない。design-review.md の末尾)。続けるなら 2026-11-05 20:02 以降に、そのときの HEAD を `git worktree add --detach ../Sayana-r18 HEAD` で凍結して Codex に頼む
 - 教材や画面を変えたら、`./mvnw -q compile exec:java` で `m/` を作り直し、`./mvnw test` を通してから PR にする(`main` に入ると Pages に出る)
-- 後回しにしていること: Spring Boot 3.5 の OSS サポートは 2026-06-30 で終わっている見込み(endoflife.date による。spring.io のページには表が出ず、一次資料では未確認)。4.x への移行は、spring.io の公式の表で確かめてから別の作業として相談
+- Spring Boot の移行: いまは 3.5.16。spring.io の Support の表(https://spring.io/projects/spring-boot#support 。表は JavaScript で出るのでブラウザで開く)で 2026-11-02 に確かめた: 3.5 の OSS サポートは 2026-06 に終了済み(商用は 2032-06)、4.0 は 2026-12、4.1 は 2027-07、4.2 は 2027-12 まで。正式版の最新は 4.1.2、4.2.0 は RC1
+  - ユーザーの判断: 4.2 の正式版(2026-11 の予定)が出てから 4.2 に移す。4.0 は OSS の残りが短いので飛ばす
+  - 4.2 が出たら、移行ガイドで変わる所を確かめて計画を出し、別の作業として進める。教材の表(`content/03-spring/01-core/02-spring-boot-startup/lesson.md` のサポート期間)と、3.5.16 を書いている教材(Maven のレッスンなど)もあわせて直す
