@@ -1,0 +1,33 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Spring 入門:DI と Bean"
+  intro: "受付サーバ(仕事では Front サーバ)の Service を、実務の形に近づけた例です。名前は一般的なものにしてあります(仕事では Handshake〜 は SessionStart〜、CryptoClient は HsmClient、BackendClient は BackApiClient、deviceChallenge は cardChallenge)。コンストラクタは Lombok の @RequiredArgsConstructor が生成します。「部品」(final フィールド)と「処理中の値」(引数とローカル変数)の区別に注目してください。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class HandshakeService {
+
+        private final SessionRepository sessionRepository;
+        private final CryptoClient cryptoClient;
+        private final BackendClient backendClient;
+        private final Clock clock;
+
+        public HandshakeResult start(String cardId, byte[] hostChallenge) {
+            byte[] deviceChallenge = backendClient.requestChallenge(cardId);
+            byte[] sessionKey = cryptoClient.deriveSessionKey(cardId, hostChallenge, deviceChallenge);
+            SessionEntity session = SessionEntity.open(cardId, clock.instant());
+            sessionRepository.save(session);
+            return new HandshakeResult(session.getId(), sessionKey);
+        }
+    }
+  notes:
+    1: "Bean にする印。Spring が起動時にこのクラスを1個作る"
+    2: "final フィールド4つを引数にとるコンストラクタが自動生成される = 4つとも注入"
+    7: "業務サーバ(仕事では Back サーバ)を呼ぶ部品。中身は RestTemplate や WebClient を包んだクラス(Web 章)"
+    8: "java.time.Clock も Bean にしておくと、テストで時刻を固定できる"
+    10: "処理中の値(cardId など)は引数とローカル変数だけ。フィールドには置かない"
+    13: "SessionEntity は Spring の Bean ではなく、処理のたびに new する普通のオブジェクト"
+  points:
+    - "final フィールドの一覧 = このクラスが使う部品の一覧。コンストラクタは Lombok が作っている"
+    - "各部品の型(SessionRepository など)を検索し、@Repository / @Component / @Bean のどれで作られているか確認する"
+    - "Entity や DTO(処理のたびに作るデータ)は Bean ではない。new しているのが正常"
+    - "フィールドに final でない「値」があったら、singleton での状態共有バグを疑う"

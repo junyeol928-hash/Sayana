@@ -1,0 +1,41 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "アノテーションの仕組み"
+  intro: "1つの Controller に、Spring / Lombok / Validation / Jackson / 自作アノテーションが同居しています。それぞれ「誰が読むか」を意識して眺めてください。"
+  code: |
+    @RestController
+    @RequestMapping("/api/keys")
+    @RequiredArgsConstructor
+    public class KeyController {
+
+        private final KeyService keyService;
+
+        @PostMapping
+        @Audited("ISSUE_KEY")
+        public ResponseEntity<KeyResponse> issue(@Valid @RequestBody IssueKeyRequest req) {
+            Key key = keyService.issue(req.userId(), req.keyType());
+            return ResponseEntity.status(HttpStatus.CREATED).body(KeyResponse.from(key));
+        }
+
+        public record IssueKeyRequest(
+                @NotBlank String userId,
+                @NotNull KeyType keyType) {}
+
+        public record KeyResponse(
+                @JsonProperty("key_id") String keyId,
+                @JsonFormat(pattern = "yyyy-MM-dd") LocalDate expiresOn) {
+            static KeyResponse from(Key k) { return new KeyResponse(k.getId(), k.getExpiresOn()); }
+        }
+    }
+  notes:
+    1: "Spring(実行時):このクラスを Bean にし、戻り値を JSON にする"
+    3: "Lombok(コンパイル時):final フィールド keyService を受け取るコンストラクタを生成。Spring がそれを使って注入する"
+    8: "Spring(実行時):POST /api/keys をこのメソッドに対応付ける"
+    9: "自作(実行時・AOP):AuditAspect がこの前後で監査ログを書く。メソッド内には無い"
+    10: "@Valid(Validation):req の @NotBlank / @NotNull を検証。@RequestBody(Spring):JSON → record"
+    20: "Jackson(実行時):JSON のキー名を keyId ではなく key_id にする"
+    21: "Jackson(実行時):LocalDate を \"2026-09-16\" 形式で出す"
+  points:
+    - "import の先頭(org.springframework / lombok / jakarta / com.fasterxml)でライブラリを判別する"
+    - "Lombok のアノテーションは「ソースに無いメソッドが存在する」ことを意味する。getter や log が見当たらなければ Lombok を疑う"
+    - "@Valid・@Transactional・@Audited のような「メソッドに付く」アノテーションは、メソッド本体の外側で処理が動く。本体だけ読んでも全体は分からない"
+    - "自作アノテーション(プロジェクトのパッケージ)を見たら、Xxx.class で検索して Aspect や処理クラスを探す"

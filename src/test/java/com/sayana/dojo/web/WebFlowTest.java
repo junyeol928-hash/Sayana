@@ -2,6 +2,7 @@ package com.sayana.dojo.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -56,10 +57,17 @@ class WebFlowTest {
     @Test
     @DisplayName("主要な画面が表示できる")
     void pages() throws Exception {
-        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(containsString("第1部 Java基礎")));
+        mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(containsString("第1部 Java基礎")))
+                .andExpect(content().string(containsString("染まり具合")));
+        mvc.perform(get("/reading")).andExpect(status().isOk()).andExpect(content().string(containsString("1 行ずつの追跡")));
+        mvc.perform(get("/glossary")).andExpect(status().isOk()).andExpect(content().string(containsString("用語集")));
+        mvc.perform(get("/lessons/java-classes")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("仕事のコードではこう出てくる")))
+                .andExpect(content().string(containsString("このレッスンの用語")));
         mvc.perform(get("/lessons/java-hello")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("STSでやってみよう")))
-                .andExpect(content().string(containsString("AI機能はオフです")));
+                .andExpect(content().string(containsString("AI は未設定です")))
+                .andExpect(content().string(not(containsString("AI OFF"))));
         // 準備中のレッスンが残っていれば、その表示も確かめる
         var planned = content.allLessons().stream().filter(l -> !l.ready()).findFirst();
         if (planned.isPresent()) {
@@ -140,9 +148,9 @@ class WebFlowTest {
     void checklist() throws Exception {
         String key = content.lesson("java-hello").orElseThrow().checklist().get(0).key();
         mvc.perform(post("/lessons/java-hello/checklist").param("key", key))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("✅")));
+                .andExpect(status().isOk()).andExpect(content().string(containsString("aria-pressed=\"true\"")));
         mvc.perform(post("/lessons/java-hello/checklist").param("key", key))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("⬜")));
+                .andExpect(status().isOk()).andExpect(content().string(containsString("aria-pressed=\"false\"")));
     }
 
     @Test

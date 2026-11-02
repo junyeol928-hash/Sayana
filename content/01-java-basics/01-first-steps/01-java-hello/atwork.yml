@@ -1,0 +1,33 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Java とプログラムの全体像"
+  intro: "Spring Boot のプロジェクトは、フォルダの置き方が決まっています。HelloWorld と同じ main メソッドは1つだけ。あとの Controller や Service は「Spring が必要なときに呼ぶ」ので、main から直接呼ばれる行はどこにもありません。"
+  code: |
+    order-app/
+    ├── pom.xml                         ← 使う部品(ライブラリ)の一覧。Gradle なら build.gradle
+    ├── src/main/java/com/example/order/
+    │   ├── OrderApplication.java       ← main はここだけ
+    │   ├── controller/OrderController.java
+    │   ├── service/OrderService.java
+    │   └── repository/OrderRepository.java
+    └── src/main/resources/
+        ├── application.yml             ← DB の接続先やポート番号などの設定
+        └── templates/                  ← 画面(HTML)。REST API だけなら無いこともある
+
+    // OrderApplication.java
+    @SpringBootApplication
+    public class OrderApplication {
+        public static void main(String[] args) {
+            SpringApplication.run(OrderApplication.class, args);
+        }
+    }
+  notes:
+    2: "「どの部品を使うか」が書いてある。Spring Boot 本体、DB ドライバ、Lombok など。読解の最初に眺めると使っている技術が分かる"
+    4: "プロジェクトで唯一の main。HelloWorld と同じ形"
+    9: "yml(ヤムル)形式の設定ファイル。コードに埋め込まれていない値はここを探す"
+    13: "「これは Spring Boot アプリです。同じフォルダ以下のクラスを全部調べて準備して」という印(Spring 章で詳しく)"
+    16: "この1行で Spring が起動し、Controller や Service を自動で見つけて待機状態にする。以降はリクエストが来るたびに Spring が Controller を呼ぶ"
+  points:
+    - "main は OrderApplication に1つだけ。ここから Controller を呼ぶ行は無く、呼ぶのは Spring の仕事"
+    - "src/main/java がコード、src/main/resources が設定とテンプレート。src/test/java にはテストコードが入る"
+    - "フォルダ名(controller / service / repository)がそのまま MVC の役割分担になっている"
+    - "設定値(ポート、DB 接続先、タイムアウト)はコードではなく application.yml を探す"

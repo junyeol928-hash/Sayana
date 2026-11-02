@@ -1,0 +1,44 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "スレッドと並行処理の基礎"
+  intro: "業務コードでは、外部装置や外部APIへのアクセスを直列化するコード、タイムアウト付きの Future、CompletableFuture のチェーンがよく登場します。「誰と誰が同時に動き得るか」を意識して読みます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    @Slf4j
+    public class CryptoKeyService {
+
+        private final ExecutorService cryptoExecutor = Executors.newSingleThreadExecutor();
+        private final CryptoClient cryptoClient;
+
+        public String issueKey(String userId) {
+            Future<String> future = cryptoExecutor.submit(() -> cryptoClient.generateKey(userId));
+            try {
+                return future.get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+                log.error("crypto timeout userId={}", userId, e);
+                throw new KeyIssueException("crypto timeout", e);
+            } catch (Exception e) {
+                throw new KeyIssueException("crypto error", e);
+            }
+        }
+
+        public CompletableFuture<Void> notifyAsync(String userId) {
+            return CompletableFuture.runAsync(() -> notificationClient.send(userId))
+                    .exceptionally(ex -> {
+                        log.warn("notify failed userId={}", userId, ex);
+                        return null;
+                    });
+        }
+    }
+  notes:
+    6: "単一スレッドの ExecutorService。暗号装置(仕事では HSM)へのアクセスを常に1つずつに直列化する意図の目印。CryptoKeyService・CryptoClient は仕事では HsmKeyService・HsmClient"
+    9: "実際の装置アクセスは cryptoExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる"
+    11: "タイムアウト付きの get。5秒で応答が無ければ諦める"
+    21: "通知は失敗しても本処理を止めたくないので、非同期(CompletableFuture)で別スレッドに任せている"
+    22: "exceptionally は「失敗したときだけ」処理をつなぐ。Optional の orElseGet に近い発想"
+  points:
+    - "ExecutorService が newSingleThreadExecutor かどうかで「直列化の意図があるか」を判断する"
+    - "Future.get() / CompletableFuture.join() にタイムアウトの引数があるかを確認する"
+    - "@Service のフィールドのうち、ExecutorService や Map などが final で final ならスレッドセーフか(直列化やConcurrent系か)を確認する"
+    - "非同期(@Async や CompletableFuture)にしている処理は「失敗しても本処理に影響してよいか」で意図を判断する"

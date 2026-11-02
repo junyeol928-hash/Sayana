@@ -1,0 +1,310 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "2つのインスタンスは別々の状態を持つ"
+  level: 1
+  code: |
+    public class Wallet {
+        int balance;
+        void deposit(int amount) {
+            balance += amount;
+        }
+    }
+
+    Wallet w1 = new Wallet();
+    Wallet w2 = new Wallet();
+    w1.deposit(100);
+    w1.deposit(50);
+    w2.deposit(30);
+    System.out.println(w1.balance + " " + w2.balance);
+  question: "出力は?"
+  choices:
+    - "150 30"
+    - "180 180"
+    - "150 0"
+    - "180 30"
+  answer: 0
+  explanation: "w1 と w2 は別々の実体で、balance の箱もそれぞれ持っています。w1 には 100 + 50 = 150、w2 には 30 が入ります。"
+  trace:
+    - "8〜9行目: 実体を2つ作る。それぞれ balance = 0"
+    - "10〜11行目: w1 の balance が 100 → 150"
+    - "12行目: w2 の balance が 30"
+    - "13行目: \"150 30\""
+- title: "同じ実体を2つの変数が指す"
+  level: 2
+  code: |
+    Wallet w1 = new Wallet();
+    Wallet w2 = w1;
+    Wallet w3 = new Wallet();
+    w1.deposit(100);
+    w2.deposit(20);
+    w3.deposit(5);
+    System.out.println(w1.balance + " " + w2.balance + " " + w3.balance);
+  question: "出力は?"
+  choices:
+    - "100 20 5"
+    - "120 120 5"
+    - "120 20 5"
+    - "125 125 125"
+  answer: 1
+  explanation: "w2 = w1 は住所のコピーなので、w1 と w2 は同じ実体を指します。どちら経由で deposit しても同じ balance が増えて 120。w3 は別の実体なので 5 です。new の回数(2回)= 実体の数、と数えるのがコツです。"
+  trace:
+    - "1行目: 実体 A を作り w1 が指す"
+    - "2行目: w2 も実体 A を指す(コピーされたのは住所)"
+    - "3行目: 実体 B を作り w3 が指す"
+    - "4〜5行目: 実体 A の balance が 100 → 120"
+    - "6行目: 実体 B の balance が 5"
+    - "7行目: \"120 120 5\""
+- title: "static フィールドと インスタンスフィールド"
+  level: 2
+  code: |
+    public class Visitor {
+        static int total = 0;
+        int myNo;
+
+        void enter() {
+            total++;
+            myNo = total;
+        }
+    }
+
+    Visitor a = new Visitor();
+    Visitor b = new Visitor();
+    a.enter();
+    b.enter();
+    a.enter();
+    System.out.println(a.myNo + " " + b.myNo + " " + Visitor.total);
+  question: "出力は?"
+  choices:
+    - "1 2 3"
+    - "3 2 3"
+    - "2 1 3"
+    - "3 3 3"
+  answer: 1
+  explanation: "total は static なので全員で共有され、enter() が3回呼ばれて 3 になります。myNo は実体ごとで、「そのとき の total」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。"
+  trace:
+    - "13行目: a.enter() → total = 1、a.myNo = 1"
+    - "14行目: b.enter() → total = 2、b.myNo = 2"
+    - "15行目: a.enter() → total = 3、a.myNo = 3(上書き)"
+    - "16行目: \"3 2 3\""
+- title: "this の付け忘れ"
+  level: 2
+  code: |
+    public class Item {
+        private String code;
+
+        public void setCode(String code) {
+            code = code;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
+
+    Item item = new Item();
+    item.setCode("A-100");
+    System.out.println(item.getCode());
+  question: "出力は?"
+  choices:
+    - "A-100"
+    - "null"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 1
+  explanation: "5行目の code = code; は「引数を引数に代入」しているだけで、フィールド code には何も入りません。this.code = code; と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。"
+  trace:
+    - "13行目: Item を作る。フィールド code は null"
+    - "14行目: setCode(\"A-100\") → 5行目で引数 code に引数 code を代入(意味なし)。フィールドは null のまま"
+    - "15行目: getCode() は フィールド code を返す → null"
+- title: "ローカル変数がフィールドを隠す"
+  level: 3
+  code: |
+    public class Box {
+        private int count = 10;
+
+        void show() {
+            int count = 1;
+            System.out.println(count + " " + this.count);
+        }
+
+        static void report() {
+            System.out.println(count);
+        }
+    }
+  question: "このコードは?"
+  choices:
+    - "show() は \"1 10\" と表示し、report() は 10 と表示する"
+    - "show() は \"10 10\" と表示する"
+    - "report() でコンパイルエラーになる"
+    - "show() でコンパイルエラーになる"
+  answer: 2
+  explanation: "show() の中では、ローカル変数 count(1)がフィールド count(10)を隠します。名前だけの count はローカル変数、this.count はフィールドなので \"1 10\" になります。しかし report() は static メソッドで、static でないフィールド count を参照しているためコンパイルエラーです。"
+  trace:
+    - "5行目: ローカル変数 count = 1 を宣言。同名のフィールドは this.count でしか見えなくなる"
+    - "6行目: count は 1、this.count は 10 → \"1 10\"(ここは問題ない)"
+    - "10行目: static メソッドから インスタンスフィールド count を参照 → 「どの実体の count か」決まらない → コンパイルエラー"
+    - "結果: コンパイルが通らないので、何も実行されない"
+- title: "どのコンストラクタが選ばれる?"
+  level: 1
+  code: |
+    public class Ticket {
+        private String seat;
+        private int price;
+
+        public Ticket(String seat) {
+            this.seat = seat;
+            this.price = 1000;
+        }
+
+        public Ticket(String seat, int price) {
+            this.seat = seat;
+            this.price = price;
+        }
+
+        public String info() {
+            return seat + "/" + price;
+        }
+    }
+
+    Ticket a = new Ticket("A-1");
+    Ticket b = new Ticket("B-2", 1500);
+    System.out.println(a.info() + " " + b.info());
+  question: "出力は?"
+  choices:
+    - "A-1/1000 B-2/1500"
+    - "A-1/0 B-2/1500"
+    - "A-1/1500 B-2/1500"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "引数1つなら Ticket(String) が選ばれて price は 1000 固定。引数2つなら Ticket(String, int) が選ばれて price は 1500 です。引数の数で動くコンストラクタが決まります。"
+  trace:
+    - "20行目: 引数1つ → 5行目のコンストラクタ → seat = \"A-1\"、price = 1000"
+    - "21行目: 引数2つ → 10行目のコンストラクタ → seat = \"B-2\"、price = 1500"
+    - "22行目: \"A-1/1000 B-2/1500\""
+- title: "this(...) の連鎖を追う"
+  level: 2
+  code: |
+    public class Room {
+        private String name;
+        private int capacity;
+
+        public Room() {
+            this("未設定");
+            System.out.println("C");
+        }
+
+        public Room(String name) {
+            this(name, 4);
+            System.out.println("B");
+        }
+
+        public Room(String name, int capacity) {
+            this.name = name;
+            this.capacity = capacity;
+            System.out.println("A");
+        }
+    }
+
+    new Room();
+  question: "出力の順番は?"
+  choices:
+    - "C B A"
+    - "A B C"
+    - "C のみ"
+    - "A のみ"
+  answer: 1
+  explanation: "this(...) は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。Room() → Room(String) → Room(String, int) と潜っていき、いちばん奥の A から順に表示されます。"
+  trace:
+    - "22行目: new Room() → 5行目 Room() に入る"
+    - "6行目: this(\"未設定\") → 10行目 Room(String) に入る(7行目はまだ)"
+    - "11行目: this(name, 4) → 15行目 Room(String, int) に入る(12行目はまだ)"
+    - "16〜18行目: フィールド保存 → \"A\" を表示 → 戻る"
+    - "12行目: \"B\" を表示 → 戻る"
+    - "7行目: \"C\" を表示 → 完成"
+- title: "初期化子とコンストラクタ、どちらが勝つ?"
+  level: 2
+  code: |
+    public class Config {
+        private int retry = 3;
+        private String mode = "safe";
+
+        public Config(String mode) {
+            this.mode = mode;
+        }
+
+        public String show() {
+            return retry + ":" + mode;
+        }
+    }
+
+    Config c = new Config("fast");
+    System.out.println(c.show());
+  question: "出力は?"
+  choices:
+    - "0:fast"
+    - "3:safe"
+    - "3:fast"
+    - "0:null"
+  answer: 2
+  explanation: "初期化子で retry = 3、mode = \"safe\" になったあと、コンストラクタ本体で mode だけ \"fast\" に上書きされます。retry はコンストラクタで触っていないので初期化子の 3 のままです。"
+  trace:
+    - "14行目: new → 既定値(retry=0, mode=null)→ 初期化子(retry=3, mode=\"safe\")"
+    - "5〜6行目: コンストラクタ本体で mode = \"fast\"(retry はそのまま)"
+    - "15行目: \"3:fast\""
+- title: "コンストラクタの中の this 忘れ"
+  level: 2
+  code: |
+    public class Profile {
+        private String nickname;
+
+        public Profile(String nickname) {
+            nickname = nickname;
+        }
+
+        public String getNickname() {
+            return nickname;
+        }
+    }
+
+    Profile p = new Profile("neko");
+    System.out.println(p.getNickname());
+  question: "出力は?"
+  choices:
+    - "neko"
+    - "null"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 1
+  explanation: "5行目は引数 nickname を引数 nickname に代入しているだけで、フィールドには何も入りません。this.nickname = nickname; が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。"
+  trace:
+    - "13行目: new Profile(\"neko\") → フィールド nickname は null"
+    - "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)"
+    - "14行目: getNickname() はフィールドを返す → null"
+- title: "Lombok が作るコンストラクタを推測する"
+  level: 3
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class ReportService {
+        private final ReportRepository reportRepository;
+        private MailSender mailSender;
+        private static final int LIMIT = 100;
+
+        public void send(Long id) {
+            Report r = reportRepository.findById(id).orElseThrow();
+            mailSender.send(r);
+        }
+    }
+  question: "Spring がこのクラスを作って send を呼んだとき、何が起きる?"
+  choices:
+    - "正常にメールが送られる"
+    - "reportRepository が null で NullPointerException"
+    - "mailSender が null で NullPointerException"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "@RequiredArgsConstructor は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、mailSender は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、mailSender は null のまま。10行目で NullPointerException です。final の付け忘れが原因です。"
+  trace:
+    - "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)"
+    - "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま"
+    - "6行目: static final の定数はインスタンスの初期化とは無関係"
+    - "9行目: reportRepository は注入済みなので動く"
+    - "10行目: mailSender が null → NullPointerException"

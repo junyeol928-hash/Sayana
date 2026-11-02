@@ -45,11 +45,27 @@ class CurriculumTest {
     }
 
     @Test
-    @DisplayName("4部構成・全50レッスンがすべて公開されている")
+    @DisplayName("4部構成・全55レッスンがすべて公開されている")
     void curriculumShape() {
         assertThat(CONTENT.parts()).hasSize(4);
-        assertThat(CONTENT.allLessons()).hasSize(50);
+        assertThat(CONTENT.allLessons()).hasSize(55);
         assertThat(CONTENT.allLessons()).allSatisfy(l -> assertThat(l.ready()).as(l.id()).isTrue());
+    }
+
+    @Test
+    @DisplayName("ローカル版から移した読解171問・仕事のコード36件・用語405語がそろっていて、読解の答えは選択肢の中にある")
+    void migratedFromLocalDojo() {
+        assertThat(CONTENT.readyLessons().stream().mapToInt(l -> l.reading().size()).sum()).isEqualTo(171);
+        assertThat(CONTENT.readyLessons().stream().mapToInt(l -> l.atWork().size()).sum()).isEqualTo(36);
+        assertThat(CONTENT.glossary()).hasSize(405);
+        for (Lesson l : CONTENT.readyLessons()) {
+            l.reading().forEach(r -> {
+                assertThat(r.code()).as(l.id() + " の読解のコード").isNotBlank();
+                assertThat(r.answer()).as(l.id() + " / " + r.title()).isBetween(0, r.choicesHtml().size() - 1);
+            });
+            l.atWork().forEach(a -> a.notesHtml().keySet().forEach(n -> assertThat(n)
+                    .as(l.id() + " の仕事のコードの行番号").isBetween(1, (int) a.code().lines().count())));
+        }
     }
 
     @Test

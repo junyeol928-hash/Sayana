@@ -1,6 +1,6 @@
 // Java道場 スマホ版の Service Worker(MobileSiteGenerator が生成。直接編集しない)
 // 最初に開いたときに全レッスンを保存して、電波が無くても開けるようにする。
-const VERSION = "92a6e8754d07";
+const VERSION = "a574dc3221a1";
 const CACHE = "javadojo-m-" + VERSION;
 const RUNTIME = "javadojo-m-runtime";
 const FILES = [
@@ -8,6 +8,7 @@ const FILES = [
   "app.css",
   "app.js",
   "data/curriculum.json",
+  "data/glossary.json",
   "data/lessons/capstone-api-test.json",
   "data/lessons/capstone-apply.json",
   "data/lessons/capstone-approve.json",
@@ -17,9 +18,11 @@ const FILES = [
   "data/lessons/capstone-security.json",
   "data/lessons/capstone-setup.json",
   "data/lessons/java-abstract-interface.json",
+  "data/lessons/java-annotations.json",
   "data/lessons/java-arrays.json",
   "data/lessons/java-classes.json",
   "data/lessons/java-collections.json",
+  "data/lessons/java-concurrency.json",
   "data/lessons/java-datetime.json",
   "data/lessons/java-encapsulation.json",
   "data/lessons/java-exceptions.json",
@@ -29,9 +32,11 @@ const FILES = [
   "data/lessons/java-if.json",
   "data/lessons/java-inheritance.json",
   "data/lessons/java-junit.json",
+  "data/lessons/java-jvm-memory.json",
   "data/lessons/java-lambda-stream.json",
   "data/lessons/java-loops.json",
   "data/lessons/java-methods.json",
+  "data/lessons/java-nested-classes.json",
   "data/lessons/java-operators.json",
   "data/lessons/java-optional.json",
   "data/lessons/java-polymorphism.json",
@@ -48,6 +53,7 @@ const FILES = [
   "data/lessons/spring-layers.json",
   "data/lessons/spring-logging.json",
   "data/lessons/spring-mockmvc.json",
+  "data/lessons/spring-reading-code.json",
   "data/lessons/spring-rest.json",
   "data/lessons/spring-security.json",
   "data/lessons/spring-thymeleaf.json",
@@ -59,6 +65,10 @@ const FILES = [
   "data/lessons/tools-git.json",
   "data/lessons/tools-maven.json",
   "data/prompts.json",
+  "data/reading.json",
+  "fonts/OFL.txt",
+  "fonts/zen-kaku-gothic-new-700.woff2",
+  "fonts/zen-kaku-gothic-new-900.woff2",
   "icon.svg",
   "index.html",
   "manifest.webmanifest",
@@ -68,7 +78,6 @@ const FILES = [
 const CDN = [
   "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs",
   "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.10.0/build/highlight.min.js",
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.10.0/build/styles/github.min.css",
   "https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.esm.js",
 ];
 

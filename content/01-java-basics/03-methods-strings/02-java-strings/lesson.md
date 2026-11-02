@@ -22,6 +22,8 @@ System.out.println(s);    // JAVA
 
 `s.toUpperCase();` だけ書いてもコンパイルエラーにならないので、ハマる人が続出します。`replace`・`strip`・`substring` も同じです。
 
+<figure class="figure"><svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-strings-arrow16a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker><marker id="java-strings-arrow16b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-muted)"/></marker></defs><text x="20" y="26" font-size="14" fill="var(--ink-muted)">name = name + "!";  の前後</text><rect x="20" y="70" width="100" height="56" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="70" y="104" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">name</text><rect x="250" y="46" width="130" height="50" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="315" y="77" font-size="18" font-weight="700" text-anchor="middle" fill="var(--ink-muted)">"java"</text><text x="400" y="77" font-size="13" fill="var(--ink-muted)">← 変更されない(そのまま残る)</text><rect x="250" y="120" width="130" height="50" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="315" y="151" font-size="18" font-weight="700" text-anchor="middle" fill="var(--ink)">"java!"</text><text x="400" y="151" font-size="13" fill="var(--ink)">← 新しく作られた文字列</text><path d="M120 92 L245 72" stroke="var(--ink-muted)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#java-strings-arrow16b)"/><text x="160" y="66" font-size="12" fill="var(--ink-muted)">前</text><path d="M120 104 L245 140" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-strings-arrow16a)"/><text x="160" y="140" font-size="12" fill="var(--accent)">後</text></svg><figcaption>不変のイメージ(例は name = name + "!"):元の文字列は書き換わらず、変数が新しい文字列を指し直す</figcaption></figure>
+
 なぜ不変なのか。同じ文字列を複数の変数やスレッドで **安全に共有** できるからです。誰かが勝手に書き換える心配がないので、次の「文字列プール」で使い回せ、ファイルパスや接続先を渡しても途中で改ざんされません。
 
 ## == と equals、文字列プール
@@ -61,6 +63,8 @@ String rank = null;
 "GOLD".equals(rank);   // false(安全)
 rank.equals("GOLD");   // NullPointerException
 ```
+
+比べる **両方** が null かもしれない(変数同士の比較)なら、`java.util.Objects.equals(a, b)` が使えます。片方だけ null なら `false`、両方 null なら `true` を返し、例外は出しません。
 
 ## よく使うメソッド
 

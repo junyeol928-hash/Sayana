@@ -1,0 +1,30 @@
+title: 握りつぶされた例外とトランザクションの境界を直す
+className: KeyRotationService
+difficulty: 3
+libraries: [spring]
+problem: |
+  鍵の更新(ローテーション)を担当する `KeyRotationService` について、運用チームから報告がありました。
+
+  > 暗号装置(鍵を作る専用の装置。仕事では HSM。名前も Crypto〜 は Hsm〜)が一時的に落ちていた時間帯に更新したカードが、**有効な鍵を1つも持っていない** 状態になっています。エラーのログもありません。
+
+  `rotate(cardId)` の処理詳細はこうです。
+
+  | 項番 | 処理内容 |
+  |---|---|
+  | 1 | そのカードの `ACTIVE` な鍵を `REVOKED`(失効)にする |
+  | 2 | 暗号装置に新しい鍵を作ってもらう |
+  | 3 | 新しい鍵を `ACTIVE` で保存し、その鍵 ID を返す |
+  | 4 | 2 が失敗したら **1 も含めて全部取り消し**、`KeyRotationFailedException` を投げる |
+
+  コードを読み、**トランザクションの境界(どこで始まり、どこでコミット/ロールバックが決まるか)** と **例外がどこで止まっているか** を確かめて、項番4のとおりに直してください。
+
+  - `crypto.generateKey` は失敗すると `CryptoException`(`Exception` を継承した **検査例外**)を投げます
+  - `KeyRotationFailedException`(`RuntimeException`)は用意済みです。コンストラクタに `cardId` と原因の例外を渡せます
+  - 成功したときの動き(新しい鍵 ID を返す)は変えないでください
+
+  ヒント:
+  - `@Transactional` のメソッドは、**例外が外に出たとき** にロールバックを考えます。中で catch して普通に `return` すると、成功扱いでコミットされます
+  - 既定でロールバックされるのは `RuntimeException` と `Error` だけでした(第3部3章「トランザクション」)
+
+  ※ 採点では、DB の代わりに「開始・コミット・ロールバック」を記録し、ロールバック時に `KeyStore` を開始時の状態に戻すトランザクションマネージャを使います。
+  STS では `KeyRotationService` に `@Service` を付け、`KeyStore` の代わりに Spring Data JPA の Repository を使います。

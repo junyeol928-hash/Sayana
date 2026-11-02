@@ -171,6 +171,10 @@ String mypage(@AuthenticationPrincipal UserDetails me,
 }
 ```
 
+この `me` はどこから来るのか。ログインに成功すると、フィルタが認証情報を **SecurityContextHolder** という入れ物にしまいます(既定では、そのリクエストを処理しているスレッドごとに持ちます)。中の `Authentication` が「認証済み」の印で、そこに **Principal**(誰か。`UserDetails` など)と **GrantedAuthority**(持っている権限。`ROLE_ADMIN` など)が入っています。`@AuthenticationPrincipal` は、ここから Principal を取り出して引数に渡しているだけです。
+
+<figure class="figure"><svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-security-ar35b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="10" y="60" width="150" height="60" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="85" y="86" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">SecurityContext</text><text x="85" y="104" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">Holder</text><path d="M160 90 L183 90" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-security-ar35b)"/><rect x="188" y="60" width="140" height="60" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="258" y="96" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">SecurityContext</text><path d="M328 90 L351 90" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-security-ar35b)"/><rect x="356" y="60" width="140" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="426" y="96" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">Authentication</text><path d="M400 120 L340 150" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-security-ar35b)"/><rect x="260" y="155" width="110" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="315" y="180" font-size="12" text-anchor="middle" fill="var(--ink)">Principal</text><path d="M450 120 L500 150" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-security-ar35b)"/><rect x="440" y="155" width="150" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="515" y="180" font-size="12" text-anchor="middle" fill="var(--ink)">GrantedAuthority[]</text><text x="310" y="30" font-size="12" text-anchor="middle" fill="var(--ink-muted)">SecurityContextHolder.getContext().getAuthentication() で今の認証情報を取り出せる</text></svg><figcaption>認証情報の入れ物:Holder → Context → Authentication の中に「誰か」と「権限」</figcaption></figure>
+
 ::: haru
 画面から送られてきた `userId` を信じちゃダメなんすね。
 :::
@@ -196,5 +200,5 @@ String mypage(@AuthenticationPrincipal UserDetails me,
 :::
 
 ::: sensei
-次は第3部のラスト「MockMvc によるテスト」。今日の「この人はこの画面に入れるか」も、テストで守れるようになるよ。
+次は「MockMvc によるテスト」。今日の「この人はこの画面に入れるか」も、テストで守れるようになるよ。
 :::

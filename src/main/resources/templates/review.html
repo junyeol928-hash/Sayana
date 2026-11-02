@@ -3,16 +3,16 @@
 <head th:replace="~{fragments/layout :: head('復習')}"></head>
 <body class="page-review">
 <header th:replace="~{fragments/layout :: header}"></header>
-<main class="container narrow">
-    <h1>🔁 復習キュー</h1>
+<main id="main" class="container narrow">
+    <h1 class="page-title">復習キュー</h1>
     <p class="muted">クイズと演習は、解いた日から <b>1日後 → 3日後 → 7日後 → 14日後</b> に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。</p>
 
     <div th:if="${item == null}" class="card empty-state">
         <div class="talk talk-sensei">
-            <div class="talk-avatar"><span class="talk-icon">☕</span><span class="talk-name">モカ先輩</span></div>
+            <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
             <div class="talk-bubble"><p>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>
         </div>
-        <a class="btn primary" th:href="@{/}">ダッシュボードへ</a>
+        <a class="btn primary" th:href="@{/}">ホームへ</a>
     </div>
 
     <th:block th:if="${item != null}">

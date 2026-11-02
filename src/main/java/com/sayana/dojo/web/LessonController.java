@@ -49,11 +49,16 @@ public class LessonController {
         model.addAttribute("status", progress.status(lesson));
         model.addAttribute("part", content.part(lesson.partId()).orElseThrow());
         model.addAttribute("chapter", content.chapter(lesson.chapterId()).orElseThrow());
+        // 顔(ホームと同じ大きな札): 縦書きの軸の文字と、題の長さで決める見出しの大きさ
+        model.addAttribute("axisPart", DashboardController.kanjiOrdinal(content.part(lesson.partId()).orElseThrow().title()));
+        model.addAttribute("axisChapter", DashboardController.kanjiOrdinal(content.chapter(lesson.chapterId()).orElseThrow().title()));
+        model.addAttribute("titleSize", DashboardController.titleSize(lesson.title()));
         model.addAttribute("prev", content.previous(id).orElse(null));
         model.addAttribute("next", content.next(id).orElse(null));
         model.addAttribute("exercises", lesson.exercises().stream().map(exerciseViews::of).toList());
         model.addAttribute("generated", catalog.generatedFor(id).stream().map(exerciseViews::of).toList());
         model.addAttribute("chat", ai.chatHistory(id));
+        model.addAttribute("terms", content.glossary().stream().filter(t -> id.equals(t.lessonId())).toList());
         return "lesson";
     }
 
@@ -76,9 +81,15 @@ public class LessonController {
                 answers.put(i, Integer.parseInt(v));
             }
         }
+        int before = progress.status(lesson).dyeLevel();
         model.addAttribute("lesson", lesson);
         model.addAttribute("outcome", learning.submitQuiz(lesson, answers));
-        model.addAttribute("status", progress.status(lesson));
+        var status = progress.status(lesson);
+        model.addAttribute("status", status);
+        // 染まったと知らせるのは、この採点で段が変わったときだけ(もう藍の人に「縹に染まりました」と出さない)
+        model.addAttribute("dyedTo", status.dyeLevel() > before ? status.dyeLabel() : null);
+        // 合格したときの次の段は、段の並び(クイズ → 演習 → 読解 → STS)の次。読解は染まりの条件に入らないので演習の後ろ
+        model.addAttribute("nextKey", !lesson.exercises().isEmpty() ? "write" : !lesson.reading().isEmpty() ? "reading" : null);
         return "fragments/lesson-parts :: quizResult";
     }
 

@@ -1,0 +1,38 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "String を極める"
+  intro: "Spring Boot の Service では、ログメッセージの組み立て、ID の生成、鍵の Base64 変換、null と空文字の区別が、String の知識の見せ場です。次のコードは鍵発行サービスの一部です。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    @Slf4j
+    public class KeyIssueService {
+
+        private static final Pattern USER_ID_PATTERN = Pattern.compile("^[a-z0-9_]{4,20}$");
+
+        private final KeyRepository keyRepository;
+
+        public KeyDto issue(String userId, byte[] rawKey) {
+            if (StringUtils.isBlank(userId) || !USER_ID_PATTERN.matcher(userId).matches()) {
+                throw new IllegalArgumentException("invalid userId: " + userId);
+            }
+            String keyId = "key-" + userId.toLowerCase() + "-" + UUID.randomUUID();
+            String encoded = Base64.getEncoder().encodeToString(rawKey);
+            log.info("issue key. keyId={}, userId={}, length={}", keyId, userId, rawKey.length);
+
+            KeyEntity saved = keyRepository.save(new KeyEntity(keyId, encoded));
+            return new KeyDto(saved.getKeyId(), saved.getEncodedKey().substring(0, 8) + "...");
+        }
+    }
+  notes:
+    3: "Lombok。log という名前の SLF4J ロガーを自動で用意する"
+    6: "入力チェック用の正規表現。クラスに1つだけ作って使い回す"
+    11: "StringUtils.isBlank は Apache Commons Lang。null・空文字・空白だけ、を一度に判定できる"
+    14: "ID の生成。UUID.randomUUID() は重複しにくいランダムな文字列を返す。+ で連結"
+    15: "byte[] の鍵を Base64 の文字列にして DB に保存できる形にする"
+    16: "{} はプレースホルダ。+ で連結せずに引数で渡すのが SLF4J の作法(ログレベルが低いとき無駄な連結を避ける)"
+    19: "substring で先頭8文字だけを見せて \"...\"。秘密情報をそのまま返さない配慮"
+  points:
+    - "文字列比較は equals か Objects.equals。== を見たら「たまたま動いているだけ」を疑う"
+    - "getBytes / new String(byte[]) には必ず文字コードが付いているか確認する。付いていなければ環境依存のバグ候補"
+    - "Base64 / HexFormat の encode・decode は対で読む。「保存・送信のための見た目変換」であって暗号ではない"
+    - "log.info の {} は後ろの引数と順番に対応する。何が出力されるかを頭の中で埋めて読む"

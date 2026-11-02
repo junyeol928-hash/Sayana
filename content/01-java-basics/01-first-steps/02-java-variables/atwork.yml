@@ -1,0 +1,32 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "変数と型"
+  intro: "Spring Boot のクラスでは、変数の多くが「フィールド」(クラスが持つ変数)として現れます。修飾子が前に付いて長く見えますが、芯は「型 名前」です。"
+  code: |
+    @Service
+    public class KeyIssueService {
+
+        private static final int MAX_RETRY = 3;
+        private static final String LOG_PREFIX = "[KEY]";
+
+        private final KeyRepository keyRepository;
+        private final Clock clock;
+
+        public String issue(String userId, int keyVersion) {
+            long startedAt = clock.millis();
+            boolean exists = keyRepository.existsByUserId(userId);
+            String keyId = userId + "-" + keyVersion;
+            return keyId;
+        }
+    }
+  notes:
+    1: "「このクラスは業務ロジック担当」という Spring の目印(Spring 章で詳しく)"
+    4: "クラス共通の定数。値は 3 で固定"
+    7: "参照型のフィールド。final なので一度入れたら差し替えない(コンストラクタで入れる)"
+    10: "引数も変数。String(参照型)と int(基本データ型)"
+    11: "メソッドの中だけで使うローカル変数。long なのは時刻のミリ秒が大きいから"
+    13: "String + String + int → 全部つながって文字列になる"
+  points:
+    - "修飾子(private / static / final)は飛ばして、まず「型 名前」を見る"
+    - "先頭が大文字の型(KeyRepository、String)は参照型 → null の可能性を頭に置く"
+    - "static final の大文字の名前は定数。値を探しに行けば固定値が分かる"
+    - "メソッドの中で宣言された変数は、そのメソッドを出ると消える(スコープ)"

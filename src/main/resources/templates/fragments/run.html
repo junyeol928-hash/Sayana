@@ -7,7 +7,7 @@
             <span th:case="'OK'">✔ 実行しました</span>
             <span th:case="'COMPILE_ERROR'">✘ コンパイルエラー</span>
             <span th:case="'EXCEPTION'">✘ 実行時例外</span>
-            <span th:case="'TIMEOUT'">⏱ タイムアウト</span>
+            <span th:case="'TIMEOUT'">✘ タイムアウト</span>
             <span th:case="'BUSY'">… 混雑中</span>
             <span th:case="*">✘ エラー</span>
         </span>
@@ -33,7 +33,7 @@
         <textarea name="code" hidden th:text="${code}"></textarea>
         <textarea name="error" hidden th:text="${result.errorText()}"></textarea>
         <button class="btn small" type="submit" th:disabled="${!aiAvailable}"
-                th:title="${aiAvailable ? '' : 'ANTHROPIC_API_KEY を設定すると使えます'}">🤖 このエラーをAIに翻訳してもらう</button>
+                th:title="${aiAvailable ? '' : 'ANTHROPIC_API_KEY を設定すると使えます'}">このエラーをAIに翻訳してもらう</button>
         <span class="htmx-indicator muted small">考え中…</span>
     </form>
     <div class="ai-slot"></div>

@@ -3,9 +3,9 @@
 <head th:replace="~{fragments/layout :: head(${view.exercise.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
-<main class="container narrow">
+<main id="main" class="container narrow">
     <nav class="breadcrumb">
-        <a th:href="@{/}">ダッシュボード</a> ›
+        <a th:href="@{/}">ホーム</a> ›
         <a th:if="${lesson}" th:href="@{/lessons/{id}(id=${lesson.id})} + '#more'" th:text="${lesson.title}"></a> › 類題
     </nav>
     <p class="muted small">AIが作った類題です(模範解答が採点テストに合格することは確認済み)。</p>

@@ -62,7 +62,7 @@ System.out.println(names.contains("田中")); // true
 | メモリ | 小さい | 要素ごとにノード |
 
 ::: genba
-現場では9割以上 `ArrayList`。理屈では LinkedList が速い場面でも、実測すると CPU キャッシュに優しい ArrayList が勝つことが多い。
+現場で使うリストは、まず `ArrayList`。理屈では LinkedList が速い場面でも、実測すると CPU キャッシュに優しい ArrayList が勝つことが多い。
 :::
 
 ## Set と Map
@@ -101,6 +101,8 @@ for (Map.Entry<String, Integer> e
 
 キーと値を両方使うループは `entrySet()` が定番です。
 
+<figure class="figure"><svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-collections-arrow13m" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><text x="20" y="24" font-size="13" fill="var(--ink-muted)">キー(String)</text><text x="330" y="24" font-size="13" fill="var(--ink-muted)">値(Integer)</text><rect x="20" y="36" width="160" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="60" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">"りんご"</text><rect x="20" y="84" width="160" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="108" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">"みかん"</text><rect x="20" y="132" width="160" height="36" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="156" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">"もも"</text><path d="M185 54 L325 54" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-collections-arrow13m)"/><path d="M185 102 L325 102" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-collections-arrow13m)"/><path d="M185 150 L325 150" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-collections-arrow13m)"/><rect x="330" y="36" width="90" height="36" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="375" y="60" font-size="15" text-anchor="middle" fill="var(--ink)">8</text><rect x="330" y="84" width="90" height="36" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="375" y="108" font-size="15" text-anchor="middle" fill="var(--ink)">5</text><rect x="330" y="132" width="90" height="36" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="375" y="156" font-size="15" text-anchor="middle" fill="var(--ink)">0</text><text x="440" y="60" font-size="12" fill="var(--ink-muted)">10 → 8 に上書き</text><text x="440" y="108" font-size="12" fill="var(--ink-muted)">put("みかん", 5)</text><text x="440" y="156" font-size="12" fill="var(--ink-muted)">put("もも", 0)</text><text x="20" y="192" font-size="12" fill="var(--ink-muted)">get("りんご") → 8 / get("ぶどう") → null(キーが無い) / キーは重複せず、同じキーの put は上書き</text></svg><figcaption>Map のイメージ:キーごとに値の箱が1つ。同じキーで put すると箱の中身が入れ替わり、無いキーの get は null</figcaption></figure>
+
 出現回数のカウントはこう書きます。
 
 ```java
@@ -127,6 +129,10 @@ java.lang.UnsupportedOperationException
 ```
 
 型は普通の `List` なので、コンパイルは通って実行時に落ちます。変更したいなら `new ArrayList<>(List.of(...))` で詰め替えます。`null` を入れると NPE になる点も注意。
+
+::: warn Arrays.asList は「サイズ固定」で、不変ではない
+古いコードによく出る `Arrays.asList("A", "B")` は、`add` / `remove` は `UnsupportedOperationException` なのに、`set` で中身の置き換えはできる中途半端な `List` です。`List.of` は `set` も禁止。どちらも変数の型はただの `List` なので、「add で落ちた」「変わらないはずが変わった」ときは、その `List` を **どこで何で作ったか** まで追いかけます。
+:::
 
 もう一つの地雷が、拡張 for の **中での remove** です。
 

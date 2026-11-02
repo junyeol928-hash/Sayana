@@ -1,0 +1,39 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ジェネリクス"
+  intro: "Spring Boot では、Repository・Service・Controller のすべてにジェネリクスが登場します。次のコードは、Controller が Service から Optional を受け取り、共通レスポンス型で返すまでの流れです。"
+  code: |
+    @RestController
+    @RequestMapping("/api/users")
+    @RequiredArgsConstructor
+    public class UserController {
+
+        private final UserService userService;
+
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<UserDto>> get(@PathVariable Long id) {
+            Optional<User> found = userService.findById(id);
+            return found
+                .map(UserDto::from)
+                .map(dto -> ResponseEntity.ok(ApiResponse.ok(dto)))
+                .orElse(ResponseEntity.status(404).body(ApiResponse.fail("not found")));
+        }
+
+        @GetMapping
+        public ApiResponse<Map<String, List<UserDto>>> byDepartment() {
+            Map<String, List<UserDto>> grouped = userService.groupByDepartment();
+            return ApiResponse.ok(grouped);
+        }
+    }
+  notes:
+    1: "「この class は REST API の窓口」という Spring の目印"
+    9: "戻り値を外から読む:HTTP レスポンス → 共通レスポンス → UserDto。JSON の形が想像できる"
+    10: "Optional:User が見つかったかもしれない箱。Repository の findById と同じ型"
+    12: "Optional → Optional に変換。map の中で T が変わる(Optional 章・ラムダ章)"
+    14: "見つからなければ 404 と失敗レスポンス。型は同じ ResponseEntity> に揃えている"
+    18: "「String をキー、UserDto の List を値にする Map」を data に持つ共通レスポンス"
+    19: "Map の V がさらに List。入れ子は外側から訳す"
+  points:
+    - "を見たら「何の型が入るか」を必ず読む。入れ子は外側から「〜の」で訳す"
+    - "Repository の2つで、findById の引数と戻り値の型が決まる"
+    - "Optional や ResponseEntity は「T をくるむ箱」。中身の T が本当に欲しいデータ"
+    - "ApiResponse のような自前の共通型は、まずクラス定義を開いて T がどのフィールドに使われているかを確認する"

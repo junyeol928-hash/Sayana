@@ -1,0 +1,42 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "配列と ArrayList"
+  intro: "Service では「Repository から List を受け取り、条件で絞って、別の List に詰め替える」処理が定番です。配列は定数や CSV のヘッダーなど限られた場面でだけ出てきます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class ReportService {
+
+        private static final List<String> TARGET_STATUSES = List.of("PAID", "SHIPPED");
+        private static final String[] HEADERS = {"注文ID", "金額"};
+
+        private final OrderRepository orderRepository;
+
+        public List<OrderRowDto> buildRows(String customerId) {
+            List<Order> orders = orderRepository.findByCustomerId(customerId);
+            List<OrderRowDto> rows = new ArrayList<>();
+            for (Order order : orders) {
+                if (!TARGET_STATUSES.contains(order.getStatus())) {
+                    continue;
+                }
+                rows.add(new OrderRowDto(order.getId(), order.getTotal()));
+            }
+            return rows;
+        }
+
+        public String headerLine() {
+            return String.join(",", HEADERS);
+        }
+    }
+  notes:
+    5: "対象ステータスの定数リスト。List.of なので誰も add できない = 安心して固定値とみなせる"
+    6: "配列の定数。CSV のヘッダーのように「個数が決まっていて変わらない並び」には配列も使う"
+    11: "Repository は List を返す。0 件なら空のリスト(null ではない)のが Spring Data の流儀"
+    12: "詰め替え先。左は List、右は new ArrayList<>() の定番形"
+    13: "拡張 for(次章)。orders の要素を 1 つずつ order に入れて回す"
+    14: "contains は「含まれているか」。! が付いているので「対象外なら」と読む"
+    17: "1 件ずつ DTO に変換して add。ループが終わると rows に対象分だけ入っている"
+  points:
+    - "List の X を見れば「何が並んでいるか」が分かる。Order → Entity、OrderRowDto → 画面用データ"
+    - "new ArrayList<>() で始まり add で埋める変数は「このメソッドの成果物」。return されるものを探す"
+    - "List.of / 定数の配列は固定値。contains でチェックに使われていたら「許可リスト」の役割"
+    - "Repository の戻り値が List なら null チェック不要、0 件は size() == 0 / isEmpty() で判定する"

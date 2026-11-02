@@ -1,0 +1,47 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "UML の読み方(クラス図・シーケンス図)"
+  intro: "クラス図の依存・実現の関係は、Spring Boot ではコンストラクタ引数(DI)とインターフェースの実装として現れます。シーケンス図の一直線の呼び出しは、Controller→Service→Repository のメソッド呼び出しに対応します。"
+  code: |
+    @RestController
+    public class OrderController {
+
+        private final OrderService orderService;   // OrderService への依存(DI)
+
+        public OrderController(OrderService orderService) {
+            this.orderService = orderService;
+        }
+
+        @PostMapping("/orders")
+        public ResponseEntity<String> create(@RequestBody OrderRequest request) {
+            Order saved = orderService.place(request);   // メッセージ: place(order)
+            return ResponseEntity.ok("注文ID: " + saved.getId());
+        }
+    }
+
+    @Service
+    public class OrderService implements OrderProcessor {   // インターフェースを実現(実装)
+
+        private final OrderRepository orderRepository;
+
+        public OrderService(OrderRepository orderRepository) {
+            this.orderRepository = orderRepository;
+        }
+
+        @Override
+        public Order place(OrderRequest request) {
+            if (request.getAmount() <= 0) {
+                throw new IllegalArgumentException("amount must be positive");
+            }
+            return orderRepository.save(new Order(request));
+        }
+    }
+  notes:
+    4: "クラス図なら OrderController → OrderService の依存(または集約)にあたる。フィールドで持ち、コンストラクタで受け取る=DI"
+    12: "シーケンス図の \"place(order)\" という同期メッセージに対応する1行"
+    18: "implements は「実現」の関係。OrderProcessor インターフェースの操作を具体的に実装している"
+    27: "シーケンス図の alt [amount > 0] / [else] の分岐が、このif文にそのまま対応している"
+  points:
+    - "コンストラクタの引数を見れば、そのクラスが何に依存しているか(クラス図の矢印)が分かる"
+    - "implements があれば「実現」、extends があれば「継承」の関係だと分かる"
+    - "メソッド呼び出しの並びを上から追うと、シーケンス図のメッセージの順番と一致する"
+    - "if-else の分岐は、シーケンス図では alt フラグメントとして表現されていることが多い"

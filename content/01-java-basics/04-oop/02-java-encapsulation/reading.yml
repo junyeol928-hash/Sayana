@@ -1,0 +1,252 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "import 不要なクラス、必要なクラス"
+  level: 1
+  code: |
+    package app;
+
+    public class Main {
+        public static void main(String[] args) {
+            String s = "abc";
+            int n = Integer.parseInt("12");
+            List<String> list = new ArrayList<>();
+            System.out.println(s + n);
+        }
+    }
+  question: "このコードはどうなる?"
+  choices:
+    - "abc12 と表示"
+    - "コンパイルエラー(List と ArrayList が見つからない)"
+    - "コンパイルエラー(String が見つからない)"
+    - "実行時エラー"
+  answer: 1
+  explanation: "String、Integer、System は java.lang なので import 不要ですが、List と ArrayList は java.util にあります。import が無いのでコンパイラは名前を解決できず、7行目でエラーになります。"
+  trace:
+    - "5〜6行目: String と Integer は java.lang → import 不要で OK"
+    - "7行目: List と ArrayList は java.util → import が無い → コンパイルエラー"
+    - "8行目: System も java.lang だが、7行目で止まるので実行には至らない"
+- title: "パッケージをまたいだアクセス"
+  level: 2
+  code: |
+    package shop.core;
+
+    public class Stock {
+        int quantity = 10;            // 修飾子なし
+        public int getQuantity() { return quantity; }
+    }
+
+    // ---- 別ファイル ----
+    package shop.web;
+
+    import shop.core.Stock;
+
+    public class StockView {
+        void show() {
+            Stock s = new Stock();
+            System.out.println(s.quantity);
+        }
+    }
+  question: "StockView はどうなる?"
+  choices:
+    - "10 と表示される"
+    - "0 と表示される"
+    - "16行目でコンパイルエラー"
+    - "11行目でコンパイルエラー"
+  answer: 2
+  explanation: "Stock クラス自体は public なので import は通ります(11行目は OK)。しかし quantity フィールドは修飾子なし(パッケージプライベート)なので、別パッケージ shop.web からは見えません。16行目でコンパイルエラーです。getQuantity() を使えば通ります。"
+  trace:
+    - "3行目: Stock は public → 別パッケージから import できる"
+    - "4行目: quantity は修飾子なし → shop.core の中からしか見えない"
+    - "11行目: import は OK(クラスは見える)"
+    - "16行目: s.quantity は shop.web から見えない → コンパイルエラー"
+- title: "static import で消えたクラス名"
+  level: 2
+  code: |
+    import static java.lang.Math.max;
+    import static java.lang.Math.min;
+
+    public class Clamp {
+        public static void main(String[] args) {
+            int v = 150;
+            int r = min(max(v, 0), 100);
+            System.out.println(r);
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "150"
+    - "100"
+    - "0"
+    - "コンパイルエラー(max が未定義)"
+  answer: 1
+  explanation: "max と min は Clamp クラスのメソッドではありませんが、import static により Math.max / Math.min をクラス名なしで呼べます。max(150, 0) = 150、min(150, 100) = 100 です。"
+  trace:
+    - "1〜2行目: Math.max と Math.min を裸の名前で使えるようにする"
+    - "7行目: 内側 max(150, 0) → 150。外側 min(150, 100) → 100"
+    - "8行目: 100 と表示"
+- title: "同名クラスと完全修飾名"
+  level: 3
+  code: |
+    import java.util.Date;
+
+    public class Ids {
+        public static void main(String[] args) {
+            Date d1 = new Date();
+            java.sql.Date d2 = new java.sql.Date(0L);
+            System.out.println(d1.getClass().getName());
+            System.out.println(d2.getClass().getName());
+        }
+    }
+  question: "2行の出力は?"
+  choices:
+    - "Date / Date"
+    - "java.util.Date / java.sql.Date"
+    - "コンパイルエラー(Date が曖昧)"
+    - "java.sql.Date / java.sql.Date"
+  answer: 1
+  explanation: "import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。"
+  trace:
+    - "1行目: 短い名前 Date = java.util.Date と決まる"
+    - "5行目: d1 は java.util.Date のインスタンス"
+    - "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない"
+    - "7〜8行目: getName() は完全修飾名を返す → java.util.Date、java.sql.Date"
+- title: "生成されたgetterを呼ぶ"
+  level: 1
+  code: |
+    @Getter
+    @AllArgsConstructor
+    public class KeyEntity {
+        private String cardId;
+        private int keyVersion;
+    }
+
+    KeyEntity entity = new KeyEntity("C001", 3);
+    System.out.println(entity.getCardId() + ":" + entity.getKeyVersion());
+  question: "出力は?"
+  choices:
+    - "C001:3"
+    - "コンパイルエラー(getCardId は存在しない)"
+    - "null:0"
+    - "実行時エラー"
+  answer: 0
+  explanation: "@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。"
+  trace:
+    - "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される"
+    - "8行目: KeyEntity(\"C001\", 3) → cardId=\"C001\", keyVersion=3 で生成"
+    - "9行目: getCardId() → \"C001\"、getKeyVersion() → 3"
+    - "結果: \"C001:3\""
+- title: "final の有無でコンストラクタの引数が変わる"
+  level: 2
+  code: |
+    @RequiredArgsConstructor
+    public class KeyIssueService {
+        private final KeyRepository keyRepository;
+        private CryptoClient cryptoClient;
+        private final Clock clock;
+    }
+
+    // 別の場所で:
+    new KeyIssueService(repo, clock);
+  question: "この呼び出しはコンパイルできる?"
+  choices:
+    - "できる。final の2つを引数にとるコンストラクタが生成されているため"
+    - "できない。3引数のコンストラクタしか生成されないため"
+    - "できる。全フィールド4つを渡す必要があるため"
+    - "できない。@RequiredArgsConstructor は Service では使えないため"
+  answer: 0
+  explanation: "@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。"
+  trace:
+    - "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される"
+    - "3行目: keyRepository は final → 対象"
+    - "4行目: cryptoClient は final でない → 対象外"
+    - "5行目: clock は final → 対象"
+    - "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)"
+    - "8行目: 引数の型と順序が一致するのでコンパイルできる"
+- title: "双方向関連の @Data と StackOverflowError"
+  level: 3
+  code: |
+    @Data
+    @Entity
+    public class KeyEntity {
+        @Id private Long keyId;
+        @OneToMany(mappedBy = "key")
+        private List<ResultEntity> results;
+    }
+
+    @Data
+    @Entity
+    public class ResultEntity {
+        @Id private Long id;
+        @ManyToOne
+        private KeyEntity key;
+    }
+
+    // 呼び出し側
+    System.out.println(keyEntity);
+  question: "System.out.println(keyEntity) を実行すると?"
+  choices:
+    - "正常に文字列が表示される"
+    - "StackOverflowError が発生することがある"
+    - "NullPointerException が必ず発生する"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。"
+  trace:
+    - "18行目: keyEntity.toString() が呼ばれる(println が内部で呼ぶ)"
+    - "@Data の toString() は results フィールドも含める → 各 ResultEntity.toString() を呼ぶ"
+    - "ResultEntity.toString() は key フィールド(元の KeyEntity)を含める → keyEntity.toString() を再び呼ぶ"
+    - "この呼び合いが止まらず、スタックが尽きて StackOverflowError"
+- title: "Builder のメソッドチェーンを読む"
+  level: 2
+  code: |
+    @Builder
+    @ToString
+    public class CommandRequest {
+        private final String sessionId;
+        private final String commandHex;
+        private final int timeoutMillis;
+    }
+
+    CommandRequest req = CommandRequest.builder()
+            .sessionId("S001")
+            .commandHex("00A4040C")
+            .build();
+    System.out.println(req);
+  question: "出力される timeoutMillis の値は?"
+  choices:
+    - "0(セットされなかったので既定値)"
+    - "コンパイルエラー"
+    - "実行時例外"
+    - "null"
+  answer: 0
+  explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。int は参照型ではないので null にはなりません。"
+  trace:
+    - "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない"
+    - "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる"
+    - "int の既定値は 0 なので timeoutMillis は 0"
+    - "結果: toString() の出力に timeoutMillis=0 が含まれる"
+- title: "@SneakyThrows で隠れる検査例外"
+  level: 3
+  code: |
+    public class TemplateLoader {
+        @SneakyThrows
+        public String load(String path) {
+            return Files.readString(Path.of(path));  // IOException を投げうる
+        }
+    }
+
+    // 呼び出し側(try-catch なし)
+    TemplateLoader loader = new TemplateLoader();
+    String content = loader.load("not-exist.txt");
+  question: "存在しないファイルを渡して load を呼ぶと?"
+  choices:
+    - "コンパイルエラー(IOException を catch していない)"
+    - "実行時に例外(IOException 系)が発生し、呼び出し元は catch していないので処理が止まる"
+    - "null が返る"
+    - "空文字が返る"
+  answer: 1
+  explanation: "@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。"
+  trace:
+    - "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる"
+    - "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない"
+    - "9行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)"
+    - "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる"

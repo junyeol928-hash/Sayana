@@ -114,25 +114,26 @@ public class MarkdownRenderer {
     private static String renderBlock(String kind, String title, String innerHtml) {
         String t = HtmlUtils.htmlEscape(title);
         return switch (kind) {
-            case "sensei" -> talk("sensei", "☕", "モカ先輩", innerHtml);
-            case "haru" -> talk("haru", "🐣", "ハル", innerHtml);
-            case "point" -> callout("point", "💡", t.isEmpty() ? "ポイント" : t, innerHtml);
-            case "warn" -> callout("warn", "⚠️", t.isEmpty() ? "よくあるミス" : "よくあるミス:" + t, innerHtml);
-            case "genba" -> callout("genba", "🏢", t.isEmpty() ? "現場あるある" : "現場あるある:" + t, innerHtml);
-            case "trivia" -> callout("trivia", "☕", t.isEmpty() ? "豆知識" : "豆知識:" + t, innerHtml);
-            default -> callout("note", "📝", t.isEmpty() ? "メモ" : t, innerHtml);
+            // 名札(縦書き)に短い名前、読み上げ用に正式な名前
+            case "sensei" -> talk("sensei", "モカ", "モカ先輩", innerHtml);
+            case "haru" -> talk("haru", "ハル", "ハル", innerHtml);
+            case "point" -> callout("point", t.isEmpty() ? "ポイント" : t, innerHtml);
+            case "warn" -> callout("warn", t.isEmpty() ? "よくあるミス" : "よくあるミス:" + t, innerHtml);
+            case "genba" -> callout("genba", t.isEmpty() ? "現場あるある" : "現場あるある:" + t, innerHtml);
+            case "trivia" -> callout("trivia", t.isEmpty() ? "豆知識" : "豆知識:" + t, innerHtml);
+            default -> callout("note", t.isEmpty() ? "メモ" : t, innerHtml);
         };
     }
 
-    private static String talk(String who, String icon, String name, String innerHtml) {
+    private static String talk(String who, String tag, String name, String innerHtml) {
         return """
-                <div class="talk talk-%s"><div class="talk-avatar"><span class="talk-icon">%s</span><span class="talk-name">%s</span></div><div class="talk-bubble">%s</div></div>
-                """.formatted(who, icon, name, innerHtml);
+                <div class="talk talk-%s"><div class="talk-avatar" aria-hidden="true"><span class="talk-icon">%s</span></div><div class="talk-bubble"><span class="talk-name">%s:</span>%s</div></div>
+                """.formatted(who, tag, name, innerHtml);
     }
 
-    private static String callout(String kind, String icon, String title, String innerHtml) {
+    private static String callout(String kind, String title, String innerHtml) {
         return """
-                <aside class="callout callout-%s"><div class="callout-title">%s %s</div>%s</aside>
-                """.formatted(kind, icon, title, innerHtml);
+                <aside class="callout callout-%s"><div class="callout-title">%s</div>%s</aside>
+                """.formatted(kind, title, innerHtml);
     }
 }

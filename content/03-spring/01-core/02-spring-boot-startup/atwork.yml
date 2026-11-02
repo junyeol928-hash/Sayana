@@ -1,0 +1,40 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "Spring Boot の構成と起動"
+  intro: "設定クラスの実務的な例です。@ConfigurationProperties で暗号装置(仕事では HSM。クラス名も Crypto〜 は Hsm〜)の設定をまとめ、@Bean で接続オブジェクトを作り、プロファイルで本番と開発を切り替えています。"
+  code: |
+    @Configuration
+    @EnableConfigurationProperties(CryptoProperties.class)
+    public class CryptoConfig {
+
+        @Bean
+        @Profile("!local")
+        public CryptoClient realCryptoClient(CryptoProperties props) {
+            return new RealCryptoClient(props.getHost(), props.getPort(), props.getTimeoutMillis());
+        }
+
+        @Bean
+        @Profile("local")
+        public CryptoClient stubCryptoClient() {
+            return new StubCryptoClient();
+        }
+    }
+
+    @ConfigurationProperties(prefix = "gateway.crypto")
+    @Getter @Setter
+    public class CryptoProperties {
+        private String host;
+        private int port = 9000;
+        private int timeoutMillis = 3000;
+    }
+  notes:
+    2: "CryptoProperties を Bean として登録する(@Component の代わりの書き方)"
+    6: "local プロファイル以外で有効。! は否定"
+    7: "引数に設定クラスが注入され、その値で本物の接続を組み立てる"
+    12: "local プロファイルのときだけ有効。開発 PC では偽物を使う"
+    18: "yml の gateway.crypto.* がこのクラスのフィールドに入る"
+    22: "yml にキーがなければこの初期値が使われる"
+  points:
+    - "@Profile が付いた @Bean は、有効プロファイルによって「どちらか片方だけ」が作られる。起動ログの profile 行と突き合わせる"
+    - "@ConfigurationProperties のフィールド初期値は「yml にないときの既定値」。yml と両方見て最終値を決める"
+    - "同じ型(CryptoClient)の @Bean が複数あっても、@Profile で片方だけになるので前章の NoUniqueBean にはならない"
+    - "設定クラス(config パッケージ)は、アプリの「配線図」。最初にざっと読むと全体が見える"

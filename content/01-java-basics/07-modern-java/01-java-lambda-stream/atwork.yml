@@ -1,0 +1,90 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ラムダ式と関数型インターフェース"
+  intro: "Spring Boot の Service では、ラムダとメソッド参照が「変換」「条件」「コールバック」「トランザクション」のあらゆる場面で使われます。次のコードは注文一覧を取得して DTO に変換し、通知を送る処理です。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class OrderService {
+
+        private final OrderRepository orderRepository;
+        private final TransactionTemplate transactionTemplate;
+        private final WebClient webClient;
+
+        public List<OrderDto> findActiveOrders(Long userId) {
+            return orderRepository.findByUserId(userId).stream()
+                .filter(o -> o.getStatus() == OrderStatus.ACTIVE)
+                .sorted(Comparator.comparing(Order::getOrderedAt).reversed())
+                .map(OrderDto::from)
+                .toList();
+        }
+
+        public String findOrderName(Long orderId) {
+            return orderRepository.findById(orderId)
+                .map(Order::getName)
+                .orElse("(unknown)");
+        }
+
+        public void cancelAll(List<Long> ids) {
+            transactionTemplate.executeWithoutResult(status -> {
+                ids.forEach(id -> orderRepository.updateStatus(id, OrderStatus.CANCELED));
+            });
+            webClient.post().uri("/notify").retrieve().bodyToMono(Void.class)
+                .doOnError(e -> log.warn("notify failed", e))
+                .subscribe();
+        }
+    }
+  notes:
+    6: "Spring の「トランザクション(まとめて成功・まとめて失敗)を手動で区切る」道具。ラムダで処理を渡す"
+    11: "Predicate:「o を受け取って ACTIVE なら true」。条件を処理として渡している"
+    12: "「注文日時の順、を逆にする」= 新しい順"
+    13: "Function:OrderDto.from(order) を各要素に適用(①static のメソッド参照)"
+    19: "Optional → Optional。中身があれば getName を適用"
+    24: "status を受け取るラムダ。この { } の中が1つのトランザクション。途中で例外が出れば全部取り消し"
+    25: "Consumer:id ごとに更新。ラムダの中でラムダ(入れ子)も落ち着いて内側から読む"
+    28: "エラー時のコールバック。Consumer:e を受け取ってログを出す"
+  points:
+    - "-> を見たら「左を受け取って右をする」。:: を見たらラムダに戻す(x -> x.method() か x -> Class.method(x) か)"
+    - "ラムダを受け取るメソッド名(filter / map / forEach / comparing / execute)から、ラムダの型(Predicate / Function / Consumer ...)を推測する"
+    - "ラムダの { } の中は「後で、受け取った側が呼ぶ処理」。書いてある順に即実行されるとは限らない"
+    - "TransactionTemplate.execute や WebClient のコールバックは「この処理をトランザクションの中で / 応答が来たら 実行してね」の依頼"
+- title: "Stream API"
+  intro: "Spring Boot の Service では、Repository から取った Entity のリストを DTO に変換したり、集計したりする場面で Stream が毎日出てきます。「Entity → DTO」「groupingBy で集計」「toMap で辞書化」の3つの形を覚えれば、ほとんど読めます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class UserQueryService {
+
+        private final UserRepository userRepository;
+
+        public List<UserDto> findActiveUsers() {
+            return userRepository.findAll().stream()
+                    .filter(User::isActive)
+                    .sorted(Comparator.comparing(User::getCreatedAt).reversed())
+                    .map(UserDto::from)
+                    .toList();
+        }
+
+        public Map<String, Long> countByDepartment() {
+            return userRepository.findAll().stream()
+                    .collect(Collectors.groupingBy(User::getDepartment, Collectors.counting()));
+        }
+
+        public Map<Long, UserDto> dtoById(List<Long> ids) {
+            return userRepository.findAllById(ids).stream()
+                    .map(UserDto::from)
+                    .collect(Collectors.toMap(UserDto::id, dto -> dto));
+        }
+    }
+  notes:
+    2: "Lombok:final フィールドを引数に取るコンストラクタを自動生成(Lombok 章で詳しく)"
+    8: "Repository が返す List を Stream にして流し始める。DB アクセスはこの findAll() の1回だけ"
+    10: "作成日時の降順。comparing(...) で並べ替えのキー、reversed() で逆順"
+    11: "Entity(User)→ DTO(UserDto)への変換。UserDto.from(User) という static メソッドをメソッド参照で渡している"
+    12: "終端操作。Java 16 以降の toList()。古いコードでは collect(Collectors.toList())"
+    17: "部署名 → 件数 の Map。戻り値の型 Map と Collectors を見比べると対応が分かる"
+    23: "id が主キーなので重複しない前提。もし重複しうるデータなら第3引数が必要"
+  points:
+    - "stream() の直前(誰のリストか)と、終端操作(何にまとめるか)を先に見ると全体像がつかめる"
+    - "map(Xxx::from) / map(XxxDto::new) は「Entity → DTO 変換」。DTO クラスの from メソッドやコンストラクタを開けば項目の対応が分かる"
+    - "collect(Collectors.toMap(...)) を見たら「キーは一意か」、groupingBy を見たら「Map の値は List か Long か」を戻り値の型で確認する"
+    - "forEach の中で外の変数を書き換えていたら要注意。collect に書き直せる形が多い"

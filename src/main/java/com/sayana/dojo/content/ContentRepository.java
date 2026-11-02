@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -21,9 +22,11 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import com.sayana.dojo.config.DojoProperties;
+import com.sayana.dojo.content.Lesson.AtWork;
 import com.sayana.dojo.content.Lesson.ChecklistItem;
 import com.sayana.dojo.content.Lesson.Column;
 import com.sayana.dojo.content.Lesson.QuizQuestion;
+import com.sayana.dojo.content.Lesson.ReadingQuestion;
 import com.sayana.dojo.content.Lesson.Sample;
 import com.sayana.dojo.content.Lesson.StsGuide;
 import com.sayana.dojo.content.Lesson.StsStep;
@@ -49,7 +52,7 @@ public class ContentRepository {
     }
 
     private record Snapshot(List<Part> parts, Map<String, Lesson> lessons, List<Lesson> ordered,
-                            Map<String, ExerciseDef> exercises) {
+                            Map<String, ExerciseDef> exercises, List<Term> glossary) {
     }
 
     public synchronized void reload() {
@@ -82,10 +85,12 @@ public class ContentRepository {
             parts.add(new Part(partId, ++order, str(py, "title"), str(py, "description"), List.copyOf(chapters)));
         }
         List<Lesson> ordered = parts.stream().flatMap(p -> p.lessons().stream()).toList();
+        List<Term> glossary = loadGlossary(lessons);
         this.snapshot = new Snapshot(List.copyOf(parts), Collections.unmodifiableMap(lessons), ordered,
-                Collections.unmodifiableMap(exercises));
-        log.info("教材を読み込みました: {}部 / {}レッスン(公開 {}) / 演習 {}問", parts.size(), ordered.size(),
-                ordered.stream().filter(Lesson::ready).count(), exercises.size());
+                Collections.unmodifiableMap(exercises), glossary);
+        log.info("教材を読み込みました: {}部 / {}レッスン(公開 {}) / 演習 {}問 / 読解 {}問 / 用語 {}語", parts.size(),
+                ordered.size(), ordered.stream().filter(Lesson::ready).count(), exercises.size(),
+                ordered.stream().mapToInt(l -> l.reading().size()).sum(), glossary.size());
     }
 
     public List<Part> parts() {
@@ -98,6 +103,11 @@ public class ContentRepository {
 
     public List<Lesson> readyLessons() {
         return snapshot.ordered().stream().filter(Lesson::ready).toList();
+    }
+
+    /** 用語集(content/glossary.yml の順)。 */
+    public List<Term> glossary() {
+        return snapshot.glossary();
     }
 
     public Optional<Lesson> lesson(String id) {
@@ -150,7 +160,7 @@ public class ContentRepository {
         if (!"ready".equals(status)) {
             return new Lesson(id, partId, chapterId, str(y, "title"), status, intVal(y, "minutes", 0),
                     str(y, "summary"), strList(y, "goals"), "", "", List.of(), List.of(), List.of(), null,
-                    List.of(), List.of());
+                    List.of(), List.of(), List.of(), List.of());
         }
         String body = read(dir.resolve("lesson.md"));
 
@@ -194,9 +204,90 @@ public class ContentRepository {
                 exercises.add(loadExercise(e, id));
             }
         }
-        return new Lesson(id, partId, chapterId, str(y, "title"), status, intVal(y, "minutes", 15),
+        return new Lesson(id, partId, chapterId, str(y, "title"), status, readingMinutes(body),
                 str(y, "summary"), strList(y, "goals"), body, markdown.render(body), samples, List.copyOf(quiz),
-                columns, sts, checklist, List.copyOf(exercises));
+                columns, sts, checklist, List.copyOf(exercises), loadReading(dir, id), loadAtWork(dir));
+    }
+
+    /**
+     * 本文を読む目安(分)。手で書いた値は全レッスン同じ 15 分になっていて当てにならないので、本文から数える。
+     * 文章は 1 分に 500 字、コードは 1 分に 12 行(空行を除く)で読む前提。
+     */
+    static int readingMinutes(String body) {
+        int codeLines = 0;
+        StringBuilder prose = new StringBuilder();
+        boolean inCode = false;
+        for (String line : body.split("\\R")) {
+            if (line.strip().startsWith("```")) {
+                inCode = !inCode;
+            } else if (inCode) {
+                if (!line.isBlank()) {
+                    codeLines++;
+                }
+            } else {
+                prose.append(line.replaceAll("[\\s#>*|`\\-]", ""));
+            }
+        }
+        return Math.max(1, (int) Math.ceil(prose.length() / 500.0 + codeLines / 12.0));
+    }
+
+    /** reading.yml(コード読解問題のリスト)。無ければ空。 */
+    private List<ReadingQuestion> loadReading(Path dir, String lessonId) {
+        Path file = dir.resolve("reading.yml");
+        if (!Files.exists(file)) {
+            return List.of();
+        }
+        List<ReadingQuestion> list = new ArrayList<>();
+        for (Map<String, Object> r : yamlList(file)) {
+            List<String> choices = strList(r, "choices");
+            int answer = intVal(r, "answer", -1);
+            if (answer < 0 || answer >= choices.size()) {
+                throw new IllegalStateException(lessonId + ": 読解問題の answer が選択肢の範囲外です: " + str(r, "title"));
+            }
+            String question = Optional.ofNullable(str(r, "question")).orElse("出力は?");
+            list.add(new ReadingQuestion(str(r, "title"), intVal(r, "level", 1), strip(str(r, "code")),
+                    markdown.renderInline(question), choices.stream().map(markdown::renderInline).toList(), answer,
+                    markdown.renderUntrusted(str(r, "explanation")),
+                    strList(r, "trace").stream().map(markdown::renderInline).toList()));
+        }
+        return List.copyOf(list);
+    }
+
+    /** atwork.yml(「仕事のコードではこう出てくる」のリスト)。無ければ空。 */
+    private List<AtWork> loadAtWork(Path dir) {
+        Path file = dir.resolve("atwork.yml");
+        if (!Files.exists(file)) {
+            return List.of();
+        }
+        List<AtWork> list = new ArrayList<>();
+        for (Map<String, Object> a : yamlList(file)) {
+            Map<Integer, String> notes = new TreeMap<>();
+            if (a.get("notes") instanceof Map<?, ?> n) {
+                n.forEach((k, v) -> notes.put(Integer.parseInt(k.toString()), markdown.renderInline(v.toString())));
+            }
+            list.add(new AtWork(str(a, "title"), markdown.renderUntrusted(str(a, "intro")), strip(str(a, "code")),
+                    Collections.unmodifiableMap(notes),
+                    strList(a, "points").stream().map(markdown::renderInline).toList()));
+        }
+        return List.copyOf(list);
+    }
+
+    /** content/glossary.yml(用語集)。無ければ空。 */
+    private List<Term> loadGlossary(Map<String, Lesson> lessons) {
+        Path file = contentDir.resolve("glossary.yml");
+        if (!Files.exists(file)) {
+            return List.of();
+        }
+        List<Term> terms = new ArrayList<>();
+        for (Map<String, Object> t : yamlList(file)) {
+            String lessonId = str(t, "lesson");
+            if (lessonId != null && !lessons.containsKey(lessonId)) {
+                throw new IllegalStateException("用語集の lesson が存在しません: " + str(t, "term") + " → " + lessonId);
+            }
+            terms.add(new Term(str(t, "term"), str(t, "read"), str(t, "en"), markdown.renderInline(str(t, "def")),
+                    lessonId));
+        }
+        return List.copyOf(terms);
     }
 
     private ExerciseDef loadExercise(Path dir, String lessonId) {
@@ -253,6 +344,15 @@ public class ContentRepository {
             return l.stream().map(String::valueOf).toList();
         }
         return List.of();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> yamlList(Path file) {
+        Object o = new Yaml(new SafeConstructor(new LoaderOptions())).load(read(file));
+        if (!(o instanceof List<?> l)) {
+            throw new IllegalStateException("YAML はリストで書いてください: " + file);
+        }
+        return l.stream().filter(Map.class::isInstance).map(x -> (Map<String, Object>) x).toList();
     }
 
     @SuppressWarnings("unchecked")

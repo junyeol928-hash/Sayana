@@ -1,0 +1,142 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "引き継いだメソッドと上書きしたメソッド"
+  level: 1
+  code: |
+    public class Plan {
+        public int monthlyFee() { return 1000; }
+        public String label() { return "基本プラン"; }
+    }
+    public class FamilyPlan extends Plan {
+        @Override
+        public int monthlyFee() { return 2500; }
+    }
+
+    FamilyPlan f = new FamilyPlan();
+    System.out.println(f.label() + " " + f.monthlyFee());
+  question: "出力は?"
+  choices:
+    - "基本プラン 1000"
+    - "基本プラン 2500"
+    - "コンパイルエラー"
+    - "null 2500"
+  answer: 1
+  explanation: "label() は FamilyPlan に書かれていないので、親 Plan の版がそのまま使われます。monthlyFee() は子で上書きしているので 2500 です。"
+  trace:
+    - "10行目: FamilyPlan を new(親 Plan() → 子 FamilyPlan() の順に初期化)"
+    - "11行目: f.label() → 子に無い → 親の label() → \"基本プラン\""
+    - "11行目: f.monthlyFee() → 子で上書き済み → 2500"
+- title: "3段のコンストラクタの順序"
+  level: 2
+  code: |
+    class Top {
+        Top() { System.out.print("T"); }
+    }
+    class Middle extends Top {
+        Middle() { System.out.print("M"); }
+    }
+    class Bottom extends Middle {
+        Bottom() {
+            super();
+            System.out.print("B");
+        }
+    }
+
+    new Bottom();
+  question: "出力は?"
+  choices:
+    - "B"
+    - "BMT"
+    - "TMB"
+    - "MB"
+  answer: 2
+  explanation: "Bottom() の super() が Middle() を呼び、Middle() の(自動で補われた)super() が Top() を呼びます。いちばん上の Top から順に本体が実行されるので T → M → B です。"
+  trace:
+    - "14行目: new Bottom() → Bottom() に入る → 9行目 super() で Middle() へ"
+    - "5行目: Middle() の1行目に自動の super() → Top() へ"
+    - "2行目: Top() の本体 → \"T\" → Middle に戻る"
+    - "5行目: Middle() の本体 → \"M\" → Bottom に戻る"
+    - "10行目: Bottom() の残り → \"B\""
+- title: "super.method() で親の結果を再利用する"
+  level: 2
+  code: |
+    public class Greeter {
+        public String hello(String name) {
+            return "Hello, " + name;
+        }
+    }
+    public class PoliteGreeter extends Greeter {
+        @Override
+        public String hello(String name) {
+            return super.hello(name) + "-san";
+        }
+    }
+
+    PoliteGreeter g = new PoliteGreeter();
+    System.out.println(g.hello("Ken"));
+  question: "出力は?"
+  choices:
+    - "Hello, Ken"
+    - "Ken-san"
+    - "Hello, Ken-san"
+    - "無限ループ"
+  answer: 2
+  explanation: "子の hello() は、super.hello(name) で親の版を呼んで \"Hello, Ken\" を受け取り、\"-san\" を足して返します。super. を付けずに hello(name) と書くと自分自身を呼び続けて StackOverflowError になります。"
+  trace:
+    - "14行目: g.hello(\"Ken\") → 子の hello (8行目) が動く"
+    - "9行目: super.hello(\"Ken\") → 親の hello (2行目) → \"Hello, Ken\""
+    - "9行目: \"Hello, Ken\" + \"-san\" → \"Hello, Ken-san\" を返す"
+- title: "引数が違うと上書きにならない"
+  level: 3
+  code: |
+    public class Member {
+        public int discount(int price) { return price; }
+    }
+    public class PremiumMember extends Member {
+        public int discount(long price) { return (int) (price * 90 / 100); }
+    }
+
+    PremiumMember p = new PremiumMember();
+    System.out.println(p.discount(1000));
+  question: "出力は?"
+  choices:
+    - "900"
+    - "1000"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 1
+  explanation: "子の discount(long) は引数の型が親の discount(int) と違うため、上書きではなく「別のメソッド(オーバーロード)」です。呼び出しの 1000 は int なので、ぴったり一致する親の discount(int) が選ばれ 1000 が返ります。@Override を付けていればコンパイルエラーで気づけました。"
+  trace:
+    - "5行目: 引数が long → 親の discount(int) とはシグネチャが違う → 上書きではない"
+    - "8行目: PremiumMember は discount(int)(親から継承)と discount(long)(自分)の2つを持つ"
+    - "9行目: 1000 は int → 完全一致する discount(int) が選ばれる → 親の版 → 1000"
+- title: "親のコンストラクタから、上書きされたメソッドが呼ばれる"
+  level: 3
+  code: |
+    public class Base {
+        public Base() {
+            System.out.println("init: " + describe());
+        }
+        public String describe() { return "base"; }
+    }
+    public class Child extends Base {
+        private String label = "child";
+
+        @Override
+        public String describe() { return label; }
+    }
+
+    new Child();
+  question: "出力は?"
+  choices:
+    - "init: base"
+    - "init: child"
+    - "init: null"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "new Child() では、まず親 Base() が動きます。その中で呼ばれる describe() は、実体が Child なので**子の上書き版**が動きます。しかしこの時点では子のフィールド初期化子(label = \"child\")はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。"
+  trace:
+    - "14行目: new Child() → 親 Base() が先に動く(子の初期化子はまだ)"
+    - "3行目: describe() を呼ぶ → 実体は Child なので子の describe() (11行目)"
+    - "11行目: label はまだ初期化されていない → null を返す"
+    - "3行目: \"init: null\" と表示"
+    - "その後: 子の初期化子で label = \"child\" になるが、表示はもう終わっている"

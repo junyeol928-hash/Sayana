@@ -1,0 +1,89 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "スタックトレースから原因行を特定する"
+  level: 1
+  code: |
+    Exception in thread "main" java.lang.NullPointerException:
+        Cannot invoke "String.toUpperCase()" because "name" is null
+    	at com.example.Greeter.greet(Greeter.java:15)
+    	at com.example.Main.main(Main.java:5)
+  question: "実際に例外が発生した場所(修正すべき最初の候補)はどこ?"
+  choices:
+    - "Main.java の5行目"
+    - "Greeter.java の15行目"
+    - "1行目(Exception in thread)"
+    - "特定できない"
+  answer: 1
+  explanation: "スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 Greeter.java の15行目で name が null のまま toUpperCase() を呼んでいることが原因です。"
+  trace:
+    - "1〜2行目: 例外の種類は NullPointerException、原因は name が null であること"
+    - "3行目(一番上の at 行): Greeter.java の15行目で発生"
+    - "4行目: その Greeter.greet を呼び出したのは Main.java の5行目"
+    - "まず15行目を確認し、name がどこで null になったかをさらに追う"
+- title: "off-by-one によるバグ"
+  level: 2
+  code: |
+    int[] scores = { 70, 80, 90 };
+    int sum = 0;
+    for (int i = 0; i <= scores.length; i++) {
+        sum += scores[i];
+    }
+  question: "このコードを実行すると?"
+  choices:
+    - "sum が 240 になる"
+    - "sum が 0 のまま"
+    - "ArrayIndexOutOfBoundsException が発生する"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "条件が i <= scores.length になっているため、i が 3(存在しない添字)のときに scores[3] にアクセスしてしまい、実行時に ArrayIndexOutOfBoundsException が発生します。配列の最後の添字は length - 1 です。"
+  trace:
+    - "i=0: scores[0]=70 → sum=70"
+    - "i=1: scores[1]=80 → sum=150"
+    - "i=2: scores[2]=90 → sum=240"
+    - "i=3: 条件 3<=3 は true なので継続 → scores[3] は存在しない → ArrayIndexOutOfBoundsException"
+- title: "コールスタックをたどって呼び出し元を確認する"
+  level: 2
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            int total = calcTotal(10, 0);
+            System.out.println(total);
+        }
+        static int calcTotal(int price, int qty) {
+            return price / qty;   // ここでブレークポイント
+        }
+    }
+  question: "7行目にブレークポイントを置いて実行し、コールスタックを1段下に見たとき表示される情報は?"
+  choices:
+    - "calcTotal 自身の変数だけ"
+    - "main メソッドの、calcTotal を呼び出した時点の変数(args など)"
+    - "何も表示されない"
+    - "コンパイルエラーの内容"
+  answer: 1
+  explanation: "コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドが calcTotal(10, 0) を呼び出した時点の状態(price=10, qty=0 を渡した箇所)を確認できます。なお qty=0 のためこのままだと ArithmeticException が発生します。"
+  trace:
+    - "main が calcTotal(10, 0) を呼び出す"
+    - "コールスタックの一番上が calcTotal(price=10, qty=0)"
+    - "1段下が main(呼び出し元)"
+    - "7行目の price / qty は qty=0 のため実行すると ArithmeticException が発生する"
+- title: "== と equals の取り違えをデバッグで見つける"
+  level: 3
+  code: |
+    public boolean isAdminUser(String role) {
+        String adminRole = new String("ADMIN");
+        return role == adminRole;
+    }
+    // 呼び出し側:
+    boolean result = isAdminUser("ADMIN");
+  question: "result の値と、その原因は?"
+  choices:
+    - "true。文字列の中身が同じだから"
+    - "false。== が参照(インスタンス)を比較しているから"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 1
+  explanation: "role(呼び出し側の \"ADMIN\")と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。"
+  trace:
+    - "isAdminUser(\"ADMIN\") が呼ばれ、role には \"ADMIN\" という文字列への参照が入る"
+    - "2行目: adminRole は new String(\"ADMIN\") で明示的に別インスタンスとして作られる"
+    - "3行目: role == adminRole は「同じインスタンスか」を見るので false"
+    - "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる"

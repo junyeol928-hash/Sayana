@@ -1,0 +1,153 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "try-catch-finally の実行順"
+  level: 1
+  code: |
+    public static void main(String[] args) {
+        try {
+            System.out.print("A");
+            int n = 10 / 0;
+            System.out.print("B");
+        } catch (ArithmeticException e) {
+            System.out.print("C");
+        } finally {
+            System.out.print("D");
+        }
+        System.out.print("E");
+    }
+  question: "出力は?"
+  choices:
+    - "ABCDE"
+    - "ACDE"
+    - "ACD"
+    - "AD"
+  answer: 1
+  explanation: "4行目で 0 除算 → ArithmeticException。5行目の B は飛ばされ、catch で C、finally で D、catch で受け止めたので処理は続き E。B だけが表示されません。"
+  trace:
+    - "3行目: A を表示"
+    - "4行目: 10 / 0 → ArithmeticException 発生。5行目には進まない"
+    - "6〜7行目: 型が一致する catch → C を表示"
+    - "8〜9行目: finally → D を表示"
+    - "11行目: 例外は処理済みなので続行 → E を表示"
+- title: "どの catch で捕まる?"
+  level: 2
+  code: |
+    String s = null;
+    try {
+        System.out.println(s.length());
+    } catch (IllegalArgumentException e) {
+        System.out.println("引数エラー");
+    } catch (RuntimeException e) {
+        System.out.println("実行時エラー: " + e.getClass().getSimpleName());
+    } catch (Exception e) {
+        System.out.println("その他");
+    }
+  question: "出力は?"
+  choices:
+    - "引数エラー"
+    - "実行時エラー: NullPointerException"
+    - "その他"
+    - "何も表示されず終了"
+  answer: 1
+  explanation: "null の s に length() を呼ぶと NullPointerException。上から照合すると IllegalArgumentException とは無関係、RuntimeException の子なので2つ目の catch で捕まります。3つ目の Exception にも一致しますが、最初に一致した1つだけが実行されます。"
+  trace:
+    - "3行目: s は null → NullPointerException が投げられる"
+    - "4行目: IllegalArgumentException ではない → 不一致"
+    - "6行目: NullPointerException は RuntimeException の子 → 一致。ここで捕まる"
+    - "7行目: getSimpleName() はパッケージ名なしのクラス名 → \"実行時エラー: NullPointerException\""
+    - "8行目: 既に捕まったので照合されない"
+- title: "メソッドをまたぐ伝播と finally"
+  level: 2
+  code: |
+    static int parse(String s) {
+        try {
+            return Integer.parseInt(s);
+        } finally {
+            System.out.print("[parse終了]");
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            int n = parse("x1");
+            System.out.print("値=" + n);
+        } catch (NumberFormatException e) {
+            System.out.print("変換失敗");
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "変換失敗"
+    - "[parse終了]変換失敗"
+    - "変換失敗[parse終了]"
+    - "[parse終了]値=0"
+  answer: 1
+  explanation: "parse の中で NumberFormatException が発生します。parse には catch が無いので例外は上に抜けますが、抜ける途中で parse の finally が実行され [parse終了] が先に出ます。その後 main の catch で捕まり 変換失敗。12行目は実行されません。"
+  trace:
+    - "11行目: parse(\"x1\") を呼ぶ"
+    - "3行目: parseInt(\"x1\") → NumberFormatException。return には至らない"
+    - "4〜5行目: parse を抜ける前に finally → [parse終了] を表示"
+    - "例外は main へ伝播。12行目は飛ばされる"
+    - "13〜14行目: catch で捕まえて 変換失敗 を表示"
+- title: "検査例外と throws"
+  level: 2
+  code: |
+    import java.io.IOException;
+
+    public class Loader {
+        static String read() throws IOException {
+            throw new IOException("file missing");
+        }
+
+        public static void main(String[] args) {
+            String s = read();
+            System.out.println(s);
+        }
+    }
+  question: "このコードはどうなる?"
+  choices:
+    - "file missing と表示"
+    - "IOException で実行時に落ちる"
+    - "コンパイルエラー(9行目)"
+    - "null と表示"
+  answer: 2
+  explanation: "read() は throws IOException と宣言しており、IOException は検査例外です。呼ぶ側の main は catch も throws も書いていないので、コンパイラが9行目でエラーにします。実行には至りません。main に throws IOException を付けるか try-catch で囲めば通ります。"
+  trace:
+    - "4行目: read は検査例外 IOException を投げうると宣言"
+    - "9行目: main は対処(catch / throws)を書いていない → コンパイルエラー"
+    - "10行目: コンパイルが通らないので実行されない"
+- title: "ユーザー定義例外と Caused by"
+  level: 3
+  code: |
+    class DataAccessException extends RuntimeException {
+        DataAccessException(String msg, Throwable cause) { super(msg, cause); }
+    }
+
+    static void find() {
+        try {
+            Integer.parseInt("id-7");
+        } catch (NumberFormatException e) {
+            throw new DataAccessException("lookup failed", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            find();
+        } catch (DataAccessException e) {
+            System.out.println(e.getMessage() + " / " + e.getCause().getClass().getSimpleName());
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "lookup failed / NumberFormatException"
+    - "lookup failed / null"
+    - "NumberFormatException が捕まらず落ちる"
+    - "コンパイルエラー(throws が無い)"
+  answer: 0
+  explanation: "find の中で NumberFormatException を catch し、それを原因(cause)として DataAccessException に包んで投げ直しています。DataAccessException は RuntimeException 系なので throws は不要。main で捕まえ、getMessage() は \"lookup failed\"、getCause() は元の NumberFormatException です。"
+  trace:
+    - "15行目: find() を呼ぶ"
+    - "7行目: \"id-7\" は数値ではない → NumberFormatException"
+    - "8〜9行目: catch して、cause = e として DataAccessException を新たに throw。find を抜ける"
+    - "16行目: DataAccessException を catch"
+    - "17行目: メッセージ \"lookup failed\"、cause は NumberFormatException → 連結して表示"

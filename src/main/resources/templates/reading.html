@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('読解')}"></head>
+<body class="page-reading">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="container narrow">
+    <h1 class="page-title">コードを読む</h1>
+    <p class="page-lead">業務のコードを読む力を、実行せずに頭の中で追って鍛えます。全 <b th:text="${total}">171</b> 問。
+        答え合わせの記録はこのブラウザの中だけに残ります(スマホ版では復習にも出ます)。</p>
+    <section th:each="g : ${groups}" class="lesson-section" th:attr="aria-label=${g.lesson.title}">
+        <h2 class="section-title"><a th:href="@{/lessons/{id}(id=${g.lesson.id})}" th:text="${g.lesson.title}"></a></h2>
+        <ol class="reading-list">
+            <th:block th:each="r, rs : ${g.questions}">
+                <li th:replace="~{fragments/lesson-parts :: readingCard(${r}, ${g.lesson.id} + '@' + ${rs.index}, null)}"></li>
+            </th:block>
+        </ol>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

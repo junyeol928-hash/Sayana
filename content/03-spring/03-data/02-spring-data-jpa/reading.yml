@@ -1,0 +1,92 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "派生クエリの条件を読む"
+  level: 1
+  code: |
+    public interface KeyRepository extends JpaRepository<KeyEntity, Long> {
+        List<KeyEntity> findByCardIdAndStatus(String cardId, String status);
+    }
+
+    // 保存済みデータ(cardId, status):
+    // ("C001", "ACTIVE"), ("C001", "REVOKED"), ("C002", "ACTIVE")
+
+    List<KeyEntity> result = keyRepository.findByCardIdAndStatus("C001", "ACTIVE");
+  question: "result に入る件数は?"
+  choices:
+    - "0件"
+    - "1件"
+    - "2件"
+    - "3件"
+  answer: 1
+  explanation: "findByCardIdAndStatus は「WHERE card_id = ? AND status = ?」相当です。cardId=\"C001\" かつ status=\"ACTIVE\" の行は1件だけです。"
+  trace:
+    - "1〜2行目: findByCardIdAndStatus という名前から WHERE card_id = ? AND status = ? が組み立てられる"
+    - "保存データのうち、card_id=\"C001\" の行は2件(ACTIVE と REVOKED)"
+    - "その中で status=\"ACTIVE\" も満たすのは1件だけ"
+    - "結果: result は1件"
+- title: "検査例外とロールバック"
+  level: 2
+  code: |
+    @Transactional
+    public void issue(String cardId) throws CryptoCommunicationException {
+        keyRepository.save(new KeyEntity(cardId, 1, "ACTIVE"));
+        throw new CryptoCommunicationException("crypto timeout");
+    }
+    // CryptoCommunicationException は Exception を直接継承した検査例外
+  question: "issue(\"C001\") を呼んだあと、DB の key_master テーブルは?"
+  choices:
+    - "ロールバックされ、保存されていない"
+    - "保存された行がそのまま残る"
+    - "起動時に例外になる"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。"
+  trace:
+    - "3行目: save が実行される(まだ確定はしていない)"
+    - "4行目: 検査例外 CryptoCommunicationException が投げられる"
+    - "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外"
+    - "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る"
+- title: "rollbackFor を指定した場合"
+  level: 2
+  code: |
+    @Transactional(rollbackFor = Exception.class)
+    public void issue(String cardId) throws CryptoCommunicationException {
+        keyRepository.save(new KeyEntity(cardId, 1, "ACTIVE"));
+        throw new CryptoCommunicationException("crypto timeout");
+    }
+  question: "前の問題と同じ処理に `rollbackFor = Exception.class` を追加した。DB の状態は?"
+  choices:
+    - "保存された行が残る"
+    - "ロールバックされ、保存されていない"
+    - "例外が発生しなくなる"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "rollbackFor = Exception.class は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。"
+  trace:
+    - "1行目: rollbackFor で対象を Exception.class まで広げている"
+    - "3行目: save が実行される"
+    - "4行目: CryptoCommunicationException(Exception のサブクラス)が投げられる"
+    - "rollbackFor の条件に一致するのでロールバックが実行される"
+    - "結果: 3行目の保存内容も取り消され、テーブルに行は残らない"
+- title: "N+1 が起きる箇所を見つける"
+  level: 2
+  code: |
+    List<KeyEntity> keys = keyRepository.findAll();
+    int total = 0;
+    for (KeyEntity key : keys) {
+        total += key.getResults().size();   // getResults() は @OneToMany(fetch = FetchType.LAZY)
+    }
+    // keys には5件のKeyEntityが含まれている
+  question: "このコードの実行で、DB に対して発行される SELECT は何回?"
+  choices:
+    - "1回"
+    - "2回"
+    - "5回"
+    - "6回"
+  answer: 3
+  explanation: "findAll() で1回、その後ループの5回分、getResults() にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 1 + 5 = 6回になります。これが N+1 問題です。"
+  trace:
+    - "1行目: findAll() で1回目のSELECT(5件のKeyEntityを取得)"
+    - "3行目: forループが5回まわる"
+    - "4行目: 1回目のループでkey.getResults()にアクセス → 遅延ロードのSELECTが発行される(2回目)"
+    - "同様に2〜5回目のループでもそれぞれSELECTが発行される(3〜6回目)"
+    - "合計: 1(findAll) + 5(各keyのresults) = 6回"

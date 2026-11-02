@@ -1,0 +1,26 @@
+title: 配列を書き換えるメソッドとコピーを返すメソッド
+className: ScoreBook
+difficulty: 1
+problem: |
+  テストの点数(`int[]`)を扱う `ScoreBook` クラスを完成させてください。雛形にはすでに中身が書いてありますが、**参照を勘違いした書き方** になっていてテストに落ちます。
+
+  | メソッド | 動き |
+  |---|---|
+  | `static void addBonusInPlace(int[] scores, int bonus)` | 渡された配列 **そのもの** の各要素に `bonus` を足す(呼び出し元の配列が変わる) |
+  | `static int[] withBonus(int[] scores, int bonus)` | 元の配列は **変えずに**、各要素に `bonus` を足した **新しい配列** を返す |
+  | `static boolean sameScores(int[] a, int[] b)` | 2つの配列の **中身** が同じ(長さが同じで、全要素が等しい)なら `true` |
+
+  ```java
+  int[] s = {60, 75, 90};
+  ScoreBook.addBonusInPlace(s, 5);          // s は {65, 80, 95} になる
+
+  int[] t = {60, 75, 90};
+  int[] u = ScoreBook.withBonus(t, 5);      // u は {65, 80, 95}、t は {60, 75, 90} のまま
+
+  ScoreBook.sameScores(new int[]{1, 2}, new int[]{1, 2});  // true(別の配列でも中身が同じ)
+  ```
+
+  ヒント:
+  - 配列は参照型です。引数 `scores` は呼び出し元と **同じ配列** を指しています。
+  - 新しい配列は `new int[scores.length]` で作ります。`int[] copy = scores;` はコピーではなく **矢印が1本増えただけ** です。
+  - `a == b` は「同じ配列を指しているか」を比べるだけです。引数は `null` にならない前提でかまいません。

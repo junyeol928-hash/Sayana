@@ -1,0 +1,119 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "最終的に使われる設定値"
+  level: 2
+  code: |
+    # application.yml
+    gateway:
+      backend:
+        base-url: http://localhost:8081
+        timeout-millis: 3000
+
+    # application-prod.yml
+    gateway:
+      backend:
+        base-url: https://backend.internal
+
+    // Java(prod プロファイルで起動)
+    @Value("${gateway.backend.base-url}") String baseUrl;
+    @Value("${gateway.backend.timeout-millis:1000}") int timeout;
+    @Value("${gateway.backend.retry:2}") int retry;
+  question: "baseUrl / timeout / retry の値は?"
+  choices:
+    - "localhost:8081 / 3000 / 2"
+    - "back.internal / 3000 / 2"
+    - "back.internal / 1000 / 2"
+    - "back.internal / 3000 / 起動時に例外"
+  answer: 1
+  explanation: "(キーの頭の gateway は、仕事では tsm)base-url は prod の yml が共通を上書きして https://backend.internal。timeout-millis は prod にないので共通の 3000(既定値の 1000 は使われない)。retry はどこにもないので既定値の 2 です。既定値があるので例外にはなりません。"
+  trace:
+    - "13行目: gateway.backend.base-url → 共通と prod の両方にある → prod が勝ち https://backend.internal"
+    - "14行目: gateway.backend.timeout-millis → 共通にだけある → 3000(:1000 はキーがない時だけ)"
+    - "15行目: gateway.backend.retry → どこにもない → 既定値 2"
+- title: "@ConfigurationProperties の対応"
+  level: 2
+  code: |
+    # application.yml
+    gateway:
+      session:
+        max-count: 100
+        idle-seconds: 300
+
+    @Component
+    @ConfigurationProperties(prefix = "gateway.session")
+    @Getter @Setter
+    public class SessionProperties {
+        private int maxCount;
+        private int idleSeconds = 60;
+        private int retryCount = 3;
+    }
+  question: "起動後の maxCount / idleSeconds / retryCount は?"
+  choices:
+    - "100 / 300 / 3"
+    - "100 / 60 / 3"
+    - "0 / 300 / 3"
+    - "起動時に例外(retry-count がない)"
+  answer: 0
+  explanation: "max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
+  trace:
+    - "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む"
+    - "11行目: max-count → maxCount = 100"
+    - "12行目: idle-seconds → idleSeconds = 300(初期値 60 は上書き)"
+    - "13行目: retry-count は yml にない → 初期値 3 のまま"
+- title: "@Profile と Bean の選択"
+  level: 2
+  code: |
+    @Configuration
+    public class CommandConfig {
+        @Bean @Profile("prod")
+        public CommandSender secureSender() { return new SecureCommandSender(); }
+
+        @Bean @Profile({"dev", "stg"})
+        public CommandSender plainSender() { return new PlainCommandSender(); }
+    }
+
+    @Service @RequiredArgsConstructor
+    public class CommandService {
+        private final CommandSender sender;
+    }
+  question: "`--spring.profiles.active=stg` で起動すると、sender には何が入る?"
+  choices:
+    - "SecureCommandSender"
+    - "PlainCommandSender"
+    - "両方の候補があり起動時に例外"
+    - "どちらも作られず起動時に例外"
+  answer: 1
+  explanation: "stg では @Profile({\"dev\",\"stg\"}) の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず NoSuchBeanDefinitionException(4)になります。"
+  trace:
+    - "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない"
+    - "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる"
+    - "12行目: CommandSender 型の候補は PlainCommandSender の1つだけ → それが注入される"
+- title: "@PostConstruct と @Value の順番"
+  level: 3
+  code: |
+    @Component
+    public class CryptoClient {
+        @Value("${gateway.crypto.host}")
+        private String host;
+        private String endpoint;
+
+        public CryptoClient() {
+            endpoint = host + ":9000";
+        }
+
+        @PostConstruct
+        void init() {
+            System.out.println(endpoint);
+        }
+    }
+  question: "yml に `gateway.crypto.host: crypto1` があるとき、起動時の出力は?"
+  choices:
+    - "crypto1:9000"
+    - "null:9000"
+    - "起動時に例外"
+    - ":9000"
+  answer: 1
+  explanation: "フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は \"null:9000\" になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。"
+  trace:
+    - "7〜9行目: Spring がまず new する。この時点で host は null → endpoint = \"null:9000\""
+    - "3〜4行目: new の後に @Value が処理され、host = \"crypto1\" になる"
+    - "11〜13行目: 注入完了後に init() が呼ばれ、endpoint(\"null:9000\")を出力"

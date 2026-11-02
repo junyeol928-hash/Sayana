@@ -1,0 +1,35 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ログとテスト"
+  intro: "Service のテストコードは、その Service が「何をどう呼び、何を返すべきか」を最も具体的に教えてくれます。ソース本体とテストを両方読むと理解が速くなります。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    @Slf4j
+    public class OrderService {
+
+        private final OrderRepository orderRepository;
+        private final PaymentClient paymentClient;
+
+        public OrderResult place(OrderRequest req) {
+            log.info("order place start userId={}", req.userId());
+            try {
+                paymentClient.charge(req.userId(), req.amount());
+            } catch (PaymentException e) {
+                log.error("payment failed userId={}", req.userId(), e);
+                throw new OrderFailedException("payment failed", e);
+            }
+            Order saved = orderRepository.save(Order.from(req));
+            log.info("order place done orderId={}", saved.getId());
+            return OrderResult.from(saved);
+        }
+    }
+  notes:
+    3: "Lombok:LoggerFactory.getLogger(OrderService.class) の1行が生成される"
+    10: "決済APIを呼ぶ。失敗すると PaymentException(検査例外や外部ライブラリの例外であることが多い)"
+    12: "エラーログには必ず例外オブジェクト(e)を渡す。スタックトレースが残らないと原因調査ができない"
+    13: "業務エラーとしてラップして投げ直す。呼び出し元は OrderFailedException だけ気にすればよい"
+  points:
+    - "ERROR ログの行にどんな例外が渡っているか(catch した e を渡しているか)を確認する"
+    - "INFO ログの開始/終了の行を追えば、正常系の処理の区切りが分かる"
+    - "このクラスのテスト(OrderServiceTest)を探し、@Mock にされている依存(ここでは OrderRepository、PaymentClient)を確認する"
+    - "テストの when(...).thenReturn(...) と、例外を投げるモック設定(thenThrow)の両方を見て、正常系・異常系の期待動作を読む"

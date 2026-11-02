@@ -1,0 +1,255 @@
+id: java-nested-classes
+title: ネストクラスと匿名クラス
+status: ready
+minutes: 15
+summary: クラスの中のクラス(static ネスト・内部・ローカル・匿名)を見分け、Builder や匿名クラスの Comparator を読み書きする。初期化ブロックと new したときの実行順まで。
+goals:
+  - static ネストクラス・内部クラス・ローカルクラス・匿名クラスを見分け、外側のインスタンスとの関係を説明できる
+  - static ネストクラスで Builder を書き、new 外側.内側() の形で使える
+  - 内部クラスの中で this と 外側.this が何を指すか説明できる
+  - 匿名クラスで Comparator を実装でき、実質的 final のルールとラムダ式に置き換えられる条件を説明できる
+  - static 初期化ブロック・初期化ブロック・コンストラクタの実行順を、継承がある場合も含めて追える
+samples:
+  - title: Builder(static ネストクラス)で検索条件を組み立てる
+    description: "`UserQuery.Builder` は static ネストクラスなので、`UserQuery` のインスタンスがなくても `new UserQuery.Builder()` で作れます。指定しなかった項目は Builder 側の既定値になります。"
+    code: |
+      // Builder(static ネストクラス)で検索条件を組み立てる
+      // ここを変えてみよう:minAge を指定しない検索を足す / onlyActive(false) を呼んでみる
+      class UserQuery {
+          private final String dept;
+          private final int minAge;
+          private final boolean onlyActive;
+
+          // 外から new UserQuery(...) させず、Builder だけが作れるようにする
+          private UserQuery(Builder b) {
+              this.dept = b.dept;          // Builder の private フィールドも読める
+              this.minAge = b.minAge;
+              this.onlyActive = b.onlyActive;
+          }
+
+          String describe() {
+              return "部署=" + dept + " / " + minAge + "歳以上 / "
+                   + (onlyActive ? "在籍者のみ" : "退職者も含む");
+          }
+
+          static class Builder {
+              private String dept = "全部署";    // 省略したときの値
+              private int minAge = 0;
+              private boolean onlyActive = true;
+
+              Builder dept(String dept) { this.dept = dept; return this; }
+              Builder minAge(int age) { this.minAge = age; return this; }
+              Builder onlyActive(boolean b) { this.onlyActive = b; return this; }
+
+              UserQuery build() { return new UserQuery(this); }
+          }
+      }
+
+      // . でつなげて、指定したい項目だけを名前付きで渡す
+      UserQuery q1 = new UserQuery.Builder().dept("営業").minAge(30).build();
+      UserQuery q2 = new UserQuery.Builder().build();   // 全部既定値
+      System.out.println(q1.describe());
+      System.out.println(q2.describe());
+  - title: 内部クラスと 外側.this
+    description: "`Gauge` は static のない内部クラスなので、作った `Car` のフィールドを読めます。同じ名前のフィールドがあるときは `this.name` と `Car.this.name` で区別します。"
+    code: |
+      // 内部クラスは外側のインスタンス1つに結び付く
+      // ここを変えてみよう:car2 の fuel を変える / Gauge に static を付けるとどんなエラーになる?
+      class Car {
+          private final String name;
+          private int fuel;
+          Car(String name, int fuel) {
+              this.name = name;
+              this.fuel = fuel;
+          }
+          void drive(int liters) { fuel -= liters; }
+
+          class Gauge {                       // static なし = 内部クラス
+              private final String name = "燃料計";
+              String read() {
+                  // this.name は Gauge 自身、Car.this.name は外側の Car
+                  return this.name + "(" + Car.this.name + "): 残り " + fuel + "L";
+              }
+          }
+
+          Gauge gauge() { return new Gauge(); }   // この Car に結び付いた Gauge を作る
+      }
+
+      Car car1 = new Car("社用車A", 40);
+      Car car2 = new Car("社用車B", 15);
+      Car.Gauge g1 = car1.gauge();
+      Car.Gauge g2 = car2.gauge();
+
+      car1.drive(12);                 // car1 だけ走らせる
+      System.out.println(g1.read());  // 外側の最新の fuel を読みに行く
+      System.out.println(g2.read());
+  - title: 匿名クラスの Comparator で並べ替える
+    description: "`new Comparator<Order>() { ... }` が匿名クラスです。並べ方のルールをその場で書いて `Arrays.sort` に渡します。同じ配列を、ルールを替えて2通りに並べています。"
+    code: |
+      // 匿名クラスの Comparator で並べ方を差し替える
+      // ここを変えてみよう:金額が同じなら顧客名順にする / 安い順にする
+      class Order {
+          final String customer;
+          final int amount;
+          Order(String customer, int amount) {
+              this.customer = customer;
+              this.amount = amount;
+          }
+          @Override
+          public String toString() { return customer + ":" + amount + "円"; }
+      }
+
+      Order[] orders = {
+          new Order("スズキ", 800),
+          new Order("タカハシ", 12000),
+          new Order("サトウ", 3000)
+      };
+
+      // 金額の高い順(名前のないクラスをその場で定義して new している)
+      Arrays.sort(orders, new Comparator<Order>() {
+          @Override
+          public int compare(Order a, Order b) {
+              return Integer.compare(b.amount, a.amount);
+          }
+      });
+      System.out.println("高い順: " + Arrays.toString(orders));
+
+      // 顧客名の順(String の compareTo は文字コード順。カタカナならほぼ五十音順)
+      Arrays.sort(orders, new Comparator<Order>() {
+          @Override
+          public int compare(Order a, Order b) {
+              return a.customer.compareTo(b.customer);
+          }
+      });
+      System.out.println("名前順: " + Arrays.toString(orders));
+  - title: new したときの実行順を確かめる
+    description: static ブロックはクラスが最初に使われたときに1回だけ、初期化ブロックとコンストラクタは new のたびに、どちらも親が先に動きます。
+    code: |
+      // static ブロック → 初期化ブロック → コンストラクタ の順番
+      // ここを変えてみよう:3回目の new を足す / Derived のフィールドに初期値を付けて表示してみる
+      class Base {
+          static { System.out.println("A: Base の static ブロック"); }
+          { System.out.println("C: Base の初期化ブロック"); }
+          Base() { System.out.println("D: Base のコンストラクタ"); }
+      }
+
+      class Derived extends Base {
+          static { System.out.println("B: Derived の static ブロック"); }
+          { System.out.println("E: Derived の初期化ブロック"); }
+          Derived() { System.out.println("F: Derived のコンストラクタ"); }
+      }
+
+      System.out.println("--- 1回目の new ---");
+      new Derived();
+      System.out.println("--- 2回目の new ---");
+      new Derived();   // static ブロック(A・B)はもう出ない
+quiz:
+  - question: |
+      次の `Detail` を、`Response` のインスタンスを作らずに生成する正しい書き方はどれ?
+      ```java
+      class Response {
+          static class Detail {
+              String message;
+              Detail(String message) { this.message = message; }
+          }
+      }
+      ```
+    choices: ["`new Response.Detail(\"失敗しました\")`", "`new Response().new Detail(\"失敗しました\")`", "`Response.new Detail(\"失敗しました\")`", "static ネストクラスは外側のクラスの外からは作れない"]
+    answer: 0
+    explanation: |
+      `Detail` は **static ネストクラス** なので外側のインスタンスとは無関係で、`外側.内側` の名前で `new Response.Detail(...)` と書けます。
+      `外側インスタンス.new 内側()` は **内部クラス(static なし)** のための書き方で、static ネストクラスに使うと `qualified new of static class` というコンパイルエラーです。`Response.new ...` という構文はありません。アクセス修飾子で禁じていない限り、外からも普通に作れます。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class Outer {
+          int value = 10;
+          class Inner {
+              int value = 20;
+              void show() {
+                  System.out.println(this.value + " " + Outer.this.value);
+              }
+          }
+      }
+
+      new Outer().new Inner().show();
+      ```
+    choices: ["20 10", "10 20", "10 10", "コンパイルエラー(内部クラスに同じ名前のフィールドは置けない)"]
+    answer: 0
+    explanation: |
+      `this` は常に **今いるクラス自身**、つまり `Inner` のインスタンスを指すので `this.value` は 20 です。結び付いている外側のインスタンスは `Outer.this` と書くので、`Outer.this.value` は 10 になります。
+      内部クラスが外側と同じ名前のフィールドを持つこと自体は合法です(外側の名前が隠れるだけ)。区別するために `Outer.this` があります。
+  - question: 匿名クラスをラムダ式に置き換えられる条件として正しいものは?
+    choices: ["匿名クラスが static であること", "実装するインターフェースの抽象メソッドが1つだけであること", "匿名クラスがフィールドを持たないこと", "実装する相手が抽象クラスであること"]
+    answer: 1
+    explanation: |
+      ラムダ式は **抽象メソッドが1つだけのインターフェース**(関数型インターフェース)の実装を短く書くための書き方です。`Runnable` や `Comparator` が代表例です(第7章で詳しく)。
+      相手が抽象クラスのときや、抽象メソッドが2つ以上あるときはラムダにできず、匿名クラスのまま書きます。匿名クラスに static は付けられず、フィールドの有無は条件ではありません(フィールドを持つ匿名クラスはむしろラムダにできません)。
+  - question: |
+      次のコードを実行したときの出力は?
+      ```java
+      class Config {
+          static { System.out.print("S "); }
+          { System.out.print("I "); }
+          Config() { System.out.print("C "); }
+      }
+
+      new Config();
+      new Config();
+      ```
+    choices: ["S I C I C ", "S I C S I C ", "I C I C ", "S C I S C I "]
+    answer: 0
+    explanation: |
+      **static 初期化ブロック** は、クラスが最初に使われたときに **1回だけ** 動きます。**初期化ブロック** は `new` のたびに、コンストラクタ本体の **前** に動きます。なので1回目は `S I C`、2回目は `I C` だけで、`S I C I C ` です。
+      static ブロックが毎回動くわけではなく(2番目が違う)、static ブロックが省略されることもありません(3番目が違う)。初期化ブロックがコンストラクタより後に動くこともありません(4番目が違う)。
+  - question: 親クラス `Base` と子クラス `Derived` がそれぞれ static ブロック・初期化ブロック・コンストラクタを持つとき、`new Derived()` を初めて実行したときの順番として正しい説明はどれ?
+    choices: ["子のコンストラクタ本体が先に実行され、そのあと親のコンストラクタ本体が実行される", "static ブロックが親→子の順に動いたあと、親の初期化ブロックとコンストラクタ、子の初期化ブロックとコンストラクタの順に動く", "親と子の static ブロック・初期化ブロック・コンストラクタが、親→子→親→子と交互に動く", "子の static ブロックが必ず一番最初に動く"]
+    answer: 1
+    explanation: |
+      まずクラスの読み込みで static ブロックが **親 → 子** の順に動きます。そのあとインスタンスを作るときは、**親の分(初期化ブロック → コンストラクタ)が全部終わってから**、子の分(初期化ブロック → コンストラクタ)が動きます。
+      子のコンストラクタは呼ばれるとまず暗黙の `super()` で親の初期化を済ませるので、子の初期化ブロックや子のコンストラクタ本体が動くのは親のコンストラクタ本体より **後** です(1番目が違う)。親と子が交互に動くこともありません(3番目が違う)。子の static ブロックも親の static ブロックより後です(4番目が違う)。
+columns:
+  - type: mistake
+    title: main から内部クラスを new して「non-static variable this」
+    body: |
+      練習でよく見るのがこのエラーです。
+
+      ```java
+      public class LinkedListDemo {
+          class Node {               // static を付け忘れた
+              int value;
+              Node next;
+          }
+          public static void main(String[] args) {
+              Node n = new Node();   // エラー
+          }
+      }
+      ```
+
+      `non-static variable this cannot be referenced from a static context` と言われます。`Node` は内部クラスなので、作るには外側 `LinkedListDemo` のインスタンス(`this`)が必要です。ところが `static` な `main` には `this` がありません。
+
+      `Node` が外側のフィールドを使っていないなら、答えは **`static class Node` にする** ことです。「`new LinkedListDemo().new Node()` と書けば通る」と覚えてしまう人がいますが、要らない外側インスタンスを作っているだけなので、まず `static` を疑いましょう。
+  - type: genba
+    title: Builder は手で書くより「生成される」ことが多い
+    body: |
+      業務コードで `XxxRequest.builder().name("...").build()` のような呼び出しを見たら、たいていは **Lombok** というライブラリの `@Builder` が、このレッスンで書いた static ネストクラスの Builder をコンパイル時に自動生成しています。クラスの中に Builder のコードが見当たらないのはそのためです。
+
+      ほかにも業務コードには static ネストクラスがよく出てきます。
+
+      - API のレスポンス型の中に、その型でしか使わない明細の型(`OrderResponse.Item`)を入れる
+      - データベースの **複合キー**(複数の列で1件を決めるキー)を Entity の中に置く
+      - Spring の設定クラスの中に、関連する設定をまとめた static ネストクラスを置く
+
+      どれも「外側と関係が深いけど、外側のインスタンスは要らない」型です。読むときは `static` の有無をまず確認しましょう。
+  - type: trivia
+    title: スタックトレースの「$1」は匿名クラス
+    body: |
+      ネストしたクラスをコンパイルすると、クラスごとに別の `.class` ファイルができます。名前は `外側$内側` の形です。
+
+      | ソース | できるクラスファイル |
+      |---|---|
+      | `Mail` の中の `static class Builder` | `Mail$Builder.class` |
+      | `Car` の中の `class Gauge` | `Car$Gauge.class` |
+      | `OrderService` の中の1つ目の匿名クラス | `OrderService$1.class` |
+
+      匿名クラスには名前がないので、コンパイラが **出てきた順に番号** を振ります。障害ログのスタックトレースに `at OrderService$1.compare(OrderService.java:42)` と出ていたら、「`OrderService` の中の匿名クラスの `compare` メソッド、42行目」という意味です。名前で探せないので、行番号を頼りにソースを開きましょう。

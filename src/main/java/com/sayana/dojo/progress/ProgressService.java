@@ -67,7 +67,7 @@ public class ProgressService {
     public record LessonStatus(Lesson lesson, State state, boolean read, boolean sampleRun, int exercisesPassed,
                                int exercisesTotal, int aiReviews, Integer bestQuiz, Integer lastQuiz, int quizTotal,
                                int checklistDone, int checklistTotal, Set<String> passedExercises,
-                               Set<String> checkedItems) {
+                               Set<String> checkedItems, boolean reviewGraduated) {
 
         public boolean completed() {
             return state == State.COMPLETED;
@@ -87,6 +87,56 @@ public class ProgressService {
 
         public int quizPassScore() {
             return quizPassScore(quizTotal);
+        }
+
+        /**
+         * 染まり具合(docs/design.md の 5 段)。0 まだ / 1 読んだ / 2 クイズ合格 / 3 演習もできた / 4 復習をすべて卒業。
+         * スマホ版の app.js の dyeLevel と同じ考え方。
+         */
+        public int dyeLevel() {
+            if (state == State.PLANNED) {
+                return 0;
+            }
+            if (bestQuiz == null || !quizPassed()) {
+                // 開いただけ(学習中)では染めない。読んだか、クイズを1回でも解いたら 1 段目
+                return read || bestQuiz != null ? 1 : 0;
+            }
+            if (!exercisesDone() || !checklistComplete()) {
+                return 2;
+            }
+            return reviewGraduated ? 4 : 3;
+        }
+
+        /** ホームの運針に使う、記録から「済み」と分かる段。仕事のコードと読解はブラウザの記録なので、app.js が足す。 */
+        public String doneStepKeys() {
+            List<String> keys = new ArrayList<>();
+            if (read) {
+                keys.add("read");
+            }
+            if (sampleRun) {
+                keys.add("run");
+            }
+            if (bestQuiz != null && quizPassed()) {
+                keys.add("quiz");
+            }
+            if (exercisesTotal > 0 && exercisesDone()) {
+                keys.add("write");
+            }
+            if (checklistTotal > 0 && checklistComplete()) {
+                keys.add("sts");
+            }
+            return String.join(" ", keys);
+        }
+
+        /** 染まり具合の名前と意味(色だけで伝えないため)。 */
+        public String dyeLabel() {
+            return switch (dyeLevel()) {
+                case 1 -> "甕覗き・読んだ";
+                case 2 -> "縹・クイズ合格";
+                case 3 -> "藍・演習もできた";
+                case 4 -> "褐・復習をすべて卒業";
+                default -> "生成り・まだ";
+            };
         }
 
         private static int quizPassScore(int total) {
@@ -210,6 +260,15 @@ public class ProgressService {
                 .collect(Collectors.groupingBy(ChecklistCheck::getLessonId,
                         Collectors.mapping(ChecklistCheck::getItemKey, Collectors.toSet())));
 
+        private final Map<String, List<ReviewItem>> reviewByLesson = reviewItems.findAll().stream()
+                .collect(Collectors.groupingBy(ReviewItem::getLessonId));
+
+        /** そのレッスンの復習がすべて卒業したか(復習がまだ1つも無ければ false)。 */
+        boolean graduated(String lessonId) {
+            List<ReviewItem> items = reviewByLesson.getOrDefault(lessonId, List.of());
+            return !items.isEmpty() && items.stream().allMatch(ReviewItem::isGraduated);
+        }
+
         Snapshot() {
             for (Submission s : submissions.findAll()) {
                 touchedLessons.add(s.getLessonId());
@@ -225,7 +284,7 @@ public class ProgressService {
         LessonStatus status(Lesson lesson) {
             if (!lesson.ready()) {
                 return new LessonStatus(lesson, State.PLANNED, false, false, 0, 0, 0, null, null, 0, 0, 0, Set.of(),
-                        Set.of());
+                        Set.of(), false);
             }
             LessonProgress p = progressMap.get(lesson.id());
             Set<String> passedHere = lesson.exercises().stream().map(ExerciseDef::key).filter(passed::contains)
@@ -243,7 +302,7 @@ public class ProgressService {
 
             LessonStatus tmp = new LessonStatus(lesson, State.NOT_STARTED, read, sampleRun, passedHere.size(),
                     lesson.exercises().size(), reviewsByLesson.getOrDefault(lesson.id(), 0), best, lastScore,
-                    lesson.quiz().size(), checkedCount, lesson.checklist().size(), passedHere, checked);
+                    lesson.quiz().size(), checkedCount, lesson.checklist().size(), passedHere, checked, false);
             State state;
             if (tmp.exercisesDone() && tmp.quizPassed() && tmp.checklistComplete()
                     && (best != null || lesson.quiz().isEmpty())) {
@@ -256,7 +315,7 @@ public class ProgressService {
             }
             return new LessonStatus(lesson, state, read, sampleRun, tmp.exercisesPassed(), tmp.exercisesTotal(),
                     tmp.aiReviews(), best, lastScore, tmp.quizTotal(), checkedCount, tmp.checklistTotal(), passedHere,
-                    checked);
+                    checked, graduated(lesson.id()));
         }
     }
 }

@@ -1,0 +1,164 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "URL からメソッドとステータスを追う"
+  level: 1
+  code: |
+    @RestController
+    @RequestMapping("/api/keys")
+    @RequiredArgsConstructor
+    public class KeyApiController {
+        private final KeyService keyService;
+
+        @GetMapping("/{keyId}")
+        public ResponseEntity<KeyResponse> get(@PathVariable String keyId) {
+            return keyService.find(keyId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+        }
+    }
+    // KeyService.find は Optional<KeyResponse> を返し、K999 は存在しない
+  question: "`GET /api/keys/K999` の応答は?"
+  choices:
+    - "200 と空の JSON"
+    - "404 でボディなし"
+    - "500"
+    - "400"
+  answer: 1
+  explanation: "keyId = \"K999\" で find すると空の Optional が返り、map は実行されず orElse の notFound().build() が返ります。よって 404、ボディなしです。"
+  trace:
+    - "2,7行目: GET /api/keys/{keyId} に一致。keyId = \"K999\""
+    - "9行目: keyService.find(\"K999\") → 空の Optional"
+    - "10行目: 空なので map の ResponseEntity::ok は呼ばれない"
+    - "11行目: orElse → ResponseEntity.notFound().build() → 404"
+- title: "バリデーションと例外ハンドラ"
+  level: 2
+  code: |
+    @Data
+    public class HandshakeRequest {
+        @NotBlank private String cardId;
+        @Pattern(regexp = "^[0-9A-F]{16}$") private String hostChallenge;
+    }
+
+    @PostMapping("/api/sessions")
+    public SessionResponse start(@Valid @RequestBody HandshakeRequest req) {
+        return sessionService.start(req);
+    }
+
+    @RestControllerAdvice
+    public class Handler {
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> v(MethodArgumentNotValidException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("E400"));
+        }
+    }
+  question: "ボディ `{\"cardId\":\"C001\",\"hostChallenge\":\"abcd\"}` を POST すると?"
+  choices:
+    - "sessionService.start が呼ばれ 200"
+    - "400 と {\"code\":\"E400\"}"
+    - "500"
+    - "404"
+  answer: 1
+  explanation: "(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の \"abcd\" は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。"
+  trace:
+    - "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換"
+    - "3行目: cardId = \"C001\" → @NotBlank OK"
+    - "4行目: hostChallenge = \"abcd\" → 小文字4桁で @Pattern NG"
+    - "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない"
+    - "14〜16行目: ハンドラが受けて 400 + ErrorResponse(E400)"
+- title: "例外の型と @ExceptionHandler の一致"
+  level: 2
+  code: |
+    public class GatewayException extends RuntimeException { }
+    public class CryptoUnavailableException extends GatewayException { }
+
+    @RestControllerAdvice
+    public class Handler {
+        @ExceptionHandler(GatewayException.class)
+        public ResponseEntity<String> gateway(GatewayException e) {
+            return ResponseEntity.status(503).body("gateway");
+        }
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<String> other(Exception e) {
+            return ResponseEntity.status(500).body("other");
+        }
+    }
+
+    // Service が throw new CryptoUnavailableException() した
+  question: "応答は?"
+  choices:
+    - "503 \"gateway\""
+    - "500 \"other\""
+    - "両方のハンドラが実行される"
+    - "ハンドラが2つあるので起動時に例外"
+  answer: 0
+  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 \"gateway\" です。両方が実行される(3)ことはありません。"
+  trace:
+    - "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
+    - "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致"
+    - "10行目: Exception.class も一致するが、より具体的な GatewayException のハンドラが優先"
+    - "8行目: 503 + \"gateway\""
+- title: "Filter が Controller を止める"
+  level: 3
+  code: |
+    @Component
+    public class TokenFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+                                        FilterChain chain) throws IOException, ServletException {
+            String token = req.getHeader("X-Api-Token");
+            if (token == null || !token.equals("secret")) {
+                res.setStatus(401);
+                return;
+            }
+            chain.doFilter(req, res);
+        }
+    }
+
+    @GetMapping("/api/ping")
+    public String ping() { return "pong"; }
+  question: "ヘッダなしで `GET /api/ping` を送ると?"
+  choices:
+    - "200 \"pong\""
+    - "401 でボディなし。ping() は呼ばれない"
+    - "500"
+    - "ping() が呼ばれた後に 401"
+  answer: 1
+  explanation: "token が null なので if に入り、401 をセットして return します。chain.doFilter を呼んでいないので DispatcherServlet にも Controller にも届かず、ping() は一度も実行されません。Filter は Controller より手前で動くことを確認する問題です。"
+  trace:
+    - "6行目: X-Api-Token ヘッダなし → token = null"
+    - "7〜9行目: 条件成立 → ステータス 401 をセットして return"
+    - "11行目: chain.doFilter は実行されない → 後続に進まない"
+    - "15〜16行目: ping() は呼ばれない。応答は 401、ボディなし"
+- title: "受付サーバから業務サーバへの呼び出しをつなげて読む"
+  level: 3
+  code: |
+    // 受付サーバ(仕事では Front サーバ)
+    public ChallengeResponse requestChallenge(String cardId) {
+        return restTemplate.postForObject(baseUrl + "/api/challenge",
+                new ChallengeRequest(cardId), ChallengeResponse.class);
+    }
+
+    // 業務サーバ(仕事では Back サーバ)
+    @RestController
+    @RequestMapping("/api")
+    public class ChallengeController {
+        @PostMapping("/challenge")
+        public ResponseEntity<ChallengeResponse> challenge(@RequestBody ChallengeRequest req) {
+            if (req.getCardId() == null) return ResponseEntity.badRequest().build();
+            return ResponseEntity.ok(new ChallengeResponse("0011223344556677"));
+        }
+    }
+    // ChallengeRequest は @Data で cardId フィールドを持つ。受付サーバ側は cardId = "C001"
+  question: "受付サーバの `requestChallenge(\"C001\")` の結果は?"
+  choices:
+    - "業務サーバの challenge() が呼ばれ、ChallengeResponse(\"0011223344556677\") が返る"
+    - "業務サーバで 400 になり受付サーバで例外"
+    - "URL が一致せず 404"
+    - "受付サーバで JSON 変換に失敗"
+  answer: 0
+  explanation: "受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの @RequestMapping(\"/api\") + @PostMapping(\"/challenge\") に一致します。ボディ {\"cardId\":\"C001\"} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。"
+  trace:
+    - "3行目: 受付サーバが POST {baseUrl}/api/challenge、ボディは ChallengeRequest(\"C001\") → {\"cardId\":\"C001\"}"
+    - "9,11行目: 業務サーバの URL は /api + /challenge = /api/challenge、POST → 一致"
+    - "12行目: JSON → ChallengeRequest。cardId = \"C001\""
+    - "13〜14行目: null でないので 200 + ChallengeResponse(\"0011223344556677\")"
+    - "3〜4行目: 受付サーバは応答 JSON を ChallengeResponse に変換して返す"

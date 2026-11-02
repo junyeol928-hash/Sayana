@@ -1,0 +1,116 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "コメントと出力"
+  level: 1
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            // System.out.println("one");
+            System.out.println("two");
+            System.out.println("three"); // System.out.println("four");
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "one / two / three / four"
+    - "two / three"
+    - "two / three / four"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "3行目は行全体がコメントなので実行されません。5行目は three を表示した後の // 以降がコメントなので four は出ません。"
+  trace:
+    - "3行目: 先頭が // なので行全体がコメント。何も起きない"
+    - "4行目: two を表示して改行"
+    - "5行目: three を表示。その後ろの // 以降は無視される"
+    - "結果: two、three の2行"
+- title: "print と println の組み合わせ"
+  level: 2
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            System.out.print("Java");
+            System.out.print(" ");
+            System.out.println("道場");
+            System.out.println("へ" + "ようこそ");
+        }
+    }
+  question: "出力は何行になる?"
+  choices:
+    - "1行:Java 道場へようこそ"
+    - "2行:Java 道場 / へようこそ"
+    - "4行:Java / (空白) / 道場 / へようこそ"
+    - "3行:Java / 道場 / へようこそ"
+  answer: 1
+  explanation: "print は改行しないので、Java、空白、道場 が同じ行に並び、println で改行されます。6行目は + で文字列がつながって「へようこそ」が2行目に出ます。"
+  trace:
+    - "3行目: Java(改行なし)"
+    - "4行目: 空白(改行なし)→ ここまでで「Java 」"
+    - "5行目: 道場 を続けて表示して改行 →「Java 道場」"
+    - "6行目: \"へ\" + \"ようこそ\" → \"へようこそ\" を表示して改行"
+- title: "複数行コメントの範囲"
+  level: 2
+  code: |
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println("start");
+            /*
+            System.out.println("a");
+            System.out.println("b");
+            */
+            System.out.println("end");
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "start / a / b / end"
+    - "start / end"
+    - "start"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "4行目の /* から7行目の */ までがまとめてコメントです。中の2つの println はコードに見えますが実行されません。「使わなくなった処理をコメントアウトした」典型の形です。"
+  trace:
+    - "3行目: start を表示"
+    - "4〜7行目: /* 〜 */ の中なので a も b も実行されない"
+    - "8行目: end を表示"
+    - "結果: start、end の2行"
+- title: "ファイル名とクラス名"
+  level: 2
+  code: |
+    // ファイル名: Main.java
+    public class Greeting {
+        public static void main(String[] args) {
+            System.out.println("hello");
+        }
+    }
+  question: "javac Main.java を実行すると?"
+  choices:
+    - "hello と表示される"
+    - "Greeting.class ができて正常に終わる"
+    - "コンパイルエラー"
+    - "実行時エラー"
+  answer: 2
+  explanation: "public なクラスの名前はファイル名と一致していなければなりません。Greeting は Main.java の中には置けないので、コンパイルの段階でエラーになります。IDE で「クラス名を変えたのにファイル名がそのまま」のときによく起きます。"
+  trace:
+    - "1行目: コメント。ファイル名が Main.java だと分かる"
+    - "2行目: public class Greeting → public なクラスは Greeting.java に置く必要がある"
+    - "javac: ファイル名とクラス名の不一致を検出してエラー。.class は作られない"
+- title: "static のない main"
+  level: 3
+  code: |
+    public class App {
+        public void main(String[] args) {
+            System.out.println("run");
+        }
+    }
+  question: "JDK 21(プレビュー機能なし)で、javac App.java は成功した。続けて java App を実行すると?"
+  choices:
+    - "run と表示される"
+    - "何も表示されず正常終了"
+    - "コンパイルエラー"
+    - "実行時エラー(main が見つからない)"
+  answer: 3
+  explanation: "static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として探すのは `public static void main(String[] args)` だけ。見つからないので起動時にエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。"
+  trace:
+    - "javac: 文法エラーは無いので App.class ができる"
+    - "java App: JVM が public static void main(String[]) を探す"
+    - "2行目の main には static が無いので条件に合わない"
+    - "結果: 「main メソッドが static ではありません」という趣旨のエラーで停止"

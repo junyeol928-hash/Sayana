@@ -1,0 +1,36 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "業務コードの読み方(実践)"
+  intro: "この章で追った鍵発行 API の全体を、1つのまとまりとして並べたものです。実務でコードレビューをするときも、この並び順(Controller → DTO → Service → Repository → Response → 例外)で目を通すと抜け漏れが減ります。"
+  code: |
+    // [1] Controller
+    @PostMapping
+    public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+    }
+
+    // [2] Service(要点のみ)
+    @Transactional
+    public KeyIssueResponse issue(KeyIssueRequest request) {
+        if (keyRepository.existsByCardIdAndStatus(request.getCardId(), "ACTIVE")) {
+            throw new KeyAlreadyExistsException(request.getCardId());
+        }
+        KeyEntity saved = keyRepository.save(
+            new KeyEntity(request.getCardId(), request.getKeyVersion(), "ACTIVE"));
+        return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());
+    }
+
+    // [3] 例外ハンドラ
+    @ExceptionHandler(KeyAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("E409", e.getMessage()));
+    }
+  notes:
+    2: "URL と HTTP メソッドの対応はここで決まる"
+    9: "分岐(異常系)。ここを飛ばして読むと、レビューで重複チェック漏れに気づけない"
+    13: "正常系の続き。呼び出し先(Repository)の中身も別途確認する"
+    19: "Controller に try-catch がなくても、ここで確実に処理されている"
+  points:
+    - "1つの API について、この3つのブロックを続けて読めば全体の流れが分かる"
+    - "分岐(if)や throw の行は、正常系と同じ重みで読む"
+    - "レスポンスの型(ResponseEntity<T>)と、例外ハンドラの戻り値の型を両方確認する"
+    - "この並びをそのままレビューや調査メモのテンプレートとして使える"

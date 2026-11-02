@@ -4,7 +4,7 @@
 <!--/* チャットのメッセージ(追加分) */-->
 <th:block th:fragment="chatMessages">
     <div th:each="m : ${messages}" class="chat-msg" th:classappend="${m.user} ? 'from-user' : 'from-ai'">
-        <div class="chat-who" th:text="${m.user} ? 'あなた' : '☕ モカ先輩(AI)'"></div>
+        <div class="chat-who" th:text="${m.user} ? 'あなた' : 'モカ先輩(AI)'"></div>
         <div class="chat-body md" th:if="${m.user}" th:text="${m.content}"></div>
         <div class="chat-body md" th:unless="${m.user}" th:utext="${ui.md(m.content)}"></div>
     </div>
@@ -12,18 +12,18 @@
 
 <!--/* AI の回答(レビュー・エラー翻訳) */-->
 <div th:fragment="answer" class="ai-answer">
-    <div class="ai-answer-title">🤖 <span th:text="${title}"></span></div>
+    <div class="ai-answer-title"><span th:text="${title}"></span></div>
     <div class="md" th:utext="${ui.md(text)}"></div>
 </div>
 
-<div th:fragment="error" class="ai-error">⚠️ <span th:text="${error}"></span></div>
+<div th:fragment="error" class="ai-error"><span th:text="${error}"></span></div>
 
 <th:block th:fragment="empty"></th:block>
 
 <!--/* レッスン横のチューター */-->
 <aside th:fragment="tutor(lessonId, messages)" class="tutor" id="tutor">
     <div class="tutor-head">
-        <span>☕ AIチューター</span>
+        <span>AIチューター</span>
         <button type="button" class="tutor-close" data-tutor-toggle aria-label="閉じる">✕</button>
         <form th:if="${aiAvailable}" class="inline" hx-post="/ai/chat/clear" hx-target="#chat-log" hx-confirm="このレッスンの会話を消しますか?">
             <input type="hidden" name="lessonId" th:value="${lessonId}">
@@ -32,7 +32,7 @@
     </div>
     <div class="chat-log" id="chat-log">
         <div class="chat-msg from-ai intro">
-            <div class="chat-who">☕ モカ先輩(AI)</div>
+            <div class="chat-who">モカ先輩(AI)</div>
             <div class="chat-body">分からないところは気軽に聞いて。答えをそのまま教えるんじゃなくて、考え方のほうを一緒に整理するからね。</div>
         </div>
         <th:block th:replace="~{fragments/ai :: chatMessages}"></th:block>

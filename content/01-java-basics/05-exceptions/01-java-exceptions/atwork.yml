@@ -1,0 +1,47 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "例外"
+  intro: "Spring Boot では、Service が業務例外を投げ、Controller では catch せず、@ControllerAdvice の付いたクラスがアプリ全体の例外を一括で受け止めて HTTP レスポンスに変換します。この章の「伝播」がそのまま使われています。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class UserService {
+        private final UserRepository userRepository;
+
+        public UserDto findById(String id) {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException(id));
+            return UserDto.from(user);
+        }
+    }
+
+    @RestControllerAdvice
+    @Slf4j
+    public class GlobalExceptionHandler {
+
+        @ExceptionHandler(UserNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleNotFound(UserNotFoundException e) {
+            log.warn("not found: {}", e.getUserId());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(e.getMessage()));
+        }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleOther(Exception e) {
+            log.error("unexpected error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("システムエラーが発生しました"));
+        }
+    }
+  notes:
+    8: "見つからなければ業務例外を throw。RuntimeException 系なので throws は不要。ここから Controller を素通りして上へ伝播する"
+    13: "「全 Controller で起きた例外をここで受ける」という Spring の目印。伝播の終点"
+    14: "Lombok が log という名前のロガーを用意してくれる"
+    17: "「この型の例外が来たらこのメソッドで処理」。try-catch の catch 節に相当"
+    19: "業務例外は warn。利用者の操作で起きうるので、error にはしない"
+    24: "上で拾えなかった残り全部(システム例外)を受ける。具体的な型 → Exception の順は、複数 catch の順序と同じ発想"
+    25: "システム例外は error でスタックトレース付き(第2引数に e)。ここが調査の起点になる"
+  points:
+    - "Service の throw new XxxException を見たら、「どこで catch されるか」を探す。Controller に try-catch が無ければ @ControllerAdvice を探す"
+    - "@ExceptionHandler の型と、HTTP ステータス(404 / 400 / 500)の対応が、そのアプリの例外設計そのもの"
+    - "例外クラスが extends RuntimeException か Exception かで、throws の有無が変わる。Spring では RuntimeException 系が主流"
+    - "ログ出力の第2引数に例外 e が渡されていれば、スタックトレースがログに残る。渡されていなければメッセージだけ"

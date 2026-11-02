@@ -77,6 +77,18 @@ static String load(String path) throws IOException {
 
 ## スタックトレースの読み方
 
+::: haru
+`throws` で「呼び出し元に任せる」って、任された側も `throws` したらどうなるんすか?
+:::
+
+::: sensei
+さらに上へ任される。例外は catch されるまで、呼び出しの階段を1段ずつ逆にのぼっていくんだ。これを **伝播** という。
+:::
+
+<figure class="figure"><svg viewBox="0 0 620 250" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-exceptions-arrow12a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-muted)"/></marker><marker id="java-exceptions-arrow12b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="20" width="200" height="48" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="41" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">main()</text><text x="120" y="59" font-size="12" text-anchor="middle" fill="var(--ink-muted)">try { service.run(); } catch</text><rect x="20" y="100" width="200" height="48" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="121" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">Service.run()</text><text x="120" y="139" font-size="12" text-anchor="middle" fill="var(--ink-muted)">catch なし → 素通り</text><rect x="20" y="180" width="200" height="48" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="201" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">Repository.find()</text><text x="120" y="219" font-size="12" text-anchor="middle" fill="var(--ink-muted)">ここで throw</text><path d="M80 68 L80 98" stroke="var(--ink-muted)" stroke-width="2" marker-end="url(#java-exceptions-arrow12a)"/><path d="M80 148 L80 178" stroke="var(--ink-muted)" stroke-width="2" marker-end="url(#java-exceptions-arrow12a)"/><text x="92" y="88" font-size="12" fill="var(--ink-muted)">呼ぶ</text><text x="92" y="168" font-size="12" fill="var(--ink-muted)">呼ぶ</text><path d="M180 180 L180 150" stroke="var(--accent)" stroke-width="3" marker-end="url(#java-exceptions-arrow12b)"/><path d="M180 100 L180 70" stroke="var(--accent)" stroke-width="3" marker-end="url(#java-exceptions-arrow12b)"/><text x="192" y="170" font-size="12" fill="var(--accent)">例外が上がる</text><text x="192" y="90" font-size="12" fill="var(--accent)">まだ上がる</text><rect x="330" y="20" width="270" height="208" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="345" y="46" font-size="14" font-weight="700" fill="var(--ink)">読み方</text><text x="345" y="74" font-size="13" fill="var(--ink)">1. 一番深い所(下)で例外が生まれる</text><text x="345" y="98" font-size="13" fill="var(--ink)">2. catch が無い層は素通りして上へ</text><text x="345" y="122" font-size="13" fill="var(--ink)">3. 途中の finally は通過時に実行</text><text x="345" y="146" font-size="13" fill="var(--ink)">4. 型が合う catch で止まる</text><text x="345" y="170" font-size="13" fill="var(--ink)">5. main まで誰も捕まえなければ</text><text x="345" y="190" font-size="13" fill="var(--ink)">   スタックトレースを出して終了</text><text x="345" y="216" font-size="12" fill="var(--ink-muted)">Spring では 4 が @ControllerAdvice</text></svg><figcaption>例外の伝播:いちばん深い所で生まれ、catch のない層を素通りして、呼び出しの階段を逆にのぼる</figcaption></figure>
+
+スタックトレースは、この「例外が通ってきた道」の記録です。だから上の行ほど深い(発生地点に近い)場所になります。
+
 ```text
 Exception in thread "main" ConfigException: ポート番号が不正: 80a
 	at OrderApp.readPort(OrderApp.java:9)

@@ -1,0 +1,41 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "メソッド"
+  intro: "Spring Boot の Service クラスは、ほぼメソッドの集まりです。public のメソッドが Controller から呼ばれ、その中で同じクラスの private メソッドや、別クラス(Repository)のメソッドを呼びます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class PointService {
+
+        private final PointRepository pointRepository;
+
+        public int calculateGrantPoint(int amount, boolean isMember) {
+            int base = amount / 100;
+            return isMember ? base * 2 : base;
+        }
+
+        public void grant(String userId, int amount, boolean isMember) {
+            int point = calculateGrantPoint(amount, isMember);
+            if (point == 0) {
+                return;
+            }
+            pointRepository.addPoint(userId, point);
+            log(userId, point);
+        }
+
+        private void log(String userId, int point) {
+            System.out.println(userId + " に " + point + " pt 付与");
+        }
+    }
+  notes:
+    2: "Lombok がコンストラクタを自動で作る目印(コンストラクタ章で詳しく)"
+    7: "シグネチャ:「int と boolean を受け取り、int を返す calculateGrantPoint」。これだけで役割が分かる"
+    9: "三項演算子の結果をそのまま return。会員なら2倍"
+    13: "同じクラスの別メソッドを名前だけで呼ぶ。戻り値が point に入る"
+    15: "void でも return; で途中終了できる。「0 なら何もしない」の早期リターン"
+    17: "別クラス(Repository)のメソッド呼び出し。ここで DB に書き込む。中身は Repository へジャンプして読む"
+    21: "private = このクラスの中からしか呼ばれない補助メソッド"
+  points:
+    - "public メソッドを入口として読む。シグネチャ(引数と戻り値の型)を先に確認する"
+    - "`変数名.メソッド名()` は別クラスのメソッド呼び出し。変数の型(PointRepository)を見て、どのクラスへ飛ぶか決める"
+    - "早期リターン(`if (...) { return; }`)は「この条件なら以降はやらない」。読み飛ばしてよい範囲が分かる"
+    - "List や DTO を渡しているメソッドは、中で中身を書き換えているかもしれないと疑う"

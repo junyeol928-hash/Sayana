@@ -1,0 +1,45 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "日付時刻・数値・文字コード"
+  intro: "有効期限の判定、監査ログのタイムスタンプ、IC カードや暗号装置(仕事では HSM)との通信データ(コマンド電文。仕事では APDU)を扱う Service では、この章の知識が一度に出てきます。"
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class CardKeyService {
+
+        private static final DateTimeFormatter AUDIT_FMT = DateTimeFormatter.ISO_INSTANT;
+        private final Clock clock;
+        private final AuditLogRepository auditLogRepository;
+
+        public boolean isValid(CardKey key) {
+            LocalDate today = LocalDate.now(clock);
+            return !today.isAfter(key.getExpiresOn());
+        }
+
+        public byte[] buildSelectCommand(String aidHex) {
+            byte[] aid = HexFormat.of().parseHex(aidHex);
+            byte[] command = new byte[5 + aid.length];
+            command[0] = 0x00; command[1] = (byte) 0xA4; command[2] = 0x04; command[3] = 0x00;
+            command[4] = (byte) aid.length;
+            System.arraycopy(aid, 0, command, 5, aid.length);
+            auditLogRepository.save(new AuditLog("SELECT", AUDIT_FMT.format(clock.instant())));
+            return command;
+        }
+
+        public BigDecimal feeWithTax(BigDecimal fee) {
+            return fee.multiply(new BigDecimal("1.10")).setScale(0, RoundingMode.DOWN);
+        }
+    }
+  notes:
+    5: "Formatter は不変なので static final で共有できる。ISO_INSTANT は \"2026-09-16T00:30:00Z\" 形式"
+    6: "Clock を注入すると now() をテストで固定できる。テストコードに Clock.fixed(...) があればこの理由"
+    10: "LocalDate.now(clock):サーバーの時計ではなく注入された Clock で「今日」を決める"
+    11: "「今日が期限より後でなければ有効」= 期限当日も有効。境界の読み方に注意"
+    15: "16進文字列 \"A0000000031010\" → byte[] に戻す"
+    17: "0xA4 は byte の範囲外なのでキャスト。コマンド電文の CLA / INS / P1 / P2 という固定の並び"
+    20: "監査ログは UTC の Instant で残す。表示時に JST へ変換する"
+    25: "税込み計算は BigDecimal。文字列で \"1.10\"、丸めは切り捨て(DOWN)"
+  points:
+    - "now() を見たら「誰の時計か」を確認する。Clock 注入なら固定可能、引数なしならサーバーのタイムゾーン"
+    - "有効期限の判定は isBefore / isAfter の向きと、当日を含むかどうかを読む"
+    - "byte[] を組み立てるコードは、(byte) キャストと & 0xFF、16進の定数を「仕様書のバイト列」と突き合わせて読む"
+    - "BigDecimal は new BigDecimal(\"文字列\")、setScale の桁数と RoundingMode、比較は compareTo、の3点を確認する"

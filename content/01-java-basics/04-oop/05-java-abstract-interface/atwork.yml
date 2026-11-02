@@ -1,0 +1,44 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "抽象クラス・インターフェース・ポリモーフィズム"
+  intro: "同じ PaymentService インターフェースに、本番用とローカル用の2つの実装があり、@Profile で切り替わる形です。Controller のコードを読んでも「どちらの pay が動くか」は決まらず、設定で決まります。ポリモーフィズムと DI が組み合わさった、Spring らしいコードです。"
+  code: |
+    public interface PaymentService {
+        PaymentResult pay(PaymentRequest req);
+    }
+
+    @Service
+    @Profile("prod")
+    public class StripePaymentService implements PaymentService {
+        @Override
+        public PaymentResult pay(PaymentRequest req) { return callStripe(req); }
+    }
+
+    @Service
+    @Profile("local")
+    public class FakePaymentService implements PaymentService {
+        @Override
+        public PaymentResult pay(PaymentRequest req) { return PaymentResult.ok(); }
+    }
+
+    @RestController
+    @RequiredArgsConstructor
+    public class CheckoutController {
+        private final PaymentService paymentService;
+
+        @PostMapping("/checkout")
+        public PaymentResult checkout(@RequestBody PaymentRequest req) {
+            return paymentService.pay(req);
+        }
+    }
+  notes:
+    1: "約束だけ。「pay できる」ことしか決めていない"
+    6: "@Profile:起動時のプロファイルが prod のときだけ、このクラスを Bean(Spring 管理の実体)として登録する"
+    7: "implements → 実装クラス。本番は外部 API を呼ぶ"
+    14: "同じ約束の別の実装。ローカルでは何もせず成功を返す"
+    22: "変数はインターフェース型。実体(Stripe か Fake)は Spring が起動時に決めて注入する"
+    26: "どちらの pay が動くかは、ソースを読んでも決まらない。プロファイル設定(application.yml)で決まる"
+  points:
+    - "インターフェース型のフィールドを見たら、`implements` しているクラスを検索する(IDE の「実装へ移動」Ctrl+Alt+B)。実装が複数あれば @Profile / @Primary / @Qualifier で選ばれている"
+    - "処理の中身を読みたいときはインターフェースではなく実装クラス(Impl)へ"
+    - "Repository インターフェースは実装クラスが無いのが正常。メソッド名から SQL を推測する"
+    - "`List` / `Map` / `Optional` など、変数の型がインターフェースで実体が別クラス、という形は至るところにある"

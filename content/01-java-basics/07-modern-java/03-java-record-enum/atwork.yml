@@ -1,0 +1,35 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "モダン Java の文法"
+  intro: "Spring Boot の API では、「DB の区分コード ⇔ enum ⇔ JSON」の変換が Controller / Service / DTO の間で何度も起きます。record の DTO、enum の fromCode、switch 式が1画面に集まった例です。"
+  code: |
+    public record OrderSummaryResponse(Long orderId, String statusLabel, boolean editable) {}
+
+    @Service
+    @RequiredArgsConstructor
+    public class OrderQueryService {
+
+        private final OrderRepository orderRepository;
+
+        public OrderSummaryResponse summarize(Long orderId) {
+            var order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderNotFoundException(orderId));
+            var status = OrderStatus.fromCode(order.getStatusCode());
+            boolean editable = switch (status) {
+                case ACCEPTED, PROCESSING -> true;
+                case DONE, CANCELED -> false;
+            };
+            return new OrderSummaryResponse(order.getId(), status.getLabel(), editable);
+        }
+    }
+  notes:
+    1: "record の DTO。JSON にすると {\"orderId\":1,\"statusLabel\":\"完了\",\"editable\":false} になる"
+    4: "Lombok:final フィールドを引数に取るコンストラクタを自動生成(Lombok 章)"
+    10: "var の型は findById の戻り値 → Optional。orElseThrow で Order になる"
+    12: "DB の \"03\" のような文字列を enum に戻す。ここで不正な値なら例外"
+    13: "switch 式で boolean を作る。enum を網羅しているので default 不要"
+    17: "record は new で作る。順番は宣言と同じ (orderId, statusLabel, editable)"
+  points:
+    - "var を見たら右辺の型を確認する。findById なら Optional、orElseThrow の後なら中身の型"
+    - "enum の fromCode / getCode を見つけたら「DB の値との変換点」。どこで例外になるかも確認"
+    - "record の DTO は「作ったら変わらない」。値を変えている場所を探しても無駄なので、作っている行を探す"
+    - "switch 式は「全部の case を網羅しているか」を見れば、状態の全種類が分かる"

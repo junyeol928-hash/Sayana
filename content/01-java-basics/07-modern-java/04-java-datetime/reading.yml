@@ -1,0 +1,105 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "月末の丸めと不変"
+  level: 1
+  code: |
+    LocalDate d = LocalDate.of(2026, 1, 31);
+    LocalDate next = d.plusMonths(1);
+    d.plusDays(1);
+    System.out.println(d + " " + next);
+  question: "出力は?"
+  choices:
+    - "2026-01-31 2026-02-28"
+    - "2026-02-01 2026-02-28"
+    - "2026-01-31 2026-03-03"
+    - "DateTimeException"
+  answer: 0
+  explanation: "1/31 の1か月後は 2/31 が存在しないので月末の 2/28 に丸められます(2026 年はうるう年ではない)。3 行目は戻り値を捨てているので d は変わりません。"
+  trace:
+    - "1行目: d = 2026-01-31"
+    - "2行目: 2026-02-31 は無い → 2026-02-28 に調整して next に入れる"
+    - "3行目: 新しい日付が作られるが捨てられる。d はそのまま"
+    - "4行目: \"2026-01-31 2026-02-28\""
+- title: "有効期限の境界"
+  level: 2
+  code: |
+    LocalDate expires = LocalDate.of(2026, 9, 16);
+    LocalDate today = LocalDate.of(2026, 9, 16);
+    boolean a = today.isBefore(expires);
+    boolean b = !today.isAfter(expires);
+    long days = ChronoUnit.DAYS.between(today, expires);
+    System.out.println(a + " " + b + " " + days);
+  question: "出力は?"
+  choices:
+    - "true true 0"
+    - "false true 0"
+    - "false false 0"
+    - "true false 1"
+  answer: 1
+  explanation: "同じ日なので isBefore は false(「前」ではない)。isAfter も false なので、その否定 b は true。つまり a は「期限当日は無効」、b は「期限当日も有効」という判定です。差は 0 日。実務の有効期限バグはこの境界の読み違いから起きます。"
+  trace:
+    - "3行目: 9/16 は 9/16 より前ではない → false"
+    - "4行目: 9/16 は 9/16 より後ではない → isAfter が false → 否定して true"
+    - "5行目: 同じ日の差 → 0"
+    - "6行目: \"false true 0\""
+- title: "UTC と東京時間"
+  level: 2
+  code: |
+    Instant i = Instant.parse("2026-09-16T23:00:00Z");
+    LocalDate tokyo = i.atZone(ZoneId.of("Asia/Tokyo")).toLocalDate();
+    LocalDate utc = i.atZone(ZoneId.of("UTC")).toLocalDate();
+    System.out.println(tokyo + " " + utc);
+  question: "出力は?"
+  choices:
+    - "2026-09-16 2026-09-16"
+    - "2026-09-17 2026-09-16"
+    - "2026-09-16 2026-09-17"
+    - "2026-09-17 2026-09-17"
+  answer: 1
+  explanation: "UTC の 23:00 は東京では +9 時間で翌日の 08:00 です。同じ一瞬でも「日付」はタイムゾーンで変わります。日次バッチの「今日」や有効期限の判定でずれる典型例です。"
+  trace:
+    - "1行目: UTC の 9/16 23:00 という一瞬"
+    - "2行目: 東京の時計で読むと 9/17 08:00 → 日付は 9/17"
+    - "3行目: UTC の時計で読むと 9/16 23:00 → 日付は 9/16"
+    - "4行目: \"2026-09-17 2026-09-16\""
+- title: "BigDecimal の丸めと比較"
+  level: 2
+  code: |
+    BigDecimal price = new BigDecimal("1000");
+    BigDecimal rate = new BigDecimal("0.085");
+    BigDecimal fee = price.multiply(rate).setScale(0, RoundingMode.HALF_UP);
+    BigDecimal limit = new BigDecimal("85.00");
+    System.out.println(fee + " " + fee.equals(limit) + " " + (fee.compareTo(limit) == 0));
+  question: "出力は?"
+  choices:
+    - "85 true true"
+    - "85 false true"
+    - "85.0 false true"
+    - "84 false false"
+  answer: 1
+  explanation: "1000 × 0.085 = 85.000 を小数 0 桁に四捨五入して 85。equals は scale が違う(0 と 2)ので false、compareTo は数値が同じなので 0 → true。setScale(0) なので表示は \"85\" です。"
+  trace:
+    - "3行目: 1000 × 0.085 = 85.000 → setScale(0, HALF_UP) → 85"
+    - "5行目: equals は 85(scale 0)と 85.00(scale 2)を別物と見る → false"
+    - "5行目: compareTo は数値比較 → 0 → == 0 は true"
+    - "出力: \"85 false true\""
+- title: "byte の符号と & 0xFF"
+  level: 3
+  code: |
+    byte[] data = {(byte) 0x01, (byte) 0x90};
+    int naive = (data[0] << 8) | data[1];
+    int fixed = ((data[0] & 0xFF) << 8) | (data[1] & 0xFF);
+    System.out.println(naive + " " + fixed);
+    System.out.println(String.format("%02X%02X", data[0], data[1]));
+  question: "2行の出力は?"
+  choices:
+    - "400 400 / 0190"
+    - "-112 400 / 0190"
+    - "-112 400 / 01-70"
+    - "400 -112 / 0190"
+  answer: 1
+  explanation: "0x90 = 144 は byte では -112 です。naive は (1 << 8) = 256 と -112(全ビット上位が 1)を OR するので、結果は -112 になります。fixed は & 0xFF で 144 に直してから合成するので 256 + 144 = 400。%02X は byte を 16 進 2 桁で出すので \"0190\"。"
+  trace:
+    - "1行目: data[0] = 1、data[1] = -112(0x90 は負)"
+    - "2行目: 256 | (-112) → -112 の上位ビットが全部 1 なので OR しても -112"
+    - "3行目: (1 << 8) | 144 = 400"
+    - "5行目: 01 と 90 → \"0190\""

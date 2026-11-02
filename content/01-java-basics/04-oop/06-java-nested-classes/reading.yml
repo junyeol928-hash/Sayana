@@ -1,0 +1,150 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "初期化ブロックの出力順"
+  level: 2
+  code: |
+    class Base {
+        static { System.out.println("A"); }
+        { System.out.println("C"); }
+        Base() { System.out.println("D"); }
+    }
+    class Derived extends Base {
+        static { System.out.println("B"); }
+        { System.out.println("E"); }
+        Derived() { System.out.println("F"); }
+    }
+    public class Main {
+        public static void main(String[] args) {
+            new Derived();
+        }
+    }
+  question: "出力は?"
+  choices:
+    - "A B C D E F"
+    - "A C D B E F"
+    - "C D E F A B"
+    - "A B D C E F"
+  answer: 0
+  explanation: "static ブロックは読み込み時に親(Base)→子(Derived)の順で1回だけ実行されます(A→B)。そのあとインスタンスの初期化ブロック→コンストラクタが親→子の順で走ります(C→D→E→F)。"
+  trace:
+    - "new Derived() の実行で、まだ読み込まれていない Derived を読み込む"
+    - "Derived の親 Base が先に読み込まれ、Base の static ブロックが実行される → A"
+    - "続いて Derived の static ブロックが実行される → B"
+    - "インスタンス生成:Base のインスタンス初期化ブロック → C、Base のコンストラクタ → D"
+    - "続いて Derived のインスタンス初期化ブロック → E、Derived のコンストラクタ → F"
+- title: "匿名クラスの中の this と Outer.this"
+  level: 3
+  code: |
+    class Counter {
+        int value = 10;
+
+        Runnable makeIncrementer() {
+            return new Runnable() {
+                int value = 1;
+                @Override
+                public void run() {
+                    value++;
+                    System.out.println(value + " " + Counter.this.value);
+                }
+            };
+        }
+    }
+    // 別の場所で:
+    Counter c = new Counter();
+    Runnable r = c.makeIncrementer();
+    r.run();
+  question: "出力は?"
+  choices:
+    - "2 10"
+    - "1 11"
+    - "11 11"
+    - "2 11"
+  answer: 0
+  explanation: "匿名クラス自身が value というフィールドを持っているので、ただの value はこの匿名クラス自身のもの(1→2)を指します。外側の Counter が持つ value(10)には触れていないので、10 のままです。区別したいときに Counter.this.value と書きます。"
+  trace:
+    - "makeIncrementer() が匿名 Runnable を作って返す(この時点ではまだ run しない)"
+    - "r.run() を呼ぶと、匿名クラス自身の value(1)が value++ で 2 になる"
+    - "Counter.this.value は外側 Counter インスタンスの value で、変更していないので 10 のまま"
+    - "\"2 10\" と表示される"
+- title: "内部クラスから外側フィールドへのアクセス"
+  level: 1
+  code: |
+    class Wallet {
+        private int balance = 1000;
+
+        class Statement {
+            String print() {
+                return "残高: " + balance;
+            }
+        }
+    }
+    // 別の場所で
+    Wallet w = new Wallet();
+    Wallet.Statement s = w.new Statement();
+    System.out.println(s.print());
+  question: "出力は?"
+  choices:
+    - "残高: 1000"
+    - "残高: 0"
+    - "NullPointerException が発生"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "Statement は非static の内部クラスなので、外側 Wallet の private フィールド balance にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
+  trace:
+    - "Wallet を作ると balance = 1000"
+    - "w.new Statement() で、w に結び付いた Statement インスタンスを作る"
+    - "print() の中の balance は、結び付いている w の balance を指す"
+    - "\"残高: 1000\" と表示される"
+- title: "実質的final違反のコンパイルエラー"
+  level: 3
+  code: |
+    class Handler {
+        Runnable build(boolean urgent) {
+            String label = "normal";
+            if (urgent) {
+                label = "urgent";
+            }
+            return new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println(label);
+                }
+            };
+        }
+    }
+  question: "このコードは?"
+  choices:
+    - "urgent の値に応じて \"normal\" か \"urgent\" が表示される"
+    - "常に \"normal\" と表示される"
+    - "実行時エラーになる"
+    - "コンパイルエラーになる"
+  answer: 3
+  explanation: "label は宣言時と if の中の2箇所で代入されています。urgent が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、代入が1箇所だけである必要があります。"
+  trace:
+    - "label を \"normal\" で初期化"
+    - "if (urgent) の中で label に再代入するコードがある(実行されるかは関係ない)"
+    - "この時点で label は実質的final ではなくなる"
+    - "匿名クラスの run() の中で label を使おうとしている行でコンパイルエラー"
+- title: "static ネストクラスの new の書き方"
+  level: 1
+  code: |
+    class Response {
+        static class Error {
+            String message;
+            Error(String message) { this.message = message; }
+        }
+    }
+    // 別の場所で
+    Response.Error e = new Response.Error("失敗しました");
+    System.out.println(e.message);
+  question: "出力は?"
+  choices:
+    - "失敗しました"
+    - "null"
+    - "コンパイルエラー(Responseのインスタンスが必要)"
+    - "実行時エラー"
+  answer: 0
+  explanation: "Error は static ネストクラスなので、外側 Response のインスタンスが無くても Response.Error という型名でそのまま new できます。Response のインスタンスを作る必要はありません。"
+  trace:
+    - "Error は static なので Response とは無関係に生成できる"
+    - "new Response.Error(\"失敗しました\") で message に文字列が入る"
+    - "e.message を表示 → \"失敗しました\""

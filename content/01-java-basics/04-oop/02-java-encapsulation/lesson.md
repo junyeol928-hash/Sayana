@@ -172,6 +172,10 @@ int[] getScores() { return scores.clone(); }
 
 **パッケージ** はクラスを入れるフォルダのような名前空間です。ファイル先頭に `package com.example.bank;` と書き、ソースは `com/example/bank/` に置きます。名前は世界で重複しないよう、自社ドメインを逆さにしたもの(`example.com` → `com.example`)で始めるのが慣習です。別パッケージのクラスは `import java.util.Arrays;` のように取り込んで使います。同名クラスの衝突を防ぐほか、修飾子なしのメンバーは **パッケージの外から見えない** ので、内部の部品を隠す境界にもなります。演習のパッケージなし(デフォルトパッケージ)は学習用です。
 
+<figure class="figure"><svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="20" y="26" font-size="14" fill="var(--ink-muted)">ディスク上のフォルダ</text><rect x="20" y="38" width="230" height="150" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="36" y="64" font-size="14" fill="var(--ink)">src/</text><text x="52" y="88" font-size="14" fill="var(--ink)">com/</text><text x="68" y="112" font-size="14" fill="var(--ink)">example/</text><text x="84" y="136" font-size="14" fill="var(--ink)">shop/</text><text x="100" y="160" font-size="14" font-weight="700" fill="var(--accent)">Order.java</text><text x="100" y="180" font-size="14" fill="var(--ink)">OrderService.java</text><path d="M262 112 L318 112" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-encapsulation-arrow11a)"/><defs><marker id="java-encapsulation-arrow11a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><text x="330" y="26" font-size="14" fill="var(--ink-muted)">Java から見た名前</text><rect x="330" y="38" width="250" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="345" y="62" font-size="13" fill="var(--ink-muted)">パッケージ名(フォルダを . でつなぐ)</text><text x="345" y="84" font-size="15" font-weight="700" fill="var(--ink)">com.example.shop</text><rect x="330" y="112" width="250" height="76" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="345" y="136" font-size="13" fill="var(--ink-muted)">完全修飾名(パッケージ + クラス)</text><text x="345" y="160" font-size="15" font-weight="700" fill="var(--ink)">com.example.shop.Order</text><text x="345" y="180" font-size="13" fill="var(--ink-muted)">「名字 + 名前」でクラスを一意に指す</text></svg><figcaption>フォルダの階層がそのままパッケージ名になり、パッケージ名 + クラス名が完全修飾名になる</figcaption></figure>
+
+パッケージ名とクラス名をつないだ `com.example.shop.Order` を **完全修飾名** と呼びます。エラーメッセージやログにはこの形で出るので、「どこの何というクラスか」をここから読み取ります。なお `String` や `Math` を import せずに使えるのは、`java.lang` パッケージだけは自動で import 済みの扱いだからです。また `import java.util.*;` の `*` は **そのパッケージ直下だけ** が対象で、`java.util.stream.Stream` のようなサブパッケージのクラスは含みません。
+
 もう1つ。不変な値クラスを作ると、中身で比べたくなります。
 
 ```java
@@ -186,6 +190,16 @@ System.out.println(a.equals(b)); // false !
 ::: genba 「@Data 付けときました」
 Lombok の `@Data` は getter/setter/equals などを自動生成する便利な注釈。でも全フィールドに **setter まで生える** ので、「private なのに何でも書き換えられる」クラスの完成です。必要な `@Getter` だけ付けるのが現場の作法。
 :::
+
+::: haru
+現場のコードで `acc.getBalance()` を呼んでるのに、`Account.java` のどこにも `getBalance` が書いてないことがあって……。
+:::
+
+::: sensei
+クラスに `@Getter` が付いてたら Lombok の仕業だ。Lombok は **コンパイルの途中で** メソッドを足すライブラリで、ソースファイルは短いまま、出来上がった `.class` にだけ getter が入る。書き忘れでもバグでもないから、まずクラスの頭のアノテーションを見るといい。
+:::
+
+<figure class="figure"><svg viewBox="0 0 600 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-encapsulation-ar30a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="10" y="55" width="170" height="90" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">Account.java</text><text x="95" y="100" font-size="11" text-anchor="middle" fill="var(--ink-muted)">@Getter @Setter</text><text x="95" y="116" font-size="11" text-anchor="middle" fill="var(--ink-muted)">フィールド2〜3個だけ</text><path d="M180 100 L215 100" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-encapsulation-ar30a)"/><rect x="220" y="55" width="170" height="90" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 3"/><text x="305" y="85" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">javac + lombok.jar</text><text x="305" y="105" font-size="11" text-anchor="middle" fill="var(--ink-muted)">アノテーションを見て</text><text x="305" y="121" font-size="11" text-anchor="middle" fill="var(--ink-muted)">コードを追加生成</text><path d="M390 100 L425 100" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-encapsulation-ar30a)"/><rect x="430" y="45" width="165" height="110" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="512" y="70" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">Account.class</text><text x="512" y="90" font-size="11" text-anchor="middle" fill="var(--ink-muted)">getBalance()</text><text x="512" y="106" font-size="11" text-anchor="middle" fill="var(--ink-muted)">setBalance(...)</text><text x="512" y="122" font-size="11" text-anchor="middle" fill="var(--ink-muted)">…実際に呼ばれるのはこちら</text><text x="300" y="178" font-size="12" text-anchor="middle" fill="var(--ink-muted)">ソースファイルの見た目は変わらない。増えるのはコンパイル後の中身</text></svg><figcaption>Lombok はコンパイル時にメソッドを足す。ソースには見えないが .class には入っている</figcaption></figure>
 
 ::: warn よくあるミス
 - 「とりあえず全部 public」「とりあえず全部 getter/setter」→ 不変条件を守る操作だけ公開する

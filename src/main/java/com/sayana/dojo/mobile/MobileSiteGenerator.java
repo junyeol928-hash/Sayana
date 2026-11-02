@@ -18,8 +18,10 @@ import java.util.stream.Stream;
 
 import org.springframework.core.io.ClassPathResource;
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sayana.dojo.ai.LessonContext;
 import com.sayana.dojo.ai.PromptLibrary;
 import com.sayana.dojo.config.DojoProperties;
@@ -46,10 +48,16 @@ public final class MobileSiteGenerator {
     static final List<String> STATIC_FILES = List.of("index.html", "app.js", "mobile.css", "icon.svg",
             "manifest.webmanifest");
 
+    /** 見出しの書体(使う文字だけに絞ったもの。作り方は scripts/subset-heading-font.py)とライセンス。 */
+    static final List<String> HEADING_FONT_FILES = List.of("zen-kaku-gothic-new-700.woff2",
+            "zen-kaku-gothic-new-900.woff2", "OFL.txt");
+
     /** AI 機能のプロンプト。 */
     static final List<String> PROMPTS = List.of("tutor", "hint", "review", "explain-error");
 
-    private final ObjectMapper json = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    // 改行は OS によらず LF に固定する(Windows で作り直しても差分が出ないように)
+    private final ObjectWriter json = new ObjectMapper().writer(new DefaultPrettyPrinter()
+            .withObjectIndenter(new DefaultIndenter("  ", "\n")));
 
     public static void main(String[] args) throws IOException {
         Path out = Path.of(args.length > 0 ? args[0] : "m");
@@ -71,6 +79,10 @@ public final class MobileSiteGenerator {
         }
         // PC版と同じ見た目にするため、CSS は PC版のものをそのまま使う(スマホ用の追加は mobile.css)
         files.put("app.css", resource("static/css/app.css"));
+        // 見出しの書体も PC版と同じもの。app.css からの相対パス(fonts/)がそのまま使える場所に置く
+        for (String font : HEADING_FONT_FILES) {
+            files.put("fonts/" + font, resource("static/css/fonts/" + font));
+        }
 
         // 目次
         List<Object> parts = new ArrayList<>();
@@ -87,6 +99,10 @@ public final class MobileSiteGenerator {
                     m.put("ready", l.ready());
                     m.put("exercises", l.exercises().size());
                     m.put("quiz", l.quiz().size());
+                    m.put("reading", l.reading().size());
+                    // ホームの運針(段ごとの済み具合)に使う。段の並びはレッスン画面と同じ
+                    m.put("steps", l.stepKeys());
+                    m.put("checklist", l.checklist().size());
                     lessons.add(m);
                 }
                 chapters.add(ordered("id", c.id(), "title", c.title(), "lessons", lessons));
@@ -104,9 +120,32 @@ public final class MobileSiteGenerator {
 
         // レッスンごとのデータ
         String common = prompts.get("common");
+        List<Object> reading = new ArrayList<>();
         for (Lesson l : content.readyLessons()) {
-            files.put("data/lessons/" + l.id() + ".json", toJson(lessonData(content, l, common)));
+            Map<String, Object> data = lessonData(content, l, common);
+            files.put("data/lessons/" + l.id() + ".json", toJson(data));
+            // 「読解」画面は全レッスンの問題を1つのファイルから読む(55 ファイルを開かずに済むように)
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> rs = (List<Map<String, Object>>) data.get("reading");
+            for (int i = 0; i < rs.size(); i++) {
+                Map<String, Object> r = new LinkedHashMap<>(rs.get(i));
+                r.put("ref", l.id() + "@" + i);
+                r.put("lesson", l.id());
+                reading.add(r);
+            }
         }
+        files.put("data/reading.json", toJson(reading));
+
+        // 用語集
+        files.put("data/glossary.json", toJson(content.glossary().stream().map(t -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("term", t.term());
+            x.put("read", t.read());
+            x.put("en", t.en());
+            x.put("defHtml", t.defHtml());
+            x.put("lesson", t.lessonId());
+            return x;
+        }).toList()));
 
         // Service Worker(全ファイルを先に取っておき、電波が無くても開けるようにする)
         files.put("sw.js", serviceWorker(files));
@@ -122,7 +161,9 @@ public final class MobileSiteGenerator {
         m.put("part", content.part(l.partId()).map(Part::title).orElse(""));
         m.put("chapter", content.chapter(l.chapterId()).map(Chapter::title).orElse(""));
         m.put("prev", content.previous(l.id()).map(Lesson::id).orElse(null));
+        m.put("prevTitle", content.previous(l.id()).map(Lesson::title).orElse(null));
         m.put("next", content.next(l.id()).map(Lesson::id).orElse(null));
+        m.put("nextTitle", content.next(l.id()).map(Lesson::title).orElse(null));
         m.put("goals", l.goals());
         m.put("bodyHtml", l.bodyHtml());
         m.put("samples", l.samples().stream().map(s -> {
@@ -157,6 +198,29 @@ public final class MobileSiteGenerator {
             m.put("sts", sts);
         }
         m.put("checklist", l.checklist().stream().map(c -> ordered("key", c.key(), "text", c.text())).toList());
+        m.put("reading", l.reading().stream().map(r -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("title", r.title());
+            x.put("level", r.level());
+            x.put("code", r.code());
+            x.put("questionHtml", r.questionHtml());
+            x.put("choicesHtml", r.choicesHtml());
+            x.put("answer", r.answer());
+            x.put("explanationHtml", r.explanationHtml());
+            x.put("traceHtml", r.traceHtml());
+            return x;
+        }).toList());
+        m.put("atWork", l.atWork().stream().map(a -> {
+            Map<String, Object> x = new LinkedHashMap<>();
+            x.put("title", a.title());
+            x.put("introHtml", a.introHtml());
+            x.put("code", a.code());
+            Map<String, String> notes = new LinkedHashMap<>();
+            a.notesHtml().forEach((k, v) -> notes.put(String.valueOf(k), v));
+            x.put("notesHtml", notes);
+            x.put("pointsHtml", a.pointsHtml());
+            return x;
+        }).toList());
         // AI に渡す文脈(PC版と同じ文字列。プロンプトキャッシュが効く)
         m.put("aiContext", LessonContext.build(commonPrompt, l));
         return m;

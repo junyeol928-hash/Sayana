@@ -107,6 +107,8 @@ int a = i++;   // a = 5, i = 6 (先に値を渡してから増やす)
 int b = ++i;   // b = 7, i = 7 (先に増やしてから値を渡す)
 ```
 
+<figure class="figure"><svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-operators-arrow02a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><text x="20" y="30" font-size="15" font-weight="700" fill="var(--ink)">int b = a++;</text><rect x="20" y="44" width="150" height="46" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="66" font-size="13" text-anchor="middle" fill="var(--ink)">① a の値 5 を渡す</text><text x="95" y="82" font-size="12" text-anchor="middle" fill="var(--ink-muted)">→ b = 5</text><path d="M172 67 L218 67" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-operators-arrow02a)"/><rect x="224" y="44" width="150" height="46" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="299" y="66" font-size="13" text-anchor="middle" fill="var(--ink)">② a に 1 足す</text><text x="299" y="82" font-size="12" text-anchor="middle" fill="var(--ink-muted)">→ a = 6</text><text x="20" y="130" font-size="15" font-weight="700" fill="var(--ink)">int b = ++a;</text><rect x="20" y="144" width="150" height="46" rx="8" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="166" font-size="13" text-anchor="middle" fill="var(--ink)">① a に 1 足す</text><text x="95" y="182" font-size="12" text-anchor="middle" fill="var(--ink-muted)">→ a = 6</text><path d="M172 167 L218 167" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-operators-arrow02a)"/><rect x="224" y="144" width="150" height="46" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="299" y="166" font-size="13" text-anchor="middle" fill="var(--ink)">② a の値 6 を渡す</text><text x="299" y="182" font-size="12" text-anchor="middle" fill="var(--ink-muted)">→ b = 6</text><line x1="400" y1="40" x2="400" y2="195" stroke="var(--line)" stroke-dasharray="5 4"/><text x="500" y="70" font-size="13" text-anchor="middle" fill="var(--ink)">どちらも最後は</text><text x="500" y="90" font-size="13" text-anchor="middle" fill="var(--ink)">a = 6 になる</text><text x="500" y="150" font-size="13" text-anchor="middle" fill="var(--ink-muted)">違うのは b に</text><text x="500" y="170" font-size="13" text-anchor="middle" fill="var(--ink-muted)">渡る値だけ</text></svg><figcaption>a++ と ++a:「値を渡す」と「1 足す」の順番が逆</figcaption></figure>
+
 単独の文 `i++;` として書く分には前置でも後置でも結果は同じです。問題は式の中に混ぜたとき。
 
 ::: haru
@@ -188,6 +190,8 @@ int total = 100;
 // count が 0 なら右側の割り算は実行されない → 例外にならない
 System.out.println(count != 0 && total / count > 10);  // false
 ```
+
+いちばんよく見るガードは **null チェック** です。`name != null && name.length() > 3` のように **左に安全確認、右に本題** の順で書きます。逆順(`name.length() > 3 && name != null`)だと、`name` が null のとき左側で先に `NullPointerException` になり、ガードの意味がありません。`if (list == null || list.isEmpty())` も同じ考え方の定型句です。
 
 ### `&` と `&&` は別物
 

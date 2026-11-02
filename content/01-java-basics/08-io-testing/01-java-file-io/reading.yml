@@ -1,0 +1,111 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "1バイトずつ読むループ"
+  level: 1
+  code: |
+    byte[] data = {10, 20, 30};
+    ByteArrayInputStream in = new ByteArrayInputStream(data);
+    int total = 0;
+    int b;
+    while ((b = in.read()) != -1) {
+        total += b;
+    }
+    System.out.println(total);
+  question: "出力は?"
+  choices:
+    - "-1"
+    - "60"
+    - "3"
+    - "例外が発生する"
+  answer: 1
+  explanation: "引数なしの read() は1バイトずつ、0〜255の範囲の int として返します。読めるものが無くなると -1 を返しループが終わります。10+20+30=60 が合計です。"
+  trace:
+    - "1〜2行目: byte[] {10,20,30} を読み込み元にする"
+    - "5行目: 1回目 b=10、2回目 b=20、3回目 b=30(いずれも -1 ではないのでループ継続)"
+    - "4回目の read(): 読めるデータが無いので -1 が返り、ループ終了"
+    - "8行目: total = 10+20+30 = 60 を表示"
+- title: "文字コード未指定の落とし穴"
+  level: 2
+  code: |
+    String text = "日本語";
+    byte[] bytes = text.getBytes();                              // 文字コード未指定
+    String restored = new String(bytes, StandardCharsets.UTF_8); // UTF-8 と決め打ちで復元
+    System.out.println(text.equals(restored));
+  question: "このコードの問題点は?"
+  choices:
+    - "常に true になるので問題ない"
+    - "実行環境の既定文字コードが UTF-8 でない場合、bytes の中身が UTF-8 と異なり、restored が文字化けして false になりうる"
+    - "getBytes() はコンパイルエラーになる"
+    - "常に false になる"
+  answer: 1
+  explanation: "1行目の getBytes() は引数なしなので実行環境の既定文字コードでエンコードされます。3行目は「UTF-8 で書かれているはず」という前提で decode するため、既定文字コードが UTF-8 と異なる環境では文字化けし、text と一致しなくなります。エンコードとデコードで文字コードを揃えて明示するのが正解です。"
+  trace:
+    - "1行目: text は \"日本語\"(文字の並び)"
+    - "2行目: getBytes() が実行環境の既定文字コードで byte[] に変換。既定が UTF-8 かどうかは環境次第"
+    - "3行目: 常に UTF-8 だとみなして byte[] から文字列に戻す"
+    - "2行目と3行目で使った文字コードが食い違うと、restored の中身が壊れる(文字化け)"
+    - "4行目: 環境によっては false になる"
+- title: "try-with-resources の close 順"
+  level: 2
+  code: |
+    class Loud implements AutoCloseable {
+        private final String name;
+        Loud(String name) { this.name = name; }
+        public void close() { System.out.print(name); }
+    }
+
+    try (Loud a = new Loud("A"); Loud b = new Loud("B"); Loud c = new Loud("C")) {
+        System.out.print("[本体]");
+    }
+  question: "出力は?"
+  choices:
+    - "[本体]ABC"
+    - "[本体]CBA"
+    - "ABC[本体]"
+    - "CBA[本体]"
+  answer: 1
+  explanation: "try ブロックの本体が先に実行され [本体] が出ます。その後、close は宣言と逆順(c → b → a)で呼ばれるので、続けて C, B, A の順に表示されます。"
+  trace:
+    - "7〜8行目: try の本体を実行 → [本体] を表示"
+    - "ブロックを抜けるので close が呼ばれる。順番は宣言と逆(c, b, a)"
+    - "c.close() → \"C\" を表示"
+    - "b.close() → \"B\" を表示"
+    - "a.close() → \"A\" を表示"
+    - "結果: \"[本体]CBA\""
+- title: "Files.readAllLines の戻り型"
+  level: 1
+  code: |
+    List<String> all = Files.readAllLines(path);
+    long blank = all.stream().filter(String::isBlank).count();
+    System.out.println(all.size() >= blank);
+  question: "出力は(ファイルの中身に関わらず)?"
+  choices:
+    - "true"
+    - "false"
+    - "実行時エラー"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "readAllLines は List<String> を返すので stream() や filter がそのまま使えます。空白行の数(blank)は全体の行数(all.size())を超えることは無いので、この比較は**ファイルの中身に関わらず常に true**になります。"
+  trace:
+    - "1行目: 全行を読み込み、List<String> を得る"
+    - "2行目: List の stream() から、空白行だけを数える"
+    - "3行目: 空白行の数は全行数以下なので、常に true"
+- title: "Files.lines を閉じ忘れる"
+  level: 3
+  code: |
+    public List<String> readNonBlank(Path path) throws IOException {
+        Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8);
+        return lines.filter(s -> !s.isBlank()).collect(Collectors.toList());
+    }
+  question: "このコードの問題点は?"
+  choices:
+    - "コンパイルエラーになる"
+    - "filter の結果が正しく計算されない"
+    - "Files.lines が開いたファイルが閉じられないままになり、リソースリークの原因になる"
+    - "必ず例外が発生して呼び出し元に伝わる"
+  answer: 2
+  explanation: "Files.lines(path) は裏でファイルを開いたままの Stream を返します。この Stream は collect() で終端操作されるだけで close() されないため、ファイルハンドルが開きっぱなしになります。try (Stream<String> lines = Files.lines(path)) { ... } のように try-with-resources で囲む必要があります。文法上は正しいのでコンパイルは通り、実行結果(中身)自体は正しく計算されるのが厄介な点です。"
+  trace:
+    - "2行目: Files.lines がファイルを開いたまま Stream を返す。close は呼ばれていない"
+    - "3行目: filter と collect で結果自体は正しく作られる"
+    - "しかしメソッドを抜けてもファイルは開いたまま(このメソッドを何度も呼ぶと開いているファイル数が増え続ける)"
+    - "対策: try (Stream lines = Files.lines(path)) { return lines.filter(...).collect(...); }"

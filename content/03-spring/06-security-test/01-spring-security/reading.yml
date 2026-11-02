@@ -1,0 +1,140 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "requestMatchers の順番で結果が変わる"
+  level: 2
+  code: |
+    http.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/admin/**").permitAll()
+        .requestMatchers("/api/admin/danger").hasRole("ADMIN")
+        .anyRequest().authenticated());
+  question: "認証済みだが ADMIN ロールを持たないユーザーが GET /api/admin/danger にアクセスすると?"
+  choices:
+    - "200(通る)"
+    - "401"
+    - "403"
+    - "起動時に例外"
+  answer: 0
+  explanation: "requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの hasRole(\"ADMIN\") は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
+  trace:
+    - "1〜2行目: /api/admin/** に permitAll() を設定"
+    - "3行目: /api/admin/danger にも hasRole(\"ADMIN\") を設定しているが、2行目より後ろにある"
+    - "リクエスト時: /api/admin/danger は2行目の /api/admin/** に先にマッチする"
+    - "結果: 最初にマッチした permitAll() が適用され、認証すら不要で 200 が返る"
+- title: "ROLE_ 接頭辞の付け忘れ"
+  level: 1
+  code: |
+    // UserDetailsService の中
+    return User.withUsername(user.getUsername())
+            .password(user.getPasswordHash())
+            .authorities(user.getRole())   // "ADMIN"(接頭辞なし)
+            .build();
+
+    // SecurityConfig の中
+    http.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        .anyRequest().authenticated());
+  question: "ROLE を \"ADMIN\" として持つユーザーが /api/admin/xxx にアクセスすると?"
+  choices:
+    - "200"
+    - "401"
+    - "403"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "hasRole(\"ADMIN\") は内部で hasAuthority(\"ROLE_ADMIN\") を探します。UserDetailsService 側では接頭辞なしの \"ADMIN\" という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
+  trace:
+    - "1〜5行目: 権限として \"ADMIN\"(ROLE_ なし)が登録される"
+    - "6〜9行目: hasRole(\"ADMIN\") は \"ROLE_ADMIN\" という権限を探す"
+    - "判定時: ユーザーが持つのは \"ADMIN\" のみ → \"ROLE_ADMIN\" と一致しない"
+    - "結果: 認証は成功しているので 401 にはならず、権限不足の 403 になる"
+- title: "@PreAuthorize が効かない内部呼び出し"
+  level: 3
+  code: |
+    @Service
+    public class UserAdminService {
+
+        public void deactivateUser(String userId) {
+            this.deleteUser(userId);
+        }
+
+        @PreAuthorize("hasRole('ADMIN')")
+        public void deleteUser(String userId) {
+            System.out.println("deleted: " + userId);
+        }
+    }
+
+    // Controller から:
+    userAdminService.deactivateUser("u001");   // 呼び出し元は一般ユーザー
+  question: "一般ユーザーが deactivateUser(\"u001\") を呼ぶと?"
+  choices:
+    - "AccessDeniedException が発生し、何も出力されない"
+    - "権限チェックされずに \"deleted: u001\" が出力される"
+    - "コンパイルエラー"
+    - "401 が返る"
+  answer: 1
+  explanation: "@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。"
+  trace:
+    - "14行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
+    - "5行目: deactivateUser の中で this.deleteUser(userId) を呼ぶ(内部呼び出し)"
+    - "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない"
+    - "9行目: 権限チェックなしで deleteUser の本体が実行され、\"deleted: u001\" が出力される"
+- title: "CSRF を無効化していないままの POST"
+  level: 2
+  code: |
+    @Configuration
+    public class SecurityConfig {
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults());
+            // csrf() の設定なし = デフォルト(有効)のまま
+            return http.build();
+        }
+    }
+
+    // クライアントから:
+    // POST /api/items (Authorization ヘッダあり、CSRF トークンなし)
+  question: "この POST リクエストを送ると?"
+  choices:
+    - "200 で正常に処理される"
+    - "401(認証情報がない)"
+    - "403(CSRF トークンがない)"
+    - "500(サーバエラー)"
+  answer: 2
+  explanation: "csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -> csrf.disable()) にするのが定石です。"
+  trace:
+    - "5〜6行目: authorizeHttpRequests と httpBasic は設定しているが csrf() の呼び出しがない"
+    - "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る"
+    - "POST リクエストが CSRF フィルタに到達し、トークンチェックで失敗する"
+    - "結果: Controller に届く前に 403 で止まる"
+- title: "自作フィルタが認証情報をセットし忘れる"
+  level: 2
+  code: |
+    public class ApiKeyFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+                                        FilterChain chain) throws ServletException, IOException {
+            String key = req.getHeader("X-API-Key");
+            if (key != null && ApiKeyStore.isValid(key)) {
+                // ここで SecurityContextHolder への設定を書き忘れている
+            }
+            chain.doFilter(req, res);
+        }
+    }
+
+    // Controller
+    @GetMapping("/api/ping")
+    public String ping(Authentication authentication) {
+        return authentication.getName();
+    }
+  question: "有効な API キー付きで GET /api/ping を呼ぶと、Controller の authentication は?"
+  choices:
+    - "キーの持ち主の情報が入る"
+    - "null、または未認証として扱われる"
+    - "コンパイルエラー"
+    - "常に ADMIN 権限になる"
+  answer: 1
+  explanation: "キーの検証自体は通っていますが、SecurityContextHolder.getContext().setAuthentication(...) を呼び忘れているため、認証情報は一度もセットされません。chain.doFilter は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も Authentication は空(null 相当)になります。"
+  trace:
+    - "5〜6行目: ヘッダのキーを検証し、正しいと分かる"
+    - "7行目: しかし SecurityContextHolder に認証情報をセットする処理がない"
+    - "9行目: chain.doFilter は呼ばれるので後続フィルタ・Controller には進む"
+    - "結果: 検証は通ったのに「誰か」が確定していないため、authentication は使えない(未認証扱い)"

@@ -80,6 +80,22 @@ Spring は、この「`new` して配線する」仕事を肩代わりします�
 
 **IoC(Inversion of Control, 制御の反転)** とは、「自分が部品を呼び出して組み立てる」のではなく「フレームワークが作って渡してくれる」ように、制御の主導権が逆転していることを指す言葉です。DI は IoC を実現する手段の1つです。
 
+::: haru
+制御の反転……急に言葉が難しくなりました。そもそも「フレームワーク」って、ライブラリと何が違うんすか?
+:::
+
+::: sensei
+部屋探しで考えてみよう。スケルトン物件、つまり床も配線もないコンクリートむき出しの部屋を借りたら、間取りから水道・電気まで全部自分で設計する。自由だけど時間はかかるし、配線を間違えたら住めない。設備付きの賃貸マンションなら、水道も電気もガスももう通っているから、家具の配置だけ考えればその日から住める。その代わり、壁を抜くような大改造はしにくい。フレームワークは後者だ。
+:::
+
+| | ライブラリ | フレームワーク |
+|---|---|---|
+| たとえ | 工具箱。使いたいときに自分で取り出す | 設備付きの賃貸マンション。土台はもうある |
+| 呼ぶのは誰か | **自分のコードが** ライブラリを呼ぶ | フレームワークが **自分のコードを呼ぶ** |
+| 例 | `Math.max(a, b)`、`List.of(...)` | Spring が `OrderService` を `new` して部品を渡し、リクエストが来たら Controller のメソッドを呼ぶ |
+
+この「呼ぶ・呼ばれる」の向きが、ライブラリのときと逆になっていること。これが **制御の反転(IoC)** です。自分は「この部屋(クラス)にはこの家具(処理)」を書くだけで、いつ `new` するか、いつ呼ぶかはフレームワークが決めます。
+
 ```mermaid
 flowchart LR
   A["クラスを登録<br>(@Component など)"] --> B["IoC コンテナ<br>ApplicationContext"]
@@ -100,13 +116,17 @@ class JdbcOrderRepository implements OrderRepository { }
 @Service
 class OrderService {
     private final OrderRepository repo;
-    OrderService(OrderRepository repo) {
+    private final MailSender mail;
+    OrderService(OrderRepository repo, MailSender mail) {
         this.repo = repo;
+        this.mail = mail;
     }
 }
 ```
 
 `@Component` が基本形で、`@Service`(業務ロジック)・`@Repository`(データアクセス)・`@Controller`(画面)はその **役割別の別名** です。どれも中身に `@Component` を含んでいて、Bean になる点は同じです。ただし `@Repository` は DB の例外を Spring の例外に変換する仕組みの対象にもなります。
+
+`@Component` 系のクラスを探して登録することを **コンポーネントスキャン** と言います。Spring Boot では、起動クラス(`@SpringBootApplication` が付いたクラス)の **パッケージとその下のパッケージ** だけを探します。範囲の外にあるクラスは、`@Component` が付いていても Bean になりません(詳しくは次のレッスン「Spring Bootの起動の仕組み」)。
 
 **② `@Configuration` クラスの `@Bean` メソッドで作る**
 
@@ -126,11 +146,13 @@ class MailConfig {
 
 ```java
 var ctx = new AnnotationConfigApplicationContext(
-        MailConfig.class, OrderService.class);
+        MailConfig.class, JdbcOrderRepository.class, OrderService.class);
 OrderService s = ctx.getBean(OrderService.class);
 ```
 
-`OrderService` のコンストラクタが `MailSender` を要求しているのを見て、コンテナが `mailSender()` の結果を渡してくれます。
+`OrderService` のコンストラクタが `OrderRepository` と `MailSender` を要求しているのを見て、コンテナが `JdbcOrderRepository` の Bean と `mailSender()` の結果を渡してくれます(下の図)。
+
+<figure class="figure"><svg viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-di-ar26a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="20" width="560" height="190" rx="12" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="36" y="44" font-size="14" fill="var(--ink-muted)">IoC コンテナ(ApplicationContext)</text><rect x="220" y="70" width="170" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="305" y="96" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">OrderService</text><text x="305" y="116" font-size="13" text-anchor="middle" fill="var(--ink-muted)">@Service</text><rect x="30" y="150" width="170" height="48" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="115" y="171" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">JdbcOrderRepository</text><text x="115" y="189" font-size="12" text-anchor="middle" fill="var(--ink-muted)">@Repository</text><rect x="410" y="150" width="160" height="48" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="490" y="171" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">SmtpMailSender</text><text x="490" y="189" font-size="12" text-anchor="middle" fill="var(--ink-muted)">@Bean mailSender()</text><path d="M150 150 L250 132" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-di-ar26a)"/><path d="M450 150 L360 132" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-di-ar26a)"/><text x="170" y="128" font-size="12" fill="var(--ink)">注入</text><text x="415" y="128" font-size="12" fill="var(--ink)">注入</text></svg><figcaption>DI の関係:OrderService は部品を「もらう」だけ。作って渡すのはコンテナ</figcaption></figure>
 
 ## コンストラクタインジェクションが推奨される理由
 

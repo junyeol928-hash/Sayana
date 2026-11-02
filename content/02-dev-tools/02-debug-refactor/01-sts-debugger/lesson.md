@@ -65,10 +65,10 @@ Debug As で起動すると、STS は JVM に `-agentlib:jdwp=...` というオ�
 
 ```mermaid
 flowchart TD
-    S["double avg = average(scores); で停止中"]
-    S -- "F6 Step Over" --> A["次の行 println へ(average は実行済み)"]
+    S["double avg = average(scores);<br>で停止中"]
+    S -- "F6 Step Over" --> A["次の行 println へ<br>(average は実行済み)"]
     S -- "F5 Step Into" --> B["average の1行目へ入る"]
-    B -- "F7 Step Return" --> C["average を最後まで実行して呼び出し元へ戻る"]
+    B -- "F7 Step Return" --> C["average を最後まで実行して<br>呼び出し元へ戻る"]
     S -- "F8 Resume" --> D["次のブレークポイントまで実行"]
 ```
 
@@ -87,6 +87,12 @@ F5 で `System.out.println` の中まで入っちゃいました……。
 - **Variables** ビュー:今いるメソッドのローカル変数と引数。配列やオブジェクトは ▶ で展開できます。オブジェクトには `(id=25)` のような番号が付き、**番号が同じなら同じオブジェクト** です。参照の共有バグはこれで一発で見抜けます
 - **Expressions**(式)ビュー:`sum / (i + 1)` のような **任意の式** を登録して監視できます。**Window > Show View > Expressions** で開き、**Add new expression** に式を入力。エディターで式を選択して右クリック → **Watch**(監視)でも登録できます
 - **値の書き換え**:Variables ビューで値をクリックして書き換えると、続きはその値で動きます。「`i` が 0 だったら正しく動く?」を、コードを直す前に試せます
+
+左上の **Debug** ビューに並ぶ行は **コールスタック**(呼び出し履歴)です。メソッドを呼ぶたびに1段ずつ積み重なり、**一番上が「今止まっている場所」**、下へ行くほど呼び出し元です。
+
+<figure class="figure"><svg viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><rect x="110" y="160" width="200" height="40" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="210" y="184" font-size="12" text-anchor="middle" fill="var(--ink)">main()</text><rect x="110" y="118" width="200" height="40" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="210" y="142" font-size="12" text-anchor="middle" fill="var(--ink)">OrderController.create()</text><rect x="110" y="76" width="200" height="40" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="210" y="100" font-size="12" text-anchor="middle" fill="var(--ink)">OrderService.place()</text><rect x="110" y="34" width="200" height="40" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2.5"/><text x="210" y="58" font-size="12" text-anchor="middle" fill="var(--ink)">OrderValidator.check() ← 今ここ</text><path d="M330 54 L360 54" stroke="var(--ink-muted)" stroke-width="1.5" fill="none"/><text x="365" y="58" font-size="11" fill="var(--ink-muted)">一番上</text><path d="M330 180 L360 180" stroke="var(--ink-muted)" stroke-width="1.5" fill="none"/><text x="365" y="184" font-size="11" fill="var(--ink-muted)">一番下</text></svg><figcaption>Debug ビューのコールスタック:呼び出した順に積み重なり、一番上が今止まっている場所</figcaption></figure>
+
+下の段をクリックすると、エディターがその呼び出し元の行に移り、Variables ビューも **その時点のメソッドの変数** に切り替わります。「この変な引数は誰が渡したのか」を、1段ずつ下りながら追えるわけです。Spring Boot アプリで止めると下のほうに Tomcat や Spring の段がずらっと並びますが、まず見るのは自分のパッケージの段だけで大丈夫です。
 
 さらに **Drop to Frame**(フレームにドロップ)。**Debug** ビューの呼び出し履歴(スタックフレーム)を右クリックして選ぶと、**そのメソッドの先頭から実行し直せます**。F6 を押しすぎて肝心の行を通り過ぎたときの救世主です。
 

@@ -1,0 +1,40 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "継承とオーバーライド"
+  intro: "JPA の Entity では、全テーブルに共通の id・作成日時を BaseEntity にまとめて継承させる形が定番です。業務例外も RuntimeException の継承で作ります。「子に書いていないものは親にある」と読み進めます。"
+  code: |
+    @MappedSuperclass
+    public abstract class BaseEntity {
+        @Id
+        @GeneratedValue
+        private Long id;
+
+        private LocalDateTime createdAt;
+
+        @PrePersist
+        protected void onCreate() {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
+    @Entity
+    public class Order extends BaseEntity {
+        private String status;
+    }
+
+    public class OrderNotFoundException extends RuntimeException {
+        public OrderNotFoundException(Long id) {
+            super("order not found: " + id);
+        }
+    }
+  notes:
+    1: "JPA:「このクラス自体はテーブルにしないが、子の Entity にフィールドを引き継がせる」印"
+    2: "abstract = 単独では new できない共通の土台(次章)。id と createdAt を全 Entity にまとめて持たせる"
+    10: "protected = サブクラスから呼べる・上書きできる。private だと子から見えない"
+    16: "extends で id・createdAt・onCreate() を引き継ぐ。Order の本文には書いていないが存在する"
+    20: "例外クラスも継承で作る。RuntimeException の子 = 非検査例外(例外の章で)"
+    22: "親のコンストラクタにメッセージを渡す。e.getMessage() で取り出せるのは親の機能"
+  points:
+    - "Entity に `getId()` が無いのに呼ばれていたら、親(BaseEntity)か Lombok を疑う。`extends` の先へジャンプする"
+    - "`abstract` / `Base` / `Abstract` の付いたクラスは「共通の土台」。子が何を上書きしているかを対比して読む"
+    - "`extends RuntimeException` の例外は、どこで throw され、どこ(@ControllerAdvice など)で catch されるかをセットで追う"
+    - "継承が3段以上あるときは、IDE の型階層で全体像を先に見る"

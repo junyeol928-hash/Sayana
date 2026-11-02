@@ -1,0 +1,232 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "ラムダを型に当てはめる"
+  level: 1
+  code: |
+    Function<String, Integer> len = s -> s.length();
+    Predicate<Integer> big = n -> n > 3;
+    String word = "lambda";
+    System.out.println(big.test(len.apply(word)));
+  question: "出力は?"
+  choices:
+    - "6"
+    - "true"
+    - "false"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "len.apply(\"lambda\") は長さ 6 を返し、big.test(6) は 6 > 3 で true。内側から順に「apply で Integer にする → test で boolean にする」と読みます。"
+  trace:
+    - "1行目: String を受け取って長さ(Integer)を返す処理"
+    - "2行目: Integer を受け取って 3 より大きいか返す処理"
+    - "4行目: 内側 len.apply(\"lambda\") = 6 → big.test(6) = true"
+- title: "メソッド参照をラムダに戻す"
+  level: 2
+  code: |
+    List<String> raw = List.of("3", "1", "2");
+    List<Integer> nums = raw.stream()
+        .map(Integer::parseInt)
+        .map(n -> n * 10)
+        .sorted(Comparator.reverseOrder())
+        .toList();
+    nums.forEach(System.out::print);
+  question: "出力は?"
+  choices:
+    - "102030"
+    - "302010"
+    - "312"
+    - "321"
+  answer: 1
+  explanation: "Integer::parseInt は s -> Integer.parseInt(s)(①static)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(③特定オブジェクト)で改行なしに続けて出力するので \"302010\"。"
+  trace:
+    - "3行目: \"3\",\"1\",\"2\" → 3, 1, 2"
+    - "4行目: → 30, 10, 20"
+    - "5行目: 降順 → 30, 20, 10"
+    - "7行目: print(改行なし)で 302010"
+- title: "ラムダは「後で」実行される"
+  level: 2
+  code: |
+    List<Runnable> tasks = new ArrayList<>();
+    for (int i = 1; i <= 3; i++) {
+        final int n = i;
+        tasks.add(() -> System.out.print(n * n + " "));
+    }
+    System.out.print("start ");
+    for (Runnable t : tasks) {
+        t.run();
+    }
+  question: "出力は?"
+  choices:
+    - "1 4 9 start"
+    - "start 1 4 9"
+    - "start 9 9 9"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "4行目でラムダを作って List に入れるだけで、この時点では実行されません。\"start \" が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。"
+  trace:
+    - "2〜5行目: n=1, 2, 3 をそれぞれ持つ3つのラムダを作って保存(まだ実行しない)"
+    - "6行目: \"start \" を表示"
+    - "7〜9行目: 保存したラムダを順に実行 → 1 4 9"
+    - "結果: start 1 4 9"
+- title: "Comparator の多段ソート"
+  level: 2
+  code: |
+    record Emp(String dept, String name, int age) {}
+    List<Emp> list = new ArrayList<>(List.of(
+        new Emp("ops", "ken", 40),
+        new Emp("dev", "aki", 30),
+        new Emp("dev", "yui", 25)));
+    list.sort(Comparator.comparing(Emp::dept).thenComparing(Emp::age, Comparator.reverseOrder()));
+    list.forEach(e -> System.out.print(e.name() + " "));
+  question: "出力は?"
+  choices:
+    - "ken aki yui"
+    - "aki yui ken"
+    - "yui aki ken"
+    - "ken yui aki"
+  answer: 1
+  explanation: "comparing(Emp::dept) で部署名の昇順(dev が ops より前)。同じ dev の中は thenComparing(Emp::age, reverseOrder()) で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(dept()、age())もメソッド参照で使えます。"
+  trace:
+    - "6行目: 第1基準 dept 昇順 → dev, dev, ops"
+    - "6行目: 第2基準 age 降順(dev 内)→ aki(30), yui(25)"
+    - "7行目: aki yui ken"
+- title: "関数を返す関数"
+  level: 3
+  code: |
+    static Function<Integer, Integer> adder(int amount) {
+        return x -> x + amount;
+    }
+
+    Function<Integer, Integer> add5 = adder(5);
+    Function<Integer, Integer> add10 = adder(10);
+    Function<Integer, Integer> both = add5.andThen(add10);
+    System.out.println(add5.apply(1) + " " + both.apply(1));
+  question: "出力は?"
+  choices:
+    - "6 16"
+    - "6 11"
+    - "5 15"
+    - "コンパイルエラー"
+  answer: 0
+  explanation: "adder(5) は「x に 5 を足す処理」を返します(amount = 5 をキャプチャ)。add5.apply(1) = 6。andThen は「add5 をしてから add10 をする」合成なので both.apply(1) = (1 + 5) + 10 = 16。ラムダが引数の値を「覚えて」いること、そして Function どうしをつなげられることが読めれば、Spring の設定コードやライブラリのコールバックが読みやすくなります。"
+  trace:
+    - "5行目: amount=5 を覚えたラムダ x -> x + 5 が返る"
+    - "6行目: amount=10 を覚えたラムダ x -> x + 10"
+    - "7行目: both = 「add5 → add10」の順に適用する処理"
+    - "8行目: add5.apply(1) = 6、both.apply(1) = 16"
+- title: "filter → map → toList の基本"
+  level: 1
+  code: |
+    List<String> words = List.of("apple", "kiwi", "banana", "fig");
+    List<Integer> result = words.stream()
+            .filter(w -> w.length() > 3)
+            .map(String::length)
+            .toList();
+    System.out.println(result);
+  question: "出力は?"
+  choices:
+    - "[5, 4, 6, 3]"
+    - "[5, 6]"
+    - "[apple, banana]"
+    - "[5, 4, 6]"
+  answer: 3
+  explanation: "filter で長さが 3 より大きい語(apple=5, kiwi=4, banana=6)が残り、fig(3)は落ちます。map で長さの数値に置き換え、[5, 4, 6] になります。[apple, banana] は map をしなかった場合、[5, 6] は条件を「4 より大きい」と読み違えた場合です。"
+  trace:
+    - "3行目: apple(5)○ kiwi(4)○ banana(6)○ fig(3)× → 3つ残る"
+    - "4行目: それぞれ String::length で 5, 4, 6 に"
+    - "5行目: List にまとめる"
+    - "6行目: [5, 4, 6]"
+- title: "遅延評価と流れる順番"
+  level: 2
+  code: |
+    List<Integer> out = Stream.of(1, 2, 3)
+            .filter(n -> {
+                System.out.print("F" + n + " ");
+                return n != 2;
+            })
+            .map(n -> {
+                System.out.print("M" + n + " ");
+                return n * 10;
+            })
+            .toList();
+  question: "出力は?"
+  choices:
+    - "F1 F2 F3 M1 M3"
+    - "F1 M1 F2 F3 M3"
+    - "F1 M1 F2 M2 F3 M3"
+    - "何も出力されない"
+  answer: 1
+  explanation: "要素は1つずつ全段を通ります。1 は filter を通過して map へ(F1 M1)、2 は filter で落ちるので map に行かない(F2)、3 は通過(F3 M3)。「filter を全部やってから map」ではないのがポイントです。"
+  trace:
+    - "10行目の toList() が呼ばれて初めて流れ始める"
+    - "要素1: F1 → true → M1 → 10"
+    - "要素2: F2 → false → ここで終わり(M2 は出ない)"
+    - "要素3: F3 → true → M3 → 30"
+    - "出力: F1 M1 F2 F3 M3、out = [10, 30]"
+- title: "groupingBy と counting"
+  level: 2
+  code: |
+    record Emp(String name, String dept) {}
+    List<Emp> emps = List.of(
+            new Emp("A", "dev"), new Emp("B", "ops"),
+            new Emp("C", "dev"), new Emp("D", "dev"));
+    Map<String, Long> m = emps.stream()
+            .collect(Collectors.groupingBy(Emp::dept, Collectors.counting()));
+    System.out.println(m.get("dev") + " " + m.get("hr"));
+  question: "出力は?"
+  choices:
+    - "3 0"
+    - "3 null"
+    - "[A, C, D] null"
+    - "NullPointerException"
+  answer: 1
+  explanation: "groupingBy(dept, counting()) は部署ごとの件数 Map<String, Long> を作ります。dev は 3 件。\"hr\" はキーが存在しないので Map.get は null を返し、文字列連結なので \"null\" と表示されます(例外にはなりません)。counting() を付けなければ値は List になり [A, C, D] と表示されます。"
+  trace:
+    - "6行目: dept ごとにまとめて件数を数える → {dev=3, ops=1}"
+    - "7行目: m.get(\"dev\") は 3、m.get(\"hr\") はキーがないので null"
+    - "文字列連結なので \"3 null\""
+- title: "toMap の重複キー"
+  level: 3
+  code: |
+    record Item(String code, int price) {}
+    List<Item> items = List.of(
+            new Item("X", 100), new Item("Y", 200), new Item("X", 300));
+    Map<String, Integer> priceByCode = items.stream()
+            .collect(Collectors.toMap(Item::code, Item::price));
+    System.out.println(priceByCode.get("X"));
+  question: "実行すると?"
+  choices:
+    - "100"
+    - "300"
+    - "400"
+    - "IllegalStateException"
+  answer: 3
+  explanation: "toMap は既定でキーの重複を許しません。3つ目の要素でキー \"X\" が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -> b)、400(合計)にしたければ (a, b) -> a + b を第3引数に渡します。"
+  trace:
+    - "5行目: X→100 を登録、Y→200 を登録"
+    - "3つ目の Item(\"X\", 300): キー X が既にある → 重複キーの扱いが未指定 → 例外"
+    - "6行目には到達しない"
+- title: "Service の Entity → DTO 変換と findFirst"
+  level: 3
+  code: |
+    public Optional<UserDto> findLatestAdmin(List<User> users) {
+        return users.stream()
+                .filter(User::isAdmin)
+                .sorted(Comparator.comparing(User::getCreatedAt).reversed())
+                .map(UserDto::from)
+                .findFirst();
+    }
+    // 呼び出し側
+    Optional<UserDto> r = service.findLatestAdmin(List.of());
+    System.out.println(r.isPresent());
+  question: "最後の行の出力は?"
+  choices:
+    - "true"
+    - "false"
+    - "NullPointerException"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "空のリストを流すので要素は1つもなく、findFirst() は空の Optional を返します。isPresent() は false。Stream は要素がなくても例外にはならず、null も返しません。ここが「null を返さず Optional で返す」設計の利点です。"
+  trace:
+    - "9行目: 空のリストで呼ぶ"
+    - "2〜5行目: 要素が0個なので filter / sorted / map は何も処理しない"
+    - "6行目: 最初の要素がない → Optional.empty()"
+    - "10行目: isPresent() → false"

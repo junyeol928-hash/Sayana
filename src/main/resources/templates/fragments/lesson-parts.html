@@ -1,38 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="readDone" class="read-done done">✅ 読了!次は下のサンプルを動かしてみよう。</div>
+<div th:fragment="readDone" class="read-done done"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了。次は下のサンプルを動かしてみよう</div>
 
 <li th:fragment="checklistItem" class="check-item" th:classappend="${checked} ? 'checked'">
     <form th:attr="hx-post=@{/lessons/{id}/checklist(id=${lesson.id})}" hx-target="closest li" hx-swap="outerHTML">
         <input type="hidden" name="key" th:value="${item.key}">
-        <button type="submit" class="check-button" th:text="${checked} ? '✅' : '⬜'"></button>
+        <button type="submit" class="check-button" th:attr="aria-pressed=${checked}, aria-label=${item.text}"></button>
         <span th:text="${item.text}"></span>
     </form>
 </li>
 
-<!--/* クイズの採点結果 */-->
-<div th:fragment="quizResult" class="quiz-result">
-    <div class="quiz-score" th:with="a=${outcome.attempt()}">
-        <span class="big" th:text="${a.score} + ' / ' + ${a.total}"></span>
-        <span th:if="${a.score == a.total}">満点!🎉</span>
-        <span th:if="${a.score < a.total and a.score >= status.quizPassScore()}">合格ライン突破!</span>
-        <span th:if="${a.score < status.quizPassScore()}" th:text="'合格ラインは ' + ${status.quizPassScore()} + ' 問。解説を読んで、もう一度どうぞ。'"></span>
-        <p class="muted small">解いた問題は復習キューに入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
+<!--/* 読解の1問(答え合わせは static/js/app.js がその場で行う) */-->
+<li th:fragment="readingCard(r, ref, from)" class="reading-q" th:attr="data-ref=${ref}">
+    <div class="reading-head">
+        <h3 th:text="${r.title}"></h3>
+        <span class="level" th:with="lv=${r.level < 1 ? 1 : (r.level > 3 ? 3 : r.level)}" th:attr="aria-label='難しさ ' + ${lv} + ' / 3'">
+            <i th:each="n : ${#numbers.sequence(1, 3)}" th:classappend="${n <= lv} ? 'on'"></i>
+            <span th:text="${lv == 1 ? 'やさしい' : (lv == 2 ? 'ふつう' : 'むずかしい')}"></span>
+        </span>
     </div>
-    <ol class="quiz-review">
-        <li th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
-            th:classappend="${ok} ? 'correct' : 'wrong'">
-            <div class="q-mark" th:text="${ok} ? '⭕ 正解' : (${chosen < 0} ? '— 未回答' : '❌ 不正解')"></div>
-            <div class="md" th:utext="${q.questionHtml}"></div>
-            <p class="small">
-                <span th:if="${chosen >= 0}">あなたの答え: <span th:utext="${q.choicesHtml.get(chosen)}"></span> / </span>
-                正解: <b th:utext="${q.choicesHtml.get(q.answer)}"></b>
-            </p>
+    <p class="reading-from muted" th:if="${from != null}"><a th:href="@{/lessons/{id}(id=${from.id})}" th:text="${from.title}"></a></p>
+    <pre class="code-lines"><code class="language-java" th:text="${r.code}"></code></pre>
+    <form data-reading th:attr="data-answer=${r.answer}">
+        <fieldset>
+            <legend class="reading-question" th:utext="${r.questionHtml}"></legend>
+            <label class="choice" th:each="c, cs : ${r.choicesHtml}">
+                <input type="radio" name="c" th:value="${cs.index}" required><span th:utext="${c}"></span>
+            </label>
+        </fieldset>
+        <button class="btn" type="submit">答え合わせ</button>
+    </form>
+    <div class="reading-answer" hidden aria-live="polite">
+        <div class="verdict"></div>
+        <div class="md" th:utext="${r.explanationHtml}"></div>
+        <th:block th:if="${!r.traceHtml.isEmpty()}">
+            <p class="trace-title">1 行ずつの追跡</p>
+            <ol class="trace"><li th:each="t : ${r.traceHtml}" th:utext="${t}"></li></ol>
+        </th:block>
+    </div>
+</li>
+
+<!--/* クイズの採点結果。各問の解説は static/js/app.js が問の直下へ移し、ここには点数・間違えた問・次の一手だけを残す */-->
+<div th:fragment="quizResult" class="quiz-result" th:with="a=${outcome.attempt()}, pass=${status.quizPassScore()}">
+    <div class="quiz-score">
+        <span class="big"><th:block th:text="${a.score}"></th:block><span class="slash">/</span><th:block th:text="${a.total}"></th:block></span>
+        <span class="score-stitches" aria-hidden="true"><i th:each="ok : ${outcome.correct()}" th:classappend="${ok} ? 'on'"></i></span>
+        <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格(' + pass + ' 問以上)' : 'あと ' + (pass - a.score) + ' 問で合格(' + pass + ' 問以上)')}"></span>
+    </div>
+    <p class="dyed-line" th:if="${dyedTo != null}"><span class="dye dye-burst" th:classappend="'dye-' + ${status.dyeLevel()}" aria-hidden="true"></span><span th:text="${#strings.substringBefore(dyedTo, '・')} + 'に染まった(' + ${#strings.substringAfter(dyedTo, '・')} + ')'"></span></p>
+    <p class="quiz-wrong" th:if="${a.score < a.total}">間違えた問:
+        <th:block th:each="q, st : ${lesson.quiz}"><a th:unless="${outcome.correct().get(st.index)}" th:href="'#q-' + ${st.count}" th:text="'問 ' + ${st.count}"></a> </th:block></p>
+    <div class="quiz-next">
+        <a class="btn primary" th:if="${a.score >= pass and nextKey != null}" th:href="'#' + ${nextKey}" th:text="${nextKey == 'reading' ? '読解へ進む' : '演習へ進む'}"></a>
+        <button class="btn" type="button" data-quiz-reset>もう一度解く</button>
+    </div>
+    <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に</p>
+    <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
+    <template class="q-explains">
+        <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
+             class="q-explain" th:classappend="${ok} ? 'correct' : 'wrong'" th:attr="data-q=${st.index}, data-chosen=${chosen}, data-answer=${q.answer}">
+            <span class="q-mark"><svg class="icon sm" aria-hidden="true"><use th:href="${ok} ? '#i-check' : '#i-cross'"/></svg> <th:block th:text="${ok ? '正解' : (chosen < 0 ? '未回答' : '不正解')}"></th:block></span>
             <div class="explanation md" th:utext="${q.explanationHtml}"></div>
-        </li>
-    </ol>
-    <p class="muted small">答えを選び直して、もう一度「採点する」を押せます。</p>
+        </div>
+    </template>
 </div>
 </body>
 </html>

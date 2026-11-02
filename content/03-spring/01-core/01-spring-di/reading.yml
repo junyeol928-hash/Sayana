@@ -1,0 +1,124 @@
+# ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
+- title: "どの実装クラスが注入される?"
+  level: 2
+  code: |
+    public interface CommandSender { String send(byte[] command); }
+
+    @Component
+    public class SocketCommandSender implements CommandSender {
+        public String send(byte[] command) { return "socket"; }
+    }
+
+    @Component @Primary
+    public class LoggingCommandSender implements CommandSender {
+        public String send(byte[] command) { return "logging"; }
+    }
+
+    @Service @RequiredArgsConstructor
+    public class CommandService {
+        private final CommandSender sender;
+        public String run() { return sender.send(new byte[0]); }
+    }
+  question: "`commandService.run()` の戻り値は?"
+  choices:
+    - "\"socket\""
+    - "\"logging\""
+    - "起動時に例外"
+    - "null"
+  answer: 1
+  explanation: "CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ起動時に NoUniqueBeanDefinitionException(3)になります。"
+  trace:
+    - "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)"
+    - "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される"
+    - "起動時: 候補2つのうち @Primary の LoggingCommandSender が選ばれて注入される"
+    - "16行目: sender.send(...) → LoggingCommandSender.send → \"logging\""
+- title: "final が抜けたフィールド"
+  level: 2
+  code: |
+    @Service
+    @RequiredArgsConstructor
+    public class KeyIssueService {
+        private final KeyRepository keyRepository;
+        private CryptoClient cryptoClient;
+
+        public String issue(String cardId) {
+            byte[] key = cryptoClient.generateKey();
+            keyRepository.save(cardId, key);
+            return "OK";
+        }
+    }
+  question: "Spring が起動し、`issue(\"C001\")` を呼ぶと?"
+  choices:
+    - "\"OK\" が返る"
+    - "起動時に例外で失敗する"
+    - "8行目で NullPointerException"
+    - "コンパイルエラー"
+  answer: 2
+  explanation: "@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。"
+  trace:
+    - "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ"
+    - "5行目: final がないため引数に含まれず、注入もされない → null"
+    - "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する"
+    - "8行目: cryptoClient が null → generateKey() を呼んだ瞬間に NullPointerException"
+- title: "@Bean メソッドの引数と戻り値"
+  level: 2
+  code: |
+    @Configuration
+    public class ClientConfig {
+        @Bean
+        public BackendClient backendClient(RestTemplate restTemplate) {
+            return new BackendClient(restTemplate, "http://backend:8081");
+        }
+        @Bean
+        public RestTemplate restTemplate() {
+            return new RestTemplate();
+        }
+    }
+
+    @Service @RequiredArgsConstructor
+    public class SessionService {
+        private final BackendClient backendClient;
+    }
+  question: "起動時に何が起きる?"
+  choices:
+    - "BackendClient が Bean にならず起動失敗"
+    - "restTemplate が先に作られ、backendClient に渡され、SessionService に注入される"
+    - "backendClient が2個作られる"
+    - "@Bean メソッドの順序が逆なのでエラー"
+  answer: 1
+  explanation: "@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。メソッドの記述順(4)は関係ありません。Bean は singleton なので backendClient は1個だけ(3)です。"
+  trace:
+    - "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される"
+    - "4行目: backendClient は RestTemplate に依存すると分かる"
+    - "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる"
+    - "4〜5行目: その RestTemplate を引数に backendClient() が呼ばれ、BackendClient の Bean ができる"
+    - "15行目: SessionService のコンストラクタに BackendClient の Bean が渡される"
+- title: "スキャン範囲の外にあるクラス"
+  level: 3
+  code: |
+    // jp.example.gateway.GatewayApplication
+    @SpringBootApplication
+    public class GatewayApplication { /* main */ }
+
+    // jp.example.gateway.service.KeyIssueService
+    @Service @RequiredArgsConstructor
+    public class KeyIssueService {
+        private final HexUtil hexUtil;
+    }
+
+    // jp.example.common.HexUtil
+    @Component
+    public class HexUtil { }
+  question: "アプリを起動すると?"
+  choices:
+    - "正常に起動する"
+    - "HexUtil が見つからず起動時に例外"
+    - "KeyIssueService が Bean にならない"
+    - "コンパイルエラー"
+  answer: 1
+  explanation: "スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。"
+  trace:
+    - "2行目: スキャンの基準パッケージは jp.example.gateway"
+    - "6〜8行目: jp.example.gateway.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している"
+    - "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない"
+    - "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止"
