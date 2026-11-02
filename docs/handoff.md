@@ -3,19 +3,19 @@
 Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に読み、ファイルを変えたら終わる前に直す。
 
 ## 現状
-- ブランチ `claude/redesign-infra`(`main` から分岐。push はまだしていない)。中身は 2 つ
+- 作り直しは [PR #7](https://github.com/junyeol928-hash/Sayana/pull/7) で `main` に入り、公開済み(2026-11-02、マージコミット 496639e)。スマホ版は GitHub Pages の https://junyeol928-hash.github.io/Sayana/m/ (Pages は `main` の直下から配信。`main` に入れば公開される)。中身は 2 つ
   - ローカル版 Java道場(読解 171 問・仕事のコード・用語集)と、Artifact「Spring Boot 入門ガイド」を教材に移した
   - 見た目を「藍の稽古着」に作り直した(スマホ版 `m/` と PC 版。決めごとは [design.md](design.md))
 - 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で確認済み)、`./mvnw test` は全部通る
-- Claude ↔ Codex の相互レビューを、両方が Awwwards の 4 項目すべて 8.5 以上になるまで回している。点数と直したことは [design-review.md](design-review.md)、全文は `reviews/`、撮影は `screenshots/roundN/`
+- Claude ↔ Codex の相互レビューは 17 回で終えた(ユーザーの判断)。点数と直したことは [design-review.md](design-review.md)、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は利用上限で 5〜12 回目を審査できず、13 回目で 8.1 / 7.7 / 8.3 / 8.2。Claude は 8〜12 回目で 7.6〜8.4 の間で頭打ち(採点者を毎回入れ替えると、毎回別の指摘が出る)
   - 頭打ちを受けて、ユーザーの判断で「顔」(ホームとレッスンの冒頭)を作り直した(3 案から A「大きな札」)。14 回目からは決まった物差し [review-rubric.md](review-rubric.md) で採点する
   - 点数: Claude は 15・16・17 回目で全項目 8.5 以上(17 回目 9.0 / 8.5 / 9.0 / 8.5)。Codex は 15・16 回目とも Usability だけ 8.0(ほかは 8.5 以上)。指摘はどれも直した。17 回目の Codex は利用上限で審査できていない(次に使えるのは 2026-11-05 20:02)
-- 公開前の確認事項(ユーザーの判断待ち)
-  - push・PR・GitHub Pages への公開は、ユーザーが見て OK を出してから
-  - ローカル版 Java道場(`C:\Users\yeol0\Claude\Work\Java道場`)とガイドの Artifact を消してよいか(こちらでは消さない)
+- ユーザーの判断待ち: ローカル版 Java道場(`C:\Users\yeol0\Claude\Work\Java道場`)とガイドの Artifact を消してよいか(こちらでは消さない)
+- 実機のスマホでの見た目と操作は、まだ確かめていない(ヘッドレスの Edge の撮影とオフラインの確認だけ)
 
 ## 変更内容(直近)
+- PR #7 を `main` にマージして公開した。公開後に Pages のファイル(画面・CSS・JS・見出しの書体・教材のデータ)が取れること、Service Worker が手元の最新版と同じこと、公開 URL でホームとレッスンの冒頭が新しい顔で出ることを確かめた
 - 顔の作り直し(14 回目): 見出しの書体 Zen Kaku Gothic New(OFL)を使う文字だけに絞って同梱(`scripts/subset-heading-font.py`、題の字が足りないと `HeadingFontTest` が落ちる)。ホームとレッスンの冒頭に藍の軸と縦書きの部・章、題は長さで 3 段の大きさ(`titleSize`)と語の途中で折らない `phraseWrap`。レッスンの段を針目で見せる「運針」。PC のホームは上の帯に大きな札と染まりの地図
 - 仕事に見える名前を一般的な名前に置き換え、仕事での呼び名を括弧で添えた(例: CryptoClient(仕事では HsmClient)、受付サーバ(仕事では Front サーバ)、コマンド電文(仕事では APDU))。ユーザーの指示で、仕事の名前は括弧の中に残している
 - 13 回目(Codex)の指摘を直した: 段の一覧のシートの高さとフォーカス、段の帯の下のフェードをやめた、400px 以下の CSS が後勝ちで効いていなかったのを直した、一度染まった段は戻さない、読解も答え合わせ後は固定、採点の刺し子の目を問の順に、教材の根拠のない「9 割」を直した
@@ -28,5 +28,5 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 
 ## 次に依頼すること
 - 相互レビューはユーザーの判断で 17 回目で終えた(Codex の最後の確認はしていない。design-review.md の末尾)。続けるなら 2026-11-05 20:02 以降に、そのときの HEAD を `git worktree add --detach ../Sayana-r18 HEAD` で凍結して Codex に頼む
-- 終わったら、上の「公開前の確認事項」をユーザーに聞く
+- 教材や画面を変えたら、`./mvnw -q compile exec:java` で `m/` を作り直し、`./mvnw test` を通してから PR にする(`main` に入ると Pages に出る)
 - 後回しにしていること: Spring Boot 3.5 の OSS サポートは 2026-06-30 で終わっている見込み(endoflife.date による。spring.io のページには表が出ず、一次資料では未確認)。4.x への移行は、spring.io の公式の表で確かめてから別の作業として相談
