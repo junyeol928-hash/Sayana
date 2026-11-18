@@ -24,12 +24,16 @@
         <th:block th:if="${todayCount > 0}">
             <p class="review-break-kicker">今日の復習はおしまい</p>
             <div class="break-rows" role="img" th:attr="aria-label=|${todayCount} 問のうち ${todayCorrect} 問正解|">
-                <div class="unshin break-unshin" style="--steps: 10" th:each="row : ${doneRows}"><i th:each="r : ${row}" th:class="${r} ? 'sewn' : 'miss'"></i></div>
+                <div class="unshin break-unshin" style="--steps: 10" th:each="row : ${doneRows}"><i th:each="r : ${row}" th:class="${r}"></i></div>
             </div>
             <h2 class="review-break-title" id="break-title"><th:block th:text="|今日 ${todayCount} 問のうち ${todayCorrect} 問|"></th:block><th:block th:if="${todayCount == todayCorrect}">。全部縫えた</th:block></h2>
             <p class="review-break-note"><th:block th:if="${todayCount > todayCorrect}" th:text="|間違えた ${todayCount - todayCorrect} 問は、明日もう一度出ます。|"></th:block><th:block th:if="${!upcomingItems.isEmpty()}">この先の予定は下の表のとおりです。</th:block></p>
             <th:block th:replace="~{fragments/review-parts :: missed(${missed})}"></th:block>
-            <p class="retry-done" th:if="${retryDone}"><span class="retry-tag">仮縫い</span>解き直した <th:block th:text="${retryCount}"></th:block> 問のうち <th:block th:text="${retryOk}"></th:block> 問を、正しく解けた(本縫いは明日の復習で)</p>
+            <th:block th:if="${retryDone}">
+            <p class="retry-done" th:if="${retryOk == 0}">解き直した <th:block th:text="${retryCount}"></th:block> 問は、まだ。明日の復習で、もう一度</p>
+            <p class="retry-done" th:if="${retryOk > 0 and retryOk == retryCount}"><span class="retry-tag">仮縫い</span>解き直した <th:block th:text="${retryCount}"></th:block> 問を、全部正しく解けた(本縫いは明日の復習で)</p>
+            <p class="retry-done" th:if="${retryOk > 0 and retryOk < retryCount}"><span class="retry-tag">仮縫い</span>解き直した <th:block th:text="${retryCount}"></th:block> 問のうち <th:block th:text="${retryOk}"></th:block> 問を、正しく解けた(本縫いは明日の復習で)</p>
+            </th:block>
         </th:block>
         <p class="review-break-note" th:if="${todayCount == 0}">今日の復習はありません。レッスンでクイズを解くと、1・3・7・14 日の間隔でここに出てきます。</p>
         <!--/* 間違えた問題があれば、その日のうちに解き直せる(記録しない)。スマホ版と同じ */-->
@@ -47,7 +51,7 @@
             <div th:if="${retryAt != null}" class="review-stitch retry-stitch"><div class="unshin baste" role="img" aria-label="仮縫い(記録はしない)" style="--steps: 1"><i></i></div>
                 <p class="unshin-cap" aria-hidden="true"><span>仮縫い(記録はしない)</span><span>本縫いは明日の復習で</span></p></div>
             <div class="md" th:utext="${question.questionHtml}"></div>
-            <form th:attr="hx-post=${retryAt == null} ? @{/review/{id}/quiz(id=${item.id})} : @{/review/{id}/quiz(id=${item.id},retry=${retryAt},total=${retryCount},ok=${retryOk})}" hx-target="#review-answer" hx-swap="innerHTML"
+            <form th:attr="hx-post=${retryAt == null} ? @{/review/{id}/quiz(id=${item.id})} : @{/review/{id}/quiz(id=${item.id},retry=${retryAt},total=${retryCount},r=${retryResults})}" hx-target="#review-answer" hx-swap="innerHTML"
                   hx-on::after-request="this.querySelectorAll('input').forEach(e => e.disabled = true); this.querySelector('button').hidden = true">
                 <label th:each="i : ${choiceOrder}" class="choice">
                     <input type="radio" name="choice" th:value="${i}" required>

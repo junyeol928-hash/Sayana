@@ -219,8 +219,9 @@ class WebFlowTest {
             int todayBefore = Integer.parseInt(mvc.perform(get("/review")).andReturn().getResponse().getContentAsString()
                     .replaceAll("(?s).*今日 (\\d+) 問のうち.*", "$1"));
             mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(q.answer()))
-                            .param("retry", "0").param("total", "1").param("ok", "0"))
-                    .andExpect(status().isOk()).andExpect(content().string(containsString("ok=1")))
+                            .param("retry", "0").param("total", "1").param("r", ""))
+                    .andExpect(status().isOk()).andExpect(content().string(containsString("r=1")))
+                    .andExpect(content().string(containsString("/lessons/java-hello#quiz-q0")))
                     .andExpect(content().string(containsString("おわりの画面へ")))
                     .andExpect(content().string(not(containsString("hx-swap-oob"))));
             ReviewItem unchanged = reviewItems.findById(item.getId()).orElseThrow();
@@ -228,9 +229,14 @@ class WebFlowTest {
             assertThat(unchanged.getDueDate()).isEqualTo(after.getDueDate());
             assertThat(unchanged.getLastCorrect()).isFalse();
             mvc.perform(get("/review")).andExpect(content().string(containsString("今日 " + todayBefore + " 問のうち")));
-            // 終わりの画面で、正しく解き直せた数を言う
-            mvc.perform(get("/review").param("retry", "99").param("ok", "1"))
-                    .andExpect(content().string(containsString("問のうち 1 問を、正しく解けた")));
+            // 終わりの画面で、正しく解き直せた数を言い、その × に仮縫いの破線を重ね、行に「仮縫いできた」
+            mvc.perform(get("/review").param("retry", "99").param("r", "1"))
+                    .andExpect(content().string(containsString("正しく解けた")))
+                    .andExpect(content().string(containsString("miss basted")))
+                    .andExpect(content().string(containsString("仮縫いできた")));
+            // 1 問も解けなかったときは、仮縫いの札を付けずに「まだ」と言う
+            mvc.perform(get("/review").param("retry", "99"))
+                    .andExpect(content().string(containsString("は、まだ。明日の復習で、もう一度")));
         } finally {
             var all = reviewItems.findAll();
             all.forEach(it -> { if (saved.containsKey(it.getId())) it.setDueDate(saved.get(it.getId())); });

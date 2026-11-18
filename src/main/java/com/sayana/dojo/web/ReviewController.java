@@ -45,7 +45,7 @@ public class ReviewController {
     @GetMapping("/review")
     public String queue(@RequestParam(name = "go", defaultValue = "-1") int goOnAt,
                         @RequestParam(name = "retry", defaultValue = "-1") int retryAt,
-                        @RequestParam(name = "ok", defaultValue = "0") int retryOk, Model model) {
+                        @RequestParam(name = "r", defaultValue = "") String retryResults, Model model) {
         List<ReviewItem> due = review.due().stream().filter(this::stillExists).toList();
         model.addAttribute("due", due);
         List<ReviewItem> upcoming = review.upcoming().stream().filter(this::stillExists).limit(30).toList();
@@ -65,25 +65,34 @@ public class ReviewController {
             model.addAttribute("breakHere", true);
             model.addAttribute("breakBlock", results);
             model.addAttribute("breakMiss", results.stream().filter(ok -> !ok).count());
-            model.addAttribute("missed", missed(block));
+            model.addAttribute("missed", missed(block, Map.of()));
             return "review";
         }
         if (due.isEmpty()) {
-            // 今日の終わり: 区切りと同じ部品で、今日答えた全問を運針に(10 目で 1 行)、間違えた問題と読み直す所
-            List<Boolean> results = today.stream().map(it -> Boolean.TRUE.equals(it.getLastCorrect())).toList();
-            java.util.List<List<Boolean>> rows = new java.util.ArrayList<>();
-            for (int i = 0; i < results.size(); i += 10) {
-                rows.add(results.subList(i, Math.min(results.size(), i + 10)));
-            }
-            model.addAttribute("doneRows", rows);
-            model.addAttribute("missed", missed(today));
             // 解き直し: 今日まちがえたクイズを、その日のうちにもう一度(記録せず、明日の予定も変えない。スマホ版と同じ)。
-            // ?retry=n で n 問目。並びは今日答えた順で、解き直しでは記録が変わらないので番号はずれない
+            // ?retry=n で n 問目。並びは今日答えた順で、解き直しでは記録が変わらないので番号はずれない。
+            // ?r=101 は解き直した問ごとの正誤(終わりの運針で、正しく解けた × に仮縫いの破線を重ね、行に「仮縫いできた / まだ」)
             List<ReviewItem> again = today.stream().filter(it -> !Boolean.TRUE.equals(it.getLastCorrect()))
                     .filter(it -> it.getItemType() == ReviewItem.Type.QUIZ).filter(this::stillExists).toList();
+            String r = retryResults.replaceAll("[^01]", "");
+            r = r.substring(0, Math.min(r.length(), again.size()));
+            Map<Long, Boolean> retried = new java.util.HashMap<>();
+            for (int i = 0; i < r.length(); i++) {
+                retried.put(again.get(i).getId(), r.charAt(i) == '1');
+            }
+            // 今日の終わり: 区切りと同じ部品で、今日答えた全問を運針に(10 目で 1 行)、間違えた問題と読み直す所
+            List<String> marks = today.stream().map(it -> Boolean.TRUE.equals(it.getLastCorrect()) ? "sewn"
+                    : Boolean.TRUE.equals(retried.get(it.getId())) ? "miss basted" : "miss").toList();
+            java.util.List<List<String>> rows = new java.util.ArrayList<>();
+            for (int i = 0; i < marks.size(); i += 10) {
+                rows.add(marks.subList(i, Math.min(marks.size(), i + 10)));
+            }
+            model.addAttribute("doneRows", rows);
+            model.addAttribute("missed", missed(today, retried));
             model.addAttribute("retryCount", again.size());
             model.addAttribute("retryDone", retryAt >= again.size() && retryAt > 0);
-            model.addAttribute("retryOk", Math.max(0, Math.min(retryOk, again.size())));
+            model.addAttribute("retryOk", r.chars().filter(ch -> ch == '1').count());
+            model.addAttribute("retryResults", r);
             if (retryAt >= 0 && retryAt < again.size()) {
                 ReviewItem item = again.get(retryAt);
                 Lesson.QuizQuestion q = content.lesson(item.getLessonId()).orElseThrow().quiz().get(item.quizIndex());
@@ -113,7 +122,7 @@ public class ReviewController {
     @PostMapping("/review/{id}/quiz")
     public String answerQuiz(@PathVariable long id, @RequestParam(defaultValue = "-1") int choice,
                              @RequestParam(defaultValue = "-1") int retry, @RequestParam(defaultValue = "0") int total,
-                             @RequestParam(name = "ok", defaultValue = "0") int okSoFar, Model model) {
+                             @RequestParam(name = "r", defaultValue = "") String resultsSoFar, Model model) {
         ReviewItem item = items.findById(id).orElseThrow();
         Lesson lesson = content.lesson(item.getLessonId()).orElseThrow();
         if (retry >= 0) {
@@ -123,9 +132,10 @@ public class ReviewController {
             model.addAttribute("correct", ok);
             model.addAttribute("choice", choice);
             model.addAttribute("question", q);
+            model.addAttribute("quizIndex", item.quizIndex());
             model.addAttribute("lesson", lesson);
             model.addAttribute("retryNext", retry + 1);
-            model.addAttribute("retryOkNext", okSoFar + (ok ? 1 : 0));
+            model.addAttribute("retryResultsNext", resultsSoFar.replaceAll("[^01]", "") + (ok ? "1" : "0"));
             model.addAttribute("retryLast", retry + 1 >= total);
             model.addAttribute("reviewLabel", "明日の復習で、もう一度");
             return "fragments/review-parts :: quizAnswer";
@@ -135,6 +145,7 @@ public class ReviewController {
         model.addAttribute("correct", correct);
         model.addAttribute("choice", choice);
         model.addAttribute("question", lesson.quiz().get(item.quizIndex()));
+        model.addAttribute("quizIndex", item.quizIndex());
         model.addAttribute("reviewLabel", ReviewService.nextLabel(updated));
         model.addAttribute("graduatedNow", updated.isGraduated());
         model.addAttribute("nextDays", ReviewService.INTERVAL_DAYS[Math.min(updated.getStage(), ReviewService.INTERVAL_DAYS.length - 1)]);
@@ -148,17 +159,18 @@ public class ReviewController {
 
     /**
      * 間違えた問題の行。レッスン名と、どう読み違えたか(選んだ誤答の why の 1 文目。why が無い演習や、選んだ答えの記録が無い分は
-     * 問いの書き出し)、読み直す先(その問いの段)。3 件まで(ほかは数だけ画面に出す)。
+     * 問いの書き出し)、読み直す先(その問いそのもの)。retry は解き直しの結果(正しく解けた / まだ。解き直していなければ null)。
+     * 3 件まで(ほかは数だけ画面に出す)。
      */
-    public record Missed(String lessonId, String lessonTitle, String text, boolean why, String anchor) {
+    public record Missed(String lessonId, String lessonTitle, String text, boolean why, String anchor, Boolean retry) {
     }
 
-    private List<Missed> missed(List<ReviewItem> answered) {
+    private List<Missed> missed(List<ReviewItem> answered, Map<Long, Boolean> retried) {
         return answered.stream().filter(it -> !Boolean.TRUE.equals(it.getLastCorrect())).filter(this::stillExists).map(it -> {
             Lesson lesson = content.lesson(it.getLessonId()).orElseThrow();
             if (it.getItemType() != ReviewItem.Type.QUIZ) {
                 String title = catalog.find(it.getItemRef()).map(e -> e.title()).orElse("");
-                return new Missed(lesson.id(), lesson.title(), clip(title, 30), false, "#write");
+                return new Missed(lesson.id(), lesson.title(), clip(title, 30), false, "#write", null);
             }
             Lesson.QuizQuestion q = lesson.quiz().get(it.quizIndex());
             String anchor = "#quiz-q" + it.quizIndex();
@@ -166,10 +178,10 @@ public class ReviewController {
             if (c != null && c >= 0 && c < q.whyHtml().size() && !q.whyHtml().get(c).isBlank()) {
                 // why の 1 文目を HTML のまま(<code> だけ残す)。`i += 3` のようなコードの書体を落とさない
                 String why = q.whyHtml().get(c).split("。")[0].replaceAll("<(?!/?code\\b)[^>]*>", "");
-                return new Missed(lesson.id(), lesson.title(), why, true, anchor);
+                return new Missed(lesson.id(), lesson.title(), why, true, anchor, retried.get(it.getId()));
             }
             String text = q.questionMarkdown().replaceAll("(?s)```.*?```", " ").replace("`", "").replace("**", "");
-            return new Missed(lesson.id(), lesson.title(), clip(text, 30), false, anchor);
+            return new Missed(lesson.id(), lesson.title(), clip(text, 30), false, anchor, retried.get(it.getId()));
         }).toList();
     }
 

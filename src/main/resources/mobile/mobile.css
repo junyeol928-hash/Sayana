@@ -43,3 +43,10 @@ body.sheet-open { overflow: hidden; }
 .mobile-app .tutor-close { display: inline-grid; place-items: center; background: none; border: none; color: var(--kon-ink); width: 44px; height: 44px; margin: -10px -10px -10px 0; cursor: pointer; }
 .mobile-app .tutor-fab { display: inline-flex; }
 .mobile-app .tutor-head .link-button { margin-left: auto; }
+/* 復習の「答え合わせ」: 幅いっぱい 52px。選んだら下のメニュー(56px)のすぐ上に留める
+   (12 行のコードの問いでは、いつも折り目の下にあり、選ぶたびに探してスクロールしていた) */
+.mobile-app #rq > button[type="submit"], .mobile-app .review-reading form button[type="submit"] { width: 100%; min-height: 52px; }
+.mobile-app #rq:has(input:checked) > button[type="submit"],
+.mobile-app .review-reading form:has(input:checked) button[type="submit"] {
+  position: sticky; bottom: calc(68px + env(safe-area-inset-bottom)); z-index: 30;
+  box-shadow: 0 0 0 8px var(--bg), 0 -10px 24px 4px var(--bg); }

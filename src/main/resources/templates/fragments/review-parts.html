@@ -17,7 +17,7 @@
 <!-- 間違えた問題の行: レッスン名・どう読み違えたか(無ければ問いの書き出し)・読み直す(その問いの段へ。3 件まで。ほかは数だけ) -->
 <th:block th:fragment="missed(list)" th:if="${list != null and !list.isEmpty()}">
     <ul class="missed-list" aria-label="間違えた問題">
-        <li th:each="m, ms : ${list}" th:if="${ms.index < 3}"><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b th:text="${m.lessonTitle()}"></b><span class="missed-read"><span class="missed-why" th:if="${m.why()}">あなたの読み</span><th:block th:if="${m.why()}" th:utext="${m.text()}"></th:block><th:block th:unless="${m.why()}" th:text="${m.text()}"></th:block></span></span><a class="missed-link" th:href="@{'/lessons/' + ${m.lessonId()} + ${m.anchor()}}">読み直す</a></li>
+        <li th:each="m, ms : ${list}" th:if="${ms.index < 3}"><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b><th:block th:text="${m.lessonTitle()}"></th:block><span class="missed-basted" th:if="${m.retry() == true}">仮縫いできた</span><span class="missed-again" th:if="${m.retry() == false}">まだ</span></b><span class="missed-read"><span class="missed-why" th:if="${m.why()}">あなたの読み</span><th:block th:if="${m.why()}" th:utext="${m.text()}"></th:block><th:block th:unless="${m.why()}" th:text="${m.text()}"></th:block></span></span><a class="missed-link" th:href="@{'/lessons/' + ${m.lessonId()} + ${m.anchor()}}">読み直す</a></li>
     </ul>
     <p class="muted small" th:if="${list.size() > 3}" th:text="|ほか ${list.size() - 3} 問|"></p>
 </th:block>
@@ -28,10 +28,10 @@
         <p class="check-why" th:if="${!correct and choice >= 0 and choice < question.whyHtml.size() and !question.whyHtml.get(choice).isEmpty()}" th:utext="${question.whyHtml.get(choice)}"></p>
         <div class="explanation md" th:utext="${question.explanationHtml}"></div>
     </div>
-    <a class="review-source" th:href="@{'/lessons/' + ${lesson.id} + '#quiz'}"><span>出どころ: <b th:text="${lesson.title}"></b></span><span class="review-source-go">読み直す</span></a>
+    <a class="review-source" th:href="@{'/lessons/' + ${lesson.id} + '#quiz-q' + ${quizIndex}}"><span>出どころ: <b th:text="${lesson.title}"></b></span><span class="review-source-go">読み直す</span></a>
     <div class="review-next"><p class="review-note" th:text="${reviewLabel}"></p>
         <a class="btn primary" th:if="${retryNext == null}" th:href="@{/review}">次の復習へ</a>
-        <a class="btn primary" th:if="${retryNext != null}" th:href="@{/review(retry=${retryNext},ok=${retryOkNext})}" th:text="${retryLast} ? 'おわりの画面へ' : '次の解き直しへ'"></a></div>
+        <a class="btn primary" th:if="${retryNext != null}" th:href="@{/review(retry=${retryNext},r=${retryResultsNext})}" th:text="${retryLast} ? 'おわりの画面へ' : '次の解き直しへ'"></a></div>
     <th:block th:if="${retryNext == null}"><p th:replace="~{fragments/review-parts :: progress(${dueLeft}, ${todayCount}, true)}"></p></th:block>
 </div>
 </body>

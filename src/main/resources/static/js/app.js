@@ -223,11 +223,18 @@ function highlight(root) {
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
   root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 12) c.classList.add("nb"); });
   inlineNotes(root);
-  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で
+  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
+  // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
+  // (「0 3 6 9」は本文、「3 6 9」はコード、と同じ問いの中で書体が分かれ、1 つだけ形の違う選択肢が手がかりになっていた)
+  const asciiChoices = new Map();
   root.querySelectorAll(".choice > span").forEach((sp) => {
-    const t = sp.textContent.trim();
-    if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+    if (sp.querySelector("code") || !/^[!-~][ -~]*$/.test(sp.textContent.trim())) return;
+    const group = sp.closest(".choice").parentElement;
+    asciiChoices.set(group, [...(asciiChoices.get(group) || []), sp]);
   });
+  asciiChoices.forEach((spans) => spans.forEach((sp) => {
+    if (spans.length >= 2 || !/\s\S+\s\S+\s/.test(sp.textContent.trim())) sp.classList.add("code-choice");
+  }));
   // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
   root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
     const t = c.textContent;
@@ -392,7 +399,11 @@ function drawUnshin(row, nowKey) {
 /** ダッシュボード: 前回の続きがあれば主役にし、新しいレッスンは控えめに添える。読解の正解数も出す */
 function dashboardResume() {
   const ok = document.getElementById("reading-ok");
-  if (ok) ok.textContent = Object.values(readingRecord()).filter((r) => r.ok).length;
+  const readingOk = Object.values(readingRecord()).filter((r) => r.ok).length;
+  if (ok) ok.textContent = readingOk;
+  // 読解の正解は糸の長さで(全問に対する割合)
+  const thread = document.getElementById("reading-thread");
+  if (thread && Number(thread.dataset.total)) thread.style.setProperty("--p", `${Math.round((readingOk / Number(thread.dataset.total)) * 100)}%`);
   const hero = document.querySelector(".today");
   const slot = document.querySelector(".today .unshin-slot");
   if (slot) drawUnshin(document.querySelector(`.lesson-row a[data-lesson="${CSS.escape(slot.dataset.lesson)}"]`));
@@ -954,13 +965,18 @@ document.addEventListener("copy", (e) => {
   e.preventDefault();
 });
 
-// 復習の「読み直す」で問いそのもの(#quiz-q2)へ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す(スマホ版と同じ)
-addEventListener("load", () => {
+// 復習の「読み直す」で問いそのもの(#quiz-q2)へ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す(スマホ版と同じ)。
+// このモジュールは上の await loadCodeMirror() を待つので、その間に load が済んでいることがある(load だけを待つと一度も走らなかった)。
+// 色付けとエディタで上の高さが変わったあとなので、もう一度その問いの頭まで送る
+const spotQuiz = () => {
   if (!/^#quiz-q\d+$/.test(location.hash)) return;
   const q = document.getElementById(location.hash.slice(1));
   if (!q) return;
   q.tabIndex = -1;
+  q.scrollIntoView({ block: "start" });
   q.focus({ preventScroll: true });
   q.classList.add("spot-flash");
   setTimeout(() => q.classList.remove("spot-flash"), 1200);
-});
+};
+if (document.readyState === "complete") spotQuiz();
+else addEventListener("load", spotQuiz);

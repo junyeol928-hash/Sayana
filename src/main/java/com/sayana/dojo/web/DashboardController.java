@@ -51,7 +51,10 @@ public class DashboardController {
         model.addAttribute("studiedToday", activity.studiedToday());
         model.addAttribute("totalDays", activity.totalDays());
         model.addAttribute("upcoming", review.upcoming().size());
-        model.addAttribute("graduated", review.graduatedCount());
+        long graduated = review.graduatedCount();
+        model.addAttribute("graduated", graduated);
+        // 復習で卒業: 褐のマスを数だけ並べる(24 まで。超えたら「…」)
+        model.addAttribute("graduatedCells", java.util.Collections.nCopies((int) Math.min(graduated, 24), 4));
         model.addAttribute("recentSubmissions", submissions.findTop50ByOrderByCreatedAtDesc().stream().limit(5).toList());
         model.addAttribute("completedLessons", parts.stream().mapToLong(ProgressService.PartProgress::completed).sum());
         model.addAttribute("readyLessons", content.readyLessons().size());

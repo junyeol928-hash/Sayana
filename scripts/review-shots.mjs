@@ -129,6 +129,10 @@ await shot("m-sample-result");
 await open(mobileArg + "#/review");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-review");
+// 選んだら「答え合わせ」が下のメニューのすぐ上に留まる(選ぶだけ。答えるのは下で)
+await js(`const i = document.querySelector("#rq input"); if (i) { i.checked = true; i.dispatchEvent(new Event("change", { bubbles: true })); }`);
+await shot("m-review-chosen");
+await js(`document.querySelectorAll("#rq input").forEach((i) => { i.checked = false; });`);
 // わざと間違える(ほどける運針・上の数の更新・選んだ誤答への送りを見るため)。出ている問いの正解を教材のデータから探す
 await js(`const f = document.querySelector("#rq"); if (f) {
     const head = document.querySelector(".review-quiz > .md").textContent.replace(/\\s+/g, "").slice(0, 24);
@@ -244,6 +248,29 @@ await shot("pc-review");
 await js(`const f = document.querySelector(".review-quiz form"); if (f) { f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); }
   await new Promise((r) => setTimeout(r, 1500));`);
 await shot("pc-review-answer");
+// 今日の残りを答えて終わりの画面へ(1 つ目の選択肢を選ぶ)。解き直しの結果(1 問目は正しく、2 問目はまだ)を渡した終わりを撮る
+for (let k = 0; k < 12; k++) {
+  await open(pcArg + "review");
+  const more = await js(`const f = document.querySelector(".review-quiz form"); if (!f) return false;
+    f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 1200)); return true;`);
+  if (!more) break;
+}
+await open(pcArg + "review?retry=99&r=10");
+await scrollTo(".review-done, .review-break", 90);
+await shot("pc-review-retry-end");
+// 「読み直す」で問いそのものへ着いたとき(1.2 秒の藍の枠とフォーカス)。枠が消える前に撮る
+await send("Page.navigate", { url: pcArg + "lessons/java-if#quiz-q1" });
+let landed = "";
+for (let k = 0; k < 40 && !landed.includes("枠 true"); k++) {
+  await sleep(100);
+  landed = await js(`return (document.activeElement?.id || document.activeElement?.tagName) + " / 枠 " + !!document.querySelector(".spot-flash");`).catch(() => "");
+}
+console.log("読み直すの着地:", landed);
+{
+  const { data } = await send("Page.captureScreenshot", { format: "jpeg", quality: 85 });
+  writeFileSync(join(outDir, "pc-reread.jpg"), Buffer.from(data, "base64"));
+  console.log("撮影", "pc-reread");
+}
 await open(pcArg + "glossary");
 await js(`const t = [...document.querySelectorAll(".term")].find((x) => x.querySelector(".term-count") && x.textContent.includes("equals")); window.scrollTo(0, t.getBoundingClientRect().top + scrollY - 220); await new Promise((r) => setTimeout(r, 600));`);
 await shot("pc-glossary");

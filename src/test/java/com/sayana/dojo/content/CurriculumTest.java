@@ -105,26 +105,53 @@ class CurriculumTest {
     @DisplayName("誤答の 1 文(why)は解説と同じ話をくり返さず、地の文の文字列は ASCII の引用符で書かず、サンプルには予想の問いがある")
     void proseRules() {
         List<String> problems = new java.util.ArrayList<>();
+        // 読解の選択肢の長さの偏り(全体): [ただ 1 つのいちばん長い選択肢がある問, そのうち正解, ただ 1 つのいちばん短い選択肢がある問, そのうち正解]
+        int[] readingBias = new int[4];
         for (Lesson l : CONTENT.readyLessons()) {
             for (int i = 0; i < l.quiz().size(); i++) {
                 var q = l.quiz().get(i);
                 proseProblems(l.id() + " quiz " + i, q.questionHtml(), q.choicesHtml(), q.whyHtml(), q.explanationHtml(), problems);
             }
+            int readingLongest = 0;
             for (int i = 0; i < l.reading().size(); i++) {
                 var r = l.reading().get(i);
                 proseProblems(l.id() + " reading " + i, r.questionHtml(), r.choicesHtml(), r.whyHtml(), r.explanationHtml(), problems);
                 for (String t : r.traceHtml()) {
-                    java.util.regex.Matcher m = ASCII_QUOTED.matcher(plain(t, true));
+                    String p = plain(t, true);
+                    java.util.regex.Matcher m = ASCII_QUOTED.matcher(p);
                     if (m.find()) {
                         problems.add(l.id() + " reading " + i + " trace: 地の文に ASCII の引用符 " + m.group());
                     }
+                    String code = bareCode(p);
+                    if (code != null) {
+                        problems.add(l.id() + " reading " + i + " trace: コードの字句「" + code + "」がコード書式の外にある");
+                    }
                 }
+                int[] len = r.choicesHtml().stream().mapToInt(CurriculumTest::choiceLength).toArray();
+                int max = java.util.Arrays.stream(len).max().orElse(0);
+                int min = java.util.Arrays.stream(len).min().orElse(0);
+                if (java.util.Arrays.stream(len).filter(x -> x == max).count() == 1) {
+                    readingBias[0]++;
+                    if (len[r.answer()] == max) {
+                        readingBias[1]++;
+                        readingLongest++;
+                    }
+                }
+                if (java.util.Arrays.stream(len).filter(x -> x == min).count() == 1) {
+                    readingBias[2]++;
+                    if (len[r.answer()] == min) {
+                        readingBias[3]++;
+                    }
+                }
+            }
+            if (readingLongest >= 3) {
+                problems.add(l.id() + ": 読解で正解がいちばん長い選択肢の問が " + readingLongest + " 問(レッスンごとに 2 問まで)");
             }
             // 正解がいちばん長い選択肢になる問は、レッスンの 5 問のうち 2 問まで(長さで当てられないように)
             long longest = l.quiz().stream().filter(q -> {
-                int a = plain(q.choicesHtml().get(q.answer()), false).replaceAll("\\s+", "").length();
+                int a = choiceLength(q.choicesHtml().get(q.answer()));
                 return java.util.stream.IntStream.range(0, q.choicesHtml().size()).filter(j -> j != q.answer())
-                        .allMatch(j -> plain(q.choicesHtml().get(j), false).replaceAll("\\s+", "").length() < a);
+                        .allMatch(j -> choiceLength(q.choicesHtml().get(j)) < a);
             }).count();
             if (longest >= 3) {
                 problems.add(l.id() + ": 正解がいちばん長い選択肢の問が " + longest + " 問(5 問のうち 2 問まで)");
@@ -141,14 +168,53 @@ class CurriculumTest {
                 if (!predict) {
                     problems.add(l.id() + " サンプル「" + s.title() + "」の説明に、予想の問い(? で終わる文)が無い");
                 }
+                // 「予想してから見よう」は、閉じた欄の見出し「予想したら、実行結果を見る」が言う(説明で重ねない)
+                java.util.Arrays.stream(text.split("(?<=[。?？])")).map(String::strip)
+                        .filter(x -> x.contains("予想して") && !x.matches(".*([?？]|だろうか。?|でしょうか。?)$"))
+                        .forEach(x -> problems.add(l.id() + " サンプル「" + s.title() + "」: 予想を促す文「" + x + "」は欄の見出しが言う"));
+            }
+        }
+        // 読解はいちばん長いのを選ぶ・いちばん短いのを捨てる、で当てられないように(当てずっぽうなら 4 択で 25%)
+        if (readingBias[1] * 100 > readingBias[0] * 30) {
+            problems.add("読解: 正解がいちばん長い選択肢の問が " + readingBias[1] + " / " + readingBias[0] + "(30% まで)");
+        }
+        if (readingBias[3] * 100 < readingBias[2] * 15) {
+            problems.add("読解: 正解がいちばん短い選択肢の問が " + readingBias[3] + " / " + readingBias[2] + "(15% 以上)");
+        }
+        for (Term t : CONTENT.glossary()) {
+            String code = bareCode(plain(t.defHtml(), true));
+            if (code != null) {
+                problems.add("用語集「" + t.term() + "」: コードの字句「" + code + "」がコード書式の外にある");
             }
         }
         assertThat(problems).as("CONTENT_FORMAT.md の why・引用符・予想の問いの決まり").isEmpty();
     }
 
+    private static int choiceLength(String html) {
+        return plain(html, false).replaceAll("\\s+", "").length();
+    }
+
+    /** 地の文に残ったコードの字句(呼び出し・演算子・例外名・比較・代入)。無ければ null。 */
+    private static String bareCode(String plainText) {
+        java.util.regex.Matcher m = BARE_CODE.matcher(plainText);
+        if (m.find()) {
+            return m.group();
+        }
+        m = BARE_COMPARE.matcher(plainText);
+        return m.find() ? m.group() : null;
+    }
+
     private static final java.util.regex.Pattern ASCII_QUOTED = java.util.regex.Pattern.compile("\"[^\"\\n]{1,60}\"");
     private static final java.util.regex.Pattern BARE_CODE = java.util.regex.Pattern.compile(
-            "[A-Za-z_]\\w*\\([^()\\s]{0,20}\\)|\\+\\+|--(?=\\w)|\\+=|-=|==|!=|->|::|&&|\\|\\||\\b[A-Z][A-Za-z]*(?:Exception|Error)\\b");
+            // 括弧の中は ASCII だけ(「byte(8ビットの数)」「case(〓)」のような地の文の補足は拾わない)
+            "[A-Za-z_]\\w*\\([!-'*-~]{0,20}\\)|\\+\\+|--(?=\\w)|\\+=|-=|==|!=|->|::|&&|\\|\\||\\b[A-Z][A-Za-z]*(?:Exception|Error)\\b");
+    /** 比較と代入(x=10・10 < 5・T = Integer)。ASCII の語どうしを結ぶものだけ */
+    private static final java.util.regex.Pattern BARE_COMPARE = java.util.regex.Pattern.compile(
+            // メニューの道筋(Maven > Update Project)は比較ではない
+            "(?<![A-Za-z0-9_])(?![A-Z][a-z]+ > [A-Z])[A-Za-z0-9_]+ ?(?:<=|>=|<|>|=) ?[A-Za-z0-9_]+(?![A-Za-z0-9_])");
+    private static final java.util.regex.Pattern INLINE_CODE = java.util.regex.Pattern.compile("<code>([^<]{2,40})</code>");
+    private static final java.util.regex.Pattern ASCII_WORD = java.util.regex.Pattern.compile(
+            "(?<![A-Za-z0-9_@.])[A-Za-z_@][A-Za-z0-9_.@\\-]*");
 
     private static void proseProblems(String where, String question, List<String> choices, List<String> why, String explanation,
                                       List<String> problems) {
@@ -161,13 +227,50 @@ class CurriculumTest {
                 problems.add(where + ": 地の文に ASCII の引用符 " + m.group() + "(出力はコードに、リテラルは引用符ごとコードに)");
             }
         }
-        // why と選択肢のコードの字句はコード書式に(地の文の書体だと「+ =」と割れ、例外名は語の途中で折れる)
+        // why と選択肢のコードの字句はコード書式に(地の文の書体だと「+ =」と割れ、例外名は語の途中で折れる)。
+        // 比較と代入(x=10・10<5)は解説でも
         List<String> codeChecked = new java.util.ArrayList<>(choices);
         codeChecked.addAll(why);
         for (String t : codeChecked) {
-            java.util.regex.Matcher m = BARE_CODE.matcher(plain(t, true));
-            if (m.find()) {
-                problems.add(where + ": コードの字句「" + m.group() + "」がコード書式の外にある");
+            String code = bareCode(plain(t, true));
+            if (code != null) {
+                problems.add(where + ": コードの字句「" + code + "」がコード書式の外にある");
+            }
+        }
+        java.util.regex.Matcher cmp = BARE_COMPARE.matcher(plain(explanation, true));
+        if (cmp.find()) {
+            problems.add(where + " 解説: コードの字句「" + cmp.group() + "」がコード書式の外にある");
+        }
+        // 解説の長いメッセージ(24 字以上で空白を含むコード)は独立した 1 行のブロックになるので、括弧の中に置かない
+        // (「(」が行末に残り、文が括弧ごと 3 つに割れる)
+        // 長さは画面と同じく文字で数える(&quot; などの書き方で数えると、`"Java" == "Java"` まで長いことになった)
+        String marked = plain(java.util.regex.Pattern.compile("<code>([^<]*)</code>").matcher(explanation == null ? "" : explanation)
+                .replaceAll(mr -> {
+                    String text = org.springframework.web.util.HtmlUtils.htmlUnescape(mr.group(1)).strip();
+                    return text.length() >= 24 && text.matches("(?s).*\\s.*") ? "◆" : java.util.regex.Matcher.quoteReplacement(mr.group());
+                }), true);
+        if (java.util.regex.Pattern.compile("[(（][^)）]*◆").matcher(marked).find()) {
+            problems.add(where + " 解説: 長いメッセージのコードが括弧の中にある(括弧を外し「次のメッセージ:」のように前置きする)");
+        }
+        // 同じ問いでコード書式にした識別子は、why でもコード書式に(終わりの画面で why の 1 文目が主役になる)
+        java.util.Set<String> codeWords = new java.util.HashSet<>();
+        List<String> all = new java.util.ArrayList<>(List.of(question, explanation));
+        all.addAll(choices);
+        all.addAll(why);
+        for (String t : all) {
+            java.util.regex.Matcher c = INLINE_CODE.matcher(t == null ? "" : t);
+            while (c.find()) {
+                codeWords.add(org.springframework.web.util.HtmlUtils.htmlUnescape(c.group(1)).strip());
+            }
+        }
+        for (int j = 0; j < why.size(); j++) {
+            java.util.regex.Matcher w = ASCII_WORD.matcher(plain(why.get(j), true));
+            while (w.find()) {
+                String word = w.group().replaceAll("[.\\-]+$", "");
+                if (word.length() >= 2 && codeWords.contains(word)) {
+                    problems.add(where + " why" + j + ": 「" + word + "」は同じ問いでコード書式なので、why でもコード書式に");
+                    break;
+                }
             }
         }
         String ex = plain(explanation, true).replaceAll("\\s+", "");
