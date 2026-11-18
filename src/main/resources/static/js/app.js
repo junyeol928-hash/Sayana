@@ -685,7 +685,13 @@ document.addEventListener("htmx:afterSwap", (e) => {
     if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
   });
   const cap = document.querySelector(".review-stitch .unshin-cap");
-  if (v.querySelector(".q-explain.correct")) {
+  const baste = document.querySelector(".retry-stitch");
+  if (baste) {
+    // 解き直し: 正しく解けたら 1 目の仮縫いを破線の糸に(本縫いは明日の復習。記録はしない)
+    const ok = !!v.querySelector(".q-explain.correct");
+    baste.querySelector(".unshin i")?.classList.toggle("sewn", ok);
+    if (cap) cap.innerHTML = ok ? "<span><b>仮縫いした</b>。本縫いは明日の復習で</span>" : "<span>明日の復習で、もう一度</span>";
+  } else if (v.querySelector(".q-explain.correct")) {
     const now = document.querySelector(".review-stitch .unshin i.now");
     now?.classList.replace("now", "sewn");
     now?.classList.add("just");
@@ -702,7 +708,18 @@ document.addEventListener("htmx:afterSwap", (e) => {
   // 判定へフォーカスを移し、選んだ答えが画面の上の方に来るまで送る(解説が長くても「× あなたの答え」を見失わない)
   const verdict = v.querySelector(".q-explain");
   verdict?.focus({ preventScroll: true });
-  const chosenLabel = v.closest(".review-quiz")?.querySelector("label.is-wrong, label.is-answer");
+  const card = v.closest(".review-quiz");
+  const chosenLabel = card?.querySelector("label.is-wrong, label.is-answer");
+  const next = v.querySelector(".review-next .btn");
+  if (matchMedia("(min-width: 1200px)").matches && card && getComputedStyle(card).display === "grid") {
+    // 2 列の PC: 選択肢は右上にあるので、「次へ」まで画面に収まるなら送らない(運針の縫う・ほどけるを隠さない)。
+    // はみ出すときも、カードの上端(運針)がヘッダーのすぐ下に来る所まで
+    if (next && next.getBoundingClientRect().bottom > innerHeight) {
+      const header = document.querySelector(".site-header, header")?.getBoundingClientRect().bottom ?? 64;
+      scrollTo({ top: scrollY + card.getBoundingClientRect().top - header - 8, behavior: reduceMotion() ? "auto" : "smooth" });
+    }
+    return;
+  }
   const top = (chosenLabel || verdict)?.getBoundingClientRect().top ?? 0;
   if (top > 140) scrollTo({ top: scrollY + top - 120, behavior: reduceMotion() ? "auto" : "smooth" });
 });
@@ -935,4 +952,15 @@ document.addEventListener("copy", (e) => {
   if (!text.includes("\u2060")) return;
   e.clipboardData.setData("text/plain", text.replace(/\u2060/g, ""));
   e.preventDefault();
+});
+
+// 復習の「読み直す」で問いそのもの(#quiz-q2)へ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す(スマホ版と同じ)
+addEventListener("load", () => {
+  if (!/^#quiz-q\d+$/.test(location.hash)) return;
+  const q = document.getElementById(location.hash.slice(1));
+  if (!q) return;
+  q.tabIndex = -1;
+  q.focus({ preventScroll: true });
+  q.classList.add("spot-flash");
+  setTimeout(() => q.classList.remove("spot-flash"), 1200);
 });

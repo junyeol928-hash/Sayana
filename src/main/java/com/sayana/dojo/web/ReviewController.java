@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.util.HtmlUtils;
 
 import com.sayana.dojo.content.ContentRepository;
 import com.sayana.dojo.content.Lesson;
@@ -45,7 +44,8 @@ public class ReviewController {
 
     @GetMapping("/review")
     public String queue(@RequestParam(name = "go", defaultValue = "-1") int goOnAt,
-                        @RequestParam(name = "retry", defaultValue = "-1") int retryAt, Model model) {
+                        @RequestParam(name = "retry", defaultValue = "-1") int retryAt,
+                        @RequestParam(name = "ok", defaultValue = "0") int retryOk, Model model) {
         List<ReviewItem> due = review.due().stream().filter(this::stillExists).toList();
         model.addAttribute("due", due);
         List<ReviewItem> upcoming = review.upcoming().stream().filter(this::stillExists).limit(30).toList();
@@ -83,13 +83,15 @@ public class ReviewController {
                     .filter(it -> it.getItemType() == ReviewItem.Type.QUIZ).filter(this::stillExists).toList();
             model.addAttribute("retryCount", again.size());
             model.addAttribute("retryDone", retryAt >= again.size() && retryAt > 0);
+            model.addAttribute("retryOk", Math.max(0, Math.min(retryOk, again.size())));
             if (retryAt >= 0 && retryAt < again.size()) {
                 ReviewItem item = again.get(retryAt);
                 Lesson.QuizQuestion q = content.lesson(item.getLessonId()).orElseThrow().quiz().get(item.quizIndex());
                 model.addAttribute("item", item);
                 model.addAttribute("retryAt", retryAt);
                 model.addAttribute("question", q);
-                model.addAttribute("choiceOrder", review.choiceOrder(item, q.choicesHtml().size()));
+                // 数分前と別の並び(正解の位置も変える)。位置の記憶で当てないように
+                model.addAttribute("choiceOrder", review.retryOrder(item, q.choicesHtml().size(), q.answer()));
                 return "review";
             }
         }
@@ -110,11 +112,12 @@ public class ReviewController {
 
     @PostMapping("/review/{id}/quiz")
     public String answerQuiz(@PathVariable long id, @RequestParam(defaultValue = "-1") int choice,
-                             @RequestParam(defaultValue = "-1") int retry, @RequestParam(defaultValue = "0") int total, Model model) {
+                             @RequestParam(defaultValue = "-1") int retry, @RequestParam(defaultValue = "0") int total,
+                             @RequestParam(name = "ok", defaultValue = "0") int okSoFar, Model model) {
         ReviewItem item = items.findById(id).orElseThrow();
         Lesson lesson = content.lesson(item.getLessonId()).orElseThrow();
         if (retry >= 0) {
-            // 解き直しは採点だけ(記録・予定・今日の数は変えない)
+            // 解き直しは採点だけ(記録・予定・今日の数は変えない)。正しく解けた数は次の画面へ渡して、終わりに言う
             Lesson.QuizQuestion q = lesson.quiz().get(item.quizIndex());
             boolean ok = q.answer() == choice;
             model.addAttribute("correct", ok);
@@ -122,8 +125,9 @@ public class ReviewController {
             model.addAttribute("question", q);
             model.addAttribute("lesson", lesson);
             model.addAttribute("retryNext", retry + 1);
+            model.addAttribute("retryOkNext", okSoFar + (ok ? 1 : 0));
             model.addAttribute("retryLast", retry + 1 >= total);
-            model.addAttribute("reviewLabel", ok ? "解き直せた。明日もう一度出ます" : "明日もう一度出ます");
+            model.addAttribute("reviewLabel", "明日の復習で、もう一度");
             return "fragments/review-parts :: quizAnswer";
         }
         boolean correct = learning.answerReviewQuiz(item, choice);
@@ -157,13 +161,15 @@ public class ReviewController {
                 return new Missed(lesson.id(), lesson.title(), clip(title, 30), false, "#write");
             }
             Lesson.QuizQuestion q = lesson.quiz().get(it.quizIndex());
+            String anchor = "#quiz-q" + it.quizIndex();
             Integer c = it.getLastChoice();
             if (c != null && c >= 0 && c < q.whyHtml().size() && !q.whyHtml().get(c).isBlank()) {
-                String why = HtmlUtils.htmlUnescape(q.whyHtml().get(c).replaceAll("<[^>]+>", ""));
-                return new Missed(lesson.id(), lesson.title(), clip(why.split("。")[0], 44), true, "#quiz");
+                // why の 1 文目を HTML のまま(<code> だけ残す)。`i += 3` のようなコードの書体を落とさない
+                String why = q.whyHtml().get(c).split("。")[0].replaceAll("<(?!/?code\\b)[^>]*>", "");
+                return new Missed(lesson.id(), lesson.title(), why, true, anchor);
             }
             String text = q.questionMarkdown().replaceAll("(?s)```.*?```", " ").replace("`", "").replace("**", "");
-            return new Missed(lesson.id(), lesson.title(), clip(text, 30), false, "#quiz");
+            return new Missed(lesson.id(), lesson.title(), clip(text, 30), false, anchor);
         }).toList();
     }
 
@@ -174,16 +180,24 @@ public class ReviewController {
     public record UpcomingRow(LocalDate dueDate, String lessonTitle, long count, long exercises, List<long[]> stages) {
     }
 
-    static List<UpcomingRow> upcomingRows(List<ReviewItem> upcoming, Map<String, String> titles) {
+    /** 予定の 1 日分(見出しの行「11/20 · 8 問」と、その日のレッスンの行)。 */
+    public record UpcomingDay(LocalDate date, long count, List<UpcomingRow> rows) {
+    }
+
+    static List<UpcomingDay> upcomingRows(List<ReviewItem> upcoming, Map<String, String> titles) {
         Map<String, List<ReviewItem>> groups = new LinkedHashMap<>();
         for (ReviewItem it : upcoming) {
             groups.computeIfAbsent(it.getDueDate() + "|" + it.getLessonId(), k -> new ArrayList<>()).add(it);
         }
-        return groups.values().stream().map(g -> new UpcomingRow(g.getFirst().getDueDate(),
+        List<UpcomingRow> rows = groups.values().stream().map(g -> new UpcomingRow(g.getFirst().getDueDate(),
                 titles.getOrDefault(g.getFirst().getLessonId(), g.getFirst().getLessonId()), g.size(),
                 g.stream().filter(it -> it.getItemType() != ReviewItem.Type.QUIZ).count(),
                 java.util.stream.IntStream.rangeClosed(0, 3).mapToObj(s -> new long[] {s,
                         g.stream().filter(it -> Math.min(it.getStage(), 3) == s).count()}).filter(sc -> sc[1] > 0).toList())).toList();
+        Map<LocalDate, List<UpcomingRow>> days = new LinkedHashMap<>();
+        rows.forEach(r -> days.computeIfAbsent(r.dueDate(), k -> new ArrayList<>()).add(r));
+        return days.entrySet().stream().map(e -> new UpcomingDay(e.getKey(),
+                e.getValue().stream().mapToLong(UpcomingRow::count).sum(), e.getValue())).toList();
     }
 
     private static String clip(String text, int max) {

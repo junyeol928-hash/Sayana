@@ -149,9 +149,28 @@ public class ReviewService {
      * 選択肢を見せる並び。復習では位置で覚えてしまわないよう入れ替える。同じ問題は同じ日なら同じ並び(開き直しても変わらない)。
      */
     public List<Integer> choiceOrder(ReviewItem item, int size) {
+        return shuffled(item.getItemRef() + "|" + LocalDate.now(clock), size);
+    }
+
+    /**
+     * 解き直しの並び。数分前に「✓ 正解」を見たのと別の並びにし、正解の位置も必ず変える(位置で当てないように。スマホ版と同じ)。
+     */
+    public List<Integer> retryOrder(ReviewItem item, int size, int answer) {
+        List<Integer> first = choiceOrder(item, size);
+        for (int k = 1; k <= 6; k++) {
+            List<Integer> o = shuffled(item.getItemRef() + "|" + LocalDate.now(clock) + "|retry" + k, size);
+            if (o.indexOf(answer) != first.indexOf(answer)) {
+                return o;
+            }
+        }
+        List<Integer> reversed = new ArrayList<>(first);
+        Collections.reverse(reversed);
+        return reversed;
+    }
+
+    private static List<Integer> shuffled(String key, int size) {
         List<Integer> order = new ArrayList<>(IntStream.range(0, size).boxed().toList());
-        long seed = (item.getItemRef() + "|" + LocalDate.now(clock)).hashCode();
-        Collections.shuffle(order, new Random(seed));
+        Collections.shuffle(order, new Random(key.hashCode()));
         return order;
     }
 

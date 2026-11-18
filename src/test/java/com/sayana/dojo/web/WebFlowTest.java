@@ -205,20 +205,22 @@ class WebFlowTest {
 
             mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(wrong))).andExpect(status().isOk());
             ReviewItem after = reviewItems.findById(item.getId()).orElseThrow();
-            String whyHead = org.springframework.web.util.HtmlUtils.htmlUnescape(q.whyHtml().get(wrong).replaceAll("<[^>]+>", "")).split("。")[0];
+            // 行には why の 1 文目を HTML のまま(<code> だけ残して)出す
+            String whyHead = q.whyHtml().get(wrong).split("。")[0].replaceAll("<(?!/?code\\b)[^>]*>", "");
             mvc.perform(get("/review")).andExpect(status().isOk())
                     .andExpect(content().string(containsString("いま解き直す")))
                     .andExpect(content().string(containsString("あなたの読み")))
-                    .andExpect(content().string(containsString(org.springframework.web.util.HtmlUtils.htmlEscape(whyHead.substring(0, Math.min(10, whyHead.length()))))))
-                    .andExpect(content().string(containsString("/lessons/java-hello#quiz")));
+                    .andExpect(content().string(containsString(whyHead)))
+                    .andExpect(content().string(containsString("/lessons/java-hello#quiz-q0")));
             mvc.perform(get("/review").param("retry", "0")).andExpect(status().isOk())
-                    .andExpect(content().string(containsString("解き直し <b>1</b>")));
+                    .andExpect(content().string(containsString("解き直し <b>1</b>")))
+                    .andExpect(content().string(containsString("unshin baste")));
             // 解き直しの答えは記録しない(段階・期日・今日の数がそのまま)
             int todayBefore = Integer.parseInt(mvc.perform(get("/review")).andReturn().getResponse().getContentAsString()
                     .replaceAll("(?s).*今日 (\\d+) 問のうち.*", "$1"));
             mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(q.answer()))
-                            .param("retry", "0").param("total", "1"))
-                    .andExpect(status().isOk()).andExpect(content().string(containsString("解き直せた")))
+                            .param("retry", "0").param("total", "1").param("ok", "0"))
+                    .andExpect(status().isOk()).andExpect(content().string(containsString("ok=1")))
                     .andExpect(content().string(containsString("おわりの画面へ")))
                     .andExpect(content().string(not(containsString("hx-swap-oob"))));
             ReviewItem unchanged = reviewItems.findById(item.getId()).orElseThrow();
@@ -226,6 +228,9 @@ class WebFlowTest {
             assertThat(unchanged.getDueDate()).isEqualTo(after.getDueDate());
             assertThat(unchanged.getLastCorrect()).isFalse();
             mvc.perform(get("/review")).andExpect(content().string(containsString("今日 " + todayBefore + " 問のうち")));
+            // 終わりの画面で、正しく解き直せた数を言う
+            mvc.perform(get("/review").param("retry", "99").param("ok", "1"))
+                    .andExpect(content().string(containsString("問のうち 1 問を、正しく解けた")));
         } finally {
             var all = reviewItems.findAll();
             all.forEach(it -> { if (saved.containsKey(it.getId())) it.setDueDate(saved.get(it.getId())); });

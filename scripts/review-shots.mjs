@@ -146,7 +146,18 @@ await shot("m-review-answer-top");
 // 10 問の区切り(今日 10 問答えた形にして開き直す)
 await js(`const s = JSON.parse(localStorage.getItem("javadojo-m-v1")); const d = new Date(); const t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const keys = Object.keys(s.review).filter((k) => !s.review[k].graduated); // 本物の問題で(間違えた問題の行に名前が出るように)
-  const refs = {}; [true, true, false, true, true, true, false, true, true, true].forEach((ok, i) => { refs[keys[i]] = ok; }); s.reviewLog = { [t]: { refs } };
+  // 間違えた問は選んだ答えも残す(区切りの「間違えた問題」の行に、どう読み違えたかが出るように。実際の流れと同じ)
+  const refs = {}, choices = {};
+  const oks = [true, true, false, true, true, true, false, true, true, true];
+  for (let i = 0; i < oks.length; i++) {
+    const k = keys[i]; refs[k] = oks[i];
+    if (!oks[i]) {
+      const L = await (await fetch("data/lessons/" + s.review[k].lessonId + ".json")).json();
+      const q = k.includes("#") ? L.quiz[Number(k.split("#")[1])] : k.includes("!") ? L.checks[Number(k.split("!")[1])] : k.includes("@") ? L.reading[Number(k.split("@")[1])] : null;
+      if (q) choices[k] = (q.answer + 1) % q.choicesHtml.length;
+    }
+  }
+  s.reviewLog = { [t]: { refs, choices } };
   // 区切りに数えた 10 問は答えた扱いなので、今日の残りから外す(「残り n 問」を実際の流れとそろえる。21 回目の審査)
   const tomorrow = new Date(d.getTime() + 864e5); const t1 = tomorrow.getFullYear() + "-" + String(tomorrow.getMonth() + 1).padStart(2, "0") + "-" + String(tomorrow.getDate()).padStart(2, "0");
   keys.slice(0, 10).forEach((k) => { s.review[k].due = t1; });
@@ -176,6 +187,25 @@ await js(`window.scrollTo(0, 0);`);
 await shot("m-review-done");
 await js(`document.querySelector("#again")?.click(); await new Promise((r) => setTimeout(r, 1200)); window.scrollTo(0, 0);`);
 await shot("m-review-retry");
+// 解き直しを最後まで(1 問目は正しく、ほかは誤答で)。終わりの運針に仮縫いの跡と、行ごとの「仮縫いできた / まだ」
+await js(`for (let k = 0; k < 6; k++) {
+    const f = document.querySelector("#rq") || document.querySelector("form[data-action=reading]");
+    if (!f) break;
+    const head = (f.closest(".review-quiz, .reading-q")?.querySelector(".md, .reading-question")?.textContent || "").replace(/\\s+/g, "").slice(0, 24);
+    let answer = -1;
+    const s = JSON.parse(localStorage.getItem("javadojo-m-v1") || "{}");
+    for (const id of new Set(Object.values(s.review || {}).map((it) => it.lessonId))) {
+      const L = await (await fetch("data/lessons/" + id + ".json")).json();
+      [...L.quiz, ...(L.checks || []), ...(L.reading || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/\\s+/g, "").startsWith(head)) answer = q.answer; });
+    }
+    const inputs = [...f.querySelectorAll("input[type=radio]")];
+    (inputs.find((x) => (k === 0) === (Number(x.value) === answer)) || inputs[0]).checked = true;
+    f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 700));
+    if (k === 0) { window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300)); window.__first = true; }
+    document.querySelector("#next")?.click(); await new Promise((r) => setTimeout(r, 1000));
+  }
+  window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300));`);
+await shot("m-review-retry-end");
 await open(mobileArg + "#/reading");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-reading");

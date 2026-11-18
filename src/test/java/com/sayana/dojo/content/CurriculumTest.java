@@ -113,6 +113,21 @@ class CurriculumTest {
             for (int i = 0; i < l.reading().size(); i++) {
                 var r = l.reading().get(i);
                 proseProblems(l.id() + " reading " + i, r.questionHtml(), r.choicesHtml(), r.whyHtml(), r.explanationHtml(), problems);
+                for (String t : r.traceHtml()) {
+                    java.util.regex.Matcher m = ASCII_QUOTED.matcher(plain(t, true));
+                    if (m.find()) {
+                        problems.add(l.id() + " reading " + i + " trace: 地の文に ASCII の引用符 " + m.group());
+                    }
+                }
+            }
+            // 正解がいちばん長い選択肢になる問は、レッスンの 5 問のうち 2 問まで(長さで当てられないように)
+            long longest = l.quiz().stream().filter(q -> {
+                int a = plain(q.choicesHtml().get(q.answer()), false).replaceAll("\\s+", "").length();
+                return java.util.stream.IntStream.range(0, q.choicesHtml().size()).filter(j -> j != q.answer())
+                        .allMatch(j -> plain(q.choicesHtml().get(j), false).replaceAll("\\s+", "").length() < a);
+            }).count();
+            if (longest >= 3) {
+                problems.add(l.id() + ": 正解がいちばん長い選択肢の問が " + longest + " 問(5 問のうち 2 問まで)");
             }
             for (int i = 0; i < l.checks().size(); i++) {
                 var c = l.checks().get(i);
@@ -132,6 +147,8 @@ class CurriculumTest {
     }
 
     private static final java.util.regex.Pattern ASCII_QUOTED = java.util.regex.Pattern.compile("\"[^\"\\n]{1,60}\"");
+    private static final java.util.regex.Pattern BARE_CODE = java.util.regex.Pattern.compile(
+            "[A-Za-z_]\\w*\\([^()\\s]{0,20}\\)|\\+\\+|--(?=\\w)|\\+=|-=|==|!=|->|::|&&|\\|\\||\\b[A-Z][A-Za-z]*(?:Exception|Error)\\b");
 
     private static void proseProblems(String where, String question, List<String> choices, List<String> why, String explanation,
                                       List<String> problems) {
@@ -142,6 +159,15 @@ class CurriculumTest {
             java.util.regex.Matcher m = ASCII_QUOTED.matcher(plain(t, true));
             if (m.find()) {
                 problems.add(where + ": 地の文に ASCII の引用符 " + m.group() + "(出力はコードに、リテラルは引用符ごとコードに)");
+            }
+        }
+        // why と選択肢のコードの字句はコード書式に(地の文の書体だと「+ =」と割れ、例外名は語の途中で折れる)
+        List<String> codeChecked = new java.util.ArrayList<>(choices);
+        codeChecked.addAll(why);
+        for (String t : codeChecked) {
+            java.util.regex.Matcher m = BARE_CODE.matcher(plain(t, true));
+            if (m.find()) {
+                problems.add(where + ": コードの字句「" + m.group() + "」がコード書式の外にある");
             }
         }
         String ex = plain(explanation, true).replaceAll("\\s+", "");

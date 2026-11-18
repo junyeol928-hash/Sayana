@@ -116,7 +116,7 @@
             <span th:if="${status.bestQuiz != null}" th:text="'(これまでの最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal} + ')'"></span></p>
         <form class="quiz" th:attr="hx-post=@{/lessons/{id}/quiz(id=${lesson.id})}" hx-target="#quiz-result" hx-swap="innerHTML">
             <ol>
-                <li th:each="q, st : ${lesson.quiz}" class="quiz-q">
+                <li th:each="q, st : ${lesson.quiz}" class="quiz-q" th:id="|quiz-q${st.index}|">
                     <div class="md" th:utext="${q.questionHtml}"></div>
                     <label th:each="c, cs : ${q.choicesHtml}" class="choice">
                         <input type="radio" th:name="'q' + ${st.index}" th:value="${cs.index}">
