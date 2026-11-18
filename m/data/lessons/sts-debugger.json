@@ -61,7 +61,7 @@
     "questionHtml" : "<p>次の行で止まっています。<code>calcTax</code> の中身は信用できるので見なくてよく、<code>total</code> に代入された値を次の行で確かめたい。押すキーとして最も適切なのは?</p>\n<pre><code class=\"language-java\">int total = price + calcTax(price);   // ← ここで停止中\nSystem.out.println(total);\n</code></pre>\n",
     "choicesHtml" : [ "<code>F5</code>(Step Into)", "<code>F6</code>(Step Over)", "<code>F7</code>(Step Return)", "<code>F8</code>(Resume)" ],
     "answer" : 1,
-    "explanationHtml" : "<p><strong>F6(Step Over)</strong> はメソッド呼び出しの中に入らず、その行を丸ごと実行して次の行で止まります。止まった時点で Variables ビューに <code>total</code> が出ます。</p>\n",
+    "explanationHtml" : "<p><strong><code>F6</code>(Step Over)</strong> はメソッド呼び出しの中に入らず、その行を丸ごと実行して次の行で止まります。止まった時点で Variables ビューに <code>total</code> が出ます。</p>\n",
     "whyHtml" : [ "<code>F5</code> で次の行へ進むと読んだ答え。<code>F5</code> は <code>calcTax</code> の中に入ってしまう", "", "<code>F7</code> を「この行を終える」と読んだ答え。<code>F7</code> は今のメソッドを最後まで実行して呼び出し元へ戻る", "<code>F8</code> で1行進むと読んだ答え。<code>F8</code> は次のブレークポイントまで止まらずに進む" ]
   }, {
     "questionHtml" : "<p><code>sum += a[i];</code> の行に、条件 <code>i % 100 == 0</code> の条件付きブレークポイントを置いてデバッグ起動しました。何回止まる?</p>\n<pre><code class=\"language-java\">for (int i = 0; i &lt; 1000; i++) {\n    sum += a[i];\n}\n</code></pre>\n",
@@ -198,7 +198,7 @@
     "questionHtml" : "実際に例外が発生した場所(修正すべき最初の候補)はどこ?",
     "choicesHtml" : [ "Main.java の5行目", "Greeter.java の15行目", "1行目(Exception in thread)", "特定できない" ],
     "answer" : 1,
-    "explanationHtml" : "<p>スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 Greeter.java の15行目で name が null のまま toUpperCase() を呼んでいることが原因です。</p>\n",
+    "explanationHtml" : "<p>スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 <code>Greeter.java</code> の15行目で <code>name</code> が <code>null</code> のまま <code>toUpperCase()</code> を呼んでいることが原因です。</p>\n",
     "traceHtml" : [ "1〜2行目: 例外の種類は <code>NullPointerException</code>、原因は <code>name</code> が <code>null</code> であること", "3行目(一番上の at 行): Greeter.java の15行目で発生", "4行目: その Greeter.greet を呼び出したのは Main.java の5行目", "まず15行目を確認し、name がどこで null になったかをさらに追う" ],
     "whyHtml" : [ "呼び出し元の行を発生場所と読んだ答え。下の at 行ほど呼び出し元へさかのぼる", "", "例外名の行を発生場所と読んだ答え。1行目は種類と原因で、場所は at 行に出る", "スタックトレースからは場所が分からないと読んだ答え。一番上の at 行が発生場所" ]
   }, {
@@ -216,11 +216,11 @@
     "level" : 2,
     "code" : "public class Main {\n    public static void main(String[] args) {\n        int total = calcTotal(10, 0);\n        System.out.println(total);\n    }\n    static int calcTotal(int price, int qty) {\n        return price / qty;   // ここでブレークポイント\n    }\n}\n",
     "questionHtml" : "7行目にブレークポイントを置いて実行し、コールスタックを1段下に見たとき表示される情報は?",
-    "choicesHtml" : [ "calcTotal 自身の変数だけ", "main の変数", "何も表示されない", "コンパイルエラーの内容" ],
+    "choicesHtml" : [ "<code>calcTotal</code> 自身の変数だけ", "<code>main</code> の変数", "何も表示されない", "コンパイルエラーの内容" ],
     "answer" : 1,
-    "explanationHtml" : "<p>コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドの段で、calcTotal(10, 0) を呼んでいる 3 行目と、その時点の main の変数(args。total はまだ代入前)を確認できます。なお <code>qty = 0</code> のため、このままだと <code>ArithmeticException</code> が発生します。</p>\n",
+    "explanationHtml" : "<p>コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は <code>main</code> メソッドの段で、<code>calcTotal(10, 0)</code> を呼んでいる 3 行目と、その時点の <code>main</code> の変数(<code>args</code>。<code>total</code> はまだ代入前)を確認できます。なお <code>qty = 0</code> のため、このままだと <code>ArithmeticException</code> が発生します。</p>\n",
     "traceHtml" : [ "<code>main</code> が <code>calcTotal(10, 0)</code> を呼び出す", "コールスタックの一番上が <code>calcTotal(price=10, qty=0)</code>", "1段下が <code>main</code>(呼び出し元)", "7行目の <code>price / qty</code> は、<code>qty = 0</code> のため実行すると <code>ArithmeticException</code> が発生する" ],
-    "whyHtml" : [ "1段下も今のメソッドと読んだ答え。1段下は呼び出し元の main のフレーム", "", "1段下には何も無いと読んだ答え。calcTotal を呼んだ main のフレームが積まれている", "コールスタックをエラー一覧と取り違えた答え。並ぶのは実行中のメソッド呼び出しの段" ]
+    "whyHtml" : [ "1段下も今のメソッドと読んだ答え。1段下は呼び出し元の <code>main</code> のフレーム", "", "1段下には何も無いと読んだ答え。<code>calcTotal</code> を呼んだ <code>main</code> のフレームが積まれている", "コールスタックをエラー一覧と取り違えた答え。並ぶのは実行中のメソッド呼び出しの段" ]
   }, {
     "title" : "== と equals の取り違えをデバッグで見つける",
     "level" : 3,
@@ -228,7 +228,7 @@
     "questionHtml" : "result の値と、その原因は?",
     "choicesHtml" : [ "<code>true</code>。どちらも中身が <code>&quot;ADMIN&quot;</code> だから", "<code>false</code>。<code>==</code> は参照を比べるから", "コンパイルエラー", "実行時エラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>role(呼び出し側の <code>&quot;ADMIN&quot;</code>)と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。</p>\n",
+    "explanationHtml" : "<p><code>role</code>(呼び出し側の <code>&quot;ADMIN&quot;</code>)と <code>adminRole</code>(<code>new String</code> で作った別インスタンス)は中身が同じでも別のオブジェクトです。<code>==</code> は参照を比較するので <code>false</code> になります。<code>equals</code> を使えば意図通り <code>true</code> になります。</p>\n",
     "traceHtml" : [ "<code>isAdminUser(&quot;ADMIN&quot;)</code> が呼ばれ、role には <code>&quot;ADMIN&quot;</code> という文字列への参照が入る", "2行目: adminRole は <code>new String(&quot;ADMIN&quot;)</code> で明示的に別インスタンスとして作られる", "3行目: <code>role == adminRole</code> は「同じインスタンスか」を見るので <code>false</code>", "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる" ],
     "whyHtml" : [ "<code>==</code> を中身の比較と読んだ答え。<code>==</code> は参照を比べ、<code>new String</code> は別のインスタンス", "", "String 同士の <code>==</code> は書けないと読んだ答え。文法上は通り、参照の比較になる", "<code>==</code> の比較で例外が出ると読んだ答え。例外は出ず、別のインスタンスなので <code>false</code>" ]
   } ],

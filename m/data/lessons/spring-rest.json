@@ -84,19 +84,19 @@
     "questionHtml" : "<p>Spring Boot アプリで、次の record を <code>@RestController</code> から返しました。レスポンスの JSON は?</p>\n<pre><code class=\"language-java\">record TaskResponse(long id, LocalDate dueDate) {}\n// new TaskResponse(1, LocalDate.of(2026, 10, 31)) を返す\n</code></pre>\n",
     "choicesHtml" : [ "<code>{&quot;id&quot;:1,&quot;dueDate&quot;:&quot;2026-10-31&quot;}</code>", "<code>{&quot;id&quot;:1,&quot;dueDate&quot;:[2026,10,31]}</code>", "<code>{&quot;id&quot;:1,&quot;dueDate&quot;:1793404800000}</code>", "<code>InvalidDefinitionException</code>(<code>LocalDate</code> は変換できない)" ],
     "answer" : 0,
-    "explanationHtml" : "<p>Spring Boot は Jackson に <strong>JavaTimeModule</strong> を自動登録し、さらに <code>WRITE_DATES_AS_TIMESTAMPS</code> を無効にしているので、日付は <strong>ISO-8601 の文字列</strong> <code>&quot;2026-10-31&quot;</code> になります。</p>\n",
+    "explanationHtml" : "<p>Spring Boot は Jackson に <strong><code>JavaTimeModule</code></strong> を自動登録し、さらに <code>WRITE_DATES_AS_TIMESTAMPS</code> を無効にしているので、日付は <strong>ISO-8601 の文字列</strong> <code>&quot;2026-10-31&quot;</code> になります。</p>\n",
     "whyHtml" : [ "", "<code>JavaTimeModule</code> を足しただけの素の Jackson の出力と取り違えた答え", "日付を数値で書くと読んだ答え。それは <code>java.util.Date</code> を timestamps 設定で書いたときの形", "<code>LocalDate</code> を変換する部品が無いと読んだ答え。それは Boot を使わない素の Jackson の話" ]
   }, {
     "questionHtml" : "<p>「ID 3 のタスクを削除する」API の URL とメソッドとして、REST の現場ルールに最も合っているのは?</p>\n",
     "choicesHtml" : [ "<code>POST /api/deleteTask?id=3</code>", "<code>GET /api/tasks/3/delete</code>", "<code>DELETE /api/task/3</code>", "<code>DELETE /api/tasks/3</code>" ],
     "answer" : 3,
-    "explanationHtml" : "<p>操作は HTTP メソッド(DELETE)で表し、URL はリソースを <strong>複数形の名詞</strong> で表すので <code>DELETE /api/tasks/3</code> です。\n<code>deleteTask</code> のように URL に動詞を入れるのは NG。<code>GET</code> で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(GET は「状態を変えない」約束のメソッド)。\n<code>DELETE /api/task/3</code> は動き自体は正しいですが、単数形なので <code>/api/tasks</code>(一覧・作成)と URL の形が揃いません。</p>\n",
+    "explanationHtml" : "<p>操作は HTTP メソッド(DELETE)で表し、URL はリソースを <strong>複数形の名詞</strong> で表すので <code>DELETE /api/tasks/3</code> です。\n<code>deleteTask</code> のように URL に動詞を入れるのは NG。<code>GET</code> で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(<code>GET</code> は「状態を変えない」約束のメソッド)。\n<code>DELETE /api/task/3</code> は動き自体は正しいですが、単数形なので <code>/api/tasks</code>(一覧・作成)と URL の形が揃いません。</p>\n",
     "whyHtml" : [ "操作を URL の動詞で表すと読んだ答え。操作は DELETE メソッドで表し、URL は名詞にする", "削除を <code>GET</code> で受けてよいと読んだ答え。<code>GET</code> は状態を変えない約束で、リンクを踏まれただけで消える", "単数形でもよいと読んだ答え。動きは正しいが、一覧・作成の <code>/api/tasks</code> と形が揃わない", "" ]
   }, {
     "questionHtml" : "<p>完了済み(done = true)のタスク 5 に <code>PATCH /api/tasks/5</code> で <code>{&quot;title&quot;:&quot;新しい名前&quot;}</code> を送りました。次の実装だと、どうなる?</p>\n<pre><code class=\"language-java\">record UpdateTaskRequest(String title, boolean done) {}\n\nif (req.title() != null) { entity.setTitle(req.title()); }\nentity.setDone(req.done());\n</code></pre>\n",
     "choicesHtml" : [ "<code>title</code> だけが変わる", "<code>title</code> が変わり、<code>done</code> が <code>false</code> に戻ってしまう", "<code>done</code> が送られていないので 400 Bad Request", "JSON の変換で例外になる" ],
     "answer" : 1,
-    "explanationHtml" : "<p>JSON に無い項目は、record の引数に <strong>その型のデフォルト値</strong> が入ります。<code>boolean</code> なら <code>false</code> なので、<code>req.done()</code> は false になり、完了済みのタスクが未完了に戻ります。\nJackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は <code>Boolean</code> のような <strong>null になれる型</strong> にして、<code>null</code> なら変更しない、と書き分けます。</p>\n",
+    "explanationHtml" : "<p>JSON に無い項目は、record の引数に <strong>その型のデフォルト値</strong> が入ります。<code>boolean</code> なら <code>false</code> なので、<code>req.done()</code> は <code>false</code> になり、完了済みのタスクが未完了に戻ります。\nJackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は <code>Boolean</code> のような <strong><code>null</code> になれる型</strong> にして、<code>null</code> なら変更しない、と書き分けます。</p>\n",
     "whyHtml" : [ "送らない項目は変わらないと読んだ答え。<code>boolean</code> の <code>done</code> は <code>false</code> になり、そのまま <code>setDone</code> される", "", "項目が足りないと 400 になると読んだ答え。Jackson は足りない項目を既定値で埋め、エラーにしない", "項目の不足で変換が失敗すると読んだ答え。足りない <code>done</code> には <code>false</code> が入り、例外にならない" ]
   } ],
   "checks" : [ {

@@ -62,7 +62,7 @@
     "questionHtml" : "<p>新しいクラスに次の1行を書いたところ、<code>List cannot be resolved to a type</code>(List を型に解決できません)と赤線が出ました。最も手早い直し方は?</p>\n<pre><code class=\"language-java\">List&lt;String&gt; names = new ArrayList&lt;&gt;();\n</code></pre>\n",
     "choicesHtml" : [ "Ctrl+Shift+F を押す", "Ctrl+Shift+R を押す", "Ctrl+Shift+O を押す", "Ctrl+D を押す" ],
     "answer" : 2,
-    "explanationHtml" : "<p><strong>Ctrl+Shift+O(Organize Imports)</strong> は、足りない import を追加し、使っていない import を削除します。<code>List</code> と <code>ArrayList</code> の import が一度に入ります。<code>List</code> のように同名のクラスが複数ある(<code>java.util.List</code> と <code>java.awt.List</code>)場合は、どちらにするか選ぶダイアログが出るので <code>java.util.List</code> を選びます。\n赤線の上で Ctrl+1 → <strong>Import 'List' (java.util)</strong> でも直せます。</p>\n",
+    "explanationHtml" : "<p><strong>Ctrl+Shift+O(Organize Imports)</strong> は、足りない import を追加し、使っていない import を削除します。<code>List</code> と <code>ArrayList</code> の import が一度に入ります。<code>List</code> のように同名のクラスが複数ある(<code>java.util.List</code> と <code>java.awt.List</code>)場合は、どちらにするか選ぶダイアログが出るので <code>java.util.List</code> を選びます。\n赤線の上で Ctrl+1 を押し、<code>java.util</code> の <code>List</code> を import する候補を選んでも直せます。</p>\n",
     "whyHtml" : [ "整形のキーと取り違えた答え。Ctrl+Shift+F はフォーマットで、import は足さない", "似たキーと取り違えた答え。Ctrl+Shift+R はファイルを開くキーで、import は足さない", "", "Ctrl+D で直ると読んだ答え。Ctrl+D は行削除で、import は足さない" ]
   }, {
     "questionHtml" : "<p><code>counter.next()</code> は呼ぶたびに 1, 2, 3, … を返すメソッドです。次のコードの <code>n</code> を <strong>Alt+Shift+I</strong>(インライン化)したところ、<code>System.out.println(counter.next() + counter.next());</code> になりました。出力はどう変わる?</p>\n<pre><code class=\"language-java\">int n = counter.next();\nSystem.out.println(n + n);\n</code></pre>\n",

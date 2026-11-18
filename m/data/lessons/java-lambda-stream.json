@@ -112,7 +112,7 @@
     "questionHtml" : "<p>次のコードのうち、<strong>コンパイルエラーになる行</strong> はどれ?</p>\n<pre><code class=\"language-java\">int count = 0;                              // (A)\nList&lt;String&gt; list = List.of(&quot;x&quot;, &quot;y&quot;);\nlist.forEach(s -&gt; System.out.println(s));   // (B)\nlist.forEach(s -&gt; count++);                 // (C)\nlong n = list.stream().count();             // (D)\n</code></pre>\n",
     "choicesHtml" : [ "(A)", "(B)", "(C)", "(D)" ],
     "answer" : 2,
-    "explanationHtml" : "<p>ラムダ式から参照できるローカル変数は、<code>final</code> か <strong>実質 final</strong>(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で <code>count</code> を書き換えようとしているので <code>local variables referenced from a lambda expression must be final or effectively final</code> になります。\n数えたいなら (D) のように <code>count()</code> を使うのが正解です。</p>\n",
+    "explanationHtml" : "<p>ラムダ式から参照できるローカル変数は、<code>final</code> か <strong>実質 <code>final</code></strong>(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で <code>count</code> を書き換えようとしているので <code>local variables referenced from a lambda expression must be final or effectively final</code> になります。\n数えたいなら (D) のように <code>count()</code> を使うのが正解です。</p>\n",
     "whyHtml" : [ "宣言の行がエラーと読んだ答え。宣言は普通で、ラムダの中で <code>count</code> を書き換える行がエラー", "ラムダの中で println を呼べないと読んだ答え。外の変数に触れていないので問題ない", "", "<code>count</code> という変数名とぶつかると読んだ答え。<code>count()</code> は <code>Stream</code> のメソッドで、変数とは別" ]
   }, {
     "questionHtml" : "<p>次のコードを実行するとどうなる?</p>\n<pre><code class=\"language-java\">Stream&lt;String&gt; s = Stream.of(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;);\nSystem.out.println(s.count());\nSystem.out.println(s.toList());\n</code></pre>\n",
@@ -194,7 +194,7 @@
     "questionHtml" : "<code>record Emp(...)</code> は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。値は <code>e.name()</code> のように取り出します。出力は?",
     "choicesHtml" : [ "ken aki yui", "aki yui ken", "yui aki ken", "ken yui aki" ],
     "answer" : 1,
-    "explanationHtml" : "<p>comparing(Emp::dept) で部署名の昇順(dev が ops より前)。同じ dev の中は thenComparing(Emp::age, reverseOrder()) で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(dept()、age())もメソッド参照で使えます。</p>\n",
+    "explanationHtml" : "<p><code>comparing(Emp::dept)</code> で部署名の昇順(dev が ops より前)。同じ dev の中は <code>thenComparing(Emp::age, reverseOrder())</code> で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(<code>dept()</code>、<code>age()</code>)もメソッド参照で使えます。</p>\n",
     "traceHtml" : [ "6行目: 第1基準 <code>dept</code> 昇順 → dev, dev, ops", "6行目: 第2基準 <code>age</code> 降順(dev 内)→ aki(30 歳), yui(25 歳)", "7行目: aki yui ken" ],
     "whyHtml" : [ "並べ替えが効かないと読んだ答え。実際は部署名で並ぶ", "", "年齢を昇順と読んだ答え。<code>reverseOrder()</code> が付いている", "並べる向きを両方とも逆に読んだ答え。部署は昇順で dev が先、年齢は降順で aki が先" ]
   }, {
@@ -234,9 +234,9 @@
     "questionHtml" : "<code>record Emp(...)</code> は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。出力は?",
     "choicesHtml" : [ "<code>3 0</code>", "<code>3 null</code>", "<code>[A, C, D] null</code>", "<code>NullPointerException</code>" ],
     "answer" : 1,
-    "explanationHtml" : "<p>groupingBy(dept, counting()) は部署ごとの件数 <code>Map&lt;String, Long&gt;</code> を作ります。dev は 3 件。<code>&quot;hr&quot;</code> はキーが存在しないので Map.get は null を返し、文字列連結なので <code>null</code> と表示されます。counting() を付けなければ値は社員の <code>List&lt;Emp&gt;</code> になり、<code>m.get(&quot;dev&quot;)</code> は <code>[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]</code> のような一覧になります(そのときは変数の型も <code>Map&lt;String, List&lt;Emp&gt;&gt;</code> にしないとコンパイルできません)。</p>\n",
-    "traceHtml" : [ "6行目: <code>dept</code> ごとにまとめて件数を数える → <code>{dev=3, ops=1}</code>", "7行目: <code>m.get(&quot;dev&quot;)</code> は 3、<code>m.get(&quot;hr&quot;)</code> はキーがないので null", "文字列連結なので <code>3 null</code>" ],
-    "whyHtml" : [ "無いキーの件数は 0 と読んだ答え。groupingBy は 0 件の部署を作らない", "", "<code>counting()</code> を見落とした答え。値は社員の一覧ではなく件数(<code>Long</code>)", "<code>null</code> を連結すると例外と読んだ答え。実際は文字として出る" ]
+    "explanationHtml" : "<p><code>groupingBy(Emp::dept, counting())</code> は部署ごとの件数 <code>Map&lt;String, Long&gt;</code> を作ります。dev は 3 件。<code>&quot;hr&quot;</code> はキーが存在しないので <code>Map.get</code> は <code>null</code> を返し、文字列連結なので <code>null</code> と表示されます。<code>counting()</code> を付けなければ値は社員の <code>List&lt;Emp&gt;</code> になり、<code>m.get(&quot;dev&quot;)</code> は <code>[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]</code> のような一覧になります(そのときは変数の型も <code>Map&lt;String, List&lt;Emp&gt;&gt;</code> にしないとコンパイルできません)。</p>\n",
+    "traceHtml" : [ "6行目: <code>dept</code> ごとにまとめて件数を数える → <code>{dev=3, ops=1}</code>", "7行目: <code>m.get(&quot;dev&quot;)</code> は 3、<code>m.get(&quot;hr&quot;)</code> はキーがないので <code>null</code>", "文字列連結なので <code>3 null</code>" ],
+    "whyHtml" : [ "無いキーの件数は 0 と読んだ答え。<code>groupingBy</code> は 0 件の部署を作らない", "", "<code>counting()</code> を見落とした答え。値は社員の一覧ではなく件数(<code>Long</code>)", "<code>null</code> を連結すると例外と読んだ答え。実際は文字として出る" ]
   }, {
     "title" : "toMap の重複キー",
     "level" : 3,
@@ -244,7 +244,7 @@
     "questionHtml" : "<code>record Item(...)</code> は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。実行すると?",
     "choicesHtml" : [ "<code>100</code>", "<code>300</code>", "<code>400</code>", "<code>IllegalStateException</code>" ],
     "answer" : 3,
-    "explanationHtml" : "<p>toMap は既定でキーの重複を許しません。3つ目の要素でキー <code>&quot;X&quot;</code> が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -&gt; b)、400(合計)にしたければ (a, b) -&gt; a + b を第3引数に渡します。</p>\n",
+    "explanationHtml" : "<p><code>toMap</code> は既定でキーの重複を許しません。3つ目の要素でキー <code>&quot;X&quot;</code> が2回目になった時点で <code>IllegalStateException: Duplicate key X</code> が発生します。300 にしたければ <code>toMap(Item::code, Item::price, (a, b) -&gt; b)</code>、400(合計)にしたければ <code>(a, b) -&gt; a + b</code> を第3引数に渡します。</p>\n",
     "traceHtml" : [ "5行目: X→100 を登録、Y→200 を登録", "3つ目の <code>Item(&quot;X&quot;, 300)</code>: キー X が既にある → 重複キーの扱いが未指定 → 例外", "6行目には到達しない" ],
     "whyHtml" : [ "最初の値が残ると読んだ答え。実際は 2 回目の X で例外になる", "後の値で上書きされると読んだ答え。上書きには第 3 引数が要り、無いと例外になる", "同じキーの値が足されると読んだ答え。合計には第 3 引数が要り、無いと例外になる", "" ]
   }, {
@@ -254,9 +254,9 @@
     "questionHtml" : "最後の行の出力は?",
     "choicesHtml" : [ "<code>true</code>", "<code>false</code>", "<code>NullPointerException</code>", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>空のリストを流すので要素は1つもなく、findFirst() は空の Optional を返します。isPresent() は false。Stream は要素がなくても例外にはならず、null も返しません。ここが「null を返さず Optional で返す」設計の利点です。</p>\n",
+    "explanationHtml" : "<p>空のリストを流すので要素は1つもなく、<code>findFirst()</code> は空の Optional を返します。<code>isPresent()</code> は <code>false</code>。Stream は要素がなくても例外にはならず、<code>null</code> も返しません。ここが「<code>null</code> を返さず Optional で返す」設計の利点です。</p>\n",
     "traceHtml" : [ "9行目: 空のリストで呼ぶ", "2〜5行目: 要素が0個なので filter / sorted / map は何も処理しない", "6行目: 最初の要素がない → <code>Optional.empty()</code>", "10行目: <code>isPresent()</code> → <code>false</code>" ],
-    "whyHtml" : [ "Optional には必ず中身があると読んだ答え。見つからなければ空になる", "", "空のリストで null が返ると読んだ答え。実際は空の Optional になる", "空の <code>List.of()</code> は渡せないと読んだ答え。型は推論され、コンパイルは通る" ]
+    "whyHtml" : [ "Optional には必ず中身があると読んだ答え。見つからなければ空になる", "", "空のリストで <code>null</code> が返ると読んだ答え。実際は空の Optional になる", "空の <code>List.of()</code> は渡せないと読んだ答え。型は推論され、コンパイルは通る" ]
   } ],
   "atWork" : [ {
     "title" : "ラムダ式と関数型インターフェース",

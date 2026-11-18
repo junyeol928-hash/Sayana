@@ -181,7 +181,7 @@
     "questionHtml" : "(予習:<code>@ConfigurationProperties(prefix = &quot;…&quot;)</code> は、設定ファイルの prefix 以下のキーを、名前が対応するフィールドにまとめて入れる注釈です。<code>@Getter @Setter</code> は Lombok が getter / setter を作る印。詳しくは第5章「設定ファイルとプロファイル」)起動後の maxCount / idleSeconds / retryCount は?",
     "choicesHtml" : [ "100 / 300 / 3", "100 / 60 / 3", "0 / 300 / 3", "起動時に例外(<code>retry-count</code> がない)" ],
     "answer" : 0,
-    "explanationHtml" : "<p>max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。</p>\n",
+    "explanationHtml" : "<p><code>max-count</code> は <code>maxCount</code> に、<code>idle-seconds</code> は <code>idleSeconds</code> に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。<code>retryCount</code> は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。</p>\n",
     "traceHtml" : [ "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む", "11行目: <code>max-count</code> → <code>maxCount = 100</code>", "12行目: <code>idle-seconds</code> → <code>idleSeconds = 300</code>(初期値 60 は上書き)", "13行目: <code>retry-count</code> は yml にない → 初期値 3 のまま" ],
     "whyHtml" : [ "", "フィールドの初期値が優先されると読んだ答え。yml の 300 で上書きされる", "<code>max-count</code> と <code>maxCount</code> が結びつかないと読んだ答え。ハイフン区切りのキーはキャメルケースのフィールドに対応する", "yml にキーが無いと例外になると読んだ答え。無いキーのフィールドは初期値の 3 のまま" ]
   }, {
@@ -191,7 +191,7 @@
     "questionHtml" : "(予習:<code>@Profile(&quot;prod&quot;)</code> を付けた Bean は、そのプロファイルが有効なときだけ作られます。プロファイルは起動引数 <code>--spring.profiles.active=…</code> で選びます。詳しくは第5章「設定ファイルとプロファイル」)<code>--spring.profiles.active=stg</code> で起動すると、sender には何が入る?",
     "choicesHtml" : [ "<code>SecureCommandSender</code>", "<code>PlainCommandSender</code>", "両方の候補があり起動時に例外", "どちらも作られず起動時に例外" ],
     "answer" : 1,
-    "explanationHtml" : "<p>stg では <code>@Profile({&quot;dev&quot;,&quot;stg&quot;})</code> の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に UnsatisfiedDependencyException になります(原因は NoSuchBeanDefinitionException。Bean が見つからない)。</p>\n",
+    "explanationHtml" : "<p>stg では <code>@Profile({&quot;dev&quot;,&quot;stg&quot;})</code> の <code>plainSender</code> だけが有効になり、<code>secureSender</code> は作られません。よって候補は1つで <code>PlainCommandSender</code>(仕事では <code>PlainApduSender</code>)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に <code>UnsatisfiedDependencyException</code> になります(原因は <code>NoSuchBeanDefinitionException</code>。Bean が見つからない)。</p>\n",
     "traceHtml" : [ "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない", "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる", "12行目: CommandSender 型の候補は PlainCommandSender の1つだけ → それが注入される" ],
     "whyHtml" : [ "<code>@Profile</code> を見ずに、先に書いた Bean が入ると読んだ答え", "", "<code>@Profile</code> を付けても Bean は両方作られると読んだ答え", "プロファイルを指定しないときの動きと取り違えた答え。stg は <code>plainSender</code> の <code>@Profile</code> に含まれる" ]
   }, {
@@ -201,7 +201,7 @@
     "questionHtml" : "(予習:<code>@Value</code> は設定ファイルの値をフィールドに入れる注釈、<code>@PostConstruct</code> は「Bean を作り終えた後に1回だけ呼ばれるメソッド」の印です。@Value は第5章「設定ファイルとプロファイル」で詳しく扱います)yml に <code>gateway.crypto.host: crypto1</code> があるとき、起動時の出力は?",
     "choicesHtml" : [ "<code>crypto1:9000</code>", "<code>null:9000</code>", "起動時に例外", "<code>:9000</code>" ],
     "answer" : 1,
-    "explanationHtml" : "<p>フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は <code>null:9000</code> になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。</p>\n",
+    "explanationHtml" : "<p>フィールドへの <code>@Value</code> の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では <code>host</code> はまだ <code>null</code> なので、<code>endpoint</code> は <code>null:9000</code> になります。<code>@PostConstruct</code> の時点では <code>host</code> は <code>crypto1</code>(仕事では <code>hsm1</code>)になっていますが、<code>endpoint</code> はもう作られた後です。この問題を避けるため、設定値を使う初期化は <code>@PostConstruct</code> に書くか、コンストラクタ注入で受け取ります。</p>\n",
     "traceHtml" : [ "7〜9行目: Spring がまず <code>new</code> する。この時点で <code>host</code> は <code>null</code> → <code>endpoint</code> は <code>null:9000</code>", "3〜4行目: <code>new</code> の後に <code>@Value</code> が処理され、<code>host</code> が <code>crypto1</code> になる", "11〜13行目: 注入完了後に <code>init()</code> が呼ばれ、<code>endpoint</code>(<code>null:9000</code>)を出力" ],
     "whyHtml" : [ "<code>@Value</code> がコンストラクタより先に入ると読んだ答え。フィールド注入は <code>new</code> の後なので、そのとき <code>host</code> は <code>null</code>", "", "<code>null</code> と連結すると例外になると読んだ答え。文字列の連結では <code>null</code> も <code>&quot;null&quot;</code> として連結される", "未注入の <code>host</code> を空文字と読んだ答え。<code>String</code> フィールドの初期値は <code>null</code> で、連結すると <code>null:9000</code>" ]
   } ],

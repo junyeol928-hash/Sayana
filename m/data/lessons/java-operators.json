@@ -118,7 +118,7 @@
     "questionHtml" : "<p>次のコードを実行したときの動作として正しいものは?</p>\n<pre><code class=\"language-java\">int count = 0;\nint total = 100;\nSystem.out.println(count == 0 || total / count &gt; 10);\nSystem.out.println(count == 0 | total / count &gt; 10);\n</code></pre>\n",
     "choicesHtml" : [ "<code>true</code> が2行出力される", "1行目は <code>true</code>、2行目は <code>false</code> が出力される", "1行目は <code>true</code>、2行目で <code>ArithmeticException</code> が発生する", "1行目で <code>ArithmeticException</code> が発生し、2行目は実行されない" ],
     "answer" : 2,
-    "explanationHtml" : "<p><code>||</code> は <strong>短絡評価</strong> するので、左辺 <code>count == 0</code> が true の時点で右辺 <code>total / count</code> は評価されず、1行目は true。\n一方 <code>|</code> は短絡しないので左右を両方評価し、<code>total / count</code>(100 ÷ 0)で <code>ArithmeticException: / by zero</code> が発生する。\n条件をつなぐときは <code>&amp;&amp;</code> / <code>||</code> を使うのが原則。</p>\n",
+    "explanationHtml" : "<p><code>||</code> は <strong>短絡評価</strong> するので、左辺 <code>count == 0</code> が <code>true</code> の時点で右辺 <code>total / count</code> は評価されず、1行目は <code>true</code>。\n一方 <code>|</code> は短絡しないので左右を両方評価し、<code>total / count</code>(100 ÷ 0)で <code>ArithmeticException: / by zero</code> が発生する。\n条件をつなぐときは <code>&amp;&amp;</code> / <code>||</code> を使うのが原則。</p>\n",
     "whyHtml" : [ "<code>|</code> も <code>||</code> と同じく短絡すると読んだ答え。<code>|</code> は右辺も評価し、<code>100 / 0</code> で例外になる", "<code>|</code> の右辺の 0 除算を見落とした答え。<code>|</code> は右辺も評価して <code>ArithmeticException</code> になる", "", "<code>||</code> も右辺を評価すると読んだ答え。左辺が <code>true</code> なので右辺の割り算は実行されない" ]
   } ],
   "checks" : [ {
@@ -190,7 +190,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "<code>false true</code>", "<code>false false</code>", "<code>true true</code>", "<code>NullPointerException</code>" ],
     "answer" : 0,
-    "explanationHtml" : "<p>2行目は左の <code>code != null</code> が false なので右は実行されず <code>a = false</code>。3行目は左の <code>code == null</code> が true なので右は実行されず <code>b = true</code>。どちらも code のメソッドは呼ばれないため例外は起きません。</p>\n",
+    "explanationHtml" : "<p>2行目は左の <code>code != null</code> が false なので右は実行されず <code>a = false</code>。3行目は左の <code>code == null</code> が true なので右は実行されず <code>b = true</code>。どちらも <code>code</code> のメソッドは呼ばれないため例外は起きません。</p>\n",
     "traceHtml" : [ "1行目: code は null", "2行目: <code>code != null</code> → false → <code>&amp;&amp;</code> の右はスキップ → <code>a = false</code>", "3行目: <code>code == null</code> → true → <code>||</code> の右はスキップ → <code>b = true</code>", "4行目: <code>false true</code> と表示" ],
     "whyHtml" : [ "", "<code>b</code> の左辺 <code>code == null</code> を false と読んだ答え。<code>code</code> は null なので左辺が true で <code>b</code> は true", "<code>&amp;&amp;</code> の左辺の <code>!=</code> を読み落とした答え。<code>code != null</code> は false なので <code>a</code> は false", "null に <code>startsWith()</code> を呼ぶと読んだ答え。<code>&amp;&amp;</code> と <code>||</code> は左で決まれば右を実行しない" ]
   }, {

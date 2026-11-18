@@ -153,7 +153,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "Hello / こんにちは", "こんにちは / Hello", "Hello / Hello", "コンパイルエラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>変数 g の型は Greeter のままですが、指している実体が EnglishGreeter → JapaneseGreeter と変わるので、動く greet() も変わります。同じ g.greet() という呼び出しで違う結果になるのがポリモーフィズムです。</p>\n",
+    "explanationHtml" : "<p>変数 g の型は Greeter のままですが、指している実体が EnglishGreeter → JapaneseGreeter と変わるので、動く <code>greet()</code> も変わります。同じ <code>g.greet()</code> という呼び出しで違う結果になるのがポリモーフィズムです。</p>\n",
     "traceHtml" : [ "11行目: g は EnglishGreeter の実体を指す", "12行目: <code>g.greet()</code> → 実体 EnglishGreeter の <code>greet</code> → <code>&quot;Hello&quot;</code>", "13行目: g が JapaneseGreeter の実体を指し直す(変数の型は Greeter のまま)", "14行目: <code>g.greet()</code> → 実体 JapaneseGreeter の <code>greet</code> → <code>&quot;こんにちは&quot;</code>" ],
     "whyHtml" : [ "", "代入の順を逆に読んだ答え", "g は最初の実体のまま変わらないと読んだ答え", "Greeter 型の変数に、別のクラスは入れ直せないと読んだ答え" ]
   }, {
@@ -173,7 +173,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "H|a,b,c H|x:1", "H|a,b,c {|x:1", "{|a,b,c {|x:1", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>export() は親に1つだけあり、その中で header() と body() を呼びます。CsvExporter は body() だけ上書きしているので header は親の <code>&quot;H&quot;</code>。JsonExporter は header() も上書きしているので <code>&quot;{&quot;</code>。どちらも「流れは親、中身は実体」で決まります。</p>\n",
+    "explanationHtml" : "<p><code>export()</code> は親に1つだけあり、その中で <code>header()</code> と <code>body()</code> を呼びます。CsvExporter は <code>body()</code> だけ上書きしているので <code>header()</code> は親の <code>&quot;H&quot;</code>。JsonExporter は <code>header()</code> も上書きしているので <code>&quot;{&quot;</code>。どちらも「流れは親、中身は実体」で決まります。</p>\n",
     "traceHtml" : [ "21行目: <code>e1.export()</code> → 親の <code>export</code>(2行目)→ <code>header()</code> は上書きなし → <code>&quot;H&quot;</code>、<code>body()</code> は Csv の版 → <code>&quot;a,b,c&quot;</code> → <code>&quot;H|a,b,c&quot;</code>", "21行目: <code>e2.export()</code> → 親の <code>export</code> → <code>header()</code> は Json の版 → <code>&quot;{&quot;</code>、<code>body()</code> は Json の版 → <code>&quot;x:1&quot;</code> → <code>&quot;{|x:1&quot;</code>" ],
     "whyHtml" : [ "<code>e2</code> 側の <code>header()</code> の上書きを見落とした答え", "", "片方の上書きがもう片方にも効くと読んだ答え", "abstract でない <code>header()</code> を上書きするとエラーと読んだ答え。普通のメソッドも上書きできる" ]
   }, {
@@ -183,7 +183,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "sub sub", "base base", "base sub", "sub base" ],
     "answer" : 2,
-    "explanationHtml" : "<p>メソッドは実体の型で決まる(動的ディスパッチ)ので b.kind() は Sub の版で <code>&quot;sub&quot;</code>。しかし<strong>フィールドはオーバーライドされず、変数の型で決まります</strong>。b の型は Base なので b.kind は Base のフィールド <code>&quot;base&quot;</code> です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。</p>\n",
+    "explanationHtml" : "<p>メソッドは実体の型で決まる(動的ディスパッチ)ので <code>b.kind()</code> は Sub の版で <code>&quot;sub&quot;</code>。しかし<strong>フィールドはオーバーライドされず、変数の型で決まります</strong>。b の型は Base なので <code>b.kind</code> は Base のフィールド <code>&quot;base&quot;</code> です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。</p>\n",
     "traceHtml" : [ "11行目: 変数の型 Base、実体 Sub(アップキャスト)", "12行目: <code>b.kind</code> → フィールドは変数の型 Base で解決 → <code>&quot;base&quot;</code>", "12行目: <code>b.kind()</code> → メソッドは実体 Sub で解決 → <code>&quot;sub&quot;</code>", "結果: <code>base sub</code> と表示" ],
     "whyHtml" : [ "フィールドも実体の型で選ばれると読んだ答え", "メソッドも変数の型で選ばれると読んだ答え", "", "フィールドとメソッドの決まり方を逆に読んだ答え" ]
   }, {
@@ -193,7 +193,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "S sub", "B sub", "B base", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。x.tag() は変数の型 Base の tag() が選ばれて <code>&quot;B&quot;</code>。一方、インスタンスメソッド name() は実体 Sub の版で <code>&quot;sub&quot;</code> です。static メソッドを変数経由で呼ぶのは紛らわしいので、Base.tag() のようにクラス名で呼ぶのが作法です。</p>\n",
+    "explanationHtml" : "<p>static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。<code>x.tag()</code> は変数の型 Base の <code>tag()</code> が選ばれて <code>&quot;B&quot;</code>。一方、インスタンスメソッド <code>name()</code> は実体 Sub の版で <code>&quot;sub&quot;</code> です。static メソッドを変数経由で呼ぶのは紛らわしいので、<code>Base.tag()</code> のようにクラス名で呼ぶのが作法です。</p>\n",
     "traceHtml" : [ "11行目: 変数の型 Base、実体 Sub", "12行目: <code>x.tag()</code> → static は変数の型(Base)で決まる → <code>&quot;B&quot;</code>", "12行目: <code>x.name()</code> → インスタンスメソッドは実体(Sub)で決まる → <code>&quot;sub&quot;</code>", "結果: <code>B sub</code> と表示" ],
     "whyHtml" : [ "static メソッドも実体の型で選ばれると読んだ答え", "", "<code>name()</code> も変数の型で選ばれると読んだ答え", "変数経由の static 呼び出しを文法違反と読んだ答え" ]
   }, {
@@ -203,7 +203,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "<code>circle 3.0</code>", "<code>square 2.0</code>", "<code>square 4.0</code>", "<code>ClassCastException</code>" ],
     "answer" : 1,
-    "explanationHtml" : "<p>s の実体は Square なので、最初の instanceof Circle は false、次の instanceof Square が true になり、sq という Square 型の変数が使えます。sq.side はフィールド side(2.0)です。area() ではなく side を表示している点に注意してください。</p>\n",
+    "explanationHtml" : "<p>s の実体は Square なので、最初の <code>s instanceof Circle</code> は false、次の <code>s instanceof Square</code> が true になり、<code>sq</code> という Square 型の変数が使えます。<code>sq.side</code> はフィールド <code>side</code>(2.0)です。<code>area()</code> ではなく <code>side</code> を表示している点に注意してください。</p>\n",
     "traceHtml" : [ "10行目: 変数の型 Shape、実体 Square", "11行目: <code>s instanceof Circle</code> → 実体は Square → false", "13行目: <code>s instanceof Square</code> → true → <code>sq</code>(Square 型)が使える", "14行目: <code>sq.side</code> は 2(double なので 2.0)→ <code>square 2.0</code> と表示" ],
     "whyHtml" : [ "変数の型が Shape なら、Circle の判定にも当てはまると読んだ答え", "", "<code>area()</code> の値を表示すると読んだ答え", "<code>instanceof</code> でキャストに失敗すると読んだ答え。合わない型は false になるだけで例外は出ない" ]
   } ],

@@ -164,9 +164,9 @@
     "questionHtml" : "4行の出力は?",
     "choicesHtml" : [ "3 / null / -1 / 3", "8 / null / -1 / 2", "8 / 0 / -1 / 2", "8 / null / null / 3" ],
     "answer" : 1,
-    "explanationHtml" : "<p><code>&quot;pen&quot;</code> は 3 → 8 に上書き。<code>&quot;ink&quot;</code> は無いので get は null、getOrDefault は -1。キーは pen と cup の2つなので size は 2。</p>\n",
+    "explanationHtml" : "<p><code>&quot;pen&quot;</code> は 3 → 8 に上書き。<code>&quot;ink&quot;</code> は無いので <code>get</code> は null、<code>getOrDefault</code> は -1。キーは <code>&quot;pen&quot;</code> と <code>&quot;cup&quot;</code> の2つなので <code>size()</code> は 2。</p>\n",
     "traceHtml" : [ "2〜3行目: <code>pen = 3</code> のあと同じキーで <code>put</code> → <code>pen = 8</code> に上書き", "4行目: <code>cup = 0</code> を登録。ペアは 2 組", "5行目: <code>get(&quot;pen&quot;)</code> → 8", "6行目: <code>get(&quot;ink&quot;)</code> → 無いので null", "7行目: <code>getOrDefault(&quot;ink&quot;, -1)</code> → -1", "8行目: <code>size()</code> → 2" ],
-    "whyHtml" : [ "同じキーの put を別のエントリと読んだ答え。実際は 8 に上書きされる", "", "無いキーの get は 0 を返すと読んだ答え。get に既定値は無い", "<code>getOrDefault</code> も null を返し、上書きも件数に入ると読んだ答え" ]
+    "whyHtml" : [ "同じキーの <code>put</code> を別のエントリと読んだ答え。実際は 8 に上書きされる", "", "無いキーの <code>get</code> は 0 を返すと読んだ答え。<code>get</code> に既定値は無い", "<code>getOrDefault</code> も null を返し、上書きも件数に入ると読んだ答え" ]
   }, {
     "title" : "Set に入れると何個になる?",
     "level" : 1,
@@ -184,8 +184,8 @@
     "questionHtml" : "実行すると?",
     "choicesHtml" : [ "<code>1</code> と <code>2</code> が表示される", "<code>1</code> が表示された後、<code>UnsupportedOperationException</code>", "コンパイルエラー(<code>add</code> できない型)", "<code>2</code> と <code>2</code> が表示される" ],
     "answer" : 1,
-    "explanationHtml" : "<p>defaultRoles() が返すのは List.of で作った不変 List です。型は List なので add はコンパイルできますが、実行すると UnsupportedOperationException。7行目の 1 は表示された後に落ちます。戻り値の型だけでは不変かどうか分からない例です。</p>\n",
-    "traceHtml" : [ "6行目: <code>List.of(&quot;USER&quot;)</code> を受け取る。型は List だが中身は不変", "7行目: <code>size()</code> は読み取りなので OK → 1", "8行目: <code>add</code> は変更操作 → <code>UnsupportedOperationException</code> で停止", "9行目: 実行されない" ],
+    "explanationHtml" : "<p><code>defaultRoles()</code> が返すのは <code>List.of</code> で作った不変 <code>List</code> です。型は <code>List</code> なので <code>add</code> はコンパイルできますが、実行すると <code>UnsupportedOperationException</code>。7行目の 1 は表示された後に落ちます。戻り値の型だけでは不変かどうか分からない例です。</p>\n",
+    "traceHtml" : [ "6行目: <code>List.of(&quot;USER&quot;)</code> を受け取る。型は <code>List</code> だが中身は不変", "7行目: <code>size()</code> は読み取りなので OK → 1", "8行目: <code>add</code> は変更操作 → <code>UnsupportedOperationException</code> で停止", "9行目: 実行されない" ],
     "whyHtml" : [ "<code>List.of</code> のリストに <code>add</code> できると読んだ答え。実際は不変で、<code>add</code> で落ちる", "", "不変なリストは型も別だと読んだ答え。コンパイラは気づかない", "最初の <code>size()</code> より先に <code>add</code> が効くと読んだ答え。上から順に 1 を出し、その後の <code>add</code> で落ちる" ]
   }, {
     "title" : "ループ中の削除",
@@ -194,7 +194,7 @@
     "questionHtml" : "実行すると?",
     "choicesHtml" : [ "<code>[1, 3]</code>", "<code>[1, 3, 4]</code>", "<code>ConcurrentModificationException</code>", "<code>[1, 2, 3, 4]</code>" ],
     "answer" : 2,
-    "explanationHtml" : "<p>拡張 for の途中で nums.remove を呼んでいるので、次に next() が呼ばれた瞬間に ConcurrentModificationException が投げられます。なお n は Integer なので remove(Object) が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら nums.removeIf(n -&gt; n % 2 == 0) です。</p>\n",
+    "explanationHtml" : "<p>拡張 for の途中で <code>nums.remove</code> を呼んでいるので、次に <code>next()</code> が呼ばれた瞬間に <code>ConcurrentModificationException</code> が投げられます。なお <code>n</code> は <code>Integer</code> なので <code>remove(Object)</code> が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら <code>nums.removeIf(n -&gt; n % 2 == 0)</code> です。</p>\n",
     "traceHtml" : [ "2行目: <code>Iterator</code> が <code>nums</code> を回し始める", "<code>n = 1</code>: 奇数なので何もしない", "<code>n = 2</code>: 偶数 → <code>nums.remove(2)</code> で <code>List</code> の構造が変わる", "次の <code>next()</code>: 変更を検知 → <code>ConcurrentModificationException</code>" ],
     "whyHtml" : [ "拡張 for の中で remove できると読んだ答え。実際は次の要素へ進む所で例外になる", "4 を飛ばして 2 だけ消えると読んだ答え。2 を消した直後の <code>next()</code> で例外が出る", "", "ループ中の remove が元のリストに効かないと読んだ答え。<code>nums</code> 自体が変わり、次の <code>next()</code> で例外になる" ]
   }, {
@@ -204,9 +204,9 @@
     "questionHtml" : "2行の出力は?",
     "choicesHtml" : [ "A / true", "null / false", "A / false", "コンパイルエラー(自作クラスはキーにできない)" ],
     "answer" : 1,
-    "explanationHtml" : "<p>Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。equals と hashCode を x, y で比べるように上書きすると(後で習う record なら自動で付きます)A / true になります。</p>\n",
-    "traceHtml" : [ "8行目: 1つ目の Point インスタンス(#P1)をキーに <code>&quot;A&quot;</code> を登録", "9行目: 新しい <code>Point</code>(#P2)で <code>get</code>。<code>hashCode</code> が違う(または <code>equals</code> が <code>false</code>)→ 見つからず <code>null</code>", "10行目: 同じ理由で false", "対策: equals / hashCode を x, y に基づいて上書きする" ],
-    "whyHtml" : [ "中身が同じ Point は同じキーと読んだ答え。比べ方を上書きしていない", "", "get と containsKey で探し方が違うと読んだ答え。どちらも hashCode と equals で探し、両方見つからない", "自作クラスはキーにできないと読んだ答え。キーにはなれる" ]
+    "explanationHtml" : "<p><code>Point</code> は <code>equals</code> と <code>hashCode</code> を上書きしていないため、<code>Object</code> のもの(参照が同じかどうか)が使われます。<code>put</code> したときの <code>Point</code> と <code>get</code> で作った <code>Point</code> は別インスタンスなので「別のキー」とみなされ、<code>get</code> は <code>null</code>、<code>containsKey</code> は <code>false</code>。<code>equals</code> と <code>hashCode</code> を <code>x</code>, <code>y</code> で比べるように上書きすると(後で習う record なら自動で付きます)<code>A</code> / <code>true</code> になります。</p>\n",
+    "traceHtml" : [ "8行目: 1つ目の <code>Point</code> インスタンス(#P1)をキーに <code>&quot;A&quot;</code> を登録", "9行目: 新しい <code>Point</code>(#P2)で <code>get</code>。<code>hashCode</code> が違う(または <code>equals</code> が <code>false</code>)→ 見つからず <code>null</code>", "10行目: 同じ理由で <code>false</code>", "対策: <code>equals</code> / <code>hashCode</code> を <code>x</code>, <code>y</code> に基づいて上書きする" ],
+    "whyHtml" : [ "中身が同じ <code>Point</code> は同じキーと読んだ答え。比べ方を上書きしていない", "", "<code>get</code> と <code>containsKey</code> で探し方が違うと読んだ答え。どちらも <code>hashCode</code> と <code>equals</code> で探し、両方見つからない", "自作クラスはキーにできないと読んだ答え。キーにはなれる" ]
   } ],
   "atWork" : [ {
     "title" : "コレクション",

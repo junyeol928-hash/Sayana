@@ -174,7 +174,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "true false true true", "true true true true", "false false true false", "true false true false" ],
     "answer" : 0,
-    "explanationHtml" : "<p><code>&quot;ad&quot; + &quot;min&quot;</code> はリテラルどうしの連結なのでコンパイル時に <code>&quot;admin&quot;</code> にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。</p>\n",
+    "explanationHtml" : "<p><code>&quot;ad&quot; + &quot;min&quot;</code> はリテラルどうしの連結なのでコンパイル時に <code>&quot;admin&quot;</code> にまとめられ、プールの同じオブジェクトになります(x == y は true)。<code>new String</code> は別オブジェクト(x == z は false)。equals は中身比較なので true。<code>intern()</code> はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では <code>intern</code> を見ることは稀ですが、== が危ういことの理解に役立ちます。</p>\n",
     "traceHtml" : [ "1行目: プールに <code>&quot;admin&quot;</code> が置かれ、<code>x</code> が指す", "2行目: リテラルどうしの <code>+</code> はコンパイル時に <code>&quot;admin&quot;</code> になる → <code>x</code> と同じものを指す", "3行目: <code>new</code> なのでプール外に別の <code>&quot;admin&quot;</code> が作られる", "4行目: <code>intern</code> はプールの <code>&quot;admin&quot;</code> を返す → <code>x</code> と同じ", "5行目: <code>true false true true</code> と表示" ],
     "whyHtml" : [ "", "<code>new String</code> も、プールの同じものを返すと読んだ答え", "リテラル同士の連結も <code>intern()</code> も、別物を作ると読んだ答え", "<code>intern()</code> が新しい文字列を作ると読んだ答え" ]
   }, {
@@ -194,7 +194,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "<code>TMP NONE NONE</code>", "<code>TEMP NONE NONE</code>", "<code>TEMP  NONE</code>", "<code>NullPointerException</code> が発生" ],
     "answer" : 1,
-    "explanationHtml" : "<p><code>&quot;  Tmp &quot;</code> は null でも空白でもないので先に進み、strip して <code>&quot;Tmp&quot;</code>、大文字小文字を無視して <code>&quot;tmp&quot;</code> と一致するので <code>&quot;TEMP&quot;</code>。<code>&quot; &quot;</code> は isBlank が true で <code>&quot;NONE&quot;</code>。null は <code>code == null</code> が true になり、|| の右側(isBlank)は評価されないので例外にならず <code>&quot;NONE&quot;</code>。||(短絡評価)と定数を左に置く書き方が null を守っています。</p>\n",
+    "explanationHtml" : "<p><code>&quot;  Tmp &quot;</code> は null でも空白でもないので先に進み、<code>strip</code> して <code>&quot;Tmp&quot;</code>、大文字小文字を無視して <code>&quot;tmp&quot;</code> と一致するので <code>&quot;TEMP&quot;</code>。<code>&quot; &quot;</code> は <code>isBlank</code> が true で <code>&quot;NONE&quot;</code>。null は <code>code == null</code> が true になり、|| の右側(<code>isBlank</code>)は評価されないので例外にならず <code>&quot;NONE&quot;</code>。||(短絡評価)と定数を左に置く書き方が null を守っています。</p>\n",
     "traceHtml" : [ "<code>normalize(&quot;  Tmp &quot;)</code>: 2行目 false → 5行目 <code>strip</code> で <code>&quot;Tmp&quot;</code>、<code>equalsIgnoreCase</code> で true → <code>&quot;TEMP&quot;</code>", "<code>normalize(&quot; &quot;)</code>: 2行目 <code>isBlank</code> が true → <code>&quot;NONE&quot;</code>", "<code>normalize(null)</code>: 2行目 <code>code == null</code> が true。<code>||</code> の右は評価されない → <code>&quot;NONE&quot;</code>", "結果: <code>TEMP NONE NONE</code> と表示" ],
     "whyHtml" : [ "大文字にする最後の return に進むと読んだ答え", "", "空白だけの文字列が、空文字になって返ると読んだ答え", "null にも <code>isBlank()</code> が呼ばれると読んだ答え" ]
   }, {

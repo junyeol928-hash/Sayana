@@ -128,13 +128,13 @@
   "term" : "リテラル",
   "read" : null,
   "en" : "literal",
-  "defHtml" : "コードに直接書いた値そのもの。100、&quot;abc&quot;、true など。",
+  "defHtml" : "コードに直接書いた値そのもの。<code>100</code>、<code>&quot;abc&quot;</code>、<code>true</code> など。",
   "lesson" : "java-variables"
 }, {
   "term" : "null",
   "read" : "ヌル",
   "en" : "null",
-  "defHtml" : "参照型の変数が「どこも指していない」状態。null のまま使うと <code>NullPointerException</code>。",
+  "defHtml" : "参照型の変数が「どこも指していない」状態。<code>null</code> のまま使うと <code>NullPointerException</code>。",
   "lesson" : "java-variables"
 }, {
   "term" : "ラッパークラス",
@@ -200,13 +200,13 @@
   "term" : "短絡評価",
   "read" : "たんらくひょうか",
   "en" : "short-circuit evaluation",
-  "defHtml" : "<code>&amp;&amp;</code> の左が false、<code>||</code> の左が true のとき、右側を実行せずに結果を確定すること。null チェックを左に書く根拠。",
+  "defHtml" : "<code>&amp;&amp;</code> の左が <code>false</code>、<code>||</code> の左が <code>true</code> のとき、右側を実行せずに結果を確定すること。<code>null</code> チェックを左に書く根拠。",
   "lesson" : "java-operators"
 }, {
   "term" : "三項演算子",
   "read" : "さんこうえんざんし",
   "en" : "ternary operator",
-  "defHtml" : "条件 ? A : B の形。条件が true なら A、false なら B の値になる。1 行の if-else。",
+  "defHtml" : "<code>条件 ? A : B</code> の形。条件が <code>true</code> なら A、<code>false</code> なら B の値になる。1 行の if-else。",
   "lesson" : "java-operators"
 }, {
   "term" : "優先順位",
@@ -242,7 +242,7 @@
   "term" : "デフォルト値",
   "read" : null,
   "en" : "default value",
-  "defHtml" : "new で配列を作ったときに入る初期値。数値は 0、boolean は false、参照型は null。",
+  "defHtml" : "new で配列を作ったときに入る初期値。数値は 0、boolean は <code>false</code>、参照型は <code>null</code>。",
   "lesson" : "java-arrays"
 }, {
   "term" : "ArrayIndexOutOfBoundsException",
@@ -284,7 +284,7 @@
   "term" : "オートボクシング",
   "read" : null,
   "en" : "autoboxing",
-  "defHtml" : "int と Integer などを Java が自動で相互変換すること。Integer が null だと変換時に <code>NullPointerException</code>。",
+  "defHtml" : "int と Integer などを Java が自動で相互変換すること。Integer が <code>null</code> だと変換時に <code>NullPointerException</code>。",
   "lesson" : "java-variables"
 }, {
   "term" : "List.of",
@@ -308,7 +308,7 @@
   "term" : "条件式",
   "read" : "じょうけんしき",
   "en" : "condition",
-  "defHtml" : "true か false のどちらかになる式。if の ( ) の中に書く。",
+  "defHtml" : "<code>true</code> か <code>false</code> のどちらかになる式。if の ( ) の中に書く。",
   "lesson" : "java-if"
 }, {
   "term" : "短絡評価",
@@ -572,7 +572,7 @@
   "term" : "既定値",
   "read" : "きていち",
   "en" : "default value",
-  "defHtml" : "何も入れていないフィールドの初期値。int は 0、boolean は false、参照型は null。",
+  "defHtml" : "何も入れていないフィールドの初期値。int は 0、boolean は <code>false</code>、参照型は <code>null</code>。",
   "lesson" : "java-classes"
 }, {
   "term" : "コンストラクタ注入",
@@ -644,7 +644,7 @@
   "term" : "NullPointerException",
   "read" : "ヌルポインターエクセプション",
   "en" : "NullPointerException",
-  "defHtml" : "null の変数に対してメソッド呼び出しやフィールドアクセスをしたときに発生する実行時エラー。",
+  "defHtml" : "<code>null</code> の変数に対してメソッド呼び出しやフィールドアクセスをしたときに発生する実行時エラー。",
   "lesson" : "java-jvm-memory"
 }, {
   "term" : "文字列プール",
@@ -800,7 +800,7 @@
   "term" : "instanceof",
   "read" : "インスタンスオブ",
   "en" : "instanceof",
-  "defHtml" : "変数の実体がある型(またはその子)かどうかを true / false で返す演算子。Java 16+ では判定と同時に変数宣言できる。",
+  "defHtml" : "変数の実体がある型(またはその子)かどうかを <code>true</code> / <code>false</code> で返す演算子。Java 16+ では判定と同時に変数宣言できる。",
   "lesson" : "java-abstract-interface"
 }, {
   "term" : "DI(依存性注入)",
@@ -896,7 +896,7 @@
   "term" : "完全修飾名",
   "read" : "かんぜんしゅうしょくめい",
   "en" : "fully qualified class name",
-  "defHtml" : "パッケージ名 + クラス名の正式名称。java.util.List のように書く。",
+  "defHtml" : "パッケージ名 + クラス名の正式名称。<code>java.util.List</code> のように書く。",
   "lesson" : "java-encapsulation"
 }, {
   "term" : "名前空間",
@@ -1034,7 +1034,7 @@
   "term" : "Map",
   "read" : "マップ",
   "en" : "Map",
-  "defHtml" : "キーと値のペアを持つ対応表。キーは重複せず、同じキーの put は上書き。get は無いと null。",
+  "defHtml" : "キーと値のペアを持つ対応表。キーは重複せず、同じキーの put は上書き。get は無いと <code>null</code>。",
   "lesson" : "java-collections"
 }, {
   "term" : "実装クラス",
@@ -1058,7 +1058,7 @@
   "term" : "オートボクシング",
   "read" : null,
   "en" : "autoboxing",
-  "defHtml" : "int と Integer を自動で相互変換する仕組み。null を int にしようとすると <code>NullPointerException</code>。",
+  "defHtml" : "int と Integer を自動で相互変換する仕組み。<code>null</code> を int にしようとすると <code>NullPointerException</code>。",
   "lesson" : "java-collections"
 }, {
   "term" : "Iterator",
@@ -1076,7 +1076,7 @@
   "term" : "不変コレクション",
   "read" : "ふへんコレクション",
   "en" : "immutable collection",
-  "defHtml" : "<code>List.of</code> などで作る変更不可のコレクション。add すると <code>UnsupportedOperationException</code>。null 不可。",
+  "defHtml" : "<code>List.of</code> などで作る変更不可のコレクション。add すると <code>UnsupportedOperationException</code>。<code>null</code> 不可。",
   "lesson" : "java-collections"
 }, {
   "term" : "ConcurrentModificationException",
@@ -1460,7 +1460,7 @@
   "term" : "filter",
   "read" : "フィルター",
   "en" : "filter",
-  "defHtml" : "条件が true の要素だけを残す中間操作。要素の数は減るが型は変わらない。",
+  "defHtml" : "条件が <code>true</code> の要素だけを残す中間操作。要素の数は減るが型は変わらない。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "map",
@@ -1502,13 +1502,13 @@
   "term" : "Optional",
   "read" : "オプショナル",
   "en" : "Optional",
-  "defHtml" : "値が1個あるか、まったく無いかを表すクラス。null の代わりに戻り値として使う。",
+  "defHtml" : "値が1個あるか、まったく無いかを表すクラス。<code>null</code> の代わりに戻り値として使う。",
   "lesson" : "java-optional"
 }, {
   "term" : "NullPointerException",
   "read" : "ヌルポインタエクセプション",
   "en" : "NullPointerException",
-  "defHtml" : "null の変数経由でメソッドやフィールドにアクセスしたときに起きる実行時例外。通称「ぬるぽ」。",
+  "defHtml" : "<code>null</code> の変数経由でメソッドやフィールドにアクセスしたときに起きる実行時例外。通称「ぬるぽ」。",
   "lesson" : "java-optional"
 }, {
   "term" : "orElseThrow",
@@ -1538,7 +1538,7 @@
   "term" : "Objects.requireNonNull",
   "read" : null,
   "en" : "Objects.requireNonNull",
-  "defHtml" : "引数が null なら即座に <code>NullPointerException</code> を投げるユーティリティ。フェイルファストに使う。",
+  "defHtml" : "引数が <code>null</code> なら即座に <code>NullPointerException</code> を投げるユーティリティ。フェイルファストに使う。",
   "lesson" : "java-optional"
 }, {
   "term" : "フェイルファスト",
@@ -1550,7 +1550,7 @@
   "term" : "@Nullable / @NonNull",
   "read" : "ナラブル / ノンナル",
   "en" : "@Nullable / @NonNull",
-  "defHtml" : "値が null になり得るか(Nullable)、なってはいけないか(NonNull)を示す注釈。強制力はないことが多いが読解の手がかりになる。",
+  "defHtml" : "値が <code>null</code> になり得るか(Nullable)、なってはいけないか(NonNull)を示す注釈。強制力はないことが多いが読解の手がかりになる。",
   "lesson" : "java-optional"
 }, {
   "term" : "var",
@@ -1730,7 +1730,7 @@
   "term" : "Files",
   "read" : null,
   "en" : "Files",
-  "defHtml" : "Path を使ってファイルを読み書きするための静的メソッド集(java.nio.file.Files)。",
+  "defHtml" : "Path を使ってファイルを読み書きするための静的メソッド集(<code>java.nio.file.Files</code>)。",
   "lesson" : "java-file-io"
 }, {
   "term" : "EOF",

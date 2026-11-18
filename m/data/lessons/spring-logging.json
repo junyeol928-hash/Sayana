@@ -50,7 +50,7 @@
     "questionHtml" : "<p><code>application.yml</code> が次の設定のとき、<code>com.example.shop.OrderService</code> のロガーで <code>log.debug(...)</code>・<code>log.info(...)</code>・<code>log.warn(...)</code>・<code>log.error(...)</code> を1回ずつ呼びました。出力されるのは?</p>\n<pre><code class=\"language-yaml\">logging:\n  level:\n    root: INFO\n    com.example: WARN\n</code></pre>\n",
     "choicesHtml" : [ "4行すべて", "INFO・WARN・ERROR の3行", "WARN・ERROR の2行", "ERROR の1行だけ" ],
     "answer" : 2,
-    "explanationHtml" : "<p>ロガー名 <code>com.example.shop.OrderService</code> は <code>com.example</code> に前方一致(ドット区切り)するので、<code>root</code> の INFO ではなく <code>com.example</code> の WARN が効きます。出力されるのは WARN <strong>以上</strong> なので、WARN と ERROR の2行です。\n「INFO・WARN・ERROR の3行」は root の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。</p>\n",
+    "explanationHtml" : "<p>ロガー名 <code>com.example.shop.OrderService</code> は <code>com.example</code> に前方一致(ドット区切り)するので、<code>root</code> の INFO ではなく <code>com.example</code> の WARN が効きます。出力されるのは WARN <strong>以上</strong> なので、WARN と ERROR の2行です。\n「INFO・WARN・ERROR の3行」は <code>root</code> の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。</p>\n",
     "whyHtml" : [ "設定で出力が絞られないと読んだ答え。<code>com.example</code> の WARN が効き、WARN 以上だけが出る", "<code>root</code> の INFO だけを見た答え。ロガー名が <code>com.example</code> に一致するので、WARN が効く", "", "WARN を超えるものだけが出ると読んだ答え。基準の WARN 自身も出るので2行" ]
   }, {
     "questionHtml" : "<p>DEBUG が無効(INFO に設定)のとき、次の行を実行すると <code>calcTotal(items)</code> は呼ばれる?</p>\n<pre><code class=\"language-java\">log.debug(&quot;合計: &quot; + calcTotal(items));\n</code></pre>\n",
@@ -176,7 +176,7 @@
     "questionHtml" : "出力は?(ログの内容は考えず、System.out の出力のみ答える)",
     "choicesHtml" : [ "0", "Infinity", "<code>ArithmeticException</code> が発生してプログラムが止まる", "コンパイルエラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>b が 0 のとき a / b は ArithmeticException を投げますが、catch で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。</p>\n",
+    "explanationHtml" : "<p><code>b</code> が 0 のとき <code>a / b</code> は <code>ArithmeticException</code> を投げますが、<code>catch</code> で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。</p>\n",
     "traceHtml" : [ "3行目: <code>10 / 0</code> で <code>ArithmeticException</code>", "4行目: catch で捕まえる", "5行目: WARN ログを出す(第3引数の e でスタックトレースも記録)", "6行目: 0 を返す(例外は外に伝わらない)", "9行目: 0 と表示" ],
     "whyHtml" : [ "", "<code>double</code> の割り算と取り違えた答え。<code>int</code> どうしの <code>10 / 0</code> は例外になり、<code>catch</code> で 0 を返す", "例外が呼び出し元まで伝わると読んだ答え。<code>catch</code> で捕まえて 0 を返し、投げ直していない", "ログの引数の数が <code>{}</code> と合わないと読んだ答え。最後の例外は別扱いで、コンパイルは通る" ]
   }, {
@@ -186,7 +186,7 @@
     "questionHtml" : "このテストはどうなる?",
     "choicesHtml" : [ "成功する(<code>result</code> は空の <code>Optional</code>)", "失敗する(<code>result</code> に本物のデータが入る)", "<code>NullPointerException</code> でテストが落ちる", "コンパイルエラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>スタブ(when...thenReturn)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。Optional の既定値は null ではなく Optional.empty() 相当の空の Optional なので、result.isEmpty() は true になりテストは成功します。</p>\n",
+    "explanationHtml" : "<p>スタブ(<code>when...thenReturn</code>)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。<code>Optional</code> の既定値は <code>null</code> ではなく <code>Optional.empty()</code> 相当の空の <code>Optional</code> なので、<code>result.isEmpty()</code> は <code>true</code> になりテストは成功します。</p>\n",
     "traceHtml" : [ "3行目: userRepository はモック(本物のDBには繋がらない)", "9行目: when を設定していないので、findById は既定の空 Optional を返す", "10行目: <code>isEmpty()</code> は <code>true</code> → <code>assertTrue</code> は成功" ],
     "whyHtml" : [ "", "モックが本物の Repository を呼ぶと読んだ答え。モックは中身が無く、既定値を返す", "スタブが無いと <code>null</code> が返ると読んだ答え。<code>Optional</code> を返すメソッドの既定値は空の <code>Optional</code>", "<code>when</code> を書かないとコンパイルが通らないと読んだ答え。スタブは任意で、コンパイルは通る" ]
   }, {
@@ -196,7 +196,7 @@
     "questionHtml" : "このテストが検証している RetryService の振る舞いとして正しいのは?",
     "choicesHtml" : [ "決済に1回失敗しても諦めて <code>false</code> を返す", "決済が失敗したら1回だけ再試行し、成功すれば <code>true</code> を返す", "決済は必ず3回試行する", "例外はそのまま呼び出し元に投げ直される" ],
     "answer" : 1,
-    "explanationHtml" : "<p>thenThrow(...).thenReturn(true) は「1回目は例外、2回目は成功」という順番のスタブです。最終的に ok は true、charge が2回呼ばれたことを verify(times(2)) が確認しているので、RetryService は失敗時に1回再試行してから成功を返す仕様だと読み取れます。</p>\n",
+    "explanationHtml" : "<p><code>thenThrow(...).thenReturn(true)</code> は「1回目は例外、2回目は成功」という順番のスタブです。最終的に <code>ok</code> は <code>true</code>、<code>charge</code> が2回呼ばれたことを <code>verify(times(2))</code> が確認しているので、<code>RetryService</code> は失敗時に1回再試行してから成功を返す仕様だと読み取れます。</p>\n",
     "traceHtml" : [ "3〜5行目: charge の1回目は例外、2回目は true を返すよう設定", "7行目: chargeWithRetry を呼ぶ(中でおそらく try-catchして再試行している)", "9行目: 最終的に true が返ったことを確認", "10行目: charge が合計2回呼ばれたことを確認 → 「1回失敗したら1回だけ再試行する」仕様と分かる" ],
     "whyHtml" : [ "1回目の例外で終わると読んだ答え。2回目は <code>true</code> を返すスタブで、<code>ok</code> が <code>true</code> だと確かめている", "", "再試行の回数を多く読んだ答え。<code>verify</code> は <code>times(2)</code> で、2回呼ばれたと確かめている", "1回目の例外が呼び出し元へ出ると読んだ答え。テストは例外なしで <code>ok</code> が <code>true</code> になると確かめている" ]
   } ],

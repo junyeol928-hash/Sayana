@@ -17,7 +17,7 @@
     "questionHtml" : "<p>3つのファイルを変更しました。このうち <code>InvoiceService.java</code> と <code>InvoiceServiceTest.java</code> の2つだけを1つのコミットにし、<code>README.md</code> の変更は次のコミットに回したい。どうする?</p>\n",
     "choicesHtml" : [ "<code>git commit -a -m &quot;請求額の端数処理を修正&quot;</code> を実行する", "2つのファイルだけを <code>git add</code> してからコミットする", "README.md を一度削除してからコミットし、後で元に戻す", "いったん3つともコミットして、あとで <code>git push --force</code> で README.md の分を消す" ],
     "answer" : 1,
-    "explanationHtml" : "<p>これこそ <strong>ステージ</strong> の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを <code>git add</code>(STS では Git Staging ビューで <strong>Unstaged Changes</strong> から <strong>Staged Changes</strong> へドラッグ)してコミットすれば、README.md の変更は作業ツリーに残ったままになります。</p>\n",
+    "explanationHtml" : "<p>これこそ <strong>ステージ</strong> の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを <code>git add</code>(STS では Git Staging ビューで <strong>Unstaged Changes</strong> から <strong>Staged Changes</strong> へドラッグ)してコミットすれば、<code>README.md</code> の変更は作業ツリーに残ったままになります。</p>\n",
     "whyHtml" : [ "<code>commit -a</code> で2つだけ入ると読んだ答え。<code>-a</code> は変更した管理対象を全部ステージし、<code>README.md</code> も入る", "", "ファイルを消して外す答え。ステージに載せた分だけがコミットに入るので、消す必要はない", "後から履歴を書き換える答え。ステージで2つだけ選べば force push は要らない" ]
   }, {
     "questionHtml" : "<p><code>application-local.yml</code> に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。<strong>最初に</strong> やるべきことは?</p>\n",

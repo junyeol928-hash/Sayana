@@ -61,7 +61,7 @@
     "questionHtml" : "<p>次の2つのファイルがあり、<code>dev</code> プロファイルを有効にして起動しました。<code>server.port</code> と <code>spring.datasource.url</code> の値の組み合わせは?</p>\n<pre><code class=\"language-yaml\"># application.yml\nserver:\n  port: 8080\nspring:\n  datasource:\n    url: jdbc:h2:file:./data/app\n</code></pre>\n<pre><code class=\"language-yaml\"># application-dev.yml\nserver:\n  port: 8081\n</code></pre>\n",
     "choicesHtml" : [ "8080 と <code>jdbc:h2:file:./data/app</code>", "8081 と <code>jdbc:h2:file:./data/app</code>", "8081 と 未設定(<code>application-dev.yml</code> に書いていないので)", "起動エラー(同じキーが2か所にあるので)" ],
     "answer" : 1,
-    "explanationHtml" : "<p>プロファイル用のファイルは共通の <code>application.yml</code> を <strong>丸ごと置き換えるのではなく、書いたキーだけを上書き</strong> します。<code>server.port</code> は dev 側の 8081 が勝ち、dev 側に書いていない <code>spring.datasource.url</code> は共通設定の値がそのまま使われます。</p>\n",
+    "explanationHtml" : "<p>プロファイル用のファイルは共通の <code>application.yml</code> を <strong>丸ごと置き換えるのではなく、書いたキーだけを上書き</strong> します。<code>server.port</code> は <code>dev</code> 側の 8081 が勝ち、<code>dev</code> 側に書いていない <code>spring.datasource.url</code> は共通設定の値がそのまま使われます。</p>\n",
     "whyHtml" : [ "<code>dev</code> のファイルが共通の値を上書きしないと読んだ答え", "", "<code>dev</code> 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え", "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ" ]
   }, {
     "questionHtml" : "<p>設定キー <code>dojo.exec.max-heap</code> を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?</p>\n",

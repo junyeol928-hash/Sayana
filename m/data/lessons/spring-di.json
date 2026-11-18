@@ -35,7 +35,7 @@
     }
   }, {
     "title" : "singleton の Bean に状態を持たせると事故る",
-    "descriptionHtml" : "<p>フィールドに合計金額を持つ <code>BadCartService</code> を、ハルとモカが別々に <code>getBean</code> して使います。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。そのあと <code>@Scope(&quot;prototype&quot;)</code> を付けて、出力がどう変わるか確かめよう。</p>\n",
+    "descriptionHtml" : "<p>フィールドに合計金額を持つ <code>BadCartService</code> を、ハルとモカが別々に <code>getBean</code> して使います。見終わったら <code>@Scope(&quot;prototype&quot;)</code> を付けて、出力がどう変わるかも確かめよう。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。</p>\n",
     "code" : "import org.springframework.context.annotation.*;\nimport org.springframework.stereotype.*;\n\n// ダメな例:Bean のフィールドに「ユーザーごとの状態」を持っている\n@Service\nclass BadCartService {\n    private int total;  // 全員で共有される!\n\n    int add(String user, int price) {\n        total += price;\n        return total;\n    }\n}\n\n// 良い例:状態は持たず、引数で受け取って結果を返す(ステートレス)\n@Service\nclass GoodCartService {\n    int add(int currentTotal, int price) {\n        return currentTotal + price;\n    }\n}\n\n// ここを変えてみよう:BadCartService の上に @Scope(\"prototype\") を付けると?\nvar ctx = new AnnotationConfigApplicationContext(\n        BadCartService.class, GoodCartService.class);\n\n// 別々のユーザーのつもりで、それぞれ getBean する\nBadCartService forHaru = ctx.getBean(BadCartService.class);\nBadCartService forMoka = ctx.getBean(BadCartService.class);\nSystem.out.println(\"同じインスタンス? \" + (forHaru == forMoka));\nSystem.out.println(\"ハル: 1000円の本 → 合計 \" + forHaru.add(\"haru\", 1000));\nSystem.out.println(\"モカ:  500円の豆 → 合計 \" + forMoka.add(\"moka\", 500));\nSystem.out.println(\"ハル: 200円のペン → 合計 \" + forHaru.add(\"haru\", 200));\n\nGoodCartService good = ctx.getBean(GoodCartService.class);\nint haruTotal = good.add(0, 1000);   // 状態は呼び出し側(本物ならセッションやDB)\nint mokaTotal = good.add(0, 500);\nharuTotal = good.add(haruTotal, 200);\nSystem.out.println(\"ステートレス版 → ハル \" + haruTotal + \"円 / モカ \" + mokaTotal + \"円\");\nctx.close();\n",
     "result" : {
       "status" : "OK",
@@ -95,7 +95,7 @@
     "questionHtml" : "<p>次のコードの出力は?</p>\n<pre><code class=\"language-java\">@Service\nclass Counter {\n    private int count;\n    int next() { return ++count; }\n}\n\nvar ctx = new AnnotationConfigApplicationContext(Counter.class);\nCounter a = ctx.getBean(Counter.class);\nCounter b = ctx.getBean(Counter.class);\na.next();\nb.next();\nSystem.out.println(a.next() + &quot; &quot; + (a == b));\n</code></pre>\n",
     "choicesHtml" : [ "<code>2 false</code>", "<code>1 false</code>", "<code>2 true</code>", "<code>3 true</code>" ],
     "answer" : 3,
-    "explanationHtml" : "<p>Bean の既定スコープは <strong>singleton</strong> なので、<code>getBean</code> は何度呼んでも同じインスタンスを返します。<code>a</code> と <code>b</code> は同じオブジェクトで <code>a == b</code> は <code>true</code>。\n<code>a.next()</code>(1)→ <code>b.next()</code>(2、同じ count を増やす)→ <code>a.next()</code>(3)なので <code>3 true</code> です。\n<code>@Scope(&quot;prototype&quot;)</code> を付けると毎回新しいインスタンスになり、<code>2 false</code> になります。Web アプリでこの「共有される状態」を持つと、他のユーザーのデータが混ざる事故になります。</p>\n",
+    "explanationHtml" : "<p>Bean の既定スコープは <strong>singleton</strong> なので、<code>getBean</code> は何度呼んでも同じインスタンスを返します。<code>a</code> と <code>b</code> は同じオブジェクトで <code>a == b</code> は <code>true</code>。\n<code>a.next()</code>(1)→ <code>b.next()</code>(2、同じ <code>count</code> を増やす)→ <code>a.next()</code>(3)なので <code>3 true</code> です。\n<code>@Scope(&quot;prototype&quot;)</code> を付けると毎回新しいインスタンスになり、<code>2 false</code> になります。Web アプリでこの「共有される状態」を持つと、他のユーザーのデータが混ざる事故になります。</p>\n",
     "whyHtml" : [ "<code>getBean</code> のたびに新しいインスタンスができると読んだ答え。既定は singleton で <code>a</code> と <code>b</code> は同じ", "呼ぶたびに <code>count</code> が 0 から始まると読んだ答え。<code>count</code> は残り、<code>a</code> と <code>b</code> は同じなので 3 まで進む", "<code>a</code> と <code>b</code> が同じとは読めたが、<code>b.next()</code> の分を数え落とした答え。同じ <code>count</code> を3回増やすので 3", "" ]
   }, {
     "questionHtml" : "<p>次の設定で、<code>AuditService</code> に注入されるのはどれ?</p>\n<pre><code class=\"language-java\">@Component @Primary\nclass SmtpSender implements Sender { ... }\n\n@Component(&quot;logSender&quot;)\nclass LogSender implements Sender { ... }\n\n@Service\nclass AuditService {\n    AuditService(@Qualifier(&quot;logSender&quot;) Sender sender) { ... }\n}\n</code></pre>\n",
@@ -107,7 +107,7 @@
     "questionHtml" : "<p>ライブラリが提供している <code>JsonMapper</code> クラス(ソースは変更できない)を、設定値を渡して作り、Bean として登録したい。最も適切な方法は?</p>\n",
     "choicesHtml" : [ "<code>JsonMapper</code> クラスに <code>@Component</code> を付ける", "使う側のフィールドに <code>@Autowired</code> を付ければ自動で作られる", "<code>@Configuration</code> の中の <code>@Bean</code> メソッドで <code>new</code> して返す", "使う側のコンストラクタの中で <code>new JsonMapper(...)</code> する" ],
     "answer" : 2,
-    "explanationHtml" : "<p>ソースを変更できないクラスにはアノテーションを付けられません。<code>@Configuration</code> クラスの <code>@Bean</code> メソッドで <code>new</code> して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。\n<code>@Autowired</code> は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(起動時に <code>UnsatisfiedDependencyException</code> で止まり、原因に <code>NoSuchBeanDefinitionException</code> と出ます)。使う側で <code>new</code> するのは、まさに DI をやめて元の「new だらけ」に戻る書き方です。</p>\n",
+    "explanationHtml" : "<p>ソースを変更できないクラスにはアノテーションを付けられません。<code>@Configuration</code> クラスの <code>@Bean</code> メソッドで <code>new</code> して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。\n<code>@Autowired</code> は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(起動時に <code>UnsatisfiedDependencyException</code> で止まり、原因に <code>NoSuchBeanDefinitionException</code> と出ます)。使う側で <code>new</code> するのは、まさに DI をやめて元の「<code>new</code> だらけ」に戻る書き方です。</p>\n",
     "whyHtml" : [ "自分のクラスと同じく <code>@Component</code> を付ければよいと読んだ答え。ソースを変えられないので付けられない", "<code>@Autowired</code> が Bean を作ってくれると読んだ答え。登録済みの Bean を入れるだけで、無ければ例外", "", "使う側で作れば Bean になると読んだ答え。<code>new</code> しても Bean にはならず、<code>new</code> だらけの形に戻る" ]
   } ],
   "checks" : [ {
@@ -193,7 +193,7 @@
     "questionHtml" : "<code>commandService.run()</code> の戻り値は?",
     "choicesHtml" : [ "<code>&quot;socket&quot;</code>", "<code>&quot;logging&quot;</code>", "起動時に例外", "<code>null</code>" ],
     "answer" : 1,
-    "explanationHtml" : "<p>CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ、候補が2つで選べず、起動時に NoUniqueBeanDefinitionException になります。</p>\n",
+    "explanationHtml" : "<p><code>CommandSender</code>(仕事では <code>ApduSender</code>)型の Bean は2つありますが、<code>LoggingCommandSender</code> に <code>@Primary</code> が付いているので、型だけで要求している <code>CommandService</code> にはこちらが入ります。<code>@Primary</code> がなければ、候補が2つで選べず、起動時に <code>NoUniqueBeanDefinitionException</code> になります。</p>\n",
     "traceHtml" : [ "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)", "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される", "起動時: 候補2つのうち @Primary の LoggingCommandSender が選ばれて注入される", "16行目: <code>sender.send(...)</code> → <code>LoggingCommandSender.send</code> → <code>&quot;logging&quot;</code>" ],
     "whyHtml" : [ "<code>@Primary</code> を見落とし、先に書かれた <code>SocketCommandSender</code> が入ると読んだ答え", "", "候補が2つあるので起動に失敗すると読んだ答え。<code>@Primary</code> が付いた側が選ばれて起動する", "どちらにも決めきれず、<code>null</code> が入ると読んだ答え。実際は <code>@Primary</code> の側が入る" ]
   }, {
@@ -203,7 +203,7 @@
     "questionHtml" : "Spring が起動し、<code>issue(&quot;C001&quot;)</code> を呼ぶと?",
     "choicesHtml" : [ "<code>&quot;OK&quot;</code> が返る", "起動時に、<code>cryptoClient</code> の注入に失敗して例外", "8行目で <code>NullPointerException</code>", "コンパイルエラー" ],
     "answer" : 2,
-    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
+    "explanationHtml" : "<p><code>@RequiredArgsConstructor</code> が引数にするのは、初期化していない <code>final</code> フィールド(と <code>@NonNull</code> を付けたフィールド)です。この例では <code>final</code> の <code>KeyRepository</code> だけが該当するので、生成されるコンストラクタは <code>KeyRepository</code> の1引数です。<code>cryptoClient</code>(仕事では <code>hsmClient</code>)は注入されず <code>null</code> のまま。起動は成功し、<code>issue</code> を呼んで <code>cryptoClient.generateKey()</code> に到達した瞬間に <code>NullPointerException</code> です。</p>\n",
     "traceHtml" : [ "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ", "5行目: final がないため引数に含まれず、注入もされない → null", "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する", "8行目: <code>cryptoClient</code> が <code>null</code> → <code>generateKey()</code> を呼んだ瞬間に <code>NullPointerException</code>" ],
     "whyHtml" : [ "<code>@RequiredArgsConstructor</code> が全フィールドに注入すると読んだ答え。対象は <code>final</code> の方だけ", "注入されないフィールドがあると起動で止まると読んだ答え。<code>null</code> のフィールドは、使うまで誰も気づかない", "", "<code>final</code> でないフィールドを Lombok がエラーにすると読んだ答え。コンストラクタの引数から外れるだけで、コンパイルは通る" ]
   }, {
@@ -213,7 +213,7 @@
     "questionHtml" : "起動時に何が起きる?",
     "choicesHtml" : [ "<code>BackendClient</code> が Bean にならず起動失敗", "<code>restTemplate</code> が先に作られ、起動する", "<code>backendClient</code> が2個作られる", "<code>@Bean</code> メソッドの順序が逆なのでエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。呼ぶ順は書いた順ではなく依存関係で決まり、できた backendClient が SessionService に注入されます。</p>\n",
+    "explanationHtml" : "<p><code>@Bean</code> メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、<code>restTemplate()</code> を先に呼び、その戻り値を <code>backendClient()</code>(仕事では <code>backApiClient()</code>)の引数に渡します。呼ぶ順は書いた順ではなく依存関係で決まり、できた <code>backendClient</code> が <code>SessionService</code> に注入されます。</p>\n",
     "traceHtml" : [ "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される", "4行目: backendClient は RestTemplate に依存すると分かる", "8行目: 依存のない <code>restTemplate()</code> が先に呼ばれ、<code>RestTemplate</code> の Bean ができる", "4〜5行目: その <code>RestTemplate</code> を引数に <code>backendClient()</code> が呼ばれ、<code>BackendClient</code> の Bean ができる", "15行目: SessionService のコンストラクタに BackendClient の Bean が渡される" ],
     "whyHtml" : [ "<code>@Component</code> が無いクラスは Bean にならないと読んだ答え。<code>@Bean</code> メソッドの戻り値が Bean になる", "", "<code>@Bean</code> メソッドを呼ぶたびに作られると読んだ答え。Bean は singleton で1個だけ", "<code>@Bean</code> メソッドを書いた順に呼ぶと読んだ答え" ]
   }, {
@@ -223,7 +223,7 @@
     "questionHtml" : "アプリを起動すると?",
     "choicesHtml" : [ "正常に起動する", "起動時に例外", "<code>KeyIssueService</code> が Bean にならない", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため、起動が UnsatisfiedDependencyException で失敗します(原因は NoSuchBeanDefinitionException)。</p>\n",
+    "explanationHtml" : "<p>スキャンの基準は起動クラスのパッケージ <code>jp.example.gateway</code>(仕事では <code>jp.example.tsm</code>、起動クラスは <code>TsmFrontApplication</code>)です。<code>HexUtil</code> は <code>jp.example.common</code> にあり範囲外なので、<code>@Component</code> が付いていても Bean になりません。<code>KeyIssueService</code> は範囲内で Bean になりますが、必要な <code>HexUtil</code> の Bean がないため、起動が <code>UnsatisfiedDependencyException</code> で失敗します(原因は <code>NoSuchBeanDefinitionException</code>)。</p>\n",
     "traceHtml" : [ "2行目: スキャンの基準パッケージは jp.example.gateway", "6〜8行目: jp.example.gateway.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している", "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない", "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止" ],
     "whyHtml" : [ "<code>@Component</code> が付いていれば必ず Bean になると読んだ答え。<code>HexUtil</code> はスキャン範囲の外で Bean にならない", "", "<code>KeyIssueService</code> もスキャン範囲の外と読んだ答え。<code>gateway.service</code> は <code>gateway</code> の下なので範囲内", "Bean が見つからない問題をコンパイル時の誤りと取り違えた答え。コンパイルは通り、起動時に失敗する" ]
   } ],

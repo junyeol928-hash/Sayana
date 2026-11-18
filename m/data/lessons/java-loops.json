@@ -172,7 +172,7 @@
     "answer" : 1,
     "explanationHtml" : "<p>1から4までの整数を順に足しているので <code>1 + 2 + 3 + 4</code> で 10 です。</p>\n",
     "traceHtml" : [ "初期化: <code>i = 1</code>、<code>sum = 0</code>", "<code>i = 1</code>: 条件 <code>1 &lt;= 4</code> は true → <code>sum</code> は <code>0 + 1</code> で 1 → <code>i = 2</code>", "<code>i = 2</code>: 条件は true → <code>sum</code> は <code>1 + 2</code> で 3 → <code>i = 3</code>", "<code>i = 3</code>: 条件は true → <code>sum</code> は <code>3 + 3</code> で 6 → <code>i = 4</code>", "<code>i = 4</code>: 条件は true → <code>sum</code> は <code>6 + 4</code> で 10 → <code>i = 5</code>", "<code>i = 5</code>: 条件 <code>5 &lt;= 4</code> は false → ループ終了 → 10 と表示" ],
-    "whyHtml" : [ "<code>i &lt;= 4</code> を <code>i &lt; 4</code> と読んだ答え。4 も含むので <code>1 + 2 + 3 + 4</code> で 10", "", "<code>sum += i</code> を代入と読んだ答え。<code>+=</code> は足し込むので、最後は合計の 10", "ループの外の sum を中から使えないと読んだ答え。外側の変数は内側から見える" ]
+    "whyHtml" : [ "<code>i &lt;= 4</code> を <code>i &lt; 4</code> と読んだ答え。4 も含むので <code>1 + 2 + 3 + 4</code> で 10", "", "<code>sum += i</code> を代入と読んだ答え。<code>+=</code> は足し込むので、最後は合計の 10", "ループの外の <code>sum</code> を中から使えないと読んだ答え。外側の変数は内側から見える" ]
   }, {
     "title" : "while と do-while の違い(条件が最初から false)",
     "level" : 2,
@@ -190,7 +190,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "00 01 02 10 11 12 20 21 22", "00 10 20", "00", "何も表示されない" ],
     "answer" : 1,
-    "explanationHtml" : "<p>break は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について <code>j = 0</code> のときだけ表示されて <code>j = 1</code> で内側を抜ける、を3回くり返します。</p>\n",
+    "explanationHtml" : "<p><code>break</code> は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について <code>j = 0</code> のときだけ表示されて <code>j = 1</code> で内側を抜ける、を3回くり返します。</p>\n",
     "traceHtml" : [ "<code>i = 0</code>: <code>j = 0</code> で <code>00</code> と空白を表示、<code>j = 1</code> で <code>break</code>(内側だけ終了)", "<code>i = 1</code>: <code>j = 0</code> で <code>10</code> と空白を表示、<code>j = 1</code> で <code>break</code>", "<code>i = 2</code>: <code>j = 0</code> で <code>20</code> と空白を表示、<code>j = 1</code> で <code>break</code>", "結果: <code>00 10 20</code>" ],
     "whyHtml" : [ "<code>break</code> を見落とした答え。j が 1 になった所で内側のループを抜ける", "", "<code>break</code> が外側のループまで抜けると読んだ答え。<code>break</code> が抜けるのは直近の内側のループだけ", "<code>j == 1</code> の判定で最初から抜けると読んだ答え。<code>j = 0</code> では <code>break</code> せず 1 回は表示する" ]
   }, {
@@ -200,7 +200,7 @@
     "questionHtml" : "配列と拡張 for は次の「配列」のレッスンで習います。ここでは <code>nums</code> が 1, 2, 3 を順に持つ入れ物(<code>nums[0]</code> が先頭)、<code>for (int n : nums)</code> が「その値を先頭から1つずつ n に入れてくり返す」ループだとだけ考えてください。出力は?",
     "choicesHtml" : [ "10 20 30", "1 2 3", "コンパイルエラー", "実行時エラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>拡張 for の n は、配列の各要素の値がコピーされたローカル変数です(int は基本データ型なので値コピー)。n を書き換えても元の配列 nums の中身には影響しません。</p>\n",
+    "explanationHtml" : "<p>拡張 for の n は、配列の各要素の値がコピーされたローカル変数です(int は基本データ型なので値コピー)。n を書き換えても元の配列 <code>nums</code> の中身には影響しません。</p>\n",
     "traceHtml" : [ "1周目: n に <code>nums[0]</code> の 1 がコピーされる → <code>n = 10</code> にしても <code>nums[0]</code> はそのまま", "2周目: n に <code>nums[1]</code> の 2 がコピーされる → <code>n = 20</code> にしても <code>nums[1]</code> はそのまま", "3周目: n に <code>nums[2]</code> の 3 がコピーされる → <code>n = 30</code> にしても <code>nums[2]</code> はそのまま", "結果: <code>nums</code> は変化せず <code>1 2 3</code> と表示" ],
     "whyHtml" : [ "n への代入が配列に戻ると読んだ答え。n は要素の値をコピーした別の変数", "", "拡張 for の変数には代入できないと読んだ答え。n はただのローカル変数で書き換えられる", "ループ中に書き換えると例外になると読んだ答え。n を変えても配列には触れていない" ]
   } ],

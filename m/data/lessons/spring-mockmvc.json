@@ -78,7 +78,7 @@
     "questionHtml" : "<p>standaloneSetup(UTF-8 の設定なし)で次の Controller をテストした。結果は?</p>\n<pre><code class=\"language-java\">@GetMapping(&quot;/hello&quot;)\npublic String hello() { return &quot;こんにちは&quot;; }\n</code></pre>\n<pre><code class=\"language-java\">mvc.perform(get(&quot;/hello&quot;))\n   .andExpect(content().string(&quot;こんにちは&quot;));\n</code></pre>\n",
     "choicesHtml" : [ "成功する", "本文が「?????」で失敗する", "URL が見つからず 404 で失敗する", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p><code>StringHttpMessageConverter</code> の既定の文字コードは <strong>ISO-8859-1</strong> で、日本語を表せないため <code>?????</code> に化け、<code>Response content expected:&lt;こんにちは&gt; but was:&lt;?????&gt;</code> で失敗します。\nstandaloneSetup では <code>setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)</code> と <code>defaultResponseCharacterEncoding(StandardCharsets.UTF_8)</code> を指定します。Spring Boot(<code>@WebMvcTest</code> や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。</p>\n",
+    "explanationHtml" : "<p><code>StringHttpMessageConverter</code> の既定の文字コードは <strong>ISO-8859-1</strong> で、日本語を表せないため <code>?????</code> に化け、<code>Response content expected:&lt;こんにちは&gt; but was:&lt;?????&gt;</code> で失敗します。\n<code>standaloneSetup</code> では <code>setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)</code> と <code>defaultResponseCharacterEncoding(StandardCharsets.UTF_8)</code> を指定します。Spring Boot(<code>@WebMvcTest</code> や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。</p>\n",
     "whyHtml" : [ "文字コードが既定で UTF-8 と読んだ答え", "", "<code>standaloneSetup</code> だと URL が見つからないと読んだ答え。<code>/hello</code> は一致している", "日本語の文字列は比べられないと読んだ答え。コンパイルは通り、実行時に本文が化けて失敗する" ]
   }, {
     "questionHtml" : "<p>Mockito で次のように書いた。<code>service.findByCustomer(&quot;C002&quot;)</code> を呼ぶと何が返る?</p>\n<pre><code class=\"language-java\">OrderService service = mock(OrderService.class);\nwhen(service.findByCustomer(&quot;C001&quot;))\n    .thenReturn(List.of(new Order(&quot;O-1&quot;, &quot;ペン&quot;, 300)));\n</code></pre>\n<p>※ <code>findByCustomer</code> の戻り値の型は <code>List&lt;Order&gt;</code></p>\n",
@@ -96,7 +96,7 @@
     "questionHtml" : "<p>テストクラスが10個ある。全部 <code>@SpringBootTest</code> だが、クラスごとに <code>@MockitoBean</code> で差し替える Bean がバラバラ。テスト全体がとても遅い。主な原因として最も適切なのは?</p>\n",
     "choicesHtml" : [ "<code>MockMvc</code> が毎回 Tomcat を起動しているから", "コンテキストキャッシュが効かず、<code>ApplicationContext</code> を毎回作り直すから", "<code>@MockitoBean</code> は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから" ],
     "answer" : 1,
-    "explanationHtml" : "<p>Spring のテスト基盤は、<strong>設定が同じ</strong> テストクラス同士で ApplicationContext を使い回します(コンテキストキャッシュ)。<code>@MockitoBean</code> の組み合わせ、<code>@ActiveProfiles</code>、<code>@TestPropertySource</code> が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。<code>@DirtiesContext</code> も強制的に作り直します。\n対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。</p>\n",
+    "explanationHtml" : "<p>Spring のテスト基盤は、<strong>設定が同じ</strong> テストクラス同士で <code>ApplicationContext</code> を使い回します(コンテキストキャッシュ)。<code>@MockitoBean</code> の組み合わせ、<code>@ActiveProfiles</code>、<code>@TestPropertySource</code> が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。<code>@DirtiesContext</code> も強制的に作り直します。\n対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。</p>\n",
     "whyHtml" : [ "<code>MockMvc</code> がサーバーを起動すると読んだ答え。<code>MockMvc</code> は Tomcat を起動せず、<code>DispatcherServlet</code> を直接呼ぶ", "", "Mockito そのものが遅いと読んだ答え", "並列で動かないことが主な原因と読んだ答え" ]
   } ],
   "checks" : [ {

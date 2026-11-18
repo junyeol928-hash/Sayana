@@ -164,7 +164,7 @@
     "questionHtml" : "どうなる?",
     "choicesHtml" : [ "child と表示される", "base と表示される", "コンパイルエラー", "実行時エラーになる" ],
     "answer" : 2,
-    "explanationHtml" : "<p>Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、<code>base</code> と表示されるバグが隠れたままになります。</p>\n",
+    "explanationHtml" : "<p><code>Name()</code>(大文字 N)は親の <code>name()</code> とは別のメソッドなので、上書きになっていません。<code>@Override</code> が付いているので「上書き対象が無い」とコンパイルエラーになります。<code>@Override</code> が無ければコンパイルは通り、<code>base</code> と表示されるバグが隠れたままになります。</p>\n",
     "traceHtml" : [ "6行目: <code>Name()</code> は <code>name()</code> と別名 → 新しいメソッドの定義", "5行目: <code>@Override</code> は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー", "実行には至らない" ],
     "whyHtml" : [ "<code>Name()</code> が <code>name()</code> を上書きすると読んだ答え。大文字の <code>Name</code> は別のメソッドで、<code>@Override</code> がエラーにする", "<code>@Override</code> が無いときの結果と取り違えた答え。上書き対象が無いので、<code>@Override</code> がコンパイルで止める", "", "上書きの失敗が実行時に分かると読んだ答え。<code>@Override</code> がコンパイル時に見つける" ]
   }, {
@@ -206,7 +206,7 @@
     "answer" : 1,
     "explanationHtml" : "<p><code>@JsonProperty(&quot;user_id&quot;)</code> でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。</p>\n",
     "traceHtml" : [ "2行目: <code>userId</code> → キー名を <code>&quot;user_id&quot;</code> に変更", "3行目: displayName はそのまま", "4行目: passwordHash は出力しない(機密情報を漏らさない定番の使い方)", "出力: <code>{&quot;user_id&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;}</code>" ],
-    "whyHtml" : [ "アノテーションを見落とした答え。2 つとも出力を変えている", "", "@JsonProperty が全部のキーをスネークケースにすると読んだ答え。効くのは付けた userId だけ", "record の部品にアノテーションを付けられないと読んだ答え。付けられて、Jackson が実行時に読む" ]
+    "whyHtml" : [ "アノテーションを見落とした答え。2 つとも出力を変えている", "", "<code>@JsonProperty</code> が全部のキーをスネークケースにすると読んだ答え。効くのは付けた <code>userId</code> だけ", "record の部品にアノテーションを付けられないと読んだ答え。付けられて、Jackson が実行時に読む" ]
   } ],
   "atWork" : [ {
     "title" : "アノテーションの仕組み",

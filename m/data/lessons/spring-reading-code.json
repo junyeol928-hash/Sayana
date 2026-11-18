@@ -196,7 +196,7 @@
     "questionHtml" : "呼ばれるメソッドの順と、最終的な応答は?",
     "choicesHtml" : [ "<code>issue</code> → <code>existsByCardIdAndStatus(true)</code> → 例外 → 409", "<code>issue</code> → <code>existsByCardIdAndStatus(false)</code> → <code>save</code> → 201", "<code>issue</code> → <code>save</code> → <code>existsByCardIdAndStatus</code> → 200 + <code>KeyIssueResponse</code>", "バリデーションで弾かれて 400" ],
     "answer" : 1,
-    "explanationHtml" : "<p>cardId・keyVersion とも制約を満たすので @Valid は通過します。C100 に ACTIVE な鍵がまだないため existsByCardIdAndStatus は false を返し、if の中には入らず save が実行され、201 + KeyIssueResponse が返ります。</p>\n",
+    "explanationHtml" : "<p><code>cardId</code>・<code>keyVersion</code> とも制約を満たすので <code>@Valid</code> は通過します。<code>C100</code> に ACTIVE な鍵がまだないため <code>existsByCardIdAndStatus</code> は <code>false</code> を返し、<code>if</code> の中には入らず <code>save</code> が実行され、201 + <code>KeyIssueResponse</code> が返ります。</p>\n",
     "traceHtml" : [ "<code>@Valid</code>: <code>cardId = &quot;C100&quot;</code>(空でない)、<code>keyVersion = 1</code>(1〜255の範囲内)→ 制約OK", "<code>issue</code> が呼ばれ、<code>existsByCardIdAndStatus(&quot;C100&quot;,&quot;ACTIVE&quot;)</code> → 該当なしなので <code>false</code>", "<code>if (false)</code> なので例外は投げられず、次に進む", "<code>save</code> が実行され、<code>KeyEntity</code> が保存される", "<code>KeyIssueResponse</code> が組み立てられ、Controller が 201 + そのオブジェクトを返す" ],
     "whyHtml" : [ "<code>C100</code> に有効な鍵があると読んだ答え。まだ無いので <code>false</code> が返り、<code>save</code> に進む", "", "保存してから重複を調べると読んだ答え。先に <code>exists</code> で調べ、成功時は <code>HttpStatus.CREATED</code> の 201", "入力が制約に違反すると読んだ答え。<code>cardId</code> は空でなく <code>keyVersion</code> は範囲内で、<code>@Valid</code> を通る" ]
   }, {
@@ -206,7 +206,7 @@
     "questionHtml" : "最終的な応答は?",
     "choicesHtml" : [ "201 + <code>KeyIssueResponse</code>", "500 + 何もなし", "409 + <code>ErrorResponse(&quot;E409&quot;, ...)</code>", "<code>issue</code> が2回呼ばれて201が返る" ],
     "answer" : 2,
-    "explanationHtml" : "<p>既に ACTIVE な鍵があるので existsByCardIdAndStatus は true を返し、if の中で KeyAlreadyExistsException が投げられます。save は実行されず、この例外は @RestControllerAdvice の handleDuplicate に届き、409 + ErrorResponse が返ります。</p>\n",
+    "explanationHtml" : "<p>既に ACTIVE な鍵があるので <code>existsByCardIdAndStatus</code> は <code>true</code> を返し、<code>if</code> の中で <code>KeyAlreadyExistsException</code> が投げられます。<code>save</code> は実行されず、この例外は <code>@RestControllerAdvice</code> の <code>handleDuplicate</code> に届き、409 + <code>ErrorResponse</code> が返ります。</p>\n",
     "traceHtml" : [ "<code>existsByCardIdAndStatus(&quot;C001&quot;,&quot;ACTIVE&quot;)</code> → 該当ありなので <code>true</code>", "<code>if (true)</code> → <code>KeyAlreadyExistsException(&quot;C001&quot;)</code> が投げられる", "8〜10行目の <code>save</code> 以降は実行されない", "例外は Controller を素通りし、<code>handleDuplicate</code> が受け取る", "<code>handleDuplicate</code> が 409 + <code>ErrorResponse(&quot;E409&quot;, メッセージ)</code> を返す" ],
     "whyHtml" : [ "重複の判定(<code>existsByCardIdAndStatus</code>)を見落とした答え", "例外を誰も受けず、500 になると読んだ答え", "", "例外のあと処理がやり直されると読んだ答え。やり直しの仕組みは無い" ]
   }, {
@@ -216,7 +216,7 @@
     "questionHtml" : "keyIssueService.issue(...) は呼ばれる?",
     "choicesHtml" : [ "呼ばれ、201が返る", "呼ばれない", "呼ばれるが、<code>cardId</code> が <code>null</code> に置き換わって処理される", "呼ばれるが、例外がその場でもみ消される" ],
     "answer" : 1,
-    "explanationHtml" : "<p>cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに @RestControllerAdvice でハンドラを書きます。</p>\n",
+    "explanationHtml" : "<p><code>cardId</code> が空文字なので <code>@NotBlank</code> に違反し、<code>@Valid</code> のチェックで <code>MethodArgumentNotValidException</code> が発生します。<code>issue</code> メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに <code>@RestControllerAdvice</code> でハンドラを書きます。</p>\n",
     "traceHtml" : [ "リクエストボディが <code>KeyIssueRequest</code> に変換される。<code>cardId = &quot;&quot;</code>", "<code>@Valid</code> が <code>@NotBlank</code> をチェック → 空文字なので違反", "<code>MethodArgumentNotValidException</code> が投げられ、<code>issue</code>(12〜14行目)のメソッド本体には入らない", "ハンドラが無くても Spring の既定で 400 になる(項目ごとの中身を返すなら <code>@ExceptionHandler</code> を書く)" ],
     "whyHtml" : [ "空文字でも通ると読んだ答え。<code>@NotBlank</code> は空文字を違反とし、本体に入る前に止まる", "", "違反した値が <code>null</code> に直されると読んだ答え。値は直されず、<code>@Valid</code> で止まって 400", "検証の例外がその場で消えると読んだ答え" ]
   }, {
@@ -226,7 +226,7 @@
     "questionHtml" : "<code>findById</code> は KeyRepository のどこで定義されている?",
     "choicesHtml" : [ "<code>KeyRepository</code> インターフェースの2行目", "継承元の <code>JpaRepository</code>", "Service クラスの中で定義されている", "存在しないのでコンパイルエラーになる" ],
     "answer" : 1,
-    "explanationHtml" : "<p>KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元が持つ基本 CRUD の1つで、JpaRepository のさらに親の CrudRepository が宣言しています。extends の先までたどらないと見つかりません。</p>\n",
+    "explanationHtml" : "<p><code>KeyRepository</code> インターフェースの中には <code>existsByCardIdAndStatus</code> しか宣言されていません。<code>findById</code> は継承元が持つ基本 CRUD の1つで、<code>JpaRepository</code> のさらに親の <code>CrudRepository</code> が宣言しています。<code>extends</code> の先までたどらないと見つかりません。</p>\n",
     "traceHtml" : [ "1行目: <code>KeyRepository</code> は <code>JpaRepository&lt;KeyEntity, Long&gt;</code> を継承している", "2行目: このインターフェース自身が宣言しているのは existsByCardIdAndStatus だけ", "7行目: findById が呼ばれているが、KeyRepository 自身には定義がない", "継承元の <code>JpaRepository</code> をたどると、その親の <code>CrudRepository</code> に <code>findById(ID)</code> が <code>Optional&lt;T&gt;</code> を返すメソッドとして宣言されている" ],
     "whyHtml" : [ "<code>KeyRepository</code> の2行目に書いてあると読んだ答え。2行目は別のメソッド", "", "呼んでいる Service に定義があると読んだ答え", "見当たらないので無いと読んだ答え。コンパイルは通る" ]
   }, {
@@ -236,7 +236,7 @@
     "questionHtml" : "@Transactional の範囲に含まれる処理は?",
     "choicesHtml" : [ "<code>issue</code> メソッドと <code>notifyAsync</code> メソッドの両方", "<code>issue</code> メソッドの中身だけ", "アプリ全体のすべての処理", "<code>save</code> のみ" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(9行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。</p>\n",
+    "explanationHtml" : "<p><code>@Transactional</code> はメソッド単位で範囲が決まり、<code>issue</code> メソッドの開始から終了まで(9行目の <code>return</code> まで)が対象です。<code>notifyAsync</code> が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。</p>\n",
     "traceHtml" : [ "1行目: @Transactional の範囲は issue メソッドの本体(3〜9行目)", "3〜7行目: existsByCardIdAndStatus と save は同じトランザクション内", "8行目: notifyAsync は別スレッドで動くため、issue のトランザクションの外側で実行される", "9行目: return でメソッドが正常終了 → ここまでの変更(save)がコミットされる" ],
     "whyHtml" : [ "中で呼んだメソッドなら、別スレッドでも同じトランザクションと読んだ答え", "", "<code>@Transactional</code> がアプリ全体に効くと読んだ答え。範囲はメソッド単位で、<code>issue</code> の開始から終了まで", "DB を書く行だけが範囲と読んだ答え。範囲はメソッド単位で、<code>exists</code> の確認も含む" ]
   } ],

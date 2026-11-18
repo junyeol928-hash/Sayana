@@ -117,7 +117,7 @@
     "questionHtml" : "<p>次のフィールドを持つクラスの <code>increment()</code> を、複数のスレッドが同時に呼ぶ。正しい説明は?</p>\n<pre><code class=\"language-java\">private volatile int count = 0;\npublic void increment() { count++; }\n</code></pre>\n",
     "choicesHtml" : [ "<code>volatile</code> を付けたので完全にスレッドセーフ", "<code>volatile</code> は見え方を保証するだけで、<code>count++</code> は割り込まれ得る", "<code>volatile</code> を付けたフィールドに <code>++</code> はコンパイルエラー", "<code>volatile</code> を付けると <code>count</code> は常に 0 のまま" ],
     "answer" : 1,
-    "explanationHtml" : "<p><code>volatile</code> が保証するのは「書いた値がほかのスレッドにすぐ見える」ことだけです。<code>count++</code> の「読む・足す・書く」を1つの塊にはしないので、加算が消える競合状態はそのまま残ります。\n複数ステップをまとめて守るには <code>synchronized</code> か <code>AtomicInteger</code> を使います。volatile が向いているのは、停止フラグのような「1回書いて、ほかが読むだけ」の値です。</p>\n",
+    "explanationHtml" : "<p><code>volatile</code> が保証するのは「書いた値がほかのスレッドにすぐ見える」ことだけです。<code>count++</code> の「読む・足す・書く」を1つの塊にはしないので、加算が消える競合状態はそのまま残ります。\n複数ステップをまとめて守るには <code>synchronized</code> か <code>AtomicInteger</code> を使います。<code>volatile</code> が向いているのは、停止フラグのような「1回書いて、ほかが読むだけ」の値です。</p>\n",
     "whyHtml" : [ "<code>volatile</code> で操作が 1 つの塊になると読んだ答え。保証するのは見え方だけ", "", "<code>volatile</code> のフィールドに <code>++</code> は書けないと読んだ答え。書けて、コンパイルも通る", "<code>volatile</code> で値が変わらなくなると読んだ答え。値は変わる" ]
   }, {
     "questionHtml" : "<p>Spring の <code>@Service</code> クラスに次のフィールドがあった。問題点として正しいのは?</p>\n<pre><code class=\"language-java\">@Service\npublic class ItemService {\n    private Map&lt;String, Integer&gt; cache = new HashMap&lt;&gt;();\n    ...\n}\n</code></pre>\n",
@@ -181,7 +181,7 @@
     "questionHtml" : "最終的な get() の値として正しい説明は?",
     "choicesHtml" : [ "必ず100000になる(<code>value++</code> は割り込まれない)", "100000になるとは限らない", "必ず0のままになる", "コンパイルエラーになる" ],
     "answer" : 1,
-    "explanationHtml" : "<p>value++は複数ステップの操作なので、2つのスレッドが同時に実行すると加算が失われることがあります。結果は実行のタイミングに依存し、100000未満になることがあります。これが競合状態です。</p>\n",
+    "explanationHtml" : "<p><code>value++</code> は複数ステップの操作なので、2つのスレッドが同時に実行すると加算が失われることがあります。結果は実行のタイミングに依存し、100000未満になることがあります。これが競合状態です。</p>\n",
     "traceHtml" : [ "<code>inc()</code> は <code>value</code> を読む→1を足す→書き戻す、の3ステップ", "2つのスレッドがほぼ同時にこの3ステップを実行すると、片方の加算がもう片方に上書きされて消えることがある", "結果として合計回数(100000)より少ない値になることがある(常にではないが、保証されない)" ],
     "whyHtml" : [ "<code>value++</code> を割り込まれない 1 つの操作と読んだ答え。読む・足す・書くの間に割り込まれ、加算が消えうる", "", "スレッドの加算が反映されないと読んだ答え。加算は進むが、一部が消えることがある", "@Service にフィールドを置けないと読んだ答え。置けてコンパイルも通るので、気づきにくい" ]
   }, {
@@ -201,9 +201,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "2000未満になることがある", "必ず2000になる", "2 本で分け合い、必ず1000になる", "コンパイルエラーになる" ],
     "answer" : 1,
-    "explanationHtml" : "<p>AtomicIntegerのincrementAndGet()は不可分な(割り込まれない)操作として実装されているため、複数スレッドから同時に呼ばれても加算が失われません。join()で両スレッドの終了を待ってから読むので、必ず2000になります。</p>\n",
+    "explanationHtml" : "<p><code>AtomicInteger</code> の <code>incrementAndGet()</code> は不可分な(割り込まれない)操作として実装されているため、複数スレッドから同時に呼ばれても加算が失われません。<code>t1.join()</code> と <code>t2.join()</code> で両スレッドの終了を待ってから読むので、必ず2000になります。</p>\n",
     "traceHtml" : [ "<code>t1</code> と <code>t2</code> がそれぞれ1000回ずつ <code>incrementAndGet</code> を呼ぶ", "<code>AtomicInteger</code> は各呼び出しを安全に(割り込まれずに)実行する", "<code>t1.join()</code> と <code>t2.join()</code> で両方の完了を待ってから <code>counter.get()</code> を読む", "合計2000になる" ],
-    "whyHtml" : [ "素の <code>count++</code> と同じと読んだ答え。<code>incrementAndGet()</code> は別物", "", "2 つのスレッドが同じ 1000 回を分け合うと読んだ答え。それぞれが 1000 回ずつ足して 2000", "<code>AtomicInteger</code> をラムダから使えないと読んだ答え。counter は再代入されず、ラムダの中で使える" ]
+    "whyHtml" : [ "素の <code>count++</code> と同じと読んだ答え。<code>incrementAndGet()</code> は別物", "", "2 つのスレッドが同じ 1000 回を分け合うと読んだ答え。それぞれが 1000 回ずつ足して 2000", "<code>AtomicInteger</code> をラムダから使えないと読んだ答え。<code>counter</code> は再代入されず、ラムダの中で使える" ]
   }, {
     "title" : "タイムアウト付きFutureの挙動",
     "level" : 3,
@@ -211,7 +211,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "done", "timeout", "何も出力されない", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>処理は完了までに5秒かかりますが、get(1, TimeUnit.SECONDS)は1秒で諦めてTimeoutExceptionを投げます。catchブロックでそれを受け取り <code>timeout</code> と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。</p>\n",
+    "explanationHtml" : "<p>処理は完了までに5秒かかりますが、<code>get(1, TimeUnit.SECONDS)</code> は1秒で諦めて <code>TimeoutException</code> を投げます。catch ブロックでそれを受け取り <code>timeout</code> と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。</p>\n",
     "traceHtml" : [ "2〜5行目: 別スレッドで5秒かかる処理を投げる", "8行目: 1秒だけ待つように指定して <code>get</code>", "1秒経過してもまだ終わっていないので <code>TimeoutException</code> が発生", "10〜11行目: catch で捕まえ <code>timeout</code> と表示" ],
     "whyHtml" : [ "<code>get</code> が処理の終わりまで待つと読んだ答え。時間を渡した <code>get</code> は 1 秒で待つのをやめる", "", "タイムアウトで黙って終わると読んだ答え。catch の println が動く", "Thread.sleep の例外を扱っていないと読んだ答え。値を返すラムダは Callable で、例外を投げてよい" ]
   }, {

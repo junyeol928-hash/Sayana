@@ -67,7 +67,7 @@
     "questionHtml" : "<p>次のコードの出力は?</p>\n<pre><code class=\"language-java\">PasswordEncoder enc = new BCryptPasswordEncoder();\nString a = enc.encode(&quot;haru-pass&quot;);\nString b = enc.encode(&quot;haru-pass&quot;);\nSystem.out.println(a.equals(b));\nSystem.out.println(enc.matches(&quot;haru-pass&quot;, a));\n</code></pre>\n",
     "choicesHtml" : [ "<code>true</code> と <code>true</code>", "<code>false</code> と <code>true</code>", "<code>true</code> と <code>false</code>", "<code>false</code> と <code>false</code>" ],
     "answer" : 1,
-    "explanationHtml" : "<p>BCrypt は encode のたびに <strong>ランダムなソルト</strong> を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、<code>a.equals(b)</code> は <code>false</code> です。\nソルトは保存値(<code>$2a$10$</code> に続く部分)の中に入っているので、<code>matches</code> はそのソルトで計算し直して比べ、<code>true</code> になります。だからパスワードの照合に <code>equals</code> を使ってはいけません。</p>\n",
+    "explanationHtml" : "<p>BCrypt は <code>encode</code> のたびに <strong>ランダムなソルト</strong> を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、<code>a.equals(b)</code> は <code>false</code> です。\nソルトは保存値(<code>$2a$10$</code> に続く部分)の中に入っているので、<code>matches</code> はそのソルトで計算し直して比べ、<code>true</code> になります。だからパスワードの照合に <code>equals</code> を使ってはいけません。</p>\n",
     "whyHtml" : [ "同じパスワードなら <code>encode</code> の結果も同じ文字列になる、と読んだ答え", "", "<code>encode</code> は毎回同じで <code>matches</code> は通らないと読んだ答え。実際は毎回違う文字列になり、<code>matches</code> は <code>true</code>", "文字列が違うので照合も通らないと読んだ答え。<code>matches</code> は保存値の中のソルトで計算し直すので <code>true</code>" ]
   }, {
     "questionHtml" : "<p>Spring Security を有効にしたアプリで、次の Thymeleaf のフォームから送信したら 403 Forbidden になった。原因として最も適切なのは?</p>\n<pre><code class=\"language-html\">&lt;form action=&quot;/orders&quot; method=&quot;post&quot;&gt;\n  &lt;input type=&quot;text&quot; name=&quot;item&quot;&gt;\n  &lt;button&gt;注文&lt;/button&gt;\n&lt;/form&gt;\n</code></pre>\n",
@@ -191,7 +191,7 @@
     "questionHtml" : "一般ユーザーが <code>deactivateUser(&quot;u001&quot;)</code> を呼ぶと?",
     "choicesHtml" : [ "<code>AccessDeniedException</code> が発生し、何も出力されない", "権限チェックされずに <code>deleted: u001</code> が出力される", "コンパイルエラー", "401 が返る" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。</p>\n",
+    "explanationHtml" : "<p><code>@PreAuthorize</code> は AOP のプロキシが外からの呼び出しを横取りして動きます。<code>deactivateUser</code> から <code>this.deleteUser(...)</code> を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも <code>deleteUser</code> の中身が実行されてしまいます。</p>\n",
     "traceHtml" : [ "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)", "5行目: <code>deactivateUser</code> の中で <code>this.deleteUser(userId)</code> を呼ぶ(内部呼び出し)", "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない", "10行目: 権限チェックなしで <code>deleteUser</code> の本体が実行され、<code>deleted: u001</code> が出力される" ],
     "whyHtml" : [ "内部呼び出しでも <code>@PreAuthorize</code> が効くと読んだ答え。<code>this</code> からの呼び出しはプロキシを通らない", "", "<code>@PreAuthorize</code> のメソッドを中から呼べないと読んだ答え。普通に呼べ、権限チェックが飛ばされるだけ", "一般ユーザーを未認証と読んだ答え。ログイン済みで、しかも内部呼び出しなので権限チェックも無い" ]
   }, {
@@ -201,7 +201,7 @@
     "questionHtml" : "この POST リクエストに、Spring Security の CSRF のフィルタはどう応える?",
     "choicesHtml" : [ "200 で正常に処理される", "401(認証情報がない)", "403 で拒否される", "500(サーバエラー)" ],
     "answer" : 2,
-    "explanationHtml" : "<p>csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -&gt; csrf.disable()) にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(/error)を permitAll にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。</p>\n",
+    "explanationHtml" : "<p><code>csrf()</code> を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。<code>httpBasic</code> で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では <code>csrf(csrf -&gt; csrf.disable())</code> にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(<code>/error</code>)を <code>permitAll</code> にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。</p>\n",
     "traceHtml" : [ "5〜6行目: <code>authorizeHttpRequests</code> と <code>httpBasic</code> は設定しているが <code>csrf()</code> の呼び出しがない", "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る", "POST リクエストが CSRF フィルタに到達し、トークンチェックで失敗する", "結果: Controller に届く前に 403 で止まる" ],
     "whyHtml" : [ "認証できれば POST も通ると読んだ答え。CSRF 保護が有効なままで、トークンが無いと 403", "認証情報が無いと読んだ答え。Authorization ヘッダは付いていて、止めるのは CSRF のチェック", "", "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する" ]
   }, {
@@ -211,7 +211,7 @@
     "questionHtml" : "有効な API キー付きで GET /api/ping を呼ぶと、Controller の authentication は?",
     "choicesHtml" : [ "キーの持ち主の情報が入る", "未認証として扱われる", "コンパイルエラー", "常に <code>ADMIN</code> 権限になる" ],
     "answer" : 1,
-    "explanationHtml" : "<p>キーの検証自体は通っていますが、SecurityContextHolder.getContext().setAuthentication(...) を呼び忘れているため、認証情報は一度もセットされません。chain.doFilter は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も Authentication は空(null 相当)になります。</p>\n",
+    "explanationHtml" : "<p>キーの検証自体は通っていますが、<code>SecurityContextHolder.getContext().setAuthentication(...)</code> を呼び忘れているため、認証情報は一度もセットされません。<code>chain.doFilter</code> は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も <code>Authentication</code> は空(<code>null</code> 相当)になります。</p>\n",
     "traceHtml" : [ "5〜6行目: ヘッダのキーを検証し、正しいと分かる", "7行目: しかし SecurityContextHolder に認証情報をセットする処理がない", "9行目: chain.doFilter は呼ばれるので後続フィルタ・Controller には進む", "結果: 検証は通ったのに「誰か」が確定していないため、authentication は使えない(未認証扱い)" ],
     "whyHtml" : [ "キーの検証が通れば、それだけで認証されると読んだ答え", "", "<code>Authentication</code> を引数で受けられないと読んだ答え。受けられ、コンパイルは通る", "検証を通れば強い権限になると読んだ答え。何もセットしていないので未認証のまま" ]
   } ],

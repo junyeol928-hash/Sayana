@@ -153,7 +153,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "基本プラン 1000", "基本プラン 2500", "コンパイルエラー", "null 2500" ],
     "answer" : 1,
-    "explanationHtml" : "<p>label() は FamilyPlan に書かれていないので、親 Plan の版がそのまま使われます。monthlyFee() は子で上書きしているので 2500 です。</p>\n",
+    "explanationHtml" : "<p><code>label()</code> は <code>FamilyPlan</code> に書かれていないので、親 Plan の版がそのまま使われます。<code>monthlyFee()</code> は子で上書きしているので 2500 です。</p>\n",
     "traceHtml" : [ "10行目: <code>FamilyPlan</code> を new(親 <code>Plan()</code> → 子 <code>FamilyPlan()</code> の順に初期化)", "11行目: <code>f.label()</code> → 子に無い → 親の <code>label()</code> → <code>&quot;基本プラン&quot;</code>", "11行目: <code>f.monthlyFee()</code> → 子で上書き済み → 2500" ],
     "whyHtml" : [ "子の上書きを見落とした答え", "", "子に書いていない <code>label()</code> は呼べないと読んだ答え", "子に無い <code>label()</code> は null を返すと読んだ答え" ]
   }, {
@@ -163,7 +163,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "B", "BMT", "TMB", "MB" ],
     "answer" : 2,
-    "explanationHtml" : "<p>Bottom() の super() が Middle() を呼び、Middle() の(自動で補われた)super() が Top() を呼びます。いちばん上の Top から順に本体が実行されるので T → M → B です。</p>\n",
+    "explanationHtml" : "<p><code>Bottom()</code> の <code>super()</code> が <code>Middle()</code> を呼び、<code>Middle()</code> の(自動で補われた)<code>super()</code> が <code>Top()</code> を呼びます。いちばん上の Top から順に本体が実行されるので T → M → B です。</p>\n",
     "traceHtml" : [ "14行目: <code>new Bottom()</code> → <code>Bottom()</code> に入る → 9行目 <code>super()</code> で <code>Middle()</code> へ", "5行目: <code>Middle()</code> の1行目に自動の <code>super()</code> → <code>Top()</code> へ", "2行目: <code>Top()</code> の本体 → <code>T</code> を表示 → Middle に戻る", "5行目: <code>Middle()</code> の本体 → <code>M</code> を表示 → Bottom に戻る", "10行目: <code>Bottom()</code> の残り → <code>B</code> を表示" ],
     "whyHtml" : [ "親のコンストラクタは動かないと読んだ答え。<code>super()</code> をたどって Top と Middle も実行される", "子の本体から先に動くと読んだ答え。<code>super()</code> が先頭なので一番上の Top から順に出る", "", "Middle の <code>super()</code> を見落とした答え。書いていなくても自動で入り、Top も実行される" ]
   }, {
@@ -173,7 +173,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "Hello, Ken", "Ken-san", "Hello, Ken-san", "無限ループ" ],
     "answer" : 2,
-    "explanationHtml" : "<p>子の hello() は、<code>super.hello(name)</code> で親の版を呼んで <code>&quot;Hello, Ken&quot;</code> を受け取り、<code>&quot;-san&quot;</code> を足して返します。<code>super.</code> を付けずに <code>hello(name)</code> と書くと自分自身を呼び続けて StackOverflowError になります。</p>\n",
+    "explanationHtml" : "<p>子の <code>hello()</code> は、<code>super.hello(name)</code> で親の版を呼んで <code>&quot;Hello, Ken&quot;</code> を受け取り、<code>&quot;-san&quot;</code> を足して返します。<code>super.</code> を付けずに <code>hello(name)</code> と書くと自分自身を呼び続けて StackOverflowError になります。</p>\n",
     "traceHtml" : [ "14行目: <code>g.hello(&quot;Ken&quot;)</code> → 子の <code>hello</code>(8行目)が動く", "9行目: <code>super.hello(&quot;Ken&quot;)</code> → 親の <code>hello</code>(2行目)→ <code>&quot;Hello, Ken&quot;</code>", "9行目: <code>&quot;Hello, Ken&quot; + &quot;-san&quot;</code> → <code>&quot;Hello, Ken-san&quot;</code> を返す" ],
     "whyHtml" : [ "子の上書きを見落とした答え", "<code>super.hello(name)</code> が name だけを返すと読んだ答え", "", "<code>super.hello()</code> も自分自身を呼ぶと読んだ答え" ]
   }, {
@@ -193,7 +193,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "init: base", "init: child", "init: null", "コンパイルエラー" ],
     "answer" : 2,
-    "explanationHtml" : "<p>new Child() では、まず親 Base() が動きます。その中で呼ばれる describe() は、実体が Child なので<strong>子の上書き版</strong>が動きます。しかしこの時点では子のフィールド初期化子(<code>label = &quot;child&quot;</code>)はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。</p>\n",
+    "explanationHtml" : "<p><code>new Child()</code> では、まず親 <code>Base()</code> が動きます。その中で呼ばれる <code>describe()</code> は、実体が Child なので<strong>子の上書き版</strong>が動きます。しかしこの時点では子のフィールド初期化子(<code>label = &quot;child&quot;</code>)はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。</p>\n",
     "traceHtml" : [ "14行目: <code>new Child()</code> → 親 <code>Base()</code> が先に動く(子の初期化子はまだ)", "3行目: <code>describe()</code> を呼ぶ → 実体は Child なので子の <code>describe()</code>(11行目)", "11行目: label はまだ初期化されていない → null を返す", "3行目: <code>init: null</code> と表示", "その後: 子の初期化子で <code>label = &quot;child&quot;</code> になるが、表示はもう終わっている" ],
     "whyHtml" : [ "親のコンストラクタの中では、親の <code>describe()</code> が動くと読んだ答え", "子のフィールドが先に初期化されると読んだ答え", "", "上書きできるメソッドをコンストラクタで呼ぶとエラーと読んだ答え。危険だが文法上は通る" ]
   } ],

@@ -83,13 +83,13 @@
     "questionHtml" : "<p>次のコードで、コンパイルエラーになるのはどの行?</p>\n<pre><code class=\"language-java\">class Item {\n    private int stock;\n    int getStock() { return stock; }\n    void add(int n) { stock += n; }\n}\nItem item = new Item();     // 行A\nitem.add(5);                // 行B\nitem.stock = 10;            // 行C\nSystem.out.println(item.getStock()); // 行D\n</code></pre>\n",
     "choicesHtml" : [ "行A", "行B", "行C", "行D" ],
     "answer" : 2,
-    "explanationHtml" : "<p><code>stock</code> は <code>private</code> なので、<code>Item</code> クラスの外からは直接読み書きできません。行C は <code>stock has private access in Item</code> になります。\nprivate フィールドを自由に使えるのは、クラスの内側(Item 自身のメソッドの中)だけです。</p>\n",
+    "explanationHtml" : "<p><code>stock</code> は <code>private</code> なので、<code>Item</code> クラスの外からは直接読み書きできません。行C は <code>stock has private access in Item</code> になります。\n<code>private</code> フィールドを自由に使えるのは、クラスの内側(<code>Item</code> 自身のメソッドの中)だけです。</p>\n",
     "whyHtml" : [ "コンストラクタを書いていない <code>new Item()</code> を疑った答え。デフォルトコンストラクタが自動で作られる", "<code>private</code> のフィールドを変えるメソッドは外から呼べないと読んだ答え。<code>add()</code> 自体は <code>private</code> ではない", "", "<code>getStock()</code> 経由でも <code>private</code> は読めないと読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードを実行するとどうなる?</p>\n<pre><code class=\"language-java\">final int[] nums = {1, 2, 3};\nnums[0] = 9;\nSystem.out.println(nums[0]);\n</code></pre>\n",
     "choicesHtml" : [ "1 と出力される", "9 と出力される", "コンパイルエラー", "実行時に例外が発生する" ],
     "answer" : 1,
-    "explanationHtml" : "<p><code>final</code> が禁止するのは <strong>変数 <code>nums</code> に別の配列を代入し直すこと</strong>(<code>nums = new int[3];</code> など)だけです。<code>nums</code> が指している配列の <strong>中身</strong> は変更できるので、<code>9</code> と出力されます。\n「final を付けたから中身も変わらない」は典型的な誤解です。中身まで守りたいなら、外に配列を渡すときに防御的コピーをするなどの工夫が必要です。</p>\n",
+    "explanationHtml" : "<p><code>final</code> が禁止するのは <strong>変数 <code>nums</code> に別の配列を代入し直すこと</strong>(<code>nums = new int[3];</code> など)だけです。<code>nums</code> が指している配列の <strong>中身</strong> は変更できるので、<code>9</code> と出力されます。\n「<code>final</code> を付けたから中身も変わらない」は典型的な誤解です。中身まで守りたいなら、外に配列を渡すときに防御的コピーをするなどの工夫が必要です。</p>\n",
     "whyHtml" : [ "<code>final</code> で配列の中身も守られると読んだ答え。<code>final</code> が止めるのは変数の再代入だけ", "", "<code>final</code> の配列の要素への代入を禁止と読んだ答え。禁止されるのは <code>nums = ...</code> の再代入だけ", "<code>final</code> の中身を変えると実行時に止まると読んだ答え。要素の書き換えは許されていて 9 が出る" ]
   }, {
     "questionHtml" : "<p>次のコードの出力は?</p>\n<pre><code class=\"language-java\">class Scores {\n    private final int[] data;\n    Scores(int[] data) { this.data = data; }\n    int first() { return data[0]; }\n}\nint[] src = {70, 80};\nScores s = new Scores(src);\nsrc[0] = 0;\nSystem.out.println(s.first());\n</code></pre>\n",
@@ -183,9 +183,9 @@
     "questionHtml" : "2行の出力は?",
     "choicesHtml" : [ "Date / Date", "java.util.Date / java.sql.Date", "コンパイルエラー(Date が曖昧)", "java.sql.Date / java.sql.Date" ],
     "answer" : 1,
-    "explanationHtml" : "<p>import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。</p>\n",
+    "explanationHtml" : "<p>import しているのは <code>java.util.Date</code> だけなので、短い名前 <code>Date</code> は <code>java.util.Date</code> を指します。<code>java.sql.Date</code> は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。</p>\n",
     "traceHtml" : [ "1行目: 短い名前 <code>Date</code> は <code>java.util.Date</code> と決まる", "5行目: d1 は java.util.Date のインスタンス", "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない", "7〜8行目: <code>getName()</code> は完全修飾名を返す → <code>java.util.Date</code>、<code>java.sql.Date</code>" ],
-    "whyHtml" : [ "<code>getName()</code> が短いクラス名を返すと読んだ答え", "", "2 つの Date がぶつかると読んだ答え", "後の行の完全修飾名に、短い Date も引きずられると読んだ答え" ]
+    "whyHtml" : [ "<code>getName()</code> が短いクラス名を返すと読んだ答え", "", "2 つの <code>Date</code> がぶつかると読んだ答え", "後の行の完全修飾名に、短い <code>Date</code> も引きずられると読んだ答え" ]
   }, {
     "title" : "生成されたgetterを呼ぶ",
     "level" : 1,
@@ -193,7 +193,7 @@
     "questionHtml" : "<code>@AllArgsConstructor</code> は、全フィールドを宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(<code>@Getter</code> は本文で扱ったもの)。出力は?",
     "choicesHtml" : [ "C001:3", "コンパイルエラー(getCardId は存在しない)", "null:0", "実行時エラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。</p>\n",
+    "explanationHtml" : "<p><code>@Getter</code> により<code>getCardId()</code>と<code>getKeyVersion()</code>が生成され、<code>@AllArgsConstructor</code>により全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。</p>\n",
     "traceHtml" : [ "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される", "8行目: <code>KeyEntity(&quot;C001&quot;, 3)</code> → <code>cardId=&quot;C001&quot;</code>, <code>keyVersion=3</code> で生成", "9行目: <code>getCardId()</code> → <code>&quot;C001&quot;</code>、<code>getKeyVersion()</code> → 3", "結果: <code>C001:3</code> と表示" ],
     "whyHtml" : [ "", "ソースに無い getter は呼べないと読んだ答え", "コンストラクタの引数がフィールドに入らないと読んだ答え", "生成されたメソッドが、実行時には無いと読んだ答え" ]
   }, {
@@ -203,7 +203,7 @@
     "questionHtml" : "<code>@RequiredArgsConstructor</code> は、<strong>初期化していない final のフィールド</strong> を宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(第3部で詳しく)。この呼び出しはコンパイルできる?",
     "choicesHtml" : [ "できる。final の2つを引数にとるコンストラクタが生成されているため", "できない。3引数のコンストラクタしか生成されないため", "できる。全フィールド3つを渡す必要があるため", "できない。@RequiredArgsConstructor は Service では使えないため" ],
     "answer" : 0,
-    "explanationHtml" : "<p>@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。</p>\n",
+    "explanationHtml" : "<p><code>@RequiredArgsConstructor</code> が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。</p>\n",
     "traceHtml" : [ "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される", "3行目: keyRepository は final → 対象", "4行目: cryptoClient は final でない → 対象外", "5行目: clock は final → 対象", "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)", "9行目: 引数の型と順序が一致するのでコンパイルできる" ],
     "whyHtml" : [ "", "final の有無に関係なく、全フィールドを取ると読んだ答え", "全フィールドを取る <code>@AllArgsConstructor</code> と取り違えた答え", "この注釈を付けられるクラスに制限があると読んだ答え" ]
   }, {
@@ -213,7 +213,7 @@
     "questionHtml" : "<code>@Data</code> は toString も自動で作り、その toString は全フィールドを文字列にします。<code>@Entity</code> / <code>@OneToMany</code> / <code>@ManyToOne</code> は JPA(第3部)の注釈で、ここでは「KeyEntity と ResultEntity がお互いを参照している」とだけ読めば十分です。results に ResultEntity が入っている keyEntity で System.out.println(keyEntity) を実行すると?",
     "choicesHtml" : [ "正常に文字列が表示される", "<code>StackOverflowError</code> が発生することがある", "<code>NullPointerException</code> が必ず発生する", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。</p>\n",
+    "explanationHtml" : "<p><code>@Data</code> の <code>toString()</code> は <code>results</code> フィールドも文字列化しようとし、各 ResultEntity の <code>toString()</code> はさらに <code>key</code> フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、<code>StackOverflowError</code> になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。</p>\n",
     "traceHtml" : [ "18行目: <code>keyEntity.toString()</code> が呼ばれる(<code>println</code> が内部で呼ぶ)", "<code>@Data</code> の <code>toString()</code> は <code>results</code> フィールドも含める → 各 <code>ResultEntity.toString()</code> を呼ぶ", "<code>ResultEntity.toString()</code> は <code>key</code> フィールド(元の KeyEntity)を含める → <code>keyEntity.toString()</code> を再び呼ぶ", "この呼び合いが止まらず、スタックが尽きて <code>StackOverflowError</code>" ],
     "whyHtml" : [ "<code>toString()</code> がお互いを呼び合うことを見落とした答え。<code>results</code> と <code>key</code> をたどり続けて止まらない", "", "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる", "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の <code>toString()</code> で起きる" ]
   }, {
@@ -223,7 +223,7 @@
     "questionHtml" : "<code>@Builder</code> は <code>CommandRequest.builder().項目名(値)….build()</code> の形で組み立てる Builder(「ネストクラス」のレッスンで扱う)を自動で作る Lombok の注釈、<code>@ToString</code> は toString を作る注釈です。出力される timeoutMillis の値は?",
     "choicesHtml" : [ "0", "コンパイルエラー", "実行時例外", "null" ],
     "answer" : 0,
-    "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。</p>\n",
+    "explanationHtml" : "<p>Builder では <code>timeoutMillis()</code> が呼ばれていないため、int の既定値である 0 のまま <code>build()</code> が実行され、CommandRequest(仕事では ApduRequest)が完成します。</p>\n",
     "traceHtml" : [ "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない", "12行目: <code>build()</code> が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる", "int の既定値は 0 なので timeoutMillis は 0", "結果: <code>toString()</code> の出力に <code>timeoutMillis=0</code> が含まれる" ],
     "whyHtml" : [ "", "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え", "設定しない項目があると <code>build()</code> で落ちると読んだ答え", "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0" ]
   }, {
@@ -233,7 +233,7 @@
     "questionHtml" : "<code>Files.readString</code> はファイルを読むメソッドで、読めないと IOException(catch か throws の宣言が必須の「検査例外」。第5章)を投げます。<code>@SneakyThrows</code> は、その throws 宣言を書かずに済ませる Lombok の注釈です。存在しないファイルを渡して load を呼ぶと?",
     "choicesHtml" : [ "コンパイルエラー(<code>IOException</code> を catch していない)", "実行時に <code>IOException</code> 系の例外が発生し、処理が止まる", "<code>null</code> が返る", "空文字が返る" ],
     "answer" : 1,
-    "explanationHtml" : "<p>@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。</p>\n",
+    "explanationHtml" : "<p><code>@SneakyThrows</code> は throws 宣言をコンパイラから隠すだけで、<code>IOException</code> の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。</p>\n",
     "traceHtml" : [ "4行目: ファイルが存在しないため <code>Files.readString</code> が <code>IOException</code> 相当の例外を投げる", "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない", "10行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)", "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる" ],
     "whyHtml" : [ "検査例外を catch していないので、コンパイラが止めると読んだ答え", "", "この注釈が例外を握りつぶすと読んだ答え", "読めないファイルは空として扱われると読んだ答え" ]
   } ],
