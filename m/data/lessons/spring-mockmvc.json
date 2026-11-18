@@ -24,7 +24,7 @@
     }
   }, {
     "title" : "standaloneSetup の文字化けを再現する",
-    "descriptionHtml" : "<p>同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしのとき、「合計 1,500円」の本文はどう出る?Content-Type の charset も予想してから見よう。</p>\n",
+    "descriptionHtml" : "<p>同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしのとき、「合計 1,500円」の本文はどう出る?Content-Type の charset は何になるだろうか。</p>\n",
     "code" : "// 日本語を返す Controller を、UTF-8 設定なし/ありで呼び比べる\n// ここを変えてみよう:返す文字列を \"Total 1,500 yen\" にすると、設定なしでも化けない\nimport java.nio.charset.StandardCharsets;\nimport org.springframework.web.bind.annotation.*;\nimport org.springframework.http.converter.StringHttpMessageConverter;\nimport org.springframework.test.web.servlet.MockMvc;\nimport org.springframework.test.web.servlet.setup.MockMvcBuilders;\nimport static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;\n\n@RestController\npublic class TotalController {\n    @GetMapping(\"/total\")\n    public String total() {\n        return \"合計 1,500円\";\n    }\n}\n\nvoid show(String label, MockMvc mvc) throws Exception {\n    var res = mvc.perform(get(\"/total\")).andReturn().getResponse();\n    System.out.println(label + \" Content-Type: \" + res.getContentType());\n    System.out.println(label + \" 本文: \" + res.getContentAsString());\n}\n\nMockMvc plain = MockMvcBuilders\n        .standaloneSetup(new TotalController())\n        .build();\nMockMvc utf8 = MockMvcBuilders\n        .standaloneSetup(new TotalController())\n        .setMessageConverters(\n                new StringHttpMessageConverter(StandardCharsets.UTF_8))\n        .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)\n        .build();\n\nshow(\"[設定なし]\", plain);\nshow(\"[UTF-8 ]\", utf8);\n",
     "result" : {
       "status" : "OK",

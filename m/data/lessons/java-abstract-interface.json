@@ -35,7 +35,7 @@
     }
   }, {
     "title" : "Comparable を実装して並べ替える",
-    "descriptionHtml" : "<p><code>Arrays.sort</code> は <code>compareTo</code> の結果(負・0・正)だけを頼りに並べる。3 つの <code>Item</code> は、どの順に並ぶ? 予想してから見よう。<code>implements Comparable&lt;Item&gt;</code> を消したら、さらに <code>@Override</code> も消したら何が起きるかも、予想してから試してみよう。</p>\n",
+    "descriptionHtml" : "<p><code>Arrays.sort</code> は <code>compareTo</code> の結果(負・0・正)だけを頼りに並べる。<code>implements Comparable&lt;Item&gt;</code> を消したら、さらに <code>@Override</code> も消したら何が起きるかも試してみよう。3 つの <code>Item</code> は、どの順に並ぶ?</p>\n",
     "code" : "// Comparable を実装して Arrays.sort で並べ替える\n// ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)\nclass Item implements Comparable<Item> {\n    final String name;\n    final int price;\n    Item(String name, int price) {\n        this.name = name;\n        this.price = price;\n    }\n    @Override\n    public int compareTo(Item other) {\n        // 自分が前なら負、同じなら0、後なら正\n        return Integer.compare(price, other.price);\n    }\n    @Override\n    public String toString() { return name + \"(\" + price + \"円)\"; }\n}\n\nItem[] items = {\n    new Item(\"ボールペン\", 150),\n    new Item(\"ノート\", 120),\n    new Item(\"ファイル\", 300)\n};\nArrays.sort(items);   // compareTo の結果だけを頼りに並べる\nSystem.out.println(Arrays.toString(items));\n",
     "result" : {
       "status" : "OK",
@@ -84,13 +84,13 @@
     "choicesHtml" : [ "(A)", "(B)", "(C)", "(D)" ],
     "answer" : 1,
     "explanationHtml" : "<p>抽象クラスは <strong><code>new</code> できない</strong> ので、(B) が <code>Animal is abstract; cannot be instantiated</code> になります。\n(A) は「親の型の変数に子のインスタンスを入れる」ポリモーフィズムで、抽象クラスでも型としては普通に使えます。(D) は <code>Animal</code> に <code>voice()</code> が宣言されているので呼べて、実際には <code>Dog</code> の <code>voice()</code> が動きます。</p>\n",
-    "whyHtml" : [ "抽象クラスは変数の型にも使えないと読んだ答え。型としては使え、子のインスタンスを入れられる", "", "<code>new Dog()</code> を疑った答え。<code>Dog</code> は <code>voice()</code> を実装した普通のクラスなので new できる", "抽象メソッドは呼べないと読んだ答え。<code>Animal</code> に宣言があるので呼べ、<code>Dog</code> の <code>voice()</code> が動く" ]
+    "whyHtml" : [ "抽象クラスは変数の型にも使えないと読んだ答え。型としては使え、子のインスタンスを入れられる", "", "<code>new Dog()</code> を疑った答え。<code>Dog</code> は <code>voice()</code> を実装した普通のクラスなので <code>new</code> できる", "抽象メソッドは呼べないと読んだ答え。<code>Animal</code> に宣言があるので呼べ、<code>Dog</code> の <code>voice()</code> が動く" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">abstract class Job {\n    final void run() {\n        System.out.print(&quot;開始 &quot;);\n        work();\n        System.out.print(&quot;終了&quot;);\n    }\n    abstract void work();\n}\nclass Backup extends Job {\n    void work() { System.out.print(&quot;バックアップ &quot;); }\n}\n\nnew Backup().run();\n</code></pre>\n",
     "choicesHtml" : [ "<code>バックアップ</code>", "<code>開始 終了</code>", "<code>開始 バックアップ 終了</code>", "コンパイルエラー(<code>Backup</code> に <code>run()</code> がない)" ],
     "answer" : 2,
     "explanationHtml" : "<p>典型的な <strong>テンプレートメソッド</strong> です。<code>run()</code> は親 <code>Job</code> から継承されているので <code>Backup</code> でも呼べます。<code>run()</code> の中の <code>work()</code> は、実行時のオブジェクト(<code>Backup</code>)の実装が呼ばれるので「開始 バックアップ 終了」になります。\n<code>run()</code> が <code>final</code> なのは「流れを子に書き換えさせない」ためで、呼び出すことは問題なくできます。</p>\n",
-    "whyHtml" : [ "<code>run()</code> が子の <code>work()</code> だけを動かすと読んだ答え", "親の <code>run()</code> から子の <code>work()</code> は呼ばれないと読んだ答え", "", "final の <code>run()</code> は子から呼べないと読んだ答え" ]
+    "whyHtml" : [ "<code>run()</code> が子の <code>work()</code> だけを動かすと読んだ答え", "親の <code>run()</code> から子の <code>work()</code> は呼ばれないと読んだ答え", "", "<code>final</code> の <code>run()</code> は子から呼べないと読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードについて正しい説明はどれ?</p>\n<pre><code class=\"language-java\">interface Greeter {\n    String greet();\n}\nclass Hello implements Greeter {\n    String greet() { return &quot;Hello&quot;; }\n}\n</code></pre>\n",
     "choicesHtml" : [ "問題なくコンパイルできる", "<code>Greeter</code> の <code>greet()</code> に <code>public</code> が書かれていないのでエラー", "<code>Hello</code> に <code>@Override</code> がないのでエラー", "<code>Hello</code> の <code>greet()</code> に <code>public</code> がないのでエラー" ],
@@ -102,7 +102,7 @@
     "choicesHtml" : [ "<code>C</code> で <code>hi()</code> を上書きしないとコンパイルエラー", "<code>A</code> と出力される(先に書いた方が優先)", "<code>B</code> と出力される(後に書いた方が優先)", "実行時に例外が発生する" ],
     "answer" : 0,
     "explanationHtml" : "<p>2つのインターフェースが同じシグネチャの default メソッドを持つと、どちらを使うべきか決められないので <code>types A and B are incompatible</code> というコンパイルエラーになります。<code>implements</code> に書いた順番は関係ありません。\n解決するには <code>C</code> で <code>hi()</code> を上書きし、必要なら <code>return A.super.hi();</code> のように片方を明示的に呼びます。</p>\n",
-    "whyHtml" : [ "", "implements に先に書いた方が勝つと読んだ答え。書いた順は関係なく、決められずにコンパイルエラー", "後に書いた方が上書きすると読んだ答え。順は関係なく、どちらか決められずにコンパイルエラー", "実行時にぶつかって落ちると読んだ答え。同じ default メソッドの衝突はコンパイルで止まる" ]
+    "whyHtml" : [ "", "<code>implements</code> に先に書いた方が勝つと読んだ答え。書いた順は関係なく、決められずにコンパイルエラー", "後に書いた方が上書きすると読んだ答え。順は関係なく、どちらか決められずにコンパイルエラー", "実行時にぶつかって落ちると読んだ答え。同じ default メソッドの衝突はコンパイルで止まる" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">class P implements Comparable&lt;P&gt; {\n    int v;\n    P(int v) { this.v = v; }\n    public int compareTo(P o) {\n        return Integer.compare(o.v, v);\n    }\n    public String toString() { return &quot;&quot; + v; }\n}\n\nP[] ps = { new P(2), new P(3), new P(1) };\nArrays.sort(ps);\nSystem.out.println(Arrays.toString(ps));\n</code></pre>\n",
     "choicesHtml" : [ "<code>[1, 2, 3]</code>", "<code>[3, 2, 1]</code>", "<code>[2, 3, 1]</code>", "<code>ClassCastException</code> が発生する" ],
@@ -163,7 +163,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "2900", "3600", "1700", "コンパイルエラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>リストの型は <code>List&lt;Fee&gt;</code> ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので 1200 + 500 + 1200 = 2900 です。</p>\n",
+    "explanationHtml" : "<p>リストの型は <code>List&lt;Fee&gt;</code> ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので <code>1200 + 500 + 1200</code> で 2900 です。</p>\n",
     "traceHtml" : [ "11行目: Fee 型のリストに、子クラスの実体を3つ入れる(アップキャスト)", "13〜14行目 1周目: f は AdultFee → 1200", "2周目: f は ChildFee → 500(合計 1700)", "3周目: f は AdultFee → 1200(合計 2900)", "16行目: 2900" ],
     "whyHtml" : [ "", "全部が AdultFee の 1200 と読んだ答え", "同じ AdultFee は 1 回だけ数えると読んだ答え", "抽象クラスの型ではリストを作れないと読んだ答え" ]
   }, {

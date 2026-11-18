@@ -51,18 +51,18 @@
     "choicesHtml" : [ "名前が <code>name</code> の社員を、部署の年齢順に3件", "部署名が <code>name</code> の社員を全件取り、年齢の若い順に並べて先頭3件", "部署名が <code>name</code> の社員を、年齢の高い順に並べて先頭3件", "部署名が <code>name</code> の部署を3件、社員の年齢順に" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>find</code> + <code>Top3</code>(先頭3件)+ <code>By</code> + <code>DepartmentName</code>(<code>department.name</code> をたどる条件)+ <code>OrderByAgeDesc</code>(年齢の降順)と読みます。返すのは戻り値どおり <code>Employee</code> です。\n<code>Desc</code> は降順(大きい順)なので「若い順」ではありません。<code>DepartmentName</code> は社員自身の <code>name</code> ではなく、関連先 <code>department</code> の <code>name</code> です。</p>\n",
-    "whyHtml" : [ "<code>DepartmentName</code> を社員の name と読んだ答え。関連先 department の name をたどる条件", "<code>Desc</code> を若い順と読んだ答え。<code>Desc</code> は降順なので年齢の高い順", "", "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは Employee" ]
+    "whyHtml" : [ "<code>DepartmentName</code> を社員の <code>name</code> と読んだ答え。関連先 <code>department</code> の <code>name</code> をたどる条件", "<code>Desc</code> を若い順と読んだ答え。<code>Desc</code> は降順なので年齢の高い順", "", "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは <code>Employee</code>" ]
   }, {
     "questionHtml" : "<p><code>Employee</code> に <code>name</code> プロパティがあるとき、Repository に次のメソッドを宣言してアプリを起動すると、どうなる?</p>\n<pre><code class=\"language-java\">List&lt;Employee&gt; findByNmae(String name);\n</code></pre>\n",
     "choicesHtml" : [ "起動時に <code>No property 'nmae' found</code> のエラーで失敗する", "起動はするが、<code>findByNmae</code> を呼んだときに初めて例外になる", "コンパイルエラーになる", "条件が無視されて全件が返る" ],
     "answer" : 0,
-    "explanationHtml" : "<p>派生クエリのメソッド名は、Repository のプロキシを作る <strong>起動時</strong> に解析・検証されます。存在しないプロパティ <code>nmae</code> を見つけた時点で <code>PropertyReferenceException</code>(<code>No property 'nmae' found for type 'Employee'</code>)になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。\nJava の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。</p>\n",
+    "explanationHtml" : "<p>派生クエリのメソッド名は、Repository のプロキシを作る <strong>起動時</strong> に解析・検証されます。存在しないプロパティ <code>nmae</code> を見つけた時点で <code>PropertyReferenceException</code> になり、アプリが起動しません。Did you mean 'name' と候補も添えて、次のメッセージが出ます: <code>No property 'nmae' found for type 'Employee'</code>\nJava の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。</p>\n",
     "whyHtml" : [ "", "メソッドを呼ぶときに名前を解析すると読んだ答え。名前は起動時に解析され、そこで失敗する", "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る", "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる" ]
   }, {
     "questionHtml" : "<p>社員が10人いて、全員が <strong>別々の部署</strong> に所属しています。<code>department</code> は <code>@ManyToOne(fetch = FetchType.LAZY)</code> です。\n次のコードを(同じトランザクション内で)実行すると、SQL は合計何回発行される?</p>\n<pre><code class=\"language-java\">for (Employee e : employeeRepository.findAll()) {\n    System.out.println(e.getDepartment().getName());\n}\n</code></pre>\n",
     "choicesHtml" : [ "1回", "2回", "10回", "11回" ],
     "answer" : 3,
-    "explanationHtml" : "<p><code>findAll()</code> で社員一覧を取るのに1回。LAZY の部署はプロキシなので、<code>getName()</code> で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが <strong>N+1 問題</strong> です。\n同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は <code>join fetch</code> で一度に取ることです。</p>\n",
+    "explanationHtml" : "<p><code>findAll()</code> で社員一覧を取るのに1回。LAZY の部署はプロキシなので、<code>getName()</code> で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 <code>1 + 10 = 11</code> 回です。これが <strong>N+1 問題</strong> です。\n同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は <code>join fetch</code> で一度に取ることです。</p>\n",
     "whyHtml" : [ "社員と部署を一度に取ると読んだ答え。LAZY の部署は触ったときに1件ずつ取る", "部署をまとめて1回で取ると読んだ答え。LAZY の部署は社員ごとに1回ずつ取り、計 1 + 10", "社員一覧を取る1回を数え落とした答え。<code>findAll</code> の1回と部署の10回で 11", "" ]
   }, {
     "questionHtml" : "<p><code>@Query</code> の JPQL として正しいものはどれ?(エンティティは <code>Employee</code>、テーブル名は <code>employees</code>、フィールドは <code>age</code>、列名も <code>age</code>)</p>\n",
@@ -177,10 +177,10 @@
     "level" : 2,
     "code" : "@Transactional\npublic void issue(String cardId) throws CryptoCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new CryptoCommunicationException(\"crypto timeout\");\n}\n// CryptoCommunicationException は Exception を直接継承した検査例外\n",
     "questionHtml" : "<code>issue(&quot;C001&quot;)</code> を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)",
-    "choicesHtml" : [ "ロールバックされ、保存されていない", "保存された行がそのまま残る", "起動時に例外になる", "コンパイルエラー" ],
+    "choicesHtml" : [ "ロールバックされ、保存されていない", "保存した行が残る", "起動時に例外になる", "検査例外の扱い漏れでコンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。</p>\n",
-    "traceHtml" : [ "3行目: save が実行される(まだ確定はしていない)", "4行目: 検査例外 CryptoCommunicationException が投げられる", "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外", "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る" ],
+    "traceHtml" : [ "3行目: save が実行される(まだ確定はしていない)", "4行目: 検査例外 <code>CryptoCommunicationException</code> が投げられる", "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外", "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る" ],
     "whyHtml" : [ "例外が出れば、種類を問わずロールバックされると読んだ答え", "", "検査例外を投げる <code>@Transactional</code> は起動で止まると読んだ答え。起動は問題なく、呼んだときの話", "検査例外の扱いが足りないと読んだ答え。<code>throws</code> で宣言してあるのでコンパイルは通る" ]
   }, {
     "title" : "rollbackFor を指定した場合",
@@ -189,8 +189,8 @@
     "questionHtml" : "前の問題と同じ処理に <code>rollbackFor = Exception.class</code> を追加した。DB の状態は?",
     "choicesHtml" : [ "保存された行が残る", "ロールバックされ、保存されていない", "例外が発生しなくなる", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>rollbackFor = Exception.class は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。</p>\n",
-    "traceHtml" : [ "1行目: rollbackFor で対象を Exception.class まで広げている", "3行目: save が実行される", "4行目: CryptoCommunicationException(Exception のサブクラス)が投げられる", "rollbackFor の条件に一致するのでロールバックが実行される", "結果: 3行目の保存内容も取り消され、テーブルに行は残らない" ],
+    "explanationHtml" : "<p><code>rollbackFor = Exception.class</code> は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。</p>\n",
+    "traceHtml" : [ "1行目: rollbackFor で対象を Exception.class まで広げている", "3行目: save が実行される", "4行目: <code>CryptoCommunicationException</code>(<code>Exception</code> のサブクラス)が投げられる", "rollbackFor の条件に一致するのでロールバックが実行される", "結果: 3行目の保存内容も取り消され、テーブルに行は残らない" ],
     "whyHtml" : [ "前の問題と同じ結果と読んだ答え。追加した <code>rollbackFor</code> を見落としている", "", "<code>rollbackFor</code> が例外を止めると読んだ答え。例外はそのまま投げられ、取り消しが起きるだけ", "<code>rollbackFor</code> に <code>Exception</code> は指定できないと読んだ答え。どの例外クラスでも指定できる" ]
   }, {
     "title" : "N+1 が起きる箇所を見つける",
@@ -199,8 +199,8 @@
     "questionHtml" : "このコードを(同じトランザクション内で)実行したとき、DB に対して発行される SELECT は何回?",
     "choicesHtml" : [ "1回", "2回", "5回", "6回" ],
     "answer" : 3,
-    "explanationHtml" : "<p>findAll() で1回、その後ループの5回分、getResults() にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 1 + 5 = 6回になります。これが N+1 問題です。</p>\n",
-    "traceHtml" : [ "1行目: findAll() で1回目のSELECT(5件のKeyEntityを取得)", "3行目: forループが5回まわる", "4行目: 1回目のループでkey.getResults()にアクセス → 遅延ロードのSELECTが発行される(2回目)", "同様に2〜5回目のループでもそれぞれSELECTが発行される(3〜6回目)", "合計: 1(findAll) + 5(各keyのresults) = 6回" ],
+    "explanationHtml" : "<p>findAll() で1回、その後ループの5回分、getResults() にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 <code>1 + 5 = 6</code> 回になります。これが N+1 問題です。</p>\n",
+    "traceHtml" : [ "1行目: <code>findAll()</code> で1回目の SELECT(5件の <code>KeyEntity</code> を取得)", "3行目: forループが5回まわる", "4行目: 1回目のループで <code>key.getResults()</code> にアクセス → 遅延ロードの SELECT が発行される(2回目)", "同様に2〜5回目のループでもそれぞれSELECTが発行される(3〜6回目)", "合計: 1(findAll) + 5(各keyのresults) = 6回" ],
     "whyHtml" : [ "関連も一緒に取ると読んだ答え。LAZY の <code>results</code> は触るたびに1回ずつ取る", "関連をまとめて1回で取ると読んだ答え。LAZY の <code>results</code> は <code>key</code> ごとに1回ずつで、計 1 + 5", "<code>findAll</code> の1回を数え落とした答え。<code>findAll</code> の1回とループの5回で 6", "" ]
   } ],
   "atWork" : [ {

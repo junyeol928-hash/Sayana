@@ -141,7 +141,8 @@ function reviewAnswer(ref, correct, choice) {
   // 同じ問題を 1 日に 2 回解いたら 1 問と数える(PC版の ReviewService#todayTally と同じ)。最後の答えの正誤で数える
   // 選んだ答えも残す(今日の終わりの「間違えた問題」で、どう読み違えたかを出すため。演習は無し)
   log[t] = { refs: Object.assign({}, log[t]?.refs, { [ref]: correct }),
-    choices: Object.assign({}, log[t]?.choices, choice == null ? {} : { [ref]: choice }) };
+    choices: Object.assign({}, log[t]?.choices, choice == null ? {} : { [ref]: choice }),
+    ...(log[t]?.retry ? { retry: log[t].retry } : {}) };
   for (const d of Object.keys(log)) if (d < addDays(t, -60)) delete log[d];
   if (!correct) {
     Object.assign(item, { stage: 0, due: addDays(t, INTERVALS[0]), graduated: false, lapses: item.lapses + 1 });
@@ -335,6 +336,27 @@ function dyeLevelNow(meta) {
 
 const dyeSwatch = (level, extra = "") => `<span class="dye dye-${level} ${extra}" role="img" aria-label="${DYE[level].name}(${DYE[level].meaning})"></span>`;
 const dyeDot = (level) => `<span class="dye dye-${level}"></span>`;
+/**
+ * ホームの下の数。枠の 3 マス(汎用のダッシュボードの形)をやめ、藍の地図と同じ布の言葉で 1 行ずつ:
+ * この 7 日は 7 目の運針(稽古した日は糸、しない日は針穴)、復習で卒業は褐のマスを数だけ、読解の正解は糸の長さ
+ */
+function homeCloth({ weekDays, graduated, readingOk, readingTotal, nextReview }) {
+  const set = new Set(S.days);
+  const week = [6, 5, 4, 3, 2, 1, 0].map((k) => set.has(addDays(today(), -k)));
+  const cells = Math.min(graduated, 24);
+  return `<div class="home-cloth">
+    <div class="cloth-row"><span class="cloth-label">この 7 日</span>
+      <div class="unshin" style="--steps: 7" role="img" aria-label="この 7 日のうち ${weekDays} 日稽古した">${week.map((on) => `<i${on ? ` class="sewn"` : ""}></i>`).join("")}</div>
+      <span class="cloth-num">${weekDays}<small>日</small></span></div>
+    ${nextReview ? `<a class="cloth-row" href="#/review"><span class="cloth-label">次の復習</span><span></span><span class="cloth-num">${nextReview}</span></a>` : ""}
+    <div class="cloth-row"><span class="cloth-label">復習で卒業</span>
+      <span class="grad-cells" aria-hidden="true">${graduated ? "<span class=\"dye dye-4\"></span>".repeat(cells) + (graduated > cells ? "<small>…</small>" : "") : "<small>まだ</small>"}</span>
+      <span class="cloth-num">${graduated}<small>問</small></span></div>
+    <a class="cloth-row" href="#/reading"><span class="cloth-label">読解の正解</span>
+      <span class="cloth-thread" style="--p: ${readingTotal ? Math.round((readingOk / readingTotal) * 100) : 0}%" aria-hidden="true"></span>
+      <span class="cloth-num">${readingOk}<small>/ ${readingTotal}</small></span></a>
+  </div>`;
+}
 // 前回の続きのボタン: 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。PC 版 app.js と同じ
 // 前回いた段が済んでいれば、段の並びで次のまだの段を返す(仕事のコード・サンプル・STS は「済み」を問わずそのまま)
 function nextSectionFor(l, from) {
@@ -518,6 +540,10 @@ async function renderHome() {
   const nextReview = due ? "今日" : pending.length ? pending[0].slice(5).replace("-", "/") : "なし";
   const readingTotal = all.reduce((s, l) => s + (l.reading || 0), 0);
   const weekDays = S.days.filter((d) => d > addDays(today(), -7)).length;
+  // 今日の復習を終えた日は、ホームでも今日の稽古を言う(「なし」だけだと、14 問解いて 3 問仮縫いしたことが消える)
+  const doneToday = todayReviewed();
+  const tomorrowDue = Object.values(S.review).filter((it) => !it.graduated && it.due === addDays(today(), 1)).length;
+  const bastedToday = Object.values(S.reviewLog?.[today()]?.retry?.results || {}).filter(Boolean).length;
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   // 前回の続き(最後まで読み切っていないレッスン)があれば、それを主役にする。新しいレッスンは控えめに添える
   const last = S.last && !S.last.end && all.find((l) => l.id === S.last.id);
@@ -551,7 +577,9 @@ async function renderHome() {
       <div class="today-links">${reviewFirst ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="write">演習へ進む(書くのは PC 版がおすすめ)</a>` : ""}${!reviewFirst && last && go !== S.last.section ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="${esc(S.last.section)}">前回の位置(${section})へ戻る</a>` : ""}<a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
       </div>
       ${reviewFirst ? "" : `<a class="today-review" href="#/review"><span>今日の復習</span>
-        <span>${due ? `<b>${due}</b>問<small class="review-min">${reviewMinutes()}</small> ${icon("arrow", "sm")}` : `<span class="zero">なし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>`}
+        <span>${due ? `<b>${due}</b>問<small class="review-min">${reviewMinutes()}</small> ${icon("arrow", "sm")}`
+          : doneToday.n ? `<span class="zero">済み ${doneToday.n} 問${bastedToday ? `(仮縫い ${bastedToday})` : ""}${tomorrowDue ? ` · 明日 ${tomorrowDue} 問` : ""}</span>`
+          : `<span class="zero">なし${upcoming ? ` · この先 ${upcoming} 問` : ""}</span>`}</span></a>`}
       <p class="save-state" id="save-state" aria-live="polite">保存の状態を確かめています…</p>
     </section>
 
@@ -570,13 +598,9 @@ async function renderHome() {
       }).join("")}</nav>
       <p class="dye-map-note"><span class="dye-here" aria-hidden="true"></span>${last ? "前回の続き" : "今日の稽古"}。部の行を押すと、その部の一覧へ</p>
       <details class="dye-key"${Object.keys(S.read).length ? "" : " open"}><summary><span class="dye-key-marks" aria-hidden="true">${DYE.map((_, i) => dyeSwatch(i)).join("")}</span>染まり方の見方</summary>
-        <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)} <b class="dye-count">${counts[i]}</b></span><span class="dye-meaning">${d.meaning}</span></span></li>`).join("")}</ul></details>
-      <div class="home-stats">
-        ${due ? `<div><div class="stat-label">復習で卒業</div><div class="stat-value">${graduated}<small>問</small></div></div>`
-          : `<a href="#/review"><div class="stat-label">次の復習</div><div class="stat-value">${nextReview}</div></a>`}
-        <a href="#/reading"><div class="stat-label">読解の正解</div><div class="stat-value">${readingOk}<small>/ ${readingTotal}</small></div></a>
-        <div><div class="stat-label">この7日の稽古</div><div class="stat-value">${weekDays}<small>日</small></div></div>
-      </div>
+        <ul class="dye-legend">${DYE.map((d, i) => `<li>${dyeSwatch(i)}<span><span class="dye-name-sm">${dyeRuby(i)} <b class="dye-count">${counts[i]}</b></span><span class="dye-meaning">${d.meaning}</span></span></li>`).join("")}</ul>
+        <p class="dye-dark-note">暗い表示では、色の明るさは段の順に並びません。段はマスの中の目の形(1 本・2 本・四角)で見分けます</p></details>
+      ${homeCloth({ weekDays, graduated, readingOk, readingTotal, nextReview: due ? "" : nextReview })}
       ${standalone || S.settings.hideInstall ? "" : `<div class="install-hint" id="install-hint"><details><summary>ホーム画面に追加する方法</summary>
         <p>iPhone は Safari の共有ボタン →「ホーム画面に追加」、Android は Chrome のメニュー →「ホーム画面に追加」。</p></details>
         <button class="close" type="button" data-hide-install aria-label="この案内を閉じる">${icon("cross")}</button></div>`}
@@ -951,7 +975,8 @@ function predictLine(html) {
   const d = document.createElement("div");
   d.innerHTML = html || "";
   const text = d.textContent.replace(/\s+/g, " ").trim();
-  const q = text.split(/(?<=[。?？])/).map((x) => x.trim()).find((x) => /([?？]|だろうか。?|でしょうか。?)$/.test(x));
+  // 最後の問いを取る(説明の最後の文なら説明から外せる。問いが 2 つある説明で、最初の問いを出すと 2 つ目と重なって外せなかった)
+  const q = text.split(/(?<=[。?？])/).map((x) => x.trim()).filter((x) => /([?？]|だろうか。?|でしょうか。?)$/.test(x)).pop();
   return q ? q.replace(/。$/, "") : "";
 }
 
@@ -1633,29 +1658,49 @@ async function renderGlossary() {
 let reviewBreakAt = "";
 // 解き直し: 今日の終わりに、間違えた問題をその日のうちにもう一度(答えは記録せず、予定は変えない)。
 // 直後に正しい答えで思い出し直すと、翌日の復習まで間違えたまま寝かせるより定着する(演習は書き直しが重いので入れない)
+// 状態は今日の記録(S.reviewLog[今日].retry)に保存する。通勤の途中で閉じて夜に開いても、仮縫いの跡と札が残るように
 let retry = null; // { day, refs, i, ok, results: { ref: 正しく解けたか } }
+const saveRetry = () => {
+  const log = S.reviewLog = S.reviewLog || {};
+  const t = today();
+  log[t] = Object.assign({}, log[t], { retry: { refs: retry.refs, i: retry.i, ok: retry.ok, results: retry.results } });
+  save();
+};
+/** 解き直しの終わりの 1 行。1 問も解けなかったときは仮縫いの札を付けず、「まだ」と言う */
+const retryDoneLine = (r) => r.ok === 0
+  ? `<p class="retry-done">解き直した ${r.refs.length} 問は、まだ。明日の復習で、もう一度</p>`
+  : `<p class="retry-done"><span class="retry-tag">仮縫い</span>解き直した ${r.refs.length} 問${r.ok === r.refs.length ? "を、全部" : `のうち ${r.ok} 問を、`}正しく解けた(本縫いは明日の復習で)</p>`;
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
+  const tomorrow = Object.values(S.review).filter((it) => !it.graduated && it.due === addDays(today(), 1)).length;
   const done = todayReviewed();
-  if (retry && retry.day !== today()) retry = null;
+  if (!retry || retry.day !== today()) {
+    const saved = S.reviewLog?.[today()]?.retry;
+    retry = saved ? { day: today(), ...saved, results: { ...saved.results } } : null;
+  }
   const inRetry = !!retry && retry.i < retry.refs.length;
   // 今日の終わり: 区切りと同じ部品で、今日答えた全問を運針に並べ、間違えた問題と読み直す所を出す
   if (due.length === 0 && !inRetry) {
     const again = done.missed.filter((r) => S.review[r] && S.review[r].type !== "exercise");
+    // 解き直してもまだの問題は、もう一度だけ回せる(仮縫いできた分の跡は残す)
+    const still = retry ? retry.refs.filter((r) => retry.results[r] === false && S.review[r]) : [];
     view().innerHTML = `<h1 class="page-title">復習</h1>` + (done.n ? `
       <section class="review-break review-done" aria-labelledby="break-title">
       <p class="review-break-kicker">今日の復習はおしまい</p>
       ${stitchRows(done.results, done.entries.map(([r]) => retry?.results?.[r] === true))}
       <h2 class="review-break-title" id="break-title">今日 ${done.n} 問のうち ${done.ok} 問${done.ok === done.n ? "。全部縫えた" : ""}</h2>
-      <p class="review-break-note">${done.n - done.ok ? `間違えた ${done.n - done.ok} 問は、明日もう一度出ます。` : ""}${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で出ます。` : ""}</p>
+      <p class="review-break-note">${done.n - done.ok ? `間違えた ${done.n - done.ok} 問は、明日もう一度出ます。` : ""}${tomorrow ? `明日の復習は ${tomorrow} 問。` : ""}${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で出ます。` : ""}</p>
       ${await missedList(done.missed)}
-      ${retry ? `<p class="retry-done"><span class="retry-tag">仮縫い</span>解き直した ${retry.refs.length} 問のうち ${retry.ok} 問を、正しく解けた(本縫いは明日の復習で)</p>` : ""}
-      <div class="review-next">${!retry && again.length ? `<button class="btn primary" id="again">間違えた ${again.length} 問を、いま解き直す</button><a class="btn" href="#/">ホームへ</a>` : `<a class="btn primary" href="#/">ホームへ</a>`}</div></section>` : `
+      ${retry ? retryDoneLine(retry) : ""}
+      <div class="review-next">${!retry && again.length ? `<button class="btn primary" id="again">間違えた ${again.length} 問を、いま解き直す</button><a class="btn" href="#/">ホームへ</a>`
+        : `<a class="btn primary" href="#/">ホームへ</a>${still.length ? `<button class="btn" id="again-still">まだの ${still.length} 問を、もう一度</button>` : ""}`}</div></section>` : `
       <section class="review-break review-done"><p class="review-break-note">今日の復習はありません。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で出ます。` : "レッスンでクイズや読解を解くと、ここに出てきます。"}</p>
       <div class="review-next"><a class="btn primary" href="#/">ホームへ</a></div></section>`);
     const go = $("#again");
-    if (go) go.onclick = () => { retry = { day: today(), refs: again, i: 0, ok: 0, results: {} }; scrollTo({ top: 0 }); renderReview(); };
+    if (go) go.onclick = () => { retry = { day: today(), refs: again, i: 0, ok: 0, results: {} }; saveRetry(); scrollTo({ top: 0 }); renderReview(); };
+    const goStill = $("#again-still");
+    if (goStill) goStill.onclick = () => { retry = { day: today(), refs: still, i: 0, ok: 0, results: retry.results }; saveRetry(); scrollTo({ top: 0 }); renderReview(); };
     return;
   }
   // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)。いまの 10 問を運針で並べ、間違えた問題を出す
@@ -1688,7 +1733,7 @@ async function renderReview() {
   // 答える前は出どころのレッスン名を見せない(どの知識を使う問題かを、自分で見分けるところに混ぜる効き目がある)
   // 問いの画面の見出しは 1 行に詰める(毎問、上の 3 割を同じ前置きが占めていた)。説明はその日(解き直し)の最初の 1 問だけ
   const head = `<div class="review-top"><h1 class="page-title">復習</h1><p class="review-progress" id="review-progress">${inRetry ? `解き直し <b>${retry.i + 1}</b> / ${retry.refs.length}` : reviewProgress(due.length, done.n)}</p></div>
-    ${inRetry ? (retry.i === 0 ? `<p class="muted small review-mix">間違えた問題を、並びを変えてもう一度。答えは記録せず、明日の予定もそのまま。</p>` : "")
+    ${inRetry ? (retry.i === 0 ? `<p class="muted small review-mix">間違えた問題を、並びを変えてもう一度。</p>` : "")
       : done.n === 0 ? `<p class="muted small review-mix">いろいろなレッスンの問題を混ぜて出します。選択肢の並びは日ごとに変わります。</p>` : ""}`;
   // 解き直しは段階の運針の代わりに、1 目だけの仮縫い(正しく解けたら破線の糸。本縫いは明日の復習)
   const stitchOf = (it) => inRetry ? `<div class="review-stitch retry-stitch"><div class="unshin baste" role="img" aria-label="仮縫い(記録はしない)" style="--steps: 1"><i></i></div>
@@ -1716,7 +1761,7 @@ async function renderReview() {
     }
     decorate(out);
     $("#next").onclick = () => {
-      if (inRetry) { retry.ok += ok ? 1 : 0; retry.results[ref] = ok; retry.i++; }
+      if (inRetry) { retry.ok += ok ? 1 : 0; retry.results[ref] = ok; retry.i++; saveRetry(); }
       renderReview();
     };
     // 判定へフォーカスを移し、選んだ答えが画面の上の方に来るまで送る(解説が長くても「× あなたの答え」を見失わない)
@@ -2181,11 +2226,18 @@ async function decorate(root) {
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
   root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 12) c.classList.add("nb"); });
   inlineNotes(root);
-  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で
+  // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
+  // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
+  // (「0 3 6 9」は本文、「3 6 9」はコード、と同じ問いの中で書体が分かれ、1 つだけ形の違う選択肢が手がかりになっていた)
+  const asciiChoices = new Map();
   root.querySelectorAll(".choice > span").forEach((sp) => {
-    const t = sp.textContent.trim();
-    if (!sp.querySelector("code") && /^[!-~][ -~]*$/.test(t) && !/\s\S+\s\S+\s/.test(t)) sp.classList.add("code-choice");
+    if (sp.querySelector("code") || !/^[!-~][ -~]*$/.test(sp.textContent.trim())) return;
+    const group = sp.closest(".choice").parentElement;
+    asciiChoices.set(group, [...(asciiChoices.get(group) || []), sp]);
   });
+  asciiChoices.forEach((spans) => spans.forEach((sp) => {
+    if (spans.length >= 2 || !/\s\S+\s\S+\s/.test(sp.textContent.trim())) sp.classList.add("code-choice");
+  }));
   // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
   root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
     const t = c.textContent;
@@ -2231,16 +2283,20 @@ function numberLines(code) {
   code.classList.add("hljs");
 }
 
-/** 長い英字(例外名・修飾した名前)に折り返しの候補を入れる。. ( , の後ろと、小文字→大文字の境目 */
+/**
+ * 長い英字(例外名・修飾した名前)に折り返しの候補を入れる。. ( , の後ろと、28 字以上の語の中の小文字→大文字の境目。
+ * 28 字より短い語(NullPointerException・@SpringBootConfiguration)は境目で割らず、行末で収まらなければ語ごと次の行へ送る
+ * (「Null / PointerException」と割れていた)。以前は inline-block で包んでいたが、コードのチップの中で箱ごと割れて地が帯になり、
+ * 前の「(」が行末に取り残された(23 回目の審査)ので、インラインのまま候補の数で決める。行より長い語は overflow-wrap が折る
+ */
 function softBreaks(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
-  for (let n = walker.nextNode(); n; n = walker.nextNode()) if (/[A-Za-z0-9_.(,]{20,}/.test(n.data)) nodes.push(n);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) if (/[@A-Za-z0-9_.(,]{20,}/.test(n.data)) nodes.push(n);
   for (const n of nodes) {
     const span = document.createElement("span");
-    // 長い識別子は inline-block で包む。収まるときは語ごと次の行へ送られ、行より長いときだけ中の <wbr> で折れる
-    // (「Null / PointerException」と、次の行に丸ごと収まる語まで境目で割れていた)
-    span.innerHTML = esc(n.data).replace(/[A-Za-z0-9_.(,]{20,}/g, (w) => `<span class="ident">${w.replace(/([.(,])/g, "$1<wbr>").replace(/([a-z])([A-Z])/g, "$1<wbr>$2")}</span>`);
+    span.innerHTML = esc(n.data).replace(/[@A-Za-z0-9_.(,]{20,}/g, (w) =>
+      w.replace(/[^.(,]{28,}/g, (seg) => seg.replace(/([a-z])([A-Z])/g, "$1<wbr>$2")).replace(/([.(,])(?=.)/g, "$1<wbr>"));
     n.replaceWith(...span.childNodes);
   }
 }

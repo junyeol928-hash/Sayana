@@ -46,7 +46,7 @@
     }
   }, {
     "title" : "off-by-one と浮動小数点の罠",
-    "descriptionHtml" : "<p>最初の 2 つのループの本体がそれぞれ何回まわるかを数えて、出力を予想してから見よう。\nそのあと <code>&lt;</code> と <code>&lt;=</code> を入れ替えたり、ループ変数を整数にした書き方と結果を比べたりしてみよう。\n<code>x += 0.1</code> で数える double のループは、何回まわる?</p>\n",
+    "descriptionHtml" : "<p>1 つ目のループ(<code>i &lt; 10</code>)の本体は何回まわるか。\nそのあと <code>&lt;</code> と <code>&lt;=</code> を入れ替えたり、ループ変数を整数にした書き方と結果を比べたりしてみよう。\n<code>x += 0.1</code> で数える double のループは、何回まわる?</p>\n",
     "code" : "// off-by-one: 1〜10 の合計のつもり\nint sum = 0;\nfor (int i = 1; i < 10; i++) {   // ← < を <= に直してみよう\n    sum += i;\n}\nSystem.out.println(\"合計: \" + sum + \"(正しくは 55)\");\n\n// double でループ回数を数えると…\nint count = 0;\nfor (double x = 0.0; x < 1.0; x += 0.1) {\n    count++;\n}\nSystem.out.println(\"double で数えた回数: \" + count + \"(10回のつもり)\");\n\n// 正しくは整数で数えて、小数は中で計算する\nint count2 = 0;\nfor (int i = 0; i < 10; i++) {\n    double x = i / 10.0;\n    count2++;\n}\nSystem.out.println(\"int で数えた回数: \" + count2);\n\n// 0.1 を10回足すと?\ndouble total = 0.0;\nfor (int i = 0; i < 10; i++) {\n    total += 0.1;\n}\nSystem.out.println(\"0.1 を10回足すと \" + total);\n",
     "result" : {
       "status" : "OK",
@@ -101,19 +101,19 @@
     "choicesHtml" : [ "5", "何も出力されない", "5 6 7 ...(無限ループ)", "コンパイルエラー" ],
     "answer" : 0,
     "explanationHtml" : "<p><code>do-while</code> は本体を先に実行してから条件を判定するので、条件が最初から <code>false</code> でも <strong>1回は実行</strong> される。\n<code>5 </code> を出力したあと <code>n</code> が 6 になり、<code>6 &lt; 3</code> は <code>false</code> なので終了。\n<code>while (n &lt; 3) { ... }</code> なら何も出力されないが、<code>do-while</code> では違う。</p>\n",
-    "whyHtml" : [ "", "while と同じく、先に条件を判定すると読んだ答え", "n が増え続けて止まらないと読んだ答え", "do-while の書き方を疑った答え。末尾の ; もあり、文法として正しい" ]
+    "whyHtml" : [ "", "while と同じく、先に条件を判定すると読んだ答え", "n が増え続けて止まらないと読んだ答え", "<code>do-while</code> の書き方を疑った答え。末尾の <code>;</code> もあり、文法として正しい" ]
   }, {
     "questionHtml" : "<p>次のコードのうち、<strong>コンパイルエラーになる行</strong> はどれ?</p>\n<pre><code class=\"language-java\">int total = 0;                      // (A)\nfor (int i = 1; i &lt;= 3; i++) {      // (B)\n    total += i;                     // (C)\n}\nSystem.out.println(total + i);      // (D)\n</code></pre>\n",
     "choicesHtml" : [ "(A)", "(B)", "(C)", "(D)" ],
     "answer" : 3,
-    "explanationHtml" : "<p>for 文の初期化部で宣言した <code>i</code> のスコープは <strong>for 文の中だけ</strong>。ループを抜けた (D) では <code>i</code> が見えず、\n「シンボルを見つけられません」(STS では <code>i cannot be resolved to a variable</code>)になる。\n(C) で外側の <code>total</code> を使うのは問題ない。外側で宣言した変数は内側のブロックから見える(逆は見えない)。</p>\n",
-    "whyHtml" : [ "total の宣言を疑った答え。ループの外で宣言して 0 を入れているので正しい", "for の初期化部での宣言を疑った答え。int i = 1 はここで宣言してよい", "外側の total がループの中から見えないと読んだ答え", "" ]
+    "explanationHtml" : "<p>for 文の初期化部で宣言した <code>i</code> のスコープは <strong>for 文の中だけ</strong>。ループを抜けた (D) では <code>i</code> が見えず、\n「シンボルを見つけられません」になる。STS では次のメッセージが出る: <code>i cannot be resolved to a variable</code>\n(C) で外側の <code>total</code> を使うのは問題ない。外側で宣言した変数は内側のブロックから見える(逆は見えない)。</p>\n",
+    "whyHtml" : [ "<code>total</code> の宣言を疑った答え。ループの外で宣言して 0 を入れているので正しい", "for の初期化部での宣言を疑った答え。<code>int i = 1</code> はここで宣言してよい", "外側の <code>total</code> がループの中から見えないと読んだ答え", "" ]
   }, {
     "questionHtml" : "<p>次のコードの出力はどれ?</p>\n<pre><code class=\"language-java\">int sum = 0;\nfor (int i = 1; i &lt;= 5; i++) {\n    if (i == 2) {\n        continue;\n    }\n    if (i == 4) {\n        break;\n    }\n    sum += i;\n}\nSystem.out.println(sum);\n</code></pre>\n",
     "choicesHtml" : [ "1", "4", "9", "13" ],
     "answer" : 1,
-    "explanationHtml" : "<p>i = 1 で sum = 1、i = 2 は <code>continue</code> で加算を飛ばす、i = 3 で sum = 4、i = 4 で <code>break</code> してループ終了。よって 4。\n<code>continue</code> を「ループ終了」と勘違いすると 1、<code>break</code> を「その回だけ飛ばす」と勘違いすると 1 + 3 + 5 = 9 になる。\n13 は 2 だけを飛ばして 1〜5 を全部足した値で、<code>break</code> を無視している。</p>\n",
-    "whyHtml" : [ "continue をループの終了と読んだ答え。continue はその回の残りを飛ばして次へ進む", "", "break をその回だけ飛ばすと読んだ答え。break でループ全体を抜ける", "break を無視して最後まで足した答え。i が 4 の所でループを抜ける" ]
+    "explanationHtml" : "<p><code>i = 1</code> で <code>sum = 1</code>、<code>i = 2</code> は <code>continue</code> で加算を飛ばす、<code>i = 3</code> で <code>sum = 4</code>、<code>i = 4</code> で <code>break</code> してループ終了。よって 4。\n<code>continue</code> を「ループ終了」と勘違いすると 1、<code>break</code> を「その回だけ飛ばす」と勘違いすると <code>1 + 3 + 5</code> で 9 になる。\n13 は 2 だけを飛ばして 1〜5 を全部足した値で、<code>break</code> を無視している。</p>\n",
+    "whyHtml" : [ "<code>continue</code> をループの終了と読んだ答え。<code>continue</code> はその回の残りを飛ばして次へ進む", "", "<code>break</code> をその回だけ飛ばすと読んだ答え。<code>break</code> でループ全体を抜ける", "<code>break</code> を無視して最後まで足した答え。i が 4 の所でループを抜ける" ]
   }, {
     "questionHtml" : "<p>ループの中で <code>String s = &quot;&quot;; ... s += 文字列;</code> と連結するより <code>StringBuilder</code> を使うべき理由として、<strong>正しいもの</strong> はどれ?</p>\n",
     "choicesHtml" : [ "<code>+</code> 連結はコンパイルエラーになることがあるから", "<code>String</code> は不変で、<code>+=</code> のたびに全文字をコピーした新しい <code>String</code> ができるから", "JDK 9 以降、<code>+</code> 演算子による文字列連結は非推奨(deprecated)になったから", "<code>StringBuilder</code> を使うと、ループの回数自体が減るから" ],
@@ -170,9 +170,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "6", "10", "4", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>1から4までの整数を順に足しているので 1+2+3+4=10 です。</p>\n",
-    "traceHtml" : [ "初期化: i=1, sum=0", "i=1: 条件 1&lt;=4 true → sum=0+1=1 → i=2", "i=2: 条件 true → sum=1+2=3 → i=3", "i=3: 条件 true → sum=3+3=6 → i=4", "i=4: 条件 true → sum=6+4=10 → i=5", "i=5: 条件 5&lt;=4 false → ループ終了 → 10 と表示" ],
-    "whyHtml" : [ "<code>i &lt;= 4</code> を <code>i &lt; 4</code> と読んだ答え。4 も含むので 1+2+3+4 で 10", "", "<code>sum += i</code> を代入と読んだ答え。<code>+=</code> は足し込むので、最後は合計の 10", "ループの外の sum を中から使えないと読んだ答え。外側の変数は内側から見える" ]
+    "explanationHtml" : "<p>1から4までの整数を順に足しているので <code>1 + 2 + 3 + 4</code> で 10 です。</p>\n",
+    "traceHtml" : [ "初期化: <code>i = 1</code>、<code>sum = 0</code>", "<code>i = 1</code>: 条件 <code>1 &lt;= 4</code> は true → <code>sum</code> は <code>0 + 1</code> で 1 → <code>i = 2</code>", "<code>i = 2</code>: 条件は true → <code>sum</code> は <code>1 + 2</code> で 3 → <code>i = 3</code>", "<code>i = 3</code>: 条件は true → <code>sum</code> は <code>3 + 3</code> で 6 → <code>i = 4</code>", "<code>i = 4</code>: 条件は true → <code>sum</code> は <code>6 + 4</code> で 10 → <code>i = 5</code>", "<code>i = 5</code>: 条件 <code>5 &lt;= 4</code> は false → ループ終了 → 10 と表示" ],
+    "whyHtml" : [ "<code>i &lt;= 4</code> を <code>i &lt; 4</code> と読んだ答え。4 も含むので <code>1 + 2 + 3 + 4</code> で 10", "", "<code>sum += i</code> を代入と読んだ答え。<code>+=</code> は足し込むので、最後は合計の 10", "ループの外の sum を中から使えないと読んだ答え。外側の変数は内側から見える" ]
   }, {
     "title" : "while と do-while の違い(条件が最初から false)",
     "level" : 2,
@@ -180,8 +180,8 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "何も出力されない", "<code>do-while:10</code> だけ出力される", "<code>while:10</code> だけ出力される", "両方とも1回ずつ出力される" ],
     "answer" : 1,
-    "explanationHtml" : "<p>while は条件(x&lt;5)を先に判定するため、x=10 の時点で false となり1回も実行されません。do-while は先に本体を実行してから条件判定するため、y=10 でも <code>do-while:10</code> が必ず1回出力されます。</p>\n",
-    "traceHtml" : [ "while: x=10 で条件 10&lt;5 は false → ループ本体は1度も実行されない", "do-while: 条件判定より先に本体を実行 → <code>do-while:10</code> を出力してから <code>y++</code>", "その後 y=11 で条件 11&lt;5 を判定 → false → 終了" ],
+    "explanationHtml" : "<p>while は条件の <code>x &lt; 5</code> を先に判定するため、<code>x = 10</code> の時点で false となり1回も実行されません。do-while は先に本体を実行してから条件判定するため、<code>y = 10</code> でも <code>do-while:10</code> が必ず1回出力されます。</p>\n",
+    "traceHtml" : [ "while: <code>x = 10</code> で条件 <code>10 &lt; 5</code> は false → ループ本体は1度も実行されない", "do-while: 条件判定より先に本体を実行 → <code>do-while:10</code> を出力してから <code>y++</code>", "その後 <code>y = 11</code> で条件 <code>11 &lt; 5</code> を判定 → false → 終了" ],
     "whyHtml" : [ "do-while も先に条件を判定すると読んだ答え", "", "while と do-while の判定の順を逆に読んだ答え", "while も、本体を 1 回は実行すると読んだ答え" ]
   }, {
     "title" : "二重ループとbreakの範囲",
@@ -190,9 +190,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "00 01 02 10 11 12 20 21 22", "00 10 20", "00", "何も表示されない" ],
     "answer" : 1,
-    "explanationHtml" : "<p>break は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について j=0 のときだけ表示されて j=1 で内側を抜ける、を3回くり返します。</p>\n",
-    "traceHtml" : [ "i=0: j=0 で <code>00</code> と空白を表示、j=1 で break(内側だけ終了)", "i=1: j=0 で <code>10</code> と空白を表示、j=1 で break", "i=2: j=0 で <code>20</code> と空白を表示、j=1 で break", "結果: <code>00 10 20</code>" ],
-    "whyHtml" : [ "break を見落とした答え。j が 1 になった所で内側のループを抜ける", "", "break が外側のループまで抜けると読んだ答え。break が抜けるのは直近の内側のループだけ", "<code>j == 1</code> の判定で最初から抜けると読んだ答え。<code>j = 0</code> では <code>break</code> せず 1 回は表示する" ]
+    "explanationHtml" : "<p>break は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について <code>j = 0</code> のときだけ表示されて <code>j = 1</code> で内側を抜ける、を3回くり返します。</p>\n",
+    "traceHtml" : [ "<code>i = 0</code>: <code>j = 0</code> で <code>00</code> と空白を表示、<code>j = 1</code> で <code>break</code>(内側だけ終了)", "<code>i = 1</code>: <code>j = 0</code> で <code>10</code> と空白を表示、<code>j = 1</code> で <code>break</code>", "<code>i = 2</code>: <code>j = 0</code> で <code>20</code> と空白を表示、<code>j = 1</code> で <code>break</code>", "結果: <code>00 10 20</code>" ],
+    "whyHtml" : [ "<code>break</code> を見落とした答え。j が 1 になった所で内側のループを抜ける", "", "<code>break</code> が外側のループまで抜けると読んだ答え。<code>break</code> が抜けるのは直近の内側のループだけ", "<code>j == 1</code> の判定で最初から抜けると読んだ答え。<code>j = 0</code> では <code>break</code> せず 1 回は表示する" ]
   }, {
     "title" : "拡張 for の中で要素を書き換えても元は変わらない",
     "level" : 3,
@@ -201,7 +201,7 @@
     "choicesHtml" : [ "10 20 30", "1 2 3", "コンパイルエラー", "実行時エラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>拡張 for の n は、配列の各要素の値がコピーされたローカル変数です(int は基本データ型なので値コピー)。n を書き換えても元の配列 nums の中身には影響しません。</p>\n",
-    "traceHtml" : [ "1周目: n に nums[0]=1 がコピーされる → n=10 にしても nums[0] はそのまま", "2周目: n に nums[1]=2 がコピーされる → n=20 にしても nums[1] はそのまま", "3周目: n に nums[2]=3 がコピーされる → n=30 にしても nums[2] はそのまま", "結果: <code>nums</code> は変化せず <code>1 2 3</code> と表示" ],
+    "traceHtml" : [ "1周目: n に <code>nums[0]</code> の 1 がコピーされる → <code>n = 10</code> にしても <code>nums[0]</code> はそのまま", "2周目: n に <code>nums[1]</code> の 2 がコピーされる → <code>n = 20</code> にしても <code>nums[1]</code> はそのまま", "3周目: n に <code>nums[2]</code> の 3 がコピーされる → <code>n = 30</code> にしても <code>nums[2]</code> はそのまま", "結果: <code>nums</code> は変化せず <code>1 2 3</code> と表示" ],
     "whyHtml" : [ "n への代入が配列に戻ると読んだ答え。n は要素の値をコピーした別の変数", "", "拡張 for の変数には代入できないと読んだ答え。n はただのローカル変数で書き換えられる", "ループ中に書き換えると例外になると読んだ答え。n を変えても配列には触れていない" ]
   } ],
   "atWork" : [ {

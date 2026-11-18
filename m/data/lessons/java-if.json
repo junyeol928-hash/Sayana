@@ -94,8 +94,8 @@
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">int n = 2;\nswitch (n) {\n    case 1:\n        System.out.print(&quot;A&quot;);\n    case 2:\n        System.out.print(&quot;B&quot;);\n    case 3:\n        System.out.print(&quot;C&quot;);\n        break;\n    default:\n        System.out.print(&quot;D&quot;);\n}\n</code></pre>\n",
     "choicesHtml" : [ "B", "BCD", "BC", "ABC" ],
     "answer" : 2,
-    "explanationHtml" : "<p>従来の switch 文は、一致した case に <strong>ジャンプ</strong> して、そこから下を順に実行します。たどる順は次のとおりで、出力は <code>BC</code> です。</p>\n<ol>\n<li><code>case 2</code> にジャンプして <code>B</code> を出す(<code>case 1</code> の <code>A</code> は飛ばす)</li>\n<li><code>break</code> がないので <code>case 3</code> へ <strong>フォールスルー</strong> して <code>C</code> を出す</li>\n<li><code>case 3</code> の <code>break</code> で抜ける(<code>default</code> の <code>D</code> は出ない)</li>\n</ol>\n<p><code>B</code> だけになるのは、アロー構文(<code>case 2 -&gt;</code>)で書いた場合です。</p>\n",
-    "whyHtml" : [ "アロー構文(<code>case 2 -&gt;</code>)と読んだ答え。従来の <code>switch</code> は <code>break</code> が無いと下へ落ちる", "break を見落とした答え。case 3 の break で抜けるので D は出ない", "", "case 1 から順に実行すると読んだ答え。switch は一致した case 2 へ飛ぶ" ]
+    "explanationHtml" : "<p>従来の switch 文は、一致した case に <strong>ジャンプ</strong> して、そこから下を順に実行します。たどる順は次のとおりで、出力は <code>BC</code> です。</p>\n<ol>\n<li><code>case 2</code> にジャンプして <code>B</code> を出す(<code>case 1</code> の <code>A</code> は飛ばす)</li>\n<li><code>break</code> がないので <code>case 3</code> へ <strong>フォールスルー</strong> して <code>C</code> を出す</li>\n<li><code>case 3</code> の <code>break</code> で抜ける(<code>default</code> の <code>D</code> は出ない)</li>\n</ol>\n",
+    "whyHtml" : [ "アロー構文(<code>case 2 -&gt;</code>)と読んだ答え。従来の <code>switch</code> は <code>break</code> が無いと下へ落ちる", "<code>break</code> を見落とした答え。<code>case 3</code> の <code>break</code> で抜けるので D は出ない", "", "<code>case 1</code> から順に実行すると読んだ答え。<code>switch</code> は一致した <code>case 2</code> へ飛ぶ" ]
   }, {
     "questionHtml" : "<p><code>int x = 3;</code> <code>boolean ok = false;</code> と宣言されているとき、<strong>コンパイルエラーになる</strong> のはどれ?</p>\n",
     "choicesHtml" : [ "<code>if (ok = true) { }</code>", "<code>if (x == 5) { }</code>", "<code>if (!ok) { }</code>", "<code>if (x = 5) { }</code>" ],
@@ -107,19 +107,19 @@
     "choicesHtml" : [ "小 と 終", "終 だけ", "大 と 終", "コンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>インデントに惑わされないこと。Java では <code>else</code> は <strong>一番近い if</strong>(ここでは <code>if (x &gt; 10)</code>)に結びつきます(ぶら下がり else)。つまり外側の <code>if (x &gt; 5)</code> が false の時点で、内側の if も else も丸ごとスキップされ、<code>終</code> だけが出力されます。\n見た目どおり「5以下なら小」にしたいなら、波括弧で外側の if のブロックを閉じる必要があります。だから現場では1行でも波括弧を省略しません。</p>\n",
-    "whyHtml" : [ "インデントのとおりに、else を外側の if に結びつけた答え", "", "条件を確かめずに内側まで進んだ答え。x は 3 なので外側の x &gt; 5 で止まる", "波括弧のない入れ子の if と else を文法違反と読んだ答え。else は一番近い if に付いて通る" ]
+    "whyHtml" : [ "インデントのとおりに、<code>else</code> を外側の if に結びつけた答え", "", "条件を確かめずに内側まで進んだ答え。x は 3 なので外側の <code>x &gt; 5</code> で止まる", "波括弧のない入れ子の if と <code>else</code> を文法違反と読んだ答え。<code>else</code> は一番近い if に付いて通る" ]
   }, {
     "questionHtml" : "<p>次のコードについて正しい説明はどれ?</p>\n<pre><code class=\"language-java\">int code = 2;\nString s = switch (code) {\n    case 1 -&gt; &quot;OK&quot;;\n    case 2 -&gt; &quot;NG&quot;;\n};\nSystem.out.println(s);\n</code></pre>\n",
     "choicesHtml" : [ "コンパイルエラーになる", "NG と出力される", "実行時に例外が発生する", "null と出力される" ],
     "answer" : 0,
     "explanationHtml" : "<p>switch <strong>式</strong> は必ず値を返さなければならないので、すべての入力をカバーしている(網羅している)必要があります。<code>int</code> は 1 と 2 以外の値も取りうるのに <code>default</code> がないため、<code>the switch expression does not cover all possible input values</code> というコンパイルエラーになります。\n<code>code</code> が実際には 2 であっても、コンパイラは「取りうるすべての値」で判断します。<code>default -&gt; &quot;不明&quot;;</code> を足せば <code>NG</code> と出力されます。値を返さない switch <strong>文</strong> なら網羅していなくてもエラーにはなりません。</p>\n",
-    "whyHtml" : [ "", "code が 2 なので動くと読んだ答え", "合う case が無いと、実行時に落ちると読んだ答え", "合う case が無いと null を返すと読んだ答え" ]
+    "whyHtml" : [ "", "<code>code</code> が 2 なので動くと読んだ答え", "合う case が無いと、実行時に落ちると読んだ答え", "合う case が無いと null を返すと読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">String a = &quot;Ja&quot;;\nString b = a + &quot;va&quot;;\nSystem.out.println(b == &quot;Java&quot;);\nSystem.out.println(&quot;Java&quot;.equals(b));\n</code></pre>\n",
     "choicesHtml" : [ "true と true", "true と false", "false と true", "false と false" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>b</code> は実行時に連結して作られた <strong>新しい String オブジェクト</strong> です。<code>==</code> は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じでもリテラルの <code>&quot;Java&quot;</code> とは別物で <code>false</code>。中身を比べる <code>equals</code> は <code>true</code> です。\nリテラル同士(<code>&quot;Java&quot; == &quot;Java&quot;</code>)ならインターンにより同じオブジェクトになるので <code>true</code> になることがあり、これが「テストでは動いたのに本番で壊れる」原因です。文字列は必ず <code>equals</code> で比べましょう。</p>\n",
-    "whyHtml" : [ "<code>==</code> でも中身を比べると読んだ答え", "<code>==</code> と <code>equals</code> の役割を逆に読んだ答え", "", "<code>equals</code> も、別のオブジェクトなら false になると読んだ答え" ]
+    "whyHtml" : [ "<code>==</code> でも中身を比べると読んだ答え", "<code>==</code> と <code>equals</code> の役割を逆に読んだ答え", "", "<code>equals</code> も、別のオブジェクトなら <code>false</code> になると読んだ答え" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p><code>x</code> が <code>-1</code> のとき、何が出る?</p>\n<pre><code class=\"language-java\">if (x &gt; 0)\n    if (x &gt; 10)\n        System.out.println(&quot;A&quot;);\nelse\n    System.out.println(&quot;B&quot;);\n</code></pre>\n",
@@ -174,8 +174,8 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "冬", "春", "その他", "コンパイルエラー" ],
     "answer" : 0,
-    "explanationHtml" : "<p>case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month=2 は case 2 に一致し、<code>&quot;冬&quot;</code> を代入して break します。</p>\n",
-    "traceHtml" : [ "3行目: month(2) と case を照合", "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)", "7行目: <code>season = &quot;冬&quot;</code>", "8行目: break で switch を抜ける", "17行目: <code>冬</code> と表示" ],
+    "explanationHtml" : "<p>case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month が 2 なので case 2 に一致し、<code>&quot;冬&quot;</code> を代入して break します。</p>\n",
+    "traceHtml" : [ "3行目: <code>month</code> の値 2 と case を照合", "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)", "7行目: <code>season = &quot;冬&quot;</code>", "8行目: break で switch を抜ける", "17行目: <code>冬</code> と表示" ],
     "whyHtml" : [ "", "case 2 から break を越えて下へ落ちると読んだ答え", "中身の無い case 2 は一致にならないと読んだ答え", "中身の無い case を並べると文法違反と読んだ答え" ]
   }, {
     "title" : "短絡評価と NullPointerException",
@@ -192,9 +192,9 @@
     "level" : 3,
     "code" : "public String check(Integer age) {\n    String result;\n    if (age != null) {\n        if (age >= 18) {\n            result = \"成人\";\n        } else {\n            result = \"未成年\";\n        }\n    } else {\n        result = \"不明\";\n    }\n    return result;\n}\n",
     "questionHtml" : "このメソッドをガード節で書き直したとき、age = null での戻り値は元と比べて?",
-    "choicesHtml" : [ "<code>&quot;成人&quot;</code> に変わる", "<code>&quot;未成年&quot;</code> に変わる", "<code>&quot;不明&quot;</code> のまま変わらない", "例外が発生するようになる" ],
+    "choicesHtml" : [ "<code>&quot;成人&quot;</code> に変わる", "<code>&quot;未成年&quot;</code> に変わる", "<code>&quot;不明&quot;</code> のまま", "例外が発生するようになる" ],
     "answer" : 2,
-    "explanationHtml" : "<p>ネストした if をガード節(<code>if (age == null) return &quot;不明&quot;;</code> <code>if (age &gt;= 18) return &quot;成人&quot;;</code> <code>return &quot;未成年&quot;;</code>)に書き換えると、null は最初の行で <code>&quot;不明&quot;</code> を返します。条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。</p>\n",
+    "explanationHtml" : "<p>ネストした if をガード節に書き換えると、次の 3 行になります。null はいちばん上の行で <code>&quot;不明&quot;</code> を返します。</p>\n<pre><code class=\"language-java\">if (age == null) return &quot;不明&quot;;\nif (age &gt;= 18) return &quot;成人&quot;;\nreturn &quot;未成年&quot;;\n</code></pre>\n<p>条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。</p>\n",
     "traceHtml" : [ "元のコード: <code>age</code> が null → 外側の else に入り <code>result = &quot;不明&quot;</code>", "ガード節版: <code>if (age == null) return &quot;不明&quot;;</code> が最初に一致してそこで終了", "どちらも <code>age</code> が null のときは <code>&quot;不明&quot;</code> を返す点で同じ" ],
     "whyHtml" : [ "ガード節にすると null が「成人」の分岐に流れると読んだ答え", "null が最後の return まで落ちると読んだ答え", "", "ガード節で null のまま <code>age &gt;= 18</code> に進むと読んだ答え" ]
   } ],

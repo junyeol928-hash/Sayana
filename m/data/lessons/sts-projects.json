@@ -26,16 +26,16 @@
   } ],
   "quiz" : [ {
     "questionHtml" : "<p>道場アプリを起動したまま、新しく作った demo プロジェクトを Boot Dashboard から起動したら、Console に次のように出た。\ndemo を起動するための対処として正しいものはどれ?</p>\n<pre><code class=\"language-text\">***************************\nAPPLICATION FAILED TO START\n***************************\n\nDescription:\n\nWeb server failed to start. Port 8080 was already in use.\n</code></pre>\n",
-    "choicesHtml" : [ "pom.xml から spring-boot-starter-web を削除する", "demo 側で server.port=8081 にして起動し直す", "Project &gt; Clean... を実行してから起動し直す", "Maven &gt; Update Project... を実行してから起動し直す" ],
+    "choicesHtml" : [ "<code>pom.xml</code> から <code>spring-boot-starter-web</code> を削除する", "demo 側で <code>server.port=8081</code> にして起動し直す", "Project &gt; Clean... を実行してから起動し直す", "Maven &gt; Update Project... を実行してから起動し直す" ],
     "answer" : 1,
     "explanationHtml" : "<p>ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo の <code>application.properties</code> に <code>server.port=8081</code> と書いて番号を変えるか、\n道場アプリを止めれば起動できます。</p>\n",
-    "whyHtml" : [ "エラーを消せば直ると読んだ答え。starter-web を消すと Web サーバごと無くなり、Web アプリとして動かない", "", "ビルドの問題と読んだ答え。Clean はコンパイルのやり直しで、ポートの取り合いは解けない", "設定の問題と読んだ答え。Update Project は pom.xml の読み直しで、ポートの取り合いは解けない" ]
+    "whyHtml" : [ "エラーを消せば直ると読んだ答え。starter-web を消すと Web サーバごと無くなり、Web アプリとして動かない", "", "ビルドの問題と読んだ答え。Clean はコンパイルのやり直しで、ポートの取り合いは解けない", "設定の問題と読んだ答え。Update Project は <code>pom.xml</code> の読み直しで、ポートの取り合いは解けない" ]
   }, {
     "questionHtml" : "<p>Git から取ってきた Maven プロジェクト(<code>pom.xml</code> はあるが <code>.project</code> は無い)を、\n<strong>File &gt; Import... &gt; General &gt; Existing Projects into Workspace</strong> で取り込もうとしたら、\n<code>No projects are found to import</code> と表示された。原因と対処として正しいものはどれ?</p>\n",
     "choicesHtml" : [ "JDK 21 が登録されていないので、Installed JREs に登録してからやり直す", "インターネットに繋がっていないので、依存ライブラリを取得できていない", "pom.xml が壊れているので、作り直す必要がある", ".project が無いので、Existing Maven Projects で取り込む" ],
     "answer" : 3,
     "explanationHtml" : "<p><strong>Existing Projects into Workspace</strong> は、Eclipse の <code>.project</code> ファイルを探して取り込む機能です。<code>.project</code> は Git に入れないのが普通なので、\nGit から取ってきた Maven プロジェクトでは「見つからない」になります。\n<strong>Maven &gt; Existing Maven Projects</strong> なら <code>pom.xml</code> を読んで、m2e が <code>.project</code> や <code>.classpath</code> を生成しながら取り込みます。</p>\n",
-    "whyHtml" : [ "JDK の未登録が原因と読んだ答え。それなら取り込んだ後のビルドエラーとして出る", "ネット接続が原因と読んだ答え。依存の取得は取り込んだ後の話で、見つからないのは <code>.project</code> が無いから", "pom.xml が壊れていると読んだ答え。この取り込み方は <code>.project</code> を探していて、pom.xml を見ていない", "" ]
+    "whyHtml" : [ "JDK の未登録が原因と読んだ答え。それなら取り込んだ後のビルドエラーとして出る", "ネット接続が原因と読んだ答え。依存の取得は取り込んだ後の話で、見つからないのは <code>.project</code> が無いから", "<code>pom.xml</code> が壊れていると読んだ答え。この取り込み方は <code>.project</code> を探していて、<code>pom.xml</code> を見ていない", "" ]
   }, {
     "questionHtml" : "<p>Spring Starter Project で作ったプロジェクトに、次の場所でクラスを作った。ファイルの1行目に書くべき宣言はどれ?</p>\n<pre><code class=\"language-text\">demo/src/main/java/com/example/shop/OrderService.java\n</code></pre>\n",
     "choicesHtml" : [ "package src.main.java.com.example.shop;", "package com.example.shop.OrderService;", "package com.example.shop;", "package com/example/shop;" ],
@@ -47,7 +47,7 @@
     "choicesHtml" : [ "mvnw・mvnw.cmd と .mvn/wrapper/ フォルダ", ".classpath", "target/demo-0.0.1-SNAPSHOT.jar", ".settings/org.eclipse.jdt.core.prefs" ],
     "answer" : 0,
     "explanationHtml" : "<p><code>mvnw</code> と <code>.mvn/wrapper/</code> は <strong>Maven Wrapper</strong> で、Maven を入れていない人や CI でも同じ版の Maven でビルドできるようにするものです。コミットします。\n<code>.classpath</code> と <code>.settings/</code> は STS(m2e)が <code>pom.xml</code> から生成する IDE 用のファイル、<code>target/</code> はビルド結果なので、どれもコミットしません。\nSpring Initializr が作る <code>.gitignore</code> にも、これらは最初から書かれています。</p>\n",
-    "whyHtml" : [ "", "<code>.classpath</code> を共有すべき設定と読んだ答え。m2e が pom.xml から作り直す IDE 用のファイル", "ビルド結果の jar もコミットすると読んだ答え。<code>target/</code> はビルドのたびに作り直すのでコミットしない", "<code>.settings/</code> を共有すべき設定と読んだ答え。m2e が pom.xml から作り直す IDE 用のファイル" ]
+    "whyHtml" : [ "", "<code>.classpath</code> を共有すべき設定と読んだ答え。m2e が <code>pom.xml</code> から作り直す IDE 用のファイル", "ビルド結果の jar もコミットすると読んだ答え。<code>target/</code> はビルドのたびに作り直すのでコミットしない", "<code>.settings/</code> を共有すべき設定と読んだ答え。m2e が <code>pom.xml</code> から作り直す IDE 用のファイル" ]
   }, {
     "questionHtml" : "<p><code>pom.xml</code> の <code>&lt;java.version&gt;</code> を 17 から 21 に書き換えて保存したら、Problems ビューに次のエラーが出て消えない。最も適切な対処はどれ?</p>\n<pre><code class=\"language-text\">Project configuration is not up-to-date with pom.xml.\nSelect: Maven-&gt;Update Project... from the project\ncontext menu or use Quick Fix.\n</code></pre>\n",
     "choicesHtml" : [ "Project &gt; Clean... を実行する", "STS を再インストールする", "pom.xml の &lt;java.version&gt; を 17 に戻す", "Maven &gt; Update Project... を実行する" ],

@@ -24,7 +24,7 @@
     }
   }, {
     "title" : "URL ルールは上から順に、最初に一致したもので決まる",
-    "descriptionHtml" : "<p>承認くんの URL ルールを簡略化した表で、未ログイン・申請者・承認者がどの URL に入れるかを一覧にします。\nまず今のルールで、申請者は <code>/requests/search</code> に入れる? 予想してから実行結果を見よう。そのあと広いルール(<code>/requests</code> 以下はログインしていれば OK)を先頭に足すと、どの行が変わるかも予想して試しましょう。</p>\n",
+    "descriptionHtml" : "<p>承認くんの URL ルールを簡略化した表で、未ログイン・申請者・承認者がどの URL に入れるかを一覧にします。\nまず今のルールで、申請者は <code>/requests/search</code> に入れる? そのあと広いルール(<code>/requests</code> 以下はログインしていれば OK)を先頭に足すと、どの行が変わる?</p>\n",
     "code" : "// 承認くんの URL ルール(上から順に見て、最初に一致したもので決まる)\n// prefix で簡略化しています。本物は Spring Security の requestMatchers\nrecord Rule(String prefix, String need) {}\n\nList<Rule> rules = new ArrayList<>(List.of(\n    new Rule(\"/login\", \"permitAll\"),\n    new Rule(\"/approvals\", \"APPROVER/ADMIN\"),\n    new Rule(\"/requests/search\", \"APPROVER/ADMIN\"),\n    new Rule(\"/\", \"authenticated\")));\n\n// ここを変えてみよう:下の行のコメントを外し、広いルールを先頭に入れて再実行\n// rules.add(0, new Rule(\"/requests\", \"authenticated\"));\n\nString judge(String path, String role) {\n    for (Rule r : rules) {\n        if (!path.startsWith(r.prefix())) continue;\n        if (r.need().equals(\"permitAll\")) return \"通す\";\n        if (role == null) return \"→ /login\";\n        if (r.need().equals(\"authenticated\")) return \"通す\";\n        return r.need().contains(role) ? \"通す\" : \"403\";\n    }\n    return role == null ? \"→ /login\" : \"403\";\n}\n\nString[] paths = {\"/login\", \"/requests\", \"/requests/search\", \"/approvals\"};\nString[] roles = {null, \"APPLICANT\", \"APPROVER\"};\nfor (String p : paths) {\n    List<String> cells = new ArrayList<>();\n    for (String role : roles) {\n        cells.add((role == null ? \"未ログイン\" : role) + \"=\" + judge(p, role));\n    }\n    System.out.println(p + \" → \" + cells);\n}\n",
     "result" : {
       "status" : "OK",
@@ -83,10 +83,10 @@
     "whyHtml" : [ "ボタンが無ければ届かないと読んだ答え。curl は画面を通らずに送れる", "", "URL のルールが申請者まで見ると読んだ答え。Filter が見るのはロールだけ", "金額だけで決まると読んだ答え。少額でも、自分の申請はルール2で承認できない" ]
   }, {
     "questionHtml" : "<p>次のフォームで「承認」を押すと 403 になりました。原因として正しいものは?</p>\n<pre><code class=\"language-html\">&lt;form action=&quot;/requests/8/approve&quot; method=&quot;post&quot;&gt;\n  &lt;button&gt;承認&lt;/button&gt;\n&lt;/form&gt;\n</code></pre>\n",
-    "choicesHtml" : [ "<code>th:action</code> を使っていないので CSRF トークンが送られていない", "action の URL が相対パスではないから", "<code>button</code> に <code>type=&quot;submit&quot;</code> が無いから", "承認は PUT で送る決まりだから" ],
+    "choicesHtml" : [ "<code>th:action</code> を使っていないので CSRF トークンが送られていない", "<code>action</code> の URL が相対パスではないから", "<code>button</code> に <code>type=&quot;submit&quot;</code> が無いから", "承認は PUT で送る決まりだから" ],
     "answer" : 0,
     "explanationHtml" : "<p>Spring Security は CSRF 対策が既定で有効で、POST にはサーバーが発行したトークン(<code>_csrf</code>)が必要です。<code>th:action</code> で書くと Thymeleaf が hidden の <code>_csrf</code> を自動で入れますが、ただの <code>action</code> だと入らないので 403 になります。</p>\n",
-    "whyHtml" : [ "", "絶対パスが原因と読んだ答え。<code>/requests/...</code> で書いても POST は届く", "<code>type</code> の省略が原因と読んだ答え。form の中の button は省略すると submit になる", "承認は PUT で送ると読んだ答え。承認くんでは状態を変える操作は POST" ]
+    "whyHtml" : [ "", "絶対パスが原因と読んだ答え。<code>/requests/...</code> で書いても POST は届く", "<code>type</code> の省略が原因と読んだ答え。<code>form</code> の中の <code>button</code> は省略すると <code>submit</code> になる", "承認は PUT で送ると読んだ答え。承認くんでは状態を変える操作は POST" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p>ログインしていない人が、ブラウザで <code>/approvals</code>(承認者以上)を開いた。どうなる?</p>\n",
