@@ -1,14 +1,38 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="quizAnswer" class="review-verdict" th:attr="data-answer=${question.answer}, data-chosen=${choice}">
-    <div class="q-explain" th:classappend="${correct} ? 'correct' : 'wrong'">
+<!-- 復習の上の行: 残りの数と、次の区切り(10 問)までの進み。答えたあとは hx-swap-oob で差し替える -->
+<p th:fragment="progress(left, n, oob)" class="review-progress" id="review-progress" th:attr="hx-swap-oob=${oob ? 'true' : null}"
+   th:with="inBlock=${oob ? ((n - 1) % 10) + 1 : n % 10}">残り <b th:text="${left}"></b> 問<span th:if="${n > 0}">今日 <th:block th:text="${inBlock}"></th:block> / <th:block th:text="${inBlock + left < 10 ? inBlock + left : 10}"></th:block><th:block th:if="${n >= 10}" th:text="|(${n} 問済み)|"></th:block></span></p>
+
+<!-- 復習の段階を運針で: 1・3・7・14 日の 4 目(縫えた目は糸、今回の目に朱の玉結び、まだの目は針穴)。問いのカードの上端に置く -->
+<div th:fragment="stitch(item)" class="review-stitch" th:with="s=${item.stage > 3 ? 3 : item.stage}, days=${ {1, 3, 7, 14} }">
+    <div class="unshin" role="img" style="--steps: 4" th:attr="aria-label='4 回のうち ' + ${s + 1} + ' 回目の復習'">
+        <i th:each="d, ds : ${days}" th:classappend="${ds.index < s} ? 'sewn' : (${ds.index == s} ? 'now' : '')"></i>
+    </div>
+    <p class="unshin-cap" aria-hidden="true"><span><th:block th:text="${days[s]}"></th:block> 日後の復習(4 回のうち <b th:text="${s + 1} + ' 回目'"></b>)</span>
+        <span th:text="${s == 3} ? '正解で卒業' : '卒業まで あと ' + ${4 - s} + ' 回'"></span></p>
+</div>
+
+<!-- 間違えた問題の行: レッスン名・どう読み違えたか(無ければ問いの書き出し)・読み直す(その問いの段へ。3 件まで。ほかは数だけ) -->
+<th:block th:fragment="missed(list)" th:if="${list != null and !list.isEmpty()}">
+    <ul class="missed-list" aria-label="間違えた問題">
+        <li th:each="m, ms : ${list}" th:if="${ms.index < 3}"><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b th:text="${m.lessonTitle()}"></b><small><span class="missed-why" th:if="${m.why()}">あなたの読み</span><th:block th:text="${m.text()}"></th:block></small></span><a class="missed-link" th:href="@{'/lessons/' + ${m.lessonId()} + ${m.anchor()}}">読み直す</a></li>
+    </ul>
+    <p class="muted small" th:if="${list.size() > 3}" th:text="|ほか ${list.size() - 3} 問|"></p>
+</th:block>
+
+<div th:fragment="quizAnswer" class="review-verdict" th:attr="data-answer=${question.answer}, data-chosen=${choice}, data-next-days=${nextDays}, data-next-step=${nextStep}, data-graduated=${graduatedNow}">
+    <div class="q-explain" tabindex="-1" th:classappend="${correct} ? 'correct' : 'wrong'">
         <span class="q-mark" th:text="${correct} ? '✓ 正解' : '× 不正解'"></span>
+        <p class="check-why" th:if="${!correct and choice >= 0 and choice < question.whyHtml.size() and !question.whyHtml.get(choice).isEmpty()}" th:utext="${question.whyHtml.get(choice)}"></p>
         <div class="explanation md" th:utext="${question.explanationHtml}"></div>
     </div>
-    <p class="review-source">出どころ: <a th:href="@{/lessons/{id}(id=${lesson.id})}" th:text="${lesson.title}"></a>(読み直す)</p>
-    <div class="review-next"><p class="review-note">次回: <b th:text="${reviewLabel}"></b></p>
-        <a class="btn primary" th:href="@{/review}">次の復習へ</a></div>
+    <a class="review-source" th:href="@{'/lessons/' + ${lesson.id} + '#quiz'}"><span>出どころ: <b th:text="${lesson.title}"></b></span><span class="review-source-go">読み直す</span></a>
+    <div class="review-next"><p class="review-note" th:text="${reviewLabel}"></p>
+        <a class="btn primary" th:if="${retryNext == null}" th:href="@{/review}">次の復習へ</a>
+        <a class="btn primary" th:if="${retryNext != null}" th:href="@{/review(retry=${retryNext})}" th:text="${retryLast} ? 'おわりの画面へ' : '次の解き直しへ'"></a></div>
+    <th:block th:if="${retryNext == null}"><p th:replace="~{fragments/review-parts :: progress(${dueLeft}, ${todayCount}, true)}"></p></th:block>
 </div>
 </body>
 </html>

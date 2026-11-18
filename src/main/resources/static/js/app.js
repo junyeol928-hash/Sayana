@@ -218,8 +218,10 @@ function mermaidTheme() {
 function highlight(root) {
   if (!window.hljs) return;
   // 読むためのコードは折り返す(スマホ版と同じ範囲)
-  root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .quiz-review pre, .quiz-answer pre, .reading-answer pre").forEach((pre) => pre.classList.add("code-lines"));
+  root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .quiz-review pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre, .check pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
+  // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
+  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 12) c.classList.add("nb"); });
   inlineNotes(root);
   // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で
   root.querySelectorAll(".choice > span").forEach((sp) => {
@@ -544,26 +546,66 @@ function trackLesson() {
   }, { passive: true });
 }
 
-/** 手を止めて(本文の途中の 1 問): 押したら正解とあなたの答えを付け、理由を出す。スマホ版の bindChecks と同じ形 */
+/** 開いた畳みの記憶(レッスンの URL!問いの番号)。PC はこのブラウザの中だけ */
+const GATES_KEY = "javadojo-pc-gates";
+const gatePage = () => location.pathname;
+function gateOpened(key) { try { return !!(JSON.parse(localStorage.getItem(GATES_KEY)) || {})[key]; } catch (e) { return false; } }
+function rememberGate(key) {
+  try { const g = JSON.parse(localStorage.getItem(GATES_KEY)) || {}; g[key] = 1; localStorage.setItem(GATES_KEY, JSON.stringify(g)); } catch (e) { console.warn("畳みの記録を保存できませんでした", e); }
+}
+
+/**
+ * 手を止めて(本文の途中の 1 問): 押したら正解とあなたの答えを付け、選んだ誤答に向けた 1 文と理由を出す。
+ * 正解なら枠の上の針目が糸になる。フォーカスは理由へ移す。スマホ版の bindChecks と同じ形
+ */
 function bindChecks(root) {
   root.querySelectorAll?.("aside.check").forEach((box) => {
     const answer = Number(box.dataset.answer);
+    // 答えを見せる前に置いた問いは、答えるまで後ろの塊を畳む。「先に読む」でいつでも開ける
+    // 一度開いた畳みは覚えておき、読み直しでは開いたまま(復習の「読み直す」から来た人を止めない)
+    const gate = root.querySelector(`.check-gate[data-gate="${box.dataset.check}"]`);
+    const gateKey = `${gatePage()}!${box.dataset.check}`;
+    const openGate = (focus) => {
+      if (!gate) return;
+      gate.hidden = false;
+      box.querySelector(".check-gate-note")?.remove();
+      box.nextElementSibling?.classList.contains("gate-fold") && box.nextElementSibling.remove();
+      rememberGate(gateKey);
+      // 「先に読む」はボタンごと消えるので、フォーカスを開いた続きへ移す(読み上げが迷子にならないように)
+      if (focus) { gate.tabIndex = -1; gate.focus({ preventScroll: true }); }
+    };
+    if (gate && !box.querySelector(".choice:disabled") && !gateOpened(gateKey)) {
+      gate.hidden = true;
+      box.insertAdjacentHTML("beforeend", `<p class="check-gate-note">答えると続きが開きます<button type="button" class="check-skip">先に読む</button></p>`);
+      box.insertAdjacentHTML("afterend", `<p class="gate-fold" aria-hidden="true"><span>続き(答えを見せる所)を畳んでいます</span></p>`);
+      box.querySelector(".check-skip").onclick = () => openGate(true);
+    }
     box.querySelectorAll(".check-choices .choice").forEach((b) => {
       b.onclick = () => {
         const choice = Number(b.dataset.c);
         const ok = choice === answer;
         box.querySelectorAll(".check-choices .choice").forEach((x) => {
           const j = Number(x.dataset.c);
+          const text = x.querySelector(".choice-text") || x.querySelector("span");
           x.disabled = true;
           x.classList.toggle("is-answer", j === answer);
           x.classList.toggle("is-wrong", j === choice && !ok);
-          if (j === choice && !ok) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
-          if (j === answer) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+          if (j === choice && !ok) text.insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+          if (j === answer) text.insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
         });
         const ex = box.querySelector(".check-explain");
         ex.classList.add(ok ? "correct" : "wrong");
+        ex.querySelectorAll(".check-why").forEach((w) => { w.hidden = ok || Number(w.dataset.for) !== choice; });
         ex.insertAdjacentHTML("afterbegin", `<span class="q-mark">${ok ? "✓ 正解" : "× 不正解"}</span>`);
         ex.hidden = false;
+        box.classList.add(ok ? "sewn" : "missed");
+        // 答えの前に置いた問いは、本文の続きが種明かしをするので、ここでは理由を繰り返さず続きへ送る
+        if (gate) {
+          ex.querySelector(".check-ex-body")?.setAttribute("hidden", "");
+          ex.insertAdjacentHTML("beforeend", `<p class="check-gate-after">続きの本文で、答えを確かめよう</p>`);
+        }
+        openGate(false);
+        ex.focus({ preventScroll: true });
       };
     });
   });
@@ -624,7 +666,9 @@ document.addEventListener("htmx:afterSwap", (e) => {
 // 復習: 答えたら、選択肢に正解とあなたの答えを付ける(並びを入れ替えているので値で見る)
 document.addEventListener("htmx:afterSwap", (e) => {
   const v = e.detail.target.id === "review-answer" && e.detail.target.querySelector(".review-verdict");
-  if (!v) return;
+  // 上の行の差し替え(hx-swap-oob)でも afterSwap が来るので、1 回の答えにつき 1 回だけ印を付ける
+  if (!v || v.dataset.marked) return;
+  v.dataset.marked = "1";
   const answer = Number(v.dataset.answer);
   const chosen = Number(v.dataset.chosen);
   v.closest(".review-quiz")?.querySelectorAll("label.choice").forEach((label) => {
@@ -634,11 +678,27 @@ document.addEventListener("htmx:afterSwap", (e) => {
     if (j === chosen && j !== answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
     if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
   });
+  const cap = document.querySelector(".review-stitch .unshin-cap");
   if (v.querySelector(".q-explain.correct")) {
     const now = document.querySelector(".review-stitch .unshin i.now");
     now?.classList.replace("now", "sewn");
     now?.classList.add("just");
+    if (cap) cap.innerHTML = v.dataset.graduated === "true" ? '<span class="grad-line"><span class="dye-burst grad-burst" aria-hidden="true"><span class="dye dye-0"></span><span class="dye dye-4 ink"></span></span><span><b>卒業</b>。褐に染まった(この問題はもう出ません)</span></span>'
+      : `<span>縫えた。次は <b>${Number(v.dataset.nextDays)} 日後</b>(4 回のうち ${Number(v.dataset.nextStep)} 回目)</span>`;
+  } else {
+    // 間違えたら、縫えていた目をほどいて 1 目めに戻す(下の「次は 1 日後」と上の表示を食い違わせない)。
+    // 縫えた目が無い(1 回目で間違えた)ときは、ほどくものが無いので「もう一度」だけ言う
+    const had = document.querySelectorAll(".review-stitch .unshin i.sewn").length > 0;
+    document.querySelectorAll(".review-stitch .unshin i").forEach((m, i) => { m.classList.remove("sewn", "now", "just"); m.classList.toggle("now", i === 0); m.classList.add("undone"); });
+    document.querySelector(".review-stitch .unshin")?.setAttribute("aria-label", had ? "ほどけて 1 回目に戻った" : "1 回目のまま");
+    if (cap) cap.innerHTML = had ? "<span><b>ほどけた</b>。明日、1 回目からもう一度</span>" : "<span>明日、もう一度</span>";
   }
+  // 判定へフォーカスを移し、選んだ答えが画面の上の方に来るまで送る(解説が長くても「× あなたの答え」を見失わない)
+  const verdict = v.querySelector(".q-explain");
+  verdict?.focus({ preventScroll: true });
+  const chosenLabel = v.closest(".review-quiz")?.querySelector("label.is-wrong, label.is-answer");
+  const top = (chosenLabel || verdict)?.getBoundingClientRect().top ?? 0;
+  if (top > 140) scrollTo({ top: scrollY + top - 120, behavior: reduceMotion() ? "auto" : "smooth" });
 });
 document.addEventListener("click", (e) => {
   if (!e.target.closest("[data-quiz-reset]")) return;
@@ -732,10 +792,13 @@ function lockAnswer(form, answer, choice, onReset) {
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
   const submit = form.querySelector("button[type=submit]");
   submit.hidden = true;
-  let again = form.querySelector("[data-answer-reset]");
+  // 読解は「もう一度解く」を判定・解説・追跡の後ろに置く(答えた直後の目線を判定に向ける)
+  const out = form.nextElementSibling?.classList.contains("reading-answer") ? form.nextElementSibling : null;
+  const host = out ? form.parentElement : form;
+  let again = host.querySelector("[data-answer-reset]");
   if (!again) {
-    submit.insertAdjacentHTML("afterend", `<button class="btn" type="button" data-answer-reset>もう一度解く</button>`);
-    again = form.querySelector("[data-answer-reset]");
+    (out || submit).insertAdjacentHTML("afterend", `<button class="btn" type="button" data-answer-reset>もう一度解く</button>`);
+    again = host.querySelector("[data-answer-reset]");
   }
   again.hidden = false;
   again.onclick = () => {
@@ -761,6 +824,7 @@ document.addEventListener("submit", (e) => {
   const verdict = out.querySelector(".verdict");
   verdict.className = "verdict " + (ok ? "correct" : "wrong");
   verdict.textContent = ok ? "✔ 正解" : "✘ 不正解";
+  out.querySelectorAll(".check-why").forEach((w) => { w.hidden = ok || Number(w.dataset.for) !== choice; });
   out.hidden = false;
   const rec = readingRecord();
   rec[li.dataset.ref] = { ok, at: new Date().toISOString().slice(0, 10) };

@@ -19,7 +19,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // ---- 撮影用の進み具合(13 レッスンを読み、深さがばらばら。今日の復習 20 問)
 const IDS = ["java-hello", "java-variables", "java-operators", "java-if", "java-loops", "java-arrays", "java-methods", "java-strings",
   "java-classes", "java-encapsulation", "java-inheritance", "java-polymorphism"];
-const day = (d) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
+// アプリの today() と同じ地方時の日付(toISOString は UTC なので、日本時間の朝 9 時前は前の日になっていた)
+const day = (d) => { const t = new Date(); t.setDate(t.getDate() + d); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`; };
 function seed() {
   const S = { read: {}, quiz: {}, reading: {}, review: {}, checklist: {}, exercise: {}, chat: {}, days: [], settings: { modelsVersion: 3 }, seen: { "spring-di": true }, sections: { "spring-di": ["atwork", "run"] } };
   [...IDS, "spring-di"].forEach((id) => { S.read[id] = true; });
@@ -116,8 +117,10 @@ await shot("m-check");
 await js(`const b = [...document.querySelectorAll("#read aside.check")][0]; const wrong = [...b.querySelectorAll(".choice")].find((x) => Number(x.dataset.c) !== Number(b.dataset.answer)); wrong.click(); await new Promise((r) => setTimeout(r, 400));`);
 await scrollTo("#read aside.check", 140);
 await shot("m-check-answer");
+await scrollTo("#read aside.check .check-explain", 420);
+await shot("m-check-why");
 // サンプルの実行結果(予想してから開く欄)。閉じた形と開いた形
-await scrollTo("#run .sample", 130);
+await scrollTo("#run details.sample-result", 420);
 await shot("m-sample-closed");
 await js(`document.querySelector("#run .sample-result").open = true;`);
 await scrollTo("#run .sample-result", 260);
@@ -126,10 +129,53 @@ await shot("m-sample-result");
 await open(mobileArg + "#/review");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-review");
-await js(`const f = document.querySelector("#rq"); if (f) { f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); }
-  await new Promise((r) => setTimeout(r, 800));`);
-await scrollTo("#ra", 200);
+// わざと間違える(ほどける運針・上の数の更新・選んだ誤答への送りを見るため)。出ている問いの正解を教材のデータから探す
+await js(`const f = document.querySelector("#rq"); if (f) {
+    const head = document.querySelector(".review-quiz > .md").textContent.replace(/\\s+/g, "").slice(0, 24);
+    let answer = -1;
+    for (const id of ["java-if", "java-arrays", "java-strings", "java-encapsulation", "spring-di"]) {
+      const L = await (await fetch("data/lessons/" + id + ".json")).json();
+      [...L.quiz, ...(L.checks || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/\\s+/g, "").startsWith(head)) answer = q.answer; });
+    }
+    [...f.querySelectorAll("input")].find((x) => Number(x.value) !== answer).checked = true;
+    f.querySelector("button[type=submit]").click(); }
+  await new Promise((r) => setTimeout(r, 1200));`);
 await shot("m-review-answer");
+await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300));`);
+await shot("m-review-answer-top");
+// 10 問の区切り(今日 10 問答えた形にして開き直す)
+await js(`const s = JSON.parse(localStorage.getItem("javadojo-m-v1")); const d = new Date(); const t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const keys = Object.keys(s.review).filter((k) => !s.review[k].graduated); // 本物の問題で(間違えた問題の行に名前が出るように)
+  const refs = {}; [true, true, false, true, true, true, false, true, true, true].forEach((ok, i) => { refs[keys[i]] = ok; }); s.reviewLog = { [t]: { refs } };
+  // 区切りに数えた 10 問は答えた扱いなので、今日の残りから外す(「残り n 問」を実際の流れとそろえる。21 回目の審査)
+  const tomorrow = new Date(d.getTime() + 864e5); const t1 = tomorrow.getFullYear() + "-" + String(tomorrow.getMonth() + 1).padStart(2, "0") + "-" + String(tomorrow.getDate()).padStart(2, "0");
+  keys.slice(0, 10).forEach((k) => { s.review[k].due = t1; });
+  localStorage.setItem("javadojo-m-v1", JSON.stringify(s)); location.reload();`);
+await sleep(2500);
+await js(`window.scrollTo(0, 0);`);
+await shot("m-review-break");
+// 今日の終わり(12 問のうち 9 問)。間違えた問題の行は、選んだ誤答の読み違えを言う。そこから解き直しへ
+await js(`const s = JSON.parse(localStorage.getItem("javadojo-m-v1")); const d = new Date(); const day = (x) => x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+  const t = day(d); const t1 = day(new Date(d.getTime() + 864e5));
+  const keys = Object.keys(s.review).filter((k) => !s.review[k].graduated && s.review[k].type !== "exercise");
+  const oks = [true, true, false, true, true, true, false, true, true, true, false, true];
+  const refs = {}, choices = {};
+  for (let i = 0; i < oks.length && i < keys.length; i++) {
+    const k = keys[i]; refs[k] = oks[i]; s.review[k].due = t1;
+    if (!oks[i]) {
+      const L = await (await fetch("data/lessons/" + s.review[k].lessonId + ".json")).json();
+      const q = k.includes("#") ? L.quiz[Number(k.split("#")[1])] : k.includes("!") ? L.checks[Number(k.split("!")[1])] : L.reading[Number(k.split("@")[1])];
+      choices[k] = (q.answer + 1) % q.choicesHtml.length;
+    }
+  }
+  Object.values(s.review).forEach((it) => { if (!it.graduated && it.due <= t) it.due = t1; });
+  s.reviewLog = { [t]: { refs, choices } };
+  localStorage.setItem("javadojo-m-v1", JSON.stringify(s)); location.reload();`);
+await sleep(2500);
+await js(`window.scrollTo(0, 0);`);
+await shot("m-review-done");
+await js(`document.querySelector("#again")?.click(); await new Promise((r) => setTimeout(r, 1200)); window.scrollTo(0, 0);`);
+await shot("m-review-retry");
 await open(mobileArg + "#/reading");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-reading");
@@ -146,7 +192,9 @@ await shot("m-terms");
 await view(DESK);
 await open(pcArg);
 await js(`localStorage.setItem("javadojo-pc-last", JSON.stringify({ id: "spring-di", title: "DIとIoCコンテナ", section: "quiz", off: 40, end: false })); location.reload();`);
-await sleep(2500);
+await sleep(1500);
+// 読み込みの途中(前回の続きに差し替える前はヒーローを隠す)で撮らないよう、整うまで待つ(19 回目の撮影で途中が写った)
+await js(`for (let i = 0; i < 50 && !(document.readyState === "complete" && !document.body.classList.contains("resume-pending")); i++) await new Promise((r) => setTimeout(r, 100)); await new Promise((r) => setTimeout(r, 400));`);
 await shot("pc-dashboard");
 await open(pcArg + "lessons/spring-di");
 await js(`window.scrollTo(0, 0);`);
@@ -162,8 +210,15 @@ await shot("pc-check");
 await open(pcArg + "review");
 await js(`window.scrollTo(0, 0);`);
 await shot("pc-review");
+// 答えたあと(この作業ツリーの data/ の記録が 1 問進む)
+await js(`const f = document.querySelector(".review-quiz form"); if (f) { f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); }
+  await new Promise((r) => setTimeout(r, 1500));`);
+await shot("pc-review-answer");
 await open(pcArg + "glossary");
 await js(`const t = [...document.querySelectorAll(".term")].find((x) => x.querySelector(".term-count") && x.textContent.includes("equals")); window.scrollTo(0, t.getBoundingClientRect().top + scrollY - 220); await new Promise((r) => setTimeout(r, 600));`);
 await shot("pc-glossary");
+// 本文の書体で欧文の下(g・j・p・q)が欠けないか(21 回目: Windows の BIZ UDPGothic で欠けていた)。毎回 56px で並べて確かめる
+await js(`document.body.insertAdjacentHTML("afterbegin", '<div id="font-check" style="position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--ink);padding:40px;font:400 56px/1.6 var(--font)">本文: equals Spring javac getBean()<br><b>太字: Repository jpg qy</b><br><span style="font-family:var(--head);font-weight:700">見出し: Spring Boot Java</span></div>'); await new Promise((r) => setTimeout(r, 400));`);
+await shot("pc-font-check");
 ws.close();
 process.exit(0);

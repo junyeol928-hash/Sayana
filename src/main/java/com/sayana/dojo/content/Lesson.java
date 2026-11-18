@@ -63,8 +63,9 @@ public record Lesson(
     }
 
     /** 選択式クイズ1問。answer は 0 始まり。 */
+    /** クイズの 1 問。whyHtml は選択肢と同じ並びで、選んだ誤答に向けた 1 文(正解の所は空。書いていなければ空のリスト)。 */
     public record QuizQuestion(String questionMarkdown, String questionHtml, List<String> choices,
-                               List<String> choicesHtml, int answer, String explanationHtml) {
+                               List<String> choicesHtml, int answer, String explanationHtml, List<String> whyHtml) {
     }
 
     /** コラム。type は trivia / genba / mistake。 */
@@ -96,7 +97,7 @@ public record Lesson(
      */
     public record ReadingQuestion(String title, int level, String code, String questionHtml,
                                   List<String> choicesHtml, int answer, String explanationHtml,
-                                  List<String> traceHtml) {
+                                  List<String> traceHtml, List<String> whyHtml) {
     }
 
     /**
@@ -108,9 +109,12 @@ public record Lesson(
     }
 
     /**
-     * 「手を止めて」(checks.yml)。本文の節の終わりに置く 1 問(読みながら思い出す練習)。
-     * after はその節の見出し(lesson.md の ## の文字)。本文の HTML には描画済みのものが入っている。
+     * 「手を止めて」(checks.yml)。本文の途中に置く 1 問(読みながら思い出す練習)。
+     * 置き場所は after(その ## 節の終わり)か before(書き出しがその文字の塊の直前。答えを見せる前に予想させる)。
+     * hides は before のとき、答えるまで畳む後ろの塊の数(答えが同じ画面に見えないように)。
+     * whyHtml は選択肢と同じ並びで、選んだ誤答に向けた 1 文(正解の所は空)。本文の HTML には描画済みのものが入っている。
      */
-    public record Check(String after, String questionHtml, List<String> choicesHtml, int answer, String explanationHtml) {
+    public record Check(String after, String before, int hides, String questionHtml, List<String> choicesHtml, int answer,
+                        String explanationHtml, List<String> whyHtml) {
     }
 }

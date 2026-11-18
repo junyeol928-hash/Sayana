@@ -91,6 +91,7 @@ public class DashboardController {
                 model.addAttribute("nextDyeRead", DYE_READ[s.dyeLevel()]);
                 model.addAttribute("nextDyeMeaning", s.dyeLabel().split("・")[1]);
                 model.addAttribute("nextHint", nextDyeHint(s));
+                model.addAttribute("nextKicker", nextKicker(s));
             });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
             model.addAttribute("nextTitleSize", titleSize(next.title()));
@@ -134,6 +135,18 @@ public class DashboardController {
 
     /** 段の意味(地図の読み上げ用。スマホ版 app.js の DYE の meaning と同じ)。 */
     static final String[] DYE_MEANING = {"まだ", "読んだ", "クイズ合格", "演習もできた", "復習をすべて卒業"};
+
+    /** ヒーローの見出しの行: 次の段の量を言う(読み終えたレッスンで「読む 18 分」と言わない。スマホ版 app.js の kicker と同じ)。 */
+    static String nextKicker(ProgressService.LessonStatus s) {
+        Lesson l = s.lesson();
+        if (s.dyeLevel() == 1 && !l.quiz().isEmpty()) {
+            return "クイズ " + l.quiz().size() + " 問";
+        }
+        if (s.dyeLevel() == 2 && !l.exercises().isEmpty()) {
+            return "演習 " + l.exercises().size() + " 問";
+        }
+        return "読む " + l.minutes() + " 分";
+    }
 
     /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
     public static String nextDyeHint(ProgressService.LessonStatus s) {

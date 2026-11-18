@@ -129,6 +129,22 @@ public class ReviewService {
         return new int[] {n, ok};
     }
 
+    /** 今日答えた問題を、最後に答えた時刻の順に(区切りと終わりの画面で運針に並べ、間違えた問題を出す)。 */
+    @Transactional(readOnly = true)
+    public List<ReviewItem> todayItems() {
+        LocalDate today = LocalDate.now(clock);
+        return items.findAll().stream()
+                .filter(it -> it.getLastReviewedAt() != null && LocalDate.ofInstant(it.getLastReviewedAt(), clock.getZone()).equals(today))
+                .sorted(java.util.Comparator.comparing(ReviewItem::getLastReviewedAt))
+                .toList();
+    }
+
+    /** 今日答えた問題の正誤を、最後に答えた時刻の順に。 */
+    @Transactional(readOnly = true)
+    public List<Boolean> todayResults() {
+        return todayItems().stream().map(it -> Boolean.TRUE.equals(it.getLastCorrect())).toList();
+    }
+
     /**
      * 選択肢を見せる並び。復習では位置で覚えてしまわないよう入れ替える。同じ問題は同じ日なら同じ並び(開き直しても変わらない)。
      */
@@ -149,7 +165,24 @@ public class ReviewService {
         return items.countByGraduatedTrue();
     }
 
-    /** 次の復習までの日数の説明(画面表示用)。 */
+    /** 復習で答えたあとの「次は」。ボタンの横に置く短い文字(スマホ版の nextLabel と同じ)。 */
+    public static String nextLabel(ReviewItem item) {
+        if (item.isGraduated()) {
+            return "卒業。もう出ません";
+        }
+        return "次は " + INTERVAL_DAYS[Math.min(item.getStage(), INTERVAL_DAYS.length - 1)] + " 日後";
+    }
+
+    /**
+     * 今日の復習の目安(分)。区切りの単位(先頭の 10 問)で数える。クイズは 25 秒、演習の書き直しは 3 分
+     * (スマホ版の reviewMinutes と同じ数え方。スマホには読解 45 秒もある)。
+     */
+    public static int firstBlockMinutes(List<ReviewItem> due) {
+        int secs = due.stream().limit(10).mapToInt(it -> it.getItemType() == ReviewItem.Type.QUIZ ? 25 : 180).sum();
+        return Math.max(1, Math.round(secs / 60f));
+    }
+
+    /** 次の復習までの日数の説明(演習の採点結果に出す)。 */
     public static String intervalLabel(ReviewItem item) {
         if (item.isGraduated()) {
             return "卒業(もう復習しなくてOK)";

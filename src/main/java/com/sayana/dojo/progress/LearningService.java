@@ -121,7 +121,7 @@ public class LearningService {
     public boolean answerReviewQuiz(ReviewItem item, int choice) {
         Lesson lesson = content.lesson(item.getLessonId()).orElseThrow();
         boolean ok = lesson.quiz().get(item.quizIndex()).answer() == choice;
-        review.recordReview(item.getId(), ok);
+        review.recordReview(item.getId(), ok).setLastChoice(choice);
         activity.record();
         return ok;
     }

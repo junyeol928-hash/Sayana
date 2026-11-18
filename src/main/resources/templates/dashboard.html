@@ -11,7 +11,7 @@
         <section class="today" aria-labelledby="today-title" th:if="${nextLesson}">
             <p class="today-axis" aria-hidden="true"><span th:text="${nextAxisPart}">第三部 Spring</span><small th:text="${nextAxisChapter}">第一章</small></p>
             <div class="today-body">
-            <p class="today-kicker"><span>今日の稽古</span><span class="visually-hidden" th:text="${nextChapter}">第1章</span><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span></p>
+            <p class="today-kicker"><span>今日の稽古</span><span class="visually-hidden" th:text="${nextChapter}">第1章</span><span th:text="${nextKicker}"></span></p>
             <h1 class="today-title" th:classappend="${nextTitleSize}" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
             <!--/* 運針は、段ごとの済み具合(ブラウザの記録も合わせる)から app.js が描く */-->
             <div class="unshin-slot" th:attr="data-lesson=${nextLesson.id}"></div>
@@ -19,7 +19,7 @@
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             </div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
-                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="'約 ' + ${(dueCount + 2) / 3} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="(${dueCount > 10} ? 'まず 10 問 ' : '') + '約 ' + ${dueMinutes} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
                 <span th:if="${dueCount == 0}" class="zero" th:text="'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
             <p class="talk-line" th:if="${streak == 0}">モカ先輩「まずは1レッスン、15分だけやってみよう」</p>
             <p class="talk-line" th:if="${streak > 0 and !studiedToday}" th:text="'モカ先輩「連続 ' + ${streak} + ' 日。今日もちょっとだけやって記録をつなごう」'"></p>

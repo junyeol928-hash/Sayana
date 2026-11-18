@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -120,7 +121,7 @@ class WebFlowTest {
                 .findFirst().orElseThrow();
         int answer = lesson.quiz().get(quizItem.quizIndex()).answer();
         mvc.perform(post("/review/" + quizItem.getId() + "/quiz").param("choice", String.valueOf(answer)))
-                .andExpect(status().isOk()).andExpect(content().string(containsString("3日後に復習")));
+                .andExpect(status().isOk()).andExpect(content().string(containsString("次は 3 日後")));
 
         // 提出履歴から見返せる
         mvc.perform(get("/history").param("lesson", "java-loops")).andExpect(status().isOk())
@@ -180,5 +181,55 @@ class WebFlowTest {
                 .andExpect(status().isOk()).andExpect(content().string(containsString("合格")));
         mvc.perform(get("/lessons/java-if")).andExpect(status().isOk())
                 .andExpect(content().string(containsString("/practice/" + g.getId())));
+    }
+
+    @Test
+    @DisplayName("今日まちがえたクイズは、終わりの画面から記録と予定を変えずに解き直せる。終わりの行はどう読み違えたかを言う")
+    void retryWrongAnswersSameDay() throws Exception {
+        // ほかのテストの問題が期日にあると終わりの画面にならないので、この間だけ先へ送る(最後に戻す)
+        var others = reviewItems.findAll();
+        var saved = new java.util.HashMap<Long, java.time.LocalDate>();
+        others.forEach(it -> saved.put(it.getId(), it.getDueDate()));
+        LocalDate today = LocalDate.now(clock);
+        try {
+            others.forEach(it -> it.setDueDate(today.plusYears(1)));
+            reviewItems.saveAll(others);
+            Lesson hello = content.lesson("java-hello").orElseThrow();
+            Lesson.QuizQuestion q = hello.quiz().get(0);
+            int wrong = (q.answer() + 1) % q.choicesHtml().size();
+            ReviewItem item = reviewItems.findByItemTypeAndItemRef(ReviewItem.Type.QUIZ, "java-hello#0")
+                    .orElseGet(() -> reviewItems.save(new ReviewItem(ReviewItem.Type.QUIZ, "java-hello#0", "java-hello", today, Instant.now(clock))));
+            item.setDueDate(today);
+            item.setGraduated(false);
+            reviewItems.save(item);
+
+            mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(wrong))).andExpect(status().isOk());
+            ReviewItem after = reviewItems.findById(item.getId()).orElseThrow();
+            String whyHead = org.springframework.web.util.HtmlUtils.htmlUnescape(q.whyHtml().get(wrong).replaceAll("<[^>]+>", "")).split("。")[0];
+            mvc.perform(get("/review")).andExpect(status().isOk())
+                    .andExpect(content().string(containsString("いま解き直す")))
+                    .andExpect(content().string(containsString("あなたの読み")))
+                    .andExpect(content().string(containsString(org.springframework.web.util.HtmlUtils.htmlEscape(whyHead.substring(0, Math.min(10, whyHead.length()))))))
+                    .andExpect(content().string(containsString("/lessons/java-hello#quiz")));
+            mvc.perform(get("/review").param("retry", "0")).andExpect(status().isOk())
+                    .andExpect(content().string(containsString("解き直し <b>1</b>")));
+            // 解き直しの答えは記録しない(段階・期日・今日の数がそのまま)
+            int todayBefore = Integer.parseInt(mvc.perform(get("/review")).andReturn().getResponse().getContentAsString()
+                    .replaceAll("(?s).*今日 (\\d+) 問のうち.*", "$1"));
+            mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(q.answer()))
+                            .param("retry", "0").param("total", "1"))
+                    .andExpect(status().isOk()).andExpect(content().string(containsString("解き直せた")))
+                    .andExpect(content().string(containsString("おわりの画面へ")))
+                    .andExpect(content().string(not(containsString("hx-swap-oob"))));
+            ReviewItem unchanged = reviewItems.findById(item.getId()).orElseThrow();
+            assertThat(unchanged.getStage()).isEqualTo(after.getStage());
+            assertThat(unchanged.getDueDate()).isEqualTo(after.getDueDate());
+            assertThat(unchanged.getLastCorrect()).isFalse();
+            mvc.perform(get("/review")).andExpect(content().string(containsString("今日 " + todayBefore + " 問のうち")));
+        } finally {
+            var all = reviewItems.findAll();
+            all.forEach(it -> { if (saved.containsKey(it.getId())) it.setDueDate(saved.get(it.getId())); });
+            reviewItems.saveAll(all);
+        }
     }
 }

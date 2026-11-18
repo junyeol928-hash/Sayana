@@ -56,8 +56,9 @@
   --r-s: 4px; --r-m: 8px; --r-l: 14px;
   --ease: cubic-bezier(.22, 1, .36, 1);
   /* 見出しの書体: 道場の札のように太く短く。Zen Kaku Gothic New(OFL)を使う文字だけに絞って同梱(docs/design.md の書体の節) */
-  --head: "Zen Kaku Gothic New", "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", sans-serif;
-  --font: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", system-ui, sans-serif;
+  --head: "Zen Kaku Gothic New", "Hiragino Sans", "Dojo Latin", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+  /* 本文: Mac・iPhone はヒラギノ、Windows は BIZ UDPGothic(欧文だけは下の Dojo Latin)、Android は Noto */
+  --font: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Dojo Latin", "BIZ UDPGothic", "Yu Gothic UI", "Noto Sans JP", system-ui, sans-serif;
   --mono: "Cascadia Code", "SF Mono", Menlo, Consolas, "BIZ UDGothic", monospace;
   --code-lh: 22px;
   --gutter: 20px;
@@ -147,6 +148,10 @@
 /* ================================================================ 土台 */
 @font-face { font-family: "Zen Kaku Gothic New"; font-weight: 700; font-display: swap; src: url("fonts/zen-kaku-gothic-new-700.woff2") format("woff2"); }
 @font-face { font-family: "Zen Kaku Gothic New"; font-weight: 900; font-display: swap; src: url("fonts/zen-kaku-gothic-new-900.woff2") format("woff2"); }
+/* Windows の Edge・Chrome では、BIZ UDPGothic の欧文の下(g・j・p・q)が欠けて描かれる。Java の地の文は英字が多いので、
+   ASCII だけ端末の Segoe UI から取る(無い端末ではこの書体ごと飛ばされ、次の書体になる) */
+@font-face { font-family: "Dojo Latin"; font-weight: 400; src: local("Segoe UI"), local("SegoeUI"); unicode-range: U+0020-007E; }
+@font-face { font-family: "Dojo Latin"; font-weight: 700; src: local("Segoe UI Bold"), local("SegoeUI-Bold"); unicode-range: U+0020-007E; }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 120px; -webkit-text-size-adjust: 100%; }
 body {
@@ -403,7 +408,8 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .unshin.sewing i.now::after { animation: knot-in .56s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 120ms + 200ms); }
 @keyframes knot-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .unshin.sewing i.sewn, .unshin.sewing i.now::before, .unshin.sewing i.now::after { animation: none; } }
-.unshin-cap { display: flex; justify-content: space-between; gap: 12px; font-size: .8125rem; color: var(--ink-muted); margin: 8px 0 0; }
+.unshin-cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-size: .8125rem; color: var(--ink-muted); margin: 8px 0 0; }
+.unshin-cap > span { white-space: nowrap; } /* 狭いときは語の途中で割らず、2 行目へ回す */
 .unshin-cap b { color: var(--ink); }
 
 .progress-block { padding: 28px 0 8px; }
@@ -555,6 +561,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step-menu li a[aria-current="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--accent); color: var(--accent-ink); }
 .choice .code-choice { font-family: var(--mono); font-size: .9375rem; }
 code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; background: none; border-left: 2px solid var(--accent); border-radius: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.6; }
+.choice > span, .explanation, .check-why, .check-explain { overflow-wrap: break-word; }
 .choice-tag { display: block; margin-top: 2px; font: 700 .875rem/1.5 var(--font); color: var(--ng); letter-spacing: .02em; }
 .choice-tag.is-ok { color: var(--accent-ink); } /* 誤答の「× あなたの答え」と左右対称に、正解にも目に見える文字を付ける */
 .step-menu li a small { color: var(--ink-muted); font-weight: 400; }
@@ -835,7 +842,7 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .tests .pass .mark { color: var(--ok); }
 .tests .fail .mark { color: var(--shu); }
 .test-message { margin: 4px 0 8px 1.6em; background: var(--surface); color: var(--ink); font-size: 13px; white-space: pre-wrap; }
-.review-note { background: var(--surface-2); border-radius: var(--r-m); padding: 6px 12px; display: inline-block; font-size: .875rem; }
+.review-note { margin: 0; font-size: .875rem; color: var(--ink-muted); } /* 押せない文字。塗りの札にするとボタンに見えた(19 回目の審査) */
 .ai-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
 
 /* 演習 */
@@ -860,7 +867,20 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .sample-result .run-result { margin-top: 0; background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 0 var(--r-m) var(--r-m) 0; padding: 10px 12px; }
 .sample-result .run-result.status-exception { border-left-color: var(--shu); }
 .sample .sample-result pre { margin-left: 0; margin-right: 0; border-radius: var(--r-s); padding: 10px 12px; }
-.sample-result .console { white-space: pre-wrap; overflow-wrap: break-word; line-break: strict; } /* 出力は書き写さないので、箱の幅で折り返して読ませる */
+/* 出力は書き写さないので、箱の幅で折り返して読ませる。語の切れ目(sampleResult が <wbr> を入れる)でだけ折り、
+   「コー/ヒー豆」のように語の途中で割らない。記号の連なり(---)はひとまとまり */
+.sample-result .console { white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; line-break: strict; }
+.sample-result > summary .predict { display: block; font-weight: 400; color: var(--ink); font-size: .875rem; line-height: 1.6; margin-bottom: 2px; }
+.sample-result .console .nb { white-space: nowrap; }
+.sample-result .console .out-line { display: block; min-height: 1.5em; padding-left: 1.5em; text-indent: -1.5em; } /* 折り返した続きは 1.5 字下げる */
+@media (max-width: 760px) {
+  /* スマホ: 箱の中の箱をやめ、出力を真上のサンプルと同じ全幅の暗い帯に。左の藍の線(例外は朱)だけ残す */
+  .sample-result .run-result { background: none; padding: 0; border-left: 0; border-radius: 0; }
+  .sample-result .run-meta { padding: 0 0 4px; }
+  .sample .sample-result pre.console, .sample .sample-result pre.exception { margin: 0 calc(var(--gutter) * -1) 8px; border-radius: 0; padding: 12px var(--gutter) 12px calc(var(--gutter) - 3px); border-left: 3px solid var(--accent); }
+  .sample .sample-result .status-exception pre.console, .sample .sample-result pre.exception { border-left-color: var(--shu); }
+}
+code.nb { white-space: nowrap; }
 .solution { margin: 4px 0; }
 .solution summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 .generated-list { padding-left: 1.2em; }
@@ -904,21 +924,64 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .choice.is-wrong input:checked { border-color: var(--shu); background: var(--surface); }
 .choice.is-wrong input::after { width: 10px; height: 10px; border-radius: 0; transform: none;
   background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
-/* 手を止めて(checks.yml): 本文の途中で思い出す 1 問。クイズと同じ選択肢の部品に、左の藍の線(読む流れの中の「間」) */
-.check { margin: 32px 0; padding: 14px 16px 6px; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 var(--r-m) var(--r-m) 0; }
-.check-label { margin: 0 0 6px; font-size: .8125rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .08em; }
+/* 手を止めて(checks.yml): 本文の途中で思い出す 1 問。刺し子の枠で囲み、左上に藍の札を下げる(ホームの部の札と同じ布)。
+   解説や行の説明の「左に藍の線の面」と分けて、読む流れの中の「間」だと形で分かるように(19 回目の審査)。
+   正解すると枠の上の針目が 1 本の糸になる(縫う)。選択肢はクイズと同じ部品(左の丸。正解はレ点、選んだ誤答は ×) */
+.check {
+  --st: color-mix(in oklch, var(--accent) 55%, var(--surface));
+  position: relative; margin: 36px 0; padding: 16px 18px 8px 56px; min-height: 112px; border-radius: 2px;
+  background:
+    repeating-linear-gradient(90deg, var(--st) 0 9px, transparent 9px 15px) 0 0 / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, var(--st) 0 9px, transparent 9px 15px) 0 100% / 100% 2px no-repeat,
+    repeating-linear-gradient(180deg, var(--st) 0 9px, transparent 9px 15px) 0 0 / 2px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--st) 0 9px, transparent 9px 15px) 100% 0 / 2px 100% no-repeat,
+    var(--surface);
+}
+.check::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left center; }
+.check.sewn::after { transform: scaleX(1); animation: sew-in .24s cubic-bezier(.22, 1, .36, 1) both; }
+.check > .check-label {
+  position: absolute; top: 0; left: 14px; z-index: 1; margin: 0; writing-mode: vertical-rl; padding: 10px 5px 12px;
+  background: var(--kon); color: var(--kon-ink); font: 700 .75rem/1 var(--font); letter-spacing: .26em; border-radius: 0 0 var(--r-s) var(--r-s);
+}
 .check-q > :first-child { margin-top: 0; }
 .check-q > :last-child { margin-bottom: 0; }
-/* 問いの中のコードは箱の中に収め、読むためのものなので折り返す(本文のコードの全幅の決まりを打ち消す) */
-.md .check pre, .check pre { margin: 10px 0; border-radius: var(--r-s); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: break-word; }
-.check .choice { grid-template-columns: minmax(0, 1fr); width: 100%; text-align: left; font: inherit; color: var(--ink); }
+/* 問いの中のコードは、クイズと同じ行番号つきの折り返し(code-lines)。箱の中に収める */
+.md .check pre, .check pre { margin: 10px 0; border-radius: var(--r-s); }
+.md .check pre.code-lines, .check pre.code-lines { padding: 10px 8px 10px 0; }
+.check .choice { grid-template-columns: 22px minmax(0, 1fr); width: 100%; text-align: left; font: inherit; color: var(--ink); }
 .check .choice:disabled { cursor: default; }
 .check .choice:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.choice-dot { width: 20px; height: 20px; margin-top: 3px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line-strong); background: var(--surface); display: grid; place-items: center; }
+.choice.is-answer .choice-dot { border-color: var(--accent); background: var(--accent); }
+.choice.is-answer .choice-dot::after { content: ""; width: 9px; height: 5px; border-left: 2px solid var(--on-accent); border-bottom: 2px solid var(--on-accent); transform: translate(0, -1px) rotate(-45deg); }
+.choice.is-wrong .choice-dot { border-color: var(--shu); }
+.choice.is-wrong .choice-dot::after { content: ""; width: 10px; height: 10px;
+  background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
 .check-explain { margin: 4px 0 10px; }
+.check-explain:focus { outline: none; }
 .check-explain .q-mark { display: block; margin-bottom: 2px; }
 .check-explain.correct .q-mark { color: var(--accent-ink); }
 .check-explain.wrong .q-mark { color: var(--ng); }
 .check-explain > :last-child { margin-bottom: 0; }
+/* 答えを見せる前に置いた問いの下: 畳んだ続きの知らせと「先に読む」(読み飛ばしたい人を止めない) */
+.check-gate-note { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; margin: 6px 0 4px; font-size: .875rem; color: var(--ink-muted); }
+.check-gate-after { margin: 4px 0 0; font-weight: 700; color: var(--accent-ink); }
+.check-ex-body > :first-child { margin-top: 0; }
+/* 畳んだ所の印: 問いの枠のすぐ下に、刺し子の破線と 1 行(何を飛ばしているかが分かるように) */
+.gate-fold { display: flex; align-items: center; gap: 10px; margin: -20px 0 28px; font-size: .8125rem; color: var(--ink-muted); }
+.gate-fold::before, .gate-fold::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
+.check-skip { border: 0; background: none; padding: 0 4px; min-height: 44px; font: inherit; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* 選んだ誤答に向けた 1 文(checks.yml の why)。判定のすぐ下に、解説より先に */
+.check-why { margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+.check .choice-text, .check-explain p, .check-why { text-wrap: pretty; } /* 最後の行に 1 字だけ残さない */
+@media (max-width: 760px) {
+  /* スマホは札を枠の上辺に縫い付けた横書きのタブに(縦の札の分だけ問いのコードが細るので)。
+     選択肢は枠の中の枠になるので、余白を詰めて文字はクイズと同じ 16px(1 行 15 字で 1 字の行が出ていた) */
+  .check { padding: 26px 10px 6px; min-height: 0; }
+  .check .choice { padding: 10px 12px; column-gap: 10px; font-size: 1rem; }
+  .md .check pre.code-lines, .check pre.code-lines { margin-left: -8px; margin-right: -8px; border-radius: 0; }
+  .check > .check-label { writing-mode: horizontal-tb; top: -9px; left: 12px; padding: 5px 10px 4px; border-radius: var(--r-s); letter-spacing: .14em; }
+}
 .quiz-result { margin-top: 20px; }
 .quiz-score { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; } /* 点・刺し子の目・合否の 3 つを同じ中心線に */
 .quiz-score .big .slash { font-size: .6em; margin: 0 .2em; color: var(--ink-muted); font-weight: 400; vertical-align: .15em; }
@@ -935,8 +998,10 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .q-mark { font-weight: 700; }
 .correct .q-mark { color: var(--ok); }
 .wrong .q-mark { color: var(--shu); }
-.explanation { margin-top: 8px; padding-top: 8px; font-size: .9375rem;
+/* 解説の上の刺し子の線。判定 → 選んだ誤答への 1 文 → 線 → 解説、の形を、クイズ・手を止めて・読解・復習で 1 つにそろえる */
+.explanation, .check-ex-body, .reading-answer > .md { margin-top: 8px; padding-top: 8px; font-size: .9375rem;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 1px no-repeat; }
+.reading-answer + [data-answer-reset] { margin-top: 14px; }
 
 /* ================================================================ AI */
 .tutor { position: sticky; top: 76px; height: calc(100vh - 100px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; }
@@ -975,13 +1040,78 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .review-mix { margin: 0 0 12px; }
 .review-about { margin: 0 0 12px; font-size: .875rem; color: var(--ink-muted); }
 .review-about > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
-.review-source { font-size: .875rem; color: var(--ink-muted); margin: 10px 0 0; }
+/* 出どころ: 行ぜんたいを 1 つのリンクに(間違えたあとにいちばん押したい所なので、指で押せる高さに) */
+.review-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; min-height: 44px; margin: 10px 0 0;
+  font-size: .875rem; color: var(--ink-muted); text-decoration: none; border-bottom: 1px solid var(--line); }
+.review-source b { color: var(--ink); font-weight: 700; }
+.review-source-go { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+p.review-source { display: block; min-height: 0; border: 0; }
 .review-next { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 12px; }
 .review-next .review-note { margin: 0; }
 .review-progress { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--ink-muted); font-size: .9375rem; }
 .review-progress b { color: var(--ink); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .review-quiz { padding: 22px 24px; }
-@media (max-width: 760px) { .review-quiz { padding: 16px 14px; } } /* カードの中の解説が 1 行 16 字ほどに細っていた(18 回目の審査) */
+/* 運針は問いのカードの上端に(ページの見出しの下にあると、今日の進み具合の線に読めた。19 回目の審査) */
+.review-quiz > .review-stitch, .reading-q > .review-stitch, .exercise > .review-stitch, .review-stitch + .muted { margin-bottom: 14px; }
+.review-kind { margin: 0 0 6px; font-size: .8125rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .06em; }
+/* 復習の中の読解: 題は答えるまで隠す(使う知識と罠を先に言ってしまう)。スマホはクイズと同じく地の上に */
+.reading-q.review-reading:not(.answered) .reading-head { display: none; }
+.reading-q.review-reading .reading-head h3::before { content: none; } /* 上に「読解」の札があるので、番号の札は重ねない */
+@media (max-width: 760px) {
+  .reading-q.review-reading { border: 0; border-radius: 0; padding: 4px 0 0; background: none; }
+  .reading-q.review-reading pre { margin-left: calc(var(--gutter) * -1); margin-right: calc(var(--gutter) * -1); }
+}
+.unshin i.undone { transition: background-color .16s var(--ease); }
+/* 卒業: 褐のマスが染み込む(ホームの地図のいちばん深い色) */
+.grad-line { display: inline-flex; align-items: center; gap: 8px; white-space: normal; }
+.grad-burst { width: 18px; height: 18px; border-radius: 3px; }
+/* スマホは問いをカードに入れず、レッスンのクイズと同じく地の上に置く(カードと解説の箱の二重で 1 行 17 字に細っていた) */
+@media (max-width: 760px) {
+  .card.review-quiz { padding: 4px 0 0; border: 0; border-radius: 0; background: none; margin-top: 8px; }
+  .review-quiz > .md pre { margin-left: calc(var(--gutter) * -1); margin-right: calc(var(--gutter) * -1); }
+}
+/* PC の広い画面: コードのある問いは 2 列(左にコード、右に選択肢と「答え合わせ」)。1440×900 で答える所が折り目の下に落ちていた。
+   答えたあとの判定・解説・次へは、左のコードのすぐ下に(右の細い列に 12 行で細り、左に大きな空きができていた) */
+@media (min-width: 1200px) {
+  .page-review .container.narrow:has(.review-quiz .md pre) { max-width: 1160px; }
+  .review-quiz:has(> .md pre) { display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); column-gap: 28px; align-items: start; }
+  .review-quiz:has(> .md pre) > .review-stitch { grid-column: 1 / -1; }
+  .review-quiz:has(> .md pre) > .md { grid-column: 1; grid-row: 2; }
+  .review-quiz:has(> .md pre) > form { grid-column: 2; grid-row: 2 / span 2; }
+  .review-quiz:has(> .md pre) > #review-answer { grid-column: 1; grid-row: 3; }
+  .review-quiz:has(> .md pre) .choice { padding: 10px 12px; margin: 6px 0; }
+}
+/* 10 問の区切り: いまの 10 問を運針で並べる(正解は藍の糸、間違えた問は針穴に朱の ×。色だけでなく形でも分かる) */
+.review-break { margin: 12px 0 24px; }
+.review-break-kicker { margin: 0 0 12px; font-size: .875rem; color: var(--ink-muted); }
+.break-unshin { max-width: 440px; height: 16px; }
+.break-unshin i.miss:not(.sewn) { height: 11px; background:
+  linear-gradient(45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 50% / 10px 10px no-repeat,
+  linear-gradient(-45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 50% / 10px 10px no-repeat; }
+.review-break-title { font-size: 1.5rem; margin: 18px 0 6px; }
+.review-break-note { margin: 0 0 16px; color: var(--ink-muted); }
+/* 解き直し(今日まちがえた問題を、その日のうちにもう一度。記録しない): 運針の代わりに朱の札、終わりに 1 行 */
+.retry-kind { color: var(--shu); }
+.retry-done { margin: 0 0 16px; font-size: .9375rem; }
+.retry-tag { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px solid var(--shu); border-radius: var(--r-s); color: var(--shu); font-size: .75rem; font-weight: 700; line-height: 1.6; vertical-align: 1px; }
+.break-rows { display: grid; gap: 12px; }
+.break-rows .break-unshin { margin: 0; }
+/* 間違えた問題の行: × の印・レッスン名と問いの書き出し・読み直す(行の右端、44px) */
+.missed-list { list-style: none; margin: 0 0 18px; padding: 0; border-top: 1px solid var(--line); }
+.missed-list li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.missed-mark { width: 12px; height: 12px;
+  background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
+.missed-body { display: grid; min-width: 0; }
+.missed-body b { font-size: .9375rem; }
+.missed-body small { color: var(--ink-muted); font-size: .8125rem; line-height: 1.6; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+/* 選んだ誤答の why の 1 文目(どう読み違えたか)の前の小さな札 */
+.missed-why { display: inline-block; margin-right: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: var(--r-s); color: var(--shu); font-size: .6875rem; font-weight: 700; line-height: 1.5; vertical-align: 1px; }
+.missed-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: .875rem; color: var(--accent-ink); }
+/* この先の予定の表: 段階を 4 目の小さな運針で */
+.mini-unshin { display: inline-grid; width: 64px; height: 10px; vertical-align: middle; }
+.mini-unshins { display: inline-flex; flex-wrap: wrap; gap: 6px 12px; vertical-align: middle; }
+.nowrap { white-space: nowrap; }
+.mini-unshin i.now::after { width: 8px; height: 8px; left: calc(50% - 4px); top: -2.5px; }
 .empty-state { text-align: left; }
 .filter select { font: inherit; font-size: 16px; padding: 6px 10px; border-radius: var(--r-m); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
 .settings label { display: block; font-weight: 700; margin-top: 14px; font-size: .9375rem; }
@@ -1103,7 +1233,6 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .md pre.code-lines, .reading-q pre.code-lines { padding-left: 0; }
 @media (max-width: 760px) {
   .q-explain pre, .quiz-answer pre { margin-left: -14px; margin-right: -14px; }
-  .review-quiz > .md pre { margin-left: -16px; margin-right: -16px; }
 }
 
 /* PC: 前回の続きに差し替えるまでヒーローを隠す(dashboard.html の短いスクリプトが付け外し) */

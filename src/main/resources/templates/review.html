@@ -8,61 +8,70 @@
     <details class="review-about"><summary>いろいろなレッスンの問題を混ぜて出します。選択肢の並びは日ごとに変わります</summary>
         <p class="muted small">クイズと演習は、解いた日から 1日後 → 3日後 → 7日後 → 14日後 に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。答える前はどのレッスンの問題かを見せません(どの知識を使う問題かを、自分で見分ける練習になるので)。</p></details>
 
-    <div th:if="${breakHere != null}" class="card empty-state review-break">
-        <div class="talk talk-sensei">
-            <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
-            <div class="talk-bubble"><p th:text="|今日は ${todayCount} 問を思い出して、${todayCorrect} 問正解。ここで区切っても大丈夫。残り ${due.size()} 問は、明日の分と一緒に出すよ。|"></p></div>
+    <section th:if="${breakHere != null}" class="review-break" aria-labelledby="break-title"
+             th:with="n=${breakBlock.size()}, ok=${breakBlock.size() - breakMiss}">
+        <p class="review-break-kicker" th:text="|今日の ${todayCount - n + 1}〜${todayCount} 問目|"></p>
+        <div class="unshin break-unshin" role="img" th:style="|--steps: ${n}|" th:attr="aria-label=|${n} 問のうち ${ok} 問正解|">
+            <i th:each="r : ${breakBlock}" th:class="${r} ? 'sewn' : 'miss'"></i>
         </div>
+        <h2 class="review-break-title" id="break-title"><th:block th:text="|${n} 問のうち ${ok} 問|"></th:block><th:block th:if="${breakMiss == 0}">。全部縫えた</th:block></h2>
+        <p class="review-break-note"><th:block th:if="${breakMiss > 0}" th:text="|間違えた ${breakMiss} 問は、明日もう一度出ます。|"></th:block>ここで区切っても大丈夫。残り <th:block th:text="${due.size()}"></th:block> 問は、明日の分と一緒に出ます。</p>
+        <th:block th:replace="~{fragments/review-parts :: missed(${missed})}"></th:block>
         <div class="review-next"><a class="btn primary" th:href="@{/review(go=${todayCount})}" th:text="|続ける(残り ${due.size()} 問)|"></a><a class="btn" th:href="@{/}">今日はここまで</a></div>
-    </div>
+    </section>
 
-    <div th:if="${item == null and breakHere == null}" class="card empty-state">
-        <div class="talk talk-sensei">
-            <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
-            <div class="talk-bubble"><p><th:block th:if="${todayCount > 0}" th:text="|今日は ${todayCount} 問を思い出して、${todayCorrect} 問正解。|"></th:block>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>
-        </div>
-        <a class="btn primary" th:href="@{/}">ホームへ</a>
-    </div>
+    <section th:if="${item == null and breakHere == null}" class="review-break review-done" aria-labelledby="break-title">
+        <th:block th:if="${todayCount > 0}">
+            <p class="review-break-kicker">今日の復習はおしまい</p>
+            <div class="break-rows" role="img" th:attr="aria-label=|${todayCount} 問のうち ${todayCorrect} 問正解|">
+                <div class="unshin break-unshin" style="--steps: 10" th:each="row : ${doneRows}"><i th:each="r : ${row}" th:class="${r} ? 'sewn' : 'miss'"></i></div>
+            </div>
+            <h2 class="review-break-title" id="break-title"><th:block th:text="|今日 ${todayCount} 問のうち ${todayCorrect} 問|"></th:block><th:block th:if="${todayCount == todayCorrect}">。全部縫えた</th:block></h2>
+            <p class="review-break-note"><th:block th:if="${todayCount > todayCorrect}" th:text="|間違えた ${todayCount - todayCorrect} 問は、明日もう一度出ます。|"></th:block><th:block th:if="${!upcomingItems.isEmpty()}">この先の予定は下の表のとおりです。</th:block></p>
+            <th:block th:replace="~{fragments/review-parts :: missed(${missed})}"></th:block>
+            <p class="retry-done" th:if="${retryDone}"><span class="retry-tag">解き直し</span>今日まちがえた <th:block th:text="${retryCount}"></th:block> 問を、解き直した(予定は明日のまま)</p>
+        </th:block>
+        <p class="review-break-note" th:if="${todayCount == 0}">今日の復習はありません。レッスンでクイズを解くと、1・3・7・14 日の間隔でここに出てきます。</p>
+        <!--/* 間違えた問題があれば、その日のうちに解き直せる(記録しない)。スマホ版と同じ */-->
+        <div class="review-next" th:if="${retryCount != null and retryCount > 0 and !retryDone}"><a class="btn primary" th:href="@{/review(retry=0)}" th:text="|間違えた ${retryCount} 問を、いま解き直す|"></a><a class="btn" th:href="@{/}">ホームへ</a></div>
+        <div class="review-next" th:unless="${retryCount != null and retryCount > 0 and !retryDone}"><a class="btn primary" th:href="@{/}">ホームへ</a></div>
+    </section>
 
     <th:block th:if="${item != null}">
-        <div class="review-head">
-            <p class="review-progress">残り <b th:text="${due.size()}"></b> 問<span th:if="${todayCount > 0}" th:text="|今日 ${todayCount} 問済み|"></span></p>
-            <div class="review-stitch" th:with="s=${item.stage > 3 ? 3 : item.stage}, days=${ {1, 3, 7, 14} }">
-                <div class="unshin" role="img" style="--steps: 4" th:attr="aria-label='4 回のうち ' + ${s + 1} + ' 回目の復習'">
-                    <i th:each="d, ds : ${days}" th:classappend="${ds.index < s} ? 'sewn' : (${ds.index == s} ? 'now' : '')"></i>
-                </div>
-                <p class="unshin-cap" aria-hidden="true"><span><th:block th:text="${days[s]}"></th:block> 日後の復習(4 回のうち <b th:text="${s + 1} + ' 回目'"></b>)</span>
-                    <span th:text="${s == 3} ? '正解で卒業' : '卒業まで あと ' + ${4 - s} + ' 回'"></span></p>
-            </div>
-        </div>
+        <div class="review-head" th:if="${retryAt == null}"><p th:replace="~{fragments/review-parts :: progress(${due.size()}, ${todayCount}, false)}"></p></div>
+        <div class="review-head" th:if="${retryAt != null}"><p class="review-progress" id="review-progress">解き直し <b th:text="${retryAt + 1}"></b> / <th:block th:text="${retryCount}"></th:block></p></div>
 
         <div th:if="${question != null}" class="card review-quiz">
+            <th:block th:if="${retryAt == null}"><div th:replace="~{fragments/review-parts :: stitch(${item})}"></div></th:block>
+            <p th:if="${retryAt != null}" class="review-kind retry-kind">解き直し · 答えは記録せず、明日の予定も変わりません</p>
             <div class="md" th:utext="${question.questionHtml}"></div>
-            <form th:attr="hx-post=@{/review/{id}/quiz(id=${item.id})}" hx-target="#review-answer" hx-swap="innerHTML"
+            <form th:attr="hx-post=${retryAt == null} ? @{/review/{id}/quiz(id=${item.id})} : @{/review/{id}/quiz(id=${item.id},retry=${retryAt},total=${retryCount})}" hx-target="#review-answer" hx-swap="innerHTML"
                   hx-on::after-request="this.querySelectorAll('input').forEach(e => e.disabled = true); this.querySelector('button').hidden = true">
                 <label th:each="i : ${choiceOrder}" class="choice">
                     <input type="radio" name="choice" th:value="${i}" required>
                     <span th:utext="${question.choicesHtml.get(i)}"></span>
                 </label>
-                <button class="btn primary" type="submit">答える</button>
+                <button class="btn primary" type="submit">答え合わせ</button>
             </form>
             <div id="review-answer"></div>
         </div>
 
         <div th:if="${view != null}">
+            <div th:replace="~{fragments/review-parts :: stitch(${item})}"></div>
             <p class="muted small">演習の復習です。何も見ずに雛形から書き直してみよう(合格すれば次の段階へ)。</p>
             <article th:replace="~{fragments/exercise :: card(${view})}"></article>
         </div>
     </th:block>
 
     <section class="card" th:if="${!upcomingItems.isEmpty()}">
-        <div class="card-title">この先の予定(<span th:text="${graduated}"></span> 問 卒業済み)</div>
+        <div class="card-title"><span>この先の予定</span><span class="small muted">卒業 <b th:text="${graduated}"></b> 問</span></div>
         <table class="table">
-            <tr th:each="u : ${upcomingItems}">
+            <!--/* 日付とレッスンでまとめた行。段階の小さな運針を問題の数だけ並べる。種類は演習が混ざるときだけ言う */-->
+            <tr th:each="u : ${upcomingRows}">
                 <td class="small" th:text="${#temporals.format(u.dueDate, 'M/d')}"></td>
-                <td th:text="${u.itemType.name() == 'QUIZ' ? 'クイズ' : '演習'}"></td>
-                <td th:text="${lessonTitles.get(u.lessonId)}"></td>
-                <td class="small muted" th:text="'段階 ' + ${u.stage + 1} + '/4'"></td>
+                <td th:text="${u.lessonTitle}"></td>
+                <td class="small nowrap" th:text="|${u.stages.size()} 問| + (${u.exercises > 0} ? |(演習 ${u.exercises})| : '')"></td>
+                <td class="small muted"><span class="mini-unshins"><span class="unshin mini-unshin" role="img" style="--steps: 4" th:each="st : ${u.stages}" th:attr="aria-label=|4 回のうち ${st + 1} 回目|"><i th:each="d, ds : ${ {1, 3, 7, 14} }" th:classappend="${ds.index < st} ? 'sewn' : (${ds.index == st} ? 'now' : '')"></i></span></span></td>
             </tr>
         </table>
     </section>

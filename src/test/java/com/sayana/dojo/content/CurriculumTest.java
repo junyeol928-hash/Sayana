@@ -101,6 +101,91 @@ class CurriculumTest {
         assertThat(CONTENT.lesson("java-hello").orElseThrow().hasSts()).as("STSでやってみよう").isTrue();
     }
 
+    @Test
+    @DisplayName("誤答の 1 文(why)は解説と同じ話をくり返さず、地の文の文字列は ASCII の引用符で書かず、サンプルには予想の問いがある")
+    void proseRules() {
+        List<String> problems = new java.util.ArrayList<>();
+        for (Lesson l : CONTENT.readyLessons()) {
+            for (int i = 0; i < l.quiz().size(); i++) {
+                var q = l.quiz().get(i);
+                proseProblems(l.id() + " quiz " + i, q.questionHtml(), q.choicesHtml(), q.whyHtml(), q.explanationHtml(), problems);
+            }
+            for (int i = 0; i < l.reading().size(); i++) {
+                var r = l.reading().get(i);
+                proseProblems(l.id() + " reading " + i, r.questionHtml(), r.choicesHtml(), r.whyHtml(), r.explanationHtml(), problems);
+            }
+            for (int i = 0; i < l.checks().size(); i++) {
+                var c = l.checks().get(i);
+                proseProblems(l.id() + " check " + i, c.questionHtml(), c.choicesHtml(), c.whyHtml(), c.explanationHtml(), problems);
+            }
+            for (Lesson.Sample s : l.samples()) {
+                // スマホ版の predictLine と同じ拾い方(? / だろうか / でしょうか で終わる文)
+                String text = plain(s.descriptionHtml(), false).replaceAll("\\s+", " ").strip();
+                boolean predict = java.util.Arrays.stream(text.split("(?<=[。?？])")).map(String::strip)
+                        .anyMatch(x -> x.matches(".*([?？]|だろうか。?|でしょうか。?)$"));
+                if (!predict) {
+                    problems.add(l.id() + " サンプル「" + s.title() + "」の説明に、予想の問い(? で終わる文)が無い");
+                }
+            }
+        }
+        assertThat(problems).as("CONTENT_FORMAT.md の why・引用符・予想の問いの決まり").isEmpty();
+    }
+
+    private static final java.util.regex.Pattern ASCII_QUOTED = java.util.regex.Pattern.compile("\"[^\"\\n]{1,60}\"");
+
+    private static void proseProblems(String where, String question, List<String> choices, List<String> why, String explanation,
+                                      List<String> problems) {
+        List<String> texts = new java.util.ArrayList<>(List.of(question, explanation));
+        texts.addAll(choices);
+        texts.addAll(why);
+        for (String t : texts) {
+            java.util.regex.Matcher m = ASCII_QUOTED.matcher(plain(t, true));
+            if (m.find()) {
+                problems.add(where + ": 地の文に ASCII の引用符 " + m.group() + "(出力はコードに、リテラルは引用符ごとコードに)");
+            }
+        }
+        String ex = plain(explanation, true).replaceAll("\\s+", "");
+        for (int j = 0; j < why.size(); j++) {
+            String w = plain(why.get(j), true).replaceAll("\\s+", "");
+            String same = longestCommon(w, ex);
+            if (same.length() >= 12) {
+                problems.add(where + " why" + j + ": 解説と同じ並び「" + same + "」(why は読み違え、解説は正解の筋)");
+            }
+        }
+    }
+
+    /** HTML から地の文を取り出す。コード(pre と code)は 1 字の印に置き換える(dropCode)か、文字だけ残す。 */
+    private static String plain(String html, boolean dropCode) {
+        String s = html == null ? "" : html;
+        if (dropCode) {
+            s = s.replaceAll("(?s)<pre\\b.*?</pre>", "〓").replaceAll("(?s)<code\\b.*?</code>", "〓");
+        }
+        return org.springframework.web.util.HtmlUtils.htmlUnescape(s.replaceAll("<[^>]+>", ""));
+    }
+
+    /** 最長の共通部分文字列(印〓を含まない)。 */
+    private static String longestCommon(String a, String b) {
+        int best = 0;
+        int end = 0;
+        int[] prev = new int[b.length() + 1];
+        for (int i = 1; i <= a.length(); i++) {
+            int[] cur = new int[b.length() + 1];
+            if (a.charAt(i - 1) != '〓') {
+                for (int j = 1; j <= b.length(); j++) {
+                    if (a.charAt(i - 1) == b.charAt(j - 1)) {
+                        cur[j] = prev[j - 1] + 1;
+                        if (cur[j] > best) {
+                            best = cur[j];
+                            end = i;
+                        }
+                    }
+                }
+            }
+            prev = cur;
+        }
+        return a.substring(end - best, end);
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("exercises")
     @DisplayName("模範解答は採点テストに全部合格する")
