@@ -90,7 +90,7 @@
     "choicesHtml" : [ "NoUniqueBeanDefinitionException(候補が2つ)で起動に失敗する", "先に登録した Smtp が注入される", "後に登録した Log が注入される", "sender に null が渡される" ],
     "answer" : 0,
     "explanationHtml" : "<p><code>Sender</code> 型の Bean が2つあり、どちらを渡すべきかコンテナには決められないので、<code>expected single matching bean but found 2: smtp,log</code> というエラーで起動に失敗します。登録順で勝手に選ばれることはありません。\n解決するには、どちらかに <code>@Primary</code> を付けるか、<code>Shop</code> のコンストラクタ引数に <code>@Qualifier(&quot;smtp&quot;)</code> のように Bean 名を指定します。</p>\n",
-    "whyHtml" : [ "", "登録した順で先の Bean が選ばれると読んだ答え。登録順では選ばれず、候補が2つで起動に失敗する", "後から登録した Bean が上書きすると読んだ答え。登録順では選ばれず、候補が2つで起動に失敗する", "合う Bean を決められないと null が入ると読んだ答え。null にはせず、例外で起動に失敗する" ]
+    "whyHtml" : [ "", "登録した順で、先の Bean が選ばれると読んだ答え", "後から登録した Bean が前のものを上書きすると読んだ答え", "合う Bean を決められないと null が入ると読んだ答え。null にはせず、例外で起動に失敗する" ]
   }, {
     "questionHtml" : "<p>次のコードの出力は?</p>\n<pre><code class=\"language-java\">@Service\nclass Counter {\n    private int count;\n    int next() { return ++count; }\n}\n\nvar ctx = new AnnotationConfigApplicationContext(Counter.class);\nCounter a = ctx.getBean(Counter.class);\nCounter b = ctx.getBean(Counter.class);\na.next();\nb.next();\nSystem.out.println(a.next() + &quot; &quot; + (a == b));\n</code></pre>\n",
     "choicesHtml" : [ "2 false", "1 false", "2 true", "3 true" ],
