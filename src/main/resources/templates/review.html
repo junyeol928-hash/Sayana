@@ -8,7 +8,15 @@
     <details class="review-about"><summary>いろいろなレッスンの問題を混ぜて出します。選択肢の並びは日ごとに変わります</summary>
         <p class="muted small">クイズと演習は、解いた日から 1日後 → 3日後 → 7日後 → 14日後 に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。答える前はどのレッスンの問題かを見せません(どの知識を使う問題かを、自分で見分ける練習になるので)。</p></details>
 
-    <div th:if="${item == null}" class="card empty-state">
+    <div th:if="${breakHere != null}" class="card empty-state review-break">
+        <div class="talk talk-sensei">
+            <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
+            <div class="talk-bubble"><p th:text="|今日は ${todayCount} 問を思い出して、${todayCorrect} 問正解。ここで区切っても大丈夫。残り ${due.size()} 問は、明日の分と一緒に出すよ。|"></p></div>
+        </div>
+        <div class="review-next"><a class="btn primary" th:href="@{/review(go=${todayCount})}" th:text="|続ける(残り ${due.size()} 問)|"></a><a class="btn" th:href="@{/}">今日はここまで</a></div>
+    </div>
+
+    <div th:if="${item == null and breakHere == null}" class="card empty-state">
         <div class="talk talk-sensei">
             <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
             <div class="talk-bubble"><p><th:block th:if="${todayCount > 0}" th:text="|今日は ${todayCount} 問を思い出して、${todayCorrect} 問正解。|"></th:block>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>

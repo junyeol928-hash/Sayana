@@ -340,11 +340,30 @@ function stepStates(row) {
   return (d.steps || "read quiz").split(" ").map((key) => ({ key, done: done.has(key) }));
 }
 // 運針(うんしん): 段を刺し子の針目で見せる。済んだ段は糸、いまの段は玉結び、まだの段は針穴
+/** 今日はじめての表示か(ホームの運針を 1 回だけ縫う)。記録はこのブラウザの中だけ */
+// 同じ画面で運針を描き直しても(PC は前回の続きで差し替える)、その表示の間は同じ答えを返す
+let sewToday;
+function firstOpenToday() {
+  if (sewToday !== undefined) return sewToday;
+  sewToday = false;
+  const key = "javadojo-sewn-day";
+  const d = new Date().toLocaleDateString("sv");
+  try {
+    if (localStorage.getItem(key) === d) return false;
+    localStorage.setItem(key, d);
+    return (sewToday = true);
+  } catch (e) {
+    return false;
+  }
+}
+
 function unshin(steps, nowKey) {
   const n = steps.filter((st) => st.done).length;
   const label = `${steps.length} 段のうち ${n} 段済み${nowKey ? `。次は${SECTION_LABEL[nowKey]}` : ""}`;
-  return `<div class="unshin" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st) =>
-    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}"></i>`).join("")}</div>
+  // その日はじめて開いたときだけ、済んだ段の糸を左から縫い、最後に朱の玉結びを染み込ませる(1 秒以内。動きの種類は縫う・染みるの 2 つのまま)
+  const sew = firstOpenToday();
+  return `<div class="unshin${sew ? " sewing" : ""}" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st, i) =>
+    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}" style="--i: ${i}"></i>`).join("")}</div>
     <p class="unshin-cap" aria-hidden="true"><span>${steps.length} 段のうち <b>${n} 段</b>済み</span>${nowKey ? `<span>次は <b>${SECTION_LABEL[nowKey]}</b></span>` : ""}</p>`;
 }
 // 大きな題は語の途中で折らない(「コンテ/ナ」にならないように)。語ごとに折り返さない箱に入れ、助詞・記号は前の語につなぐ。

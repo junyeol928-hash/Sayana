@@ -398,6 +398,11 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .unshin i.now { position: relative; }
 .unshin i.now::before { content: ""; position: absolute; left: 0; right: 50%; top: .5px; height: 3px; border-radius: 2px; background: currentColor; }
 .unshin i.now::after { content: ""; position: absolute; left: calc(50% - 5.5px); top: -3.5px; width: 11px; height: 11px; border-radius: 50%; background: var(--shu); }
+/* その日はじめて開いたとき: 済んだ段の糸を 1 本 240ms で左から縫い(120ms ずつずらす)、最後に朱の玉結びを染み込ませる */
+.unshin.sewing i.sewn, .unshin.sewing i.now::before { animation: sew-in .24s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 120ms); transform-origin: left center; }
+.unshin.sewing i.now::after { animation: knot-in .56s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 120ms + 200ms); }
+@keyframes knot-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .unshin.sewing i.sewn, .unshin.sewing i.now::before, .unshin.sewing i.now::after { animation: none; } }
 .unshin-cap { display: flex; justify-content: space-between; gap: 12px; font-size: .8125rem; color: var(--ink-muted); margin: 8px 0 0; }
 .unshin-cap b { color: var(--ink); }
 

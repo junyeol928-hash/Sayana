@@ -39,7 +39,7 @@ public class ReviewController {
     }
 
     @GetMapping("/review")
-    public String queue(Model model) {
+    public String queue(@RequestParam(name = "go", defaultValue = "-1") int goOnAt, Model model) {
         List<ReviewItem> due = review.due().stream().filter(this::stillExists).toList();
         model.addAttribute("due", due);
         model.addAttribute("upcomingItems", review.upcoming().stream().filter(this::stillExists).limit(30).toList());
@@ -48,6 +48,11 @@ public class ReviewController {
         int[] tally = review.todayTally();
         model.addAttribute("todayCount", tally[0]);
         model.addAttribute("todayCorrect", tally[1]);
+        // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)。「続ける」で ?go=今日の数
+        if (tally[0] > 0 && tally[0] % 10 == 0 && goOnAt != tally[0] && !due.isEmpty()) {
+            model.addAttribute("breakHere", true);
+            return "review";
+        }
         review.next(due).ifPresent(item -> {
             model.addAttribute("item", item);
             Lesson lesson = content.lesson(item.getLessonId()).orElse(null);

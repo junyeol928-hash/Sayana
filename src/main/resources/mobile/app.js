@@ -315,11 +315,30 @@ function stepStates(l) {
   return keys.map((key) => ({ key, done: done[key] }));
 }
 // 運針(うんしん): 段を刺し子の針目で見せる。済んだ段は糸、いまの段は玉結び、まだの段は針穴
+/** 今日はじめての表示か(ホームの運針を 1 回だけ縫う)。記録はこのブラウザの中だけ */
+// スマホ版は 1 枚の画面でホームを何度も描くので、縫うのはこの表示で最初の 1 回だけ
+let sewToday;
+function firstOpenToday() {
+  if (sewToday !== undefined) return false;
+  sewToday = false;
+  const key = "javadojo-sewn-day";
+  const d = new Date().toLocaleDateString("sv");
+  try {
+    if (localStorage.getItem(key) === d) return false;
+    localStorage.setItem(key, d);
+    return (sewToday = true);
+  } catch (e) {
+    return false;
+  }
+}
+
 function unshin(steps, nowKey) {
   const n = steps.filter((st) => st.done).length;
   const label = `${steps.length} 段のうち ${n} 段済み${nowKey ? `。次は${SECTION_LABEL[nowKey]}` : ""}`;
-  return `<div class="unshin" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st) =>
-    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}"></i>`).join("")}</div>
+  // その日はじめて開いたときだけ、済んだ段の糸を左から縫い、最後に朱の玉結びを染み込ませる(1 秒以内。動きの種類は縫う・染みるの 2 つのまま)
+  const sew = firstOpenToday();
+  return `<div class="unshin${sew ? " sewing" : ""}" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st, i) =>
+    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}" style="--i: ${i}"></i>`).join("")}</div>
     <p class="unshin-cap" aria-hidden="true"><span>${steps.length} 段のうち <b>${n} 段</b>済み</span>${nowKey ? `<span>次は <b>${SECTION_LABEL[nowKey]}</b></span>` : ""}</p>`;
 }
 
@@ -1405,6 +1424,7 @@ async function renderGlossary() {
 
 // ------------------------------------------------------------ 復習
 
+let reviewBreakAt = -1;
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
@@ -1414,6 +1434,15 @@ async function renderReview() {
       <div class="card empty-state"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
       <div class="talk-bubble"><p>${done.n ? `今日は ${done.n} 問を思い出して、${done.ok} 問正解。` : ""}今日の復習はおしまい。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で順番に出てくるよ。` : "レッスンでクイズや読解を解くと、ここに出てくるよ。"}</p></div></div>
       <a class="btn primary" href="#/">ホームへ</a></div>`;
+    return;
+  }
+  // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)
+  if (done.n > 0 && done.n % 10 === 0 && reviewBreakAt !== done.n) {
+    view().innerHTML = `<h1 class="page-title">復習</h1>
+      <div class="card empty-state review-break"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
+      <div class="talk-bubble"><p>今日は ${done.n} 問を思い出して、${done.ok} 問正解。ここで区切っても大丈夫。残り ${due.length} 問は、明日の分と一緒に出すよ。</p></div></div>
+      <div class="review-next"><button class="btn primary" id="go-on">続ける(残り ${due.length} 問)</button><a class="btn" href="#/">今日はここまで</a></div></div>`;
+    $("#go-on").onclick = () => { reviewBreakAt = done.n; renderReview(); };
     return;
   }
   const [ref, item] = nextDue(due);
