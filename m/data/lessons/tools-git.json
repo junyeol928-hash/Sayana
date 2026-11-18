@@ -15,31 +15,31 @@
   "exercises" : [ ],
   "quiz" : [ {
     "questionHtml" : "<p>3つのファイルを変更しました。このうち <code>InvoiceService.java</code> と <code>InvoiceServiceTest.java</code> の2つだけを1つのコミットにし、<code>README.md</code> の変更は次のコミットに回したい。どうする?</p>\n",
-    "choicesHtml" : [ "<code>git commit -a -m &quot;請求額の端数処理を修正&quot;</code> を実行する", "2つのファイルだけを git add(STS なら Git Staging ビューで Staged Changes に移す)してからコミットする", "README.md を一度削除してからコミットし、後で元に戻す", "いったん3つともコミットして、あとで git push --force で README.md の分を消す" ],
+    "choicesHtml" : [ "<code>git commit -a -m &quot;請求額の端数処理を修正&quot;</code> を実行する", "2つのファイルだけを <code>git add</code> してからコミットする", "README.md を一度削除してからコミットし、後で元に戻す", "いったん3つともコミットして、あとで <code>git push --force</code> で README.md の分を消す" ],
     "answer" : 1,
     "explanationHtml" : "<p>これこそ <strong>ステージ</strong> の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを <code>git add</code>(STS では Git Staging ビューで <strong>Unstaged Changes</strong> から <strong>Staged Changes</strong> へドラッグ)してコミットすれば、README.md の変更は作業ツリーに残ったままになります。</p>\n",
     "whyHtml" : [ "<code>commit -a</code> で2つだけ入ると読んだ答え。<code>-a</code> は変更した管理対象を全部ステージし、README.md も入る", "", "ファイルを消して外す答え。ステージに載せた分だけがコミットに入るので、消す必要はない", "後から履歴を書き換える答え。ステージで2つだけ選べば force push は要らない" ]
   }, {
     "questionHtml" : "<p><code>application-local.yml</code> に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。<strong>最初に</strong> やるべきことは?</p>\n",
-    "choicesHtml" : [ "application-local.yml を削除するコミットを作って push する", "git commit --amend でコミットを書き換え、git push --force する", "リポジトリを非公開(Private)に切り替える", "Claude Console でそのAPIキーを無効化し、新しいキーを発行する" ],
+    "choicesHtml" : [ "application-local.yml を削除するコミットを作って push する", "<code>git commit --amend</code> でコミットを書き換え、<code>git push --force</code> する", "リポジトリを非公開(Private)に切り替える", "Claude Console でそのAPIキーを無効化し、新しいキーを発行する" ],
     "answer" : 3,
     "explanationHtml" : "<p>公開リポジトリに push されたキーは、巡回しているボットに <strong>数分で</strong> 拾われる前提で動きます。削除コミットを作っても <strong>過去のコミットには残っている</strong> し、force push や非公開化をしても、すでに誰かがコピーしていたら手遅れです。\nだから最初にやるのは <strong>キーそのものを無効化(revoke)して作り直す</strong> こと。これで漏れたキーはただの文字列になります。履歴の掃除や .gitignore への追加(<code>application-local.yml</code> を書く)は、その後の再発防止策です。</p>\n",
     "whyHtml" : [ "削除コミットで消えると読んだ答え。過去のコミットにキーは残っている", "履歴を書き換えれば済むと読んだ答え。push 済みのキーは、すでに誰かに拾われた前提で動く", "非公開にすれば済むと読んだ答え。すでにコピーされていたら手遅れで、先にキーを無効化する", "" ]
   }, {
     "questionHtml" : "<p><code>git push</code> したら次のように拒否されました。どうする?</p>\n<pre><code class=\"language-text\"> ! [rejected]        main -&gt; main (fetch first)\nerror: failed to push some refs to 'https://github.com/…'\nhint: Updates were rejected because the remote contains\nhint: work that you do not have locally.\n</code></pre>\n",
-    "choicesHtml" : [ "git pull でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する", "git push --force で自分の履歴を送り込む", "ローカルのリポジトリを削除して clone し直し、変更を手で書き直す", "新しいブランチを作って、そちらを main に名前変更してから push する" ],
+    "choicesHtml" : [ "<code>git pull</code> でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する", "<code>git push --force</code> で自分の履歴を送り込む", "ローカルのリポジトリを削除して clone し直し、変更を手で書き直す", "新しいブランチを作って、そちらを main に名前変更してから push する" ],
     "answer" : 0,
     "explanationHtml" : "<p>このメッセージは「あなたが最後に pull した後に、誰かが先に push した」という意味です。Git は他人のコミットを消さないように、先に取り込むことを求めています。正解は <strong>pull → (必要ならコンフリクト解消)→ push</strong>。STS なら <strong>Team &gt; Pull</strong> してから <strong>Team &gt; Push to Upstream</strong> です。</p>\n",
     "whyHtml" : [ "", "自分の履歴で上書きすればよいと読んだ答え。<code>--force</code> は先に push された他人のコミットを消す", "ローカルが壊れたと読んだ答え。リモートの変更を pull で取り込めば済む", "ブランチの付け替えで避けられると読んだ答え。リモートの変更を pull で取り込めば済む" ]
   }, {
     "questionHtml" : "<p><code>target/</code> フォルダを最初のコミットで間違って入れてしまいました。あとから <code>.gitignore</code> に <code>target/</code> を書きましたが、ビルドするたびに <code>target/</code> の中のファイルが「変更あり」と表示され続けます。どうする?</p>\n",
-    "choicesHtml" : [ ".gitignore の書き方が間違っているので、/target/** に書き直す", "STS を再起動すれば .gitignore が反映される", "git rm -r --cached target を実行して管理対象から外し、そのことをコミットする", ".gitignore 自体をまだコミットしていないのが原因なので、.gitignore をコミットすれば表示されなくなる" ],
+    "choicesHtml" : [ "<code>.gitignore</code> の書き方が間違っているので、<code>/target/**</code> に書き直す", "STS を再起動すれば <code>.gitignore</code> が反映される", "<code>git rm -r --cached target</code> を実行して管理対象から外し、そのことをコミットする", "<code>.gitignore</code> 自体をまだコミットしていないのが原因なので、<code>.gitignore</code> をコミットすれば表示されなくなる" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>.gitignore</code> が効くのは <strong>まだ管理されていないファイル</strong> だけです。一度コミットしたファイルは管理対象のままなので、<code>git rm -r --cached target</code> で「管理対象から外す(ディスク上のファイルは消さない)」をしてコミットします。それ以降は .gitignore が効いて表示されなくなります。</p>\n",
     "whyHtml" : [ ".gitignore の書き方が原因と読んだ答え。<code>target/</code> で正しく、管理済みのファイルには効かない", "再起動で反映されると読んだ答え。原因は設定の読み込みではない", "", ".gitignore をコミットすれば効くと読んだ答え。作業ツリーにあれば効くが、管理済みのファイルには効かない" ]
   }, {
     "questionHtml" : "<p>main ブランチで作業していて、これから「送料無料ラインの変更」に取りかかります。現場の一般的な運用(main + feature ブランチ + プルリクエスト)に沿った最初の操作は?</p>\n",
-    "choicesHtml" : [ "main のまま変更してコミットし、そのまま main に push する", "feature/free-shipping のようなブランチを作って切り替える(STS なら Team &gt; Switch To &gt; New Branch...)", "リポジトリのフォルダを丸ごとコピーして、コピー側で作業する", "変更が終わるまでコミットせず、最後に1回だけまとめてコミットする" ],
+    "choicesHtml" : [ "main のまま変更してコミットし、そのまま main に push する", "feature/free-shipping などのブランチを作って切り替える", "リポジトリのフォルダを丸ごとコピーして、コピー側で作業する", "変更が終わるまでコミットせず、最後に1回だけまとめてコミットする" ],
     "answer" : 1,
     "explanationHtml" : "<p>main は「いつでも動く状態」に保ち、作業は <strong>feature ブランチ</strong> で行います。コマンドなら <code>git switch -c feature/free-shipping</code>、STS なら <strong>Team &gt; Switch To &gt; New Branch...</strong> で、<strong>Check out new branch</strong> にチェックを入れたまま作成します。終わったら push して GitHub で <strong>プルリクエスト</strong> を作り、レビューを経て main にマージします。</p>\n",
     "whyHtml" : [ "main で直接作業してよいと読んだ答え。main への直接 push は、ブランチ保護で禁止されていることも多い", "", "フォルダのコピーで作業を分ける答え。作業を分けるのは Git のブランチの役目", "コミットは最後にまとめて1回と読んだ答え。最初の操作はブランチ作成で、コミットはこまめにする" ]

@@ -84,7 +84,7 @@
     "choicesHtml" : [ "行A", "行B", "行C", "行D" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>stock</code> は <code>private</code> なので、<code>Item</code> クラスの外からは直接読み書きできません。行C は <code>stock has private access in Item</code> になります。\nprivate フィールドを自由に使えるのは、クラスの内側(Item 自身のメソッドの中)だけです。</p>\n",
-    "whyHtml" : [ "コンストラクタを書いていない new Item() を疑った答え。デフォルトコンストラクタが自動で作られる", "private のフィールドを変えるメソッドは外から呼べないと読んだ答え。add() 自体は private ではない", "", "getStock() 経由でも private は読めないと読んだ答え" ]
+    "whyHtml" : [ "コンストラクタを書いていない <code>new Item()</code> を疑った答え。デフォルトコンストラクタが自動で作られる", "private のフィールドを変えるメソッドは外から呼べないと読んだ答え。<code>add()</code> 自体は private ではない", "", "<code>getStock()</code> 経由でも private は読めないと読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードを実行するとどうなる?</p>\n<pre><code class=\"language-java\">final int[] nums = {1, 2, 3};\nnums[0] = 9;\nSystem.out.println(nums[0]);\n</code></pre>\n",
     "choicesHtml" : [ "1 と出力される", "9 と出力される", "コンパイルエラー", "実行時に例外が発生する" ],
@@ -184,8 +184,8 @@
     "choicesHtml" : [ "Date / Date", "java.util.Date / java.sql.Date", "コンパイルエラー(Date が曖昧)", "java.sql.Date / java.sql.Date" ],
     "answer" : 1,
     "explanationHtml" : "<p>import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。</p>\n",
-    "traceHtml" : [ "1行目: 短い名前 Date = java.util.Date と決まる", "5行目: d1 は java.util.Date のインスタンス", "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない", "7〜8行目: getName() は完全修飾名を返す → java.util.Date、java.sql.Date" ],
-    "whyHtml" : [ "getName() が短いクラス名を返すと読んだ答え", "", "2 つの Date がぶつかると読んだ答え", "後の行の完全修飾名に、短い Date も引きずられると読んだ答え" ]
+    "traceHtml" : [ "1行目: 短い名前 Date = java.util.Date と決まる", "5行目: d1 は java.util.Date のインスタンス", "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない", "7〜8行目: <code>getName()</code> は完全修飾名を返す → <code>java.util.Date</code>、<code>java.sql.Date</code>" ],
+    "whyHtml" : [ "<code>getName()</code> が短いクラス名を返すと読んだ答え", "", "2 つの Date がぶつかると読んだ答え", "後の行の完全修飾名に、短い Date も引きずられると読んだ答え" ]
   }, {
     "title" : "生成されたgetterを呼ぶ",
     "level" : 1,
@@ -194,7 +194,7 @@
     "choicesHtml" : [ "C001:3", "コンパイルエラー(getCardId は存在しない)", "null:0", "実行時エラー" ],
     "answer" : 0,
     "explanationHtml" : "<p>@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。</p>\n",
-    "traceHtml" : [ "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される", "8行目: KeyEntity(&quot;C001&quot;, 3) → cardId=&quot;C001&quot;, keyVersion=3 で生成", "9行目: getCardId() → &quot;C001&quot;、getKeyVersion() → 3", "結果: &quot;C001:3&quot;" ],
+    "traceHtml" : [ "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される", "8行目: <code>KeyEntity(&quot;C001&quot;, 3)</code> → <code>cardId=&quot;C001&quot;</code>, <code>keyVersion=3</code> で生成", "9行目: <code>getCardId()</code> → <code>&quot;C001&quot;</code>、<code>getKeyVersion()</code> → 3", "結果: <code>C001:3</code> と表示" ],
     "whyHtml" : [ "", "ソースに無い getter は呼べないと読んだ答え", "コンストラクタの引数がフィールドに入らないと読んだ答え", "生成されたメソッドが、実行時には無いと読んだ答え" ]
   }, {
     "title" : "final の有無でコンストラクタの引数が変わる",
@@ -211,11 +211,11 @@
     "level" : 3,
     "code" : "@Data\n@Entity\npublic class KeyEntity {\n    @Id private Long keyId;\n    @OneToMany(mappedBy = \"key\")\n    private List<ResultEntity> results;\n}\n\n@Data\n@Entity\npublic class ResultEntity {\n    @Id private Long id;\n    @ManyToOne\n    private KeyEntity key;\n}\n\n// 呼び出し側\nSystem.out.println(keyEntity);\n",
     "questionHtml" : "<code>@Data</code> は toString も自動で作り、その toString は全フィールドを文字列にします。<code>@Entity</code> / <code>@OneToMany</code> / <code>@ManyToOne</code> は JPA(第3部)の注釈で、ここでは「KeyEntity と ResultEntity がお互いを参照している」とだけ読めば十分です。results に ResultEntity が入っている keyEntity で System.out.println(keyEntity) を実行すると?",
-    "choicesHtml" : [ "正常に文字列が表示される", "StackOverflowError が発生することがある", "NullPointerException が必ず発生する", "コンパイルエラー" ],
+    "choicesHtml" : [ "正常に文字列が表示される", "<code>StackOverflowError</code> が発生することがある", "<code>NullPointerException</code> が必ず発生する", "コンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。</p>\n",
-    "traceHtml" : [ "18行目: keyEntity.toString() が呼ばれる(println が内部で呼ぶ)", "@Data の toString() は results フィールドも含める → 各 ResultEntity.toString() を呼ぶ", "ResultEntity.toString() は key フィールド(元の KeyEntity)を含める → keyEntity.toString() を再び呼ぶ", "この呼び合いが止まらず、スタックが尽きて StackOverflowError" ],
-    "whyHtml" : [ "toString() がお互いを呼び合うことを見落とした答え。results と key をたどり続けて止まらない", "", "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる", "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の toString() で起きる" ]
+    "traceHtml" : [ "18行目: <code>keyEntity.toString()</code> が呼ばれる(<code>println</code> が内部で呼ぶ)", "<code>@Data</code> の <code>toString()</code> は <code>results</code> フィールドも含める → 各 <code>ResultEntity.toString()</code> を呼ぶ", "<code>ResultEntity.toString()</code> は <code>key</code> フィールド(元の KeyEntity)を含める → <code>keyEntity.toString()</code> を再び呼ぶ", "この呼び合いが止まらず、スタックが尽きて <code>StackOverflowError</code>" ],
+    "whyHtml" : [ "<code>toString()</code> がお互いを呼び合うことを見落とした答え。<code>results</code> と <code>key</code> をたどり続けて止まらない", "", "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる", "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の <code>toString()</code> で起きる" ]
   }, {
     "title" : "Builder のメソッドチェーンを読む",
     "level" : 2,
@@ -225,13 +225,13 @@
     "answer" : 0,
     "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。</p>\n",
     "traceHtml" : [ "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない", "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる", "int の既定値は 0 なので timeoutMillis は 0", "結果: toString() の出力に timeoutMillis=0 が含まれる" ],
-    "whyHtml" : [ "", "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え", "設定しない項目があると build() で落ちると読んだ答え", "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0" ]
+    "whyHtml" : [ "", "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え", "設定しない項目があると <code>build()</code> で落ちると読んだ答え", "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0" ]
   }, {
     "title" : "@SneakyThrows で隠れる検査例外",
     "level" : 3,
     "code" : "public class TemplateLoader {\n    @SneakyThrows\n    public String load(String path) {\n        return Files.readString(Path.of(path));  // IOException を投げうる\n    }\n}\n\n// 呼び出し側(try-catch なし)\nTemplateLoader loader = new TemplateLoader();\nString content = loader.load(\"not-exist.txt\");\n",
     "questionHtml" : "<code>Files.readString</code> はファイルを読むメソッドで、読めないと IOException(catch か throws の宣言が必須の「検査例外」。第5章)を投げます。<code>@SneakyThrows</code> は、その throws 宣言を書かずに済ませる Lombok の注釈です。存在しないファイルを渡して load を呼ぶと?",
-    "choicesHtml" : [ "コンパイルエラー(IOException を catch していない)", "実行時に例外(IOException 系)が発生し、呼び出し元は catch していないので処理が止まる", "null が返る", "空文字が返る" ],
+    "choicesHtml" : [ "コンパイルエラー(<code>IOException</code> を catch していない)", "実行時に例外(<code>IOException</code> 系)が発生し、呼び出し元は catch していないので処理が止まる", "<code>null</code> が返る", "空文字が返る" ],
     "answer" : 1,
     "explanationHtml" : "<p>@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。</p>\n",
     "traceHtml" : [ "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる", "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない", "10行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)", "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる" ],

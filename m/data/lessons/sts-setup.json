@@ -37,7 +37,7 @@
   } ],
   "quiz" : [ {
     "questionHtml" : "<p>STS がたびたび <code>OutOfMemoryError: Java heap space</code> で固まるので、STS の起動設定ファイル(exe と同じ名前の <code>.ini</code>)を次のように編集して再起動した。\nしかし状況が変わらない。原因として最も適切なものはどれ?</p>\n<pre><code class=\"language-text\">-startup\nplugins/org.eclipse.equinox.launcher_(略).jar\n-Xmx4096m\n-vmargs\n-Dosgi.requiredJavaVersion=21\n-Xms256m\n</code></pre>\n",
-    "choicesHtml" : [ "4096m は大きすぎるので、STS が設定を拒否している", "-Xmx の単位は m ではなく MB と書く必要がある", "-Xmx4096m が -vmargs より前にあるので、JVM のオプションとして渡っていない", "ini ではなく、Installed JREs の設定でメモリを増やす必要がある" ],
+    "choicesHtml" : [ "4096m は大きすぎるので、STS が設定を拒否している", "-Xmx の単位は m ではなく MB と書く必要がある", "-Xmx4096m が -vmargs より前にあり、JVM に渡っていない", "ini ではなく、Installed JREs の設定でメモリを増やす必要がある" ],
     "answer" : 2,
     "explanationHtml" : "<p>STS(Eclipse)の <code>.ini</code> では、<strong><code>-vmargs</code> の行より後ろ</strong> が JVM に渡すオプションです。前に書いた <code>-Xmx4096m</code> は STS(Eclipse)への引数として扱われ、黙って無視されます。\n<code>-Xms256m</code> の下に移せば、値も単位もそのままで効きます。</p>\n",
     "whyHtml" : [ "値の大きさが原因と読んだ答え。効かないのは <code>-vmargs</code> より前に書いたから", "単位の書き方が原因と読んだ答え。<code>m</code> や <code>g</code> で正しく、効かないのは書いた位置のせい", "", "Installed JREs を STS 本体の設定と取り違えた答え。あれはプロジェクトを実行する JDK の登録" ]
@@ -49,7 +49,7 @@
     "whyHtml" : [ "", "フォントの問題と読んだ答え。フォントに無い字なら □ の豆腐になり、別の漢字にはならない", "JRE と JDK の違いが原因と読んだ答え。どちらで動かしても文字コードの読み方は変わらない", "日本語化していないせいと読んだ答え。Pleiades はメニューの翻訳で、ファイルの読み方には効かない" ]
   }, {
     "questionHtml" : "<p>STS で書いたコードを、<code>pom.xml</code> に <code>&lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;</code> がある\nMaven プロジェクトとしてコマンドラインでビルドしたら、次のエラーが出た。何が起きている?</p>\n<pre><code class=\"language-text\">Hello.java:3: error: unmappable character (0x93)\n  for encoding UTF-8\n</code></pre>\n",
-    "choicesHtml" : [ "3行目に全角スペースが入っている", "JDK 21 では日本語の文字列リテラルが使えない", "Maven のバージョンが古く、UTF-8 に対応していない", "ソースファイルが MS932 など UTF-8 以外で保存されていて、UTF-8 として読めないバイトがある" ],
+    "choicesHtml" : [ "3行目に全角スペースが入っている", "JDK 21 では日本語の文字列リテラルが使えない", "Maven のバージョンが古く、sourceEncoding の UTF-8 指定を読めていない", "ソースが MS932 などで保存され、UTF-8 として読めないバイトがある" ],
     "answer" : 3,
     "explanationHtml" : "<p><code>unmappable character (0x93) for encoding UTF-8</code> は「UTF-8 として読もうとしたら、0x93 という UTF-8 では意味をなさないバイトがあった」という意味です。\nMS932 で保存された日本語のバイトを UTF-8 で読むと、このエラーになります。ファイルを UTF-8 で保存し直し、ワークスペースの設定も UTF-8 にそろえます。</p>\n",
     "whyHtml" : [ "全角スペースが原因と読んだ答え。それなら <code>illegal character</code> という別のエラーになる", "日本語のリテラルが使えないと読んだ答え。Java は日本語の文字列を普通に扱え、問題は保存の形式", "Maven の版のせいと読んだ答え。UTF-8 で読めているからこそ、UTF-8 でないバイトを見つけて止まった", "" ]

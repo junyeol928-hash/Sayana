@@ -116,10 +116,10 @@
     "whyHtml" : [ "x &lt;= 0 の経路を見落とした答え。そのとき何も返さないので missing return statement", "条件で全部の場合を尽くせば通ると読んだ答え。コンパイラは条件の中身を解析せず、else が無いとエラー", "", "void でも値を返せると読んだ答え。void のメソッドで return x はエラー" ]
   }, {
     "questionHtml" : "<p>次のコードを実行するとどうなる?</p>\n<pre><code class=\"language-java\">static int count(int n) {\n    return 1 + count(n - 1);\n}\n\n// main の中\nSystem.out.println(count(3));\n</code></pre>\n",
-    "choicesHtml" : [ "3 と出力される", "実行時に StackOverflowError が発生する", "コンパイルエラーになる", "6 と出力される" ],
+    "choicesHtml" : [ "<code>3</code> と出力される", "実行時に <code>StackOverflowError</code> が発生する", "コンパイルエラーになる(終わりの条件が無い再帰)", "<code>6</code> と出力される" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>count</code> には <strong>終了条件(どこかで再帰をやめて値を返す分岐)がありません</strong>。<code>count(3)</code> → <code>count(2)</code> → <code>count(1)</code> → <code>count(0)</code> → <code>count(-1)</code> … と永遠に自分を呼び続け、そのたびにスタックフレームが積まれて、最後は <code>java.lang.StackOverflowError</code> で止まります。\n<code>if (n &lt;= 0) { return 0; }</code> を先頭に足せば 3 が返ります。</p>\n",
-    "whyHtml" : [ "n が 0 で止まると読んだ答え", "", "無限再帰をコンパイラが見抜くと読んだ答え。文法は正しく、実行して初めて止まる", "3 + 2 + 1 を足すと読んだ答え" ]
+    "whyHtml" : [ "<code>n</code> が 0 で止まると読んだ答え", "", "無限再帰をコンパイラが見抜くと読んだ答え。文法は正しく、実行して初めて止まる", "<code>3 + 2 + 1</code> を足すと読んだ答え" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p>次のコードはどうなる?</p>\n<pre><code class=\"language-java\">public class Main {\n    void greet() { System.out.println(&quot;hi&quot;); }\n    public static void main(String[] args) {\n        greet();\n    }\n}\n</code></pre>\n",
@@ -165,7 +165,7 @@
     "choicesHtml" : [ "Hi, Taro / Hi, Hana", "Hi, Hana / Hi, Hana", "Taro / Hana", "コンパイルエラー" ],
     "answer" : 0,
     "explanationHtml" : "<p>greet は呼ばれるたびに、渡された name で新しい文字列を作って返します。1回目は <code>&quot;Hi, Taro&quot;</code>、2回目は <code>&quot;Hi, Hana&quot;</code> が、それぞれ a と b に入ります。</p>\n",
-    "traceHtml" : [ "3行目: greet(&quot;Taro&quot;) を呼ぶ → 8行目で name = &quot;Taro&quot; → 9行目で &quot;Hi, Taro&quot; を返す → a に入る", "4行目: greet(&quot;Hana&quot;) を呼ぶ → name = &quot;Hana&quot; → &quot;Hi, Hana&quot; を返す → b に入る", "5行目: &quot;Hi, Taro / Hi, Hana&quot; と表示" ],
+    "traceHtml" : [ "3行目: <code>greet(&quot;Taro&quot;)</code> を呼ぶ → 8行目で <code>name = &quot;Taro&quot;</code> → 9行目で <code>&quot;Hi, Taro&quot;</code> を返す → <code>a</code> に入る", "4行目: <code>greet(&quot;Hana&quot;)</code> を呼ぶ → <code>name = &quot;Hana&quot;</code> → <code>&quot;Hi, Hana&quot;</code> を返す → <code>b</code> に入る", "5行目: <code>Hi, Taro / Hi, Hana</code> と表示" ],
     "whyHtml" : [ "", "後の呼び出しが前の結果を上書きすると読んだ答え", "greet が name をそのまま返すと読んだ答え", "main より後ろに書いたメソッドは呼べないと読んだ答え。クラスの中ならどこに書いても呼べる" ]
   }, {
     "title" : "基本データ型と配列を同時に渡す",
@@ -175,7 +175,7 @@
     "choicesHtml" : [ "10 10", "11 11", "10 11", "11 10" ],
     "answer" : 2,
     "explanationHtml" : "<p>count には 10 のコピーが渡されるので、増やしても c は 10 のまま。scores には配列の住所のコピーが渡されるので、scores[0] を増やすと s[0] も 11 になります。</p>\n",
-    "traceHtml" : [ "8行目: update に c の値 10 と、s の住所を渡す", "2行目: メソッド内の count が 11 になる(c とは別の箱)", "3行目: 同じ配列の [0] が 11 になる → s[0] も 11", "9行目: &quot;10 11&quot; と表示" ],
+    "traceHtml" : [ "8行目: update に c の値 10 と、s の住所を渡す", "2行目: メソッド内の count が 11 になる(c とは別の箱)", "3行目: 同じ配列の [0] が 11 になる → s[0] も 11", "9行目: <code>10 11</code> と表示" ],
     "whyHtml" : [ "配列も中身のコピーを渡すと読んだ答え。scores は s と同じ配列を指すので s[0] は 11", "int も呼び出し元に届くと読んだ答え。count は c の値のコピーなので c は 10 のまま", "", "int と配列の振る舞いを逆に読んだ答え。int は値のコピー、配列は同じものを指す" ]
   }, {
     "title" : "どのオーバーロードが選ばれる?",
@@ -185,8 +185,8 @@
     "choicesHtml" : [ "int:5 / double:5.0 / String:5 / String:A", "int:5 / double:5.0 / String:5 / int:65", "int:5 / int:5 / String:5 / int:65", "コンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>5 は int、5.0 は double、<code>&quot;5&quot;</code> は String なので、それぞれ一致する定義が選ばれます。'A' は char で、char 版が無いため「情報を失わずに変換できる」int 版が選ばれ、'A' の文字コード 65 が表示されます。</p>\n",
-    "traceHtml" : [ "5行目: 5 は int → show(int) → int:5", "6行目: 5.0 は double → show(double) → double:5.0", "7行目: &quot;5&quot; は String → show(String) → String:5", "8行目: 'A' は char。char 版は無い → char は int に自動変換できる → show(int) → int:65" ],
-    "whyHtml" : [ "'A' が String 版に渡ると読んだ答え", "", "5.0 も int 版に入ると読んだ答え", "char 版が無いと呼べないと読んだ答え" ]
+    "traceHtml" : [ "5行目: <code>5</code> は int → <code>show(int)</code> → <code>int:5</code>", "6行目: <code>5.0</code> は double → <code>show(double)</code> → <code>double:5.0</code>", "7行目: <code>&quot;5&quot;</code> は String → <code>show(String)</code> → <code>String:5</code>", "8行目: <code>'A'</code> は char。char 版は無い → char は int に自動変換できる → <code>show(int)</code> → <code>int:65</code>" ],
+    "whyHtml" : [ "<code>'A'</code> が String 版に渡ると読んだ答え", "", "5.0 も int 版に入ると読んだ答え", "char 版が無いと呼べないと読んだ答え" ]
   }, {
     "title" : "早期リターンと void",
     "level" : 2,
@@ -195,8 +195,8 @@
     "choicesHtml" : [ "run:3 / skip / run:0", "run:3 / skip", "run:3 / skip / skip", "run:3 / run:-1 / run:0" ],
     "answer" : 0,
     "explanationHtml" : "<p>n が負のときだけ skip を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。</p>\n",
-    "traceHtml" : [ "9行目: n = 3 → if は false → &quot;run:3&quot;", "10行目: n = -1 → if は true → &quot;skip&quot; → return で終了(6行目は実行されない)", "11行目: n = 0 → 0 &lt; 0 は false → &quot;run:0&quot;" ],
-    "whyHtml" : [ "", "return でプログラム全体が終わると読んだ答え。return はそのメソッドだけを抜け、次の呼び出しへ進む", "0 も負の数と読んだ答え。n &lt; 0 に 0 は入らないので run:0 が出る", "if の中身を飛ばして読んだ答え。-1 では skip を出し、return で run は出さない" ]
+    "traceHtml" : [ "9行目: <code>n = 3</code> → if は false → <code>run:3</code> と表示", "10行目: <code>n = -1</code> → if は true → <code>skip</code> と表示 → return で終了(6行目は実行されない)", "11行目: <code>n = 0</code> → <code>0 &lt; 0</code> は false → <code>run:0</code> と表示" ],
+    "whyHtml" : [ "", "return でプログラム全体が終わると読んだ答え。return はそのメソッドだけを抜け、次の呼び出しへ進む", "0 も負の数と読んだ答え。<code>n &lt; 0</code> に 0 は入らないので <code>run:0</code> が出る", "if の中身を飛ばして読んだ答え。-1 では skip を出し、return で run は出さない" ]
   }, {
     "title" : "中身の変更と指し直し",
     "level" : 3,
@@ -205,7 +205,7 @@
     "choicesHtml" : [ "100 300", "100 2", "1 2", "100 200" ],
     "answer" : 1,
     "explanationHtml" : "<p>a は x と同じ配列を指すので a[0] = 100 は x[0] に見えます。b は最初 y と同じ配列を指していますが、3行目で新しい配列に向け直されます。以降の b[0] = 300 は新しい配列への変更で、y の配列は 2 のままです。</p>\n",
-    "traceHtml" : [ "9行目: a は x の配列(住所コピー)、b は y の配列(住所コピー)を指す", "2行目: a の配列の [0] を 100 に → x[0] も 100", "3行目: b が新しい配列 {200} を指し直す。y は元の {2} のまま", "4行目: 新しい配列の [0] を 300 に。y には無関係", "10行目: &quot;100 2&quot; と表示" ],
+    "traceHtml" : [ "9行目: a は x の配列(住所コピー)、b は y の配列(住所コピー)を指す", "2行目: a の配列の [0] を 100 に → x[0] も 100", "3行目: b が新しい配列 {200} を指し直す。y は元の {2} のまま", "4行目: 新しい配列の [0] を 300 に。y には無関係", "10行目: <code>100 2</code> と表示" ],
     "whyHtml" : [ "b の向け直しが y にも届くと読んだ答え。新しい配列に向けた後の 300 は y と無関係", "", "配列の中身の変更も呼び出し元に届かないと読んだ答え。a は x と同じ配列なので x[0] は 100", "b = new … で y も新しい配列を指すと読んだ答え。y は元の配列のままで 2" ]
   } ],
   "atWork" : [ {

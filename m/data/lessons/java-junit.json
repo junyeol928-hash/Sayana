@@ -99,13 +99,13 @@
     "whyHtml" : [ "両端の値で境目も試せると読んだ答え。境目から遠いので、どちらのバグも見つからない", "境目の値 1 つで足りると読んだ答え。<code>&gt;= 64</code> のバグは 64 でしか見つからない", "数を多く試せば見つかると読んだ答え。境目から遠い値ばかりで、どちらのバグも見逃す", "" ]
   }, {
     "questionHtml" : "<p>次のテストを実行したときの結果は?</p>\n<pre><code class=\"language-java\">@Test\nvoid parse() {\n    assertThrows(IllegalArgumentException.class,\n            () -&gt; Integer.parseInt(&quot;abc&quot;));\n}\n</code></pre>\n",
-    "choicesHtml" : [ "NumberFormatException なので失敗する", "成功する", "コンパイルエラーになる", "例外がテストの外に漏れてエラーになる" ],
+    "choicesHtml" : [ "<code>NumberFormatException</code> なので失敗する", "成功する", "コンパイルエラーになる", "例外がテストの外に漏れてエラーになる" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>Integer.parseInt(&quot;abc&quot;)</code> は <code>NumberFormatException</code> を投げますが、これは <code>IllegalArgumentException</code> の <strong>サブクラス</strong> です。<code>assertThrows</code> は「指定した型、またはそのサブクラスの例外」が投げられれば成功とみなすので、このテストは成功します。\n投げられた例外は <code>assertThrows</code> が受け止めるので、テストの外には漏れません。型をぴったり一致させたいときは <code>assertThrowsExactly</code> を使います。</p>\n",
-    "whyHtml" : [ "型がぴったり一致しないと失敗と読んだ答え。NumberFormatException は IllegalArgumentException の子で成功する", "", "例外を投げる処理はラムダで渡せないと読んだ答え。投げる処理をラムダで渡すのが assertThrows の使い方", "投げられた例外がテストの外に出ると読んだ答え。assertThrows が受け止める" ]
+    "whyHtml" : [ "型の完全一致が要ると読んだ答え。<code>NumberFormatException</code> は <code>IllegalArgumentException</code> の子で成功する", "", "例外を投げる処理はラムダで渡せないと読んだ答え。投げる処理をラムダで渡すのが assertThrows の使い方", "投げられた例外がテストの外に出ると読んだ答え。assertThrows が受け止める" ]
   }, {
     "questionHtml" : "<p>次のメソッドをテストしやすくするための書き換えとして、最も適切なのはどれ?</p>\n<pre><code class=\"language-java\">static String greeting() {\n    int h = LocalTime.now().getHour();\n    return h &lt; 12 ? &quot;おはよう&quot; : &quot;こんにちは&quot;;\n}\n</code></pre>\n",
-    "choicesHtml" : [ "テストを午前と午後に1回ずつ実行する運用にする", "テストの中で12時になるまで待つ", "時刻を引数で受け取る greeting(LocalTime now) にする", "greeting を private にしてテストしない" ],
+    "choicesHtml" : [ "テストを午前と午後に1回ずつ実行する運用にする", "テストの中で12時になるまで待つ", "時刻を引数 <code>LocalTime now</code> で受け取る", "<code>greeting</code> を private にしてテストしない" ],
     "answer" : 2,
     "explanationHtml" : "<p>結果が「実行した時刻」で変わるのは、メソッドの奥で <code>LocalTime.now()</code> を呼んでいるからです。時刻を引数で受け取れば、テストから <code>LocalTime.of(11, 59)</code> と <code>LocalTime.of(12, 0)</code> のような <strong>境界値</strong> を自由に渡せ、いつ実行しても同じ結果になります(呼ぶ側で <code>greeting(LocalTime.now())</code> とする)。\n実行時刻に頼る運用や、時刻を待つテストは、自動テストの「いつでも何度でも同じ結果」という前提を壊します。テストしないのは論外です。</p>\n",
     "whyHtml" : [ "実行する時間を変えれば両方試せると読んだ答え。いつでも同じ結果という自動テストの前提が崩れる", "時刻を待てばよいと読んだ答え。待つテストは遅く、いつでも同じ結果という前提も崩れる", "", "テストしにくい所は外せばよいと読んだ答え。時刻を引数で受ければ、境界値まで試せる" ]

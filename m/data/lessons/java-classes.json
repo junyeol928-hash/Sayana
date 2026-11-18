@@ -105,10 +105,10 @@
     "whyHtml" : [ "インスタンスメソッドからフィールドを使えないと読んだ答え。インスタンスメソッドは自分の sales を使える", "インスタンスメソッドから static フィールドは使えないと読んだ答え。共有の 1 つを触るだけで問題ない", "static メソッドから static フィールドを疑った答え。どちらもクラスに属するので使える", "" ]
   }, {
     "questionHtml" : "<p>次のコードを実行するとどうなる?</p>\n<pre><code class=\"language-java\">class Task {\n    String title;\n}\nTask[] tasks = new Task[2];\nSystem.out.println(tasks.length);\nSystem.out.println(tasks[0].title);\n</code></pre>\n",
-    "choicesHtml" : [ "2 と null が出力される", "2 が出力されたあと NullPointerException", "0 と null が出力される", "コンパイルエラー" ],
+    "choicesHtml" : [ "<code>2</code> と <code>null</code> が出力される", "<code>2</code> のあと <code>NullPointerException</code> が発生", "<code>0</code> と <code>null</code> が出力される", "コンパイルエラー(null かもしれない要素を読んでいる)" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>new Task[2]</code> で作られるのは <strong>Task を入れる枠が2つある配列</strong> だけで、Task のインスタンスは作られません。要素は参照型の既定値 <code>null</code> です。<code>tasks.length</code> は 2 ですが、<code>tasks[0].title</code> は null のフィールドを読もうとして <code>NullPointerException</code> になります。\n<code>tasks[0]</code> を println するだけなら <code>null</code> と表示されますが、<code>null</code> に <code>.</code> を付けた時点で NPE です。各要素に <code>tasks[i] = new Task();</code> が必要です。</p>\n",
-    "whyHtml" : [ "new Task[2] で Task のインスタンスもできると読んだ答え。要素は null で、.title で NPE になる", "", "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、tasks[0] は null", "null の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる" ]
+    "whyHtml" : [ "<code>new Task[2]</code> で <code>Task</code> のインスタンスもできると読んだ答え。要素は null で、<code>.title</code> で NPE になる", "", "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、<code>tasks[0]</code> は null", "null の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p>次のコードはどうなる?</p>\n<pre><code class=\"language-java\">class Counter {\n    int n;\n    void show() {\n        int m;\n        System.out.println(n + m);\n    }\n}\n</code></pre>\n",
@@ -154,8 +154,8 @@
     "choicesHtml" : [ "150 30", "180 180", "150 0", "180 30" ],
     "answer" : 0,
     "explanationHtml" : "<p>w1 と w2 は別々の実体で、balance の箱もそれぞれ持っています。w1 には 100 + 50 = 150、w2 には 30 が入ります。</p>\n",
-    "traceHtml" : [ "8〜9行目: 実体を2つ作る。それぞれ balance = 0", "10〜11行目: w1 の balance が 100 → 150", "12行目: w2 の balance が 30", "13行目: &quot;150 30&quot;" ],
-    "whyHtml" : [ "", "balance を全インスタンスで共有と読んだ答え。static ではないので実体ごとに別の箱", "w2 の deposit(30) を見落とした答え。w2 にも 30 が入る", "w2 への入金も w1 に足されると読んだ答え。w1 と w2 は別の実体で、w1 は 150" ]
+    "traceHtml" : [ "8〜9行目: 実体を2つ作る。それぞれ balance = 0", "10〜11行目: w1 の balance が 100 → 150", "12行目: w2 の balance が 30", "13行目: <code>150 30</code> と表示" ],
+    "whyHtml" : [ "", "<code>balance</code> を全インスタンスで共有と読んだ答え。static ではないので実体ごとに別の箱", "<code>w2</code> の <code>deposit(30)</code> を見落とした答え。<code>w2</code> にも 30 が入る", "w2 への入金も w1 に足されると読んだ答え。w1 と w2 は別の実体で、w1 は 150" ]
   }, {
     "title" : "同じ実体を2つの変数が指す",
     "level" : 2,
@@ -164,7 +164,7 @@
     "choicesHtml" : [ "100 20 5", "120 120 5", "120 20 5", "125 125 125" ],
     "answer" : 1,
     "explanationHtml" : "<p>w2 = w1 は住所のコピーなので、w1 と w2 は同じ実体を指します。どちら経由で deposit しても同じ balance が増えて 120。w3 は別の実体なので 5 です。new の回数(2回)= 実体の数、と数えるのがコツです。</p>\n",
-    "traceHtml" : [ "1行目: 実体 A を作り w1 が指す", "2行目: w2 も実体 A を指す(コピーされたのは住所)", "3行目: 実体 B を作り w3 が指す", "4〜5行目: 実体 A の balance が 100 → 120", "6行目: 実体 B の balance が 5", "7行目: &quot;120 120 5&quot;" ],
+    "traceHtml" : [ "1行目: 実体 A を作り w1 が指す", "2行目: w2 も実体 A を指す(コピーされたのは住所)", "3行目: 実体 B を作り w3 が指す", "4〜5行目: 実体 A の balance が 100 → 120", "6行目: 実体 B の balance が 5", "7行目: <code>120 120 5</code> と表示" ],
     "whyHtml" : [ "w2 = w1 で別の実体ができると読んだ答え。同じ実体を指すので w1 も w2 も 120", "", "w2 に別の balance があると読んだ答え。w1 と w2 は同じ実体なので w2 も 120", "w3 も同じ実体と読んだ答え。new した w3 は別の実体なので 5" ]
   }, {
     "title" : "static フィールドと インスタンスフィールド",
@@ -174,8 +174,8 @@
     "choicesHtml" : [ "1 2 3", "3 2 3", "2 1 3", "3 3 3" ],
     "answer" : 1,
     "explanationHtml" : "<p>total は static なので全員で共有され、enter() が3回呼ばれて 3 になります。myNo は実体ごとで、「そのとき の total」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。</p>\n",
-    "traceHtml" : [ "13行目: a.enter() → total = 1、a.myNo = 1", "14行目: b.enter() → total = 2、b.myNo = 2", "15行目: a.enter() → total = 3、a.myNo = 3(上書き)", "16行目: &quot;3 2 3&quot;" ],
-    "whyHtml" : [ "a の 2 回目の enter() を見落とした答え", "", "呼んだ順を取り違えた答え", "myNo も static で、全員で共有すると読んだ答え" ]
+    "traceHtml" : [ "13行目: <code>a.enter()</code> → <code>total</code> は 1、<code>a.myNo</code> は 1", "14行目: <code>b.enter()</code> → <code>total</code> は 2、<code>b.myNo</code> は 2", "15行目: <code>a.enter()</code> → <code>total</code> は 3、<code>a.myNo</code> は 3(上書き)", "16行目: <code>3 2 3</code> と表示" ],
+    "whyHtml" : [ "<code>a</code> の 2 回目の <code>enter()</code> を見落とした答え", "", "呼んだ順を取り違えた答え", "myNo も static で、全員で共有すると読んだ答え" ]
   }, {
     "title" : "this の付け忘れ",
     "level" : 2,
@@ -184,18 +184,18 @@
     "choicesHtml" : [ "A-100", "null", "コンパイルエラー", "実行時エラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>5行目の code = code; は「引数を引数に代入」しているだけで、フィールド code には何も入りません。this.code = code; と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。</p>\n",
-    "traceHtml" : [ "13行目: Item を作る。フィールド code は null", "14行目: setCode(&quot;A-100&quot;) → 5行目で引数 code に引数 code を代入(意味なし)。フィールドは null のまま", "15行目: getCode() は フィールド code を返す → null" ],
-    "whyHtml" : [ "code = code でフィールドに入ると読んだ答え。どちらの code も引数を指し、フィールドは null のまま", "", "同じ名前どうしの代入を文法違反と読んだ答え。引数を引数に入れるだけで通ってしまう", "null のフィールドを返すと例外になると読んだ答え。null を返して表示するだけなら null と出る" ]
+    "traceHtml" : [ "13行目: Item を作る。フィールド code は null", "14行目: <code>setCode(&quot;A-100&quot;)</code> → 5行目で引数 <code>code</code> に引数 <code>code</code> を代入(意味なし)。フィールドは null のまま", "15行目: getCode() は フィールド code を返す → null" ],
+    "whyHtml" : [ "<code>code = code</code> でフィールドに入ると読んだ答え。どちらの <code>code</code> も引数を指し、フィールドは null のまま", "", "同じ名前どうしの代入を文法違反と読んだ答え。引数を引数に入れるだけで通ってしまう", "null のフィールドを返すと例外になると読んだ答え。null を返して表示するだけなら null と出る" ]
   }, {
     "title" : "ローカル変数がフィールドを隠す",
     "level" : 3,
     "code" : "public class Box {\n    private int count = 10;\n\n    void show() {\n        int count = 1;\n        System.out.println(count + \" \" + this.count);\n    }\n\n    static void report() {\n        System.out.println(count);\n    }\n}\n",
     "questionHtml" : "このコードは?",
-    "choicesHtml" : [ "show() は <code>1 10</code> と表示し、report() は 10 と表示する", "show() は <code>10 10</code> と表示する", "report() でコンパイルエラーになる", "show() でコンパイルエラーになる" ],
+    "choicesHtml" : [ "<code>show()</code> は <code>1 10</code> と表示し、<code>report()</code> は <code>10</code> と表示する", "<code>show()</code> は <code>10 10</code> と表示する", "<code>report()</code> でコンパイルエラーになる", "<code>show()</code> でコンパイルエラーになる" ],
     "answer" : 2,
     "explanationHtml" : "<p>show() の中では、ローカル変数 count(1)がフィールド count(10)を隠します。名前だけの count はローカル変数、this.count はフィールドなので <code>1 10</code> になります。しかし report() は static メソッドで、static でないフィールド count を参照しているためコンパイルエラーです。</p>\n",
-    "traceHtml" : [ "5行目: ローカル変数 count = 1 を宣言。同名のフィールドは this.count でしか見えなくなる", "6行目: count は 1、this.count は 10 → &quot;1 10&quot;(ここは問題ない)", "10行目: static メソッドから インスタンスフィールド count を参照 → 「どの実体の count か」決まらない → コンパイルエラー", "結果: コンパイルが通らないので、何も実行されない" ],
-    "whyHtml" : [ "static メソッドからもフィールド count を読めると読んだ答え", "名前だけの count もフィールドと読み、report() も見落とした答え", "", "フィールドと同じ名前のローカル変数を文法違反と読んだ答え" ]
+    "traceHtml" : [ "5行目: ローカル変数 count = 1 を宣言。同名のフィールドは this.count でしか見えなくなる", "6行目: <code>count</code> は 1、<code>this.count</code> は 10 → <code>1 10</code>(ここは問題ない)", "10行目: static メソッドから インスタンスフィールド count を参照 → 「どの実体の count か」決まらない → コンパイルエラー", "結果: コンパイルが通らないので、何も実行されない" ],
+    "whyHtml" : [ "static メソッドからもフィールド <code>count</code> を読めると読んだ答え", "名前だけの <code>count</code> もフィールドと読み、<code>report()</code> も見落とした答え", "", "フィールドと同じ名前のローカル変数を文法違反と読んだ答え" ]
   }, {
     "title" : "どのコンストラクタが選ばれる?",
     "level" : 1,
@@ -204,7 +204,7 @@
     "choicesHtml" : [ "A-1/1000 B-2/1500", "A-1/0 B-2/1500", "A-1/1500 B-2/1500", "コンパイルエラー" ],
     "answer" : 0,
     "explanationHtml" : "<p>引数1つなら Ticket(String) が選ばれて price は 1000 固定。引数2つなら Ticket(String, int) が選ばれて price は 1500 です。引数の数で動くコンストラクタが決まります。</p>\n",
-    "traceHtml" : [ "20行目: 引数1つ → 5行目のコンストラクタ → seat = &quot;A-1&quot;、price = 1000", "21行目: 引数2つ → 10行目のコンストラクタ → seat = &quot;B-2&quot;、price = 1500", "22行目: &quot;A-1/1000 B-2/1500&quot;" ],
+    "traceHtml" : [ "20行目: 引数1つ → 5行目のコンストラクタ → <code>seat = &quot;A-1&quot;</code>、<code>price = 1000</code>", "21行目: 引数2つ → 10行目のコンストラクタ → <code>seat = &quot;B-2&quot;</code>、<code>price = 1500</code>", "22行目: <code>A-1/1000 B-2/1500</code> と表示" ],
     "whyHtml" : [ "", "引数 1 つのコンストラクタは price に触れないと読んだ答え。this.price = 1000 を入れている", "price を全部の Ticket で共有と読んだ答え。price は実体ごとで、a は 1000", "同じ名前のコンストラクタは 2 つ書けないと読んだ答え。引数が違えばオーバーロードできる" ]
   }, {
     "title" : "this(...) の連鎖を追う",
@@ -214,8 +214,8 @@
     "choicesHtml" : [ "C B A", "A B C", "C のみ", "A のみ" ],
     "answer" : 1,
     "explanationHtml" : "<p>this(...) は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。Room() → Room(String) → Room(String, int) と潜っていき、いちばん奥の A から順に表示されます。</p>\n",
-    "traceHtml" : [ "22行目: new Room() → 5行目 Room() に入る", "6行目: this(&quot;未設定&quot;) → 10行目 Room(String) に入る(7行目はまだ)", "11行目: this(name, 4) → 15行目 Room(String, int) に入る(12行目はまだ)", "16〜18行目: フィールド保存 → &quot;A&quot; を表示 → 戻る", "12行目: &quot;B&quot; を表示 → 戻る", "7行目: &quot;C&quot; を表示 → 完成" ],
-    "whyHtml" : [ "呼んだ順に表示されると読んだ答え。this(...) が先に奥まで進み、奥の A から戻りながら出る", "", "this(...) を飛ばして自分の行だけ動くと読んだ答え。呼び先の A と B も実行される", "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると B、C と残りの行が動く" ]
+    "traceHtml" : [ "22行目: <code>new Room()</code> → 5行目 <code>Room()</code> に入る", "6行目: <code>this(&quot;未設定&quot;)</code> → 10行目 <code>Room(String)</code> に入る(7行目はまだ)", "11行目: <code>this(name, 4)</code> → 15行目 <code>Room(String, int)</code> に入る(12行目はまだ)", "16〜18行目: フィールド保存 → <code>A</code> を表示 → 戻る", "12行目: <code>B</code> を表示 → 戻る", "7行目: <code>C</code> を表示 → 完成" ],
+    "whyHtml" : [ "呼んだ順に表示されると読んだ答え。<code>this(...)</code> が先に奥まで進み、奥の A から戻りながら出る", "", "<code>this(...)</code> を飛ばして自分の行だけ動くと読んだ答え。呼び先の A と B も実行される", "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると B、C と残りの行が動く" ]
   }, {
     "title" : "初期化子とコンストラクタ、どちらが勝つ?",
     "level" : 2,
@@ -224,7 +224,7 @@
     "choicesHtml" : [ "0:fast", "3:safe", "3:fast", "0:null" ],
     "answer" : 2,
     "explanationHtml" : "<p>初期化子で <code>retry = 3</code>、<code>mode = &quot;safe&quot;</code> になったあと、コンストラクタ本体で mode だけ <code>&quot;fast&quot;</code> に上書きされます。retry はコンストラクタで触っていないので初期化子の 3 のままです。</p>\n",
-    "traceHtml" : [ "14行目: new → 既定値(retry=0, mode=null)→ 初期化子(retry=3, mode=&quot;safe&quot;)", "5〜6行目: コンストラクタ本体で mode = &quot;fast&quot;(retry はそのまま)", "15行目: &quot;3:fast&quot;" ],
+    "traceHtml" : [ "14行目: <code>new</code> → 既定値(<code>retry=0</code>, <code>mode=null</code>)→ 初期化子(<code>retry=3</code>, <code>mode=&quot;safe&quot;</code>)", "5〜6行目: コンストラクタ本体で <code>mode = &quot;fast&quot;</code>(<code>retry</code> はそのまま)", "15行目: <code>3:fast</code> と表示" ],
     "whyHtml" : [ "コンストラクタがあると初期化子が効かないと読んだ答え", "初期化子がコンストラクタより後に動くと読んだ答え", "", "初期化子もコンストラクタの代入も効かないと読んだ答え" ]
   }, {
     "title" : "コンストラクタの中の this 忘れ",
@@ -234,17 +234,17 @@
     "choicesHtml" : [ "neko", "null", "コンパイルエラー", "実行時エラー" ],
     "answer" : 1,
     "explanationHtml" : "<p>5行目は引数 nickname を引数 nickname に代入しているだけで、フィールドには何も入りません。this.nickname = nickname; が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。</p>\n",
-    "traceHtml" : [ "13行目: new Profile(&quot;neko&quot;) → フィールド nickname は null", "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)", "14行目: getNickname() はフィールドを返す → null" ],
+    "traceHtml" : [ "13行目: <code>new Profile(&quot;neko&quot;)</code> → フィールド <code>nickname</code> は null", "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)", "14行目: getNickname() はフィールドを返す → null" ],
     "whyHtml" : [ "<code>nickname = nickname</code> でフィールドに入ると読んだ答え", "", "同じ名前どうしの代入を文法違反と読んだ答え", "null を返すと例外になると読んだ答え" ]
   }, {
     "title" : "Lombok が作るコンストラクタを推測する",
     "level" : 3,
     "code" : "@Service\n@RequiredArgsConstructor\npublic class ReportService {\n    private final ReportRepository reportRepository;\n    private MailSender mailSender;\n    private static final int LIMIT = 100;\n\n    public void send(Long id) {\n        Report r = reportRepository.findById(id).orElseThrow();\n        mailSender.send(r);\n    }\n}\n",
     "questionHtml" : "<code>@RequiredArgsConstructor</code> は Lombok の注釈で、<strong>初期化していない final のフィールドだけ</strong> を引数に取るコンストラクタを自動で作ります。Spring(第3部)はそのコンストラクタを呼んで部品を渡します。Spring がこのクラスを作って send を呼んだとき、何が起きる?",
-    "choicesHtml" : [ "正常にメールが送られる", "reportRepository が null で NullPointerException", "mailSender が null で NullPointerException", "コンパイルエラー" ],
+    "choicesHtml" : [ "正常にメールが送られる", "<code>reportRepository</code> が null で <code>NullPointerException</code>", "<code>mailSender</code> が null で <code>NullPointerException</code>", "コンパイルエラー" ],
     "answer" : 2,
     "explanationHtml" : "<p>@RequiredArgsConstructor は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、mailSender は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、mailSender は null のまま。10行目で NullPointerException です。final の付け忘れが原因です。</p>\n",
-    "traceHtml" : [ "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)", "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま", "6行目: static final の定数はインスタンスの初期化とは無関係", "9行目: reportRepository は注入済みなので動く", "10行目: mailSender が null → NullPointerException" ],
+    "traceHtml" : [ "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)", "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま", "6行目: static final の定数はインスタンスの初期化とは無関係", "9行目: reportRepository は注入済みなので動く", "10行目: <code>mailSender</code> が null → <code>NullPointerException</code>" ],
     "whyHtml" : [ "mailSender も Spring が入れてくれると読んだ答え", "final のフィールドがコンストラクタに入らないと読んだ答え", "", "final でないフィールドがあるとコンパイルが通らないと読んだ答え" ]
   } ],
   "atWork" : [ {

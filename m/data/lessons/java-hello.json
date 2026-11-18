@@ -95,7 +95,7 @@
     "choicesHtml" : [ "A B C D がそれぞれ別の行に表示される", "ABCD が1行に表示される", "1行目に AB、2行目に C、3行目に D", "1行目に AB、2行目に C、3行目は空行、4行目に D" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>print</code> は改行せず、<code>println</code> は表示の後に改行します。<code>A</code> の後に <code>B</code> が続いて改行 → 1行目は <code>AB</code>。\n次に <code>C</code> を表示し、引数なしの <code>println()</code> が改行だけを出力 → 2行目は <code>C</code>。最後に <code>D</code> と改行 → 3行目は <code>D</code>。\n引数なしの <code>println()</code> は「改行を1つ出す」だけなので、C の行を終わらせる役目になり、空行は生まれません。</p>\n",
-    "whyHtml" : [ "print も println と同じく改行すると読んだ答え。print は改行しないので A と B は同じ行に並ぶ", "println も改行しないと読んだ答え。println は表示の後で改行する", "", "引数なしの println() が空行を作ると読んだ答え。C の行を終わらせる改行になるだけ" ]
+    "whyHtml" : [ "<code>print</code> も <code>println</code> と同じく改行すると読んだ答え。<code>print</code> は改行しないので A と B は同じ行に並ぶ", "<code>println</code> も改行しないと読んだ答え。<code>println</code> は表示の後で改行する", "", "引数なしの <code>println()</code> が空行を作ると読んだ答え。C の行を終わらせる改行になるだけ" ]
   }, {
     "questionHtml" : "<p><code>Hello.java</code> に次のコードを書いて <code>javac Hello.java</code> を実行した。コンパイルエラーになる行はどれ?</p>\n<pre><code class=\"language-java\">public class Hello {                            // 1行目\n    public static void main(String[] args) {    // 2行目\n        System.out.printIn(&quot;おはよう&quot;);          // 3行目\n        System.out.println(&quot;こんにちは&quot;);        // 4行目\n    }\n}\n</code></pre>\n",
     "choicesHtml" : [ "3行目", "1行目", "2行目", "4行目" ],
@@ -104,9 +104,9 @@
     "whyHtml" : [ "", "クラス名とファイル名の組み合わせを疑った答え。Hello.java に public class Hello で合っている", "main の書き方を疑った答え。public static void main(String[] args) で正しい", "文字列の中の日本語がエラーになると読んだ答え。リテラル内の日本語は問題なく、誤りは printIn" ]
   }, {
     "questionHtml" : "<p>ファイル <code>Main.java</code> に次の内容を保存し、<code>javac Main.java</code> を実行した。どうなる?</p>\n<pre><code class=\"language-java\">public class Hello {\n    public static void main(String[] args) {\n        System.out.println(&quot;Hi&quot;);\n    }\n}\n</code></pre>\n",
-    "choicesHtml" : [ "Main.class が作られ、java Main で Hi が表示される", "Hello.class が作られ、java Hello で Hi が表示される", "コンパイルは成功するが、実行時に「メイン・メソッドが見つかりません」となる", "「クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります」というコンパイルエラーになる" ],
+    "choicesHtml" : [ "Main.class が作られ、java Main で Hi が表示される", "Hello.class が作られ、java Hello で Hi が表示される", "コンパイルは成功するが、実行時に「メイン・メソッドが見つかりません」となる", "コンパイルエラーになり、.class は 1 つも作られない" ],
     "answer" : 3,
-    "explanationHtml" : "<p><code>public</code> なクラスは、クラス名と同じ名前のファイルに書く必要があります。<code>public class Hello</code> は <code>Hello.java</code> に書かなければならず、\n<code>javac</code> はコンパイルエラーにします(<code>.class</code> は1つも作られません)。\nなお <code>java Main.java</code> のような単一ファイル実行(Java 11+)ではこのルールが適用されず Hi が表示されますが、問題は <code>javac</code> の場合です。</p>\n",
+    "explanationHtml" : "<p><code>public</code> なクラスは、クラス名と同じ名前のファイルに書く必要があります。<code>public class Hello</code> は <code>Hello.java</code> に書かなければならず、\n<code>javac</code> は「クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります」というコンパイルエラーにします(<code>.class</code> は1つも作られません)。\nなお <code>java Main.java</code> のような単一ファイル実行(Java 11+)ではこのルールが適用されず Hi が表示されますが、問題は <code>javac</code> の場合です。</p>\n",
     "whyHtml" : [ "クラスファイルの名前がソースのファイル名で決まると読んだ答え", "ファイル名とクラス名の不一致を見落とした答え", "javac は通り、実行の段階で止まると読んだ答え", "" ]
   }, {
     "questionHtml" : "<p>JDK・JRE・JVM について、正しい説明はどれ?</p>\n",
@@ -218,7 +218,7 @@
     "choicesHtml" : [ "1行:Java 道場へようこそ", "2行:Java 道場 / へようこそ", "4行:Java / (空白) / 道場 / へようこそ", "3行:Java / 道場 / へようこそ" ],
     "answer" : 1,
     "explanationHtml" : "<p>print は改行しないので、Java、空白、道場 が同じ行に並び、println で改行されます。6行目は + で文字列がつながって「へようこそ」が2行目に出ます。</p>\n",
-    "traceHtml" : [ "3行目: Java(改行なし)", "4行目: 空白(改行なし)→ ここまでで「Java 」", "5行目: 道場 を続けて表示して改行 →「Java 道場」", "6行目: &quot;へ&quot; + &quot;ようこそ&quot; → &quot;へようこそ&quot; を表示して改行" ],
+    "traceHtml" : [ "3行目: Java(改行なし)", "4行目: 空白(改行なし)→ ここまでで「Java 」", "5行目: 道場 を続けて表示して改行 →「Java 道場」", "6行目: <code>&quot;へ&quot; + &quot;ようこそ&quot;</code> → <code>へようこそ</code> を表示して改行" ],
     "whyHtml" : [ "道場 を出す println の改行を見落とした答え。へようこそ は次の行に出る", "", "print も 1 回ごとに改行すると読んだ答え", "Java を出す print のあとで改行されると読んだ答え" ]
   }, {
     "title" : "複数行コメントの範囲",

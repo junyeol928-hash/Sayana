@@ -58,11 +58,11 @@
     "usesSpring" : false
   } ],
   "quiz" : [ {
-    "questionHtml" : "<p>解説の <code>RequestStatus</code>(状態遷移図どおりの <code>canTransitionTo</code>)を使って、次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">RequestStatus s = RequestStatus.DRAFT;\nList&lt;RequestStatus&gt; steps = List.of(\n    RequestStatus.SUBMITTED, RequestStatus.WITHDRAWN,\n    RequestStatus.RETURNED, RequestStatus.SUBMITTED);\nfor (RequestStatus next : steps) {\n    if (s.canTransitionTo(next)) {\n        s = next;\n    }\n}\nSystem.out.println(s);\n</code></pre>\n",
+    "questionHtml" : "<p><code>RequestStatus</code> の <code>canTransitionTo</code> は、次の遷移だけ <code>true</code> を返します(ほかは <code>false</code>)。</p>\n<ul>\n<li><code>DRAFT</code> → <code>SUBMITTED</code> か <code>WITHDRAWN</code></li>\n<li><code>SUBMITTED</code> → <code>APPROVED</code> か <code>RETURNED</code></li>\n<li><code>RETURNED</code> → <code>SUBMITTED</code> か <code>WITHDRAWN</code></li>\n</ul>\n<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">RequestStatus s = RequestStatus.DRAFT;\nList&lt;RequestStatus&gt; steps = List.of(\n    RequestStatus.SUBMITTED, RequestStatus.WITHDRAWN,\n    RequestStatus.RETURNED, RequestStatus.SUBMITTED);\nfor (RequestStatus next : steps) {\n    if (s.canTransitionTo(next)) {\n        s = next;\n    }\n}\nSystem.out.println(s);\n</code></pre>\n",
     "choicesHtml" : [ "WITHDRAWN", "RETURNED", "SUBMITTED", "DRAFT" ],
     "answer" : 2,
-    "explanationHtml" : "<p>DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は <strong>図に矢印がない</strong>(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。\n続く SUBMITTED → RETURNED(差戻し)は OK、RETURNED → SUBMITTED(再申請)も OK なので、最後は <code>SUBMITTED</code> です。</p>\n",
-    "whyHtml" : [ "申請中でも取り下げられると読んだ答え。その矢印は図に無い", "差戻しの後の再申請を見落とした答え。差戻しからは再申請できる", "", "どの遷移も通らないと読んだ答え。下書きからの申請は最初の1歩で通る" ]
+    "explanationHtml" : "<p>DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は <strong>許された遷移にない</strong>(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。\n続く SUBMITTED → RETURNED(差戻し)は OK、RETURNED → SUBMITTED(再申請)も OK なので、最後は <code>SUBMITTED</code> です。</p>\n",
+    "whyHtml" : [ "申請中でも取り下げられると読んだ答え。<code>SUBMITTED</code> から <code>WITHDRAWN</code> への遷移は無い", "差戻しの後の再申請を見落とした答え。差戻しからは再申請できる", "", "どの遷移も通らないと読んだ答え。下書きからの申請は最初の1歩で通る" ]
   }, {
     "questionHtml" : "<p><code>RequestStatus</code> が次のように書かれています。同じプロジェクトで enum に定数 <code>CANCELLED</code> を1つ追加して保存(コンパイル)すると、どうなる?</p>\n<pre><code class=\"language-java\">public boolean canTransitionTo(RequestStatus next) {\n    return switch (this) {\n        case DRAFT -&gt; next == SUBMITTED || next == WITHDRAWN;\n        case SUBMITTED -&gt; next == APPROVED || next == RETURNED;\n        case RETURNED -&gt; next == SUBMITTED || next == WITHDRAWN;\n        case APPROVED, WITHDRAWN -&gt; false;\n    };\n}\n</code></pre>\n",
     "choicesHtml" : [ "switch 式が網羅されていないのでコンパイルエラーになる", "CANCELLED のときは false が返る", "CANCELLED のときは null が返る", "警告は出るが、実行時に CANCELLED で呼ぶまで何も起きない" ],
@@ -76,14 +76,14 @@
     "explanationHtml" : "<p>ルールは「100,000円 <strong>以上</strong>」なので、100,000円ちょうどは ADMIN が必要です。ところが <code>&gt;</code> は「超える」なので <code>100_000 &gt; 100_000</code> は false になり、APPROVER でも承認できてしまいます。\n差が出るのは <strong>境界値ちょうど</strong> だけ。だから境界値のテストが必須なのです。</p>\n",
     "whyHtml" : [ "99,999円で差が出ると読んだ答え。<code>&gt;</code> でも <code>&gt;=</code> でも false になる", "", "100,001円で差が出ると読んだ答え。<code>&gt;</code> でも <code>&gt;=</code> でも true になる", "0円で差が出ると読んだ答え。<code>&gt;</code> でも <code>&gt;=</code> でも false になる" ]
   }, {
-    "questionHtml" : "<p>ADMIN(管理者)のボスが、自分で 150,000円の備品購入(PURCHASE)を申請しました。業務ルール1〜7に従うと、この申請を承認できるのは誰?</p>\n",
+    "questionHtml" : "<p>ADMIN(管理者)のボスが、自分で 150,000円の備品購入(PURCHASE)を申請しました。次の業務ルールに従うと、この申請を承認できるのは誰?</p>\n<ul>\n<li>ルール2:承認・差戻しは APPROVER か ADMIN。<strong>自分の申請は承認できない</strong></li>\n<li>ルール3:<strong>100,000円以上</strong> の承認は ADMIN だけ</li>\n</ul>\n",
     "choicesHtml" : [ "ボス本人(ADMIN なので)", "APPROVER のモカ先輩", "誰も承認できないので自動で承認済になる", "ボス以外の ADMIN" ],
     "answer" : 3,
     "explanationHtml" : "<p>ルール3で 100,000円以上は ADMIN しか承認できないので、APPROVER のモカ先輩は不可。ルール2で <strong>自分の申請は承認できない</strong> ので、ボス本人も不可。残るのは「ボス以外の ADMIN」です。\nでは ADMIN が1人しかいない会社では? これが「本人」で見つかる仕様の穴の典型で、実務では代理承認や上位者への回付といった仕組みを別途決めます。</p>\n",
     "whyHtml" : [ "ADMIN なら自分の申請も承認できると読んだ答え。本人の承認はルール2で禁止", "金額のルールを見落とした答え。15万円の申請はルール3にかかる", "承認できる人がいなければ自動で通ると読んだ答え。そんなルールは無い", "" ]
   }, {
     "questionHtml" : "<p>申請の状態を、enum ではなく次のフラグで持つ設計にしました。<strong>最大の問題</strong> はどれ?</p>\n<pre><code class=\"language-java\">boolean submitted;\nboolean approved;\nboolean returned;\nboolean withdrawn;\n</code></pre>\n",
-    "choicesHtml" : [ "boolean は DB に保存できない", "approved と returned が同時に true のような、ありえない状態を作れてしまう", "フィールドが増えてメモリを大量に使う", "getter の名前が isXxx になって読みにくい" ],
+    "choicesHtml" : [ "boolean は DB に保存できない", "approved と returned が同時に true の状態を作れる", "フィールドが増えてメモリを大量に使う", "getter の名前が isXxx になって読みにくい" ],
     "answer" : 1,
     "explanationHtml" : "<p>4つの boolean は 2の4乗 = 16通りの組み合わせを表せますが、意味のある状態は5つ(全部 false の下書きを含む)だけです。残りの「承認済みかつ差戻し」のような矛盾した状態を、コンパイラは止めてくれません。\nenum なら値は常にどれか1つなので、矛盾が <strong>型のレベルで起こりえません</strong>。</p>\n",
     "whyHtml" : [ "boolean は DB に保存できないと読んだ答え。保存はできるが、矛盾した組み合わせを作れてしまう", "", "メモリの量を問題と読んだ答え。本質は、ありえない組み合わせを型で防げない点", "getter の名前を問題と読んだ答え。本質は、ありえない組み合わせを型で防げない点" ]

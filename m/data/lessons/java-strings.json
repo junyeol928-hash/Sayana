@@ -95,13 +95,13 @@
     "choicesHtml" : [ "JAVA!", "java", "JAVA", "java!" ],
     "answer" : 1,
     "explanationHtml" : "<p>String は <strong>不変(immutable)</strong> です。<code>toUpperCase()</code> も <code>concat(&quot;!&quot;)</code> も、元の <code>s</code> を書き換えるのではなく <strong>新しい String を作って返す</strong> だけ。戻り値をどこにも受け取っていないので捨てられ、<code>s</code> は <code>&quot;java&quot;</code> のままです。\n<code>JAVA!</code> にしたいなら <code>s = s.toUpperCase().concat(&quot;!&quot;);</code> のように、戻り値を変数に代入する必要があります。戻り値を捨ててもコンパイルエラーにはならないので、気づきにくいミスです。</p>\n",
-    "whyHtml" : [ "toUpperCase() と concat() が、s 自身を書き換えると読んだ答え", "", "toUpperCase() だけが s を書き換えると読んだ答え", "concat() だけが s に足されると読んだ答え" ]
+    "whyHtml" : [ "<code>toUpperCase()</code> と <code>concat()</code> が、<code>s</code> 自身を書き換えると読んだ答え", "", "<code>toUpperCase()</code> だけが <code>s</code> を書き換えると読んだ答え", "<code>concat()</code> だけが <code>s</code> に足されると読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">String a = &quot;Java&quot;;\nString b = &quot;Ja&quot; + &quot;va&quot;;\nString c = new String(&quot;Java&quot;);\nSystem.out.println((a == b) + &quot; &quot; + (a == c) + &quot; &quot; + a.equals(c));\n</code></pre>\n",
     "choicesHtml" : [ "true true true", "false false true", "true false true", "false false false" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>&quot;Ja&quot; + &quot;va&quot;</code> は <strong>定数同士の連結</strong> なので、コンパイル時に <code>&quot;Java&quot;</code> という1つのリテラルになり、文字列プールの同じオブジェクトを指します。だから <code>a == b</code> は <code>true</code>。\n<code>new String(&quot;Java&quot;)</code> は <strong>必ず新しいオブジェクト</strong> を作るので <code>a == c</code> は <code>false</code>。中身を比べる <code>equals</code> は <code>true</code> です。\nもし <code>String d = &quot;Ja&quot;; String b = d + &quot;va&quot;;</code> のように <strong>変数を含む連結</strong> なら実行時に新しいオブジェクトが作られ、<code>a == b</code> は <code>false</code> になります。結果が書き方次第で変わるからこそ、文字列は常に <code>equals</code> で比べます。</p>\n",
-    "whyHtml" : [ "new String も、プールの同じものを返すと読んだ答え", "<code>&quot;Ja&quot; + &quot;va&quot;</code> も、実行時に新しく作ると読んだ答え", "", "equals も、同じオブジェクトかどうかを比べると読んだ答え" ]
+    "whyHtml" : [ "<code>new String</code> も、プールの同じものを返すと読んだ答え", "<code>&quot;Ja&quot; + &quot;va&quot;</code> も、実行時に新しく作ると読んだ答え", "", "<code>equals</code> も、同じオブジェクトかどうかを比べると読んだ答え" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">String s = &quot;A001,コーヒー,1200&quot;;\nint i = s.indexOf(&quot;,&quot;);\nSystem.out.println(s.substring(i + 1, s.indexOf(&quot;,&quot;, i + 1)));\n</code></pre>\n",
     "choicesHtml" : [ "A001", ",コーヒー", "コーヒー,", "コーヒー" ],
@@ -165,7 +165,7 @@
     "choicesHtml" : [ "spring boot / spring boot", "spring boot / spring", "spring / spring", "spring / spring boot" ],
     "answer" : 1,
     "explanationHtml" : "<p>3行目の + は新しい文字列 <code>&quot;spring boot&quot;</code> を作り、a がそれを指し直します。元の <code>&quot;spring&quot;</code> は変更されないので、b は <code>&quot;spring&quot;</code> のまま。参照型でも、不変オブジェクトは「共有していても書き換わらない」のがポイントです。</p>\n",
-    "traceHtml" : [ "1行目: &quot;spring&quot; を作り、a が指す", "2行目: b も同じ &quot;spring&quot; を指す", "3行目: 新しい &quot;spring boot&quot; が作られ、a だけがそれを指し直す。&quot;spring&quot; はそのまま", "4〜5行目: a は &quot;spring boot&quot;、b は &quot;spring&quot;" ],
+    "traceHtml" : [ "1行目: <code>&quot;spring&quot;</code> を作り、<code>a</code> が指す", "2行目: <code>b</code> も同じ <code>&quot;spring&quot;</code> を指す", "3行目: 新しい <code>&quot;spring boot&quot;</code> が作られ、<code>a</code> だけがそれを指し直す。<code>&quot;spring&quot;</code> はそのまま", "4〜5行目: <code>a</code> は <code>&quot;spring boot&quot;</code>、<code>b</code> は <code>&quot;spring&quot;</code>" ],
     "whyHtml" : [ "連結で元の文字列が書き換わると読んだ答え", "", "連結の結果を a に代入したことを見落とした答え", "a と b を逆に読んだ答え" ]
   }, {
     "title" : "== と equals の違い",
@@ -175,8 +175,8 @@
     "choicesHtml" : [ "true false true true", "true true true true", "false false true false", "true false true false" ],
     "answer" : 0,
     "explanationHtml" : "<p><code>&quot;ad&quot; + &quot;min&quot;</code> はリテラルどうしの連結なのでコンパイル時に <code>&quot;admin&quot;</code> にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。</p>\n",
-    "traceHtml" : [ "1行目: プールに &quot;admin&quot; が置かれ、x が指す", "2行目: リテラルどうしの + はコンパイル時に &quot;admin&quot; になる → x と同じものを指す", "3行目: new なのでプール外に別の &quot;admin&quot; が作られる", "4行目: intern はプールの &quot;admin&quot; を返す → x と同じ", "5行目: true false true true" ],
-    "whyHtml" : [ "", "new String も、プールの同じものを返すと読んだ答え", "リテラル同士の連結も intern() も、別物を作ると読んだ答え", "intern() が新しい文字列を作ると読んだ答え" ]
+    "traceHtml" : [ "1行目: プールに <code>&quot;admin&quot;</code> が置かれ、<code>x</code> が指す", "2行目: リテラルどうしの <code>+</code> はコンパイル時に <code>&quot;admin&quot;</code> になる → <code>x</code> と同じものを指す", "3行目: <code>new</code> なのでプール外に別の <code>&quot;admin&quot;</code> が作られる", "4行目: <code>intern</code> はプールの <code>&quot;admin&quot;</code> を返す → <code>x</code> と同じ", "5行目: <code>true false true true</code> と表示" ],
+    "whyHtml" : [ "", "<code>new String</code> も、プールの同じものを返すと読んだ答え", "リテラル同士の連結も <code>intern()</code> も、別物を作ると読んだ答え", "<code>intern()</code> が新しい文字列を作ると読んだ答え" ]
   }, {
     "title" : "StringBuilder の追跡",
     "level" : 2,
@@ -185,18 +185,18 @@
     "choicesHtml" : [ "[1-2-3]", "[1-2-3-]", "1-2-3", "[123]" ],
     "answer" : 0,
     "explanationHtml" : "<p>ループで <code>1-2-3-</code> が作られ、<code>deleteCharAt</code> で末尾の <code>-</code> を消して <code>1-2-3</code>。<code>insert(0, &quot;[&quot;)</code> で先頭に <code>[</code> を入れ、<code>append(&quot;]&quot;)</code> で末尾に <code>]</code> を付けます。StringBuilder は自分自身を書き換えるので、戻り値を受け取らなくても反映されます。</p>\n",
-    "traceHtml" : [ "2〜4行目: append を繰り返して &quot;1-2-3-&quot;", "5行目: length()-1 番目(末尾の &quot;-&quot;)を削除 → &quot;1-2-3&quot;", "6行目: 先頭に &quot;[&quot;、末尾に &quot;]&quot; → &quot;[1-2-3]&quot;", "7行目: println は toString を呼ぶので &quot;[1-2-3]&quot;" ],
-    "whyHtml" : [ "", "末尾の - を消す deleteCharAt を見落とした答え", "戻り値を受け取らない insert と append は効かないと読んだ答え", "deleteCharAt で - が全部消えると読んだ答え" ]
+    "traceHtml" : [ "2〜4行目: <code>append</code> を繰り返して中身は <code>1-2-3-</code>", "5行目: <code>length()-1</code> 番目(末尾の <code>-</code>)を削除 → <code>1-2-3</code>", "6行目: 先頭に <code>[</code>、末尾に <code>]</code> → <code>[1-2-3]</code>", "7行目: <code>println</code> は <code>toString</code> を呼ぶので <code>[1-2-3]</code> と表示" ],
+    "whyHtml" : [ "", "末尾の <code>-</code> を消す <code>deleteCharAt</code> を見落とした答え", "戻り値を受け取らない <code>insert</code> と <code>append</code> は効かないと読んだ答え", "<code>deleteCharAt</code> で <code>-</code> が全部消えると読んだ答え" ]
   }, {
     "title" : "null 安全な比較と早期 return",
     "level" : 2,
     "code" : "public String normalize(String code) {\n    if (code == null || code.isBlank()) {\n        return \"NONE\";\n    }\n    if (\"tmp\".equalsIgnoreCase(code.strip())) {\n        return \"TEMP\";\n    }\n    return code.strip().toUpperCase();\n}\n// 呼び出し:\nSystem.out.println(normalize(\"  Tmp \") + \" \" + normalize(\" \") + \" \" + normalize(null));\n",
     "questionHtml" : "出力は?",
-    "choicesHtml" : [ "TMP NONE NONE", "TEMP NONE NONE", "TEMP  NONE", "NullPointerException が発生" ],
+    "choicesHtml" : [ "<code>TMP NONE NONE</code>", "<code>TEMP NONE NONE</code>", "<code>TEMP  NONE</code>", "<code>NullPointerException</code> が発生" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>&quot;  Tmp &quot;</code> は null でも空白でもないので先に進み、strip して <code>&quot;Tmp&quot;</code>、大文字小文字を無視して <code>&quot;tmp&quot;</code> と一致するので <code>&quot;TEMP&quot;</code>。<code>&quot; &quot;</code> は isBlank が true で <code>&quot;NONE&quot;</code>。null は <code>code == null</code> が true になり、|| の右側(isBlank)は評価されないので例外にならず <code>&quot;NONE&quot;</code>。||(短絡評価)と定数を左に置く書き方が null を守っています。</p>\n",
-    "traceHtml" : [ "normalize(&quot;  Tmp &quot;): 2行目 false → 5行目 strip で &quot;Tmp&quot;、equalsIgnoreCase で true → &quot;TEMP&quot;", "normalize(&quot; &quot;): 2行目 isBlank が true → &quot;NONE&quot;", "normalize(null): 2行目 code == null が true。|| の右は評価されない → &quot;NONE&quot;", "結果: TEMP NONE NONE" ],
-    "whyHtml" : [ "大文字にする最後の return に進むと読んだ答え", "", "空白だけの文字列が、空文字になって返ると読んだ答え", "null にも isBlank() が呼ばれると読んだ答え" ]
+    "traceHtml" : [ "<code>normalize(&quot;  Tmp &quot;)</code>: 2行目 false → 5行目 <code>strip</code> で <code>&quot;Tmp&quot;</code>、<code>equalsIgnoreCase</code> で true → <code>&quot;TEMP&quot;</code>", "<code>normalize(&quot; &quot;)</code>: 2行目 <code>isBlank</code> が true → <code>&quot;NONE&quot;</code>", "<code>normalize(null)</code>: 2行目 <code>code == null</code> が true。<code>||</code> の右は評価されない → <code>&quot;NONE&quot;</code>", "結果: <code>TEMP NONE NONE</code> と表示" ],
+    "whyHtml" : [ "大文字にする最後の return に進むと読んだ答え", "", "空白だけの文字列が、空文字になって返ると読んだ答え", "null にも <code>isBlank()</code> が呼ばれると読んだ答え" ]
   }, {
     "title" : "Base64 と文字コードの往復",
     "level" : 3,
@@ -205,8 +205,8 @@
     "choicesHtml" : [ "1 4 true true", "3 4 true false", "3 3 true true", "3 4 false false" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>&quot;鍵&quot;</code> は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。</p>\n",
-    "traceHtml" : [ "2行目: 日本語1文字は UTF-8 で 3 バイト → raw.length は 3", "3行目: 3 バイト → Base64 で 4 文字(パディングなし)", "4行目: 4 文字 → 元の 3 バイトに戻る", "5行目: 同じ UTF-8 で戻すので中身は &quot;鍵&quot;。ただし新しいオブジェクト", "6行目: 3 4 true false" ],
-    "whyHtml" : [ "1 文字は 1 バイトと読み、== も true とした答え", "", "Base64 でも長さが変わらないと読み、== も true とした答え", "往復で中身が変わると読んだ答え" ]
+    "traceHtml" : [ "2行目: 日本語1文字は UTF-8 で 3 バイト → <code>raw.length</code> は 3", "3行目: 3 バイト → Base64 で 4 文字(パディングなし)", "4行目: 4 文字 → 元の 3 バイトに戻る", "5行目: 同じ UTF-8 で戻すので中身は <code>&quot;鍵&quot;</code>。ただし新しいオブジェクト", "6行目: <code>3 4 true false</code> と表示" ],
+    "whyHtml" : [ "1 文字は 1 バイトと読み、<code>==</code> も true とした答え", "", "Base64 でも長さが変わらないと読み、<code>==</code> も true とした答え", "往復で中身が変わると読んだ答え" ]
   } ],
   "atWork" : [ {
     "title" : "String を極める",

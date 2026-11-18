@@ -95,13 +95,13 @@
     "choicesHtml" : [ "B", "BCD", "BC", "ABC" ],
     "answer" : 2,
     "explanationHtml" : "<p>従来の switch 文は、一致した case に <strong>ジャンプ</strong> して、そこから下を順に実行します。たどる順は次のとおりで、出力は <code>BC</code> です。</p>\n<ol>\n<li><code>case 2</code> にジャンプして <code>B</code> を出す(<code>case 1</code> の <code>A</code> は飛ばす)</li>\n<li><code>break</code> がないので <code>case 3</code> へ <strong>フォールスルー</strong> して <code>C</code> を出す</li>\n<li><code>case 3</code> の <code>break</code> で抜ける(<code>default</code> の <code>D</code> は出ない)</li>\n</ol>\n<p><code>B</code> だけになるのは、アロー構文(<code>case 2 -&gt;</code>)で書いた場合です。</p>\n",
-    "whyHtml" : [ "アロー構文(case 2 -&gt;)と読んだ答え。従来の switch は break が無いと下へ落ちる", "break を見落とした答え。case 3 の break で抜けるので D は出ない", "", "case 1 から順に実行すると読んだ答え。switch は一致した case 2 へ飛ぶ" ]
+    "whyHtml" : [ "アロー構文(<code>case 2 -&gt;</code>)と読んだ答え。従来の <code>switch</code> は <code>break</code> が無いと下へ落ちる", "break を見落とした答え。case 3 の break で抜けるので D は出ない", "", "case 1 から順に実行すると読んだ答え。switch は一致した case 2 へ飛ぶ" ]
   }, {
     "questionHtml" : "<p><code>int x = 3;</code> <code>boolean ok = false;</code> と宣言されているとき、<strong>コンパイルエラーになる</strong> のはどれ?</p>\n",
-    "choicesHtml" : [ "if (ok = true) { }", "if (x == 5) { }", "if (!ok) { }", "if (x = 5) { }" ],
+    "choicesHtml" : [ "<code>if (ok = true) { }</code>", "<code>if (x == 5) { }</code>", "<code>if (!ok) { }</code>", "<code>if (x = 5) { }</code>" ],
     "answer" : 3,
     "explanationHtml" : "<p><code>x = 5</code> は代入式で、その値は <code>int</code> の <code>5</code> です。Java の if の条件は <code>boolean</code> でなければならず、int → boolean の変換は存在しないので <code>incompatible types: int cannot be converted to boolean</code> になります。\n紛らわしいのは <code>if (ok = true)</code>。これも比較ではなく代入ですが、式の値が <code>boolean</code>(true)なので <strong>コンパイルが通ってしまい</strong>、常に true の分岐になります。<code>== true</code> と書く習慣をやめて <code>if (ok)</code> と書けば、この事故はそもそも起きません。</p>\n",
-    "whyHtml" : [ "代入ならどれもエラーと読んだ答え。ok = true の値は boolean なので通ってしまう", "== の比較を疑った答え。int 同士の比較で boolean になるので条件として正しい", "!ok を疑った答え。boolean の否定なので条件として正しい", "" ]
+    "whyHtml" : [ "代入ならどれもエラーと読んだ答え。<code>ok = true</code> の値は <code>boolean</code> なので通ってしまう", "<code>==</code> の比較を疑った答え。<code>int</code> 同士の比較で <code>boolean</code> になるので条件として正しい", "<code>!ok</code> を疑った答え。<code>boolean</code> の否定なので条件として正しい", "" ]
   }, {
     "questionHtml" : "<p>次のコードを実行したときの出力は?</p>\n<pre><code class=\"language-java\">int x = 3;\nif (x &gt; 5)\n    if (x &gt; 10)\n        System.out.println(&quot;大&quot;);\nelse\n    System.out.println(&quot;小&quot;);\nSystem.out.println(&quot;終&quot;);\n</code></pre>\n",
     "choicesHtml" : [ "小 と 終", "終 だけ", "大 と 終", "コンパイルエラー" ],
@@ -119,7 +119,7 @@
     "choicesHtml" : [ "true と true", "true と false", "false と true", "false と false" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>b</code> は実行時に連結して作られた <strong>新しい String オブジェクト</strong> です。<code>==</code> は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じでもリテラルの <code>&quot;Java&quot;</code> とは別物で <code>false</code>。中身を比べる <code>equals</code> は <code>true</code> です。\nリテラル同士(<code>&quot;Java&quot; == &quot;Java&quot;</code>)ならインターンにより同じオブジェクトになるので <code>true</code> になることがあり、これが「テストでは動いたのに本番で壊れる」原因です。文字列は必ず <code>equals</code> で比べましょう。</p>\n",
-    "whyHtml" : [ "== でも中身を比べると読んだ答え", "== と equals の役割を逆に読んだ答え", "", "equals も、別のオブジェクトなら false になると読んだ答え" ]
+    "whyHtml" : [ "<code>==</code> でも中身を比べると読んだ答え", "<code>==</code> と <code>equals</code> の役割を逆に読んだ答え", "", "<code>equals</code> も、別のオブジェクトなら false になると読んだ答え" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p><code>x</code> が <code>-1</code> のとき、何が出る?</p>\n<pre><code class=\"language-java\">if (x &gt; 0)\n    if (x &gt; 10)\n        System.out.println(&quot;A&quot;);\nelse\n    System.out.println(&quot;B&quot;);\n</code></pre>\n",
@@ -165,8 +165,8 @@
     "choicesHtml" : [ "暑い", "過ごしやすい", "寒い", "何も出力されない" ],
     "answer" : 1,
     "explanationHtml" : "<p>temp は 28 なので最初の条件(30以上)は false、次の条件(20以上)が true になり、そこで確定します。</p>\n",
-    "traceHtml" : [ "3行目: 28 &gt;= 30 → false", "5行目: 28 &gt;= 20 → true。comment = &quot;過ごしやすい&quot;", "以降の else には進まない", "10行目: &quot;過ごしやすい&quot; と表示" ],
-    "whyHtml" : [ "最初の条件 temp &gt;= 30 を満たすと読んだ答え。28 は 30 未満なので次の 20 以上で決まる", "", "else if を飛ばして else まで進むと読んだ答え。28 は 20 以上なので else if で決まる", "どの分岐にも入らないと読んだ答え。28 &gt;= 20 が true で comment に値が入る" ]
+    "traceHtml" : [ "3行目: <code>28 &gt;= 30</code> → false", "5行目: <code>28 &gt;= 20</code> → true。<code>comment = &quot;過ごしやすい&quot;</code>", "以降の else には進まない", "10行目: <code>過ごしやすい</code> と表示" ],
+    "whyHtml" : [ "最初の条件 <code>temp &gt;= 30</code> を満たすと読んだ答え。28 は 30 未満なので次の 20 以上で決まる", "", "else if を飛ばして else まで進むと読んだ答え。28 は 20 以上なので else if で決まる", "どの分岐にも入らないと読んだ答え。<code>28 &gt;= 20</code> が true で <code>comment</code> に値が入る" ]
   }, {
     "title" : "break のない switch(フォールスルー)",
     "level" : 2,
@@ -175,18 +175,18 @@
     "choicesHtml" : [ "冬", "春", "その他", "コンパイルエラー" ],
     "answer" : 0,
     "explanationHtml" : "<p>case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month=2 は case 2 に一致し、<code>&quot;冬&quot;</code> を代入して break します。</p>\n",
-    "traceHtml" : [ "3行目: month(2) と case を照合", "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)", "7行目: season = &quot;冬&quot;", "8行目: break で switch を抜ける", "17行目: &quot;冬&quot; と表示" ],
+    "traceHtml" : [ "3行目: month(2) と case を照合", "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)", "7行目: <code>season = &quot;冬&quot;</code>", "8行目: break で switch を抜ける", "17行目: <code>冬</code> と表示" ],
     "whyHtml" : [ "", "case 2 から break を越えて下へ落ちると読んだ答え", "中身の無い case 2 は一致にならないと読んだ答え", "中身の無い case を並べると文法違反と読んだ答え" ]
   }, {
     "title" : "短絡評価と NullPointerException",
     "level" : 2,
     "code" : "String a = \"Sato\";\nString b = null;\nString c = \"Suzuki\";\nint count = 0;\nif (a != null && a.length() >= 5) {\n    count++;\n}\nif (b != null && b.length() >= 5) {\n    count++;\n}\nif (c != null && c.length() >= 5) {\n    count++;\n}\nSystem.out.println(count);\n",
     "questionHtml" : "出力は?(例外になるかも含めて考える)",
-    "choicesHtml" : [ "0", "1", "2", "NullPointerException が発生する" ],
+    "choicesHtml" : [ "<code>0</code>", "<code>1</code>", "<code>2</code>", "<code>NullPointerException</code> が発生する" ],
     "answer" : 1,
     "explanationHtml" : "<p>&amp;&amp; の左が <code>b != null</code> なので、null の b は右の length() を評価する前に false 確定し、例外は起きません。<code>&quot;Sato&quot;</code>(4文字)は 5 以上でないため条件を満たさず、<code>&quot;Suzuki&quot;</code>(6文字)だけが条件を満たすので count は 1 になります。</p>\n",
-    "traceHtml" : [ "5行目: a は &quot;Sato&quot;。null ではない → length()=4 → 5以上ではない → false(count 増えない)", "8行目: b は null。b != null が false → 短絡評価で length() は呼ばれない → 例外なし、false", "11行目: c は &quot;Suzuki&quot;。null ではない → length()=6 → 5以上 → true → count++", "14行目: count は 1 と表示" ],
-    "whyHtml" : [ "Suzuki も 5 文字未満と数えた答え", "", "Sato も 5 文字以上と数えた答え", "null の b にも length() が呼ばれると読んだ答え" ]
+    "traceHtml" : [ "5行目: <code>a</code> は <code>&quot;Sato&quot;</code>。null ではない → <code>length()</code> は 4 → 5以上ではない → false(<code>count</code> は増えない)", "8行目: <code>b</code> は null。<code>b != null</code> が false → 短絡評価で <code>length()</code> は呼ばれない → 例外なし、false", "11行目: <code>c</code> は <code>&quot;Suzuki&quot;</code>。null ではない → <code>length()</code> は 6 → 5以上 → true → <code>count++</code>", "14行目: count は 1 と表示" ],
+    "whyHtml" : [ "Suzuki も 5 文字未満と数えた答え", "", "Sato も 5 文字以上と数えた答え", "null の <code>b</code> にも <code>length()</code> が呼ばれると読んだ答え" ]
   }, {
     "title" : "ガード節への書き換えと動作の一致",
     "level" : 3,
@@ -195,8 +195,8 @@
     "choicesHtml" : [ "<code>&quot;成人&quot;</code> に変わる", "<code>&quot;未成年&quot;</code> に変わる", "<code>&quot;不明&quot;</code> のまま変わらない", "例外が発生するようになる" ],
     "answer" : 2,
     "explanationHtml" : "<p>ネストした if をガード節(<code>if (age == null) return &quot;不明&quot;;</code> <code>if (age &gt;= 18) return &quot;成人&quot;;</code> <code>return &quot;未成年&quot;;</code>)に書き換えると、null は最初の行で <code>&quot;不明&quot;</code> を返します。条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。</p>\n",
-    "traceHtml" : [ "元のコード: age が null → 外側の else に入り result = &quot;不明&quot;", "ガード節版: if (age == null) return &quot;不明&quot;; が最初に一致してそこで終了", "どちらも age=null のときは &quot;不明&quot; を返す点で同じ" ],
-    "whyHtml" : [ "ガード節にすると null が「成人」の分岐に流れると読んだ答え", "null が最後の return まで落ちると読んだ答え", "", "ガード節で null のまま age &gt;= 18 に進むと読んだ答え" ]
+    "traceHtml" : [ "元のコード: <code>age</code> が null → 外側の else に入り <code>result = &quot;不明&quot;</code>", "ガード節版: <code>if (age == null) return &quot;不明&quot;;</code> が最初に一致してそこで終了", "どちらも <code>age</code> が null のときは <code>&quot;不明&quot;</code> を返す点で同じ" ],
+    "whyHtml" : [ "ガード節にすると null が「成人」の分岐に流れると読んだ答え", "null が最後の return まで落ちると読んだ答え", "", "ガード節で null のまま <code>age &gt;= 18</code> に進むと読んだ答え" ]
   } ],
   "atWork" : [ {
     "title" : "if 文と switch 文",

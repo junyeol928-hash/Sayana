@@ -70,23 +70,23 @@
     "explanationHtml" : "<p>Spring の <code>@Transactional</code> は、既定では <strong>RuntimeException と Error のときだけ</strong> ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、\n<strong>コミット</strong> されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。\n<code>rollbackFor = BusinessRuleException.class</code> を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を RuntimeException で表します(ルール7)。\nなお、チェックは状態を変える <strong>前</strong> に置くのが本来の順番です。</p>\n",
     "whyHtml" : [ "", "チェック例外でもロールバックされると読んだ答え。既定ではチェック例外では戻さない", "履歴だけ残ると読んだ答え。状態の変更も同じトランザクションの中にある", "状態だけ残ると読んだ答え。履歴の保存も同じトランザクションの中にある" ]
   }, {
-    "questionHtml" : "<p>業務ルール2「自分の申請は承認できない」を守る場所として、レッスンの設計で <strong>本体</strong> になるのはどこ?</p>\n",
-    "choicesHtml" : [ "詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "RequestForm の Bean Validation", "ApprovalService の approve メソッド", "ApprovalHistory の保存処理" ],
+    "questionHtml" : "<p>承認くんでは、<code>ApprovalController</code> が画面からの POST を受けて Service を呼ぶ。<code>RequestForm</code> の Bean Validation は新規申請の入力だけを確かめ、\n<code>ApprovalService</code> が操作する人の ID を受け取って、承認・差戻しと履歴の保存をする。\n業務ルール2「自分の申請は承認できない」を守る <strong>本体</strong> はどこ?</p>\n",
+    "choicesHtml" : [ "詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "<code>RequestForm</code> の Bean Validation", "<code>ApprovalService</code> の <code>approve</code> メソッド", "<code>ApprovalHistory</code> の保存処理" ],
     "answer" : 2,
     "explanationHtml" : "<p>「誰が操作したか」が要るルールなので、操作する人を受け取る <strong>ApprovalService</strong> で守ります。\nボタンを出さないのは利用者への親切にすぎず、<code>POST /requests/5/approve</code> は curl や開発者ツールからでも送れます。</p>\n",
-    "whyHtml" : [ "ボタンを隠せば守れると読んだ答え。画面を通らない送り方がある", "入力チェックで守れると読んだ答え。RequestForm は新規申請用で、操作する人を知らない", "", "履歴の保存でチェックすると読んだ答え。履歴はルールを守った結果の記録" ]
+    "whyHtml" : [ "ボタンを隠せば守れると読んだ答え。画面を通らない送り方がある", "入力チェックで守れると読んだ答え。<code>RequestForm</code> は新規申請用で、操作する人を知らない", "", "履歴の保存でチェックすると読んだ答え。履歴はルールを守った結果の記録" ]
   }, {
     "questionHtml" : "<p><code>ApprovalRequest</code> に <code>@Version private Long version;</code> を付けました。太郎と部長のトランザクションが、ほぼ同時に version=3 の申請中の申請を読み込み、\n先に太郎が承認してコミットしました。その後、部長のトランザクションで起きることは?</p>\n",
-    "choicesHtml" : [ "部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件になって例外が出て、部長の履歴の INSERT もロールバックされる" ],
+    "choicesHtml" : [ "部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件で例外になり、部長の履歴もロールバックされる" ],
     "answer" : 3,
     "explanationHtml" : "<p>JPA は UPDATE に <code>WHERE id=? AND version=3</code>(読んだときの値)を付けます。太郎のコミットで version は 4 になっているので、部長の UPDATE は <strong>0件</strong>。\nHibernate がこれを検出し、Spring は <code>ObjectOptimisticLockingFailureException</code> を投げてトランザクションをロールバックします。同じトランザクションの履歴の INSERT も消えます。</p>\n",
     "whyHtml" : [ "<code>@Version</code> が無いときの動きと取り違えた答え。付けると後の更新は弾かれる", "コミットを待ってから成功すると読んだ答え。<code>@Version</code> は待たずに、version の食い違いで失敗させる", "version が順に増えて両方通ると読んだ答え。部長が持つ version はもう古い", "" ]
   }, {
     "questionHtml" : "<p>金額の判定を次のように書きました。業務ルール3(100,000円 <strong>以上</strong> の承認は ADMIN だけ。休暇の金額は null)に照らして、正しい指摘は?</p>\n<pre><code class=\"language-java\">static boolean requiresAdmin(Integer amount) {\n    return amount &gt; 100_000;\n}\n</code></pre>\n",
-    "choicesHtml" : [ "100,000円ちょうどを承認者が承認でき、休暇(null)では NullPointerException になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(null)で NullPointerException になる点だけが問題", "Integer と int は比べられないのでコンパイルエラーになる" ],
+    "choicesHtml" : [ "100,000円ちょうどを承認者が承認でき、休暇では <code>NullPointerException</code> になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(<code>null</code>)で <code>NullPointerException</code> になる点だけが問題", "<code>Integer</code> と <code>int</code> は比べられないのでコンパイルエラーになる" ],
     "answer" : 0,
     "explanationHtml" : "<p>問題は2つあります。①「以上」なのに <code>&gt;</code> なので、100,000円ちょうどが <code>false</code>(ADMIN 不要)になる。②<code>amount</code> が <code>null</code> のとき、\n比較のために <code>Integer</code> から <code>int</code> への <strong>アンボクシング</strong> が起き、<code>NullPointerException</code> になる。\n正しくは <code>amount != null &amp;&amp; amount &gt;= ADMIN_LIMIT</code>。境界値(99,999 / 100,000)と null のテストを必ず書きます。</p>\n",
-    "whyHtml" : [ "", "null を見落とした答え。休暇の金額は null で来る", "境界を見落とした答え。<code>&gt;</code> では境界ちょうどの金額が漏れる", "Integer と int は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない" ]
+    "whyHtml" : [ "", "<code>null</code> を見落とした答え。休暇の金額は <code>null</code> で来る", "境界を見落とした答え。<code>&gt;</code> では境界ちょうどの金額が漏れる", "<code>Integer</code> と <code>int</code> は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p>モカが承認し終えた 5,000 円の申請に、開きっぱなしだった古い詳細画面からボス(ADMIN)が承認を押した。どうなる?</p>\n",

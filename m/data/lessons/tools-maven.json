@@ -26,13 +26,13 @@
   } ],
   "quiz" : [ {
     "questionHtml" : "<p><code>pom.xml</code> に次の依存があります。<code>src/main/java</code> のクラスで <code>import org.h2.Driver;</code> と書いて <code>./mvnw compile</code> すると、どうなる?</p>\n<pre><code class=\"language-xml\">&lt;dependency&gt;\n  &lt;groupId&gt;com.h2database&lt;/groupId&gt;\n  &lt;artifactId&gt;h2&lt;/artifactId&gt;\n  &lt;scope&gt;runtime&lt;/scope&gt;\n&lt;/dependency&gt;\n</code></pre>\n",
-    "choicesHtml" : [ "問題なくコンパイルできる", "テストコード(src/test/java)からなら使えるので、警告だけ出てコンパイルできる", "コンパイルエラーになる", "コンパイルは通り、実行時に ClassNotFoundException になる" ],
+    "choicesHtml" : [ "問題なくコンパイルできる", "テストコード(src/test/java)からなら使えるので、警告だけ出てコンパイルできる", "コンパイルエラーになる", "コンパイルは通り、実行時に <code>ClassNotFoundException</code> になる" ],
     "answer" : 2,
     "explanationHtml" : "<p><strong>runtime</strong> スコープの jar は、テストと実行時のクラスパスには載りますが、<strong>本体(src/main)のコンパイル時のクラスパスには載りません</strong>。そのため <code>package org.h2 does not exist</code>(パッケージ org.h2 は存在しません)というコンパイルエラーになります。\nこれは「DB ドライバのクラスを直接使わず、JDBC / JPA の標準インターフェース越しに使え」という設計をビルドで強制してくれる仕組みです。</p>\n",
-    "whyHtml" : [ "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ", "テストで使えることと本体のコンパイルを混ぜた答え。本体からの import は警告でなくエラー", "", "コンパイル後に落ちると読んだ答え。それは provided の jar を実行環境が用意しないときの話" ]
+    "whyHtml" : [ "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ", "テストで使えることと本体のコンパイルを混ぜた答え。本体からの import は警告でなくエラー", "", "コンパイルは通り、実行時に落ちると読んだ答え。runtime の jar は、本体のコンパイルにそもそも使えない" ]
   }, {
     "questionHtml" : "<p>次の <code>pom.xml</code> を <code>./mvnw compile</code> したときの結果として正しいのは?</p>\n<pre><code class=\"language-xml\">&lt;parent&gt;\n  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n  &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n  &lt;version&gt;3.5.16&lt;/version&gt;\n&lt;/parent&gt;\n...\n&lt;dependencies&gt;\n  &lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n  &lt;/dependency&gt;\n  &lt;dependency&gt;\n    &lt;groupId&gt;org.commonmark&lt;/groupId&gt;\n    &lt;artifactId&gt;commonmark&lt;/artifactId&gt;\n  &lt;/dependency&gt;\n&lt;/dependencies&gt;\n</code></pre>\n",
-    "choicesHtml" : [ "starter-web は parent のバージョン表から補われるが、commonmark は「version is missing」のエラーになる", "両方とも parent が version を補うので成功する", "version を省略すると Maven Central の最新版が自動で使われるので成功する", "両方とも version が無いのでエラーになる" ],
+    "choicesHtml" : [ "starter-web は parent の表で補われ、commonmark はエラーになる", "両方とも parent が version を補うので成功する", "version を省略すると Maven Central の最新版が自動で使われるので成功する", "両方とも version が無いのでエラーになる" ],
     "answer" : 0,
     "explanationHtml" : "<p>Spring Boot の parent が持つ <strong>dependencyManagement</strong>(推奨バージョン表)に載っているライブラリだけ、version を省略できます。starter-web は当然載っていますが、commonmark は載っていないので\n<code>'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.</code> というエラーでビルドが始まりません。このアプリの pom.xml で commonmark にだけ <code>${commonmark.version}</code> が書いてあるのはそのためです。\n同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。</p>\n",
     "whyHtml" : [ "", "parent がどの依存の版も補うと読んだ答え。補えるのは parent の表に載るものだけ", "版を省くと最新版になると読んだ答え。Maven は最新版を自動では選ばず、エラーにする", "parent の版の表を見落とした答え。Spring の部品は表に載っているので省ける" ]
@@ -50,7 +50,7 @@
     "whyHtml" : [ "新しい版が勝つと読んだ答え。Maven は依存の木で根に近い 2.0 を選ぶ", "", "同じ jar が2つ載ると読んだ答え。同じ groupId:artifactId はどちらか1つだけが選ばれる", "版の衝突をエラーと読んだ答え。Maven は黙って根に近い方を選ぶ" ]
   }, {
     "questionHtml" : "<p>ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で <code>./mvnw compile</code> しました。コードでは Java 21 のパターンマッチング for switch(<code>case Integer i -&gt;</code>)を使っています。結果は?</p>\n<pre><code class=\"language-xml\">&lt;parent&gt;\n  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n  &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n  &lt;version&gt;3.5.16&lt;/version&gt;\n&lt;/parent&gt;\n&lt;properties&gt;\n  &lt;java.version&gt;17&lt;/java.version&gt;\n&lt;/properties&gt;\n</code></pre>\n",
-    "choicesHtml" : [ "JDK 21 で動かしているので問題なくコンパイルできる", "コンパイルは通るが、実行時に UnsupportedClassVersionError になる", "コンパイルエラーになる", "properties は単なるメモなので、ビルド結果に影響しない" ],
+    "choicesHtml" : [ "JDK 21 で動かしているので問題なくコンパイルできる", "コンパイルは通るが、実行時に <code>UnsupportedClassVersionError</code> になる", "コンパイルエラーになる", "properties は単なるメモなので、ビルド結果に影響しない" ],
     "answer" : 2,
     "explanationHtml" : "<p>Boot の parent は <code>java.version</code> の値を <code>maven.compiler.release</code> に渡し、javac に <code>--release 17</code> を指定します。すると <strong>JDK 21 の javac でも「Java 17 の文法と API」でコンパイル</strong> するので、Java 21 で正式化された機能は\n<code>patterns in switch statements are not supported in -source 17</code> のようなエラーになります。\nちなみに Boot 3.5 の parent の既定値は 17 なので、<code>&lt;java.version&gt;21&lt;/java.version&gt;</code> の行を消しても同じことが起きます。このアプリの pom.xml にこの行があるのはそのためです。</p>\n",
     "whyHtml" : [ "JDK の版でコンパイルの版が決まると読んだ答え。<code>java.version</code> の 17 が <code>--release 17</code> として効く", "実行時の版の不一致と取り違えた答え。Java 21 の文法なので、17 指定のコンパイルで止まる", "", "properties をただのメモと読んだ答え。<code>java.version</code> は parent がコンパイラの設定に使う" ]

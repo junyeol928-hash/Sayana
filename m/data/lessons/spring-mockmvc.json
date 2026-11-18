@@ -70,34 +70,34 @@
   } ],
   "quiz" : [ {
     "questionHtml" : "<p>次のテストについて正しい説明はどれ?</p>\n<pre><code class=\"language-java\">@WebMvcTest(OrderController.class)\nclass OrderControllerTest {\n    @Autowired MockMvc mvc;\n\n    @Test\n    void list() throws Exception {\n        mvc.perform(get(&quot;/orders&quot;))\n           .andExpect(status().isOk());\n    }\n}\n</code></pre>\n<p>※ <code>OrderController</code> はコンストラクタで <code>OrderService</code>(<code>@Service</code>)を受け取る。</p>\n",
-    "choicesHtml" : [ "そのまま成功する", "404 で失敗する", "OrderService の Bean が無く、コンテキストの起動に失敗する", "本物の OrderService と DB が使われる" ],
+    "choicesHtml" : [ "そのまま成功する", "Controller が登録されず 404 で失敗する", "<code>OrderService</code> の Bean が無く起動に失敗する", "本物の <code>OrderService</code> と DB が使われる" ],
     "answer" : 2,
     "explanationHtml" : "<p><code>@WebMvcTest</code> は Controller・<code>@ControllerAdvice</code>・フィルタなど <strong>Web 層の Bean だけ</strong> でアプリを組み立てます。<code>@Service</code> は作られないので、<code>OrderController</code> に渡す <code>OrderService</code> が見つからず <code>No qualifying bean of type 'OrderService'</code>(Failed to load ApplicationContext)で失敗します。\n<code>@MockitoBean OrderService service;</code> を足して偽物を差し込むのが正解です。本物の Service や DB まで使いたいなら <code>@SpringBootTest</code> を選びます。</p>\n",
-    "whyHtml" : [ "<code>@WebMvcTest</code> でも <code>@Service</code> まで自動で作られる、と読んだ答え", "Controller が登録されないと読んだ答え。OrderController は対象に入るが、渡す OrderService が無くて起動に失敗する", "", "<code>@SpringBootTest</code> と同じと読んだ答え。<code>@WebMvcTest</code> では <code>@Service</code> も DB も使われない" ]
+    "whyHtml" : [ "<code>@WebMvcTest</code> でも <code>@Service</code> まで自動で作られる、と読んだ答え", "Controller が登録されないと読んだ答え。<code>OrderController</code> は対象に入るが、渡す <code>OrderService</code> が無くて起動に失敗する", "", "<code>@SpringBootTest</code> と同じと読んだ答え。<code>@WebMvcTest</code> では <code>@Service</code> も DB も使われない" ]
   }, {
     "questionHtml" : "<p>standaloneSetup(UTF-8 の設定なし)で次の Controller をテストした。結果は?</p>\n<pre><code class=\"language-java\">@GetMapping(&quot;/hello&quot;)\npublic String hello() { return &quot;こんにちは&quot;; }\n</code></pre>\n<pre><code class=\"language-java\">mvc.perform(get(&quot;/hello&quot;))\n   .andExpect(content().string(&quot;こんにちは&quot;));\n</code></pre>\n",
-    "choicesHtml" : [ "成功する", "本文が「?????」になって失敗する", "404 で失敗する", "コンパイルエラー" ],
+    "choicesHtml" : [ "成功する", "本文が「?????」で失敗する", "URL が見つからず 404 で失敗する", "コンパイルエラー" ],
     "answer" : 1,
     "explanationHtml" : "<p><code>StringHttpMessageConverter</code> の既定の文字コードは <strong>ISO-8859-1</strong> で、日本語を表せないため <code>?????</code> に化け、<code>Response content expected:&lt;こんにちは&gt; but was:&lt;?????&gt;</code> で失敗します。\nstandaloneSetup では <code>setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)</code> と <code>defaultResponseCharacterEncoding(StandardCharsets.UTF_8)</code> を指定します。Spring Boot(<code>@WebMvcTest</code> や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。</p>\n",
     "whyHtml" : [ "文字コードが既定で UTF-8 と読んだ答え", "", "<code>standaloneSetup</code> だと URL が見つからないと読んだ答え。<code>/hello</code> は一致している", "日本語の文字列は比べられないと読んだ答え。コンパイルは通り、実行時に本文が化けて失敗する" ]
   }, {
     "questionHtml" : "<p>Mockito で次のように書いた。<code>service.findByCustomer(&quot;C002&quot;)</code> を呼ぶと何が返る?</p>\n<pre><code class=\"language-java\">OrderService service = mock(OrderService.class);\nwhen(service.findByCustomer(&quot;C001&quot;))\n    .thenReturn(List.of(new Order(&quot;O-1&quot;, &quot;ペン&quot;, 300)));\n</code></pre>\n<p>※ <code>findByCustomer</code> の戻り値の型は <code>List&lt;Order&gt;</code></p>\n",
-    "choicesHtml" : [ "空のリスト", "ペンの注文1件のリスト", "null", "例外が発生する" ],
+    "choicesHtml" : [ "空のリスト", "ペンの注文1件のリスト", "<code>null</code>", "例外が発生する" ],
     "answer" : 0,
     "explanationHtml" : "<p><code>when(...).thenReturn(...)</code> は <strong>その引数で呼ばれたとき</strong> だけ効きます。仕込んでいない引数 <code>&quot;C002&quot;</code> では Mockito の既定値が返り、戻り値が <code>List</code> などのコレクションなら <strong>空のコレクション</strong>、<code>int</code> なら <code>0</code>、普通のオブジェクトなら <code>null</code> です。\n「仕込み忘れても例外にならず空が返る」ので、テストが意図せず通ってしまうことがあります。<code>verify(service).findByCustomer(&quot;C001&quot;)</code> で「本当にその引数で呼ばれたか」も確かめるのが定石です。</p>\n",
-    "whyHtml" : [ "", "仕込みがどの引数でも効くと読んだ答え。C001 のときだけ効き、ほかの引数では既定値が返る", "仕込んでいない呼び出しは null と読んだ答え。戻り値が List なら空のリストが返る", "仕込み忘れが例外になると読んだ答え。例外にならず、既定値の空のリストが返る" ]
+    "whyHtml" : [ "", "仕込みがどの引数でも効くと読んだ答え。<code>C001</code> のときだけ効き、ほかの引数では既定値が返る", "仕込んでいない呼び出しは <code>null</code> と読んだ答え。戻り値が <code>List</code> なら空のリストが返る", "仕込み忘れが例外になると読んだ答え。例外にならず、既定値の空のリストが返る" ]
   }, {
     "questionHtml" : "<p>standaloneSetup でこの Controller をテストしたら、<code>ServletException</code> が発生した。原因は?</p>\n<pre><code class=\"language-java\">@Controller\npublic class OrderController {\n    @GetMapping(&quot;/orders&quot;)\n    public String list(Model model) {\n        model.addAttribute(&quot;orders&quot;, List.of());\n        return &quot;orders&quot;;\n    }\n}\n</code></pre>\n",
-    "choicesHtml" : [ "@RestController にしていないから", "Model に空のリストを入れたから", "テンプレートファイル orders.html が無いから", "画面名 <code>&quot;orders&quot;</code> が URL <code>/orders</code> と同じで、自分自身に転送しようとしたから(Circular view path)" ],
+    "choicesHtml" : [ "<code>@RestController</code> にしていないから", "<code>Model</code> に空のリストを入れたから", "テンプレートファイル <code>orders.html</code> が <code>templates</code> に無いから", "画面名 <code>&quot;orders&quot;</code> が URL と同じで、自分に転送しようとしたから" ],
     "answer" : 3,
     "explanationHtml" : "<p>standaloneSetup は ViewResolver を設定しないと、画面名をそのまま転送先(forward)として扱います。画面名 <code>orders</code> は今の URL <code>/orders</code> と同じになるので <code>Circular view path [orders]: would dispatch back to the current handler URL [/orders] again.</code> で失敗します。\n画面名を <code>orders/list</code> のようにフォルダで分けるのが定番の回避策です(<code>view().name(&quot;orders/list&quot;)</code> で検証できます)。</p>\n",
-    "whyHtml" : [ "画面を返す <code>@Controller</code> そのものが原因と読んだ答え", "空のリストを入れたのが原因と読んだ答え。Model の中身は関係ない", "テンプレートが描画されると読んだ答え。<code>orders.html</code> があっても無くても同じ結果になる", "" ]
+    "whyHtml" : [ "画面を返す <code>@Controller</code> そのものが原因と読んだ答え", "空のリストを入れたのが原因と読んだ答え。<code>Model</code> の中身は関係ない", "テンプレートが描画されると読んだ答え。<code>orders.html</code> があっても無くても同じ結果になる", "" ]
   }, {
     "questionHtml" : "<p>テストクラスが10個ある。全部 <code>@SpringBootTest</code> だが、クラスごとに <code>@MockitoBean</code> で差し替える Bean がバラバラ。テスト全体がとても遅い。主な原因として最も適切なのは?</p>\n",
-    "choicesHtml" : [ "MockMvc が毎回 Tomcat を起動しているから", "設定が違うとみなされ、コンテキストキャッシュが効かず ApplicationContext を何度も作り直しているから", "@MockitoBean は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから" ],
+    "choicesHtml" : [ "<code>MockMvc</code> が毎回 Tomcat を起動しているから", "コンテキストキャッシュが効かず、<code>ApplicationContext</code> を毎回作り直すから", "<code>@MockitoBean</code> は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから" ],
     "answer" : 1,
     "explanationHtml" : "<p>Spring のテスト基盤は、<strong>設定が同じ</strong> テストクラス同士で ApplicationContext を使い回します(コンテキストキャッシュ)。<code>@MockitoBean</code> の組み合わせ、<code>@ActiveProfiles</code>、<code>@TestPropertySource</code> が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。<code>@DirtiesContext</code> も強制的に作り直します。\n対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。</p>\n",
-    "whyHtml" : [ "MockMvc がサーバーを起動すると読んだ答え。MockMvc は Tomcat を起動せず、DispatcherServlet を直接呼ぶ", "", "Mockito そのものが遅いと読んだ答え", "並列で動かないことが主な原因と読んだ答え" ]
+    "whyHtml" : [ "<code>MockMvc</code> がサーバーを起動すると読んだ答え。<code>MockMvc</code> は Tomcat を起動せず、<code>DispatcherServlet</code> を直接呼ぶ", "", "Mockito そのものが遅いと読んだ答え", "並列で動かないことが主な原因と読んだ答え" ]
   } ],
   "checks" : [ {
     "questionHtml" : "<p>別のアプリが 8080 番ポートを使っている最中に、MockMvc のテストを動かした。どうなる?</p>\n",
