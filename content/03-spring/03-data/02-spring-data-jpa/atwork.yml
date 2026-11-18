@@ -1,6 +1,6 @@
 # ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
 - title: "データアクセス(JPA / JDBC / トランザクション)"
-  intro: "鍵発行と処理結果登録をまとめてトランザクションにした Service です。Repository は JPA、記録用のログ挿入は JdbcTemplate という、実務でよくある混在パターンにしています。"
+  intro: "鍵発行と処理結果登録をまとめてトランザクションにした Service です。Repository は JPA、記録用のログ挿入は JdbcTemplate という、実務でよくある混在パターンにしています。`@Transactional` と `rollbackFor` は次のレッスン「トランザクション」で扱います。"
   code: |
     @Service
     @RequiredArgsConstructor

@@ -65,7 +65,7 @@
   trace:
     - "existsByCardIdAndStatus(\"C001\",\"ACTIVE\") → 該当ありなので true"
     - "if (true) → KeyAlreadyExistsException(\"C001\") が投げられる"
-    - "5〜9行目の save 以降は実行されない"
+    - "8〜10行目の save 以降は実行されない"
     - "例外は Controller を素通りし、handleDuplicate が受け取る"
     - "handleDuplicate が 409 + ErrorResponse(\"E409\", メッセージ) を返す"
 - title: "バリデーションで弾かれる場合"
@@ -92,12 +92,12 @@
     - "呼ばれるが、cardId が null に置き換わって処理される"
     - "呼ばれるが、例外がその場でもみ消される"
   answer: 1
-  explanation: "cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(11行目)の中には一度も入らず、@RestControllerAdvice 側の対応するハンドラ(この例では図示していないが400を返すハンドラ)が応答します。"
+  explanation: "cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに @RestControllerAdvice でハンドラを書きます。"
   trace:
     - "リクエストボディが KeyIssueRequest に変換される。cardId=\"\""
     - "@Valid が @NotBlank をチェック → 空文字なので違反"
-    - "MethodArgumentNotValidException が投げられ、issue(11〜12行目)のメソッド本体には入らない"
-    - "対応する @ExceptionHandler(この例では未掲載)が400系の応答を返す"
+    - "MethodArgumentNotValidException が投げられ、issue(12〜14行目)のメソッド本体には入らない"
+    - "ハンドラが無くても Spring の既定で 400 になる(項目ごとの中身を返すなら @ExceptionHandler を書く)"
 - title: "Repository の継承元まで確認する"
   level: 2
   code: |
@@ -143,9 +143,9 @@
     - "アプリ全体のすべての処理"
     - "save のみ"
   answer: 1
-  explanation: "@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(8行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
+  explanation: "@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(9行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
   trace:
-    - "1行目: @Transactional の範囲は issue メソッドの本体(2〜9行目)"
+    - "1行目: @Transactional の範囲は issue メソッドの本体(3〜9行目)"
     - "3〜7行目: existsByCardIdAndStatus と save は同じトランザクション内"
     - "8行目: notifyAsync は別スレッドで動くため、issue のトランザクションの外側で実行される"
     - "9行目: return でメソッドが正常終了 → ここまでの変更(save)がコミットされる"

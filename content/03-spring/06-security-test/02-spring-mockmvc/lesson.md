@@ -59,7 +59,7 @@ mvc.perform(post("/stocks/A001/ship")
 | `model().attribute("total", 1500)` | Model の中身 |
 | `redirectedUrl("/orders")` | リダイレクト先 |
 
-`get` / `post` は `MockMvcRequestBuilders` の static import です。STS の補完で別クラスの `get` を選ぶと、コンパイルは通るのに型が合わず混乱するので注意。
+`get` / `post` は `MockMvcRequestBuilders` の static import です。STS の補完で別クラスの `get`(`RequestEntity.get` など)を選ぶと、`perform` に渡せずコンパイルエラーになって戸惑うので注意。
 
 ## standaloneSetup と @WebMvcTest
 
@@ -104,7 +104,7 @@ class OrderControllerTest {
 `@MockitoBean` は Spring Framework 6.2(Spring Boot 3.4 以降)の書き方です。古い記事の **`@MockBean` は 3.4 で非推奨** になりました。
 
 ::: sensei
-`@WebMvcTest` は Security のフィルタも載る。前回のルールがそのまま効くから、ログイン前提の画面は `@WithMockUser`(spring-security-test)で「ログイン済みの人」を用意するんだ。
+`@WebMvcTest` には Security のフィルタも載る。ただし前回の `SecurityConfig` のような `@Configuration` クラスは自動では読み込まれない(スライステストは `@Configuration` をスキャンしない)。自分のルールで試すならテストに `@Import(SecurityConfig.class)` を付ける。付けないと Spring Boot 既定の「全 URL ログイン必須」で動くよ。ログイン前提の画面は `@WithMockUser`(spring-security-test)で「ログイン済みの人」を用意するんだ。
 :::
 
 ## テストデータは「意図が読める最小限」

@@ -153,10 +153,10 @@ columns:
       ```text
       IllegalArgumentException: ROLE_ADMIN should not start with
       ROLE_ since ROLE_ is automatically prepended when using
-      hasRole. Consider using hasAuthority instead.
+      hasAnyRole. Consider using hasAnyAuthority instead.
       ```
 
-      ロールは「`ROLE_` で始まる権限(authority)」として表され、`hasRole("ADMIN")` は内部で `ROLE_` を付けて探します。二重付けを防いでいるのです。
+      ロールは「`ROLE_` で始まる権限(authority)」として表され、`hasRole("ADMIN")` は内部で `ROLE_` を付けて探します(メッセージに `hasAnyRole` と出るのは、内部でこれを使っているため)。二重付けを防いでいるのです。
       直し方は `hasRole("ADMIN")` か、そのまま比べる `hasAuthority("ROLE_ADMIN")`。逆に `authorities("ADMIN")` と **ROLE_ なしで** 登録すると `hasRole("ADMIN")` に一致せず 403 です(`roles("ADMIN")` なら自動で付く)。
 sts:
   intro: |

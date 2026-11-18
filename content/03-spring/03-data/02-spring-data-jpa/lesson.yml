@@ -122,7 +122,7 @@ columns:
       package javax.persistence does not exist
       ```
 
-      JPA を含む Java EE は2017年に Oracle から Eclipse 財団へ移管され、**Jakarta EE** になりました。ところが `javax` という名前は商標の都合で移管後に変更できない取り決めになり、Jakarta EE 9(2020年)でパッケージ名を一斉に `jakarta.*` へ付け替えたのです。
+      JPA を含む Java EE は、2017年に Oracle が Eclipse 財団への移管を発表し、2018年に **Jakarta EE** と改名されました。ところが商標の都合で「`javax` パッケージのままでは API を変更・追加できない」取り決めになり、Jakarta EE 9(2020年)でパッケージ名を一斉に `jakarta.*` へ付け替えたのです。
 
       Spring Boot 3 はこれが前提なので `jakarta.persistence.*` を使います。古い記事のコードは import の `javax` を `jakarta` に直せば動くことが多いです(`javax.sql.DataSource` のような JDK 本体のものは `javax` のまま)。
   - type: mistake
@@ -168,7 +168,7 @@ sts:
         **Next**(次へ)を押します。
     - title: 依存関係を選ぶ
       detail: |
-        **Spring Boot Version** は本教材と同じ 3.5 系を選びます。検索欄で次の3つを探してチェックを入れ、**Finish**(完了)を押します。
+        **Spring Boot Version** は `SNAPSHOT`・`M`・`RC` の付かない正式版を選びます(start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります)。検索欄で次の3つを探してチェックを入れ、**Finish**(完了)を押します。
         - `JPA` → **Spring Data JPA**
         - `H2` → **H2 Database**
         - `Web` → **Spring Web**
@@ -237,7 +237,7 @@ sts:
         - **User Name** は `sa`、**Password** は空
 
         **Connect** を押し、`SELECT * FROM EMPLOYEES;` を実行します。3行が表示され、`DEPARTMENT_ID` 列に部署の id が入っていれば成功です。
-        JDBC URL を既定の `jdbc:h2:~/test` のまま接続すると、空の別 DB に繋がってテーブルが見えないので注意してください。
+        JDBC URL を既定の `jdbc:h2:~/test` のまま接続すると、`Database "…/test" not found, either pre-create it or allow remote database creation …` のエラーになるか(ホームに test の DB が無いとき)、空の別 DB に繋がってテーブルが見えないので注意してください。
     - title: 落とし穴を体験する
       detail: |
         1. 停止(Console の赤い四角 **Terminate** ボタン)して再起動し、データが消えずに残っている(insert が流れない)ことを確認します。プロジェクト直下の `data` フォルダ(**F5** で表示を更新)に `jpa-demo.mv.db` ができています。

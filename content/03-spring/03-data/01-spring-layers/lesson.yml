@@ -242,7 +242,7 @@ columns:
 
       DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系** に変換してくれます。
 
-      おかげで Service は「DB が何か」を知らずに `catch (DuplicateKeyException e)` と書けます。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
+      おかげで Service は「DB が何か」を知らずに `catch (DataIntegrityViolationException e)` と書けます(JPA/Hibernate の一意制約違反はこの型になります。子クラスの `DuplicateKeyException` は、JdbcTemplate が SQL のエラーコードから変換したときなどに出ます)。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
 sts:
   intro: |
     1つのクラスに全部書いた「Fat Controller」を、STS のリファクタリング機能を使って Controller・Service・Repository の3層に分けます。

@@ -201,8 +201,8 @@ sequenceDiagram
 調査の依頼は「この API を読んで」ではなく、**エラーログ付き** で来ることがほとんどです。このときは入口からではなく、例外が起きた場所から逆向きにたどります。
 
 ```text
-ERROR [nio-8080-exec-7] [requestId=7f3a9c] o.a.c.c.C.[.[.[/].[dispatcherServlet]
-  : Servlet.service() ... threw exception [Request processing failed: ...]
+ERROR [nio-8080-exec-7] [requestId=7f3a9c] c.e.keys.exception.ApiExceptionHandler
+  : 想定外のエラー
 com.example.keys.exception.KeyIssueFailedException: 鍵の発行に失敗しました
     at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:41)
     at ...KeyIssueService$$SpringCGLIB$$0.issue(<generated>)
@@ -214,6 +214,8 @@ Caused by: com.example.keys.crypto.CryptoException: 暗号装置に接続でき�
     at com.example.keys.service.KeyIssueService.issue(KeyIssueService.java:38)
     ... 92 common frames omitted
 ```
+
+`@RestControllerAdvice` の想定外の例外の受け皿(`@ExceptionHandler(Exception.class)`)で、`log.error("想定外のエラー", ex)` と出したログです。ハンドラが無く Tomcat まで漏れたときは、`... with root cause` の行のあとに **根本原因の例外だけ** が出ます(演習3のログがその形です)。
 
 読む順番はこうです。
 

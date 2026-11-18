@@ -49,6 +49,7 @@ erDiagram
         bigint id PK
         varchar name
         varchar mail_address
+        int age
         bigint department_id FK
     }
 ```
@@ -66,6 +67,8 @@ public class Employee {
 
     @Column(name = "mail_address", unique = true)
     private String email;
+
+    private int age;   // @Column なしでも age 列になる
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
@@ -204,6 +207,8 @@ select ... from departments where id=?
 @Query("select e from Employee e join fetch e.department")
 List<Employee> findAllWithDepartment();
 ```
+
+`join fetch` は内部結合なので、部署が未設定(`department_id` が null)の社員は結果から消えます。全員を出したいなら `left join fetch` にします。
 
 ### 遅延ロードと LazyInitializationException
 

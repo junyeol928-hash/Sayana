@@ -72,7 +72,7 @@ public class TaskController {
 変換するのは **HttpMessageConverter** で、クラスパスに Jackson があれば `MappingJackson2HttpMessageConverter` がオブジェクト ⇔ JSON を変換します(spring-boot-starter-web に Jackson は同梱)。どの変換器を使うかは、リクエストの `Content-Type`(送る形式)と `Accept`(欲しい形式)で決まります。
 record は「アクセサ名 = JSON の項目名」になり、受け取るときは正準コンストラクタで作られるので、API の入出力にぴったりです。
 
-`ResponseEntity<T>` は **ステータス・ヘッダ・本文** をまとめて指定するための型です。`T` を直接返すと常に 200 になるので、404 などを返し分けたいときに使います。
+`ResponseEntity<T>` は **ステータス・ヘッダ・本文** をまとめて指定するための型です。`T` を直接返すと(メソッドに `@ResponseStatus` を付けない限り)200 になるので、404 などを返し分けたいときに使います。
 
 ## POST で作成:201 Created + Location
 
@@ -130,7 +130,7 @@ JPA のエンティティをそのまま返すのは、現場ではほぼ NG で
 
 ### 日時は ISO-8601 で
 
-`LocalDate` などの java.time 型は、Jackson 本体だけでは変換できず、**JavaTimeModule**(jackson-datatype-jsr310)が必要です。Spring Boot はこれを自動登録し、さらに日時を `"2026-10-31"` のような **ISO-8601 文字列** で出す設定にしてくれます。素の Jackson では `[2026,10,31]` という配列になるので、Boot なしで動かすときは要注意(サンプル②で確かめられます)。形式を変えたいときは項目に `@JsonFormat(pattern = "yyyy/MM/dd")` を付けます。
+`LocalDate` などの java.time 型は、Jackson 本体だけでは変換できず、**JavaTimeModule**(jackson-datatype-jsr310)が必要です。Spring Boot はこれを自動登録し、さらに日時を `"2026-10-31"` のような **ISO-8601 文字列** で出す設定にしてくれます。JavaTimeModule を登録しただけの Jackson(Boot を使わない Spring MVC の既定もこの状態)では `[2026,10,31]` という配列になり、モジュールすら無い素の Jackson では例外になるので、Boot なしで動かすときは要注意(サンプル②の①②で確かめられます)。形式を変えたいときは項目に `@JsonFormat(pattern = "yyyy/MM/dd")` を付けます。
 
 ::: trivia Spring Boot 4 では Jackson 3
 Spring Boot 4(Spring Framework 7)は Jackson 3 が標準です。パッケージが `tools.jackson` に変わり、java.time 対応が本体に入って、日時は最初から ISO-8601 文字列になります。`@JsonFormat` などのアノテーションのパッケージは変わりません。

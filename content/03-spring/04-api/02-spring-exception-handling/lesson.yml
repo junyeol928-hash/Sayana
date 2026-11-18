@@ -289,6 +289,7 @@ columns:
 
       `type` が `about:blank` なら「HTTP のステータス以上の意味はない」という約束で、`title` はステータスの説明文(`Not Found` など)にするのが推奨です。
       独自のエラー種別なら `https://example.com/problems/out-of-stock` のような URI を `type` に入れ、そこに説明ページを置きます。
+      このレッスンの例のように `title` を「タスクが見つかりません」のような独自の文言にするなら、本来は `pd.setType(URI.create("https://example.com/problems/task-not-found"))` のように独自の `type` も付けるのが筋です(学習用の例では省いています)。
 
       Spring Framework 6.0 で `ProblemDetail` が入り、Spring Boot 3 では `spring.mvc.problemdetails.enabled=true` の1行で Spring MVC 自身の例外もこの形式になりました。
   - type: mistake

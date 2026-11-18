@@ -42,7 +42,7 @@
   explanation: "hasRole(\"ADMIN\") は内部で hasAuthority(\"ROLE_ADMIN\") を探します。UserDetailsService 側では接頭辞なしの \"ADMIN\" という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
   trace:
     - "1〜5行目: 権限として \"ADMIN\"(ROLE_ なし)が登録される"
-    - "6〜9行目: hasRole(\"ADMIN\") は \"ROLE_ADMIN\" という権限を探す"
+    - "8〜10行目: hasRole(\"ADMIN\") は \"ROLE_ADMIN\" という権限を探す"
     - "判定時: ユーザーが持つのは \"ADMIN\" のみ → \"ROLE_ADMIN\" と一致しない"
     - "結果: 認証は成功しているので 401 にはならず、権限不足の 403 になる"
 - title: "@PreAuthorize が効かない内部呼び出し"
@@ -72,10 +72,10 @@
   answer: 1
   explanation: "@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。"
   trace:
-    - "14行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
+    - "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
     - "5行目: deactivateUser の中で this.deleteUser(userId) を呼ぶ(内部呼び出し)"
     - "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない"
-    - "9行目: 権限チェックなしで deleteUser の本体が実行され、\"deleted: u001\" が出力される"
+    - "10行目: 権限チェックなしで deleteUser の本体が実行され、\"deleted: u001\" が出力される"
 - title: "CSRF を無効化していないままの POST"
   level: 2
   code: |

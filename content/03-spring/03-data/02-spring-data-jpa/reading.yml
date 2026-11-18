@@ -32,7 +32,7 @@
         throw new CryptoCommunicationException("crypto timeout");
     }
     // CryptoCommunicationException は Exception を直接継承した検査例外
-  question: "issue(\"C001\") を呼んだあと、DB の key_master テーブルは?"
+  question: "issue(\"C001\") を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)"
   choices:
     - "ロールバックされ、保存されていない"
     - "保存された行がそのまま残る"
@@ -76,7 +76,7 @@
         total += key.getResults().size();   // getResults() は @OneToMany(fetch = FetchType.LAZY)
     }
     // keys には5件のKeyEntityが含まれている
-  question: "このコードの実行で、DB に対して発行される SELECT は何回?"
+  question: "このコードを(同じトランザクション内で)実行したとき、DB に対して発行される SELECT は何回?"
   choices:
     - "1回"
     - "2回"

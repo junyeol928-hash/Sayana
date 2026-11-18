@@ -120,12 +120,13 @@ quiz:
       同じキーが複数の場所にあるのは正常な状態で、優先順位の高い方が採用されるだけなのでエラーにはなりません。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
-    choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJO_EXEC_MAX_HEAP"]
+    choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJOEXECMAXHEAP"]
     answer: 2
     explanation: |
       変換ルールは「`.` を `_` に」「`-` は削除」「全部大文字」の3つなので `DOJO_EXEC_MAXHEAP` です。
-      `DOJO_EXEC_MAX_HEAP` は `_` が `.` の区切りとみなされ、`dojo.exec.max.heap`(max の下の heap)という別のキーとして扱われます。
+      `DOJOEXECMAXHEAP` は区切りの `_` が無いので、`dojoexecmaxheap` という1語のキーになり、対応しません。
       `.` や `-` を含む名前は、Windows 以外の多くのシェルでは環境変数名として設定すらできません。
+      なお `DOJO_EXEC_MAX_HEAP`(`-` を `_` にした形)も互換のため実際には効きますが、公式ドキュメントの規則どおりの名前は `DOJO_EXEC_MAXHEAP` です。
   - question: |
       次の設定がすべてあるとき、`@Value("${shop.fee:500}") int fee` に入る値は?
       ```text

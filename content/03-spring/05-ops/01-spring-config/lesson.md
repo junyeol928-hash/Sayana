@@ -187,7 +187,8 @@ GitHub 上の公開リポジトリは常にボットに走査されていて、A
 **YAML にタブを使う**:YAML のインデントはスペースのみです。
 
 ```text
-found character '\t' that cannot start any token
+found character '\t(TAB)' that cannot start any token.
+(Do not use \t(TAB) for indentation)
 ```
 
 **`:` の後ろのスペース忘れ**:`port:8080` は「`port:8080` という1つの文字列」と解釈されます。`port: 8080` と書きます。

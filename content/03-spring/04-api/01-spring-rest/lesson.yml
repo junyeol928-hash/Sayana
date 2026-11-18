@@ -239,7 +239,7 @@ sts:
       detail: |
         **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選びます。
         - **Name** に `todo-api`、**Type** は `Maven`、**Packaging** は `Jar`、**Java Version** は `21`、**Package** は `com.example.todo` にして **Next**(次へ)
-        - **Spring Boot Version** は既定のままで OK。**Dependencies** の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れて **Finish**(完了)
+        - **Spring Boot Version** は既定の正式版のままで OK(start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります)。**Dependencies** の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れて **Finish**(完了)
 
         右下の進捗バーが消え、**Package Explorer**(パッケージ・エクスプローラー)に `todo-api` と `TodoApiApplication.java` が見えれば成功です。
     - title: DTO の record を作る
