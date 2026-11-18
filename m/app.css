@@ -909,6 +909,8 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .check-label { margin: 0 0 6px; font-size: .8125rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .08em; }
 .check-q > :first-child { margin-top: 0; }
 .check-q > :last-child { margin-bottom: 0; }
+/* 問いの中のコードは箱の中に収め、読むためのものなので折り返す(本文のコードの全幅の決まりを打ち消す) */
+.md .check pre, .check pre { margin: 10px 0; border-radius: var(--r-s); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: break-word; }
 .check .choice { grid-template-columns: minmax(0, 1fr); width: 100%; text-align: left; font: inherit; color: var(--ink); }
 .check .choice:disabled { cursor: default; }
 .check .choice:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
