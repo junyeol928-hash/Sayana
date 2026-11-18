@@ -195,7 +195,7 @@ switch (day) {
 - `switch (式)` の値と一致する `case` に **ジャンプ** し、そこから下を実行します。
 - `break` で switch を抜けます。
 - どの `case` にも一致しなければ `default` に飛びます。
-- 使える型は `byte` / `short` / `char` / `int`(とそのラッパー型)、`String`(Java 7〜)、`enum` です。`long` や `double`、`boolean` は使えません(`long` を渡すと `selector type long is not allowed` というエラー)。
+- `case` に値を書く switch で使える型は `byte` / `short` / `char` / `int`(とそのラッパー型)、`String`(Java 7〜)、`enum` です。`long`・`float`・`double`・`boolean` は使えません(`long` を渡すと `selector type long is not allowed` というエラー)。なお Java 21 からは、後で学ぶパターンマッチングを使えば `Object` など任意の参照型でも switch できます。
 
 問題は `break` を忘れたときです。
 

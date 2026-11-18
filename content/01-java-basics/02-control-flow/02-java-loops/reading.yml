@@ -79,7 +79,7 @@
         n = n * 10;
     }
     System.out.println(nums[0] + " " + nums[1] + " " + nums[2]);
-  question: "出力は?"
+  question: "配列と拡張 for は次の「配列」のレッスンで習います。ここでは `nums` が 1, 2, 3 を順に持つ入れ物(`nums[0]` が先頭)、`for (int n : nums)` が「その値を先頭から1つずつ n に入れてくり返す」ループだとだけ考えてください。出力は?"
   choices:
     - "10 20 30"
     - "1 2 3"

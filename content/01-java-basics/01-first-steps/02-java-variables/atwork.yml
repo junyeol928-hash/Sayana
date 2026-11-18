@@ -10,7 +10,7 @@
 
         private final KeyRepository keyRepository;
         private final Clock clock;
-
+        // (コンストラクタは省略。Spring が keyRepository と clock を渡し、final フィールドに入れる)
         public String issue(String userId, int keyVersion) {
             long startedAt = clock.millis();
             boolean exists = keyRepository.existsByUserId(userId);
@@ -21,7 +21,7 @@
   notes:
     1: "「このクラスは業務ロジック担当」という Spring の目印(Spring 章で詳しく)"
     4: "クラス共通の定数。値は 3 で固定"
-    7: "参照型のフィールド。final なので一度入れたら差し替えない(コンストラクタで入れる)"
+    7: "参照型のフィールド。final なので一度入れたら差し替えない(コンストラクタで入れる。この例ではコンストラクタを省略している)"
     10: "引数も変数。String(参照型)と int(基本データ型)"
     11: "メソッドの中だけで使うローカル変数。long なのは時刻のミリ秒が大きいから"
     13: "String + String + int → 全部つながって文字列になる"

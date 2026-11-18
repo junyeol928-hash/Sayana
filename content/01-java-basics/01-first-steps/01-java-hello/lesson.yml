@@ -194,7 +194,7 @@ columns:
       - 誤:`C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot\bin`
 
       Maven などのツールは `JAVA_HOME` の後ろに `\bin\java.exe` を付け足して探すため、`bin` まで書くと
-      `...\bin\bin\java.exe` を探しに行って「JAVA_HOME が正しく設定されていません」と失敗します。
+      `...\bin\bin\java.exe` を探しに行き、`The JAVA_HOME environment variable is not defined correctly`(JAVA_HOME が正しく設定されていない)と出て失敗します。
       一方 Path 側は `%JAVA_HOME%\bin` と **bin まで** 書くのが正解。「JAVA_HOME は bin なし、Path は bin あり」とセットで覚えましょう。
       設定後は `echo %JAVA_HOME%` で中身を確認し、そのパスに `bin` フォルダがあることをエクスプローラーでも確かめると確実です。
 

@@ -29,7 +29,7 @@ samples:
 
       int[] primes = {2, 3, 5, 7};       // 要素を足すと length も変わる
       System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
-      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(毎回変わる)
+      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
       `b = a` は同じ配列を指すだけ。`Arrays.copyOf` は新しい配列を作ります。`==` と `Arrays.equals` の違いも確認しましょう。
@@ -196,7 +196,7 @@ columns:
     body: |
       デバッグ中に `System.out.println("受信データ: " + data);` と書いたら、ログに `受信データ: [I@1b6d3586` と出てきた……新人あるあるです。
 
-      配列は `toString()` を中身の表示用に作り替えていないので、「型名@ハッシュ値」が出ます。`[I` は int の配列、`[Ljava.lang.String;` は String の配列、`[[I` は int の二次元配列を表す JVM 内部の型名です。`@` の後ろは実行するたびに変わります。
+      配列は `toString()` を中身の表示用に作り替えていないので、「型名@ハッシュ値」が出ます。`[I` は int の配列、`[Ljava.lang.String;` は String の配列、`[[I` は int の二次元配列を表す JVM 内部の型名です。`@` の後ろは中身とは無関係な値で、環境や実行によって変わることがあります。
 
       中身を見たいときは次のとおり。
 

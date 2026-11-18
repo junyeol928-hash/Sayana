@@ -29,5 +29,5 @@
   points:
     - "main は OrderApplication に1つだけ。ここから Controller を呼ぶ行は無く、呼ぶのは Spring の仕事"
     - "src/main/java がコード、src/main/resources が設定とテンプレート。src/test/java にはテストコードが入る"
-    - "フォルダ名(controller / service / repository)がそのまま MVC の役割分担になっている"
+    - "フォルダ名(controller / service / repository)がそのまま層(レイヤー)の役割分担になっている。リクエストを受ける Controller が入口"
     - "設定値(ポート、DB 接続先、タイムアウト)はコードではなく application.yml を探す"

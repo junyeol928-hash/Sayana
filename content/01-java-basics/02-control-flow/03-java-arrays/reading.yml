@@ -29,7 +29,7 @@
     q.remove(0);
     q.add(1, "X");
     System.out.println(q.get(1) + q.size());
-  question: "出力は?"
+  question: "`List`(`ArrayList`)は後の「コレクション」のレッスンで習う、長さを変えられる配列のようなものです。`add(値)` は末尾へ追加、`add(i, 値)` は添え字 i の位置へ追加、`remove(i)` は添え字 i の削除、`get(i)` は i 番目の取り出し、`size()` は要素数です。出力は?"
   choices:
     - "X3"
     - "B3"
@@ -49,7 +49,7 @@
     nums.remove(1);
     nums.remove(Integer.valueOf(10));
     System.out.println(nums);
-  question: "出力は?"
+  question: "`List` は後の「コレクション」のレッスンで習う、長さを変えられる配列のようなものです(1行目は 10, 20, 30 を持つ書き換えられるリスト)。`remove` には「添え字(int)を渡す版」と「消したい値(Integer)を渡す版」があります。出力は?"
   choices:
     - "[30]"
     - "[10, 30]"
@@ -70,7 +70,7 @@
     copy.add("c");
     base.add("d");
     System.out.println(copy.size());
-  question: "実行すると?"
+  question: "`List` は後の「コレクション」のレッスンで習う、長さを変えられる配列のようなものです。`List.of(...)` は中身を固定した変更できないリストを、`new ArrayList<>(...)` は中身をコピーした変更できるリストを作ります。実行すると?"
   choices:
     - "3 と表示"
     - "4 と表示"

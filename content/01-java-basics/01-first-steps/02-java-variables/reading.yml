@@ -9,7 +9,7 @@
     int[] arr2 = arr1;
     arr2[0] = 50;
     System.out.println(a + " " + arr1[0]);
-  question: "出力は?"
+  question: "配列(`int[]`)は「配列」のレッスンで習います。ここでは `{1, 2}` が「2つの int をまとめた参照型のオブジェクト」で、`arr1[0]` がその先頭の値、とだけ考えてください。出力は?"
   choices:
     - "10 1"
     - "20 50"
@@ -65,30 +65,24 @@
     - "3行目: \"結果: \" + 1 → \"結果: 1\"、+ 2 → \"結果: 12\""
     - "4行目: (1 + 2) = 3 が先 → \"結果: 3\""
     - "5行目: 1 + 2 = 3 が先(まだ文字列が出てきていない)→ \"3円\""
-- title: "final フィールドと null"
+- title: "null の連結とメソッド呼び出し"
   level: 3
   code: |
-    public class Config {
-        private static final String ENV = "prod";
-        private String region;
-
-        public String describe() {
-            return ENV + "/" + region.toUpperCase();
-        }
-    }
-    // 別の場所で:
-    Config c = new Config();
-    System.out.println(c.describe());
-  question: "最後の行を実行すると?"
+    final String env = "prod";
+    String region = null;        // 地域がまだ設定されていない
+    String label = env + "/" + region;
+    System.out.println(label + " " + region.toUpperCase());
+  question: "最後の行を実行すると?(`toUpperCase()` は文字列を大文字にした文字列を返すメソッド)"
   choices:
     - "prod/ と表示"
     - "prod/null と表示"
     - "NullPointerException が発生"
     - "コンパイルエラー"
   answer: 2
-  explanation: "region は初期化されていないので null。null に対して toUpperCase() を呼んだ瞬間に NullPointerException です。ENV + \"/\" + region なら \"prod/null\" と表示されますが、メソッド呼び出しは別。**参照型フィールドを使う前に値が入っているか**を追うのが実務の読解の基本です。"
+  explanation: "region には null(どのオブジェクトも指していない)が入っています。3行目の `env + \"/\" + region` は null を \"null\" という文字としてつなぐだけなので、label は \"prod/null\" になり例外は出ません。しかし4行目の `region.toUpperCase()` は null に対してメソッドを呼ぶので、その瞬間に NullPointerException です。println は引数を全部計算してから表示するので、\"prod/null\" も表示されません。**参照型の変数を使う前に値が入っているか**を追うのが実務の読解の基本です。"
   trace:
-    - "10行目: Config を作る。ENV は \"prod\"、region は何も入れていないので null"
-    - "11行目: describe() を呼ぶ"
-    - "6行目: region.toUpperCase() → region が null なので例外"
-    - "結果: NullPointerException で処理が止まる"
+    - "1行目: env は \"prod\"(final なので再代入はできない)"
+    - "2行目: region は null。どのオブジェクトも指していない"
+    - "3行目: \"prod\" + \"/\" + null → \"prod/null\"。連結だけなら例外にならない"
+    - "4行目: region.toUpperCase() → region が null なので例外"
+    - "結果: NullPointerException で処理が止まり、何も表示されない"

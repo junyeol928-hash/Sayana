@@ -62,12 +62,18 @@
 - title: "短絡評価と NullPointerException"
   level: 2
   code: |
-    String[] names = { "Sato", null, "Suzuki" };
+    String a = "Sato";
+    String b = null;
+    String c = "Suzuki";
     int count = 0;
-    for (String name : names) {
-        if (name != null && name.length() >= 5) {
-            count++;
-        }
+    if (a != null && a.length() >= 5) {
+        count++;
+    }
+    if (b != null && b.length() >= 5) {
+        count++;
+    }
+    if (c != null && c.length() >= 5) {
+        count++;
     }
     System.out.println(count);
   question: "出力は?(例外になるかも含めて考える)"
@@ -77,12 +83,12 @@
     - "2"
     - "NullPointerException が発生する"
   answer: 1
-  explanation: "&& の左が name != null なので、null の要素は右の length() を評価する前に false 確定し、例外は起きません。\"Sato\"(4文字)は 5 以上でないため条件を満たさず、\"Suzuki\"(6文字)だけが条件を満たすので count は 1 になります。"
+  explanation: "&& の左が `b != null` なので、null の b は右の length() を評価する前に false 確定し、例外は起きません。\"Sato\"(4文字)は 5 以上でないため条件を満たさず、\"Suzuki\"(6文字)だけが条件を満たすので count は 1 になります。"
   trace:
-    - "\"Sato\": null ではない → length()=4 → 5以上ではない → false(count 増えない)"
-    - "null: name != null が false → 短絡評価で length() は呼ばれない → 例外なし、false"
-    - "\"Suzuki\": null ではない → length()=6 → 5以上 → true → count++"
-    - "最終的な count は 1"
+    - "5行目: a は \"Sato\"。null ではない → length()=4 → 5以上ではない → false(count 増えない)"
+    - "8行目: b は null。b != null が false → 短絡評価で length() は呼ばれない → 例外なし、false"
+    - "11行目: c は \"Suzuki\"。null ではない → length()=6 → 5以上 → true → count++"
+    - "14行目: count は 1 と表示"
 - title: "ガード節への書き換えと動作の一致"
   level: 3
   code: |

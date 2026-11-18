@@ -28,7 +28,7 @@ public class Invoice {
 | 部品 | 意味 |
 |---|---|
 | `int` | **戻り値の型**(返す値の型) |
-| `withTax` | メソッド名(動詞で始める) |
+| `withTax` | メソッド名(何をするか分かる名前。ふつうは `calcTax` のように動詞で始める) |
 | `(int price)` | **引数**(受け取る値の型と名前) |
 | `return 式;` | 値を返してメソッドを終える |
 
@@ -53,7 +53,7 @@ error: non-static method greet() cannot be
   referenced from a static context
 ```
 
-`static` のないメソッドは **インスタンスメソッド** といい、オブジェクトに属します。次の「クラスとオブジェクト」でやるので、今は「main から直接呼ぶなら `static`」で十分です。
+`static` のないメソッドは **インスタンスメソッド** といい、オブジェクトに属します。このあとの「クラスとオブジェクト」でやるので、今は「main から直接呼ぶなら `static`」で十分です。
 
 ## return と早期 return
 
