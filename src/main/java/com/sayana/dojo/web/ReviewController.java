@@ -167,8 +167,11 @@ public class ReviewController {
         }).toList();
     }
 
-    /** この先の予定の 1 行。同じ日の同じレッスンは 1 行にまとめ、段階の運針を問題の数だけ並べる(同じ行が 4 つ並んでいた)。 */
-    public record UpcomingRow(LocalDate dueDate, String lessonTitle, List<Integer> stages, long exercises) {
+    /**
+     * この先の予定の 1 行。同じ日の同じレッスンは 1 行にまとめ(同じ行が 4 つ並んでいた)、段階は段階ごとに小さな運針 1 つと数
+     * (stages は段階 0〜3 ごとの問題の数)。
+     */
+    public record UpcomingRow(LocalDate dueDate, String lessonTitle, long count, long exercises, List<long[]> stages) {
     }
 
     static List<UpcomingRow> upcomingRows(List<ReviewItem> upcoming, Map<String, String> titles) {
@@ -177,9 +180,10 @@ public class ReviewController {
             groups.computeIfAbsent(it.getDueDate() + "|" + it.getLessonId(), k -> new ArrayList<>()).add(it);
         }
         return groups.values().stream().map(g -> new UpcomingRow(g.getFirst().getDueDate(),
-                titles.getOrDefault(g.getFirst().getLessonId(), g.getFirst().getLessonId()),
-                g.stream().map(it -> Math.min(it.getStage(), 3)).toList(),
-                g.stream().filter(it -> it.getItemType() != ReviewItem.Type.QUIZ).count())).toList();
+                titles.getOrDefault(g.getFirst().getLessonId(), g.getFirst().getLessonId()), g.size(),
+                g.stream().filter(it -> it.getItemType() != ReviewItem.Type.QUIZ).count(),
+                java.util.stream.IntStream.rangeClosed(0, 3).mapToObj(s -> new long[] {s,
+                        g.stream().filter(it -> Math.min(it.getStage(), 3) == s).count()}).filter(sc -> sc[1] > 0).toList())).toList();
     }
 
     private static String clip(String text, int max) {

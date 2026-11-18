@@ -371,6 +371,9 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .save-state.ok::before { background: var(--accent); } /* 緑は 3 つ目の色相になるので使わない */
 .save-state.ng::before { background: var(--shu); }
 .today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+/* 主ボタンの言葉と、その量の目安を 2 段に(「約 / 4 分」と語の途中で折れていた) */
+.btn-stack { flex-direction: column; gap: 0; line-height: 1.4; }
+.btn-sub { font-size: .8125rem; font-weight: 400; opacity: .92; }
 .today .btn.primary { min-width: 240px; min-height: 56px; font-size: 1.0625rem; letter-spacing: .08em; }
 .today-review { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; color: var(--ink); text-decoration: none; font-size: .9375rem; min-height: 44px;
   background: repeating-linear-gradient(90deg, var(--line-strong) 0 7px, transparent 7px 13px) top / 100% 1.5px no-repeat; }
@@ -1109,7 +1112,8 @@ p.review-source { display: block; min-height: 0; border: 0; }
 .missed-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; font-size: .875rem; color: var(--accent-ink); }
 /* この先の予定の表: 段階を 4 目の小さな運針で */
 .mini-unshin { display: inline-grid; width: 64px; height: 10px; vertical-align: middle; }
-.mini-unshins { display: inline-flex; flex-wrap: wrap; gap: 6px 12px; vertical-align: middle; }
+.mini-unshins { display: inline-flex; flex-wrap: wrap; gap: 6px 16px; vertical-align: middle; }
+.mini-stage { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
 .mini-unshin i.now::after { width: 8px; height: 8px; left: calc(50% - 4px); top: -2.5px; }
 .empty-state { text-align: left; }

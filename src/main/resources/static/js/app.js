@@ -264,7 +264,8 @@ function numberLines(code) {
     // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
     // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)
     else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, " ");
-    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+    // 添字の連なり(t[2][1])は「][」で割らない(語をつなぐ印 U+2060 を挟む。コピーのときは下の copy で取り除く)
+    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>").replace(/\]\[/g, "]\u2060[");
   }
   lines.push(cur);
   // 行末の「 {」は前の語から離さない(「{」だけが次の行に落ちて、行の数が増えて見えないように)
@@ -434,7 +435,10 @@ function dashboardResume() {
     const nextTitle = title.textContent;
     // 主役を前回の続きに差し替える。所属・時間・いまの染めと次の条件も、そのレッスンの値で組み立て直す
     const d = row.dataset;
-    hero.querySelector(".today-kicker").innerHTML = `<span>前回の続き</span><span class="visually-hidden">${escHtml(d.chapter)}</span><span>読む ${escHtml(d.minutes)} 分</span>`;
+    // 見出しの行は、主ボタンが指す段の量を言う(スマホ版の kicker と同じ。演習へ進む日に「読む 18 分」と言わない)
+    const kicker = { quiz: "クイズ 5 問", write: `演習 ${d.exercises} 問`, reading: `読解 ${d.reading} 問`,
+      atwork: "仕事のコードから", run: "サンプルから", sts: "STSで試す" }[go] || `読む ${d.minutes} 分`;
+    hero.querySelector(".today-kicker").innerHTML = `<span>前回の続き</span><span class="visually-hidden">${escHtml(d.chapter)}</span><span>${escHtml(kicker)}</span>`;
     const [axisPart, axisChapter] = (d.axis || "|").split("|");
     const axis = hero.querySelector(".today-axis");
     if (axis) axis.innerHTML = `<span>${escHtml(axisPart)}</span><small>${escHtml(axisChapter)}</small>`;
@@ -450,7 +454,9 @@ function dashboardResume() {
     hero.querySelector(".today-actions").insertAdjacentHTML("afterend", `<a class="today-alt" href="${nextHref}">次の新しいレッスン: ${escHtml(nextTitle)}</a>`);
     // 先輩の一言も、続きの話に
     const talk = hero.querySelector(".talk-line");
-    if (talk) talk.textContent = `モカ先輩「続きは${label ? `『${label}』` : ""}から。前に読んでいた所へ戻るよ」`;
+    // 前回いた段が済んでいて次の段へ進む日は、そちらを言う(主ボタンと別の段を言わない)
+    if (talk) talk.textContent = go !== last.section ? `モカ先輩「${label || "前回の段"}は済んだね。次は『${SECTION_LABEL[go]}』へ」`
+      : `モカ先輩「続きは${label ? `『${label}』` : ""}から。前に読んでいた所へ戻るよ」`;
     // 一覧の札もヒーローと同じ言葉に(強調は主役の 1 行だけ)
     document.querySelectorAll(".lesson-row.is-next").forEach((li) => {
       li.classList.remove("is-next");
@@ -922,3 +928,11 @@ document.querySelectorAll(".today-title a, main h1:not(.today-title)").forEach(p
 if (window.htmx) {
   window.htmx.onLoad((el) => initRoot(el));
 }
+
+// コードを写すときは、折り返しのために挟んだ語をつなぐ印(U+2060)を取り除く(Java に貼るとコンパイルエラーになるので)
+document.addEventListener("copy", (e) => {
+  const text = getSelection()?.toString() || "";
+  if (!text.includes("\u2060")) return;
+  e.clipboardData.setData("text/plain", text.replace(/\u2060/g, ""));
+  e.preventDefault();
+});

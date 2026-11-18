@@ -537,7 +537,7 @@ async function renderHome() {
       <h1 class="today-title ${titleSize(hero.title)}" id="today-title"><a href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(S.last.section || "") : ""}">${esc(hero.title)}</a></h1>
       ${unshin(stepStates(hero), last ? go : stepStates(hero).find((st) => !st.done)?.key)}
       ${hint ? `<p class="today-next">${dyeSwatch(levels[hero.id])}<span><span class="tn-now">${dyeRuby(levels[hero.id])}(${DYE[levels[hero.id]].meaning})</span><span class="tn-hint">${hint}</span></span></p>` : ""}
-      <div class="today-actions">${reviewFirst ? `<a class="btn primary" href="#/review">今日の復習から(${reviewMinutes()})</a>` : `<a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(go || "") : ""}">${!last ? (levels[hero.id] ? "続きから稽古する" : "稽古をはじめる") : go !== S.last.section ? `${SECTION_LABEL[go]}へ進む` : resumeLabel(section)}</a>`}</div>
+      <div class="today-actions">${reviewFirst ? `<a class="btn primary btn-stack" href="#/review">今日の復習から<span class="btn-sub">${reviewMinutes()}</span></a>` : `<a class="btn primary" href="#/lesson/${esc(hero.id)}" data-resume="${last ? esc(go || "") : ""}">${!last ? (levels[hero.id] ? "続きから稽古する" : "稽古をはじめる") : go !== S.last.section ? `${SECTION_LABEL[go]}へ進む` : resumeLabel(section)}</a>`}</div>
       <div class="today-links">${reviewFirst ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="write">演習へ進む(書くのは PC 版がおすすめ)</a>` : ""}${!reviewFirst && last && go !== S.last.section ? `<a class="today-alt" href="#/lesson/${esc(hero.id)}" data-resume="${esc(S.last.section)}">前回の位置(${section})へ戻る</a>` : ""}<a class="today-alt" href="#curriculum">レッスン一覧へ</a></div>
       </div>
       ${reviewFirst ? "" : `<a class="today-review" href="#/review"><span>今日の復習</span>
@@ -2148,7 +2148,8 @@ function numberLines(code) {
     // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
     // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)
     else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, " ");
-    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>");
+    // 添字の連なり(t[2][1])は「][」で割らない(語をつなぐ印 U+2060 を挟む。コピーのときは下の copy で取り除く)
+    else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>").replace(/\]\[/g, "]\u2060[");
   }
   lines.push(cur);
   // 行末の「 {」は前の語から離さない(「{」だけが次の行に落ちて、行の数が増えて見えないように)
@@ -2287,4 +2288,12 @@ warmMermaid();
 navigator.serviceWorker?.addEventListener("controllerchange", async () => {
   warmMermaid();
   if ($("#save-state")) homeSaveState(allLessons(await curriculum()));
+});
+
+// コードを写すときは、折り返しのために挟んだ語をつなぐ印(U+2060)を取り除く(Java に貼るとコンパイルエラーになるので)
+document.addEventListener("copy", (e) => {
+  const text = getSelection()?.toString() || "";
+  if (!text.includes("\u2060")) return;
+  e.clipboardData.setData("text/plain", text.replace(/\u2060/g, ""));
+  e.preventDefault();
 });
