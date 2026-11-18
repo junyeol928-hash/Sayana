@@ -343,7 +343,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-kicker { font-size: .875rem; color: var(--ink-muted); margin: 0; display: flex; gap: 4px 14px; flex-wrap: wrap; }
 .today-title { font-weight: 900; line-height: 1.06; letter-spacing: -.03em; margin: 8px 0 24px; color: var(--ink); text-wrap: balance; }
 .today-title a { color: inherit; text-decoration: none; }
-.phrase { display: inline-block; max-width: 100%; } /* phraseWrap: 語の途中で折らない */
+.phrase { display: inline-block; max-width: 100%; white-space: nowrap; } /* phraseWrap: 語の途中で折らない。長音記号の負の余白で箱の幅が足りず、「ー」だけが箱の中で次の行へ落ちていた(「復習キュー」) */
 .choon { margin-inline: -.15em; } /* 見出しの書体は palt がなく、長音記号の両側が空いて「コ ー ド」に見える */
 .phrase.gap { margin-inline-end: .22em; } /* 箱の切れ目では text-autospace が効かないので、和欧の空きを足す(後ろに付ければ、行末で折れても見えない) */
 .today-title a:hover { color: var(--accent-ink); }
