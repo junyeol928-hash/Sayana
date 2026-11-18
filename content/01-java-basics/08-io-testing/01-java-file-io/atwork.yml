@@ -33,8 +33,8 @@
     7: "クラスパス上の証明書を Resource として扱う"
     8: "InputStream を取り出して try-with-resources で必ず閉じる"
     14: "REST の入口という Spring の目印"
-    18: "アップロードされたファイルの中身を InputStream として受け取れる Spring の型"
-    19: "ファイル本体を InputStream として取得し、文字コードを指定して重ね着する。この章の1節目と同じ形"
+    19: "アップロードされたファイルの中身を InputStream として受け取れる Spring の型"
+    20: "ファイル本体を InputStream として取得し、文字コードを指定して重ね着する。この回の「BufferedReader と try-with-resources」の節と同じ形"
   points:
     - "InputStream / byte[] が出てきたら、まず「バイトか文字か」を見る"
     - "文字コード(StandardCharsets.UTF_8)が明示されているか確認する。無ければ環境依存のバグ候補"

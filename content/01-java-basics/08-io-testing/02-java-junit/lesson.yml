@@ -209,7 +209,7 @@ columns:
     body: |
       JUnit の最初の版は1997年、Kent Beck と Erich Gamma(『デザインパターン』の著者の1人)が、チューリッヒからアメリカの学会へ向かう **飛行機の中でペアプログラミングして** 書いたと言われています。Kent Beck が以前 Smalltalk 用に作った SUnit が元で、そこから C# の NUnit や Python の unittest など、「xUnit」と呼ばれる兄弟が世界中に広がりました。
 
-      現在の JUnit 5(2017年〜)は3つの部品でできています。
+      JUnit 5(2017年〜)は3つの部品でできています(2025年に出た JUnit 6 も、Platform と Jupiter の構成は同じです)。
 
       - **JUnit Platform**:テストを見つけて実行する土台(STS や Maven はここを呼ぶ)
       - **JUnit Jupiter**:`@Test` などを使って JUnit 5 のテストを書く部分

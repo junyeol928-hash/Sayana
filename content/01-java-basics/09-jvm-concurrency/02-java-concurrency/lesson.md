@@ -89,7 +89,7 @@ public synchronized int increment() {   // 1度に1スレッドしか実行で�
 
 ## volatile:値の「見え方」だけを保証する
 
-各スレッドは高速化のため、フィールドの値を CPU のキャッシュなどに持ったまま使うことがあります。そのため、あるスレッドが書き換えた値が、ほかのスレッドから **すぐには見えない** ことがあります。
+JIT コンパイラや CPU は高速化のため、読み書きの順番を入れ替えたり、何度も読む値をレジスタに置いたまま使い回したりします(同期のない読み書きでは、Java のメモリモデルがそれを許しています)。そのため、あるスレッドが書き換えた値が、ほかのスレッドから **すぐには見えない** ことがあります。
 
 `volatile` を付けたフィールドは、書いた値がほかのスレッドに必ず見えるようになります。定番は「止まれ」の合図です。
 
@@ -146,7 +146,7 @@ public class AccessCounterService {
 
 ## ExecutorService と Future:スレッドは使い回す
 
-`new Thread(...)` を処理のたびに作るのは、作る・捨てるのにコストがかかり、数の上限もありません。実務では **ExecutorService**(スレッドプール)に仕事を投げます。
+`new Thread(...)` を処理のたびに作るのは、作る・捨てるのにコストがかかり、数の上限もありません。実務では **ExecutorService**(スレッドプール)に仕事を投げます(Java 21 の仮想スレッドは例外で、使い回さずに仕事ごとに作ります。詳しくはコラムで)。
 
 ```java
 ExecutorService executor = Executors.newFixedThreadPool(4);   // 4人の作業員
@@ -239,7 +239,7 @@ public class CartService {
 - `count++` は「読む・足す・書く」の3ステップ。途中で割り込まれて加算が消えるのが **競合状態**
 - `synchronized` は範囲全体を1度に1スレッドに、`volatile` は1つの値の見え方だけを保証する
 - カウンタは `AtomicInteger`、共有の Map は `ConcurrentHashMap`
-- スレッドは `ExecutorService` で使い回し、結果は `Future` を **タイムアウト付き** で受け取り、最後に `shutdown()`
+- スレッドは `ExecutorService` で使い回し(仮想スレッドは仕事ごとに作る)、結果は `Future` を **タイムアウト付き** で受け取り、最後に `shutdown()`
 - `thenApply`(ふつうの関数)と `thenCompose`(非同期を返す関数)は `map` / `flatMap` と同じ判断
 - Bean には **final の依存だけ**。リクエストごとのデータはローカル変数へ
 :::

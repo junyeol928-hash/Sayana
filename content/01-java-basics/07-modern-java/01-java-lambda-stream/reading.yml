@@ -35,7 +35,7 @@
     - "312"
     - "321"
   answer: 1
-  explanation: "Integer::parseInt は s -> Integer.parseInt(s)(①static)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(③特定オブジェクト)で改行なしに続けて出力するので \"302010\"。"
+  explanation: "Integer::parseInt は s -> Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので \"302010\"。"
   trace:
     - "3行目: \"3\",\"1\",\"2\" → 3, 1, 2"
     - "4行目: → 30, 10, 20"
@@ -76,7 +76,7 @@
         new Emp("dev", "yui", 25)));
     list.sort(Comparator.comparing(Emp::dept).thenComparing(Emp::age, Comparator.reverseOrder()));
     list.forEach(e -> System.out.print(e.name() + " "));
-  question: "出力は?"
+  question: "`record Emp(...)` は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。値は `e.name()` のように取り出します。出力は?"
   choices:
     - "ken aki yui"
     - "aki yui ken"
@@ -171,14 +171,14 @@
     Map<String, Long> m = emps.stream()
             .collect(Collectors.groupingBy(Emp::dept, Collectors.counting()));
     System.out.println(m.get("dev") + " " + m.get("hr"));
-  question: "出力は?"
+  question: "`record Emp(...)` は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。出力は?"
   choices:
     - "3 0"
     - "3 null"
     - "[A, C, D] null"
     - "NullPointerException"
   answer: 1
-  explanation: "groupingBy(dept, counting()) は部署ごとの件数 Map<String, Long> を作ります。dev は 3 件。\"hr\" はキーが存在しないので Map.get は null を返し、文字列連結なので \"null\" と表示されます(例外にはなりません)。counting() を付けなければ値は List になり [A, C, D] と表示されます。"
+  explanation: "groupingBy(dept, counting()) は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。\"hr\" はキーが存在しないので Map.get は null を返し、文字列連結なので \"null\" と表示されます(例外にはなりません)。counting() を付けなければ値は社員の `List<Emp>` になり、m.get(\"dev\") は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
   trace:
     - "6行目: dept ごとにまとめて件数を数える → {dev=3, ops=1}"
     - "7行目: m.get(\"dev\") は 3、m.get(\"hr\") はキーがないので null"
@@ -192,7 +192,7 @@
     Map<String, Integer> priceByCode = items.stream()
             .collect(Collectors.toMap(Item::code, Item::price));
     System.out.println(priceByCode.get("X"));
-  question: "実行すると?"
+  question: "`record Item(...)` は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。実行すると?"
   choices:
     - "100"
     - "300"

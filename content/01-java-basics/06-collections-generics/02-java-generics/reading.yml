@@ -18,7 +18,7 @@
     - "コンパイルエラー"
     - "ClassCastException"
   answer: 0
-  explanation: "Holder なので get() の戻り値は Integer。Integer は自動で int に変換される(アンボクシング)ので * 2 が計算でき、20 になります。T = Integer と当てはめて読めば、キャストなしで数値として扱えることが分かります。"
+  explanation: "`Holder<Integer>` なので get() の戻り値は Integer。Integer は自動で int に変換される(アンボクシング)ので * 2 が計算でき、20 になります。T = Integer と当てはめて読めば、キャストなしで数値として扱えることが分かります。"
   trace:
     - "7行目: T = Integer が決まる。item に 10 が入る"
     - "8行目: get() は Integer の 10 を返す → int に自動変換 → 10 * 2 = 20"
@@ -62,7 +62,7 @@
     - "7行目でコンパイルエラー"
     - "1行目でコンパイルエラー"
   answer: 2
-  explanation: "> は「T は自分自身と比較できる型に限る」という境界です。Integer と String は Comparable を実装しているので OK。Object は Comparable ではないので、7行目は境界を満たさずコンパイルエラーになります。実行前に止まるのが境界の役目です。"
+  explanation: "`<T extends Comparable<T>>` は「T は自分自身と比較できる型に限る」という境界です。Integer と String は Comparable を実装しているので OK。Object は Comparable ではないので、7行目は境界を満たさずコンパイルエラーになります。実行前に止まるのが境界の役目です。"
   trace:
     - "1行目: 境界付きジェネリックメソッド。Comparable の compareTo が使える"
     - "5行目: T = Integer。3.compareTo(8) は負 → 8"
@@ -84,12 +84,12 @@
     - "3 2 []"
     - "NullPointerException が発生"
   answer: 0
-  explanation: "Map> は「部署名 → 名前リスト」。computeIfAbsent は「キーがなければ作って入れ、あればそれを返す」ので、\"dev\" のリストに 2 人、\"ops\" に 1 人。Map のキーは 2 個。存在しない \"hr\" の get は null(例外にはなりません)。get の戻り値の型が List だと分かれば、dev.size() が読めます。"
+  explanation: "`Map<String, List<String>>` は「部署名 → 名前リスト」。computeIfAbsent は「キーがなければ作って入れ、あればそれを返す」ので、\"dev\" のリストに 2 人、\"ops\" に 1 人。Map のキーは 2 個。存在しない \"hr\" の get は null(例外にはなりません)。get の戻り値の型が `List<String>` だと分かれば、dev.size() が読めます。"
   trace:
     - "2行目: \"dev\" がないので新しい ArrayList を作って登録し、\"taro\" を追加"
     - "3行目: \"dev\" はあるのでそのリストに \"hanako\" を追加 → 2人"
     - "4行目: \"ops\" を新規作成して \"jiro\" を追加"
-    - "5行目: 型は List。要素は 2"
+    - "5行目: 型は `List<String>`。要素は 2"
     - "6行目: 2 2 null(Map.get は存在しないキーで null を返す)"
 - title: "共通レスポンス型の T を追う"
   level: 3
@@ -114,9 +114,9 @@
     - "コンパイルエラー"
     - "30 false"
   answer: 0
-  explanation: "ok(List.of(10, 20, 30)) で T = List と推論され、res.getData() は List を返します。拡張 for で合計 60。getClass().getSimpleName() は実行時のクラス名(ListN など実装クラスの名前)で、空ではないので isEmpty() は false。ポイントは「T に何が入ったか」を当てはめると getData() の型が分かり、for で回せると読めることです。"
+  explanation: "ok(List.of(10, 20, 30)) で T = `List<Integer>` と推論され、res.getData() は `List<Integer>` を返します。拡張 for で合計 60。getClass().getSimpleName() は実行時のクラス名(ListN など実装クラスの名前)で、空ではないので isEmpty() は false。ポイントは「T に何が入ったか」を当てはめると getData() の型が分かり、for で回せると読めることです。"
   trace:
-    - "8行目: static  の T = List。res は ApiResponse>"
-    - "10行目: getData() は List → Integer を1つずつ取り出せる"
+    - "8行目: `static <T>` の T = `List<Integer>`。res は `ApiResponse<List<Integer>>`"
+    - "10行目: getData() は `List<Integer>` → Integer を1つずつ取り出せる"
     - "11行目: 10 + 20 + 30 = 60"
     - "13行目: 実行時のクラス名は空文字ではない → false。出力 \"60 false\""

@@ -219,6 +219,25 @@ for (OrderStatus s : orders) {
 選択肢を表すなら要らない。型安全、名前で表示、網羅性チェック、メソッドも持てる。int に勝ち目はないよ。
 :::
 
+### switch で「型」を分ける(Java 21)
+
+Java 21 では、case に **型** を書いて分岐できます(switch のパターンマッチング)。`case Card c ->` は「Card 型なら変数 c に入れて右を実行」、`when` はその case に入る追加の条件です。
+
+```java
+sealed interface Payment permits Card, Cash {}
+record Card(String brand, int amount) implements Payment {}
+record Cash(int amount) implements Payment {}
+
+String text = switch (payment) {
+    case Card c when c.amount() >= 10000 -> "高額のカード払い(" + c.brand() + ")";
+    case Card c -> "カード払い(" + c.brand() + ")";
+    case Cash c -> "現金 " + c.amount() + "円";
+};
+```
+
+- `sealed interface Payment permits Card, Cash` は「Payment を実装できるのは Card と Cash だけ」という宣言です。種類が閉じているので、enum と同じく **全部の型を case に書けば default は不要** です
+- case は上から順に照合します。`when` 付きの case は、同じ型の条件なしの case より **上** に書きます。逆にすると `this case label is dominated by a preceding case label` でコンパイルエラーです
+
 ## よくあるミス
 
 ```java
@@ -242,6 +261,7 @@ OrderStatus.valueOf(input);
 - enum は選択肢そのものを型にする。比較は `==`、`values()` は宣言順
 - **ordinal は永続化しない**。`name()` かコード値を保存する
 - enum はフィールド・メソッドを持てる。switch 式は全定数を書けば **default なしで網羅性チェック**
+- Java 21 の switch は **型** でも分けられる(`case Card c ->`)。sealed で種類を閉じれば default は不要
 - enum キーの Map は **EnumMap**
 :::
 

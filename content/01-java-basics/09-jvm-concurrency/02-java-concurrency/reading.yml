@@ -40,11 +40,11 @@
   question: "このクラスについて正しい説明は?"
   choices:
     - "withdraw だけでなく getBalance も synchronized なので完全に安全"
-    - "getBalance には synchronized が無いため、更新途中の値が見えてしまう可能性がある"
+    - "getBalance には synchronized が無いため、ほかのスレッドが書いた最新の balance が見える保証がない(古い値が見えることがある)"
     - "synchronized は balance フィールドには一切関係ない"
     - "コンパイルエラーになる"
   answer: 1
-  explanation: "withdraw は排他制御されていますが、getBalance には synchronized が付いていません。読み取り専用に見えても、書き込み中の値の可視性は保証されず、最新の値が見えないことがあります。読むメソッドにも保護が必要な場合があるのがポイントです。"
+  explanation: "withdraw は排他制御されていますが、getBalance には synchronized が付いていません。読み取り専用に見えても、書き込まれた値の可視性は保証されず、最新の値が見えないことがあります。読むメソッドにも保護が必要な場合があるのがポイントです。"
   trace:
     - "4行目: withdraw は synchronized なので1度に1スレッドしか実行できない"
     - "10行目: getBalance には synchronized が無い"
@@ -104,9 +104,9 @@
   explanation: "処理は完了までに5秒かかりますが、get(1, TimeUnit.SECONDS)は1秒で諦めてTimeoutExceptionを投げます。catchブロックでそれを受け取り\"timeout\"と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。"
   trace:
     - "2〜5行目: 別スレッドで5秒かかる処理を投げる"
-    - "7行目: 1秒だけ待つように指定してget"
+    - "8行目: 1秒だけ待つように指定してget"
     - "1秒経過してもまだ終わっていないのでTimeoutExceptionが発生"
-    - "9〜10行目: catchで捕まえ\"timeout\"と表示"
+    - "10〜11行目: catchで捕まえ\"timeout\"と表示"
 - title: "デッドロックが起きるかどうかの判定"
   level: 3
   code: |

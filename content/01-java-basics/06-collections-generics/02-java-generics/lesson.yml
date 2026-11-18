@@ -191,7 +191,7 @@ columns:
 
       ```java
       static void addDefault(List list) {   // raw 型
-          list.add(0);                     // 警告は出るがコンパイルは通る
+          list.add(0);                     // コンパイルは通る(unchecked の注記・警告が出るだけ)
       }
 
       List<String> names = new ArrayList<>(List.of("佐藤"));

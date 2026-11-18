@@ -22,7 +22,7 @@ flowchart LR
     E -- "いいえ" --> G["失敗メッセージ(赤)"]
 ```
 
-Java の定番テストフレームワークが **JUnit** で、現行は **JUnit 5**(テストを書くための部分は Jupiter と呼ばれます)。Spring Boot のプロジェクトには最初から入っています。
+Java の定番テストフレームワークが **JUnit** です。この道場は **JUnit 5**(テストを書くための部分は Jupiter と呼ばれます)を使います。2025年9月に JUnit 6 が出ていますが、`@Test` などの書き方は同じです。Spring Boot のプロジェクトには最初から入っています。
 
 ## JUnit 5 の基本
 
@@ -141,7 +141,7 @@ DB からユーザーを読むクラスは、どうテストするんすか? テ
 同じ発想だよ。DB を読む部品(Repository)を外から渡す形にしておけば、テストでは「決めた通りに答える偽物」を渡せる。偽物を手軽に作るライブラリが **Mockito** で、第3部の MockMvc のレッスンで本格的に使う。
 :::
 
-<figure class="figure"><svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-junit-arr24b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="55" width="150" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">テスト対象</text><text x="95" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">UserService(本物)</text><path d="M170 85 L232 85" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arr24a)"/><rect x="238" y="55" width="170" height="60" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="323" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">UserRepository(モック)</text><text x="323" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">DB には触らない</text><text x="280" y="140" font-size="13" text-anchor="middle" fill="var(--ink)">when(...).thenReturn(...) で「呼ばれたらこう答える」を決めておく</text></svg><figcaption>モックは依存先を「決めた通りに答える偽物」に置き換える</figcaption></figure>
+<figure class="figure"><svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-junit-arr24b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="55" width="150" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">テスト対象</text><text x="95" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">UserService(本物)</text><path d="M170 85 L232 85" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-junit-arr24b)"/><rect x="238" y="55" width="170" height="60" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="323" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">UserRepository(モック)</text><text x="323" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">DB には触らない</text><text x="280" y="140" font-size="13" text-anchor="middle" fill="var(--ink)">when(...).thenReturn(...) で「呼ばれたらこう答える」を決めておく</text></svg><figcaption>モックは依存先を「決めた通りに答える偽物」に置き換える</figcaption></figure>
 
 ```java
 UserRepository repo = mock(UserRepository.class);   // 偽物を作る

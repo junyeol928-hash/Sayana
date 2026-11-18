@@ -33,7 +33,7 @@ JUnit の `@Test` って、演習の採点テストに毎回付いてるやつ�
 
 ## Java 標準のアノテーション
 
-まずは Java に最初から入っている4つです。どれも読むのは主に **コンパイラ** です。
+まずは Java に最初から入っているものから、よく見る4つです。どれも読むのは主に **コンパイラ** です。
 
 ```java
 public class CsvExporter implements Exporter {

@@ -115,7 +115,7 @@
     - "A / false"
     - "コンパイルエラー"
   answer: 1
-  explanation: "Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。@EqualsAndHashCode や record にすると A / true になります。"
+  explanation: "Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。equals と hashCode を x, y で比べるように上書きすると(後で習う record なら自動で付きます)A / true になります。"
   trace:
     - "8行目: 1つ目の Point インスタンス(#P1)をキーに \"A\" を登録"
     - "9行目: 新しい Point(#P2)で get。hashCode が違う(または equals が false)→ 見つからず null"

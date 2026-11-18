@@ -249,6 +249,8 @@ columns:
     body: |
       これまでの Java のスレッドは OS のスレッドと1対1で、1本ごとに数百KB〜1MB 程度のスタックを確保します。数千本も作ると重いので、Web サーバーはスレッドプールで数を絞ってきました。
 
-      Java 21 で正式に入った **仮想スレッド**(Virtual Threads)は、JVM が管理する軽いスレッドです。待ち(外部 API の応答待ちなど)の間は OS のスレッドを手放すので、何万本作っても平気です。`Thread.ofVirtual().start(...)` や `Executors.newVirtualThreadPerTaskExecutor()` で使えます。Spring Boot 3.2 以降なら `spring.threads.virtual.enabled=true` の1行で、リクエスト処理が仮想スレッドになります。
+      Java 21 で正式に入った **仮想スレッド**(Virtual Threads)は、JVM が管理する軽いスレッドです。待ち(外部 API の応答待ちなど)の間はふつう OS のスレッドを手放すので、何万本作っても平気です。ただし Java 21 では、synchronized の中や native メソッドの中で待っている間は OS のスレッドを手放せません(pinning。synchronized については Java 24 で解消)。`Thread.ofVirtual().start(...)` や `Executors.newVirtualThreadPerTaskExecutor()` で使えます。Spring Boot 3.2 以降なら `spring.threads.virtual.enabled=true` の1行で、リクエスト処理が仮想スレッドになります。
 
       ただし、仮想スレッドでも **共有される状態の危険はまったく同じ** です。安くなったのはスレッドの数で、競合状態の対策(この回の内容)は変わりません。
+
+      また、仮想スレッドは安いので使い回さず、仕事ごとに1本作るのが作法です(`Executors.newVirtualThreadPerTaskExecutor()`)。この回の「スレッドは使い回す」は、OS と1対1の従来のスレッドの話です。

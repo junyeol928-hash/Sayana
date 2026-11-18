@@ -115,9 +115,9 @@
   answer: 1
   explanation: "total は static なので、a と b の間で同じ箱を共有しています。1個目の生成で total が 1 になり id=1、2個目の生成で total が 2 になり id=2。最後の Counter.total はその時点の共有値 2 です。"
   trace:
-    - "9行目: Counter a を作る → コンストラクタ内で total が 0→1、a.id = 1"
-    - "10行目: Counter b を作る → 同じ total が 1→2、b.id = 2"
-    - "11行目: a.id(1)、b.id(2)、Counter.total(2)を表示 → \"1 2 2\""
+    - "10行目: Counter a を作る → コンストラクタ内で total が 0→1、a.id = 1"
+    - "11行目: Counter b を作る → 同じ total が 1→2、b.id = 2"
+    - "12行目: a.id(1)、b.id(2)、Counter.total(2)を表示 → \"1 2 2\""
 - title: "終わらない再帰と StackOverflowError"
   level: 3
   code: |

@@ -69,7 +69,7 @@
     BigDecimal fee = price.multiply(rate).setScale(0, RoundingMode.HALF_UP);
     BigDecimal limit = new BigDecimal("85.00");
     System.out.println(fee + " " + fee.equals(limit) + " " + (fee.compareTo(limit) == 0));
-  question: "出力は?"
+  question: "`setScale(桁数, 丸め方)` は小数点以下の桁数をそろえるメソッドです。BigDecimal の `equals` は値と scale(小数点以下の桁数)の両方を比べ、`compareTo` は値だけを比べます。出力は?"
   choices:
     - "85 true true"
     - "85 false true"
@@ -90,7 +90,7 @@
     int fixed = ((data[0] & 0xFF) << 8) | (data[1] & 0xFF);
     System.out.println(naive + " " + fixed);
     System.out.println(String.format("%02X%02X", data[0], data[1]));
-  question: "2行の出力は?"
+  question: "`x & 0xFF` は下位 8 ビットだけを残す書き方、`%02X` は 16 進 2 桁で表示する書式です。2行の出力は?"
   choices:
     - "400 400 / 0190"
     - "-112 400 / 0190"

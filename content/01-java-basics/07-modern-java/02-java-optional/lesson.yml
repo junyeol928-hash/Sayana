@@ -254,6 +254,6 @@ columns:
     body: |
       「値がないかもしれない」を型で表すのは、Java の発明ではありません。Haskell の `Maybe`、Scala の `Option`、Rust の `Option<T>` など、関数型言語ではおなじみの考え方です。Rust には null 参照そのものがありません。
 
-      Kotlin や Swift、TypeScript(strict モード)は一歩進んで、**型システム自体** が null を区別します。`String` には null を入れられず、入れたいなら `String?` と書く。`?.`(安全呼び出し)や `?:`(エルビス演算子)で、Optional の `map` / `orElse` に当たる処理を演算子で書けます。
+      Kotlin や Swift、TypeScript(strict モード)は一歩進んで、**型システム自体** が null を区別します。Kotlin と Swift は `String?`、TypeScript は `string | null` と書いて「null が来うる」ことを示します。`?.`(安全呼び出し)と、Kotlin の `?:`(エルビス演算子)や Swift・TypeScript の `??` で、Optional の `map` / `orElse` に当たる処理を演算子で書けます。
 
       Java は後方互換性を最優先するため、言語仕様は変えずに **ライブラリのクラス** として Optional を足しました。だから `Optional<String>` 型の変数にも null を代入できてしまう、という弱点が残っています。null 安全を言語レベルで扱う議論は今も続いています。

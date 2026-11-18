@@ -39,7 +39,7 @@
     17: "「この型の例外が来たらこのメソッドで処理」。try-catch の catch 節に相当"
     19: "業務例外は warn。利用者の操作で起きうるので、error にはしない"
     24: "上で拾えなかった残り全部(システム例外)を受ける。具体的な型 → Exception の順は、複数 catch の順序と同じ発想"
-    25: "システム例外は error でスタックトレース付き(第2引数に e)。ここが調査の起点になる"
+    26: "システム例外は error でスタックトレース付き(第2引数に e)。ここが調査の起点になる"
   points:
     - "Service の throw new XxxException を見たら、「どこで catch されるか」を探す。Controller に try-catch が無ければ @ControllerAdvice を探す"
     - "@ExceptionHandler の型と、HTTP ステータス(404 / 400 / 500)の対応が、そのアプリの例外設計そのもの"

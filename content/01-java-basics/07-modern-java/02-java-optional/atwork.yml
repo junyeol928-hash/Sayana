@@ -28,11 +28,11 @@
         }
     }
   notes:
-    7: "Spring Data JPA の findById は Optional<User> を返すのが約束(戻り値の型を見れば分かる)"
-    8: "見つかった場合だけ Entity(User)を DTO(UserDto)に変換。無ければ以降は素通り"
-    9: "「見つからなければ例外」の定番形。この1行を見たら「無ければ 404 相当のエラー」と読める"
-    15: "filter で「空文字なら無いのと同じ扱い」にしている。map → filter → orElseGet の並びを1行ずつ型を追えば読める"
-    20: "同じ orElseThrow だが、こちらは Entity をそのまま使い、後続で状態を変更している"
+    8: "Spring Data JPA の findById は Optional<User> を返すのが約束(戻り値の型を見れば分かる)"
+    9: "見つかった場合だけ Entity(User)を DTO(UserDto)に変換。無ければ以降は素通り"
+    10: "「見つからなければ例外」の定番形。この1行を見たら「無ければ 404 相当のエラー」と読める"
+    16: "filter で「空文字なら無いのと同じ扱い」にしている。map → filter → orElseGet の並びを1行ずつ型を追えば読める"
+    22: "同じ orElseThrow だが、こちらは Entity をそのまま使い、後続で状態を変更している"
   points:
     - "findById(...) のような Optional を返すメソッドを見たら、その後ろに続く .map / .filter / .orElseXxx を1段ずつ追う"
     - "orElseThrow(() -> new XxxException(...)) は「見つからなければこの例外」という宣言。例外クラスを見れば HTTP ステータス(404 など)が想像できることが多い(@ControllerAdvice 章で扱う)"

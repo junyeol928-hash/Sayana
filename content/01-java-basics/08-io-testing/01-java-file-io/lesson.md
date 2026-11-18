@@ -160,7 +160,7 @@ error: unreported exception IOException;
 - 回復できる層(画面に「ファイルがありません」と出すなど)で `catch` する
 - `catch (IOException e) {}` で **握りつぶさない**
 
-ラムダの中ではチェック例外を投げられないので、`new UncheckedIOException(e)` で包みます。`Files.lines` も読み込み中のエラーを `UncheckedIOException` で投げてきます。
+`Function` や `Consumer` など標準の関数型インターフェースのラムダの中ではチェック例外を投げられないので、`new UncheckedIOException(e)` で包みます。`Files.lines` も読み込み中のエラーを `UncheckedIOException` で投げてきます。
 
 ## CSV を読んで集計する
 

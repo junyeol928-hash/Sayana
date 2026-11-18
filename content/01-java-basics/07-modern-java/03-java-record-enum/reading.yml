@@ -123,7 +123,7 @@
     }
     System.out.println(show(new Ok(0)));
     System.out.println(show(new Ng("timeout")));
-  question: "2行の出力は?"
+  question: "`case Ok ok` は「Ok 型なら変数 ok で受け取る」、`when` はその case に入る追加の条件です(本文「switch で『型』を分ける」)。2行の出力は?"
   choices:
     - "positive 0 / ng: timeout"
     - "zero or negative / ng: timeout"

@@ -260,7 +260,7 @@ columns:
     body: |
       Java 17 までは、`FileReader` や `FileWriter` などが使う **既定の文字コード** は OS 依存でした。日本語 Windows なら MS932、Linux や Mac なら UTF-8。同じプログラムが OS によって違うファイルを書いていたのです。
 
-      Java 18 の **JEP 400** で、既定は OS に関係なく **UTF-8** に統一されました。一方 `Files` のメソッドは Java 7 で登場したときから「省略したら UTF-8」で、最初からこの問題を避ける設計でした。
+      Java 18 の **JEP 400** で、既定は OS に関係なく **UTF-8** に統一されました。一方 `Files` は、Java 7 で登場したときは文字を読み書きするメソッドに文字コードの指定が必須でした。Java 8 で増えた「文字コードを省略できる版」(`readAllLines(path)`・`newBufferedReader(path)`・`lines(path)` など。Java 11 の `readString` / `writeString` も同じ)は、最初から UTF-8 固定です。OS の既定に左右されない設計だったわけです。
 
       ただし `System.out` は今もコンソール側の文字コードに合わせますし、古い挙動に戻す `-Dfile.encoding=COMPAT` を付けて動かしている現場もあります。「JDK 21 だから大丈夫」とは言い切れません。`StandardCharsets.UTF_8` と書いておけば、誰がどこで動かしても同じ結果になります。
   - type: mistake

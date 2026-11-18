@@ -174,7 +174,7 @@ columns:
   - type: mistake
     title: 年末の数日だけ壊れる「YYYY」
     body: |
-      `YYYY` は **週基準の年**(week-based-year)です。「1月1日を含む週は新しい年の第1週」と数えるので、その週に入った12月末の数日は翌年扱いになります。
+      `YYYY` は **週基準の年**(week-based-year)です。週の数え方はロケールで決まり、日本(ja_JP)や米国では「1月1日を含む週が新しい年の第1週」と数えるので、その週に入った12月末の数日は翌年扱いになります。
 
       ```java
       var f = DateTimeFormatter.ofPattern("YYYY-MM-dd");

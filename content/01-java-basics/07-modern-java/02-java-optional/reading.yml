@@ -60,7 +60,7 @@
     String city1 = Optional.ofNullable(p1.address()).map(Address::city).orElse("unknown");
     String city2 = Optional.ofNullable(p2.address()).map(Address::city).orElse("unknown");
     System.out.println(city1 + " " + city2);
-  question: "出力は?"
+  question: "`record Address(...)` などは、値を持つクラスを1行で書く書き方です(次の「recordとenum」で習います)。値は `p1.address()` のように取り出します。出力は?"
   choices:
     - "Tokyo unknown"
     - "Tokyo null"
@@ -95,8 +95,8 @@
   answer: 1
   explanation: "id=1L の User は見つかりますが isActive が false なので、filter によって空の Optional に変わります。以降 map(UserDto::from) は何もせず素通りするので、最終的に result は空、isPresent() は false です。"
   trace:
-    - "7行目: id=1L の User(isActive=false) を登録"
-    - "9行目: store.get(1L) は見つかるので中身あり"
+    - "8行目: id=1L の User(isActive=false) を登録"
+    - "10行目: findDto(store, 1L) を呼ぶ → 2行目の store.get(1L) は見つかるので中身あり"
     - "3行目: filter(User::isActive) が false → ここで空になる"
     - "4行目: map は空なので何もしない"
-    - "10行目: isPresent() → false"
+    - "11行目: isPresent() → false"
