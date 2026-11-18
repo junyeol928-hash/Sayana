@@ -1,0 +1,47 @@
+- after: クラスとインスタンス
+  question: |
+    次のコードはどうなる?
+    ```java
+    class Counter {
+        int n;
+        void show() {
+            int m;
+            System.out.println(n + m);
+        }
+    }
+    ```
+  choices: ["コンパイルエラー", "0 と表示される"]
+  answer: 0
+  explanation: |
+    フィールド `n` には new のときに既定値 0 が入るが、ローカル変数 `m` には既定値がない。代入前に読んでいるので `variable m might not have been initialized` になる。
+- after: 参照の代入と null
+  question: |
+    出力は?
+    ```java
+    static void rename(Employee e) {
+        e = new Employee("仮", 1);
+        e.name = "変更";
+    }
+    // main で
+    Employee a = new Employee("佐藤", 300000);
+    rename(a);
+    System.out.println(a.name);
+    ```
+  choices: ["佐藤", "変更", "仮"]
+  answer: 0
+  explanation: |
+    先に引数 `e` の向き先を新しいインスタンスに変えたので、`e.name = "変更"` が書き換えるのは新しい方。呼び出し元の `a` は元の佐藤を指したまま。
+- after: toString で中身を表示する
+  question: |
+    次のコードはどうなる?
+    ```java
+    class Item {
+        String name;
+        void Item(String name) { this.name = name; }
+    }
+    Item i = new Item("ペン");
+    ```
+  choices: ["コンパイルエラー", "name に「ペン」が入る"]
+  answer: 0
+  explanation: |
+    `void` を付けた `Item(...)` はコンストラクタではなく、ただのメソッド。コンストラクタを1つも書いていないので引数なしのデフォルトコンストラクタしかなく、`new Item("ペン")` に合うものがない。

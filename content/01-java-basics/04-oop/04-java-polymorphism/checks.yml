@@ -1,0 +1,41 @@
+- after: 型の if 連鎖を「消す」
+  question: |
+    `fee()` が 500 を返す `Delivery` に、`fee()` を上書きし忘れた子 `Drone` を足した。出力は?
+    ```java
+    class Drone extends Delivery { }
+
+    Delivery d = new Drone();
+    System.out.println(d.fee());
+    ```
+  choices: ["500", "コンパイルエラー", "0"]
+  answer: 0
+  explanation: |
+    Drone は自分の `fee()` を持たないので、親の Delivery から引き継いだ `fee()` が動いて 500 が返る。上書きを忘れてもエラーにはならず、黙って親の料金になる。
+- after: アップキャストとダウンキャスト
+  question: |
+    `Dog` は `Animal` の子。次のコードはどうなる?
+    ```java
+    Animal a = new Dog();
+    String s = (String) a;
+    ```
+  choices: ["コンパイルエラー", "実行時に ClassCastException"]
+  answer: 0
+  explanation: |
+    Animal と String には継承関係がなく、Animal 型の中身が String であることはありえないので、コンパイラが止める。`(Cat) a` のように「中身がそうかもしれない」キャストなら通り、外れたときに実行時の ClassCastException になる。
+- after: ポリモーフィズムが効かないもの
+  question: |
+    出力は?
+    ```java
+    class Parent {
+        String name = "親";
+        String getName() { return name; }
+    }
+    class Child extends Parent {
+        String name = "子";   // getName は上書きしない
+    }
+    System.out.println(new Child().getName());
+    ```
+  choices: ["親", "子"]
+  answer: 0
+  explanation: |
+    `getName()` は Parent に書かれたメソッドで、その中の `name` はコンパイル時に Parent の name に決まる。フィールドは上書きされず、子の同名フィールドは隠すだけ。

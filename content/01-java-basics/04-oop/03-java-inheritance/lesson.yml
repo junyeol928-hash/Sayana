@@ -48,7 +48,8 @@ samples:
       System.out.println(p.getName() + ": " + p.salary() + "円");
       System.out.println(m.getName() + ": " + m.salary() + "円");
   - title: コンストラクタが呼ばれる順番
-    description: 子のコンストラクタは、先頭で(書かなくても)親のコンストラクタを呼びます。だから出力は必ず「親→子」の順です。
+    description: |
+      `C` のコンストラクタには `super()` を書いていない。`new C()` で A・B・C のコンストラクタの出力がどの順に並ぶか、予想してから見よう。
     code: |
       class A {
           A() { System.out.println("A のコンストラクタ"); }
@@ -67,7 +68,8 @@ samples:
       // (Java 21 ではコンパイルエラー。Java 25 以降は this を使わない文なら super() の前に書ける)
       new C();
   - title: toString と equals をオーバーライドする
-    description: "Object から引き継いだ `toString()` は「クラス名@ハッシュ値」、`equals()` は「同じオブジェクトか」の判定です。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。"
+    description: |
+      何もオーバーライドしない `RawPoint` と、`toString`・`equals` を上書きした `Point`。表示はどう違うか、同じ座標どうしを `equals` で比べるとそれぞれどうなるか。出力を予想してから見よう。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。
     code: |
       class RawPoint {             // 何もオーバーライドしない
           final int x, y;

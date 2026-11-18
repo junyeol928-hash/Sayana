@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 残高がマイナスにならない口座
     description: |
-      `balance` は private。残高を変える方法は `deposit` と `withdraw` だけなので、ルール違反の操作はクラスの中で止められます。
+      `balance` は private で、残高を変える道は `withdraw` だけ。残高より多い 3000 円を出金しようとしたら何が返るか、最後の残高はいくらか。出力を予想してから見よう。
     code: |
       class Account {
           private int balance;
@@ -47,7 +47,7 @@ samples:
       // acc.balance = -1000000;
   - title: 不変な Money クラス
     description: |
-      フィールドはすべて `private final`。`plus` は自分を書き換えず、新しいインスタンスを返します。
+      フィールドはすべて `private final`。`price.plus(tax)` のあと `price` の金額は変わるか、`price` と `total` は同じインスタンスか。出力を予想してから見よう。
     code: |
       final class Money {
           private final int amount;
@@ -80,7 +80,7 @@ samples:
       System.out.println("同じインスタンス? " + (price == total));
   - title: 防御的コピーあり/なしの比較
     description: |
-      getter で内部の配列をそのまま返すと、外から中身を書き換えられてしまいます。`clone()` でコピーを返せば内部は守られます。
+      受け取った配列をそのまま持って返す `LeakyBook` と、`clone()` でコピーする `SafeBook`。元の配列や getter の戻り値を書き換えたとき、それぞれの中身がどうなるか。出力を予想してから見よう。
     code: |
       import java.util.Arrays;
 

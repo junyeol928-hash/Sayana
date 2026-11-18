@@ -100,7 +100,8 @@ samples:
       new Checkout(new NoDiscount()).pay(2980);
       new Checkout(new SaleDiscount(20)).pay(2980);
   - title: Comparable を実装して並べ替える
-    description: "`Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べます。`implements Comparable<Item>` を消すと、`@Override` 付きの `compareTo` は上書きする相手がなくなりコンパイルエラーになります(`@Override` も消すとコンパイルは通り、実行時に ClassCastException)。"
+    description: |
+      `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。どの順に並ぶか予想してから見よう。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも、予想してから試してみよう。
     code: |
       // Comparable を実装して Arrays.sort で並べ替える
       // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)

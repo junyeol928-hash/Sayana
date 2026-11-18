@@ -72,7 +72,8 @@ samples:
       java.math.BigDecimal y = new java.math.BigDecimal("0.2");
       System.out.println(x.add(y));
   - title: var・ラッパークラス・null
-    description: var は型推論であって型が無くなるわけではないこと、null の変数を使うと何が起きるかを確かめます。最後の行は、わざと例外が出るようになっています。
+    description: |
+      var で推論された型は、あとから変わるのか。null の変数を表示する行と、null のまま `length()` を呼ぶ最後の行で、それぞれ何が起きるか。出力を予想してから見よう。
     code: |
       var count = 10;               // int と推論される
       var name = "Haru";            // String と推論される

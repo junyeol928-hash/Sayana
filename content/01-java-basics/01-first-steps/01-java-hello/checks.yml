@@ -1,0 +1,24 @@
+- after: Windows に JDK 21 を入れる
+  question: |
+    インストーラで Path と JAVA_HOME を設定した。インストールの前から開いていたコマンドプロンプトでは、新しい設定は?
+  choices: ["反映されていない", "すぐ反映される"]
+  answer: 0
+  explanation: |
+    環境変数は、コマンドプロンプトを開いた時点の内容が使われる。開きっぱなしの画面は古いままなので、新しく開き直してから `java -version` で確かめる。
+- after: 動かし方は3通り
+  question: |
+    `javac Hello.java` で `Hello.class` ができた。実行するコマンドは?
+  choices: ["`java Hello`", "`java Hello.class`"]
+  answer: 0
+  explanation: |
+    `java` に渡すのはクラス名。`java Hello.class` だと「Hello.class という名前のクラス」を探して `ClassNotFoundException` になる。ファイル名を渡すのは `javac` の方。
+- after: よくあるミス図鑑
+  question: |
+    「こんにちは」と「世界」の間に全角スペースを入れた。`javac` でコンパイルすると?
+    ```java
+    System.out.println("こんにちは　世界");
+    ```
+  choices: ["コンパイルできる", "コンパイルエラー(不正な文字)"]
+  answer: 0
+  explanation: |
+    文字列リテラルの **中** の全角文字は、ただの文字として表示されるだけ。`'\u3000'は不正な文字です` になるのは、全角スペースが文字列の外(コードの部分)に紛れ込んだとき。

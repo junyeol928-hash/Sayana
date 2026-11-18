@@ -1,0 +1,36 @@
+- after: extends と is-a 関係
+  question: |
+    次のコードはどうなる?
+    ```java
+    class Employee {
+        private String name = "佐藤";
+    }
+    class Manager extends Employee {
+        String show() { return name; }
+    }
+    ```
+  choices: ["コンパイルエラー", "show() が「佐藤」を返す"]
+  answer: 0
+  explanation: |
+    `private` のフィールドは、子のオブジェクトの中に存在はするが、子のコードからは直接触れない(`name has private access in Employee`)。親に getter を用意して、それ経由で読む。
+- after: オーバーライドと @Override
+  question: |
+    親の `salary()` は 200000 を返す。`new Manager("佐藤").salary()` を呼ぶと?
+    ```java
+    class Manager extends Employee {
+        Manager(String name) { super(name); }
+        @Override
+        int salary() { return salary() + 50_000; }
+    }
+    ```
+  choices: ["StackOverflowError で落ちる", "250000 が返る"]
+  answer: 0
+  explanation: |
+    `super.` の無い `salary()` は Manager 自身を呼ぶので、終わりなく自分を呼び続けてスタックがあふれる。親の計算を使うなら `super.salary() + 50_000`。
+- after: protected / final / Object
+  question: |
+    `Employee` の `protected` メソッドを、**同じパッケージ** にある(子クラスではない)`Report` クラスから呼ぶと?
+  choices: ["呼べる", "コンパイルエラー"]
+  answer: 0
+  explanation: |
+    `protected` は「子クラスだけ」ではなく、同じパッケージのクラスからも見える。子クラスに限られるのは、別パッケージから使う場合。

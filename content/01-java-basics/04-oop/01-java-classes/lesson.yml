@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 社員クラスを作ってインスタンスを2つ作る
     description: |
-      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラスです。インスタンスごとにフィールドが別々なことを確かめましょう。
+      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラス。`a` だけ `raise` したとき、`b` の給料はどうなるか。出力を予想してから見よう。
     code: |
       class Employee {
           String name;
@@ -43,7 +43,7 @@ samples:
       // toString メソッドを消すと Employee@xxxx のような表示になる(JShell では前に REPL.$JShell$.. が付く)
   - title: コンストラクタのオーバーロードと static
     description: |
-      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数えます。`count` は全インスタンスで1つだけです。
+      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数える。消しゴムの税込価格と、最後の `Item.count` がいくつになるかを予想してから見よう。
     code: |
       class Item {
           static int count = 0;    // クラスに1つだけ(全インスタンスで共有)
@@ -76,7 +76,7 @@ samples:
       System.out.println("作った数: " + Item.count);
   - title: 参照の代入と null
     description: |
-      代入でコピーされるのは参照だけ。`b` を変えると `a` も変わります。オブジェクトの配列は作った直後は全部 `null` です。
+      `b = a` のあと `b` を書き換えたら、`a.value` はどうなるか。作った直後のオブジェクトの配列の `list[0]` には何が入っているか。出力を予想してから見よう。
     code: |
       class Counter {
           int value;

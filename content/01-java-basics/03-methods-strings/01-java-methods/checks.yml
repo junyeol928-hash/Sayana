@@ -1,0 +1,38 @@
+- after: メソッドの定義と呼び出し
+  question: |
+    次のコードはどうなる?
+    ```java
+    public class Main {
+        void greet() { System.out.println("hi"); }
+        public static void main(String[] args) {
+            greet();
+        }
+    }
+    ```
+  choices: ["コンパイルエラー", "hi と出る"]
+  answer: 0
+  explanation: |
+    `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く static の main からは直接呼べず、`non-static method greet() cannot be referenced from a static context` になる。
+- after: return と早期 return
+  question: |
+    次のメソッドはどうなる?
+    ```java
+    static int one() {
+        return 1;
+        System.out.println("返しました");
+    }
+    ```
+  choices: ["コンパイルエラー", "1 を返し、何も表示しない"]
+  answer: 0
+  explanation: |
+    `return` でメソッドは終わるので、直後の文には絶対に届かない。届かない文はコンパイラが `unreachable statement` で止める。
+- after: 可変長引数
+  question: |
+    次の定義はどうなる?
+    ```java
+    static void log(String... tags, String msg) { }
+    ```
+  choices: ["コンパイルエラー", "コンパイルできる"]
+  answer: 0
+  explanation: |
+    可変長引数は1つだけ、しかも **最後** の引数にしか置けない。`log(String msg, String... tags)` の順なら通る。

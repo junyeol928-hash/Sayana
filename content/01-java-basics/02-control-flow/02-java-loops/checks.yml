@@ -1,0 +1,40 @@
+- after: for 文:3つの部分と実行順
+  question: |
+    出力は?
+    ```java
+    int i;
+    for (i = 0; i < 10; i += 4) {
+    }
+    System.out.println(i);
+    ```
+  choices: ["12", "8", "10"]
+  answer: 0
+  explanation: |
+    更新は本体の後。i が 0・4・8 の回に本体を実行し、8 の回の更新で 12 になって `12 < 10` が false で抜ける。8 は最後に本体を実行したときの値。
+- after: break と continue
+  question: |
+    出力は?
+    ```java
+    for (int i = 1; i <= 3; i++) {
+        switch (i) {
+            case 2: break;
+            default: System.out.print(i);
+        }
+    }
+    ```
+  choices: ["13", "1"]
+  answer: 0
+  explanation: |
+    switch の中の `break` が抜けるのは switch だけで、ループは続く。i が 2 の回は何も出さずに次の回へ進むので `13`。「1」はループごと抜けると読んだ答え。
+- after: よくあるミス
+  question: |
+    `n` が 5 のとき、本体は何回実行される?
+    ```java
+    for (int i = 0; i <= n; i++) {
+        // 本体
+    }
+    ```
+  choices: ["6 回", "5 回"]
+  answer: 0
+  explanation: |
+    i は 0〜5 の 6 通り。0 から始めて `<= n` にすると 1 回多い。n 回にしたいなら、0 始まりは `< n`、1 始まりは `<= n` にそろえる。

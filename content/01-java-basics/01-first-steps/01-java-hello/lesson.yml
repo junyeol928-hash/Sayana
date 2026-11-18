@@ -22,7 +22,7 @@ samples:
 
   - title: print と println の違い
     description: |
-      `print` は改行しない、`println` は最後に改行する。引数なしの `println()` は改行だけを出力します。
+      `print` と `println` が混ざると、どこで改行されるか。引数なしの `println()` の行で何が出るかにも注目して、出力を予想してから見よう。
     code: |
       System.out.print("ラーメン");
       System.out.print("と");

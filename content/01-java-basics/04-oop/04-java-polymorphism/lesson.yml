@@ -11,7 +11,8 @@ goals:
   - フィールドと static メソッドがポリモーフィックでない(隠蔽される)ことを説明できる
 samples:
   - title: 動物たちの鳴き声(動的ディスパッチ)
-    description: "`Animal` 型の配列に Dog と Cat を混ぜて入れても、`x.sound()` は実体の型のメソッドを呼びます。"
+    description: |
+      `Animal` 型の配列に Dog と Cat を混ぜて入れた。ループの `x.sound()` がそれぞれ何を返すか、予想してから見よう。
     code: |
       class Animal {
           String sound() { return "……"; }
@@ -60,7 +61,8 @@ samples:
                   + " + 送料" + d.fee() + " = " + total + "円");
       }
   - title: ダウンキャストと instanceof パターンマッチング
-    description: "`instanceof` で確かめてからキャストすれば安全です。確かめずにキャストすると ClassCastException になります。"
+    description: |
+      `instanceof` で確かめてから使う書き方。`a` を Cat にしたら if のどちらに進むか、確かめずに `(Dog) a` とキャストしたら何が起きるか。予想してから試してみよう。
     code: |
       class Animal { }
       class Dog extends Animal {
@@ -83,7 +85,8 @@ samples:
       // Dog forced = (Dog) a;
       System.out.println("終了");
   - title: フィールドと static メソッドは変数の型で決まる
-    description: 同名のフィールドや static メソッドは「隠蔽」されるだけで、動的ディスパッチの対象になりません。
+    description: |
+      `Parent` 型の変数に `Child` を入れて、同名のフィールド・インスタンスメソッド・static メソッドを呼ぶ。3 行それぞれ、親と子のどちらの値が出るか予想してから見よう。
     code: |
       class Parent {
           String name = "親のフィールド";

@@ -1,0 +1,31 @@
+- after: == と equals、文字列プール
+  question: |
+    `rank` は null かもしれない。例外を出さずに比べられるのは?
+  choices: ['`"GOLD".equals(rank)`', '`rank.equals("GOLD")`']
+  answer: 0
+  explanation: |
+    固定値の側から呼べば、rank が null でも false が返るだけ。`rank.equals(...)` は null に対してメソッドを呼ぶので `NullPointerException` になる。
+- after: よく使うメソッド
+  question: |
+    出力は?(前後の空白は全角スペース)
+    ```java
+    String name = "　山田　";
+    System.out.println(name.trim().length());
+    ```
+  choices: ["4", "2"]
+  answer: 0
+  explanation: |
+    `trim` が消すのは ASCII の空白だけで、全角スペースは残るので 4 文字のまま。全角まで消して 2 にしたいなら `strip` を使う。
+- after: 書式:format / formatted / テキストブロック
+  question: |
+    `B` の行の先頭に、空白はいくつ残る?
+    ```java
+    String t = """
+        A
+          B
+        """;
+    ```
+  choices: ["2 個", "6 個", "0 個"]
+  answer: 0
+  explanation: |
+    閉じの `"""` と最も浅い行(A の行)にそろった共通のインデントが取り除かれる。B の行はそれより 2 個深いので、その 2 個が残る。

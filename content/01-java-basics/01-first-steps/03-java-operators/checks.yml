@@ -1,0 +1,33 @@
+- after: 算術演算子 ─ 整数の割り算は「切り捨て」
+  question: |
+    出力は?
+    ```java
+    int n = -5;
+    System.out.println(n % 2 == 1);
+    ```
+  choices: ["false", "true"]
+  answer: 0
+  explanation: |
+    `%` の結果は割られる数(左側)の符号に揃うので、`-5 % 2` は `-1`。`== 1` にならず false。奇数判定は `n % 2 != 0` と書く。
+- after: 複合代入とインクリメント
+  question: |
+    出力は?
+    ```java
+    int n = 7;
+    n = n--;
+    System.out.println(n);
+    ```
+  choices: ["7", "6"]
+  answer: 0
+  explanation: |
+    後置 `n--` の式の値は減らす **前** の 7。いったん n は 6 になるが、最後の代入で 7 に上書きされる。`i = i++` と同じ罠。
+- after: 優先順位と結合規則
+  question: |
+    出力は?
+    ```java
+    System.out.println(true || false && false);
+    ```
+  choices: ["true", "false"]
+  answer: 0
+  explanation: |
+    `&&` は `||` より優先度が高いので、`true || (false && false)` と読む。左が true なので全体も true。左から順に `(true || false) && false` と読むと false になる。

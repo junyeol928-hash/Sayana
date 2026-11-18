@@ -32,7 +32,7 @@ samples:
       System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
-      `b = a` は同じ配列を指すだけ。`Arrays.copyOf` は新しい配列を作ります。`==` と `Arrays.equals` の違いも確認しましょう。
+      `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` の結果も、予想してから見よう。
     code: |
       import java.util.Arrays;
 

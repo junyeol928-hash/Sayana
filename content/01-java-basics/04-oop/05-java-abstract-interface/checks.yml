@@ -1,0 +1,51 @@
+- after: 抽象クラス:未完成の設計図
+  question: |
+    次のコードはどうなる?
+    ```java
+    abstract class Shape {
+        abstract double area();
+        abstract double perimeter();
+    }
+    class Square extends Shape {
+        double area() { return 4; }
+    }
+    ```
+  choices: ["コンパイルエラー", "コンパイルは通り、perimeter() を呼んだときにエラー"]
+  answer: 0
+  explanation: |
+    abstract でないクラスは、抽象メソッドを全部実装しないといけない。`perimeter()` が無いので、呼ぶ前のコンパイルの時点で `Square is not abstract and does not override abstract method perimeter()` になる。
+- after: インターフェース:「できること」の約束
+  question: |
+    次のコードはどうなる?
+    ```java
+    interface Payable {
+        int TAX_RATE = 10;
+        int amount();
+    }
+    class Invoice implements Payable {
+        public int amount() { return 5000; }
+        void change() { TAX_RATE = 8; }
+    }
+    ```
+  choices: ["コンパイルエラー", "Invoice の TAX_RATE だけ 8 になる"]
+  answer: 0
+  explanation: |
+    インターフェースのフィールドは暗黙に `public static final` の定数で、インスタンスごとの値は持てない。final なので、代入した時点でコンパイルエラーになる。
+- after: default メソッドと static メソッド(Java 8+)
+  question: |
+    出力は?
+    ```java
+    interface Payable {
+        int amount();
+        default int withTax() { return amount() * 110 / 100; }
+    }
+    class Free implements Payable {
+        public int amount() { return 1000; }
+        public int withTax() { return amount(); }
+    }
+    System.out.println(new Free().withTax());
+    ```
+  choices: ["1000", "1100"]
+  answer: 0
+  explanation: |
+    default メソッドは、実装クラスがそのまま使っても上書きしてもよい。Free は `withTax()` を上書きしているので、自分の版が動いて 1000。1100 は default の版が動くと読んだ答え。
