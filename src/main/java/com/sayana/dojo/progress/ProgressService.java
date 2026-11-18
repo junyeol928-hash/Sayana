@@ -290,7 +290,7 @@ public class ProgressService {
             Set<String> passedHere = lesson.exercises().stream().map(ExerciseDef::key).filter(passed::contains)
                     .collect(Collectors.toSet());
             List<QuizAttempt> attempts = quizByLesson.getOrDefault(lesson.id(), List.of());
-            Integer best = attempts.stream().map(QuizAttempt::getScore).max(Integer::compare).orElse(null);
+            Integer best = bestOfFirstAttempts(attempts);
             Integer lastScore = attempts.stream().max(Comparator.comparing(QuizAttempt::getCreatedAt))
                     .map(QuizAttempt::getScore).orElse(null);
             Set<String> checked = checkedByLesson.getOrDefault(lesson.id(), Set.of());
@@ -317,5 +317,18 @@ public class ProgressService {
                     tmp.aiReviews(), best, lastScore, tmp.quizTotal(), checkedCount, tmp.checklistTotal(), passedHere,
                     checked, graduated(lesson.id()));
         }
+    }
+
+    /**
+     * クイズの最高点。各日の最初の採点の点だけを数える(答えを見た直後の解き直しは、位置や答えを覚えているだけなので
+     * 練習として数えない。翌日以降に解き直せば数える)。スマホ版の採点と同じ規則。
+     */
+    static Integer bestOfFirstAttempts(List<QuizAttempt> attempts) {
+        java.util.Map<java.time.LocalDate, QuizAttempt> firstOfDay = new java.util.HashMap<>();
+        for (QuizAttempt a : attempts) {
+            java.time.LocalDate day = java.time.LocalDate.ofInstant(a.getCreatedAt(), java.time.ZoneId.systemDefault());
+            firstOfDay.merge(day, a, (x, y) -> x.getCreatedAt().isBefore(y.getCreatedAt()) ? x : y);
+        }
+        return firstOfDay.values().stream().map(QuizAttempt::getScore).max(Integer::compare).orElse(null);
     }
 }

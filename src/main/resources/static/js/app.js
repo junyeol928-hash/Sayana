@@ -525,7 +525,33 @@ function trackLesson() {
   }, { passive: true });
 }
 
+/** 手を止めて(本文の途中の 1 問): 押したら正解とあなたの答えを付け、理由を出す。スマホ版の bindChecks と同じ形 */
+function bindChecks(root) {
+  root.querySelectorAll?.("aside.check").forEach((box) => {
+    const answer = Number(box.dataset.answer);
+    box.querySelectorAll(".check-choices .choice").forEach((b) => {
+      b.onclick = () => {
+        const choice = Number(b.dataset.c);
+        const ok = choice === answer;
+        box.querySelectorAll(".check-choices .choice").forEach((x) => {
+          const j = Number(x.dataset.c);
+          x.disabled = true;
+          x.classList.toggle("is-answer", j === answer);
+          x.classList.toggle("is-wrong", j === choice && !ok);
+          if (j === choice && !ok) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+          if (j === answer) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+        });
+        const ex = box.querySelector(".check-explain");
+        ex.classList.add(ok ? "correct" : "wrong");
+        ex.insertAdjacentHTML("afterbegin", `<span class="q-mark">${ok ? "✓ 正解" : "× 不正解"}</span>`);
+        ex.hidden = false;
+      };
+    });
+  });
+}
+
 function initRoot(root) {
+  bindChecks(root);
   root.querySelectorAll("textarea.code-editor").forEach(initEditor);
   renderMermaid(root).then(() => highlight(root));
   root.querySelectorAll(".chat-log").forEach((log) => { log.scrollTop = log.scrollHeight; });
@@ -557,7 +583,8 @@ document.addEventListener("htmx:afterSwap", (e) => {
     if (!li) return;
     li.id = `q-${i + 1}`;
     const ok = ex.classList.contains("correct");
-    li.querySelectorAll("label.choice").forEach((label, j) => {
+    li.querySelectorAll("label.choice").forEach((label) => {
+      const j = Number(label.querySelector("input").value); // 並びを入れ替えているので、位置ではなく値で見る
       label.classList.toggle("is-answer", j === Number(ex.dataset.answer));
       label.classList.toggle("is-wrong", !ok && j === Number(ex.dataset.chosen));
       // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
@@ -575,6 +602,25 @@ document.addEventListener("htmx:afterSwap", (e) => {
   highlight(form);
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
 });
+// 復習: 答えたら、選択肢に正解とあなたの答えを付ける(並びを入れ替えているので値で見る)
+document.addEventListener("htmx:afterSwap", (e) => {
+  const v = e.detail.target.id === "review-answer" && e.detail.target.querySelector(".review-verdict");
+  if (!v) return;
+  const answer = Number(v.dataset.answer);
+  const chosen = Number(v.dataset.chosen);
+  v.closest(".review-quiz")?.querySelectorAll("label.choice").forEach((label) => {
+    const j = Number(label.querySelector("input").value);
+    label.classList.toggle("is-answer", j === answer);
+    label.classList.toggle("is-wrong", j === chosen && j !== answer);
+    if (j === chosen && j !== answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+    if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+  });
+  if (v.querySelector(".q-explain.correct")) {
+    const now = document.querySelector(".review-stitch .unshin i.now");
+    now?.classList.replace("now", "sewn");
+    now?.classList.add("just");
+  }
+});
 document.addEventListener("click", (e) => {
   if (!e.target.closest("[data-quiz-reset]")) return;
   const form = document.querySelector("form.quiz");
@@ -585,8 +631,38 @@ document.addEventListener("click", (e) => {
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; });
   form.querySelector("button[type=submit]").hidden = false;
   document.getElementById("quiz-result").innerHTML = "";
+  quizRound++;
+  shuffleChoices(form);
   form.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
 });
+
+// 選択肢の並び: 書いた順のままだと正解の位置が偏る(読解は 2 番目が半分以上)ので、問いごとに決まった並びに入れ替える。
+// クイズは「もう一度解く」のたびに並びを変える。値は元の番号のまま(採点は値で見る)。スマホ版の choiceOrder と同じ
+function choiceOrder(n, seed) {
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    const j = ((h ^ (h >>> 16)) >>> 0) % (i + 1);
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+let quizRound = 0;
+function reorderChoices(parent, seed) {
+  const labels = [...parent.querySelectorAll(":scope > label.choice")];
+  if (labels.length < 2) return;
+  const byValue = new Map(labels.map((l) => [Number(l.querySelector("input").value), l]));
+  const anchor = labels[labels.length - 1].nextSibling;
+  choiceOrder(labels.length, seed).forEach((j) => parent.insertBefore(byValue.get(j), anchor));
+}
+function shuffleChoices(root) {
+  const lessonId = document.querySelector("h1[data-lesson-id]")?.dataset.lessonId || location.pathname;
+  root.querySelectorAll(".quiz-q").forEach((li, i) => reorderChoices(li, `${lessonId}#${i}|${quizRound}`));
+  root.querySelectorAll("form[data-reading] fieldset").forEach((fs, i) => reorderChoices(fs, fs.closest("[data-ref]")?.dataset.ref || `${lessonId}@${i}`));
+}
 
 // スマホ: AIチューターを開く/閉じる
 document.addEventListener("click", (e) => {
@@ -626,7 +702,8 @@ readingStep();
 // 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
 function lockAnswer(form, answer, choice, onReset) {
   const ok = choice === answer;
-  form.querySelectorAll("label.choice").forEach((label, j) => {
+  form.querySelectorAll("label.choice").forEach((label) => {
+    const j = Number(label.querySelector("input").value);
     label.classList.toggle("is-answer", j === answer);
     label.classList.toggle("is-wrong", j === choice && !ok);
     label.querySelector(".choice-tag")?.remove();
@@ -755,6 +832,7 @@ window.addEventListener("load", () => highlight(document));
 
 await loadCodeMirror();
 initRoot(document);
+shuffleChoices(document);
 trackLesson();
 dashboardResume();
 document.querySelectorAll(".today-title a, main h1:not(.today-title)").forEach(phraseWrap);

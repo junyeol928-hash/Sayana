@@ -48,6 +48,7 @@
         <span class="score-stitches" aria-hidden="true"><i th:each="ok : ${outcome.correct()}" th:classappend="${ok} ? 'on'"></i></span>
         <span th:text="${a.score == a.total ? '満点' : (a.score >= pass ? '合格(' + pass + ' 問以上)' : 'あと ' + (pass - a.score) + ' 問で合格(' + pass + ' 問以上)')}"></span>
     </div>
+    <p class="muted small" th:if="${a.score >= pass and !status.quizPassed()}">同じ日の解き直しは練習として数えます。縹(クイズ合格)には、明日以降に解き直して <th:block th:text="${pass}"></th:block> 問以上(答えを見た直後は、覚えているだけのことがあるため)。</p>
     <p class="dyed-line" th:if="${dyedTo != null}"><span class="dye dye-burst" th:classappend="'dye-' + ${status.dyeLevel()}" aria-hidden="true"></span><span th:text="${#strings.substringBefore(dyedTo, '・')} + 'に染まった(' + ${#strings.substringAfter(dyedTo, '・')} + ')'"></span></p>
     <p class="quiz-wrong" th:if="${a.score < a.total}">間違えた問:
         <th:block th:each="q, st : ${lesson.quiz}"><a th:unless="${outcome.correct().get(st.index)}" th:href="'#q-' + ${st.count}" th:text="'問 ' + ${st.count}"></a> </th:block></p>

@@ -73,6 +73,7 @@ public class ReviewController {
         model.addAttribute("choice", choice);
         model.addAttribute("question", lesson.quiz().get(item.quizIndex()));
         model.addAttribute("reviewLabel", ReviewService.intervalLabel(updated));
+        model.addAttribute("lesson", lesson);
         return "fragments/review-parts :: quizAnswer";
     }
 
