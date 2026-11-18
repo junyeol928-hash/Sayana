@@ -1,0 +1,42 @@
+- after: 依存性注入(DI):まずは素の Java で
+  question: |
+    本文の `MailSender` と `OrderService`(コンストラクタで受け取る版)を使う。Spring は使っていない。何が起きる?
+    ```java
+    var s = new OrderService(
+            body -> System.out.println("[偽] " + body));
+    s.placeOrder("本");
+    ```
+  choices:
+    - "`[偽] ご注文ありがとうございます: 本` と出る"
+    - "本物の SMTP サーバーにメールが送られる"
+    - "Spring が無いので注入されず、NullPointerException になる"
+  answer: 0
+  explanation: |
+    `OrderService` は `MailSender` インターフェースにだけ依存していて、渡されたラムダが `send` として呼ばれる。メールは飛ばない。DI は「コンストラクタで渡す」設計の話で、Spring が無くても成り立つ。
+- after: コンストラクタインジェクションが推奨される理由
+  question: |
+    `@Autowired` がどこにも無い。`MailSender` の Bean が 1 つ登録されたコンテナから `OrderService` を取り出すと、`mail` は?
+    ```java
+    @Service
+    class OrderService {
+        private final MailSender mail;
+        OrderService(MailSender mail) { this.mail = mail; }
+    }
+    ```
+  choices: ["注入されている", "null のまま"]
+  answer: 0
+  explanation: |
+    コンストラクタが 1 つだけなら `@Autowired` は省略でき(Spring 4.3 以降)、コンテナはそのコンストラクタに Bean を渡して作る。現場では省略が普通。null のままになるのは、自分で `new` したり、フィールドインジェクションのクラスをコンテナ抜きで作ったりしたとき。
+- after: 同じ型の Bean が2つあるとき
+  question: |
+    次の Bean を、注入する側の `@Qualifier` で指定したい。書く名前は?
+    ```java
+    @Bean
+    MailSender fastMail() {
+        return new SmtpMailSender("smtp.example.com");
+    }
+    ```
+  choices: ["fastMail", "smtpMailSender", "mailSender"]
+  answer: 0
+  explanation: |
+    `@Bean` の Bean 名は既定でメソッド名なので `fastMail`。クラス名の先頭を小文字にした `smtpMailSender` になるのは、クラスに `@Component` を付けて登録したとき。戻り値の型の名前は使われない。

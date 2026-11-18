@@ -55,7 +55,7 @@ samples:
       check(new MemberForm("   ", "taro", 17));
       check(new MemberForm("あ".repeat(21), "", null));
   - title: "@ModelAttribute の裏側:バインド → 検証 → BindingResult"
-    description: Controller の引数で Spring がやっていることを DataBinder で再現します。数値に変換できない値(typeMismatch)、@AssertTrue の相関チェック、rejectValue で足したエラーが BindingResult に並びます。
+    description: Controller の引数で Spring がやっていることを DataBinder で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。BindingResult には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値も予想してから見よう。
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -125,7 +125,7 @@ samples:
       }
       System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
   - title: MockMvc で PRG の流れを見る
-    description: フォームの POST を MockMvc で送り、エラー時は同じビュー名、成功時は 302 リダイレクト + フラッシュ属性になることを確かめます(数秒かかります)。
+    description: フォームの POST を MockMvc で送ります。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。出力を予想してから見よう(数秒かかります)。
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;

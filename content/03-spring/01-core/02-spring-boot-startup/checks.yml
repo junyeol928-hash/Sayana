@@ -1,0 +1,37 @@
+- after: 自動設定:starter を入れると Bean が用意される理由
+  question: |
+    クラスパスに Jackson の jar が無い(`ObjectMapper` クラスが無い)アプリ。本文の `JacksonAutoConfiguration` はどうなる?
+  choices:
+    - "設定ごと使われず、`ObjectMapper` の Bean はできない"
+    - "`ObjectMapper` の Bean がまだ無いので、既定の `jacksonObjectMapper` が作られる"
+  answer: 0
+  explanation: |
+    クラスに付いた `@ConditionalOnClass(ObjectMapper.class)` が成り立たないので、この自動設定は丸ごと使われない。`@ConditionalOnMissingBean` は、設定が使われたあとで、中の `@Bean` を作るかどうかを決める条件。
+- after: 起動ログの読み方
+  question: |
+    起動時に、長いスタックトレースの最後がこうなっていた。根本の原因は?
+    ```text
+    BeanCreationException: Error creating bean with name
+      'shopService': Injection of autowired dependencies failed
+      …(数十行)
+    Caused by: PlaceholderResolutionException: Could not resolve
+      placeholder 'shop.tax-rate' in value "${shop.tax-rate}"
+    ```
+  choices:
+    - "`application.properties` に `shop.tax-rate` のキーが無い"
+    - "`shopService` に注入する型の Bean が 2 つある"
+    - "ポート 8080 を別のアプリが使っている"
+  answer: 0
+  explanation: |
+    スタックトレースは下から読み、いちばん下の `Caused by:` が根本の原因。上の `BeanCreationException` は「Bean を作れなかった」という結果で、作れなかった理由が設定キー `shop.tax-rate` の不足。同じ型の Bean が 2 つなら `NoUniqueBeanDefinitionException`、ポートなら `Port 8080 was already in use` と出る。
+- after: Spring Boot のバージョンと javax → jakarta
+  question: |
+    Spring Boot 3.5 のプロジェクトに、2 系の記事のコードを写した。`jakarta` に書き換えが要るのは?
+    ```java
+    import javax.servlet.http.HttpServletRequest;
+    import javax.crypto.Cipher;
+    ```
+  choices: ["javax.servlet の行だけ", "両方", "javax.crypto の行だけ"]
+  answer: 0
+  explanation: |
+    3.0 から `jakarta.*` に変わったのは、Java EE(サーバー向けの仕様)から来たパッケージ。`javax.servlet` は `jakarta.servlet` に書き換える。`javax.crypto` は JDK 自体に入っているパッケージなので、そのまま使える。

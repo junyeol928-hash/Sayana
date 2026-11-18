@@ -11,7 +11,7 @@ goals:
   - "同じ型の Bean が複数あるときに @Primary / @Qualifier で選べ、Bean が singleton であることの注意点を説明できる"
 samples:
   - title: 手動 DI とコンテナ DI を見比べる
-    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。コンテナもコンストラクタを呼んでいることが出力で分かります。
+    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。② のコンテナ版でも、コンストラクタは呼ばれるだろうか。2 回目の `getBean` は同じものを返すだろうか。出力を予想してから見よう。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -59,7 +59,7 @@ samples:
               + (s == ctx.getBean(OrderService.class)));
       ctx.close();
   - title: "@Configuration + @Bean と、@Primary / @Qualifier"
-    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`@Bean` の Bean 名はメソッド名です。
+    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの Notifier が入るだろうか。最後の行に出る Bean 名も予想してから見よう。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.annotation.*;
@@ -123,7 +123,7 @@ samples:
               + ctx.getBeansOfType(Notifier.class).keySet());
       ctx.close();
   - title: singleton の Bean に状態を持たせると事故る
-    description: Bean は既定で singleton(コンテナに1個)。フィールドに合計金額を持つと、別のユーザーの分まで足されてしまいます。`@Scope("prototype")` を付けると毎回別インスタンスになることも確かめましょう。
+    description: フィールドに合計金額を持つ `BadCartService` を、ハルとモカが別々に `getBean` して使います。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。出力を予想してから見よう。そのあと `@Scope("prototype")` を付けて、出力がどう変わるか確かめよう。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;

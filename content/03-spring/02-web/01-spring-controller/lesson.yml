@@ -89,8 +89,8 @@ samples:
   - title: JSON・ResponseEntity・redirect
     libraries: [spring]
     description: |
-      `record` を返すと JSON に、`ResponseEntity` で包むとステータスコードを選べます。
-      `@Controller` で `"redirect:..."` を返すと 302 と `Location` ヘッダーが返ります(ブラウザはそこへ GET し直します)。
+      `record` を `ResponseEntity` で包んで返す API と、`@Controller` で `"redirect:..."` を返す画面用のメソッドを呼びます。
+      `GET /api/items/1`・`GET /api/items/99`・`POST /orders` は、それぞれどのステータスコードになり、本文やヘッダーに何が出るだろうか。出力を予想してから見よう。
     code: |
       // 戻り値で変わるレスポンス:JSON・ResponseEntity・redirect:
       // ここを変えてみよう:存在しない ID(99)を GET する / quantity を変える

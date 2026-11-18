@@ -1,0 +1,36 @@
+- after: Git の基本概念:3つの場所と2つのリポジトリ
+  question: |
+    `git status` がこう出ている。この状態で `git commit -m "…"` すると、コミットに入るのは?
+    ```text
+    Changes to be committed:
+            modified:   README.md
+    Changes not staged for commit:
+            modified:   ShippingService.java
+    ```
+  choices: ["README.md だけ", "ShippingService.java だけ", "両方"]
+  answer: 0
+  explanation: |
+    コミットに入るのは、ステージにある `Changes to be committed` の側だけ。`Changes not staged for commit` は作業ツリーで変えただけなので、`ShippingService.java` の変更は作業ツリーに残る。
+- after: .gitignore:コミットしないものを決める
+  question: |
+    `.gitignore` に `data/`(先頭の `/` なし)と書いた。スマホ版の教材フォルダ `m/data/` はどうなる?
+  choices:
+    - "無視される"
+    - "無視されない(リポジトリ直下の data だけが対象)"
+  answer: 0
+  explanation: |
+    `/` の無い `data/` は、どの階層にある `data` フォルダにも当たるので、`m/data/` まで無視される。リポジトリ直下だけにしたいなら、先頭に `/` を付けて `/data/` と書く。
+- after: コンフリクトの解消
+  question: |
+    `git pull` で相手の変更をマージしたら、設定ファイルがこうなった。あなたが書いた値はどっち?
+    ```text
+    <<<<<<< HEAD
+    timeout=30
+    =======
+    timeout=60
+    >>>>>>> 4f2a9c1
+    ```
+  choices: ["timeout=30", "timeout=60"]
+  answer: 0
+  explanation: |
+    `<<<<<<< HEAD` から `=======` までが自分の変更、`=======` の下が取り込んだ相手の変更。どちらを残すかは相手と確認して決め、印の行を消してからコミットする。設定ファイルは印が残ってもコンパイルエラーにならないので、消し忘れに気をつける。

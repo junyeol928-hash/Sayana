@@ -1,0 +1,25 @@
+- after: 3種類のプロジェクトの違い
+  question: |
+    **Java Project** で作った小さなツールを、STS の入っていない CI サーバーでビルドしたい。そのままでできる?
+  choices:
+    - "できない。設定が Eclipse 独自で、`pom.xml` が無い"
+    - "できる。`mvn` のコマンドでビルドできる"
+  answer: 0
+  explanation: |
+    Java Project は STS(Eclipse)の設定だけで動き、STS の外ではビルドできない。`mvn` / `mvnw` でビルドできるのは、`pom.xml` を持つ Maven Project(Spring Starter Project も中身はこれ)。
+- after: エラーが消えないときの順番
+  question: |
+    STS を開いたまま、エクスプローラー(STS の外)で `.java` ファイルを書き換えた。STS のエディタは古い内容のまま。まず試すのは?
+  choices: ["F5(Refresh)", "Maven > Update Project...", "Project > Clean..."]
+  answer: 0
+  explanation: |
+    STS の外で変えたファイルは、まず F5 で読み込み直す。Update Project は `pom.xml` から設定を作り直す一手、Clean はコンパイル結果を捨ててビルドし直す一手で、どちらも外での編集を読み込むためのものではない。
+- after: Boot Dashboard で起動・停止、そして 8080
+  question: |
+    demo を起動して `http://localhost:8080` を開いたら、**Whitelabel Error Page**(404)が出た。いまの状態は?
+  choices:
+    - "サーバーは動いている。その URL に応える画面をまだ作っていないだけ"
+    - "サーバーの起動に失敗している"
+  answer: 0
+  explanation: |
+    Whitelabel Error Page は、起動した Spring Boot が返している 404 のページ。「サーバーは動いている」の証拠になる。起動に失敗していれば Console に失敗の理由が出て、demo はこのページを返せない。

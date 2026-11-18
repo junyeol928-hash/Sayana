@@ -1,0 +1,32 @@
+- after: まず覚える12個
+  question: |
+    JDK に入っている `String` クラスのソースを開いて読みたい。押すのは?
+  choices: ["Ctrl+Shift+T(型を開く)", "Ctrl+Shift+R(リソースを開く)"]
+  answer: 0
+  explanation: |
+    **T**(Type)は Java の型を、JDK や Maven で取ってきたライブラリの中まで含めて探す。**R**(Resource)はワークスペース内のファイルが対象で、ライブラリの中は探せない。`application.properties` を開くなら R。
+- after: リファクタリング機能
+  question: |
+    `int sum = 0;` から `for` の行までの 3 行を選んで **Alt+Shift+M**(メソッド抽出)を押した。どうなる?
+    ```java
+    int sum = 0;
+    int count = 0;
+    for (int p : prices) { sum += p; count++; }
+    System.out.println(sum / count);
+    ```
+  choices:
+    - "抽出できない(`Ambiguous return value`)"
+    - "`int` を返すメソッドができる"
+    - "`void` のメソッドができる"
+  answer: 0
+  explanation: |
+    選択範囲の中で値が決まり、後ろの `println` でも使う変数が `sum` と `count` の 2 つある。Java のメソッドは戻り値を 1 つしか返せないので、抽出できない。`sum` の計算だけを選ぶなど、範囲を変えれば抽出できる。
+- after: 保存時アクション(Save Actions)
+  question: |
+    古いプロジェクトで、保存時のフォーマット(Format source code)を有効にした。1 行だけ直して保存したら、差分が数百行になった。どう設定すればよかった?
+  choices:
+    - "フォーマットを Format edited lines(編集した行だけ)にする"
+    - "Organize imports のチェックを外す"
+  answer: 0
+  explanation: |
+    ファイル全体をフォーマットすると、直していない古い行の書き方までまとめて変わる。既存コードでは編集した行だけに絞るのが無難。インポート整理が変えるのは import 文だけで、数百行の差分の原因ではない。

@@ -1,0 +1,28 @@
+- after: pom.xml を読む(このアプリ自身が教材)
+  question: |
+    `<build><plugins>` に `maven-compiler-plugin` も `maven-surefire-plugin` も書いていない `pom.xml`。`./mvnw test` で、コンパイルとテストは動く?
+  choices:
+    - "動く。よく使うプラグインは書かなくても組み込まれている"
+    - "動かない。使うプラグインは全部 `<plugins>` に書く必要がある"
+  answer: 0
+  explanation: |
+    コンパイルもテストも実際の仕事はプラグインがするが、よく使うものは最初から組み込まれている。`<plugins>` に書くのは、`spring-boot-maven-plugin` のように追加したいものか、設定を変えたいものだけ。
+- after: ライフサイクルとよく使うコマンド
+  question: |
+    前回のビルドの残り(`target/` の古いファイル)を消してから、jar を作り直したい。打つコマンドは?
+  choices:
+    - "`./mvnw clean package`"
+    - "`./mvnw package`(前のフェーズとして clean も走る)"
+    - "`./mvnw install`(全フェーズを含むので clean も走る)"
+  answer: 0
+  explanation: |
+    フェーズを指定すると前のフェーズが全部走るが、`clean` は別のライフサイクルなので含まれない。`package` や `install` だけでは `target/` は消えず、`clean package` のように並べて指定する。
+- after: よくあるトラブル
+  question: |
+    プロキシの設定を直したのに、`... was cached in the local repository, resolution will not be reattempted ...` と出て、依存を取り直してくれない。どうする?
+  choices:
+    - "`-U` を付けて実行する(STS なら Update Project の Force Update)"
+    - "STS を再起動してから、もう一度ビルドする"
+  answer: 0
+  explanation: |
+    一度ダウンロードに失敗すると、`~/.m2` に `.lastUpdated` という印が残り、しばらく再試行されない。`./mvnw -U …` で強制的に取り直す。印は `~/.m2` のファイルなので、STS を再起動しても残る。

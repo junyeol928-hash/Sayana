@@ -1,0 +1,23 @@
+- after: ステップ実行:F5・F6・F7・F8
+  question: |
+    `int sum = 0;` のブレークポイントで止め、F6 で進めて、いま `average` の `for` の中にいる。ループの残りは見なくてよいので、`average` を最後まで実行して `main` に戻りたい。押すキーは?
+  choices: ["F7(Step Return)", "F6(Step Over)", "F5(Step Into)"]
+  answer: 0
+  explanation: |
+    F7 は今のメソッドを最後まで実行して、呼び出し元に戻る。F6 は 1 行ずつ進むので、ループの回数だけ押すことになる。F5 は呼び出し先のメソッドに入る方向のキー。
+- after: 条件付きブレークポイントと例外ブレークポイント
+  question: |
+    どこかで `NullPointerException` が起きるが、どの行か目星がつかない。投げられた瞬間の変数を見たい。使うのは?
+  choices: ["例外ブレークポイント", "条件付きブレークポイント", "Drop to Frame"]
+  answer: 0
+  explanation: |
+    **Run > Add Java Exception Breakpoint...** で `NullPointerException` を選ぶと、投げられた瞬間に止まり、そのときの変数が全部見える。条件付きは「置いた行で、条件が true のとき」止まるので、行の目星が要る。Drop to Frame はメソッドの先頭からやり直す機能。
+- after: Spring Boot アプリを止める
+  question: |
+    Controller のメソッドに置いたブレークポイントで、ブラウザからのリクエストが止まった。**Debug** ビューで止まっているスレッドは?
+  choices:
+    - "`http-nio-8080-exec-1` のような Tomcat のスレッド"
+    - "`main` スレッド"
+  answer: 0
+  explanation: |
+    Web アプリでは、リクエストごとに Tomcat のリクエスト処理スレッドが Controller を呼ぶ。止まるのはそのスレッドで、`main` ではない。F8 で再開すると、ブラウザに結果が返る。

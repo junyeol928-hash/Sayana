@@ -13,7 +13,7 @@ goals:
 samples:
   - title: 同じバイト列を違う文字コードで読む
     description: |
-      ファイルの中身はただのバイト列です。STS の文字コード設定がずれたときの「文字化け」を、ここで再現してみましょう。
+      ファイルの中身はただのバイト列です。UTF-8 で「保存」したバイト列を MS932 で読むと、そして逆向きに読むと、どう表示されるだろうか。STS の文字コード設定がずれたときに起きることを、出力を予想してから確かめよう。
     code: |
       import java.nio.charset.Charset;
       import java.nio.charset.StandardCharsets;

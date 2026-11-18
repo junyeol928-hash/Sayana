@@ -1,0 +1,25 @@
+- after: 「STS を動かす Java」と「プロジェクトの JDK」は別物
+  question: |
+    あなたの JDK 21 は `C:\dev\jdk-21`、同僚の JDK 21 は `D:\java\jdk-21` にある(同僚も Installed JREs に登録済み)。あなたが作ったプロジェクトを、同僚の STS でそのまま開くと?
+  choices:
+    - "同僚の STS が自分の JDK 21 に対応づけて、そのまま開ける"
+    - "あなたの JDK のパスが記録されているので、JDK が見つからないエラーになる"
+  answer: 0
+  explanation: |
+    プロジェクトに記録されるのは `C:\dev\jdk-21` のようなパスではなく、`JavaSE-21` という実行環境の名前だけ。各 PC の STS が、その名前を自分の JDK 21 に対応づける。だから置き場所が人によって違っても開ける。
+- after: 文字コードを UTF-8 にする
+  question: |
+    ワークスペースの Text file encoding が MS932 のまま。`pom.xml` に `project.build.sourceEncoding` = UTF-8 と書いてある Maven プロジェクトの `.java` は、STS でどちらとして読まれる?
+  choices: ["UTF-8", "MS932"]
+  answer: 0
+  explanation: |
+    Maven プロジェクトでは、STS(m2e)が `pom.xml` の `project.build.sourceEncoding` を読んで、プロジェクト単位で UTF-8 を設定する。ワークスペースの MS932 に従うのは、Maven を使わないプロジェクトやテキストファイル。
+- after: よくあるトラブル
+  question: |
+    自分が作ったアプリを STS から実行したら `OutOfMemoryError: Java heap space` で落ちた。メモリの上限を増やす場所は?
+  choices:
+    - "実行構成(Run Configurations)の VM arguments"
+    - "STS の `.ini` の `-Xmx`(`-vmargs` より後ろ)"
+  answer: 0
+  explanation: |
+    STS 本体とアプリは別の JVM。`.ini` の `-Xmx` は STS 自体の上限で、アプリのメモリは実行構成の VM arguments で指定する。STS が重いときに触るのが `.ini` のほう。

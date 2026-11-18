@@ -13,8 +13,8 @@ samples:
   - title: テンプレート文字列を描画してみる
     libraries: [spring, thymeleaf]
     description: |
-      Thymeleaf のエンジンに、テンプレート(文字列)と値を渡して HTML を作ります。`th:text` と `th:utext` の違い、
-      ステータス変数、`th:if` / `th:unless`、`#numbers` / `#temporals` の結果を確かめましょう。`th:` の属性が出力に残らないことにも注目。
+      Thymeleaf のエンジンに、テンプレート(文字列)と値を渡して HTML を作ります。`<b>本日</b>` は `th:text` と `th:utext` でどう違って出るか、
+      `<特価>` の付いた商品名や在庫 0 の行はどうなるか、`th:` の属性は出力に残るか。出力を予想してから見よう。
     code: |
       // テンプレート文字列を Thymeleaf で描画してみる
       // ここを変えてみよう:th:text を th:utext に / 在庫を 0 に / 商品を増やす
@@ -61,7 +61,7 @@ samples:
     libraries: [spring, thymeleaf]
     description: |
       `@Controller` が Model に値を入れてビュー名を返し、ThymeleafViewResolver がテンプレートを描画する、本物と同じ流れを MockMvc で動かします。
-      `templates/` フォルダの代わりに `Map` からテンプレートを探しています。共通ヘッダーのフラグメントと、コンテキストパス `/shop` が `@{...}` で自動的に付く様子も見られます。
+      `templates/` フォルダの代わりに `Map` からテンプレートを探しています。共通ヘッダーのフラグメントはどう差し込まれ、`@{...}` のリンクにコンテキストパス `/shop` は付くだろうか。出力を予想してから見よう。
     code: |
       // Controller → Model → ビュー名 → Thymeleaf の流れを MockMvc で動かす
       // ここを変えてみよう:Model に入れる値 / テンプレート / コンテキストパス

@@ -11,7 +11,7 @@ goals:
   - Spring Boot アプリをデバッグ起動し、リクエスト処理中のスレッドで止められる
 samples:
   - title: off-by-one バグを再現する
-    description: レッスン本文の「平均点が低く出る」バグです。デバッガの Variables ビューで見える `i` と `sum` の変化を、ここでは println で再現しています。ループの開始値を直すと 80.0 になります。
+    description: レッスン本文の「平均点が低く出る」バグです。デバッガの Variables ビューで見える `i` と `sum` の変化を、ここでは println で再現しています。`i` はいくつから始まり、`a[0]` の 80 は `sum` に足されるだろうか。出力を予想してから見よう。
     code: |
       // 平均点が低く出るバグ(off-by-one)を再現する
       // ここを変えてみよう:int i = 1 を int i = 0 に直して再実行する
@@ -30,7 +30,7 @@ samples:
       System.out.println("平均: " + average(scores)); // 期待: 80.0
   - title: 参照の共有バグを再現する
     description: |
-      「コピーしたつもり」で同じ ArrayList を2つの変数から指しているバグです。デバッガの Variables ビューでは、2つの変数に同じ `(id=…)` が表示されます。ここでは代わりに `System.identityHashCode`(オブジェクトごとの識別用の数値)を出しています。この数値は実行するたびに変わります。
+      「コピーしたつもり」の 2 つの変数 `orderA` と `orderB` です。`orderA` に足したボールペンは、`orderB` からも見えるだろうか。デバッガなら Variables ビューの `(id=…)` を見比べるところを、ここでは `System.identityHashCode`(オブジェクトごとの識別用の数値)で出しています。この数値は実行するたびに変わります。出力を予想してから見よう。
     code: |
       // 「コピーしたつもり」で同じリストを共有してしまうバグ
       // ここを変えてみよう:orderB の行を new ArrayList<>(template) にする

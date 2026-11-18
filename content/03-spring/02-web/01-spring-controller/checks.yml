@@ -1,0 +1,36 @@
+- after: HTTP を3分でおさらい
+  question: |
+    ①キーワードで商品を検索するフォーム、②会員登録のフォーム。POST で送るべきなのは?
+  choices: ["② だけ", "① だけ", "両方"]
+  answer: 0
+  explanation: |
+    検索はデータを変えない「取得」で、何度送っても困らないので GET。会員登録はデータを作るので POST。「フォームだから POST」ではなく、何をしたいかで決める。
+- after: マッピングとパラメータの受け取り
+  question: |
+    `GET /list?page=`(`page` の値が空)を送ると、レスポンスは?
+    ```java
+    @GetMapping("/list")
+    public String list(@RequestParam(defaultValue = "1") int page) {
+        return "page=" + page;
+    }
+    ```
+  choices: ["page=1", "400 Bad Request", "page=0"]
+  answer: 0
+  explanation: |
+    `defaultValue` を付けると、パラメータが無いときだけでなく、`?page=` のように空文字のときも既定値が使われる。だから `page=1`。`int` に空文字を変換しようとして 400 になる、とはならない。
+- after: 戻り値いろいろ:JSON・ステータス・リダイレクト
+  question: |
+    `@RestController` の中の次のメソッドに `GET /p` を送った。レスポンスの本体は?
+    ```java
+    record Point(int x, int y) {}
+
+    @GetMapping("/p")
+    public Point p() { return new Point(3, 4); }
+    ```
+  choices:
+    - '`{"x":3,"y":4}`'
+    - '`Point[x=3, y=4]`'
+    - "テンプレート `p` を描画した HTML"
+  answer: 0
+  explanation: |
+    オブジェクトを返すと、HttpMessageConverter(中身は Jackson)が JSON に変換する。`Point[x=3, y=4]` は `toString()` の結果で、本体には使われない。テンプレートを描画するのは `@Controller` で文字列(ビュー名)を返したとき。

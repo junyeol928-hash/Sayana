@@ -11,7 +11,7 @@ goals:
   - 起動ログ・APPLICATION FAILED TO START・--debug の自動設定レポートを読んで原因を探せる
 samples:
   - title: 「利用者が定義していなければ既定を使う」を真似る
-    description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定を登録するかどうかで振る舞いが変わります。
+    description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定(`UserConfig`)が無い 1 回目と、ある 2 回目で、`alert` のメッセージはそれぞれどの Notifier で送られるだろうか。出力を予想してから見よう。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.*;
