@@ -226,6 +226,8 @@ button { font: inherit; letter-spacing: inherit; }
 .net-badge.off::before { background: var(--shu); }
 .net-badge.saved { display: inline-flex; }
 .net-badge.saved::before { background: var(--accent); }
+.net-badge.saving { display: inline-flex; }
+.net-badge.saving::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--accent); } /* 保存中は輪(塗りきった点が「保存済み」) */
 .is-offline .ask { color: var(--ink-muted); } /* 電波がない間は AI に聞けないので弱く(押すと理由を出す) */ /* 有彩色は藍と朱だけ。朱は地図の主役の印と復習の数にとっておく */
 .ai-badge.on { color: var(--ok); }
 .site-footer { max-width: 1320px; margin: 72px auto 24px; padding: 20px 28px 0; display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: .8125rem; flex-wrap: wrap;
@@ -343,7 +345,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-kicker { font-size: .875rem; color: var(--ink-muted); margin: 0; display: flex; gap: 4px 14px; flex-wrap: wrap; }
 .today-title { font-weight: 900; line-height: 1.06; letter-spacing: -.03em; margin: 8px 0 24px; color: var(--ink); text-wrap: balance; }
 .today-title a { color: inherit; text-decoration: none; }
-.phrase { display: inline-block; max-width: 100%; } /* phraseWrap: 語の途中で折らない */
+.phrase { display: inline-block; max-width: 100%; white-space: nowrap; } /* phraseWrap: 語の途中で折らない。長音記号の負の余白で箱の幅が足りず、「ー」だけが箱の中で次の行へ落ちていた(「復習キュー」) */
 .choon { margin-inline: -.15em; } /* 見出しの書体は palt がなく、長音記号の両側が空いて「コ ー ド」に見える */
 .phrase.gap { margin-inline-end: .22em; } /* 箱の切れ目では text-autospace が効かないので、和欧の空きを足す(後ろに付ければ、行末で折れても見えない) */
 .today-title a:hover { color: var(--accent-ink); }
@@ -361,7 +363,7 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .today-next .dye { width: 18px; height: 18px; }
 .today-next .tn-hint { color: var(--ink-muted); font-size: .875rem; margin-left: .6em; }
 .install-hint .close { flex: none; min-width: 44px; min-height: 44px; margin: 0 0 0 -4px; border: 0; background: none; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; }
-.save-state.ok::before { background: var(--ok); }
+.save-state.ok::before { background: var(--accent); } /* 緑は 3 つ目の色相になるので使わない */
 .save-state.ng::before { background: var(--shu); }
 .today-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .today .btn.primary { min-width: 240px; min-height: 56px; font-size: 1.0625rem; letter-spacing: .08em; }
@@ -396,6 +398,11 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
 .unshin i.now { position: relative; }
 .unshin i.now::before { content: ""; position: absolute; left: 0; right: 50%; top: .5px; height: 3px; border-radius: 2px; background: currentColor; }
 .unshin i.now::after { content: ""; position: absolute; left: calc(50% - 5.5px); top: -3.5px; width: 11px; height: 11px; border-radius: 50%; background: var(--shu); }
+/* その日はじめて開いたとき: 済んだ段の糸を 1 本 240ms で左から縫い(120ms ずつずらす)、最後に朱の玉結びを染み込ませる */
+.unshin.sewing i.sewn, .unshin.sewing i.now::before { animation: sew-in .24s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 120ms); transform-origin: left center; }
+.unshin.sewing i.now::after { animation: knot-in .56s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 120ms + 200ms); }
+@keyframes knot-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .unshin.sewing i.sewn, .unshin.sewing i.now::before, .unshin.sewing i.now::after { animation: none; } }
 .unshin-cap { display: flex; justify-content: space-between; gap: 12px; font-size: .8125rem; color: var(--ink-muted); margin: 8px 0 0; }
 .unshin-cap b { color: var(--ink); }
 
@@ -696,7 +703,7 @@ pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 14px; }
 .trace li::before { content: ""; position: absolute; left: 2px; top: .85em; width: 8px; height: 2px; background: var(--accent); }
 .trace-title { font-size: .8125rem; font-weight: 700; color: var(--ink-muted); margin: 14px 0 0; }
 .verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.05rem; }
-.verdict.correct { color: var(--ok); }
+.verdict.correct { color: var(--accent-ink); } /* 正解はクイズと同じ藍(緑は 3 つ目の色相になる) */
 .verdict.wrong { color: var(--shu); }
 .reading-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 20px; }
 .reading-filter button { flex: 1 1 auto; } /* 絞り込みの行は本文の左右の端までそろえる(格子からはみ出さず、手前で止まらない) */
@@ -844,6 +851,16 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .hint-title { font-weight: 700; color: var(--ki); font-size: .875rem; }
 .hint-3 { background: var(--shu-soft); }
 .hint-count { font-size: .8em; margin-left: 2px; color: var(--ink-muted); }
+/* スマホ版のサンプルの実行結果(予想してから開く)。開く前は模範解答の欄と同じ形 */
+.sample-result { margin: 4px 0 0; }
+.sample-result > summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.sample-result > summary::-webkit-details-marker { display: none; }
+.sample-result > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -4px; transition: transform .16s var(--ease); }
+.sample-result[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.sample-result .run-result { margin-top: 0; background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 0 var(--r-m) var(--r-m) 0; padding: 10px 12px; }
+.sample-result .run-result.status-exception { border-left-color: var(--shu); }
+.sample .sample-result pre { margin-left: 0; margin-right: 0; border-radius: var(--r-s); padding: 10px 12px; }
+.sample-result .console { white-space: pre-wrap; overflow-wrap: break-word; line-break: strict; } /* 出力は書き写さないので、箱の幅で折り返して読ませる */
 .solution { margin: 4px 0; }
 .solution summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 .generated-list { padding-left: 1.2em; }
@@ -858,12 +875,12 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .quiz-wrong a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; font-weight: 700; }
 .quiz-next { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .quiz-ai { margin: 12px 0 0; display: flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: .9375rem; } /* 次の段の条件(ボタンが演習へ行くので、ここはリンクにしない) */
-.quiz-q .q-explain { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: .9375rem; }
-.quiz-q .q-explain { border-left: 3px solid var(--accent); border-radius: 0 var(--r-m) var(--r-m) 0; }
-.quiz-q .q-explain.wrong { border-left-color: var(--shu); }
-.quiz-q .q-explain.wrong .q-mark { color: var(--ng); }
-.quiz-q .q-explain.correct .q-mark { color: var(--accent-ink); }
-.quiz-q .q-explain .q-mark { display: block; margin-bottom: 4px; }
+.q-explain { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: .9375rem; }
+.q-explain { border-left: 3px solid var(--accent); border-radius: 0 var(--r-m) var(--r-m) 0; }
+.q-explain.wrong { border-left-color: var(--shu); }
+.q-explain.wrong .q-mark { color: var(--ng); }
+.q-explain.correct .q-mark { color: var(--accent-ink); }
+.q-explain .q-mark { display: block; margin-bottom: 4px; }
 .quiz-q > .md::before { content: "問 " counter(qq); display: block; font-size: .75rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .06em; }
 .choice {
   display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; margin: 8px 0;
@@ -887,6 +904,19 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .choice.is-wrong input:checked { border-color: var(--shu); background: var(--surface); }
 .choice.is-wrong input::after { width: 10px; height: 10px; border-radius: 0; transform: none;
   background: linear-gradient(45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--shu) 42% 58%, transparent 58%); }
+/* 手を止めて(checks.yml): 本文の途中で思い出す 1 問。クイズと同じ選択肢の部品に、左の藍の線(読む流れの中の「間」) */
+.check { margin: 32px 0; padding: 14px 16px 6px; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 var(--r-m) var(--r-m) 0; }
+.check-label { margin: 0 0 6px; font-size: .8125rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .08em; }
+.check-q > :first-child { margin-top: 0; }
+.check-q > :last-child { margin-bottom: 0; }
+.check .choice { grid-template-columns: minmax(0, 1fr); width: 100%; text-align: left; font: inherit; color: var(--ink); }
+.check .choice:disabled { cursor: default; }
+.check .choice:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.check-explain { margin: 4px 0 10px; }
+.check-explain .q-mark { display: block; margin-bottom: 2px; }
+.check-explain.correct .q-mark { color: var(--accent-ink); }
+.check-explain.wrong .q-mark { color: var(--ng); }
+.check-explain > :last-child { margin-bottom: 0; }
 .quiz-result { margin-top: 20px; }
 .quiz-score { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; } /* 点・刺し子の目・合否の 3 つを同じ中心線に */
 .quiz-score .big .slash { font-size: .6em; margin: 0 .2em; color: var(--ink-muted); font-weight: 400; vertical-align: .15em; }
@@ -932,9 +962,24 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 /* ================================================================ 復習・その他 */
 .page-title { font-size: 2rem; margin: 8px 0 4px; }
 .page-lead { color: var(--ink-muted); margin: 0 0 20px; }
+/* 復習: 残りの数と、1・3・7・14 日の 4 目の運針(縫えた目は糸、今回の目に朱の玉結び) */
+.review-head { display: grid; gap: 10px; margin: 4px 0 8px; }
+.review-head .review-progress { margin: 0; }
+.review-head .review-progress span { font-size: .875rem; }
+.review-stitch { max-width: 360px; }
+.review-stitch .unshin i.sewn.just { animation: sew-in .56s cubic-bezier(.22, 1, .36, 1) both; transform-origin: left center; }
+@keyframes sew-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .review-stitch .unshin i.sewn.just { animation: none; } }
+.review-mix { margin: 0 0 12px; }
+.review-about { margin: 0 0 12px; font-size: .875rem; color: var(--ink-muted); }
+.review-about > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.review-source { font-size: .875rem; color: var(--ink-muted); margin: 10px 0 0; }
+.review-next { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 12px; }
+.review-next .review-note { margin: 0; }
 .review-progress { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--ink-muted); font-size: .9375rem; }
 .review-progress b { color: var(--ink); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .review-quiz { padding: 22px 24px; }
+@media (max-width: 760px) { .review-quiz { padding: 16px 14px; } } /* カードの中の解説が 1 行 16 字ほどに細っていた(18 回目の審査) */
 .empty-state { text-align: left; }
 .filter select { font: inherit; font-size: 16px; padding: 6px 10px; border-radius: var(--r-m); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
 .settings label { display: block; font-weight: 700; margin-top: 14px; font-size: .9375rem; }

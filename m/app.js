@@ -135,6 +135,12 @@ function practice(ref, type, lessonId, correct) {
 function reviewAnswer(ref, correct) {
   const item = S.review[ref];
   const t = today();
+  item.last = Date.now();
+  // 今日の復習の数と正解(復習の画面の上と、終わったときに見せる)
+  const log = S.reviewLog = S.reviewLog || {};
+  // 同じ問題を 1 日に 2 回解いたら 1 問と数える(PC版の ReviewService#todayTally と同じ)。最後の答えの正誤で数える
+  log[t] = { refs: Object.assign({}, log[t]?.refs, { [ref]: correct }) };
+  for (const d of Object.keys(log)) if (d < addDays(t, -60)) delete log[d];
   if (!correct) {
     Object.assign(item, { stage: 0, due: addDays(t, INTERVALS[0]), graduated: false, lapses: item.lapses + 1 });
   } else {
@@ -159,6 +165,39 @@ function dueItems() {
     .filter(([, it]) => !it.graduated && it.due <= t)
     .sort((a, b) => a[1].due.localeCompare(b[1].due));
 }
+
+/**
+ * 次に出す復習。同じレッスンの問題を続けて出さず、いちばん長く復習していないレッスンから出す(交互に混ぜる)。
+ * 似た問題を続けて解くより、混ぜて解くほうが「どの知識を使う問題か」を見分ける力がつく。PC版の ReviewService と同じ規則
+ */
+function nextDue(due) {
+  const lastByLesson = {};
+  for (const it of Object.values(S.review)) {
+    if (it.last && (lastByLesson[it.lessonId] || 0) < it.last) lastByLesson[it.lessonId] = it.last;
+  }
+  let best = due[0];
+  for (const e of due) if ((lastByLesson[e[1].lessonId] || 0) < (lastByLesson[best[1].lessonId] || 0)) best = e;
+  return best;
+}
+
+/** 選択肢の並び。復習では位置で覚えてしまわないよう入れ替える。同じ日は同じ並び(開き直しても変わらない) */
+function choiceOrder(n, seed) {
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    const j = ((h ^ (h >>> 16)) >>> 0) % (i + 1);
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
+const todayReviewed = () => {
+  const refs = Object.values(S.reviewLog?.[today()]?.refs || {});
+  return { n: refs.length, ok: refs.filter(Boolean).length };
+};
 
 // ------------------------------------------------------------ データ
 
@@ -280,11 +319,30 @@ function stepStates(l) {
   return keys.map((key) => ({ key, done: done[key] }));
 }
 // 運針(うんしん): 段を刺し子の針目で見せる。済んだ段は糸、いまの段は玉結び、まだの段は針穴
+/** 今日はじめての表示か(ホームの運針を 1 回だけ縫う)。記録はこのブラウザの中だけ */
+// スマホ版は 1 枚の画面でホームを何度も描くので、縫うのはこの表示で最初の 1 回だけ
+let sewToday;
+function firstOpenToday() {
+  if (sewToday !== undefined) return false;
+  sewToday = false;
+  const key = "javadojo-sewn-day";
+  const d = new Date().toLocaleDateString("sv");
+  try {
+    if (localStorage.getItem(key) === d) return false;
+    localStorage.setItem(key, d);
+    return (sewToday = true);
+  } catch (e) {
+    return false;
+  }
+}
+
 function unshin(steps, nowKey) {
   const n = steps.filter((st) => st.done).length;
   const label = `${steps.length} 段のうち ${n} 段済み${nowKey ? `。次は${SECTION_LABEL[nowKey]}` : ""}`;
-  return `<div class="unshin" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st) =>
-    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}"></i>`).join("")}</div>
+  // その日はじめて開いたときだけ、済んだ段の糸を左から縫い、最後に朱の玉結びを染み込ませる(1 秒以内。動きの種類は縫う・染みるの 2 つのまま)
+  const sew = firstOpenToday();
+  return `<div class="unshin${sew ? " sewing" : ""}" role="img" aria-label="${label}" style="--steps: ${steps.length}">${steps.map((st, i) =>
+    `<i class="${st.key === nowKey ? "now" : st.done ? "sewn" : ""}" style="--i: ${i}"></i>`).join("")}</div>
     <p class="unshin-cap" aria-hidden="true"><span>${steps.length} 段のうち <b>${n} 段</b>済み</span>${nowKey ? `<span>次は <b>${SECTION_LABEL[nowKey]}</b></span>` : ""}</p>`;
 }
 
@@ -348,8 +406,11 @@ function updateHeader() {
   const net = $("#net");
   // 全部保存できたら、ヒーローの説明の代わりにヘッダーの小さな印で知らせる(ヒーローは次の一手だけにする)
   // 電波がなくても全部保存してあれば、警告ではなく「読める」と言う(朱は、保存が欠けていて読めないものがあるときだけ)
-  net.textContent = !navigator.onLine ? (savedAll ? "電波なし・保存済み" : "オフライン") : savedAll ? "保存済み" : "オンライン";
-  net.title = savedAll ? "全レッスンと図を保存済み。電波なしで読めます" : "";
+  // 電波があって保存し終えていない間は「保存中」(輪の印。失敗ではないので朱にしない)
+  const saving = navigator.onLine && !savedAll && "caches" in window && "serviceWorker" in navigator;
+  net.textContent = !navigator.onLine ? (savedAll ? "電波なし・保存済み" : "オフライン") : savedAll ? "保存済み" : saving ? "保存中" : "オンライン";
+  net.title = savedAll ? "全レッスンと図を保存済み。電波なしで読めます" : saving ? "電波なしでも読めるように、レッスンと図を保存しています" : "";
+  net.classList.toggle("saving", saving);
   net.classList.toggle("off", !navigator.onLine && !savedAll);
   net.classList.toggle("saved", savedAll);
   // 電波がない間は、AI に聞く「質問」を弱くして先に知らせる
@@ -486,16 +547,17 @@ async function homeSaveState(all) {
     const ready = !!navigator.serviceWorker.controller && hits.every(Boolean);
     const figures = await mermaidCached();
     if (!$("#save-state")) return;
-    // 準備中は失敗ではないので、注意の朱ではなく静かな色の点
-    el.className = "save-state " + (ready ? "ok" : navigator.serviceWorker.controller ? "ng" : "");
-    // 保存し終えたら説明はヘッダーの印に任せ、読み上げ用に残す。準備中や失敗のときだけヒーローに見せる
+    // 保存の途中(初めて開いた直後・図だけ残っている)はヘッダーの「保存中」に任せ、ヒーローには出さない(読み上げ用に残す)。
+    // ヒーローに文で出すのは、Service Worker が動いているのにレッスンが欠けているときだけ(18 回目の審査)
+    const partial = !ready && !!navigator.serviceWorker.controller;
+    el.className = "save-state " + (partial ? "ng" : ready ? "ok" : "");
     savedAll = ready && figures;
     S.allSaved = savedAll;
     save();
-    el.classList.toggle("visually-hidden", savedAll);
+    el.classList.toggle("visually-hidden", !partial);
     updateHeader();
     el.textContent = ready && figures ? `保存済み(全 ${all.length} レッスンと図)。電波なしで読めます`
-      : ready ? `保存済み(全 ${all.length} レッスン)。図は次に電波のある所で開くと保存`
+      : ready ? (navigator.onLine ? `保存済み(全 ${all.length} レッスン)。図を保存しています` : `保存済み(全 ${all.length} レッスン)。図は次に電波のある所で開くと保存`)
       : !navigator.serviceWorker.controller ? "保存の準備中。次に電波のある所で開くと、電波なしで読めます"
       : `保存済み ${n} / ${all.length}。次に電波のある所で開くと残りも保存`;
   } catch (e) {
@@ -578,15 +640,15 @@ async function renderLesson(id) {
     ${L.samples.length ? `
     <section id="run" class="lesson-section" aria-labelledby="run-title">
       ${title("run", "サンプルを見る")}
-      <p class="run-note">スマホ版ではコードを実行できません。出力を予想しながら読んで、PC版か Codespaces 版で動かしてみましょう。</p>
+      <p class="run-note">まず出力を<b>予想</b>してから、「実行結果を見る」で答え合わせ。予想と違った所が、いちばん身につく所です。書き換えて試すのは PC版か Codespaces 版で。</p>
       ${L.samples.map((s) => `<div class="sample"><h3>${esc(s.title)}</h3><div class="md">${s.descriptionHtml}</div>
-        <pre><code class="language-java">${esc(s.code)}</code></pre></div>`).join("")}
+        <pre class="code-lines"><code class="language-java">${esc(s.code)}</code></pre>${sampleResult(s.result)}</div>`).join("")}
     </section>` : ""}
     <section id="quiz" class="lesson-section" aria-labelledby="quiz-title">
       ${title("quiz", "クイズ")}
       <form class="quiz" data-action="quiz">
-        <ol>${L.quiz.map((q, i) => `<li class="quiz-q"><div class="md">${q.questionHtml}</div>
-          ${q.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="q${i}" value="${j}"><span>${c}</span></label>`).join("")}</li>`).join("")}</ol>
+        <ol>${L.quiz.map((q, i) => `<li class="quiz-q"><div class="md" id="qq-${i}">${q.questionHtml}</div>
+          <div class="quiz-choices" role="radiogroup" aria-labelledby="qq-${i}">${choiceOrder(q.choicesHtml.length, `${L.id}#${i}|${S.quiz[L.id]?.n || 0}`).map((j) => `<label class="choice"><input type="radio" name="q${i}" value="${j}"><span>${q.choicesHtml[j]}</span></label>`).join("")}</div></li>`).join("")}</ol>
         <button class="btn primary" type="submit">採点する</button>
       </form>
       <div id="quiz-result" aria-live="polite"></div>
@@ -770,6 +832,19 @@ function trackLesson(id, keys) {
 }
 
 /** 仕事のコード。番号の付いた行を、下の説明と結びつける */
+/** サンプルの実行結果(PC で実行した控え)。予想してから開くように、最初は閉じておく */
+function sampleResult(r) {
+  if (!r) return "";
+  const failed = r.status !== "OK";
+  const body = `${r.output ? `<pre class="console">${esc(r.output)}</pre>` : ""}
+    ${r.values?.length ? `<div class="values">${r.values.map((v) => `<div class="value-line"><span class="arrow" aria-hidden="true">⇒</span> <code>${esc(v)}</code></div>`).join("")}</div>` : ""}
+    ${r.exception ? `<pre class="exception">${esc(r.exception)}</pre>` : ""}
+    ${!r.output && !r.values?.length && !r.exception ? `<p class="muted small">(出力はありません)</p>` : ""}
+    ${r.varies ? `<p class="muted small">スレッドの順番や、@ の後ろの番号(ハッシュコード)などは、実行のたびに変わることがあります。</p>` : ""}`;
+  return `<details class="sample-result"><summary>予想したら、実行結果を見る</summary>
+    <div class="run-result ${failed ? "status-exception" : "status-ok"}"><div class="run-meta"><span class="run-status">${failed ? "× 実行時例外で止まる" : "実行結果"}</span></div>${body}</div></details>`;
+}
+
 function atWorkBlock(a) {
   const notes = Object.entries(a.notesHtml || {});
   return `<article class="atwork">
@@ -783,7 +858,7 @@ function atWorkBlock(a) {
 }
 
 /** 読解の1問。ref は記録と復習のキー(lessonId@番号) */
-function readingCard(r, ref, from) {
+function readingCard(r, ref, from, order) {
   const done = S.reading[ref];
   const lv = Math.max(1, Math.min(3, r.level || 1));
   return `<li class="reading-q" data-ref="${esc(ref)}">
@@ -793,7 +868,7 @@ function readingCard(r, ref, from) {
     <pre class="code-lines"><code class="language-java">${esc(r.code)}</code></pre>
     <form data-action="reading">
       <fieldset style="border:0;padding:0;margin:0"><legend class="reading-question">${r.questionHtml}</legend>
-      ${r.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${c}</span></label>`).join("")}</fieldset>
+      ${(order || choiceOrder(r.choicesHtml.length, ref)).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${r.choicesHtml[j]}</span></label>`).join("")}</fieldset>
       <button class="btn" type="submit">答え合わせ</button>
       ${done ? `<span class="small muted" style="margin-left:8px">前回: ${done.ok ? "正解" : "不正解"}</span>` : ""}
     </form>
@@ -809,9 +884,11 @@ function readingAnswerHtml(r, ok) {
 
 /** 読解フォームの答え合わせ。記録して復習キューに入れる */
 // 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
-function lockAnswer(form, answer, choice, onReset) {
+/** 選択肢に正解とあなたの答えを付ける(色だけでなく文字でも)。並びを入れ替えた復習でも合うよう、位置ではなく値で見る */
+function markChoices(form, answer, choice) {
   const ok = choice === answer;
-  form.querySelectorAll("label.choice").forEach((label, j) => {
+  form.querySelectorAll("label.choice").forEach((label) => {
+    const j = Number(label.querySelector("input").value);
     label.classList.toggle("is-answer", j === answer);
     label.classList.toggle("is-wrong", j === choice && !ok);
     label.querySelector(".choice-tag")?.remove();
@@ -819,6 +896,36 @@ function lockAnswer(form, answer, choice, onReset) {
     if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
   });
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+}
+
+/** 手を止めて: 押したら正解とあなたの答えを付け、理由を出す。記録は onAnswer に任せる */
+function bindChecks(root, onAnswer) {
+  root.querySelectorAll("aside.check").forEach((box) => {
+    const answer = Number(box.dataset.answer);
+    box.querySelectorAll(".check-choices .choice").forEach((b) => {
+      b.onclick = () => {
+        const choice = Number(b.dataset.c);
+        const ok = choice === answer;
+        box.querySelectorAll(".check-choices .choice").forEach((x) => {
+          const j = Number(x.dataset.c);
+          x.disabled = true;
+          x.classList.toggle("is-answer", j === answer);
+          x.classList.toggle("is-wrong", j === choice && !ok);
+          if (j === choice && !ok) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+          if (j === answer) x.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+        });
+        const ex = box.querySelector(".check-explain");
+        ex.classList.add(ok ? "correct" : "wrong");
+        ex.insertAdjacentHTML("afterbegin", `<span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : "不正解"}</span>`);
+        ex.hidden = false;
+        onAnswer(Number(box.dataset.check), ok);
+      };
+    });
+  });
+}
+
+function lockAnswer(form, answer, choice, onReset) {
+  markChoices(form, answer, choice);
   const submit = form.querySelector("button[type=submit]");
   submit.hidden = true;
   let again = form.querySelector("[data-answer-reset]");
@@ -977,6 +1084,8 @@ function bindLesson(L, meta) {
   const root = view();
   const dyeWrap = $(".lesson-dye");
   if (dyeWrap && meta) dyeWrap.dataset.level = dyeLevel(meta);
+  // 手を止めて: 答えた問いは復習(1・3・7・14 日)にも入る
+  bindChecks(root, (i, ok) => { practice(`${L.id}!${i}`, "check", L.id, ok); recordDay(); });
   root.querySelectorAll("textarea.code-input").forEach((ta) => {
     addSymbolBar(ta);
     ta.addEventListener("focus", () => { lastCode = ta.value; });
@@ -1049,6 +1158,10 @@ function bindLesson(L, meta) {
       form.querySelectorAll(".choice-tag").forEach((n) => n.remove());
       form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; });
       form.querySelector("button[type=submit]").hidden = false;
+      form.querySelectorAll(".quiz-choices").forEach((box, i) => {
+        const byValue = new Map([...box.querySelectorAll("label.choice")].map((l) => [Number(l.querySelector("input").value), l]));
+        choiceOrder(byValue.size, `${L.id}#${i}|${S.quiz[L.id]?.n || 0}`).forEach((j) => box.appendChild(byValue.get(j)));
+      });
       $("#quiz-result").innerHTML = "";
       form.scrollIntoView({ behavior: smooth() });
     } else if (action === "clear-chat") {
@@ -1071,7 +1184,8 @@ function bindLesson(L, meta) {
       if (ok) score++;
       if (chosen >= 0) practice(`${L.id}#${i}`, "quiz", L.id, ok);
       const li = form.querySelectorAll(".quiz-q")[i];
-      li.querySelectorAll("label.choice").forEach((label, j) => {
+      li.querySelectorAll("label.choice").forEach((label) => {
+        const j = Number(label.querySelector("input").value); // 並びを入れ替えているので、位置ではなく値で見る
         label.classList.toggle("is-answer", j === q.answer);
         label.classList.toggle("is-wrong", j === chosen && !ok);
         // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
@@ -1086,12 +1200,14 @@ function bindLesson(L, meta) {
     form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
     const submit = form.querySelector("button[type=submit]");
     submit.hidden = true;
+    // 最高点(縹)に数えるのは、その日の最初の採点だけ。答えを見た直後の解き直しは練習(覚えているだけのことがある)
     const prev = S.quiz[L.id];
-    S.quiz[L.id] = { best: Math.max(score, prev?.best ?? 0), last: score };
+    const counted = prev?.day !== today();
+    S.quiz[L.id] = { best: counted ? Math.max(score, prev?.best ?? 0) : (prev?.best ?? 0), last: score, day: today(), n: (prev?.n || 0) + 1 };
     recordDay();
     const dyed = refreshDye(meta);
     const pass = Math.ceil(L.quiz.length * 0.8);
-    if (score >= pass) markStep("quiz");
+    if (S.quiz[L.id].best >= pass) markStep("quiz");
     const wrong = L.quiz.map((q, i) => i).filter((i) => !form.querySelectorAll(".quiz-q")[i].querySelector(".q-explain.correct"));
     form.querySelectorAll(".quiz-q").forEach((li, i) => { li.id = `q-${i + 1}`; });
     // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
@@ -1099,6 +1215,7 @@ function bindLesson(L, meta) {
     const level = meta ? dyeLevel(meta) : 0;
     $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(L.quiz.map((_, i) => !wrong.includes(i)))}
       <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
+      ${score >= pass && S.quiz[L.id].best < pass ? `<p class="muted small">同じ日の解き直しは練習として数えます。縹(クイズ合格)には、明日以降に解き直して ${pass} 問以上(答えを見た直後は、覚えているだけのことがあるため)。</p>` : ""}
       ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
@@ -1311,43 +1428,67 @@ async function renderGlossary() {
 
 // ------------------------------------------------------------ 復習
 
+let reviewBreakAt = "";
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
+  const done = todayReviewed();
   if (due.length === 0) {
     view().innerHTML = `<h1 class="page-title">復習</h1>
       <div class="card empty-state"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
-      <div class="talk-bubble"><p>今日の復習はおしまい。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で順番に出てくるよ。` : "レッスンでクイズや読解を解くと、ここに出てくるよ。"}</p></div></div>
+      <div class="talk-bubble"><p>${done.n ? `今日は ${done.n} 問を思い出して、${done.ok} 問正解。` : ""}今日の復習はおしまい。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で順番に出てくるよ。` : "レッスンでクイズや読解を解くと、ここに出てくるよ。"}</p></div></div>
       <a class="btn primary" href="#/">ホームへ</a></div>`;
     return;
   }
-  const [ref, item] = due[0];
+  // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)
+  if (done.n > 0 && done.n % 10 === 0 && reviewBreakAt !== `${today()}#${done.n}`) {
+    view().innerHTML = `<h1 class="page-title">復習</h1>
+      <div class="card empty-state review-break"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
+      <div class="talk-bubble"><p>今日は ${done.n} 問を思い出して、${done.ok} 問正解。ここで区切っても大丈夫。残り ${due.length} 問は、明日の分と一緒に出すよ。</p></div></div>
+      <div class="review-next"><button class="btn primary" id="go-on">続ける(残り ${due.length} 問)</button><a class="btn" href="#/">今日はここまで</a></div></div>`;
+    $("#go-on").onclick = () => { reviewBreakAt = `${today()}#${done.n}`; renderReview(); };
+    return;
+  }
+  const [ref, item] = nextDue(due);
   const L = await lesson(item.lessonId);
-  const head = `<h1 class="page-title">復習</h1><p class="review-progress">残り <b>${due.length}</b> 問 ·
-    <a href="#/lesson/${esc(L.id)}">${esc(L.title)}</a> <span class="pill">段階 ${item.stage + 1} / 4</span></p>`;
-  const next = (it) => `<p class="review-note">次回: <b>${intervalLabel(it)}</b></p><button class="btn primary" id="next">次の復習へ</button>`;
-  if (item.type === "quiz") {
-    const q = L.quiz[Number(ref.split("#")[1])];
+  const order = (n) => choiceOrder(n, ref + "|" + today());
+  // 答える前は出どころのレッスン名を見せない(どの知識を使う問題かを、自分で見分けるところに混ぜる効き目がある)
+  const head = `<h1 class="page-title">復習</h1>
+    <div class="review-head"><p class="review-progress">残り <b>${due.length}</b> 問${done.n ? `<span>今日 ${done.n} 問済み</span>` : ""}</p>
+    ${reviewStitch(item)}</div>
+    <p class="muted small review-mix">いろいろなレッスンの問題を混ぜて出します。選択肢の並びは日ごとに変わります。</p>`;
+  // 答えたあと: レッスンのクイズと同じ判定の部品 → 出どころ → 次回と次へ
+  const after = (it, ok, explanationHtml) => `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : "不正解"}</span>
+      ${explanationHtml ? `<div class="explanation md">${explanationHtml}</div>` : ""}</div>
+    <p class="review-source">出どころ: <a href="#/lesson/${esc(L.id)}">${esc(L.title)}</a>(読み直す)</p>
+    <div class="review-next"><p class="review-note">次回: <b>${intervalLabel(it)}</b></p><button class="btn primary" id="next">次の復習へ</button></div>`;
+  const finish = (it, ok, out, explanationHtml) => {
+    recordDay();
+    out.innerHTML = after(it, ok, explanationHtml);
+    out.hidden = false;
+    if (ok) sewStitch(it);
+    decorate(out);
+    $("#next").onclick = () => renderReview();
+  };
+  if (item.type === "quiz" || item.type === "check") {
+    const q = item.type === "quiz" ? L.quiz[Number(ref.split("#")[1])] : (L.checks || [])[Number(ref.split("!")[1])];
     if (!q) { delete S.review[ref]; save(); return renderReview(); }
-    view().innerHTML = head + `<div class="card review-quiz"><div class="md">${q.questionHtml}</div>
-      <form id="rq">${q.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${c}</span></label>`).join("")}
+    view().innerHTML = head + `<div class="card review-quiz">${item.type === "check" ? `<p class="check-label">手を止めて(本文の途中の問い)</p>` : ""}<div class="md">${q.questionHtml}</div>
+      <form id="rq">${order(q.choicesHtml.length).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${q.choicesHtml[j]}</span></label>`).join("")}
       <button class="btn primary" type="submit">答える</button></form><div id="ra" aria-live="polite"></div></div>`;
     $("#rq").onsubmit = (ev) => {
       ev.preventDefault();
       const choice = Number(new FormData(ev.target).get("c"));
       const ok = choice === q.answer;
       const it = reviewAnswer(ref, ok);
-      recordDay();
-      ev.target.querySelectorAll("input,button").forEach((x) => { x.disabled = true; });
-      $("#ra").innerHTML = `<div class="quiz-answer ${ok ? "correct" : "wrong"}"><div class="q-mark big">${ok ? "正解" : "不正解"}</div>
-        <p>正解: <b>${q.choicesHtml[q.answer]}</b></p><div class="explanation md">${q.explanationHtml}</div>${next(it)}</div>`;
-      decorate($("#ra"));
-      $("#next").onclick = () => renderReview();
+      markChoices(ev.target, q.answer, choice);
+      ev.target.querySelector("button[type=submit]").hidden = true;
+      finish(it, ok, $("#ra"), q.explanationHtml);
     };
   } else if (item.type === "reading") {
     const r = (L.reading || [])[Number(ref.split("@")[1])];
     if (!r) { delete S.review[ref]; save(); return renderReview(); }
-    view().innerHTML = head + `<ol class="reading-list">${readingCard(r, ref)}</ol><div id="ra"></div>`;
+    view().innerHTML = head + `<ol class="reading-list">${readingCard(r, ref, undefined, order(r.choicesHtml.length))}</ol>`;
     const form = view().querySelector("form[data-action=reading]");
     form.onsubmit = (ev) => {
       ev.preventDefault();
@@ -1355,17 +1496,13 @@ async function renderReview() {
       const ok = choice === r.answer;
       S.reading[ref] = { ok, at: today() };
       const it = reviewAnswer(ref, ok);
-      recordDay();
-      form.querySelectorAll("input,button").forEach((x) => { x.disabled = true; });
-      form.querySelectorAll("label.choice").forEach((label, j) => {
-        label.classList.toggle("is-answer", j === r.answer);
-        label.classList.toggle("is-wrong", j === choice && !ok);
-      });
+      markChoices(form, r.answer, choice);
+      form.querySelector("button[type=submit]").hidden = true;
       const out = view().querySelector(".reading-answer");
-      out.innerHTML = readingAnswerHtml(r, ok) + next(it);
-      out.hidden = false;
+      finish(it, ok, out, null);
+      out.insertAdjacentHTML("afterbegin", `<div class="md">${r.explanationHtml}</div>${r.traceHtml?.length ? `<p class="trace-title">1 行ずつの追跡</p><ol class="trace">${r.traceHtml.map((t) => `<li>${t}</li>`).join("")}</ol>` : ""}`);
+      out.querySelector(".q-explain").before(out.querySelector(".md"));
       decorate(out);
-      $("#next").onclick = () => renderReview();
     };
   } else {
     const e = L.exercises.find((x) => x.key === ref);
@@ -1379,14 +1516,34 @@ async function renderReview() {
     addSymbolBar(view().querySelector("textarea"));
     view().querySelectorAll(".self-check .btn").forEach((b) => {
       b.onclick = () => {
-        const it = reviewAnswer(ref, b.dataset.ok === "1");
-        recordDay();
-        $("#ra").innerHTML = next(it);
-        $("#next").onclick = () => renderReview();
+        const ok = b.dataset.ok === "1";
+        view().querySelectorAll(".self-check .btn").forEach((x) => { x.disabled = true; });
+        finish(reviewAnswer(ref, ok), ok, $("#ra"), null);
       };
     });
   }
   decorate(view());
+}
+
+/**
+ * 復習の段階を運針で: 1・3・7・14 日の 4 目。縫えた目は糸、今回の目に朱の玉結び、まだの目は針穴。
+ * 「重ねるほど深くなる」をいちばん毎日開く画面でも見せる(18 回目の審査)
+ */
+function reviewStitch(item) {
+  const s = Math.min(item.stage, INTERVALS.length - 1);
+  return `<div class="review-stitch"><div class="unshin" role="img" aria-label="4 回のうち ${s + 1} 回目の復習" style="--steps: ${INTERVALS.length}">${INTERVALS.map((_, i) =>
+    `<i class="${i < s ? "sewn" : i === s ? "now" : ""}"></i>`).join("")}</div>
+    <p class="unshin-cap" aria-hidden="true"><span>${INTERVALS[s]} 日後の復習(4 回のうち <b>${s + 1} 回目</b>)</span><span>${s === INTERVALS.length - 1 ? "正解で卒業" : `卒業まで あと ${INTERVALS.length - s} 回`}</span></p></div>`;
+}
+
+/** 正解したら、今回の目を糸で縫う(卒業ならそう添える) */
+function sewStitch(it) {
+  const now = view().querySelector(".review-stitch .unshin i.now");
+  if (!now) return;
+  now.classList.remove("now");
+  now.classList.add("sewn", "just");
+  const cap = view().querySelector(".review-stitch .unshin-cap");
+  if (cap && it.graduated) cap.innerHTML = `<span><b>卒業</b>。この問題はもう出ません</span>`;
 }
 
 // ------------------------------------------------------------ 設定

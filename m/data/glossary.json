@@ -188,7 +188,7 @@
   "term" : "関係演算子",
   "read" : "かんけいえんざんし",
   "en" : "relational operator",
-  "defHtml" : "== !=  = のこと。2 つの値を比べて boolean を返す。",
+  "defHtml" : "<code>==</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> のこと。2 つの値を比べて boolean を返す。",
   "lesson" : "java-operators"
 }, {
   "term" : "論理演算子",
@@ -272,20 +272,20 @@
   "term" : "ジェネリクス",
   "read" : null,
   "en" : "generics",
-  "defHtml" : "List の  の部分。「この型だけを入れる」と決める仕組み。",
-  "lesson" : "java-arrays"
+  "defHtml" : "<code>List&lt;String&gt;</code> の <code>&lt;String&gt;</code> の部分。「この型だけを入れる」と決める仕組み。",
+  "lesson" : null
 }, {
   "term" : "ラッパークラス",
   "read" : null,
   "en" : "wrapper class",
   "defHtml" : "基本データ型に対応する参照型。int → Integer など。List には基本データ型を入れられないので使う。",
-  "lesson" : "java-arrays"
+  "lesson" : null
 }, {
   "term" : "オートボクシング",
   "read" : null,
   "en" : "autoboxing",
   "defHtml" : "int と Integer などを Java が自動で相互変換すること。Integer が null だと変換時に NullPointerException。",
-  "lesson" : "java-arrays"
+  "lesson" : "java-variables"
 }, {
   "term" : "List.of",
   "read" : "リストオブ",
@@ -332,7 +332,7 @@
   "term" : "switch 式",
   "read" : "スイッチしき",
   "en" : "switch expression",
-  "defHtml" : "Java 14 以降の -&gt; を使う switch。値をそのまま返せ、break が不要。",
+  "defHtml" : "Java 14 で正式になった、値を返す switch。<code>case X -&gt; 値</code> の形がよく使われ、break が要らない(<code>case X: yield 値;</code> とも書ける)。",
   "lesson" : "java-if"
 }, {
   "term" : "equals",
@@ -411,7 +411,7 @@
   "read" : null,
   "en" : "ConcurrentModificationException",
   "defHtml" : "拡張 for や Iterator でくり返し中のコレクションを直接変更すると発生する実行時例外。",
-  "lesson" : "java-loops"
+  "lesson" : null
 }, {
   "term" : "メソッド",
   "read" : null,
@@ -537,7 +537,7 @@
   "read" : null,
   "en" : "scope",
   "defHtml" : "変数が使える範囲。宣言した { } の中だけ。フィールドはクラス全体。",
-  "lesson" : "java-classes"
+  "lesson" : "java-methods"
 }, {
   "term" : "標準クラス(API)",
   "read" : "ひょうじゅんクラス",
@@ -596,7 +596,7 @@
   "term" : "@NoArgsConstructor",
   "read" : null,
   "en" : null,
-  "defHtml" : "Lombok。引数なしコンストラクタを生成する。JPA の Entity に必須。",
+  "defHtml" : "Lombok。引数なしコンストラクタを生成する。JPA の Entity には引数なしコンストラクタが必須なので、よく付ける。",
   "lesson" : "java-classes"
 }, {
   "term" : "静的ファクトリメソッド",
@@ -651,7 +651,7 @@
   "read" : "もじれつプール",
   "en" : "string pool",
   "defHtml" : "同じ内容の文字列リテラルを複数回作らず使い回すための、JVM 内の共有領域。",
-  "lesson" : "java-jvm-memory"
+  "lesson" : "java-strings"
 }, {
   "term" : "static 領域",
   "read" : null,
@@ -806,7 +806,7 @@
   "term" : "DI(依存性注入)",
   "read" : "ディーアイ",
   "en" : "dependency injection",
-  "defHtml" : "Spring が、インターフェース型のフィールドに実装クラスの実体を起動時に入れてくれる仕組み。",
+  "defHtml" : "部品が使う相手を自分で new せず、外から渡してもらう設計。Spring では起動時にコンストラクタの引数などへ Bean を入れてくれる。型をインターフェースにしておくと実装を差し替えられる。",
   "lesson" : "java-abstract-interface"
 }, {
   "term" : "実装クラス",
@@ -852,7 +852,7 @@
   "lesson" : "java-nested-classes"
 }, {
   "term" : "実質的final",
-  "read" : "じっしつファイナル",
+  "read" : "じっしつてきファイナル",
   "en" : "effectively final",
   "defHtml" : "final と書いていないが、一度代入した後に値を変えていない変数。匿名クラスやラムダから使える条件。",
   "lesson" : "java-nested-classes"
@@ -860,7 +860,7 @@
   "term" : "初期化ブロック",
   "read" : "しょきかブロック",
   "en" : "instance initializer block",
-  "defHtml" : "クラスの直下に { } だけで書くコード。コンストラクタの直前、インスタンスが作られるたびに実行される。",
+  "defHtml" : "クラスの直下に { } だけで書くコード。インスタンスが作られるたびに、コンストラクタの super(...) の後・本体の前に実行される。",
   "lesson" : "java-nested-classes"
 }, {
   "term" : "static初期化ブロック",
@@ -873,7 +873,7 @@
   "read" : null,
   "en" : "utility class",
   "defHtml" : "static メソッドだけを集めた道具箱クラス。private コンストラクタで new できないようにするのが定石。",
-  "lesson" : "java-nested-classes"
+  "lesson" : null
 }, {
   "term" : "パッケージ",
   "read" : null,
@@ -939,7 +939,7 @@
   "read" : null,
   "en" : "component scan",
   "defHtml" : "Spring が起動時にパッケージ以下を走査し、@Service などの付いたクラスを自動登録する仕組み。",
-  "lesson" : "java-encapsulation"
+  "lesson" : "spring-boot-startup"
 }, {
   "term" : "例外",
   "read" : "れいがい",
@@ -968,7 +968,7 @@
   "term" : "非検査例外",
   "read" : "ひけんされいがい",
   "en" : "unchecked exception",
-  "defHtml" : "RuntimeException とその子。throws を書かなくてよい。NullPointerException など。",
+  "defHtml" : "RuntimeException とその子(と Error とその子)。throws を書かなくてよい。NullPointerException など。",
   "lesson" : "java-exceptions"
 }, {
   "term" : "throws 宣言",
@@ -1046,7 +1046,7 @@
   "term" : "ジェネリクスの型引数",
   "read" : "かたひきすう",
   "en" : "type argument",
-  "defHtml" : "List の  の部分。「中に入れる要素の型」を指定する。",
+  "defHtml" : "<code>List&lt;String&gt;</code> の <code>&lt;String&gt;</code> の部分。「中に入れる要素の型」を指定する。",
   "lesson" : "java-collections"
 }, {
   "term" : "ラッパークラス",
@@ -1226,7 +1226,7 @@
   "term" : "定数プール",
   "read" : "ていすうプール",
   "en" : "string pool",
-  "defHtml" : "同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組み。リテラルどうしは同じオブジェクトになる。",
+  "defHtml" : "ここでは文字列の定数プール(文字列プール)のこと。同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組みで、リテラルどうしは同じオブジェクトになる。JVM 仕様でいう定数プール(クラスファイルの定数の表)とは別物。",
   "lesson" : "java-strings"
 }, {
   "term" : "equals",
@@ -1292,13 +1292,13 @@
   "term" : "ジェネリクス",
   "read" : null,
   "en" : "generics",
-  "defHtml" : "クラスやメソッドが扱う型を、使う側が  で後から指定できる仕組み。List など。",
+  "defHtml" : "クラスやメソッドが扱う型を、使う側が <code>&lt;&gt;</code> で後から指定できる仕組み。<code>List&lt;String&gt;</code> など。",
   "lesson" : "java-generics"
 }, {
   "term" : "型パラメータ",
   "read" : "かたパラメータ",
   "en" : "type parameter",
-  "defHtml" : "の中に書く型の仮の名前。T、E、K、V、R などの1文字が慣習。",
+  "defHtml" : "<code>class Box&lt;T&gt;</code> の <code>&lt;T&gt;</code> の中に書く型の仮の名前。T、E、K、V、R などの1文字が慣習。",
   "lesson" : "java-generics"
 }, {
   "term" : "型安全",
@@ -1310,19 +1310,19 @@
   "term" : "ジェネリッククラス",
   "read" : null,
   "en" : "generic class",
-  "defHtml" : "class Box のように型パラメータを持つクラス。Box のように使う側が型を決める。",
+  "defHtml" : "<code>class Box&lt;T&gt;</code> のように型パラメータを持つクラス。<code>Box&lt;String&gt;</code> のように使う側が型を決める。",
   "lesson" : "java-generics"
 }, {
   "term" : "ジェネリックメソッド",
   "read" : null,
   "en" : "generic method",
-  "defHtml" : "戻り値の前に  を書き、そのメソッドだけで型パラメータを使うメソッド。引数から T が推論される。",
+  "defHtml" : "戻り値の前に <code>&lt;T&gt;</code> を書き、そのメソッドだけで型パラメータを使うメソッド。引数から T が推論される。",
   "lesson" : "java-generics"
 }, {
   "term" : "境界",
   "read" : "きょうかい",
   "en" : "bound",
-  "defHtml" : "のように T に付ける条件。T をその型かサブクラスに限定する。",
+  "defHtml" : "<code>&lt;T extends Number&gt;</code> のように T に付ける条件。T をその型かサブクラス(実装クラス)に限定する。",
   "lesson" : "java-generics"
 }, {
   "term" : "ワイルドカード",
@@ -1364,7 +1364,7 @@
   "term" : "関数型インターフェース",
   "read" : "かんすうがたインターフェース",
   "en" : "functional interface",
-  "defHtml" : "抽象メソッドが1つだけのインターフェース。ラムダ式の型になる。@FunctionalInterface を付ける。",
+  "defHtml" : "抽象メソッドが1つだけのインターフェース。ラムダ式の型になる。@FunctionalInterface は付けなくてもよいが、付けると条件を外れたときにコンパイルエラーで教えてくれる。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "匿名クラス",
@@ -1472,7 +1472,7 @@
   "term" : "flatMap",
   "read" : "フラットマップ",
   "en" : "flatMap",
-  "defHtml" : "各要素を Stream に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどす。",
+  "defHtml" : "各要素を Stream に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "Collectors",
@@ -1484,7 +1484,7 @@
   "term" : "groupingBy",
   "read" : "グルーピングバイ",
   "en" : "groupingBy",
-  "defHtml" : "キー関数の結果ごとに要素をグループ分けする Collector。結果は Map&gt;。SQL の GROUP BY に相当。",
+  "defHtml" : "キー関数の結果ごとに要素をグループ分けする Collector。結果は <code>Map&lt;K, List&lt;T&gt;&gt;</code>。SQL の GROUP BY に相当。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "副作用",
@@ -1532,7 +1532,7 @@
   "term" : "flatMap(Optional)",
   "read" : "フラットマップ",
   "en" : "flatMap",
-  "defHtml" : "渡した関数が Optional を返すとき、二重になった Optional を1段ほどいて平らにする中間操作。",
+  "defHtml" : "渡した関数が Optional を返すとき、二重になった Optional を1段ほどいて平らにする Optional のメソッド。",
   "lesson" : "java-optional"
 }, {
   "term" : "Objects.requireNonNull",
@@ -1545,7 +1545,7 @@
   "read" : null,
   "en" : "fail fast",
   "defHtml" : "問題があったらできるだけ早い段階で例外を出して止めるという設計方針。原因調査が楽になる。",
-  "lesson" : "java-optional"
+  "lesson" : "java-encapsulation"
 }, {
   "term" : "@Nullable / @NonNull",
   "read" : "ナラブル / ノンナル",
@@ -1586,20 +1586,20 @@
   "term" : "switch 式",
   "read" : "スイッチしき",
   "en" : "switch expression",
-  "defHtml" : "値を返す switch。矢印 case で break が不要になり、フォールスルーが起きない。",
+  "defHtml" : "値を返す switch。矢印の case(<code>-&gt;</code>)ならフォールスルーが起きず break も要らない。",
   "lesson" : "java-record-enum"
 }, {
   "term" : "yield",
   "read" : "イールド",
   "en" : "yield",
   "defHtml" : "switch 式のブロック内で値を返すキーワード。return とは別物。",
-  "lesson" : "java-record-enum"
+  "lesson" : "java-if"
 }, {
   "term" : "パターンマッチング",
   "read" : null,
   "en" : "pattern matching",
   "defHtml" : "instanceof や switch で、型の判定と変数への取り出しを同時に行う書き方。",
-  "lesson" : "java-record-enum"
+  "lesson" : "java-polymorphism"
 }, {
   "term" : "sealed",
   "read" : "シールド",
@@ -1611,13 +1611,13 @@
   "read" : null,
   "en" : "text block",
   "defHtml" : "&quot;&quot;&quot; で囲む複数行の文字列リテラル。SQL や JSON を書きやすい。",
-  "lesson" : "java-record-enum"
+  "lesson" : null
 }, {
   "term" : "LTS",
   "read" : "エルティーエス",
   "en" : "Long-Term Support",
-  "defHtml" : "長期サポート版の Java。8 / 11 / 17 / 21 が該当し、業務システムはこれを使う。",
-  "lesson" : "java-record-enum"
+  "defHtml" : "長期サポート版の Java。8 / 11 / 17 / 21 / 25 が該当し(17 以降は 2 年ごと)、業務システムはこれを使う。",
+  "lesson" : "java-hello"
 }, {
   "term" : "フォールスルー",
   "read" : null,
@@ -1677,12 +1677,12 @@
   "read" : null,
   "en" : "overflow",
   "defHtml" : "整数が型の上限を超えて、エラーにならず負の値などに折り返すこと。int の上限は約 21 億。",
-  "lesson" : "java-datetime"
+  "lesson" : "java-variables"
 }, {
   "term" : "ビット演算",
   "read" : "ビットえんざん",
   "en" : "bitwise operation",
-  "defHtml" : "整数を 0/1 の並びとして扱う演算。&amp; | ^ ~ &gt; がある。フラグ管理やバイト操作で使う。",
+  "defHtml" : "整数を 0/1 の並びとして扱う演算。<code>&amp;</code> <code>|</code> <code>^</code> <code>~</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code> <code>&gt;&gt;&gt;</code> がある。フラグ管理やバイト操作で使う。",
   "lesson" : "java-datetime"
 }, {
   "term" : "16進表記",
@@ -1868,32 +1868,32 @@
   "term" : "JUnit",
   "read" : "ジェイユニット",
   "en" : "JUnit",
-  "defHtml" : "Java で最も使われるテスト用フレームワーク。現行バージョンは JUnit 5。",
-  "lesson" : "spring-logging"
+  "defHtml" : "Java で最も使われるテスト用フレームワーク。2025 年 9 月に JUnit 6 が出たが、この教材(Spring Boot 3.5)は JUnit 5(Jupiter)を使う。書き方はほぼ同じ。",
+  "lesson" : "java-junit"
 }, {
   "term" : "アサーション",
   "read" : null,
   "en" : "assertion",
   "defHtml" : "テストの中で「期待通りか」を確認する呼び出し。assertEquals や assertThrows など。",
-  "lesson" : "spring-logging"
+  "lesson" : "java-junit"
 }, {
   "term" : "モック",
   "read" : null,
   "en" : "mock",
   "defHtml" : "本物の代わりに使う、決められた通りにしか動かない偽物のオブジェクト。Mockito で作る。",
-  "lesson" : "spring-logging"
+  "lesson" : "spring-mockmvc"
 }, {
   "term" : "スタブ",
   "read" : null,
   "en" : "stub",
   "defHtml" : "モックのうち「呼ばれたら決まった値を返す」設定をしたもの。when(...).thenReturn(...) はスタブを作る操作。",
-  "lesson" : "spring-logging"
+  "lesson" : "spring-mockmvc"
 }, {
   "term" : "MockMvc",
   "read" : "モックエムブイシー",
   "en" : "MockMvc",
   "defHtml" : "Spring MVC の Controller を、実サーバーを起動せずに HTTP リクエストを模擬してテストするための道具。",
-  "lesson" : "spring-logging"
+  "lesson" : "spring-mockmvc"
 }, {
   "term" : "スレッド",
   "read" : null,
@@ -2097,7 +2097,7 @@
   "read" : "アクチュエータ",
   "en" : null,
   "defHtml" : "/actuator/health などの監視用 URL を自動で用意する starter。ヘルスチェックに使う。",
-  "lesson" : "spring-boot-startup"
+  "lesson" : "capstone-release"
 }, {
   "term" : "ログレベル",
   "read" : null,
@@ -2175,7 +2175,7 @@
   "read" : null,
   "en" : null,
   "defHtml" : "全 Controller の例外を受け取り、共通のエラー応答に変換するクラスの印。中に @ExceptionHandler を書く。",
-  "lesson" : "spring-controller"
+  "lesson" : "spring-exception-handling"
 }, {
   "term" : "認証",
   "read" : "にんしょう",
@@ -2257,7 +2257,7 @@
 }, {
   "term" : "JPA",
   "read" : "ジェーピーエー",
-  "en" : "Java Persistence API",
+  "en" : "Jakarta Persistence(旧 Java Persistence API)",
   "defHtml" : "Java のオブジェクトとテーブルの行を対応付けるための標準仕様。",
   "lesson" : "spring-data-jpa"
 }, {
@@ -2287,7 +2287,7 @@
 }, {
   "term" : "JPQL",
   "read" : "ジェーピーキューエル",
-  "en" : "Java Persistence Query Language",
+  "en" : "Jakarta Persistence Query Language",
   "defHtml" : "Entity のクラス名・フィールド名を使って書くクエリ言語。@Query に書く。",
   "lesson" : "spring-data-jpa"
 }, {
@@ -2295,7 +2295,7 @@
   "read" : "ロウマッパー",
   "en" : null,
   "defHtml" : "SQL の実行結果(1行)を Java のオブジェクトに変換する処理。JdbcTemplate で使う。",
-  "lesson" : "spring-data-jpa"
+  "lesson" : "java-nested-classes"
 }, {
   "term" : "トランザクション",
   "read" : null,
@@ -2360,7 +2360,7 @@
   "term" : "@Value",
   "read" : null,
   "en" : null,
-  "defHtml" : "@Data の不変版。全フィールドが final になり setter は生成されない。",
+  "defHtml" : "Lombok。@Data の不変版。全フィールドが private final になり setter は生成されない(Spring の @Value とは別物)。",
   "lesson" : "java-encapsulation"
 }, {
   "term" : "@Builder",
@@ -2421,7 +2421,7 @@
   "read" : "そうかんアイディー",
   "en" : "correlation ID / request ID",
   "defHtml" : "1つのリクエストに紐づけて全ログに残す識別子。複数のログ行を1つの処理としてつなげて追える。",
-  "lesson" : "spring-reading-code"
+  "lesson" : "spring-logging"
 }, {
   "term" : "見えない処理",
   "read" : "みえないしょり",
