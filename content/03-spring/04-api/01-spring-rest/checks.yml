@@ -1,0 +1,25 @@
+- after: REST の考え方:URL は名詞、操作は HTTP メソッド
+  question: |
+    発送済みの注文 3 に、キャンセルのリクエストが来た。注文 3 はあり、JSON の形も正しい。返すステータスは?
+  choices: ["400 Bad Request", "404 Not Found", "409 Conflict"]
+  answer: 2
+  explanation: |
+    形は正しい(400 ではない)し、対象もある(404 ではない)。ただ「発送済み」という今の状態と矛盾するので 409。判断は「形 → 有無 → 状態」の順。
+- after: PUT と PATCH の違い
+  question: |
+    期限(`dueDate`)付きのタスク 3 に、`PUT /api/tasks/3` で `{"title":"新しい名前"}` だけを送った。PUT の約束どおりなら、期限は?
+  choices: ["元の期限のまま残る", "空になる"]
+  answer: 1
+  explanation: |
+    PUT は送った内容で丸ごと置き換えるので、送らなかった項目は「空にする」意味になる。期限を残したまま名前だけ変えたいなら PATCH を使う。
+- after: よくあるミス
+  question: |
+    `-parameters` を付けずにコンパイルした。リクエストを受けられるのはどれ?
+    ```java
+    @GetMapping("/a/{id}") String a(@PathVariable long id)
+    @GetMapping("/b/{id}") String b(@PathVariable("id") long id)
+    ```
+  choices: ["a も b も", "b だけ", "どちらも 500"]
+  answer: 1
+  explanation: |
+    `-parameters` が無いと実行時に引数名 `id` が分からず、名前を書いていない a は 500 になる。b は `"id"` と名前を明示しているので、引数名に頼らずに動く。

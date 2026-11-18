@@ -1,0 +1,25 @@
+- after: ログレベルの使い分け
+  question: |
+    在庫連携の API が 1 回目はタイムアウトしたが、リトライで成功して処理は続いた。このことを出すログのレベルは?
+  choices: ["ERROR", "WARN", "TRACE"]
+  answer: 1
+  explanation: |
+    続行できたが要注意、なので WARN。ERROR は処理が失敗して人が対応すべきものに取っておく。成功した処理まで ERROR にすると、本物の障害が埋もれる。
+- after: 設定で絞る・ファイルに出す
+  question: |
+    `logging.file.name: logs/app.log` を書いて起動した。Console へのログは?
+  choices: ["ファイルだけに出て、Console には出なくなる", "Console にもファイルにも出る"]
+  answer: 1
+  explanation: |
+    `logging.file.name` は、Console に **加えて** ファイルにも出す設定。Console の出力はそのまま続く。
+- after: 書いてはいけないもの、付けておきたいもの
+  question: |
+    スレッド 1 本を使い回すプール(`Executors.newFixedThreadPool(1)`)で、2 つの処理を順に動かした。2 件目のログに出る `requestId` は?
+    ```java
+    pool.submit(() -> { MDC.put("requestId", "A-001"); log.info("1件目"); });
+    pool.submit(() -> log.info("2件目 requestId={}", MDC.get("requestId")));
+    ```
+  choices: ["null", "A-001"]
+  answer: 1
+  explanation: |
+    MDC はスレッドごとの付箋で、処理が終わっても自動では消えない。同じスレッドが 2 件目を動かすので、1 件目の ID が残って付く。だから入口で入れた値は `finally` で `MDC.remove` する。

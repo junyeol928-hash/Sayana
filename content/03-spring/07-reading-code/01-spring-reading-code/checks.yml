@@ -1,0 +1,26 @@
+- after: 1本の API を最初から最後まで追う
+  question: |
+    次の設定とマッピングのとき、外からこのメソッドを呼ぶ URL は?
+    ```text
+    application.yml : server.servlet.context-path: /kms
+    クラス          : @RequestMapping("/api/keys")
+    メソッド        : @PostMapping("/rotate")
+    ```
+  choices: ["POST /api/keys/rotate", "POST /kms/api/keys/rotate", "POST /kms/rotate"]
+  answer: 1
+  explanation: |
+    URL はクラスの `@RequestMapping` とメソッドの `@PostMapping` をつないだもので、さらに前に `context-path` が付く。`/kms` は Java のソースには無く、`application.yml` にしか書かれていない。
+- after: 例外とトランザクションの境界
+  question: |
+    `@Transactional` の付いた `KeyService.revoke` を、Controller(トランザクションなし)が 2 回続けて呼んだ。2 回目で RuntimeException が出ると、1 回目の失効は?
+  choices: ["2 回目と一緒にロールバックされる", "コミット済みで残る"]
+  answer: 1
+  explanation: |
+    トランザクションはプロキシの入口で始まり出口で終わるので、2 回呼べば別々に 2 つできる。1 回目は戻った時点でコミット済みで、2 回目の失敗では取り消されない。
+- after: ソースに書かれていない「見えない処理」
+  question: |
+    `OrderService` のコンストラクタ引数は `PaymentClient` インターフェース。実装クラスは `CardPaymentClient` と `BankPaymentClient` の 2 つ。どちらが渡されるかを読むときに探す目印は?
+  choices: ["`@Transactional`", "クラス名の並び順", "`@Primary` や `@Qualifier`"]
+  answer: 2
+  explanation: |
+    同じ型の実装が複数あると、Spring は `@Primary`・`@Qualifier` で 1 つを選ぶ。クラス名の順では決まらず、1 つに決められなければ起動時にエラーで止まる。`@Transactional` はトランザクションの目印で、どの実装かとは関係ない。

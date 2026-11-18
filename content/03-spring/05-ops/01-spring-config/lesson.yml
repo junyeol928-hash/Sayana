@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。
-      `shop.name` の行を消すと、`@Value` の `:` の後ろに書いた既定値が使われることを確かめましょう。
+      1 行目に出る店名と税率、`server.port` の行に出る値を予想してから見よう。そのあと `shop.name` の行を消したら何が出るかも予想して試そう。
     code: |
       import org.springframework.beans.factory.annotation.Value;
       import org.springframework.context.annotation.*;
@@ -51,7 +51,7 @@ samples:
     libraries: [spring]
     description: |
       `setActiveProfiles` は Spring Boot の `spring.profiles.active` に当たります。**`register` より前** に呼ぶのがポイントです。
-      `"dev"` を `"prod"` にしたり、`{ }`(プロファイルなし)にしたりして、登録される Bean が変わるのを確かめましょう。
+      `"dev"` のときに登録されるのは `smtp` と `console` のどちらかを予想してから見よう。そのあと `"prod"` や `{ }`(プロファイルなし)に変えたらどうなるかも予想して試そう。
     code: |
       import org.springframework.context.annotation.*;
 

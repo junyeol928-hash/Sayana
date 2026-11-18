@@ -1,0 +1,29 @@
+- after: エンティティ:クラスをテーブルに対応づける
+  question: |
+    `Employee` 側が次の形のとき、`Department` 側の `@OneToMany(mappedBy = ...)` に書くのは?
+    ```java
+    @ManyToOne
+    @JoinColumn(name = "dept_id")
+    private Department belongsTo;
+    ```
+  choices: ["\"dept_id\"", "\"belongsTo\""]
+  answer: 1
+  explanation: |
+    `mappedBy` には、外部キーを持つ側(Employee)の **フィールド名** を書く。`dept_id` は `@JoinColumn` で決めた列名で、`mappedBy` には使わない。
+- after: JpaRepository:継承するだけで CRUD
+  question: |
+    `findById(5L)` で読んだ社員の名前を `setName` で変えて、`save` に渡した。DB の行はどうなる?
+  choices: ["id 5 の行が更新される(UPDATE)", "新しい行が足される(INSERT)"]
+  answer: 0
+  explanation: |
+    `save` は id を見て決める。`null` なら新規として INSERT、値があれば既存として UPDATE(`merge`)。DB から読んだ社員には id 5 が入っているので、同じ行が更新される。
+- after: 現場の三大落とし穴
+  question: |
+    社員 5 人のうち 1 人は部署が未設定(`department_id` が null)。次の JPQL で取れる社員は何人?
+    ```java
+    @Query("select e from Employee e join fetch e.department")
+    ```
+  choices: ["5 人", "4 人"]
+  answer: 1
+  explanation: |
+    `join fetch` は内部結合なので、部署の無い社員は結果から消えて 4 人。部署が未設定の人も含めて全員を取るなら `left join fetch` にする。

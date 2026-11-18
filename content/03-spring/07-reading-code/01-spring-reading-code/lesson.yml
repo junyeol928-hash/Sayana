@@ -12,8 +12,8 @@ goals:
 samples:
   - title: 例外が下の層から上の層へ戻る道のりを見る
     description: |
-      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を Service が原因付きの例外に包み直し、スタックトレースには `Caused by` として残ります。
-      自分のクラスの行だけを抜き出すと、**上が例外の起きた場所、下へ行くほど呼び出し元** だと分かります。最後に「一番下の Caused by」(根本原因)をたどります。
+      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を、Service が原因付きの例外に包み直します。
+      自分のクラスの行だけを抜き出したスタックトレースで、Controller・Service・Repository の行がどの順に並ぶか、一番下の Caused by(根本原因)はどの例外かを予想してから見よう。
     code: |
       // Controller → Service → Repository の呼び出しと、例外が戻る道のりを観察する
       // ここを変えてみよう:post("C100") を post("C200") に / Service の new KeyIssueFailedException(..., e) の e を null にすると Caused by はどうなる?
@@ -97,7 +97,7 @@ samples:
     libraries: [spring]
     description: |
       解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。
-      入力エラーのときは Controller のメソッドに入る前に止まり、Advice にハンドラが無いので本文の無い 400 になります(Spring が出す WARN のログも読んでみましょう)。
+      3 通りそれぞれで、どの層の名乗りまで出るか、最後のステータスは何番かを予想してから見よう(入力エラーでは、Spring が出す WARN のログも読んでみましょう)。
     code: |
       // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
       // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に / Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
@@ -196,7 +196,7 @@ samples:
     libraries: [spring]
     description: |
       `@Transactional` の付いた Service は、Spring が作ったプロキシ(`$$SpringCGLIB$$`)に包まれています。例外のスタックトレースを、自分のコードの行・Spring の行・プロキシの行に分けて表示します。
-      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。ロールバックが例外が外へ出る途中で起きていることも、`[TX]` の表示で確かめましょう。
+      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。`[TX]` の行にコミットとロールバックのどちらが出るか、それが例外の表示より前か後かを予想してから見よう。
     code: |
       // @Transactional の Service は、Spring が作った「プロキシ」に包まれている。スタックトレースでそれを見る
       // ここを変えてみよう:rotate の @Transactional を消すと、Bean のクラス名とスタックトレースはどう変わる?

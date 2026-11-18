@@ -1,0 +1,24 @@
+- after: Controller のテスト、どれを選ぶ?
+  question: |
+    別のアプリが 8080 番ポートを使っている最中に、MockMvc のテストを動かした。どうなる?
+  choices: ["ポートが使えず失敗する", "ポートと関係なく動く"]
+  answer: 1
+  explanation: |
+    MockMvc は Tomcat を起動せず、偽物のリクエストを DispatcherServlet に直接渡す。ネットワークもポートも使わないので、8080 が埋まっていても影響しない。
+- after: standaloneSetup と @WebMvcTest
+  question: |
+    Controller は実際には `service.findByCustomer("C002")` を 1 回呼んだ。テストの最後の次の行はどうなる?
+    ```java
+    verify(service).findByCustomer("C001");
+    ```
+  choices: ["通る(1 回呼ばれているので)", "失敗する"]
+  answer: 1
+  explanation: |
+    `verify` は「この引数で呼ばれたか」まで確かめる。呼ばれたのは "C002" なので、引数が違うとしてテストは失敗する。回数だけでなく引数も見ている。
+- after: テストデータは「意図が読める最小限」
+  question: |
+    「5000 円以上で送料無料」のテストを書く。必ず入れたい金額の組は?
+  choices: ["1000 円と 10000 円", "4999 円と 5000 円"]
+  answer: 1
+  explanation: |
+    バグは境目に潜む。`>=` を `>` と書き間違えても、1000 円と 10000 円では結果が変わらず見逃す。5000 円ちょうどとその 1 円下を入れて、初めて気づける。

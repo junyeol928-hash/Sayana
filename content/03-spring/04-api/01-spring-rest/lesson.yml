@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Web サーバーは起動せず、Spring MVC の仕組みだけを動かして REST API を呼び出します。
-      POST → 201 + Location、GET の一覧と個別取得、存在しない ID の 404、Content-Type を付け忘れた 415 を順に見ます。
+      POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。それぞれのステータスの番号と、Location ヘッダが付くのはどれかを予想してから見よう。
     code: |
       // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
       // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
@@ -86,8 +86,8 @@ samples:
   - title: Jackson で record ⇔ JSON(日時の扱い)
     libraries: [spring]
     description: |
-      `LocalDate` を含む record を JSON にします。素の ObjectMapper では失敗し、JavaTimeModule を足すと配列になり、
-      `WRITE_DATES_AS_TIMESTAMPS` を無効にすると ISO-8601 の文字列になります(③が Spring Boot の既定と同じ形)。
+      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。
+      `dueDate` がそれぞれどんな形で出るか(そもそも変換できるか)を予想してから見よう。③が Spring Boot の既定と同じ設定です。
     code: |
       // Jackson で record ⇔ JSON。LocalDate の扱いに注目
       // ここを変えてみよう:日付や title を変える / ④の JSON に "x":1 を足してみる

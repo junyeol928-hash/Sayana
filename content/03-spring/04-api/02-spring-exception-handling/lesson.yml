@@ -13,8 +13,8 @@ samples:
   - title: 例外ハンドラが「ない」とき・「ある」とき
     libraries: [spring]
     description: |
-      Controller は「見つからなければ例外を投げる」だけ。`@RestControllerAdvice` が無いと例外が外へ漏れ(Spring Boot なら 500)、
-      あると 404 の ProblemDetail(`application/problem+json`)に変わります。
+      Controller は「見つからなければ例外を投げる」だけ。存在しない ID 99 を GET します。
+      `@RestControllerAdvice` が無いとき例外はどこまで届くか、あるときステータスと Content-Type は何になるかを予想してから見よう。
     code: |
       // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
       // ここを変えてみよう:HttpStatus や setTitle の文言を変える / ID を 1 にする
@@ -97,8 +97,8 @@ samples:
   - title: 「Exception を全部 500 に」の落とし穴
     libraries: [spring]
     description: |
-      `@ExceptionHandler(Exception.class)` だけの Advice は、Spring MVC 自身の例外(405・415・壊れた JSON)まで 500 にしてしまいます。
-      `ResponseEntityExceptionHandler` を継承すると、それらは親クラスが正しいステータスの ProblemDetail にしてくれます。
+      `@ExceptionHandler(Exception.class)` だけの Advice と、`ResponseEntityExceptionHandler` を継承した Advice に、未対応のメソッド・Content-Type なし・壊れた JSON の 3 つを送ります。
+      本来は何番が返るべきか、それぞれの Advice では何番になるかを予想してから見よう。
     code: |
       // 「とりあえず Exception を全部 500 に」の落とし穴と、ResponseEntityExceptionHandler
       // ここを変えてみよう:tryAll に渡す Advice を入れ替える / リクエストを足す

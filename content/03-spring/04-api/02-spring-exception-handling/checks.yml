@@ -1,0 +1,27 @@
+- after: 例外が Controller から漏れると何が起きる?
+  question: |
+    `@ExceptionHandler` も Advice も無いアプリで、Service が `TaskNotFoundException`(`RuntimeException` の子。`@ResponseStatus` なし)を投げた。curl に返るステータスは?
+  choices: ["404", "500"]
+  answer: 1
+  explanation: |
+    誰も処理しない例外は Tomcat まで漏れ、Spring Boot の /error が 500 を返す。例外の名前が「NotFound」でも、それだけで 404 にはならない。
+- after: "@RestControllerAdvice:全 Controller 共通にする"
+  question: |
+    Advice に次の 2 つがある。`TaskNotFoundException`(`RuntimeException` の子)が投げられると、呼ばれるのは?
+    ```java
+    @ExceptionHandler(RuntimeException.class)
+    ProblemDetail any(RuntimeException ex) { ... }
+    @ExceptionHandler(TaskNotFoundException.class)
+    ProblemDetail notFound(TaskNotFoundException ex) { ... }
+    ```
+  choices: ["any", "notFound", "どちらか決まらず起動時にエラー"]
+  answer: 1
+  explanation: |
+    投げられた例外に一番近い型のハンドラが選ばれる。`TaskNotFoundException` そのものを受ける `notFound` が、親の `RuntimeException` を受ける `any` より近い。型が違うので「曖昧」のエラーにもならない。
+- after: 画面アプリでは error テンプレート
+  question: |
+    `templates/error/404.html` と `templates/error/5xx.html` を置いた。503 のときに使われるのは?
+  choices: ["error/404.html", "Whitelabel Error Page", "error/5xx.html"]
+  answer: 2
+  explanation: |
+    まずステータスちょうどの `error/503.html` を探し、無いので 500 番台まとめての `5xx.html` を使う。`404.html` は 404 のときだけで、Whitelabel はどれにも当たらないときの最後の受け皿。

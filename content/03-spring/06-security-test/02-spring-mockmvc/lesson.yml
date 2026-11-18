@@ -63,7 +63,7 @@ samples:
       System.out.println("andExpect はすべて成功しました");
   - title: standaloneSetup の文字化けを再現する
     libraries: [spring]
-    description: 同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしでは `StringHttpMessageConverter` の既定(ISO-8859-1)が使われ、日本語が `?` になります。
+    description: 同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしのとき、Content-Type の charset と「合計 1,500円」の本文がどう出るかを予想してから見よう。
     code: |
       // 日本語を返す Controller を、UTF-8 設定なし/ありで呼び比べる
       // ここを変えてみよう:返す文字列を "Total 1,500 yen" にすると、設定なしでも化けない

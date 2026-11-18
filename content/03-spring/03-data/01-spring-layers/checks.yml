@@ -1,0 +1,21 @@
+- after: 3層の責務
+  question: |
+    「送料が無料になる金額を 5000 円から 3000 円に下げる」という変更。直すのはどの層?
+  choices: ["Service", "Controller", "Repository"]
+  answer: 0
+  explanation: |
+    送料の決まりは業務ルールなので Service(レストランなら調理担当のレシピ)。Controller は受け取りと返し方、Repository は保存と検索だけを受け持ち、金額の判断はしない。
+- after: 依存の向きは上から下へ一方通行
+  question: |
+    `OrderService` と `StockService` が、互いをコンストラクタで受け取っている。アプリを起動すると?
+  choices: ["呼び出すと StackOverflowError になる", "起動時に止まる", "片方を null のままにして起動する"]
+  answer: 1
+  explanation: |
+    依存が循環すると、Bean を作る途中で相手がまだ作れず、起動の時点で止まる(`... form a cycle`)。メソッドを呼ぶところまで進まないので、実行時のエラーにはならない。
+- after: パッケージ構成:層別か、機能別か
+  question: |
+    メインクラス(`@SpringBootApplication`)は `com.example.shop` にある。`com.example.order` に置いた `@Service` の `OrderService` は、コンポーネントスキャンで見つかる?
+  choices: ["見つかる", "見つからない"]
+  answer: 1
+  explanation: |
+    スキャンの範囲はメインクラスのパッケージとその配下だけ。`com.example.order` は `com.example.shop` の外(隣)なので見つからない。`com.example.shop.order` のように配下へ置く。
