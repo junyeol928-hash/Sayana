@@ -13,7 +13,12 @@
     - "403"
     - "起動時に例外"
   answer: 0
-  explanation: "requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの hasRole(\"ADMIN\") は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
+  why:
+    - ""
+    - "認証が足りないと読んだ答え。ログイン済みのうえ、先に一致した `permitAll()` で通る"
+    - "後ろの `hasRole` が効くと読んだ答え。上から順に評価され、先に一致した `permitAll()` で通る"
+    - "ルールが重なると起動で止まると読んだ答え。重なっても起動し、先に一致したほうが使われる"
+  explanation: "requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの `hasRole(\"ADMIN\")` は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
   trace:
     - "1〜2行目: /api/admin/** に permitAll() を設定"
     - "3行目: /api/admin/danger にも hasRole(\"ADMIN\") を設定しているが、2行目より後ろにある"
@@ -32,14 +37,19 @@
     http.authorizeHttpRequests(auth -> auth
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().authenticated());
-  question: "ROLE を \"ADMIN\" として持つユーザーが /api/admin/xxx にアクセスすると?"
+  question: "ROLE を `\"ADMIN\"` として持つユーザーが /api/admin/xxx にアクセスすると?"
   choices:
     - "200"
     - "401"
     - "403"
     - "コンパイルエラー"
   answer: 2
-  explanation: "hasRole(\"ADMIN\") は内部で hasAuthority(\"ROLE_ADMIN\") を探します。UserDetailsService 側では接頭辞なしの \"ADMIN\" という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
+  why:
+    - "接頭辞なしの権限でも `hasRole` を満たすと読んだ答え"
+    - "権限の不一致を未認証と読んだ答え。認証はできているので、権限不足の 403"
+    - ""
+    - "ROLE_ の付け忘れをコンパイラが見つけると読んだ答え。ただの文字列なので、コンパイルは通る"
+  explanation: "`hasRole(\"ADMIN\")` は内部で `hasAuthority(\"ROLE_ADMIN\")` を探します。UserDetailsService 側では接頭辞なしの `\"ADMIN\"` という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
   trace:
     - "1〜5行目: 権限として \"ADMIN\"(ROLE_ なし)が登録される"
     - "8〜10行目: hasRole(\"ADMIN\") は \"ROLE_ADMIN\" という権限を探す"
@@ -63,13 +73,18 @@
 
     // Controller から:
     userAdminService.deactivateUser("u001");   // 呼び出し元は一般ユーザー
-  question: "一般ユーザーが deactivateUser(\"u001\") を呼ぶと?"
+  question: "一般ユーザーが `deactivateUser(\"u001\")` を呼ぶと?"
   choices:
     - "AccessDeniedException が発生し、何も出力されない"
-    - "権限チェックされずに \"deleted: u001\" が出力される"
+    - "権限チェックされずに `deleted: u001` が出力される"
     - "コンパイルエラー"
     - "401 が返る"
   answer: 1
+  why:
+    - "内部呼び出しでも `@PreAuthorize` が効くと読んだ答え。this からの呼び出しはプロキシを通らない"
+    - ""
+    - "`@PreAuthorize` のメソッドを中から呼べないと読んだ答え。普通に呼べ、権限チェックが飛ばされるだけ"
+    - "一般ユーザーを未認証と読んだ答え。ログイン済みで、しかも内部呼び出しなので権限チェックも無い"
   explanation: "@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。"
   trace:
     - "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
@@ -92,14 +107,19 @@
 
     // クライアントから:
     // POST /api/items (Authorization ヘッダあり、CSRF トークンなし)
-  question: "この POST リクエストを送ると?"
+  question: "この POST リクエストに、Spring Security の CSRF のフィルタはどう応える?"
   choices:
     - "200 で正常に処理される"
     - "401(認証情報がない)"
     - "403(CSRF トークンがない)"
     - "500(サーバエラー)"
   answer: 2
-  explanation: "csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -> csrf.disable()) にするのが定石です。"
+  why:
+    - "認証できれば POST も通ると読んだ答え。CSRF 保護が有効なままで、トークンが無いと 403"
+    - "認証情報が無いと読んだ答え。Authorization ヘッダは付いていて、止めるのは CSRF のチェック"
+    - ""
+    - "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する"
+  explanation: "csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -> csrf.disable()) にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(/error)を permitAll にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
   trace:
     - "5〜6行目: authorizeHttpRequests と httpBasic は設定しているが csrf() の呼び出しがない"
     - "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る"
@@ -132,6 +152,11 @@
     - "コンパイルエラー"
     - "常に ADMIN 権限になる"
   answer: 1
+  why:
+    - "キーの検証が通れば、それだけで認証されると読んだ答え"
+    - ""
+    - "`Authentication` を引数で受けられないと読んだ答え。受けられ、コンパイルは通る"
+    - "検証を通れば強い権限になると読んだ答え。何もセットしていないので未認証のまま"
   explanation: "キーの検証自体は通っていますが、SecurityContextHolder.getContext().setAuthentication(...) を呼び忘れているため、認証情報は一度もセットされません。chain.doFilter は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も Authentication は空(null 相当)になります。"
   trace:
     - "5〜6行目: ヘッダのキーを検証し、正しいと分かる"

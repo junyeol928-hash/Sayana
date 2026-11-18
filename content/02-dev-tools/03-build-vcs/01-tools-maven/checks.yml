@@ -4,7 +4,12 @@
   choices:
     - "動く。よく使うプラグインは書かなくても組み込まれている"
     - "動かない。使うプラグインは全部 `<plugins>` に書く必要がある"
+    - "コンパイルは動くが、テストは `maven-surefire-plugin` を書かないと走らない"
   answer: 0
+  why:
+    - ""
+    - "プラグインは全部自分で書くと読んだ答え。書かなくても動くものがある"
+    - "テストだけ追加の部品と読んだ答え。surefire も compiler と同じ扱い"
   explanation: |
     コンパイルもテストも実際の仕事はプラグインがするが、よく使うものは最初から組み込まれている。`<plugins>` に書くのは、`spring-boot-maven-plugin` のように追加したいものか、設定を変えたいものだけ。
 - after: ライフサイクルとよく使うコマンド
@@ -15,14 +20,23 @@
     - "`./mvnw package`(前のフェーズとして clean も走る)"
     - "`./mvnw install`(全フェーズを含むので clean も走る)"
   answer: 0
+  why:
+    - ""
+    - "前のフェーズに clean も入ると読んだ答え。clean は別のライフサイクルなので、package では走らない"
+    - "install なら全部走ると読んだ答え。install も既定のライフサイクルの中だけで、clean は含まない"
   explanation: |
-    フェーズを指定すると前のフェーズが全部走るが、`clean` は別のライフサイクルなので含まれない。`package` や `install` だけでは `target/` は消えず、`clean package` のように並べて指定する。
+    フェーズを指定すると前のフェーズが全部走るが、`clean` は別のライフサイクル。`target/` を消すなら、`clean package` のように並べて指定する。
 - after: よくあるトラブル
   question: |
     プロキシの設定を直したのに、`... was cached in the local repository, resolution will not be reattempted ...` と出て、依存を取り直してくれない。どうする?
   choices:
     - "`-U` を付けて実行する(STS なら Update Project の Force Update)"
     - "STS を再起動してから、もう一度ビルドする"
+    - "`./mvnw clean …` で `target/` を消してからビルドする"
   answer: 0
+  why:
+    - ""
+    - "STS の中に失敗が残っていると考えた答え。印は `~/.m2` のファイルなので、再起動しても残る"
+    - "clean で失敗の印も消えると考えた答え。clean が消すのは `target/` だけで、印は `~/.m2` に残る"
   explanation: |
-    一度ダウンロードに失敗すると、`~/.m2` に `.lastUpdated` という印が残り、しばらく再試行されない。`./mvnw -U …` で強制的に取り直す。印は `~/.m2` のファイルなので、STS を再起動しても残る。
+    一度ダウンロードに失敗すると、`~/.m2` に `.lastUpdated` という印が残り、しばらく再試行されない。`./mvnw -U …` で強制的に取り直す。

@@ -11,7 +11,7 @@ goals:
   - CSRF トークン・@PreAuthorize・@AuthenticationPrincipal の役割を説明できる
 samples:
   - title: ソルトなしとソルトありのハッシュを比べる
-    description: haru と mocha が同じパスワードを使っています。ソルトなしとソルトありで、2 人のハッシュがそれぞれ同じになるかを予想してから見よう。仕組みの体験用で、本番は BCrypt を使います。
+    description: haru と mocha が同じパスワードを使っています。ソルトなしとソルトありで、2 人のハッシュはそれぞれ同じになる?予想してから見よう。仕組みの体験用で、本番は BCrypt を使います。
     code: |
       // SHA-256 でハッシュ化して16進数で表示する
       // ここを変えてみよう:パスワードを "password" や "haru-pass" に、ソルトの文字列を変える
@@ -33,7 +33,7 @@ samples:
       System.out.println("haru : " + sha256("x7Kp" + pass));
       System.out.println("mocha: " + sha256("Q2vZ" + pass)); // 別の値になる
   - title: URL ルールは「最初に一致したもの」で決まる
-    description: Spring Security の `authorizeHttpRequests` と同じく、上から順に見て最初に一致したルールで判定します。一般ユーザーの haru が `/admin/users` を開くと許可か拒否か、2 行目と 3 行目を入れ替えたらどうなるかを予想してから見よう。
+    description: Spring Security の `authorizeHttpRequests` と同じく、上から順に見て最初に一致したルールで判定します。一般ユーザーの haru が `/admin/users` を開くと、許可と拒否のどちら?2 行目と 3 行目を入れ替えたらどうなるかも予想してから見よう。
     code: |
       // URL とルールの対応表(上から順に評価)
       // ここを変えてみよう:2行目と3行目を入れ替える / path を "/administrator" にする
@@ -69,6 +69,11 @@ quiz:
       ```
     choices: ["403 Forbidden になる", "ログイン画面にリダイレクトされる", "表示できてしまう", "起動時に例外が出る"]
     answer: 2
+    why:
+      - "細かい URL のルールが優先されると読んだ答え。上から順に評価され、先に一致した `/admin/**` で通ってしまう"
+      - "未ログインと同じ扱いと読んだ答え。ログイン済みなので、先に一致した `authenticated()` を満たす"
+      - ""
+      - "ルールが重なると起動で止まると読んだ答え。起動で止まるのは `anyRequest()` の後に書いたときだけ"
     explanation: |
       ルールは **上から順に評価され、最初に一致したもの** で決まります。`/admin/users/1` は1行目の `/admin/**` に一致し、ルールは `authenticated()`(ログインしていれば誰でも)なので **表示できてしまいます**。2行目の `hasRole("ADMIN")` は評価すらされません。
       細かい URL ほど上に書くのが鉄則です。起動時に例外になるのは `anyRequest()` の後に `requestMatchers` を書いた場合(`Can't configure requestMatchers after anyRequest`)で、この設定は文法上は正しく起動してしまうのが怖いところです。
@@ -83,6 +88,11 @@ quiz:
       ```
     choices: ["true と true", "false と true", "true と false", "false と false"]
     answer: 1
+    why:
+      - "同じパスワードなら encode の結果も同じ文字列になる、と読んだ答え"
+      - ""
+      - "encode は毎回同じで matches は通らないと読んだ答え。実際は毎回違う文字列になり、matches は true"
+      - "文字列が違うので照合も通らないと読んだ答え。matches は保存値の中のソルトで計算し直すので true"
     explanation: |
       BCrypt は encode のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
       ソルトは保存値(`$2a$10$` に続く部分)の中に入っているので、`matches` はそのソルトで計算し直して比べ、`true` になります。だからパスワードの照合に `equals` を使ってはいけません。
@@ -96,12 +106,21 @@ quiz:
       ```
     choices: ["method を get にしていないから", "ログインしていないから", "/orders に @PreAuthorize が付いていないから", "th:action ではなく action なので CSRF トークンが入っていないから"]
     answer: 3
+    why:
+      - "POST だから拒否されたと読んだ答え。更新を GET にすると、URL を踏ませるだけで実行される別の問題を生む"
+      - "未ログインが原因と読んだ答え。未ログインならログイン画面へのリダイレクトで、403 にはならない"
+      - "`@PreAuthorize` が無いと拒否されると読んだ答え。無ければ制限がかからないだけ"
+      - ""
     explanation: |
       POST などの更新系リクエストには **CSRF トークン** が必要で、無いと `CsrfFilter` が 403 で拒否します。Thymeleaf は `th:action="@{/orders}"` と書いたときだけ、隠し項目 `_csrf` を自動で入れてくれます。素の `action` では入りません。
-      GET にすれば通りますが、更新を GET でやるのは別の問題(URL を踏ませるだけで実行される)を生みます。未ログインならログイン画面へのリダイレクトになるので 403 にはなりません。
   - question: 「認証」と「認可」の説明として正しいものはどれ?
     choices: ["認証は「何をしてよいか」、認可は「誰か」を確かめる", "ログインに成功すれば、すべての画面の認可も済んだことになる", "認証は「誰か」を確かめ、ログイン済みでも権限が足りなければ認可で 403 になる", "認可に失敗するとログイン画面に戻される"]
     answer: 2
+    why:
+      - "認証と認可を逆に読んだ答え。認証は「誰か」、認可は「何をしてよいか」を確かめる"
+      - "ログインで認可まで済むと読んだ答え。ログインは認証だけで、画面ごとの権限は別に判定される"
+      - ""
+      - "認可の失敗を未認証と取り違えた答え。ログイン画面に戻るのは未認証のときで、権限不足は 403"
     explanation: |
       **認証(Authentication)** は「あなたは誰?」、**認可(Authorization)** は「それをしてよい?」です。ログインは認証にすぎず、管理画面に入れるかは別途ロールなどで判定されます(足りなければ 403 Forbidden)。
       ログイン画面に戻されるのは「まだ認証されていない」場合です。この2つを区別できると、障害調査で「401/ログイン画面へ」か「403」かを見て原因の切り分けができます。
@@ -116,9 +135,14 @@ quiz:
       ```
     choices: ["設定クラスに @EnableMethodSecurity が付いていない", "hasRole('ROLE_ADMIN') と書くべきだった", "メソッドが public だから", "PasswordEncoder の Bean が無い"]
     answer: 0
+    why:
+      - ""
+      - "`hasRole` に ROLE_ を書くと読んだ答え。`hasRole` は自動で ROLE_ を付けるので、書くと誤り"
+      - "public が原因と読んだ答え。外から呼ばれる public メソッドに付けるのが基本"
+      - "パスワードの部品が原因と読んだ答え。`@PreAuthorize` を効かせるのは `@EnableMethodSecurity`"
     explanation: |
       `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると **エラーも警告も出ずに無視される** ので、テストで「拒否されること」まで確かめるのが大切です。
-      `hasRole('ROLE_ADMIN')` は逆に誤りで、`hasRole` は自動で `ROLE_` を付けます。public であることも原因ではなく、むしろ他の Bean からプロキシ経由で呼ばれる public メソッドに付けるのが基本です(同じクラス内からの呼び出しには効かない点に注意)。
+      なお `@PreAuthorize` はプロキシ経由の呼び出しにだけ効くので、同じクラスの中からの呼び出しには効きません。
 columns:
   - type: genba
     title: 「403 が出たので csrf().disable() しました」

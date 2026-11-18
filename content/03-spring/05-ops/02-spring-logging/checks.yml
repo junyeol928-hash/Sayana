@@ -3,13 +3,21 @@
     在庫連携の API が 1 回目はタイムアウトしたが、リトライで成功して処理は続いた。このことを出すログのレベルは?
   choices: ["ERROR", "WARN", "TRACE"]
   answer: 1
+  why:
+    - "一度失敗したので ERROR と読んだ答え。リトライで成功し、人の対応は要らない"
+    - ""
+    - "細かい経過の記録と読んだ答え。要注意の出来事なので、既定で出ない TRACE では見逃す"
   explanation: |
-    続行できたが要注意、なので WARN。ERROR は処理が失敗して人が対応すべきものに取っておく。成功した処理まで ERROR にすると、本物の障害が埋もれる。
+    続行できたが要注意なので WARN。ERROR は、処理が失敗して人が対応すべきものに取っておく。
 - after: 設定で絞る・ファイルに出す
   question: |
     `logging.file.name: logs/app.log` を書いて起動した。Console へのログは?
-  choices: ["ファイルだけに出て、Console には出なくなる", "Console にもファイルにも出る"]
+  choices: ["ファイルだけに出て、Console には出なくなる", "Console にもファイルにも出る", "Console だけに出る。`logging.file.path` も書かないとファイルには出ない"]
   answer: 1
+  why:
+    - "`logging.file.name` で出力先が Console からファイルに切り替わる、と読んだ答え"
+    - ""
+    - "`logging.file.path` も要ると読んだ答え。`logging.file.name` だけで、そのファイルに書かれる"
   explanation: |
     `logging.file.name` は、Console に **加えて** ファイルにも出す設定。Console の出力はそのまま続く。
 - after: 書いてはいけないもの、付けておきたいもの
@@ -19,7 +27,11 @@
     pool.submit(() -> { MDC.put("requestId", "A-001"); log.info("1件目"); });
     pool.submit(() -> log.info("2件目 requestId={}", MDC.get("requestId")));
     ```
-  choices: ["null", "A-001"]
+  choices: ["null", "A-001", "実行のたびに null だったり A-001 だったりする"]
   answer: 1
+  why:
+    - "処理が終わると MDC も消えると読んだ答え。スレッドに貼った値は、消さない限り残る"
+    - ""
+    - "スレッドの取り合いで結果が揺れると読んだ答え。スレッドは 1 本なので、毎回同じスレッドが順に動かす"
   explanation: |
     MDC はスレッドごとの付箋で、処理が終わっても自動では消えない。同じスレッドが 2 件目を動かすので、1 件目の ID が残って付く。だから入口で入れた値は `finally` で `MDC.remove` する。

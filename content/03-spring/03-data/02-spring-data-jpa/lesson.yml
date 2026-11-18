@@ -12,7 +12,7 @@ goals:
 samples:
   - title: Spring Data がメソッド名をどう読むか(PartTree)
     description: |
-      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。
+      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。`DepartmentName` は、どのプロパティの条件として読まれる?
       `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。DB には接続しません。
     libraries: [spring, jpa]
     code: |
@@ -64,6 +64,11 @@ quiz:
       - "部署名が name の社員を、年齢の高い順に並べて先頭3件"
       - "部署名が name の部署を3件、社員の年齢順に"
     answer: 2
+    why:
+      - "`DepartmentName` を社員の name と読んだ答え。関連先 department の name をたどる条件"
+      - "`Desc` を若い順と読んだ答え。`Desc` は降順なので年齢の高い順"
+      - ""
+      - "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは Employee"
     explanation: |
       `find` + `Top3`(先頭3件)+ `By` + `DepartmentName`(`department.name` をたどる条件)+ `OrderByAgeDesc`(年齢の降順)と読みます。返すのは戻り値どおり `Employee` です。
       `Desc` は降順(大きい順)なので「若い順」ではありません。`DepartmentName` は社員自身の `name` ではなく、関連先 `department` の `name` です。
@@ -78,6 +83,11 @@ quiz:
       - "コンパイルエラーになる"
       - "条件が無視されて全件が返る"
     answer: 0
+    why:
+      - ""
+      - "メソッドを呼ぶときに名前を解析すると読んだ答え。名前は起動時に解析され、そこで失敗する"
+      - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
+      - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
       派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
@@ -91,6 +101,11 @@ quiz:
       ```
     choices: ["1回", "2回", "10回", "11回"]
     answer: 3
+    why:
+      - "社員と部署を一度に取ると読んだ答え。LAZY の部署は触ったときに1件ずつ取る"
+      - "部署をまとめて1回で取ると読んだ答え。LAZY の部署は社員ごとに1回ずつ取り、計 1 + 10"
+      - "社員一覧を取る1回を数え落とした答え。findAll の1回と部署の10回で 11"
+      - ""
     explanation: |
       `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが **N+1 問題** です。
       同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は `join fetch` で一度に取ることです。
@@ -102,6 +117,11 @@ quiz:
       - "select e from employees e where e.age >= :age"
       - "select Employee from Employee where age >= ?"
     answer: 1
+    why:
+      - "SQL の書き方と読んだ答え。JPQL にテーブル名や `select *` は無い"
+      - ""
+      - "from にテーブル名を書くと読んだ答え。JPQL の from に書くのはエンティティ名の Employee"
+      - "クラス名をそのまま select に書けると読んだ答え。JPQL は別名を付けて `select e` と `e.age` で書く"
     explanation: |
       JPQL は **エンティティ(クラス名)とフィールド名** に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
       `employees` はテーブル名なので JPQL では使えません(エンティティ名として解決できずエラー)。`select *` は SQL の書き方で、JPQL にはありません。テーブル名で生の SQL を書きたいときは `@Query(value = "...", nativeQuery = true)` を使います。
@@ -109,9 +129,13 @@ quiz:
       本番環境の `spring.jpa.hibernate.ddl-auto` の設定として、最も適切なものは?
     choices: ["create", "update", "validate", "create-drop"]
     answer: 2
+    why:
+      - "起動のたびに表を合わせてくれて便利と読んだ答え。create は起動のたびに作り直し、全データが消える"
+      - "足りない分だけ直すので安全と読んだ答え。列の削除や型変更はせず記録も残らないので、本番の変更管理に向かない"
+      - ""
+      - "終了時に片付くので安全と読んだ答え。起動・終了のたびに作り直すので全データが消える"
     explanation: |
       本番は `validate`(エンティティと実テーブルが合っているか検証するだけ)か `none` にし、テーブル変更は Flyway などのマイグレーションで SQL ファイルとして管理します。
-      `create` と `create-drop` は起動・終了のたびにテーブルを作り直すので全データが消えます。`update` は列や表を足すだけで、列の削除・型変更はせず、何を実行したかの記録も残らないため、本番の変更管理には向きません。
 columns:
   - type: trivia
     title: javax.persistence が jakarta.persistence に変わった理由

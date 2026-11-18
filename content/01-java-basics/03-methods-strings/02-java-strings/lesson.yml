@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 不変と equals、文字列プール
     description: |
-      `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わるか。`==` と `equals` がそれぞれ何を返すかも、出力を予想してから見よう(JShell では、受け取らなかった戻り値も画面に表示されます)。
+      `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わる? `==` と `equals` がそれぞれ何を返すかも、出力を予想してから見よう(JShell では、受け取らなかった戻り値も画面に表示されます)。
     code: |
       // String は不変。そして中身の比較は equals
       // ここを変えてみよう:input を "GOLD" や null にする / b を d + "va" の形にしてみる
@@ -35,6 +35,7 @@ samples:
   - title: メールアドレスを整えて分解する
     description: |
       strip / toLowerCase / indexOf / substring など、よく使うメソッドの組み合わせ。前後の全角スペースが `trim` と `strip` でそれぞれどうなるかに注目して、出力を予想してから見よう。
+      前の全角スペースは、`trim` で消える?
     code: |
       // よく使う String のメソッド(メールアドレスを整えて分解する)
       // ここを変えてみよう:email の中身や前後の空白(全角スペースも)を変える
@@ -58,6 +59,7 @@ samples:
   - title: CSV の行を分解して集計する
     description: |
       `split` で列に分け、`strip` してから `Integer.parseInt`。最後の 2 行の `split` が何個に分けるかも予想してから見よう。`strip()` を外したら何が起きるかも試してみよう。
+      `"a.b.c".split(".")` は、何個に分ける?
     code: |
       // CSV の1行を分解して集計する(split / strip / Integer.parseInt / String.join)
       // ここを変えてみよう:列の前後の空白を増やす / strip() を外すとどうなる? / "1,200" のようなカンマ入りにする
@@ -85,7 +87,7 @@ samples:
       System.out.println("split(\".\")   → " + "a.b.c".split(".").length + " 個");
       System.out.println("split(\"\\\\.\") → " + "a.b.c".split("\\.").length + " 個");
   - title: 書式指定とテキストブロックで帳票を作る
-    description: "`%-10s`(左寄せ)、`%4d`(右寄せ)、`%,9d`(3桁区切り)、`%05d`(0埋め)。`%%` は `%` そのものを出力します。"
+    description: "`%-10s`(左寄せ)、`%4d`(右寄せ)、`%,9d`(3桁区切り)、`%05d`(0埋め)。`%%` は `%` そのものを出力します。伝票番号の 42 は、`%05d` でどう表示される?"
     code: |
       // 書式指定(String.format / formatted)とテキストブロックで帳票を作る
       // ここを変えてみよう:%-10s の 10 や %,9d の 9 を変える / 金額を 1234567 にする
@@ -119,6 +121,11 @@ quiz:
       ```
     choices: ["JAVA!", "java", "JAVA", "java!"]
     answer: 1
+    why:
+      - "toUpperCase() と concat() が、s 自身を書き換えると読んだ答え"
+      - ""
+      - "toUpperCase() だけが s を書き換えると読んだ答え"
+      - "concat() だけが s に足されると読んだ答え"
     explanation: |
       String は **不変(immutable)** です。`toUpperCase()` も `concat("!")` も、元の `s` を書き換えるのではなく **新しい String を作って返す** だけ。戻り値をどこにも受け取っていないので捨てられ、`s` は `"java"` のままです。
       `JAVA!` にしたいなら `s = s.toUpperCase().concat("!");` のように、戻り値を変数に代入する必要があります。戻り値を捨ててもコンパイルエラーにはならないので、気づきにくいミスです。
@@ -132,6 +139,11 @@ quiz:
       ```
     choices: ["true true true", "false false true", "true false true", "false false false"]
     answer: 2
+    why:
+      - "new String も、プールの同じものを返すと読んだ答え"
+      - "`\"Ja\" + \"va\"` も、実行時に新しく作ると読んだ答え"
+      - ""
+      - "equals も、同じオブジェクトかどうかを比べると読んだ答え"
     explanation: |
       `"Ja" + "va"` は **定数同士の連結** なので、コンパイル時に `"Java"` という1つのリテラルになり、文字列プールの同じオブジェクトを指します。だから `a == b` は `true`。
       `new String("Java")` は **必ず新しいオブジェクト** を作るので `a == c` は `false`。中身を比べる `equals` は `true` です。
@@ -145,10 +157,15 @@ quiz:
       ```
     choices: ["A001", ",コーヒー", "コーヒー,", "コーヒー"]
     answer: 3
+    why:
+      - "最初のカンマより前を切り出すと読んだ答え。開始は i + 1 なのでカンマの次から"
+      - "開始位置をカンマの位置 i と読んだ答え"
+      - "substring の終了位置の文字も含むと読んだ答え"
+      - ""
     explanation: |
       `indexOf(",")` は最初のカンマの位置 `4` を返します。`indexOf(",", i + 1)` は位置 5 以降で次のカンマを探すので `9`。
       `substring(5, 9)` は **開始位置を含み、終了位置を含まない** ので、インデックス 5〜8 の `"コーヒー"` になります。
-      `,コーヒー` は開始を `i`(カンマの位置)にした場合、`コーヒー,` は終了位置も含むと勘違いした場合の答えです。
+
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -157,13 +174,23 @@ quiz:
       ```
     choices: ["0", "4", "1", "実行時に例外が発生する"]
     answer: 0
+    why:
+      - ""
+      - "`split(\".\")` をピリオドで区切ると読んだ答え"
+      - "区切りが見つからず、全体が 1 つ残ると読んだ答え"
+      - ". を正規表現として不正と読み、例外になるとした答え"
     explanation: |
       `split` の引数は **正規表現** で、`.` は「任意の1文字」を意味します。すべての文字が区切りとみなされ、間にできる要素はすべて空文字になります。`split` は **末尾の空文字の要素を取り除く** ので、結果は長さ `0` の配列です。
-      ピリオドで区切りたいときは `split("\\.")` とエスケープします(正規表現の `\.` を Java の文字列で書くと `"\\."`)。こうすれば `4` になります。例外にはなりません。
+      ピリオドで区切りたいときは `split("\\.")` とエスケープします(正規表現の `\.` を Java の文字列で書くと `"\\."`)。こうすれば `4` になります。
   - question: |
       次のうち、実行すると **NumberFormatException が発生する** のはどれ?
-    choices: ['Integer.parseInt("-42")', 'Integer.parseInt("042")', 'Integer.parseInt(" 42")', 'Integer.parseInt("+42")']
+    choices: ['`Integer.parseInt("-42")`', '`Integer.parseInt("042")`', '`Integer.parseInt(" 42")`', '`Integer.parseInt("+42")`']
     answer: 2
+    why:
+      - "マイナス付きは変換できないと読んだ答え"
+      - "先頭の 0 で失敗すると読んだ答え"
+      - ""
+      - "+ の記号は変換できないと読んだ答え"
     explanation: |
       `Integer.parseInt` は前後の空白を許さないので、`" 42"` は `NumberFormatException: For input string: " 42"` になります。CSV や画面入力の値は `strip()` してから変換するのが定石です。
       `"-42"` は -42、`"042"` は先頭の 0 が無視されて 42、`"+42"` も(Java 7 以降)42 として正しく変換されます。カンマ入りの `"1,000"` や小数の `"1.5"` も例外になります。

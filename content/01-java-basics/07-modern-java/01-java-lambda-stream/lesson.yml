@@ -11,7 +11,7 @@ goals:
   - 遅延評価・Stream の再利用不可・実質 final という3つの罠を説明できる
 samples:
   - title: 匿名クラス → ラムダ式 → メソッド参照
-    description: 並べ替えのルールを、匿名クラス・ラムダ式・メソッド参照の3通りの書き方で渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。
+    description: 並べ替えのルールを、匿名クラス・ラムダ式・メソッド参照の3通りの書き方で渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。② の短い順で、同じ 3 文字の Bob と Ken はどちらが先になるだろうか。
     code: |
       import java.util.*;
       import java.util.function.*;
@@ -53,7 +53,7 @@ samples:
       }
       picked.forEach(print);
   - title: 注文リストを Stream で絞り込む(for 文と比べる)
-    description: 5,000円以上の注文をした顧客を、重複なし・名前順で3人まで。同じ処理を for 文でも書いて比べます。
+    description: 5,000円以上の注文をした顧客を、重複なし・名前順で3人まで。同じ処理を for 文でも書いて比べます。5,000 円ちょうどの Suzuki は、最後の 3 人に残るだろうか。
     code: |
       import java.util.*;
 
@@ -110,7 +110,7 @@ samples:
           }
       }
   - title: collect で集計する(groupingBy / toMap / joining)
-    description: 社員リストを部署ごとにまとめたり、Map にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。
+    description: 社員リストを部署ごとにまとめたり、Map にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。開発の 2 人の平均給与は、何万円と出るだろうか。
     code: |
       import java.util.*;
       import java.util.stream.*;
@@ -235,9 +235,14 @@ quiz:
       ```
     choices: ["[30, 10, 30, 20]", "[10, 20, 30]", "[10, 20, 30, 30]", "[30, 10, 20]"]
     answer: 1
+    why:
+      - "distinct と sorted を見落とし、map だけを効かせた答え。重複が消えて並べ替えられる"
+      - ""
+      - "distinct を見落とした答え。重複した 3 は 1 つになる"
+      - "sorted を見落とした答え。distinct の後に並べ替えて [1, 2, 3] になる"
     explanation: |
       `distinct()` で重複した 3 が1つになり `[3, 1, 2]`、`sorted()` で `[1, 2, 3]`、`map` で10倍して `[10, 20, 30]` です。
-      `[10, 20, 30, 30]` は distinct を見落とした場合、`[30, 10, 20]` は sorted を見落とした場合の答えです。中間操作は書いた順に1段ずつ効きます。
+      中間操作は書いた順に1段ずつ効きます。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -250,16 +255,26 @@ quiz:
       ```
     choices: ["ab!", "!ab", "!", "コンパイルエラー"]
     answer: 2
+    why:
+      - "map のラムダがすぐ動くと読んだ答え。終端操作が無いので要素は流れない"
+      - "map が後から動くと読んだ答え。終端操作が無いので、いつまでも動かない"
+      - ""
+      - "使わない Stream の式は書けないと読んだ答え。文法的に正しい式文で、コンパイルは通る"
     explanation: |
       `map` は中間操作で、**遅延評価** されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
-      文法的には正しい式文なのでコンパイルエラーにはなりません。「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
+      「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
   - question: |
       メソッド参照 `String::length` と同じ意味のラムダ式はどれ?
     choices: ["s -> s.length()", "() -> String.length()", "s -> String.length(s)", "(s, t) -> s.length() + t.length()"]
     answer: 0
+    why:
+      - ""
+      - "引数を受け取らない static の呼び出しと読んだ答え。受け取った文字列そのものの length() を呼ぶ"
+      - "static メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
+      - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その length() を返す"
     explanation: |
       `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
-      `length()` は static メソッドではないので `String.length()` や `String.length(s)` という呼び方はできません。static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
+      static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
   - question: |
       次のコードのうち、**コンパイルエラーになる行** はどれ?
       ```java
@@ -271,9 +286,14 @@ quiz:
       ```
     choices: ["(A)", "(B)", "(C)", "(D)"]
     answer: 2
+    why:
+      - "宣言の行がエラーと読んだ答え。宣言は普通で、ラムダの中で count を書き換える行がエラー"
+      - "ラムダの中で println を呼べないと読んだ答え。外の変数に触れていないので問題ない"
+      - ""
+      - "`count` という変数名とぶつかると読んだ答え。count() は Stream のメソッドで、変数とは別"
     explanation: |
       ラムダ式から参照できるローカル変数は、`final` か **実質 final**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
-      数えたいなら (D) のように `count()` を使うのが正解です。(A) の宣言自体や、外の変数に触れない (B) は問題ありません。
+      数えたいなら (D) のように `count()` を使うのが正解です。
   - question: |
       次のコードを実行するとどうなる?
       ```java
@@ -283,9 +303,14 @@ quiz:
       ```
     choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと、実行時に例外が発生する"]
     answer: 3
+    why:
+      - "Stream を何度でも使えると読んだ答え。2 回目の終端操作で例外になる"
+      - "使い終わった Stream は空になると読んだ答え。空を返すのではなく IllegalStateException"
+      - "使用済みかをコンパイラが見ると読んだ答え。追跡されないので通り、実行時に例外になる"
+      - ""
     explanation: |
       Stream は **一度終端操作を呼んだら使い切り** です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
-      コンパイラは「この Stream が使用済みか」を追跡しないのでコンパイルは通ります。もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
+      もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
 columns:
   - type: trivia
     title: ラムダ式は「匿名クラスの省略記法」ではない

@@ -13,7 +13,12 @@
     - "false"
     - "コンパイルエラー"
   answer: 1
-  explanation: "len.apply(\"lambda\") は長さ 6 を返し、big.test(6) は 6 > 3 で true。内側から順に「apply で Integer にする → test で boolean にする」と読みます。"
+  why:
+    - "apply の結果をそのまま出すと読んだ答え。長さは test に渡される"
+    - ""
+    - "条件を逆に取った答え。lambda は 6 文字で、6 > 3 は true"
+    - "Function の結果を Predicate に渡せないと読んだ答え。Integer を受け取る Predicate なので型が合う"
+  explanation: "`len.apply(\"lambda\")` は長さ 6 を返し、big.test(6) は 6 > 3 で true。内側から順に「apply で Integer にする → test で boolean にする」と読みます。"
   trace:
     - "1行目: String を受け取って長さ(Integer)を返す処理"
     - "2行目: Integer を受け取って 3 より大きいか返す処理"
@@ -35,7 +40,12 @@
     - "312"
     - "321"
   answer: 1
-  explanation: "Integer::parseInt は s -> Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので \"302010\"。"
+  why:
+    - "並べ替えの向きを見落とした答え。`reverseOrder()` は降順"
+    - ""
+    - "map と sorted を見落とした答え。数値にして 10 倍し、降順に並べる"
+    - "10 倍の map を見落とした答え。数値にした後で 10 倍している"
+  explanation: "Integer::parseInt は s -> Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので `302010`。"
   trace:
     - "3行目: \"3\",\"1\",\"2\" → 3, 1, 2"
     - "4行目: → 30, 10, 20"
@@ -60,7 +70,12 @@
     - "start 9 9 9"
     - "コンパイルエラー"
   answer: 1
-  explanation: "4行目でラムダを作って List に入れるだけで、この時点では実行されません。\"start \" が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。"
+  why:
+    - "tasks.add でラムダがすぐ動くと読んだ答え。入れるだけで、run() まで動かない"
+    - ""
+    - "どのラムダも最後の値を見ると読んだ答え。n は回ごとに別の変数"
+    - "ループの中のラムダは変数を使えないと読んだ答え。毎回新しい final の n なので使える"
+  explanation: "4行目でラムダを作って List に入れるだけで、この時点では実行されません。`start` が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。"
   trace:
     - "2〜5行目: n=1, 2, 3 をそれぞれ持つ3つのラムダを作って保存(まだ実行しない)"
     - "6行目: \"start \" を表示"
@@ -83,6 +98,11 @@
     - "yui aki ken"
     - "ken yui aki"
   answer: 1
+  why:
+    - "並べ替えが効かないと読んだ答え。実際は部署名で並ぶ"
+    - ""
+    - "年齢を昇順と読んだ答え。`reverseOrder()` が付いている"
+    - "並べる向きを両方とも逆に読んだ答え。部署は昇順で dev が先、年齢は降順で aki が先"
   explanation: "comparing(Emp::dept) で部署名の昇順(dev が ops より前)。同じ dev の中は thenComparing(Emp::age, reverseOrder()) で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(dept()、age())もメソッド参照で使えます。"
   trace:
     - "6行目: 第1基準 dept 昇順 → dev, dev, ops"
@@ -106,6 +126,11 @@
     - "5 15"
     - "コンパイルエラー"
   answer: 0
+  why:
+    - ""
+    - "andThen で add10 だけが効くと読んだ答え。実際は add5 の後に続く"
+    - "引数の 1 を足し忘れた答え。x + amount の x が 1"
+    - "ラムダがメソッドの引数を覚えられないと読んだ答え。実質 final の amount はキャプチャできる"
   explanation: "adder(5) は「x に 5 を足す処理」を返します(amount = 5 をキャプチャ)。add5.apply(1) = 6。andThen は「add5 をしてから add10 をする」合成なので both.apply(1) = (1 + 5) + 10 = 16。ラムダが引数の値を「覚えて」いること、そして Function どうしをつなげられることが読めれば、Spring の設定コードやライブラリのコールバックが読みやすくなります。"
   trace:
     - "5行目: amount=5 を覚えたラムダ x -> x + 5 が返る"
@@ -128,7 +153,12 @@
     - "[apple, banana]"
     - "[5, 4, 6]"
   answer: 3
-  explanation: "filter で長さが 3 より大きい語(apple=5, kiwi=4, banana=6)が残り、fig(3)は落ちます。map で長さの数値に置き換え、[5, 4, 6] になります。[apple, banana] は map をしなかった場合、[5, 6] は条件を「4 より大きい」と読み違えた場合です。"
+  why:
+    - "filter を見落とした答え。長さ 3 の fig は条件を満たさず落ちる"
+    - "条件を「4 より大きい」と読んだ答え。`> 3` なので長さ 4 の kiwi も残る"
+    - "map を見落とし、kiwi も落とした答え。残るのは長さの数値で、kiwi も入る"
+    - ""
+  explanation: "filter で長さが 3 より大きい語(apple=5, kiwi=4, banana=6)が残り、fig(3)は落ちます。map で長さの数値に置き換え、[5, 4, 6] になります。"
   trace:
     - "3行目: apple(5)○ kiwi(4)○ banana(6)○ fig(3)× → 3つ残る"
     - "4行目: それぞれ String::length で 5, 4, 6 に"
@@ -154,6 +184,11 @@
     - "F1 M1 F2 M2 F3 M3"
     - "何も出力されない"
   answer: 1
+  why:
+    - "filter を全部終えてから map と読んだ答え。実際は 1 要素ずつ流れる"
+    - ""
+    - "filter で落ちた 2 も map に行くと読んだ答え。2 は filter で落ち、M2 は出ない"
+    - "遅延評価で何も動かないと読んだ答え。終端操作の toList() があるので要素が流れる"
   explanation: "要素は1つずつ全段を通ります。1 は filter を通過して map へ(F1 M1)、2 は filter で落ちるので map に行かない(F2)、3 は通過(F3 M3)。「filter を全部やってから map」ではないのがポイントです。"
   trace:
     - "10行目の toList() が呼ばれて初めて流れ始める"
@@ -178,7 +213,12 @@
     - "[A, C, D] null"
     - "NullPointerException"
   answer: 1
-  explanation: "groupingBy(dept, counting()) は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。\"hr\" はキーが存在しないので Map.get は null を返し、文字列連結なので \"null\" と表示されます(例外にはなりません)。counting() を付けなければ値は社員の `List<Emp>` になり、m.get(\"dev\") は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
+  why:
+    - "無いキーの件数は 0 と読んだ答え。groupingBy は 0 件の部署を作らない"
+    - ""
+    - "counting() を見落とした答え。値は社員の一覧ではなく件数(Long)"
+    - "null を連結すると例外と読んだ答え。実際は文字として出る"
+  explanation: "groupingBy(dept, counting()) は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。`\"hr\"` はキーが存在しないので Map.get は null を返し、文字列連結なので `null` と表示されます。counting() を付けなければ値は社員の `List<Emp>` になり、`m.get(\"dev\")` は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
   trace:
     - "6行目: dept ごとにまとめて件数を数える → {dev=3, ops=1}"
     - "7行目: m.get(\"dev\") は 3、m.get(\"hr\") はキーがないので null"
@@ -199,7 +239,12 @@
     - "400"
     - "IllegalStateException"
   answer: 3
-  explanation: "toMap は既定でキーの重複を許しません。3つ目の要素でキー \"X\" が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -> b)、400(合計)にしたければ (a, b) -> a + b を第3引数に渡します。"
+  why:
+    - "最初の値が残ると読んだ答え。実際は 2 回目の X で例外になる"
+    - "後の値で上書きされると読んだ答え。上書きには第 3 引数が要り、無いと例外になる"
+    - "同じキーの値が足されると読んだ答え。合計には第 3 引数が要り、無いと例外になる"
+    - ""
+  explanation: "toMap は既定でキーの重複を許しません。3つ目の要素でキー `\"X\"` が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -> b)、400(合計)にしたければ (a, b) -> a + b を第3引数に渡します。"
   trace:
     - "5行目: X→100 を登録、Y→200 を登録"
     - "3つ目の Item(\"X\", 300): キー X が既にある → 重複キーの扱いが未指定 → 例外"
@@ -224,6 +269,11 @@
     - "NullPointerException"
     - "コンパイルエラー"
   answer: 1
+  why:
+    - "Optional には必ず中身があると読んだ答え。見つからなければ空になる"
+    - ""
+    - "空のリストで null が返ると読んだ答え。実際は空の Optional になる"
+    - "空の `List.of()` は渡せないと読んだ答え。型は推論され、コンパイルは通る"
   explanation: "空のリストを流すので要素は1つもなく、findFirst() は空の Optional を返します。isPresent() は false。Stream は要素がなくても例外にはならず、null も返しません。ここが「null を返さず Optional で返す」設計の利点です。"
   trace:
     - "9行目: 空のリストで呼ぶ"

@@ -13,6 +13,7 @@ samples:
   - title: ボタンが見えることと、承認できることは別
     description: |
       画面の `sec:authorize` はロールしか見ません。一方、サーバー側の判定は「自分の申請か」「金額はいくらか」まで見ます。
+      今の申請(ハルの 12 万円)で、ボタンは出るのにサーバーが断るのは誰?
       金額や申請者を変えて、ボタンは出るのにサーバーが断るケースを探してみましょう。
     code: |
       enum Role { APPLICANT, APPROVER, ADMIN }
@@ -45,7 +46,7 @@ samples:
   - title: URL ルールは上から順に、最初に一致したもので決まる
     description: |
       承認くんの URL ルールを簡略化した表で、未ログイン・申請者・承認者がどの URL に入れるかを一覧にします。
-      まず今のルールで、申請者が `/requests/search` に入れるかを予想してから実行結果を見よう。そのあと広いルール(`/requests` 以下はログインしていれば OK)を先頭に足すと、どの行が変わるかも予想して試しましょう。
+      まず今のルールで、申請者は `/requests/search` に入れる? 予想してから実行結果を見よう。そのあと広いルール(`/requests` 以下はログインしていれば OK)を先頭に足すと、どの行が変わるかも予想して試しましょう。
     code: |
       // 承認くんの URL ルール(上から順に見て、最初に一致したもので決まる)
       // prefix で簡略化しています。本物は Spring Security の requestMatchers
@@ -97,9 +98,14 @@ quiz:
       - "検索画面が表示される"
       - "ルールが矛盾しているので起動時にエラーになる"
     answer: 2
+    why:
+      - "`hasAnyRole` が効くと読んだ答え。先に書いた `/requests/**` に一致した時点で決まる"
+      - "ロール不足でログイン画面へ戻ると読んだ答え。先に一致した `/requests/**` はログインだけを求める"
+      - ""
+      - "順番の矛盾を起動時に見抜くと読んだ答え。起動で落ちるのは `anyRequest()` の後ろに書いたときだけ"
     explanation: |
       ルールは上から順に評価され、**最初に一致したもの** で決まります。`/requests/search` は先に書いた `/requests/**` に一致するので、「ログインしていれば誰でも」で通ってしまいます。3行目の `hasAnyRole` は一度も使われません。
-      細かい URL(`/requests/search`)を広いパターン(`/requests/**`)より上に書くのが正解です。この順番は起動時にはチェックされないので、エラーにもなりません(`anyRequest()` の後ろに書いたときだけ起動時エラーになります)。
+      細かい URL(`/requests/search`)を広いパターン(`/requests/**`)より上に書くのが正解です。
   - question: |
       ログインはできるのに、承認者の社員が `/approvals` を開くと 403 になります。`LoginUser` の次の部分が原因です。正しい直し方は?
       ```java
@@ -111,14 +117,18 @@ quiz:
       ```
       (設定は `.requestMatchers("/approvals/**").hasAnyRole("APPROVER", "ADMIN")`)
     choices:
-      - "権限名を \"ROLE_\" + role.name() にする"
-      - "設定を hasAnyRole(\"ROLE_APPROVER\", \"ROLE_ADMIN\") にする"
-      - "role.name() を role.name().toLowerCase() にする"
-      - "@EnableWebSecurity を付け忘れているので付ける"
+      - '権限名を `"ROLE_" + role.name()` にする'
+      - '設定を `hasAnyRole("ROLE_APPROVER", "ROLE_ADMIN")` にする'
+      - "`role.name()` を `role.name().toLowerCase()` にする"
+      - "`@EnableWebSecurity` を付け忘れているので付ける"
     answer: 0
+    why:
+      - ""
+      - "設定側に `ROLE_` を足した答え。`hasAnyRole` は自動で付けるので、起動時にエラーになる"
+      - "大文字小文字が原因と読んだ答え。区別されるので小文字でも一致せず、足りないのは `ROLE_`"
+      - "注釈の付け忘れと読んだ答え。Spring Boot では無くても有効で、足りないのは `ROLE_`"
     explanation: |
       `hasAnyRole("APPROVER")` は、権限 `ROLE_APPROVER` を持っているかを調べます(`ROLE_` が自動で付く)。権限を `APPROVER` のまま返すと一致しないので 403 です。権限名に `ROLE_` を付けて返すのが正解です。
-      設定側に `ROLE_` を付けると、起動時に「ROLE_APPROVER should not start with ROLE_ ...」で落ちます。権限名は大文字小文字を区別するので小文字にしても一致しません。Spring Boot では `@EnableWebSecurity` がなくても有効です。
   - question: |
       capstone-apply の「固定の社員ID」を置き換えるつもりで、次のように書きました。何が問題?
       ```html
@@ -137,10 +147,14 @@ quiz:
       - "#authentication は Thymeleaf では使えない"
       - "hidden の値はブラウザで書き換えられるので、他人になりすまして申請できる"
     answer: 3
+    why:
+      - "hidden に数値が入らないと読んだ答え。文字列で送られ、受け取るときに変換される"
+      - "`th:action` でトークンが二重になると読んだ答え。入るのは1つだけ"
+      - "`#authentication` が使えないと読んだ答え。thymeleaf-extras-springsecurity6 を入れれば使える"
+      - ""
     explanation: |
       hidden の値も、ブラウザの開発者ツールや curl で自由に書き換えて送れます。`employeeId=3` に変えれば、部長の名前で申請できてしまいます。
       「誰が」は画面から受け取らず、サーバー側のセッションにあるログイン情報を `@AuthenticationPrincipal LoginUser user` で受け取って `user.id()` を使います。
-      hidden に数値は入れられますし(送るときは文字列、受け取るときに変換)、`th:action` の CSRF トークンは1つだけ入ります。`#authentication` は thymeleaf-extras-springsecurity6 を入れていれば使えます。
   - question: |
       ロール `APPROVER` のモカさんが、**自分が出した** 申請(5,000円・申請中)の承認を、curl で `POST /requests/8/approve` に直接送りました(ログイン済みのセッションと CSRF トークン付き)。承認くんではどうなるのが正しい?
     choices:
@@ -149,9 +163,14 @@ quiz:
       - "SecurityFilterChain が「自分の申請」を見抜いて 403 を返す"
       - "5,000円なので承認される"
     answer: 1
+    why:
+      - "ボタンが無ければ届かないと読んだ答え。curl は画面を通らずに送れる"
+      - ""
+      - "URL のルールが申請者まで見ると読んだ答え。Filter が見るのはロールだけ"
+      - "金額だけで決まると読んだ答え。少額でも、自分の申請はルール2で承認できない"
     explanation: |
       URL のルールが見るのはロールだけなので、APPROVER の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)で拒否します。
-      ボタンを隠しても、curl のように画面を通らないリクエストは届きます。だからこそ Service で必ず判定するのです。金額が小さくても、自分の申請はルール2で承認できません。
+      ボタンを隠しても画面を通らないリクエストは届くので、Service で必ず判定するのです。
   - question: |
       次のフォームで「承認」を押すと 403 になりました。原因として正しいものは?
       ```html
@@ -160,14 +179,18 @@ quiz:
       </form>
       ```
     choices:
-      - "th:action を使っていないので CSRF トークンが送られていない"
+      - "`th:action` を使っていないので CSRF トークンが送られていない"
       - "action の URL が相対パスではないから"
-      - "button に type=\"submit\" が無いから"
+      - '`button` に `type="submit"` が無いから'
       - "承認は PUT で送る決まりだから"
     answer: 0
+    why:
+      - ""
+      - "絶対パスが原因と読んだ答え。`/requests/...` で書いても POST は届く"
+      - "`type` の省略が原因と読んだ答え。form の中の button は省略すると submit になる"
+      - "承認は PUT で送ると読んだ答え。承認くんでは状態を変える操作は POST"
     explanation: |
       Spring Security は CSRF 対策が既定で有効で、POST にはサーバーが発行したトークン(`_csrf`)が必要です。`th:action` で書くと Thymeleaf が hidden の `_csrf` を自動で入れますが、ただの `action` だと入らないので 403 になります。
-      `/requests/...` の絶対パスでも POST は届きますし、form の中の `button` は `type` を省略すると submit ボタンです。承認くんの設計では状態を変える操作は POST です。
 columns:
   - type: trivia
     title: "パスワードの先頭の {bcrypt} は何?"

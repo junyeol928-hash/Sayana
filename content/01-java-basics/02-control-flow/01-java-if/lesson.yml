@@ -11,7 +11,7 @@ goals:
   - "if (x = 5) がコンパイルエラーになる理由と、boolean を == true で比べない理由を説明できる"
 samples:
   - title: 送料計算(if / else if / else)
-    description: 購入金額と会員ランクで送料を決めます。条件は上から順に評価され、最初に当てはまった1つだけが実行されます。
+    description: 購入金額と会員ランクで送料を決めます。条件は上から順に評価され、最初に当てはまった1つだけが実行されます。2980 円のシルバー会員の送料はいくら?
     code: |
       // 購入金額と会員ランクで送料を決める
       // ここを変えてみよう:amount を 2999 / 3000 / 5000 に、rank を "GOLD" や "NORMAL" に
@@ -32,7 +32,7 @@ samples:
       System.out.println("送料: " + fee + "円");
       System.out.println("お支払い合計: " + (amount + fee) + "円");
   - title: 曜日番号を switch 式で分類する
-    description: アロー構文・複数ラベル・yield の使い方。`default` を消すと網羅性チェックでコンパイルエラーになるのを確かめてみましょう。
+    description: アロー構文・複数ラベル・yield の使い方。`default` を消すと網羅性チェックでコンパイルエラーになるのを確かめてみましょう。`day` が 6 のとき、何と表示される?
     code: |
       // 曜日番号(1=月 … 7=日)を switch 式で分類する
       // ここを変えてみよう:day を 1〜7 や 0、8 にしてみる。default の行を消すとどうなる?
@@ -54,7 +54,7 @@ samples:
       };
       System.out.println(day + " → " + name + "曜日は " + type);
   - title: フォールスルーの罠とアロー構文
-    description: 従来の switch 文で `break` を忘れると次の case に落ちていきます。アロー構文なら落ちません。
+    description: 従来の switch 文で `break` を忘れると次の case に落ちていきます。アロー構文なら落ちません。`break` を忘れた switch 文は、`day` が 6 のとき何を表示する?
     code: |
       // フォールスルーの罠:従来の switch 文で break を忘れると……
       // ここを変えてみよう:case 6 の後に break; を足す / day を 7 や 3 にする
@@ -78,7 +78,7 @@ samples:
           default -> System.out.println("平日");
       }
   - title: 文字列の比較は equals、null は switch の前にはじく
-    description: "`==` は同じオブジェクトかどうかを比べるだけ。`input` を `null` にすると `input.equals(...)` の行で NullPointerException が出ます。"
+    description: "`==` は同じオブジェクトかどうかを比べるだけ。`input` を `null` にすると `input.equals(...)` の行で NullPointerException が出ます。`input == \"GOLD\"` の行は何を表示する?"
     code: |
       // 文字列の比較は equals。== は「同じオブジェクトか」を見るだけ
       // ここを変えてみよう:input を null にしてみる(input.equals は NPE、"GOLD".equals は false になる)
@@ -114,13 +114,28 @@ quiz:
       ```
     choices: ["B", "BCD", "BC", "ABC"]
     answer: 2
+    why:
+      - "アロー構文(case 2 ->)と読んだ答え。従来の switch は break が無いと下へ落ちる"
+      - "break を見落とした答え。case 3 の break で抜けるので D は出ない"
+      - ""
+      - "case 1 から順に実行すると読んだ答え。switch は一致した case 2 へ飛ぶ"
     explanation: |
-      従来の switch 文は、一致した `case 2` に **ジャンプ** してそこから下を実行します。`case 2` には `break` がないので `case 3` に **フォールスルー** して `C` も出力し、`case 3` の `break` で抜けます。よって `BC` です。
-      `B` だけになるのはアロー構文(`case 2 ->`)の場合。`case 1` より上には戻らないので `A` は出ず、`break` で抜けるので `D` まで落ちることもありません。
+      従来の switch 文は、一致した case に **ジャンプ** して、そこから下を順に実行します。たどる順は次のとおりで、出力は `BC` です。
+
+      1. `case 2` にジャンプして `B` を出す(`case 1` の `A` は飛ばす)
+      2. `break` がないので `case 3` へ **フォールスルー** して `C` を出す
+      3. `case 3` の `break` で抜ける(`default` の `D` は出ない)
+
+      `B` だけになるのは、アロー構文(`case 2 ->`)で書いた場合です。
   - question: |
       `int x = 3;` `boolean ok = false;` と宣言されているとき、**コンパイルエラーになる** のはどれ?
     choices: ["if (ok = true) { }", "if (x == 5) { }", "if (!ok) { }", "if (x = 5) { }"]
     answer: 3
+    why:
+      - "代入ならどれもエラーと読んだ答え。ok = true の値は boolean なので通ってしまう"
+      - "== の比較を疑った答え。int 同士の比較で boolean になるので条件として正しい"
+      - "!ok を疑った答え。boolean の否定なので条件として正しい"
+      - ""
     explanation: |
       `x = 5` は代入式で、その値は `int` の `5` です。Java の if の条件は `boolean` でなければならず、int → boolean の変換は存在しないので `incompatible types: int cannot be converted to boolean` になります。
       紛らわしいのは `if (ok = true)`。これも比較ではなく代入ですが、式の値が `boolean`(true)なので **コンパイルが通ってしまい**、常に true の分岐になります。`== true` と書く習慣をやめて `if (ok)` と書けば、この事故はそもそも起きません。
@@ -137,9 +152,14 @@ quiz:
       ```
     choices: ["小 と 終", "終 だけ", "大 と 終", "コンパイルエラー"]
     answer: 1
+    why:
+      - "インデントのとおりに、else を外側の if に結びつけた答え"
+      - ""
+      - "条件を確かめずに内側まで進んだ答え。x は 3 なので外側の x > 5 で止まる"
+      - "波括弧のない入れ子の if と else を文法違反と読んだ答え。else は一番近い if に付いて通る"
     explanation: |
       インデントに惑わされないこと。Java では `else` は **一番近い if**(ここでは `if (x > 10)`)に結びつきます(ぶら下がり else)。つまり外側の `if (x > 5)` が false の時点で、内側の if も else も丸ごとスキップされ、`終` だけが出力されます。
-      見た目どおり「5以下なら小」にしたいなら、波括弧で外側の if のブロックを閉じる必要があります。だから現場では1行でも波括弧を省略しません。文法的には正しいのでコンパイルエラーにはなりません。
+      見た目どおり「5以下なら小」にしたいなら、波括弧で外側の if のブロックを閉じる必要があります。だから現場では1行でも波括弧を省略しません。
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -152,6 +172,11 @@ quiz:
       ```
     choices: ["コンパイルエラーになる", "NG と出力される", "実行時に例外が発生する", "null と出力される"]
     answer: 0
+    why:
+      - ""
+      - "code が 2 なので動くと読んだ答え"
+      - "合う case が無いと、実行時に落ちると読んだ答え"
+      - "合う case が無いと null を返すと読んだ答え"
     explanation: |
       switch **式** は必ず値を返さなければならないので、すべての入力をカバーしている(網羅している)必要があります。`int` は 1 と 2 以外の値も取りうるのに `default` がないため、`the switch expression does not cover all possible input values` というコンパイルエラーになります。
       `code` が実際には 2 であっても、コンパイラは「取りうるすべての値」で判断します。`default -> "不明";` を足せば `NG` と出力されます。値を返さない switch **文** なら網羅していなくてもエラーにはなりません。
@@ -165,8 +190,13 @@ quiz:
       ```
     choices: ["true と true", "true と false", "false と true", "false と false"]
     answer: 2
+    why:
+      - "== でも中身を比べると読んだ答え"
+      - "== と equals の役割を逆に読んだ答え"
+      - ""
+      - "equals も、別のオブジェクトなら false になると読んだ答え"
     explanation: |
-      `b` は実行時に連結して作られた **新しい String オブジェクト** です。`==` は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じ "Java" でもリテラルの "Java" とは別物で `false`。中身を比べる `equals` は `true` です。
+      `b` は実行時に連結して作られた **新しい String オブジェクト** です。`==` は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じでもリテラルの `"Java"` とは別物で `false`。中身を比べる `equals` は `true` です。
       リテラル同士(`"Java" == "Java"`)ならインターンにより同じオブジェクトになるので `true` になることがあり、これが「テストでは動いたのに本番で壊れる」原因です。文字列は必ず `equals` で比べましょう。
 columns:
   - type: genba

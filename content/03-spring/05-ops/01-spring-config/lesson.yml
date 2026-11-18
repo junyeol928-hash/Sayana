@@ -13,7 +13,7 @@ samples:
   - title: 設定値を @Value で受け取る(既定値つき)
     libraries: [spring]
     description: |
-      `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。
+      `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。1 行目の税率は、8% と 10% のどちらで出る?
       1 行目に出る店名と税率、`server.port` の行に出る値を予想してから見よう。そのあと `shop.name` の行を消したら何が出るかも予想して試そう。
     code: |
       import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +51,7 @@ samples:
     libraries: [spring]
     description: |
       `setActiveProfiles` は Spring Boot の `spring.profiles.active` に当たります。**`register` より前** に呼ぶのがポイントです。
-      `"dev"` のときに登録されるのは `smtp` と `console` のどちらかを予想してから見よう。そのあと `"prod"` や `{ }`(プロファイルなし)に変えたらどうなるかも予想して試そう。
+      `"dev"` のときに登録されるのは、`smtp` と `console` のどちら?予想してから見よう。そのあと `"prod"` や `{ }`(プロファイルなし)に変えたらどうなるかも予想して試そう。
     code: |
       import org.springframework.context.annotation.*;
 
@@ -115,13 +115,22 @@ quiz:
       - "8081 と 未設定(application-dev.yml に書いていないので)"
       - "起動エラー(同じキーが2か所にあるので)"
     answer: 1
+    why:
+      - "dev のファイルが共通の値を上書きしないと読んだ答え"
+      - ""
+      - "dev 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
+      - "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ"
     explanation: |
       プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
-      同じキーが複数の場所にあるのは正常な状態で、優先順位の高い方が採用されるだけなのでエラーにはなりません。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
     choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJOEXECMAXHEAP"]
     answer: 2
+    why:
+      - "キーをそのまま環境変数名にすると読んだ答え。. や - を含む名前は多くのシェルで設定すらできない"
+      - "大文字にするだけでよいと読んだ答え。. は _ に変え、- は削除する"
+      - ""
+      - "区切りも全部消すと読んだ答え。. は _ に変えるもので、消すと1語のキーになり対応しない"
     explanation: |
       変換ルールは「`.` を `_` に」「`-` は削除」「全部大文字」の3つなので `DOJO_EXEC_MAXHEAP` です。
       `DOJOEXECMAXHEAP` は区切りの `_` が無いので、`dojoexecmaxheap` という1語のキーになり、対応しません。
@@ -137,6 +146,11 @@ quiz:
       ```
     choices: ["1000", "800", "400", "500"]
     answer: 0
+    why:
+      - ""
+      - "環境変数が一番強いと読んだ答え。コマンドライン引数のほうが強く、1000 が勝つ"
+      - "プロファイル用のファイルが一番強いと読んだ答え。環境変数やコマンドライン引数のほうが強い"
+      - "`:500` を常に使う値と読んだ答え。既定値はどこにもキーが無いときだけ使われる"
     explanation: |
       優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > application-{profile}.yml > application.yml」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
       500 は `@Value` の既定値で、どこにもキーが無いときにだけ使われます。コマンドライン引数を外せば環境変数の 800 になります。
@@ -149,12 +163,16 @@ quiz:
     choices:
       - "server.port は application.yml では変更できず、コマンドライン引数でしか指定できない"
       - "port: の後ろにスペースが無いので、port:9090 という1つの文字列として読まれた"
-      - "YAML ではポート番号を \"9090\" のように引用符で囲む必要がある"
+      - "YAML ではポート番号を `\"9090\"` のように引用符で囲む必要がある"
       - "application.properties が無いと application.yml は読まれない"
     answer: 1
+    why:
+      - "server.port はファイルで変えられないと読んだ答え。ファイルでも変えられ、原因はコロンの後ろのスペース"
+      - ""
+      - "数値に引用符が要ると読んだ答え。数値はそのまま書けばよく、原因はコロンの後ろのスペース"
+      - "yml は単独では読まれないと読んだ答え。application.yml だけでも読まれる"
     explanation: |
       YAML のキーと値の区切りは「コロン + スペース」です。`port:9090` はスペースが無いので区切りとみなされず、`server` の値が `"port:9090"` という文字列になります。`server.port` というキーは存在しないことになり、既定の 8080 で黙って起動します。
-      数値はそのまま書けばよく、引用符は不要です。`application.yml` は単独で読まれますし、`server.port` も設定ファイルで変更できます。
   - question: |
       次の Bean 定義で、**プロファイルを何も指定せずに** 起動したとき、登録される `PaymentGateway` の Bean はどれ?
       ```java
@@ -166,6 +184,11 @@ quiz:
       ```
     choices: ["realGateway だけ", "fakeGateway だけ", "どちらも登録されない", "両方登録される"]
     answer: 2
+    why:
+      - "指定が無いと prod 扱いと読んだ答え。有効なのは default だけで、prod の Bean は作られない"
+      - "指定が無いと dev 扱いと読んだ答え。有効なのは default だけで、dev の Bean も作られない"
+      - ""
+      - "指定が無いと `@Profile` が無視されると読んだ答え。default だけが有効で、どちらも登録されない"
     explanation: |
       プロファイルを指定しないときに有効なのは `default` プロファイルだけです。`prod` も `dev` も有効ではないので、どちらの Bean も登録されません。この状態で `PaymentGateway` を注入しようとすると、起動時に `No qualifying bean of type 'PaymentGateway'` で失敗します。
       「指定し忘れたときにどうなるか」まで決めておくのが大事で、安全側(本物の決済をしない側)を `@Profile("!prod")` にしておくと、指定し忘れても事故になりません。

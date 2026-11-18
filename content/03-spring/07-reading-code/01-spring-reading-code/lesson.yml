@@ -12,8 +12,8 @@ goals:
 samples:
   - title: 例外が下の層から上の層へ戻る道のりを見る
     description: |
-      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を、Service が原因付きの例外に包み直します。
-      自分のクラスの行だけを抜き出したスタックトレースで、Controller・Service・Repository の行がどの順に並ぶか、一番下の Caused by(根本原因)はどの例外かを予想してから見よう。
+      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を、Service が原因付きの例外に包み直します。一番下の Caused by(根本原因)は、どの例外になる?
+      自分のクラスの行だけを抜き出したスタックトレースで、Controller・Service・Repository の行がどの順に並ぶかも予想してから見よう。
     code: |
       // Controller → Service → Repository の呼び出しと、例外が戻る道のりを観察する
       // ここを変えてみよう:post("C100") を post("C200") に / Service の new KeyIssueFailedException(..., e) の e を null にすると Caused by はどうなる?
@@ -96,8 +96,8 @@ samples:
   - title: 1本の API を通しで動かして、呼ばれる順番を確かめる
     libraries: [spring]
     description: |
-      解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。
-      3 通りそれぞれで、どの層の名乗りまで出るか、最後のステータスは何番かを予想してから見よう(入力エラーでは、Spring が出す WARN のログも読んでみましょう)。
+      解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。入力エラーのとき、どの層の名乗りまで出る?
+      3 通りそれぞれで、どの層の名乗りまで出るか、最後のステータスは何番かを予想してから見よう。
     code: |
       // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
       // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に / Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
@@ -196,7 +196,7 @@ samples:
     libraries: [spring]
     description: |
       `@Transactional` の付いた Service は、Spring が作ったプロキシ(`$$SpringCGLIB$$`)に包まれています。例外のスタックトレースを、自分のコードの行・Spring の行・プロキシの行に分けて表示します。
-      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。`[TX]` の行にコミットとロールバックのどちらが出るか、それが例外の表示より前か後かを予想してから見よう。
+      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。`[TX]` の行には、コミットとロールバックのどちらが出る?それが例外の表示より前か後かも予想してから見よう。
     code: |
       // @Transactional の Service は、Spring が作った「プロキシ」に包まれている。スタックトレースでそれを見る
       // ここを変えてみよう:rotate の @Transactional を消すと、Bean のクラス名とスタックトレースはどう変わる?
@@ -264,9 +264,13 @@ quiz:
       - "例外ハンドラ → Controller → Service → Repository"
       - "Entity をすべて読んでから、Controller を全部読む"
     answer: 1
+    why:
+      - "DB に近い側から読めばよいと考えた答え。リクエストが流れる順に Controller から追うと、分岐を見落としにくい"
+      - ""
+      - "例外の行き先を先に押さえようとした答え。流れる順に追わないと、どの例外がどこへ行くかがつながらない"
+      - "全体を先に読もうとした答え。頼まれた API に関係ない所まで読み、時間がかかるだけ"
     explanation: |
       リクエストが **実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
-      逆順や飛び飛びで読むと、Service の分岐やどの例外がどこへ行くかがつながりません。Entity を先に全部読むのは、頼まれた API に関係ない所まで読むことになり、時間がかかるだけです。
   - question: |
       Service が次の例外を投げている。Controller にも Service にも try-catch は無い。プロジェクトには下の Advice がある。`C001` に有効な鍵がすでにあるとき、応答はどうなる?
       ```java
@@ -287,6 +291,11 @@ quiz:
       ```
     choices: ["誰も catch していないので 500", "Advice が受け取り、409 + ErrorResponse", "例外は無視され、201 が返る", "コンパイルエラーになる(throws 宣言が無い)"]
     answer: 1
+    why:
+      - "try-catch が無いので処理されないと読んだ答え。Advice の `@ExceptionHandler` が受けて 409 を返す"
+      - ""
+      - "例外が無視されると読んだ答え。例外で処理は止まり、Advice が 409 にする"
+      - "`throws` 宣言が要ると読んだ答え。RuntimeException の子なので、宣言なしでコンパイルできる"
     explanation: |
       業務例外は Controller を素通りして DispatcherServlet まで届き、`@RestControllerAdvice` の **同じ型(または親の型)を受ける `@ExceptionHandler`** が呼ばれます。ここでは `dup` が 409 + `ErrorResponse` を返します。
       try-catch が見当たらなくても「処理されていない」とは限りません。受けるハンドラが本当に無いときだけ 500 になります。`RuntimeException` の子(非検査例外)なので、`throws` 宣言が無くてもコンパイルできます。
@@ -303,6 +312,11 @@ quiz:
       ```
     choices: ["KeyRepository の中に書かれている", "継承元の JpaRepository(とその親)で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
     answer: 1
+    why:
+      - "`KeyRepository` の中に書いてあると読んだ答え。中にあるのは別のメソッド1つだけ"
+      - ""
+      - "呼んでいる Service に定義があると読んだ答え"
+      - "見当たらないので無いと読んだ答え。コンパイルは通る"
     explanation: |
       `KeyRepository` 自身が宣言しているのは `existsByCardIdAndStatus` だけです。`findById`・`save`・`deleteById` などの基本的な操作は、`extends` している **`JpaRepository` 側**(正確にはその親の `CrudRepository`)で宣言されていて、実装は Spring Data が起動時に用意します。
       Repository を読むときは、インターフェースの中身が短くても **継承元まで見る** のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
@@ -327,9 +341,14 @@ quiz:
       - "検査例外なので、コンパイルエラーになる"
       - "@Transactional が例外を自動で投げ直し、500 になる"
     answer: 1
+    why:
+      - "例外が起きればロールバックされると読んだ答え。catch して普通に return したので、コミットされる"
+      - ""
+      - "検査例外の扱いが足りないと読んだ答え。catch しているのでコンパイルは通る"
+      - "`@Transactional` が例外を投げ直すと読んだ答え。catch した例外はそこで終わり、null が返る"
     explanation: |
       ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
-      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。catch しているのでコンパイルエラーにはなりません。
+      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。
   - question: |
       エラーログに次のスタックトレースがあった(一部省略)。原因を調べるために、まず開くべき場所はどれ?
       ```text
@@ -350,9 +369,13 @@ quiz:
       - "CryptoClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
       - "KeyIssueService$$SpringCGLIB$$0(<generated>)"
     answer: 2
+    why:
+      - "呼び出しの入口から調べると考えた答え。Controller の行は、呼び出し元をたどるときに使う"
+      - "Spring の内部に原因があると読んだ答え。それは Spring が Controller を呼ぶまでの部品で、直す場所ではない"
+      - ""
+      - "プロキシの行を失敗した場所と読んだ答え。`$$SpringCGLIB$$` は Spring が作ったプロキシで、ソースが無い"
     explanation: |
       根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
-      Controller の行は呼び出し元をたどるときに使いますが、出発点ではありません。`InvocableHandlerMethod` は Spring が Controller を呼ぶまでの内部処理、`$$SpringCGLIB$$` は `@Transactional` のためのプロキシで、ソースファイルが無いので `<generated>` と表示されます。どちらも「通った部品の地図」としては役立ちますが、直す場所ではありません。
 columns:
   - type: mistake
     title: 「try-catch が無い = エラー処理が抜けている」とレビューに書いてしまう

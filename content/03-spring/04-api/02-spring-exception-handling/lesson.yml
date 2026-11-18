@@ -13,7 +13,7 @@ samples:
   - title: 例外ハンドラが「ない」とき・「ある」とき
     libraries: [spring]
     description: |
-      Controller は「見つからなければ例外を投げる」だけ。存在しない ID 99 を GET します。
+      Controller は「見つからなければ例外を投げる」だけ。存在しない ID 99 を GET します。ハンドラがあるとき、ステータスと Content-Type は何になる?
       `@RestControllerAdvice` が無いとき例外はどこまで届くか、あるときステータスと Content-Type は何になるかを予想してから見よう。
     code: |
       // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
@@ -97,7 +97,7 @@ samples:
   - title: 「Exception を全部 500 に」の落とし穴
     libraries: [spring]
     description: |
-      `@ExceptionHandler(Exception.class)` だけの Advice と、`ResponseEntityExceptionHandler` を継承した Advice に、未対応のメソッド・Content-Type なし・壊れた JSON の 3 つを送ります。
+      `@ExceptionHandler(Exception.class)` だけの Advice と、`ResponseEntityExceptionHandler` を継承した Advice に、未対応のメソッド・Content-Type なし・壊れた JSON の 3 つを送ります。`CatchAllAdvice` では、壊れた JSON は何番になる?
       本来は何番が返るべきか、それぞれの Advice では何番になるかを予想してから見よう。
     code: |
       // 「とりあえず Exception を全部 500 に」の落とし穴と、ResponseEntityExceptionHandler
@@ -196,10 +196,14 @@ quiz:
       - "400 で本文は controller"
       - "起動時にエラーになる"
     answer: 2
+    why:
+      - "クラスをまたいで、一番近い型のハンドラが選ばれると読んだ答え"
+      - "ハンドラが2つあると決められないと読んだ答え。探す順番が決まっているので迷わない"
+      - ""
+      - "同じ例外を受けるハンドラが重複すると読んだ答え。別々のクラスにあるので衝突しない"
     explanation: |
       Spring はまず **例外が起きた Controller 自身の @ExceptionHandler** を探し、そこで見つかればそれを使います。`RuntimeException` 用のハンドラは `TaskNotFoundException` も受けられるので、400 / controller です。
       「一番近い型が選ばれる」のは **同じクラスの中** で複数の候補があるときのルールです。Controller 内で見つからなかったときに初めて Advice が探されます。
-      別々のクラスにあるハンドラなので重複エラーにもなりません。
   - question: |
       Advice には次のハンドラ **だけ** があります。`@RequestBody` で JSON を受け取る API に、Content-Type を付けずに POST するとステータスは?
       ```java
@@ -214,6 +218,11 @@ quiz:
       ```
     choices: ["415", "400", "404", "500"]
     answer: 3
+    why:
+      - "本来の 415 がそのまま返ると読んだ答え。Advice のハンドラを見落としている"
+      - "ヘッダの付け忘れを、本文の誤り(400)と読んだ答え"
+      - "URL が見つからないと読んだ答え。URL は合っている"
+      - ""
     explanation: |
       Content-Type の付け忘れは本来 415 です。しかしその正体は Spring MVC が投げる `HttpMediaTypeNotSupportedException` という **例外** なので、`Exception.class` のハンドラに捕まって 500 になります。
       405・壊れた JSON(400)なども同じく 500 に化けます。Advice を `ResponseEntityExceptionHandler` の継承にすると、これらは親クラスのより近い型のハンドラで正しく処理されます(サンプル②)。
@@ -232,6 +241,11 @@ quiz:
       - "409、text/plain で detail の文字列だけ"
       - "500(ProblemDetail は Spring Boot の設定を有効にしないと使えない)"
     answer: 0
+    why:
+      - ""
+      - "`ResponseEntity` で包まないとステータスが変わらないと読んだ答え"
+      - "detail の文字列だけが、そのまま返ると読んだ答え"
+      - "設定を有効にしないと使えないと読んだ答え"
     explanation: |
       `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は **その status をレスポンスのステータス** にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。`instance` にはリクエストのパスが自動で入ります。
       `spring.mvc.problemdetails.enabled` は「Spring MVC 自身の例外を ProblemDetail にするか」の設定で、自分のハンドラで `ProblemDetail` を返すだけなら不要です。
@@ -254,6 +268,11 @@ quiz:
       - "正常に起動するが、親クラスのハンドラが使われ invalid は無視される"
       - "コンパイルエラーになる"
     answer: 1
+    why:
+      - "子クラスのハンドラが親のものを上書きすると読んだ答え。同じ例外に2つのハンドラが並び、起動時に失敗する"
+      - ""
+      - "親クラスのハンドラが優先されると読んだ答え。どちらとも決められず、起動時に失敗する"
+      - "ハンドラの重複をコンパイラが見つけると読んだ答え。文法は正しく、失敗するのは起動時"
     explanation: |
       `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `Ambiguous @ExceptionHandler` で失敗します。
       継承している場合は、`@ExceptionHandler` を書かずに `handleMethodArgumentNotValid(...)` を `@Override` するのが正解です。Java の文法としては正しいのでコンパイルは通ります。
@@ -265,6 +284,11 @@ quiz:
       - "src/main/resources/templates/error/404.html"
       - "src/main/resources/error-404.html"
     answer: 2
+    why:
+      - "error フォルダが要らないと読んだ答え。templates/error/ の中に置かないと使われない"
+      - "フォルダ名やファイル名を自由に付けられると読んだ答え。error(単数形)の中に、ステータスコードの名前で置く"
+      - ""
+      - "templates の外でも見つかると読んだ答え。Thymeleaf の画面は templates/error/404.html に置く"
     explanation: |
       Spring Boot の /error は、`templates/error/<ステータスコード>.html` → `templates/error/<系列>xx.html`(例:`5xx.html`)→ `templates/error.html` の順に探します。
       フォルダ名は `error`(単数形)で、ファイル名はステータスコードそのもの。`templates/404.html` のように error フォルダの外に置くと使われず、Whitelabel Error Page のままです。

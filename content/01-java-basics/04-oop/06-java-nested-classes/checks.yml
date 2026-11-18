@@ -9,8 +9,12 @@
             .subject("見積もりの件")
             .build();
     ```
-  choices: ["コンパイルエラー", "to が設定され、subject 以降もつながる"]
+  choices: ["コンパイルエラー", "to が設定され、subject 以降もつながる", "実行時に NullPointerException"]
   answer: 0
+  why:
+    - ""
+    - "this を返さなくても、同じ Builder のまま続くと読んだ答え。void の結果には . で続けられない"
+    - "void を「null が返る」と読んだ答え。実行する前に、コンパイルの時点で止まる"
   explanation: |
     メソッドチェーンは、各メソッドが自分(`this`)を返すからつながる。`to(...)` が何も返さないと、その結果に `.subject(...)` を呼べず `void cannot be dereferenced` になる。
 - after: 内部クラス:外側のインスタンスに結び付く
@@ -19,10 +23,14 @@
     ```java
     Car.FuelGauge g = new Car.FuelGauge();
     ```
-  choices: ["コンパイルエラー", "fuel が 0 のメーターができる"]
+  choices: ["コンパイルエラー", "fuel が 0 のメーターができる", "実行時に NullPointerException"]
   answer: 0
+  why:
+    - ""
+    - "static ネストクラスと同じく、外側なしで作れると読んだ答え。内部クラスは外側の Car が要る"
+    - "外側の Car が null のまま作られると読んだ答え。作る前に、コンパイルの時点で止まる"
   explanation: |
-    内部クラスのインスタンスは、外側のインスタンス1つとセットでしか作れない。外側の Car が無いので `an enclosing instance that contains Car.FuelGauge is required` になる。外側なしで作れるのは static ネストクラスの方。
+    内部クラスのインスタンスは、外側のインスタンス1つとセットでしか作れない。外側の Car が無いので `an enclosing instance that contains Car.FuelGauge is required` になる。
 - after: ローカルクラスと匿名クラス:その場限りの部品
   question: |
     `label` はローカル変数ではなく **フィールド**。`new Handler().build().run()` を実行すると?
@@ -37,7 +45,11 @@
         }
     }
     ```
-  choices: ["コンパイルでき、至急 と出る", "コンパイルエラー(実質的 final でない)"]
+  choices: ["コンパイルでき、至急 と出る", "コンパイルエラー(実質的 final でない)", "コンパイルでき、通常 と出る"]
   answer: 0
+  why:
+    - ""
+    - "フィールドにもローカル変数と同じ制限がかかると読んだ答え。制限はローカル変数だけ"
+    - "初期値の 通常 がコピーされると読んだ答え。フィールドは run() のときに今の値を読む"
   explanation: |
     実質的 final の制限がかかるのは、外側の **ローカル変数** だけ。フィールドは値をコピーせず外側のインスタンス経由で読むので、再代入していても使える。

@@ -6,8 +6,12 @@
         System.out.println(Thread.currentThread().getName()));
     t.run();
     ```
-  choices: ["main", "Thread-0"]
+  choices: ["main", "Thread-0", "何も出ない(start していない)"]
   answer: 0
+  why:
+    - ""
+    - "run() でも新しいスレッドが作られると読んだ答え。作るのは start() だけ"
+    - "start() しないと処理が動かないと読んだ答え。run() を呼べば、今のスレッドでそのまま動く"
   explanation: |
     `run()` はただのメソッド呼び出しなので、新しいスレッドは作られず、今の main スレッドで動く。`start()` なら新しいスレッドで動き、`Thread-0` のような名前が出る。
 - after: ExecutorService と Future:スレッドは使い回す
@@ -19,14 +23,43 @@
         results.add(f.get(3, TimeUnit.SECONDS));
     }
     ```
-  choices: ["約 0.9 秒(1 件ずつ待つ)", "約 0.3 秒(3 件が同時に動く)"]
+  choices: ["約 0.9 秒(1 件ずつ待つ)", "約 0.3 秒(3 件が同時に動く)", "約 9 秒(1 件ごとに 3 秒待つ)"]
   answer: 0
+  why:
+    - ""
+    - "4 人いるので 3 件が同時に動くと読んだ答え。get で待ってから次を投げるので 1 件ずつになる"
+    - "get(3, …) を「3 秒待つ」と読んだ答え。3 秒は待つ上限で、結果が来ればすぐ戻る"
   explanation: |
     投げるたびに `get` で待つので、次の仕事は前の結果が来るまで投げられない。並列にしたいなら、先に全部 `submit` して Future をリストにため、そのあと順番に `get` する。
 - after: シングルトン Bean に「状態」を持たせない
   question: |
     `CartService` の `private int sum;` のせいで、同時アクセスで合計が狂う。直し方として、遅くもならないのは?
-  choices: ["sum をメソッドの中のローカル変数にする", "total メソッドに synchronized を付ける"]
+  choices: ["sum をメソッドの中のローカル変数にする", "total メソッドに synchronized を付ける", "sum に volatile を付ける"]
   answer: 0
+  why:
+    - ""
+    - "合計が合えば十分と読んだ答え。synchronized だと全リクエストが 1 列に並び、遅くなる"
+    - "volatile で値が混ざらなくなると読んだ答え。見え方を保証するだけで、途中の sum = 0 は防げない"
   explanation: |
-    ローカル変数はスレッドごとのスタックにあるので、何人が同時に呼んでも混ざらない。`synchronized` でも合計は合うが、全リクエストが 1 列に並ぶので遅くなる。
+    ローカル変数はスレッドごとのスタックにあるので、何人が同時に呼んでも混ざらない。ロックも要らないので、待ち時間も生まれない。
+- before: count++ は、内部では
+  hides: 3
+  question: |
+    `count` が 0 の同じインスタンスの `increment()` を、2 つのスレッドが 1 万回ずつ同時に呼んだ。両方が終わったあとの `count` は?
+    ```java
+    public class AccessCounterService {
+        private int count = 0;
+        public int increment() {
+            count++;
+            return count;
+        }
+    }
+    ```
+  choices: ["20000 より少ないことがある", "必ず 20000", "必ず 10000(スレッドごとに別の count を数える)"]
+  answer: 0
+  why:
+    - ""
+    - "count++ を割り込まれない 1 つの操作と読んだ答え。途中で入れ替わると、加算が 1 回分消える"
+    - "フィールドがスレッドごとに分かれると読んだ答え。インスタンスは 1 個で、count も 1 つ"
+  explanation: |
+    `count++` は 1 行でも、中は読む・足す・書くの 3 ステップ。2 つのスレッドがその途中で入れ替わると加算が消えるので、20000 に届かない回がある(ぴったり合う回もある)。

@@ -26,10 +26,14 @@ quiz:
       - コンパイルエラーになる
       - コンパイルは通り、実行時に ClassNotFoundException になる
     answer: 2
+    why:
+      - "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ"
+      - "テストで使えることと本体のコンパイルを混ぜた答え。本体からの import は警告でなくエラー"
+      - ""
+      - "コンパイル後に落ちると読んだ答え。それは provided の jar を実行環境が用意しないときの話"
     explanation: |
       **runtime** スコープの jar は、テストと実行時のクラスパスには載りますが、**本体(src/main)のコンパイル時のクラスパスには載りません**。そのため `package org.h2 does not exist`(パッケージ org.h2 は存在しません)というコンパイルエラーになります。
       これは「DB ドライバのクラスを直接使わず、JDBC / JPA の標準インターフェース越しに使え」という設計をビルドで強制してくれる仕組みです。
-      警告で済むことはありません。実行時に ClassNotFoundException になるのは、逆に **provided** の jar を実行環境が用意していなかった場合などです。
   - question: |
       次の `pom.xml` を `./mvnw compile` したときの結果として正しいのは?
       ```xml
@@ -56,10 +60,15 @@ quiz:
       - version を省略すると Maven Central の最新版が自動で使われるので成功する
       - 両方とも version が無いのでエラーになる
     answer: 0
+    why:
+      - ""
+      - "parent がどの依存の版も補うと読んだ答え。補えるのは parent の表に載るものだけ"
+      - "版を省くと最新版になると読んだ答え。Maven は最新版を自動では選ばず、エラーにする"
+      - "parent の版の表を見落とした答え。Spring の部品は表に載っているので省ける"
     explanation: |
       Spring Boot の parent が持つ **dependencyManagement**(推奨バージョン表)に載っているライブラリだけ、version を省略できます。starter-web は当然載っていますが、commonmark は載っていないので
       `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの pom.xml で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
-      Maven は「version 省略なら最新版」という動きはしません。同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
+      同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
   - question: |
       `./mvnw install` を実行したところ、テストが1件失敗しました。このとき起きることとして正しいのは?
     choices:
@@ -68,6 +77,11 @@ quiz:
       - install は「登録」だけなので、コンパイルもテストも行われない
       - test フェーズで止まり、jar は作られず ~/.m2 への登録もされない
     answer: 3
+    why:
+      - "失敗しても後のフェーズが続くと読んだ答え。失敗したフェーズで止まる"
+      - "落ちたテストを飛ばして進むと読んだ答え。1件でも失敗すると test フェーズで止まる"
+      - "install を登録だけの操作と読んだ答え。指定したフェーズより前が順に全部実行される"
+      - ""
     explanation: |
       フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら validate → compile → test → package → verify → install の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
       「テストが落ちたものは jar にしない」のが Maven の安全装置です。テストを飛ばす `-DskipTests` というオプションもありますが、「落ちるから飛ばす」は現場では御法度です。
@@ -87,10 +101,15 @@ quiz:
       - 両方がクラスパスに載る
       - バージョン衝突のエラーでビルドが止まる
     answer: 1
+    why:
+      - "新しい版が勝つと読んだ答え。Maven は依存の木で根に近い 2.0 を選ぶ"
+      - ""
+      - "同じ jar が2つ載ると読んだ答え。同じ groupId:artifactId はどちらか1つだけが選ばれる"
+      - "版の衝突をエラーと読んだ答え。Maven は黙って根に近い方を選ぶ"
     explanation: |
       Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。util 3.0 は shop → a → b → util の3段目、util 2.0 は shop → c → util の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
       「新しい方が勝つ」わけではないので、b が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
-      同じ groupId:artifactId の jar が2つ同時に載ることはありませんし、Maven は衝突をエラーにもしません(黙って片方を選ぶ)。だから dependency:tree で確認する習慣が大事です。
+      衝突はエラーにならず黙って解決されるので、dependency:tree で確認する習慣が大事です。
   - question: |
       ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for switch(`case Integer i ->`)を使っています。結果は?
       ```xml
@@ -109,11 +128,15 @@ quiz:
       - コンパイルエラーになる
       - properties は単なるメモなので、ビルド結果に影響しない
     answer: 2
+    why:
+      - "JDK の版でコンパイルの版が決まると読んだ答え。`java.version` の 17 が `--release 17` として効く"
+      - "実行時の版の不一致と取り違えた答え。Java 21 の文法なので、17 指定のコンパイルで止まる"
+      - ""
+      - "properties をただのメモと読んだ答え。`java.version` は parent がコンパイラの設定に使う"
     explanation: |
       Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル** するので、Java 21 で正式化された機能は
       `patterns in switch statements are not supported in -source 17` のようなエラーになります。
       ちなみに Boot 3.5 の parent の既定値は 17 なので、`<java.version>21</java.version>` の行を消しても同じことが起きます。このアプリの pom.xml にこの行があるのはそのためです。
-      properties は `${...}` で参照される変数であり、プラグインの設定にも使われるので、ビルド結果に直接効きます。
 columns:
   - type: genba
     title: anthropic-java は Jackson 2.19.4 が欲しいのに、入るのは 2.21.4

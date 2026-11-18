@@ -3,21 +3,55 @@
     `int sum = 0;` のブレークポイントで止め、F6 で進めて、いま `average` の `for` の中にいる。ループの残りは見なくてよいので、`average` を最後まで実行して `main` に戻りたい。押すキーは?
   choices: ["F7(Step Return)", "F6(Step Over)", "F5(Step Into)"]
   answer: 0
+  why:
+    - ""
+    - "1 行ずつ進む F6 と取り違えた答え。F6 では、ループの残りの回数だけ押すことになる"
+    - "呼び出し先に入る F5 と取り違えた答え。F5 は中へ入る向きで、呼び出し元へは戻らない"
   explanation: |
-    F7 は今のメソッドを最後まで実行して、呼び出し元に戻る。F6 は 1 行ずつ進むので、ループの回数だけ押すことになる。F5 は呼び出し先のメソッドに入る方向のキー。
+    F7(Step Return)は、今のメソッドを最後まで実行して呼び出し元に戻る。
 - after: 条件付きブレークポイントと例外ブレークポイント
   question: |
     どこかで `NullPointerException` が起きるが、どの行か目星がつかない。投げられた瞬間の変数を見たい。使うのは?
   choices: ["例外ブレークポイント", "条件付きブレークポイント", "Drop to Frame"]
   answer: 0
+  why:
+    - ""
+    - "条件で絞れば見つかると考えた答え。条件付きは置いた行でしか止まらないので、行の目星が要る"
+    - "やり直しの機能と取り違えた答え。Drop to Frame はメソッドの先頭から実行し直すもので、例外の場所は探さない"
   explanation: |
-    **Run > Add Java Exception Breakpoint...** で `NullPointerException` を選ぶと、投げられた瞬間に止まり、そのときの変数が全部見える。条件付きは「置いた行で、条件が true のとき」止まるので、行の目星が要る。Drop to Frame はメソッドの先頭からやり直す機能。
+    **Run > Add Java Exception Breakpoint...** で `NullPointerException` を選ぶと、投げられた瞬間に止まり、そのときの変数が全部見える。
 - after: Spring Boot アプリを止める
   question: |
     Controller のメソッドに置いたブレークポイントで、ブラウザからのリクエストが止まった。**Debug** ビューで止まっているスレッドは?
   choices:
     - "`http-nio-8080-exec-1` のような Tomcat のスレッド"
     - "`main` スレッド"
+    - "`DemoController` のような、Controller ごとに 1 本ある専用のスレッド"
   answer: 0
+  why:
+    - ""
+    - "`main` から全部が動くと読んだ答え。リクエストを受けるのは別のスレッド"
+    - "Controller ごとに専用のスレッドがあると考えた答え。割り当てはリクエストの単位"
   explanation: |
-    Web アプリでは、リクエストごとに Tomcat のリクエスト処理スレッドが Controller を呼ぶ。止まるのはそのスレッドで、`main` ではない。F8 で再開すると、ブラウザに結果が返る。
+    Web アプリでは、リクエストごとに Tomcat のリクエスト処理スレッドが Controller を呼ぶ。止まるのはそのスレッドで、F8 で再開するとブラウザに結果が返る。
+- before: "53.333333333333336"
+  hides: 1
+  question: |
+    `average(new int[] {80, 90, 70})` を出力すると、何が出る?
+    ```java
+    static double average(int[] a) {
+        int sum = 0;
+        for (int i = 1; i < a.length; i++) {
+            sum += a[i];
+        }
+        return (double) sum / a.length;
+    }
+    ```
+  choices: ["53.333333333333336", "53.0", "ArrayIndexOutOfBoundsException で落ちる"]
+  answer: 0
+  why:
+    - ""
+    - "整数どうしの割り算と読んだ答え。`(double)` が先に `sum` を double にするので、小数まで出る"
+    - "`i` が 1 から始まるぶん、最後に `a[3]` を読むと考えた答え。`i < a.length` なので `i` は 2 で止まる"
+  explanation: |
+    `i` が 1 から始まるので、`a[0]` の 80 が足されない。90 + 70 = 160 を 3 で割って 53.333333333333336。

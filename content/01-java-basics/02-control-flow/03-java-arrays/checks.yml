@@ -8,8 +8,12 @@
     ```
   choices: ["NullPointerException", "0", "4"]
   answer: 0
+  why:
+    - ""
+    - "空文字が入っていると読んだ答え。参照型の要素の既定値は null で、空文字ではない"
+    - "`names[0]` の Haru の長さと取り違えた答え。読んでいるのは、代入していない `names[1]`"
   explanation: |
-    参照型の要素の既定値は `null` で、空文字 `""` ではない。代入していない `names[1]` は null なので、`length()` を呼んだ時点で例外になる。
+    参照型の要素の既定値は `null`。代入していない `names[1]` は null なので、`length()` を呼んだ時点で例外になる。
 - after: インデックスの範囲外アクセス
   question: |
     実行すると?
@@ -21,6 +25,10 @@
     ```
   choices: ["`56` と出たあと例外", "`456`", "何も出ずに例外"]
   answer: 0
+  why:
+    - ""
+    - "`a[0]` から順に出ると読んだ答え。i は 1 から始まり、i が 3 の回で範囲外になる"
+    - "範囲外を先に調べてから動くと読んだ答え。例外は `a[3]` を読む回で起き、5 と 6 は出たあと"
   explanation: |
     i が 1 から始まるので `a[0]` の 4 は出ない。i が 3 の回で `a[3]` を読みに行き、`ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3` で止まる。それまでに出した 5 と 6 は表示済み。
 - after: Arrays クラスの便利メソッド
@@ -30,7 +38,11 @@
     int[] nums = {3, 1, 2};
     int[] sorted = Arrays.sort(nums);
     ```
-  choices: ["コンパイルエラー", "sorted は [1, 2, 3]、nums は元のまま"]
+  choices: ["コンパイルエラー", "sorted は [1, 2, 3]、nums は元のまま", "sorted も nums も [1, 2, 3] になる"]
   answer: 0
+  why:
+    - ""
+    - "並べ替えた新しい配列が返ると読んだ答え。`Arrays.sort` は void で、受け取れる値が無い"
+    - "nums を並べ替えたうえで返すと読んだ答え。void を配列に代入するので、コンパイルで止まる"
   explanation: |
-    `Arrays.sort` は戻り値を返さない(void)。渡した配列そのものを並べ替えるので、`Arrays.sort(nums);` と書いて nums を使う。元の順番も残したいなら、先に `copyOf` でコピーする。
+    `Arrays.sort` は戻り値を返さない(void)ので、`int[]` に代入できない。渡した配列そのものを並べ替えるので、`Arrays.sort(nums);` と書いて nums を使う。元の順番も残したいなら、先に `copyOf` でコピーする。

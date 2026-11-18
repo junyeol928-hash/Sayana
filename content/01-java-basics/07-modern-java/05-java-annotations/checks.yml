@@ -11,8 +11,12 @@
     ```
   choices: ["base", "child", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "Name() が name() を上書きしたと読んだ答え。大文字の N で別のメソッドになり、上書きしていない"
+    - "綴り違いをコンパイラが見つけると読んだ答え。止めてくれるのは @Override を付けたときだけ"
   explanation: |
-    `Name()` は大文字の N で、親の `name()` とは別のメソッドになる。上書きしていないので親の `name()` が呼ばれて base。`@Override` を付けていれば、上書きの相手がいないとコンパイルエラーで止めてくれた。
+    `Name()` は大文字の N で、親の `name()` とは別のメソッドになる。上書きしていないので親の `name()` が呼ばれて base。
 - after: "@Retention と @Target"
   question: |
     `@Retention` を書かずにアノテーションを作った。実行時に読むと?
@@ -22,8 +26,12 @@
     // @Audited("X") を付けたメソッド m について
     System.out.println(m.getAnnotation(Audited.class));
     ```
-  choices: ["null", "付けた値(X)が読める"]
+  choices: ["null", "付けた値(X)が読める", "コンパイルエラー(@Retention が無い)"]
   answer: 0
+  why:
+    - ""
+    - "既定で実行時まで残ると読んだ答え。省略すると CLASS で、実行時には読めない"
+    - "@Retention は必ず書くものと読んだ答え。省略でき、そのときは CLASS になる"
   explanation: |
     `@Retention` を省略すると `CLASS` になり、class ファイルには残るが実行時には読めない。だから `getAnnotation` は null を返す。実行時に読むなら `@Retention(RetentionPolicy.RUNTIME)` を明示する。
 - after: リフレクションで読む
@@ -36,5 +44,9 @@
     ```
   choices: ["NullPointerException", "空文字が出る", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "付いていなければ空の値が入ると読んだ答え。getAnnotation が null を返し、value() を呼べない"
+    - "付いていないことをコンパイラが見抜くと読んだ答え。付いているかは実行時に決まる"
   explanation: |
-    付いていないアノテーションを `getAnnotation` すると null が返り、その `value()` を呼ぶので NPE になる。だから読む側は `if (a == null)` で「目印なし」を先に分ける。付いているかどうかは実行時に決まるので、コンパイルは通る。
+    付いていないアノテーションを `getAnnotation` すると null が返り、その `value()` を呼ぶので NPE になる。だから読む側は `if (a == null)` で「目印なし」を先に分ける。

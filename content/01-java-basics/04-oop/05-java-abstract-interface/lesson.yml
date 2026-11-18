@@ -11,7 +11,7 @@ goals:
   - Comparable を実装して Arrays.sort で並べ替えられる
 samples:
   - title: 帳票出力をテンプレートメソッドで作る
-    description: 処理の流れ(見出し→本文→フッター)は親の `print()` が決め、子は `title()` と `body()` の差分だけを書きます。
+    description: 処理の流れ(見出し→本文→フッター)は親の `print()` が決め、子は `title()` と `body()` の差分だけを書きます。在庫 8 個のコピー用紙の行には、何が付く?
     code: |
       // 帳票出力をテンプレートメソッドで作る
       // ここを変えてみよう:StockReport の在庫数を 20 にする / 新しい帳票クラスを足してみる
@@ -57,7 +57,7 @@ samples:
       }
       // new Report() と書くとどうなる?(抽象クラスは new できない)
   - title: 料金計算ルールをインターフェースで差し替える
-    description: "`Checkout` は `PriceRule` 型しか知りません。ルールを差し替えても `Checkout` のコードは1行も変わらないのがポイントです。"
+    description: "`Checkout` は `PriceRule` 型しか知りません。ルールを差し替えても `Checkout` のコードは1行も変わらないのがポイントです。20%オフのルールで、2,980 円はいくらになる?"
     code: |
       // 料金計算ルールをインターフェースで差し替える
       // ここを変えてみよう:SaleDiscount の割引率を変える / NoDiscount の label() を消してみる
@@ -101,7 +101,7 @@ samples:
       new Checkout(new SaleDiscount(20)).pay(2980);
   - title: Comparable を実装して並べ替える
     description: |
-      `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。どの順に並ぶか予想してから見よう。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも、予想してから試してみよう。
+      `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。3 つの `Item` は、どの順に並ぶ? 予想してから見よう。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも、予想してから試してみよう。
     code: |
       // Comparable を実装して Arrays.sort で並べ替える
       // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)
@@ -146,6 +146,11 @@ quiz:
       ```
     choices: ["(A)", "(B)", "(C)", "(D)"]
     answer: 1
+    why:
+      - "抽象クラスは変数の型にも使えないと読んだ答え。型としては使え、子のインスタンスを入れられる"
+      - ""
+      - "Dog の new を疑った答え。Dog は voice() を実装した普通のクラスなので new できる"
+      - "抽象メソッドは呼べないと読んだ答え。Animal に宣言があるので呼べ、Dog の voice() が動く"
     explanation: |
       抽象クラスは **`new` できない** ので、(B) が `Animal is abstract; cannot be instantiated` になります。
       (A) は「親の型の変数に子のインスタンスを入れる」ポリモーフィズムで、抽象クラスでも型としては普通に使えます。(D) は `Animal` に `voice()` が宣言されているので呼べて、実際には `Dog` の `voice()` が動きます。
@@ -168,6 +173,11 @@ quiz:
       ```
     choices: ["バックアップ ", "開始 終了", "開始 バックアップ 終了", "コンパイルエラー(Backup に run() がない)"]
     answer: 2
+    why:
+      - "run() が子の work() だけを動かすと読んだ答え"
+      - "親の run() から子の work() は呼ばれないと読んだ答え"
+      - ""
+      - "final の run() は子から呼べないと読んだ答え"
     explanation: |
       典型的な **テンプレートメソッド** です。`run()` は親 `Job` から継承されているので `Backup` でも呼べます。`run()` の中の `work()` は、実行時のオブジェクト(`Backup`)の実装が呼ばれるので「開始 バックアップ 終了」になります。
       `run()` が `final` なのは「流れを子に書き換えさせない」ためで、呼び出すことは問題なくできます。
@@ -183,9 +193,14 @@ quiz:
       ```
     choices: ["問題なくコンパイルできる", "Greeter の greet() に public が書かれていないのでエラー", "Hello に @Override がないのでエラー", "Hello の greet() に public がないのでエラー"]
     answer: 3
+    why:
+      - "約束の greet() が暗黙に public であることを見落とした答え"
+      - "インターフェース側にも public を書く必要があると読んだ答え"
+      - "@Override が無いとエラーと読んだ答え。付けるべきだが、無くてもコンパイルは通る"
+      - ""
     explanation: |
       インターフェースのメソッドは、書かなくても **暗黙に `public abstract`** です。実装側の `greet()` は修飾子なし(パッケージ公開)なので、約束より公開範囲を狭めたことになり `attempting to assign weaker access privileges; was public` というエラーになります。`public String greet()` と書けば通ります。
-      インターフェース側に `public` を書かないのは正常で、むしろ省略するのが一般的です。`@Override` は付けるべきですが、なくてもコンパイルエラーにはなりません。
+      インターフェース側では `public` を省略するのが一般的です。
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -197,6 +212,11 @@ quiz:
       ```
     choices: ["C で hi() を上書きしないとコンパイルエラー", "A と出力される(先に書いた方が優先)", "B と出力される(後に書いた方が優先)", "実行時に例外が発生する"]
     answer: 0
+    why:
+      - ""
+      - "implements に先に書いた方が勝つと読んだ答え。書いた順は関係なく、決められずにコンパイルエラー"
+      - "後に書いた方が上書きすると読んだ答え。順は関係なく、どちらか決められずにコンパイルエラー"
+      - "実行時にぶつかって落ちると読んだ答え。同じ default メソッドの衝突はコンパイルで止まる"
     explanation: |
       2つのインターフェースが同じシグネチャの default メソッドを持つと、どちらを使うべきか決められないので `types A and B are incompatible` というコンパイルエラーになります。`implements` に書いた順番は関係ありません。
       解決するには `C` で `hi()` を上書きし、必要なら `return A.super.hi();` のように片方を明示的に呼びます。
@@ -218,9 +238,14 @@ quiz:
       ```
     choices: ["[1, 2, 3]", "[3, 2, 1]", "[2, 3, 1]", "ClassCastException が発生する"]
     answer: 1
+    why:
+      - "compare の引数の順を見落とした答え"
+      - ""
+      - "sort しても並びが変わらないと読んだ答え"
+      - "自作クラスは並べられないと読んだ答え。Comparable を実装しているので並べられる"
     explanation: |
       `Integer.compare(o.v, v)` は引数が **相手・自分の順** になっています。自分の値が大きいほど負(=前)になるので、**降順** の `[3, 2, 1]` です。
-      `Integer.compare(v, o.v)` なら昇順の `[1, 2, 3]` でした。`Comparable` を実装していれば `ClassCastException` にはなりません。`Arrays.sort` は compareTo の符号だけを見て並べているので、引数の順番1つで並びが逆になります。
+      `Integer.compare(v, o.v)` なら昇順の `[1, 2, 3]` でした。`Arrays.sort` は compareTo の符号だけを見て並べているので、引数の順番1つで並びが逆になります。
 columns:
   - type: genba
     title: Service と ServiceImpl、そのインターフェース本当に要る?

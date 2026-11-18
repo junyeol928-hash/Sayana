@@ -9,15 +9,22 @@
     ```
   choices: ["false", "true"]
   answer: 0
+  why:
+    - ""
+    - "空の Optional を null と同じものと読んだ答え。空でも箱そのものはあり、null ではない"
   explanation: |
-    見つからないときも `Optional.empty()` という空の箱が返る。箱そのものは null ではないので、呼ぶ側はそのまま `orElse` などを呼べる。「true」は、空の Optional を null と同じものだと考えた答え。
+    見つからないときも `Optional.empty()` という空の箱が返る。箱そのものは null ではないので、呼ぶ側はそのまま `orElse` などを呼べる。
 - after: 値の取り出し方
   question: |
     既定値を作る `loadDefault()` は DB を読む重い処理。値があるときは呼びたくない。どちらを書く?
-  choices: ["findName(id).orElseGet(() -> loadDefault())", "findName(id).orElse(loadDefault())"]
+  choices: ["findName(id).orElseGet(() -> loadDefault())", "findName(id).orElse(loadDefault())", "どちらでもよい(値があれば、どちらも loadDefault() を呼ばない)"]
   answer: 0
+  why:
+    - ""
+    - "空のときだけ loadDefault() が動くと読んだ答え。orElse の引数は、呼ぶ前に必ず評価される"
+    - "違いは書き方だけと読んだ答え。orElse の方は、値があっても loadDefault() を呼んでしまう"
   explanation: |
-    `orElse(式)` の式は、メソッドを呼ぶ前に必ず評価されるので、値があっても DB を読んでしまう。`orElseGet` はラムダ(処理)を渡すだけなので、空のときしか実行されない。
+    `orElseGet` はラムダ(処理)を渡すだけなので、空のときしか実行されない。`orElse(式)` の式は、メソッドを呼ぶ前に必ず評価される。
 - after: アンチパターンと、使う場所・使わない場所
   question: |
     `findName(2)` は空の Optional を返す。次の行は?
@@ -26,5 +33,24 @@
     ```
   choices: ["NoSuchElementException", "n に null が入る", "NullPointerException"]
   answer: 0
+  why:
+    - ""
+    - "空の箱から取ると null が出ると読んだ答え。get() は null を返さず、例外を投げる"
+    - "空の Optional の中身を null と読んだ答え。投げられるのは NoSuchElementException"
   explanation: |
-    空の Optional に `get()` を呼ぶと `NoSuchElementException: No value present`。null が返ることはなく、NPE が別の例外に変わっただけ。取り出すなら `orElse` 系や `ifPresent` を使う。
+    空の Optional に `get()` を呼ぶと `NoSuchElementException: No value present`。NPE が別の例外に変わっただけなので、取り出すなら `orElse` 系や `ifPresent` を使う。
+- before: "java.lang.NullPointerException: Cannot invoke"
+  hides: 2
+  question: |
+    `findName(2)` は null を返す。次の行を実行すると?
+    ```java
+    int len = findName(2).length();
+    ```
+  choices: ["NullPointerException", "len に 0 が入る", "コンパイルエラー"]
+  answer: 0
+  why:
+    - ""
+    - "null を空文字と同じと読んだ答え。null はどの文字列も指しておらず、length() を呼べない"
+    - "null が返ることをコンパイラが見抜くと読んだ答え。戻り値の型は String なので通る"
+  explanation: |
+    null はどのオブジェクトも指していないので、`.length()` を呼んだ所で NullPointerException になる。戻り値の型が `String` なので、null が返るかどうかはコンパイラにも読む人にも分からない。

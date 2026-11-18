@@ -11,7 +11,7 @@ goals:
   - エンティティを直接フォームにしない理由と、@AssertTrue による相関チェックを説明できる
 samples:
   - title: Validator で注釈のチェックを確かめる
-    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。
+    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。3 人目の `age`(null)には、どのメッセージが出る?
     libraries: [spring]
     code: |
       import jakarta.validation.*;
@@ -212,9 +212,14 @@ quiz:
       ```
     choices: ["0件", "1件(@Size の違反)", "2件(@Size と @Pattern の違反)", "NullPointerException が発生する"]
     answer: 0
+    why:
+      - ""
+      - "null を長さの違反と読んだ答え。`@Size` は null を OK とみなす"
+      - "null を両方の違反と読んだ答え。`@Size` も `@Pattern` も null は素通しする"
+      - "null の長さや形を調べて落ちると読んだ答え。各チェックは最初に null を判定して true を返す"
     explanation: |
       `@Size` や `@Pattern`、`@Email`、`@Min` などは **null を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
-      したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。NPE にならないのも、各チェックが最初に null を判定して true を返すからです。
+      したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。
   - question: |
       `name` を空欄にして POST したとき、どうなる?(`MemberForm` の `name` には `@NotBlank` が付いている)
       ```java
@@ -231,12 +236,22 @@ quiz:
       ```
     choices: ["hasErrors() が true になり members/form が表示される", "メソッドは呼ばれず 400 Bad Request になる", "コンパイルエラーになる", "検証されずに /members/done へリダイレクトされる"]
     answer: 1
+    why:
+      - "`BindingResult` がどこにあっても受け取れると読んだ答え。検証する引数の直後にないので、例外で 400 になる"
+      - ""
+      - "引数の並びの誤りをコンパイラが見つけると読んだ答え。並びの意味は Spring の決まりで、コンパイルは通る"
+      - "検証されないと読んだ答え。`@Validated` があるので検証され、エラーは例外になる"
     explanation: |
       Spring は **検証対象の引数の「直後」** が `BindingResult`(または `Errors`)かどうかでエラーの受け取り先を判断します。ここでは直後が `Model` なので「受け取り先なし」とみなされ、検証エラーは `MethodArgumentNotValidException` として投げられ、メソッドは呼ばれずに 400 Bad Request になります。
       コンパイラは引数の並びの意味を知らないのでコンパイルは通ります。`@Validated` は付いているので検証はされます。直すには `BindingResult result` を `form` のすぐ後ろへ移します。
   - question: 登録処理が成功した後、テンプレートを直接返さずに `redirect:` する(PRG パターン)一番の理由は?
     choices: ["テンプレートの描画が速くなるから", "Bean Validation はリダイレクト後にしか動かないから", "フラッシュ属性はリダイレクトしないと作れないから", "F5(再読み込み)で同じ POST が再送信され、二重登録になるのを防ぐため"]
     answer: 3
+    why:
+      - "描画の速さのためと読んだ答え。狙いは F5 で POST が再送されるのを防ぐこと"
+      - "検証がリダイレクト後に動くと読んだ答え。検証は POST を受けたときに動き、PRG とは関係ない"
+      - "理由と結果を逆に読んだ答え。フラッシュ属性は PRG を採った結果として使うもの"
+      - ""
     explanation: |
       POST の応答で画面を直接返すと、ブラウザの「最後のリクエスト」は POST のままなので、再読み込みすると同じ内容がもう一度送信されます(二重送信)。リダイレクトを挟むと最後のリクエストが GET になり、何度再読み込みしても完了画面を取り直すだけになります。
       描画速度や検証のタイミングとは無関係です。フラッシュ属性は「リダイレクトの間だけ値を運ぶ」ための仕組みで、PRG を採用した結果として必要になるもの。理由と結果が逆です。
@@ -251,6 +266,11 @@ quiz:
       ```
     choices: ["@NotBlank は付けられない場所なのでコンパイルエラーになる", "数値の 0 だけがエラーになる", "コンパイルは通るが、検証したときに UnexpectedTypeException が発生する", "null のときだけエラーになり、問題なく動く"]
     answer: 2
+    why:
+      - "付けられる型をコンパイラが調べると読んだ答え。どの型にも付けられ、検証のときに失敗する"
+      - "数値の空を 0 と読んだ答え。Integer を `@NotBlank` で調べる実装が無く、検証時に例外になる"
+      - ""
+      - "`@NotBlank` を `@NotNull` と同じと読んだ答え。文字列専用なので、Integer では検証時に例外になる"
     explanation: |
       `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「Integer を @NotBlank でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
       `@NotBlank` は文字列(CharSequence)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
@@ -263,6 +283,11 @@ quiz:
       ```
     choices: ["/members/done", "/members/done?id=5", "/members/done?id=5&message=登録しました", "/members/done?message=登録しました"]
     answer: 1
+    why:
+      - "`addAttribute` も URL に出ないと読んだ答え。`addAttribute` の値はクエリになる"
+      - ""
+      - "フラッシュ属性も URL に付くと読んだ答え。`addFlashAttribute` の値はセッションで運ばれ、URL に出ない"
+      - "2つの役目を逆に読んだ答え。クエリになるのは `addAttribute` の id のほう"
     explanation: |
       `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の **クエリパラメータ** になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
       そのため移動先は `/members/done?id=5`。ID のように URL に残ってよい値は `addAttribute`、「登録しました」のような一度きりのメッセージや URL に出したくない値は `addFlashAttribute` と使い分けます。

@@ -10,15 +10,23 @@
     ```
   choices: ["A", "C", "B"]
   answer: 0
+  why:
+    - ""
+    - "添字を 1 から数えた答え。添字は 0 始まりで、get(0) が先頭の C"
+    - "add(0, …) を置き換えと読んだ答え。差し込みなので、A と B は後ろへずれる"
   explanation: |
-    `add(0, "C")` は先頭に差し込み、A と B を後ろへずらすので `[C, A, B]`。添字は 0 始まりなので `get(1)` は A。「C」は添字を 1 から数えた答え、「B」は `add(0, …)` を置き換えと読んだ答え。
+    `add(0, "C")` は先頭に差し込み、A と B を後ろへずらすので `[C, A, B]`。添字は 0 始まりなので `get(1)` は A。
 - after: Set と Map
   question: |
     タグの一覧から重複を消したい。ただし、最初に出てきた順は保ちたい。使う Set は?
   choices: ["LinkedHashSet", "TreeSet", "HashSet"]
   answer: 0
+  why:
+    - ""
+    - "並べてくれる Set なら順が保てると読んだ答え。TreeSet は辞書順に並べ替えてしまう"
+    - "Set ならどれも入れた順に並ぶと読んだ答え。HashSet は順番をまったく保証しない"
   explanation: |
-    `LinkedHashSet` は追加した順を覚えている。`TreeSet` は辞書順に並べ替えてしまい、`HashSet` は順番をまったく保証しない。
+    `LinkedHashSet` は追加した順を覚えている。重複を消しながら、最初に出てきた順のまま並ぶ。
 - after: 不変コレクションとループ中の削除
   question: |
     出力は?
@@ -29,5 +37,9 @@
     ```
   choices: ["[Z, B]", "UnsupportedOperationException", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "Arrays.asList を List.of と同じ不変と読んだ答え。サイズ固定なだけで、set は使える"
+    - "サイズ固定のリストは型が別だと読んだ答え。型はただの List なので、コンパイルは通る"
   explanation: |
-    `Arrays.asList` のリストはサイズが固定なだけで、`set` での置き換えはできる。例外になるのは `add` / `remove`。`List.of` で作ったリストなら `set` も `UnsupportedOperationException` になる。
+    `Arrays.asList` のリストはサイズが固定なだけで、`set` での置き換えはできる。例外になるのは `add` / `remove`。

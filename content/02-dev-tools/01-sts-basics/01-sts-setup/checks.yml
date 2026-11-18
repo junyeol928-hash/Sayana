@@ -4,22 +4,35 @@
   choices:
     - "同僚の STS が自分の JDK 21 に対応づけて、そのまま開ける"
     - "あなたの JDK のパスが記録されているので、JDK が見つからないエラーになる"
+    - "開けるが、同僚が Build Path の JDK を自分のものに手で付け替える必要がある"
   answer: 0
+  why:
+    - ""
+    - "プロジェクトに JDK のパスが残ると読んだ答え。パスは記録されない"
+    - "プロジェクトが特定の JDK に結びつくと読んだ答え。手での付け替えは要らない"
   explanation: |
-    プロジェクトに記録されるのは `C:\dev\jdk-21` のようなパスではなく、`JavaSE-21` という実行環境の名前だけ。各 PC の STS が、その名前を自分の JDK 21 に対応づける。だから置き場所が人によって違っても開ける。
+    プロジェクトに記録されるのは、`JavaSE-21` という実行環境の名前だけ。各 PC の STS がその名前を自分の JDK 21 に対応づけるので、置き場所が人によって違っても開ける。
 - after: 文字コードを UTF-8 にする
   question: |
     ワークスペースの Text file encoding が MS932 のまま。`pom.xml` に `project.build.sourceEncoding` = UTF-8 と書いてある Maven プロジェクトの `.java` は、STS でどちらとして読まれる?
   choices: ["UTF-8", "MS932"]
   answer: 0
+  why:
+    - ""
+    - "ワークスペースの設定が全部のファイルに効くと読んだ答え。`pom.xml` の指定を見落としている"
   explanation: |
-    Maven プロジェクトでは、STS(m2e)が `pom.xml` の `project.build.sourceEncoding` を読んで、プロジェクト単位で UTF-8 を設定する。ワークスペースの MS932 に従うのは、Maven を使わないプロジェクトやテキストファイル。
+    Maven プロジェクトでは、STS(m2e)が `pom.xml` の `project.build.sourceEncoding` を読んで、プロジェクト単位で UTF-8 を設定する。プロジェクトの設定は、ワークスペースの設定より優先される。
 - after: よくあるトラブル
   question: |
     自分が作ったアプリを STS から実行したら `OutOfMemoryError: Java heap space` で落ちた。メモリの上限を増やす場所は?
   choices:
     - "実行構成(Run Configurations)の VM arguments"
     - "STS の `.ini` の `-Xmx`(`-vmargs` より後ろ)"
+    - "`application.properties` に `-Xmx` を書く"
   answer: 0
+  why:
+    - ""
+    - "STS 本体の設定と取り違えた答え。`.ini` の `-Xmx` は STS 自体の上限で、アプリは別の JVM で動く"
+    - "アプリの設定ファイルで決まると考えた答え。ヒープの上限は JVM を起動するときに決まり、起動後に読むファイルでは変えられない"
   explanation: |
-    STS 本体とアプリは別の JVM。`.ini` の `-Xmx` は STS 自体の上限で、アプリのメモリは実行構成の VM arguments で指定する。STS が重いときに触るのが `.ini` のほう。
+    STS 本体とアプリは別の JVM。アプリのメモリの上限は、そのアプリを起動する実行構成の VM arguments(`-Xmx1g` など)で指定する。

@@ -10,8 +10,12 @@
         double area() { return 4; }
     }
     ```
-  choices: ["コンパイルエラー", "コンパイルは通り、perimeter() を呼んだときにエラー"]
+  choices: ["コンパイルエラー", "コンパイルは通り、perimeter() を呼んだときにエラー", "コンパイルは通り、perimeter() は 0 を返す"]
   answer: 0
+  why:
+    - ""
+    - "未実装は、呼んだときに初めて分かると読んだ答え"
+    - "書いていないメソッドは 0 を返すと読んだ答え"
   explanation: |
     abstract でないクラスは、抽象メソッドを全部実装しないといけない。`perimeter()` が無いので、呼ぶ前のコンパイルの時点で `Square is not abstract and does not override abstract method perimeter()` になる。
 - after: インターフェース:「できること」の約束
@@ -27,8 +31,12 @@
         void change() { TAX_RATE = 8; }
     }
     ```
-  choices: ["コンパイルエラー", "Invoice の TAX_RATE だけ 8 になる"]
+  choices: ["コンパイルエラー", "Invoice の TAX_RATE だけ 8 になる", "Payable を実装した全クラスで 8 になる"]
   answer: 0
+  why:
+    - ""
+    - "インスタンスごとのフィールドと読んだ答え"
+    - "全体で共有される static だと気づいて、final を見落とした答え"
   explanation: |
     インターフェースのフィールドは暗黙に `public static final` の定数で、インスタンスごとの値は持てない。final なので、代入した時点でコンパイルエラーになる。
 - after: default メソッドと static メソッド(Java 8+)
@@ -45,7 +53,11 @@
     }
     System.out.println(new Free().withTax());
     ```
-  choices: ["1000", "1100"]
+  choices: ["1000", "1100", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "default の版が動くと読んだ答え"
+    - "default が付くと上書き禁止になると読んだ答え"
   explanation: |
-    default メソッドは、実装クラスがそのまま使っても上書きしてもよい。Free は `withTax()` を上書きしているので、自分の版が動いて 1000。1100 は default の版が動くと読んだ答え。
+    default メソッドは、実装クラスがそのまま使っても上書きしてもよい。Free は `withTax()` を上書きしているので、自分の版が動いて 1000。

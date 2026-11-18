@@ -19,6 +19,11 @@
     - "コンパイルエラー(String が見つからない)"
     - "実行時エラー"
   answer: 1
+  why:
+    - "java.util のクラスも import 不要と読んだ答え"
+    - ""
+    - "String にも import が要ると読んだ答え"
+    - "名前の解決が実行時に行われると読んだ答え。見つからないクラスはコンパイルの段階で止まる"
   explanation: "String、Integer、System は java.lang なので import 不要ですが、List と ArrayList は java.util にあります。import が無いのでコンパイラは名前を解決できず、7行目でエラーになります。"
   trace:
     - "5〜6行目: String と Integer は java.lang → import 不要で OK"
@@ -52,6 +57,11 @@
     - "16行目でコンパイルエラー"
     - "11行目でコンパイルエラー"
   answer: 2
+  why:
+    - "修飾子なしのフィールドも、別パッケージから見えると読んだ答え"
+    - "見えないフィールドは既定値で読めると読んだ答え"
+    - ""
+    - "import の段階で弾かれると読んだ答え"
   explanation: "Stock クラス自体は public なので import は通ります(11行目は OK)。しかし quantity フィールドは修飾子なし(パッケージプライベート)なので、別パッケージ shop.web からは見えません。16行目でコンパイルエラーです。getQuantity() を使えば通ります。"
   trace:
     - "3行目: Stock は public → 別パッケージから import できる"
@@ -78,6 +88,11 @@
     - "0"
     - "コンパイルエラー(max が未定義)"
   answer: 1
+  why:
+    - "min(…, 100) の上限を見落とした答え"
+    - ""
+    - "max(v, 0) が小さい方の 0 を返すと読んだ答え"
+    - "max と min は、クラス名が無いと呼べないと読んだ答え"
   explanation: "max と min は Clamp クラスのメソッドではありませんが、import static により Math.max / Math.min をクラス名なしで呼べます。max(150, 0) = 150、min(150, 100) = 100 です。"
   trace:
     - "1〜2行目: Math.max と Math.min を裸の名前で使えるようにする"
@@ -103,6 +118,11 @@
     - "コンパイルエラー(Date が曖昧)"
     - "java.sql.Date / java.sql.Date"
   answer: 1
+  why:
+    - "getName() が短いクラス名を返すと読んだ答え"
+    - ""
+    - "2 つの Date がぶつかると読んだ答え"
+    - "後の行の完全修飾名に、短い Date も引きずられると読んだ答え"
   explanation: "import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。"
   trace:
     - "1行目: 短い名前 Date = java.util.Date と決まる"
@@ -128,6 +148,11 @@
     - "null:0"
     - "実行時エラー"
   answer: 0
+  why:
+    - ""
+    - "ソースに無い getter は呼べないと読んだ答え"
+    - "コンストラクタの引数がフィールドに入らないと読んだ答え"
+    - "生成されたメソッドが、実行時には無いと読んだ答え"
   explanation: "@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。"
   trace:
     - "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される"
@@ -153,6 +178,11 @@
     - "できる。全フィールド3つを渡す必要があるため"
     - "できない。@RequiredArgsConstructor は Service では使えないため"
   answer: 0
+  why:
+    - ""
+    - "final の有無に関係なく、全フィールドを取ると読んだ答え"
+    - "全フィールドを取る `@AllArgsConstructor` と取り違えた答え"
+    - "この注釈を付けられるクラスに制限があると読んだ答え"
   explanation: "@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。"
   trace:
     - "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される"
@@ -189,6 +219,11 @@
     - "NullPointerException が必ず発生する"
     - "コンパイルエラー"
   answer: 1
+  why:
+    - "toString() がお互いを呼び合うことを見落とした答え。results と key をたどり続けて止まらない"
+    - ""
+    - "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる"
+    - "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の toString() で起きる"
   explanation: "@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。"
   trace:
     - "18行目: keyEntity.toString() が呼ばれる(println が内部で呼ぶ)"
@@ -218,7 +253,12 @@
     - "実行時例外"
     - "null"
   answer: 0
-  explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。int は参照型ではないので null にはなりません。"
+  why:
+    - ""
+    - "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え"
+    - "設定しない項目があると build() で落ちると読んだ答え"
+    - "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0"
+  explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。"
   trace:
     - "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない"
     - "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる"
@@ -244,6 +284,11 @@
     - "null が返る"
     - "空文字が返る"
   answer: 1
+  why:
+    - "検査例外を catch していないので、コンパイラが止めると読んだ答え"
+    - ""
+    - "この注釈が例外を握りつぶすと読んだ答え"
+    - "読めないファイルは空として扱われると読んだ答え"
   explanation: "@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。"
   trace:
     - "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる"

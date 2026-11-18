@@ -17,7 +17,12 @@
     - "2件"
     - "3件"
   answer: 1
-  explanation: "findByCardIdAndStatus は「WHERE card_id = ? AND status = ?」相当です。cardId=\"C001\" かつ status=\"ACTIVE\" の行は1件だけです。"
+  why:
+    - "And の両方を満たす行が無いと読んだ答え"
+    - ""
+    - "status の条件を見落とした答え。C001 の2件のうち ACTIVE は1件だけ"
+    - "And を Or と読んだ答え。両方を満たす行だけが返るので1件"
+  explanation: "findByCardIdAndStatus は「WHERE card_id = ? AND status = ?」相当です。cardId が `\"C001\"` かつ status が `\"ACTIVE\"` の行は1件だけです。"
   trace:
     - "1〜2行目: findByCardIdAndStatus という名前から WHERE card_id = ? AND status = ? が組み立てられる"
     - "保存データのうち、card_id=\"C001\" の行は2件(ACTIVE と REVOKED)"
@@ -32,13 +37,18 @@
         throw new CryptoCommunicationException("crypto timeout");
     }
     // CryptoCommunicationException は Exception を直接継承した検査例外
-  question: "issue(\"C001\") を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)"
+  question: "`issue(\"C001\")` を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)"
   choices:
     - "ロールバックされ、保存されていない"
     - "保存された行がそのまま残る"
     - "起動時に例外になる"
     - "コンパイルエラー"
   answer: 1
+  why:
+    - "例外が出れば、種類を問わずロールバックされると読んだ答え"
+    - ""
+    - "検査例外を投げる `@Transactional` は起動で止まると読んだ答え。起動は問題なく、呼んだときの話"
+    - "検査例外の扱いが足りないと読んだ答え。`throws` で宣言してあるのでコンパイルは通る"
   explanation: "@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。"
   trace:
     - "3行目: save が実行される(まだ確定はしていない)"
@@ -60,6 +70,11 @@
     - "例外が発生しなくなる"
     - "コンパイルエラー"
   answer: 1
+  why:
+    - "前の問題と同じ結果と読んだ答え。追加した `rollbackFor` を見落としている"
+    - ""
+    - "rollbackFor が例外を止めると読んだ答え。例外はそのまま投げられ、取り消しが起きるだけ"
+    - "`rollbackFor` に `Exception` は指定できないと読んだ答え。どの例外クラスでも指定できる"
   explanation: "rollbackFor = Exception.class は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。"
   trace:
     - "1行目: rollbackFor で対象を Exception.class まで広げている"
@@ -83,6 +98,11 @@
     - "5回"
     - "6回"
   answer: 3
+  why:
+    - "関連も一緒に取ると読んだ答え。LAZY の results は触るたびに1回ずつ取る"
+    - "関連をまとめて1回で取ると読んだ答え。LAZY の results は key ごとに1回ずつで、計 1 + 5"
+    - "findAll の1回を数え落とした答え。findAll の1回とループの5回で 6"
+    - ""
   explanation: "findAll() で1回、その後ループの5回分、getResults() にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 1 + 5 = 6回になります。これが N+1 問題です。"
   trace:
     - "1行目: findAll() で1回目のSELECT(5件のKeyEntityを取得)"

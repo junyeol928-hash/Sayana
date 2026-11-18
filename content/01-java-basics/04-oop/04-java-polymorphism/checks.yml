@@ -9,8 +9,12 @@
     ```
   choices: ["500", "コンパイルエラー", "0"]
   answer: 0
+  why:
+    - ""
+    - "子は `fee()` を必ず上書きすると読んだ答え。上書きは任意で、無ければ親の版を引き継ぐ"
+    - "中身を書いていないので 0 が返ると読んだ答え。Drone は親の `fee()` をそのまま使う"
   explanation: |
-    Drone は自分の `fee()` を持たないので、親の Delivery から引き継いだ `fee()` が動いて 500 が返る。上書きを忘れてもエラーにはならず、黙って親の料金になる。
+    Drone は自分の `fee()` を持たないので、親の Delivery から引き継いだ `fee()` が動いて 500 が返る。上書きを忘れると、黙って親の料金になる。
 - after: アップキャストとダウンキャスト
   question: |
     `Dog` は `Animal` の子。次のコードはどうなる?
@@ -18,10 +22,14 @@
     Animal a = new Dog();
     String s = (String) a;
     ```
-  choices: ["コンパイルエラー", "実行時に ClassCastException"]
+  choices: ["コンパイルエラー", "実行時に ClassCastException", "`a.toString()` の文字列が s に入る"]
   answer: 0
+  why:
+    - ""
+    - "外れたキャストは実行時に分かると読んだ答え。継承関係の無い型へのキャストは、コンパイラが止める"
+    - "キャストで文字列に変換されると読んだ答え。キャストは中身を作り変えず、型の見方を変えるだけ"
   explanation: |
-    Animal と String には継承関係がなく、Animal 型の中身が String であることはありえないので、コンパイラが止める。`(Cat) a` のように「中身がそうかもしれない」キャストなら通り、外れたときに実行時の ClassCastException になる。
+    Animal と String には継承関係がなく、Animal 型の中身が String であることはありえないので、コンパイラが止める(`incompatible types`)。
 - after: ポリモーフィズムが効かないもの
   question: |
     出力は?
@@ -35,7 +43,11 @@
     }
     System.out.println(new Child().getName());
     ```
-  choices: ["親", "子"]
+  choices: ["親", "子", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "フィールドもメソッドと同じく、実体の型で選ばれると読んだ答え"
+    - "親と同じ名前のフィールドは作れないと読んだ答え"
   explanation: |
     `getName()` は Parent に書かれたメソッドで、その中の `name` はコンパイル時に Parent の name に決まる。フィールドは上書きされず、子の同名フィールドは隠すだけ。

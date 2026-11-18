@@ -11,7 +11,7 @@ goals:
   - get() や isPresent() + get() を避け、Optional を戻り値に限って使える
 samples:
   - title: null を返すメソッドと Optional を返すメソッド
-    description: 戻り値が `Optional<String>` なら「見つからないかもしれない」ことが型でわかります。取り出し方をいろいろ試してみましょう。
+    description: 戻り値が `Optional<String>` なら「見つからないかもしれない」ことが型でわかります。取り出し方をいろいろ試してみましょう。ID 3 では、①〜④ のどれが例外の行を出すだろうか。
     code: |
       import java.util.*;
 
@@ -180,9 +180,14 @@ quiz:
       ```
     choices: ["未入力", "空行(何も表示されない)", "   (空白3つ)", "NoSuchElementException"]
     answer: 0
+    why:
+      - ""
+      - "strip 後の空文字がそのまま出ると読んだ答え。filter を見落としている"
+      - "Optional.of の値がそのまま出ると読んだ答え。strip と filter を見落としている"
+      - "filter の条件に合わないと例外になる、と読んだ答え"
     explanation: |
       `strip()` で空白が取り除かれて `""` になり、`filter` の条件 `!s.isEmpty()` を満たさないので **空の Optional** になります。空なので `orElse` の既定値 `"未入力"` が返ります。
-      `filter` は条件を満たさないとき例外を投げるのではなく、空の Optional を返すだけです。例外になるのは空の Optional に `get()` や引数なしの `orElseThrow()` を呼んだときです。
+      例外になるのは、空の Optional に `get()` や引数なしの `orElseThrow()` を呼んだときです。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -197,23 +202,37 @@ quiz:
       ```
     choices: ["AB", "DAB", "DADB", "DDAB"]
     answer: 1
+    why:
+      - "値があれば orElse の引数は評価されないと読んだ答え。引数の def() は呼ぶ前に必ず評価される"
+      - ""
+      - "orElseGet のラムダも動き、出力が混ざると読んだ答え。a + b は最後にまとめて出し、ラムダは動かない"
+      - "orElseGet のラムダも動くと読んだ答え。値があるのでラムダは実行されない"
     explanation: |
       `orElse(def())` では、Java の規則どおり **メソッドを呼ぶ前に引数 `def()` が評価される** ので、値があっても `D` が出力されます(結果は使われず捨てられます)。
       `orElseGet(() -> def())` はラムダを渡すだけで、値があるので実行されません。よって `D` のあとに `AB` で `DAB` です。重い処理や副作用のある処理を既定値にするなら `orElseGet` を使います。
   - question: |
       次のうち、**実行時に例外が発生する** のはどれ?
-    choices: ["Optional.ofNullable(null)", "Optional.empty().orElse(\"x\")", "Optional.of(null)", "Optional.empty().ifPresent(v -> System.out.println(v))"]
+    choices: ["`Optional.ofNullable(null)`", "`Optional.empty().orElse(\"x\")`", "`Optional.of(null)`", "`Optional.empty().ifPresent(v -> System.out.println(v))`"]
     answer: 2
+    why:
+      - "ofNullable も null で落ちると読んだ答え。null なら空の Optional になるだけ"
+      - "空の Optional から値を取ると例外と読んだ答え。orElse は既定値の x を返す"
+      - ""
+      - "空の Optional に ifPresent を呼ぶと例外と読んだ答え。値が無ければ何もしない"
     explanation: |
-      `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。null かもしれない値は `ofNullable` で包みます(null なら空の Optional になるだけ)。
-      空の Optional に `orElse` を呼ぶと既定値 `"x"` が返り、`ifPresent` は何もしません。どちらも例外にはなりません。
+      `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。null かもしれない値は `ofNullable` で包みます。
   - question: |
       Optional の使い方として、**現場で推奨される** のはどれ?
     choices: ["フィールドを `private Optional<String> nickname;` にする", "メソッドの引数を `void send(Optional<String> cc)` にする", "`List<Optional<String>>` で「歯抜け」のリストを表す", "検索メソッドの戻り値を `Optional<Employee> findById(String id)` にする"]
     answer: 3
+    why:
+      - "null の代わりにどこでも使えると読んだ答え。Optional は Serializable でなく、フィールドには向かない"
+      - "引数で「無いかも」を表せると読んだ答え。呼ぶ側に包む手間をかけ、Optional 自体に null も来うる"
+      - "歯抜けを Optional で表すと読んだ答え。コレクションには、ない要素を入れないほうが素直"
+      - ""
     explanation: |
       Optional は **メソッドの戻り値で「結果なし」を表すため** に設計された型です。検索の戻り値はまさに本来の用途です。
-      フィールドに使うと Optional が Serializable でないため問題が出るうえ、メモリも余分に使います。引数にすると呼ぶ側に包む手間をかけさせ、しかも Optional 自体に null が渡される可能性が残ります。コレクションの中身に使うより、「ない要素は入れない」ほうが素直です。
+      フィールド・引数・コレクションの中身には使わないのが定石です。
   - question: |
       `findEmployee(id)` が `Optional<Employee>`、`findDept(e)` が `Optional<Dept>` を返すとき、次の式の型は?
       ```java
@@ -221,6 +240,11 @@ quiz:
       ```
     choices: ["Optional<Dept>", "Optional<Optional<Dept>>", "Dept", "コンパイルエラーになる"]
     answer: 1
+    why:
+      - "map が包みを 1 枚にならすと読んだ答え。それは flatMap で、map は戻り値をさらに包む"
+      - ""
+      - "map が中身を取り出すと読んだ答え。map の結果は Optional に包まれたまま"
+      - "Optional を返す関数は map に渡せないと読んだ答え。渡せて、二重に包まれた型になる"
     explanation: |
       `map` は関数の戻り値をそのまま Optional で包むので、関数が `Optional<Dept>` を返すと `Optional<Optional<Dept>>` と **二重に包まれます**。コンパイルエラーにはなりませんが扱いにくい型です。
       関数自体が Optional を返すときは `flatMap` を使うと、包みが1枚にならされて `Optional<Dept>` になります。

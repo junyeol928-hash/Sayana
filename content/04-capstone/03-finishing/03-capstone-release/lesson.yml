@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       承認済の申請の承認、DB が落ちた想定の想定外の例外、enum に変換できない値、対応していない HTTP メソッドを順に送ります。
-      それぞれのステータスは何か、想定外の例外のとき本文とログ(ここでは `[ログ]` の行)に何が出るか。予想してから実行結果を見よう。
+      4つの応答のステータスは、それぞれいくつになる? 想定外の例外のとき本文とログ(ここでは `[ログ]` の行)に何が出るかも、予想してから実行結果を見よう。
       そのあと `extends ResponseEntityExceptionHandler` を消して実行し直すと、どの応答が変わるかも試しましょう。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // API のエラーを @RestControllerAdvice で1か所にまとめる
@@ -126,6 +126,11 @@ quiz:
       ```
     choices: ["400 Bad Request(Spring 標準の変換エラー)", "500 と「システムエラー」の ProblemDetail", "200 と全件(status が null 扱い)", "404 Not Found"]
     answer: 1
+    why:
+      - "標準の処理が先に効くと読んだ答え。自作のハンドラのほうが先に試される"
+      - ""
+      - "変換できない値が null 扱いになると読んだ答え。変換に失敗して例外になる"
+      - "合う値が無いので 404 と読んだ答え。変換の失敗は例外になり、ここでは 500 で返る"
     explanation: |
       `submitted` は enum に変換できないので `MethodArgumentTypeMismatchException` が起きます。`@ExceptionHandler` は Spring 標準のエラー処理より **先に** 試されるので、`Exception` を受けるハンドラがこれを横取りし、入力ミスなのに 500 とエラーログになります。
       `ResponseEntityExceptionHandler` を継承すると、型変換の失敗(`TypeMismatchException`)や 405 などを受け持つハンドラが加わり、例外の型がより近いそちらが選ばれて 400 のまま返ります。ハンドラが無ければ 400 でした。
@@ -149,16 +154,28 @@ quiz:
       ```
     choices: ["onRule が呼ばれ、409 になる", "先に書いてある onUnexpected が呼ばれ、500 になる", "両方が順に呼ばれ、後の 409 で上書きされる", "どちらにも当てはまるので、起動時に曖昧エラーになる"]
     answer: 0
+    why:
+      - ""
+      - "書いた順で選ばれると読んだ答え。例外の型に一番近いハンドラが選ばれる"
+      - "ハンドラが順に全部呼ばれると読んだ答え。呼ばれるのは1つだけ"
+      - "両方に当てはまると曖昧になると読んだ答え。曖昧になるのは同じ例外型を受けるハンドラが2つのとき"
     explanation: |
       Spring は、投げられた例外に **型の継承関係が一番近い** ハンドラを1つだけ選びます(`ExceptionDepthComparator`)。`BusinessRuleException` にとっては、自分自身を受ける `onRule` が距離0、`Exception` は何段も上なので `onRule` が選ばれます。
-      メソッドを書いた順番は関係ありません。呼ばれるのは1つだけで、上書きもありません。起動時の曖昧エラーになるのは、**まったく同じ例外型** を受けるハンドラが2つあるときです。
   - question: |
       `ApprovalService` で承認が終わったときのログとして、最もふさわしいのはどれ?(`request` は申請のエンティティ、`actor` は操作した社員)
-    choices: ["System.out.println(\"承認 \" + request.getId());", "log.error(\"承認しました: {}\", request);", "log.info(\"承認 requestId={} actorId={}\", request.getId(), actor.getId());", "log.info(\"承認 \" + actor.getName() + \" \" + actor.getEmail());"]
+    choices:
+      - '`System.out.println("承認 " + request.getId());`'
+      - '`log.error("承認しました: {}", request);`'
+      - '`log.info("承認 requestId={} actorId={}", request.getId(), actor.getId());`'
+      - '`log.info("承認 " + actor.getName() + " " + actor.getEmail());`'
     answer: 2
+    why:
+      - "出力できれば足りると読んだ答え。`System.out` はレベルも日時も付かず、ファイルにも残せない"
+      - "承認を error で残す答え。error は異常用で監視のアラートが鳴り、エンティティの中身には個人情報も入りうる"
+      - ""
+      - "名前とメールで人を残す答え。個人情報はログに出さず、ID で残す"
     explanation: |
       業務の出来事は **INFO** で、「誰が(actorId)・どの申請を(requestId)・どうしたか(承認)」を **ID** で残すのが定石です。ID があれば DB で引けるので、ログに個人情報を書く必要はありません。`{}` のプレースホルダなら、レベルが無効なときに文字列を組み立てる無駄もありません。
-      `System.out` はレベルも日時も付かず、ファイルにも残せません。`log.error` は「運用者が対応すべき異常」用で、正常な承認に使うと監視のアラートが鳴ります。しかもエンティティの `toString` には理由の本文などが入りえます。氏名やメールアドレスは個人情報なのでログに出しません。
   - question: |
       `application.yml` に次のように書いてあります。コマンドプロンプトで下のように起動すると、使われるプロファイルは?
       ```yaml
@@ -171,6 +188,11 @@ quiz:
       ```
     choices: ["prod", "prod と dev の両方", "プロファイルなし(application.yml だけ)", "dev"]
     answer: 3
+    why:
+      - "`--spring.profile.active` を正しい指定と読んだ答え。つづりをよく見ると違う"
+      - "指定と既定が両方効くと読んだ答え。既定は、指定が効いていないときの代わり"
+      - "既定のプロファイルを見落とした答え。何も有効でないときは `default: dev` が使われる"
+      - ""
     explanation: |
       よく見ると `--spring.profile.active`(**profiles の s が抜けている**)です。Spring Boot は知らないプロパティをエラーにしないので、この指定は黙って無視され、何もアクティブでないときの既定 `spring.profiles.default: dev` が使われます。
       起動ログには `No active profile set, falling back to 1 default profile: "dev"` と出ます。本番で H2 コンソールが開いたまま……という事故になるので、起動ログのプロファイル名は必ず確認します。正しく `--spring.profiles.active=prod` なら prod だけが使われます。
@@ -178,9 +200,14 @@ quiz:
       `application-prod.yml` で `spring.jpa.hibernate.ddl-auto: validate` にしています。テーブルがまだ1つもない空の DB に向けて、prod で初めて起動するとどうなる?
     choices: ["足りないテーブルを自動で作って起動する", "Schema-validation のエラーで起動が止まる", "起動はするが、最初に申請を開いたときに SQL エラーになる", "dev の設定に切り替えて起動する"]
     answer: 1
+    why:
+      - "`validate` がテーブルを作ると読んだ答え。突き合わせて確かめるだけで、DB には手を加えない"
+      - ""
+      - "起動時は確かめないと読んだ答え。`validate` は起動の時点で突き合わせて止める"
+      - "失敗すると dev に切り替わると読んだ答え。プロファイルが勝手に変わることはない"
     explanation: |
       `validate` は、起動時にエンティティとテーブルを突き合わせて **確認するだけ** で、DB には一切手を加えません。テーブルがなければ `Schema-validation: missing table [...]` で起動を止めます。おかしな状態で動き出さないための安全装置です。
-      テーブルを作るのは `create` / `update` ですが、`create` は起動のたびに作り直してデータを消し、`update` は列の削除や型変更を扱えないので、本番では使いません。本番のテーブルは Flyway などのマイグレーションで用意します。プロファイルが勝手に切り替わることもありません。
+      テーブルを作るのは `create` / `update` ですが、`create` は起動のたびに作り直してデータを消し、`update` は列の削除や型変更を扱えないので、本番では使いません。本番のテーブルは Flyway などのマイグレーションで用意します。
 columns:
   - type: trivia
     title: java -jar 1つで Web アプリが動く理由

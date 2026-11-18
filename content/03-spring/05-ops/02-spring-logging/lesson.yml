@@ -13,7 +13,7 @@ samples:
   - title: "文字列連結と {} の違いを数えてみる"
     description: |
       SLF4J の「レベル判定」と「`{}` の遅延評価」をまねた小さなロガーで、`toString()` が何回呼ばれるかを数えます(本物の SLF4J も同じ考え方です)。
-      設定は INFO なので DEBUG のログは出ません。連結版と `{}` 版で、`toString()` はそれぞれ何回呼ばれるかを予想してから見よう。
+      設定は INFO なので DEBUG のログは出ません。連結版と `{}` 版で、`toString()` はそれぞれ何回呼ばれる?予想してから見よう。
     code: |
       // SLF4J の「レベル判定」と「{} の遅延評価」をまねた、ごく小さなロガー
       enum Level { TRACE, DEBUG, INFO, WARN, ERROR }
@@ -77,6 +77,11 @@ quiz:
       ```
     choices: ["4行すべて", "INFO・WARN・ERROR の3行", "WARN・ERROR の2行", "ERROR の1行だけ"]
     answer: 2
+    why:
+      - "設定で出力が絞られないと読んだ答え。com.example の WARN が効き、WARN 以上だけが出る"
+      - "root の INFO だけを見た答え。ロガー名が com.example に一致するので、WARN が効く"
+      - ""
+      - "WARN を超えるものだけが出ると読んだ答え。基準の WARN 自身も出るので2行"
     explanation: |
       ロガー名 `com.example.shop.OrderService` は `com.example` に前方一致(ドット区切り)するので、`root` の INFO ではなく `com.example` の WARN が効きます。出力されるのは WARN **以上** なので、WARN と ERROR の2行です。
       「INFO・WARN・ERROR の3行」は root の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。
@@ -91,9 +96,14 @@ quiz:
       - "呼ばれない。JIT コンパイラが不要な呼び出しを必ず削除する"
       - "コンパイルエラーになる。debug には {} を含む文字列しか渡せない"
     answer: 0
+    why:
+      - ""
+      - "SLF4J が引数の計算を止められると読んだ答え。引数は呼び出し前に全部評価され、レベルの判定はその後"
+      - "JIT が不要な呼び出しを消すと読んだ答え。副作用のある呼び出しを勝手に消すことはない"
+      - "debug には `{}` が必須と読んだ答え。連結した文字列も渡せ、コンパイルは通る"
     explanation: |
       Java はメソッドを呼ぶ前に引数を全部評価します(正格評価)。`log.debug` の中でレベルが判定されるのは、`"合計: " + calcTotal(items)` が計算し終わった **後** です。そのため DEBUG が無効でも `calcTotal` は実行され、結果は捨てられます。
-      `log.debug("合計: {}", total)` なら連結や `toString()` は省けますが、`calcTotal(items)` を引数に書けばそれ自体はやはり呼ばれます。重い計算は `if (log.isDebugEnabled())` で囲みましょう。JIT が副作用のある呼び出しを勝手に消すことはありません。
+      `log.debug("合計: {}", total)` なら連結や `toString()` は省けますが、`calcTotal(items)` を引数に書けばそれ自体はやはり呼ばれます。重い計算は `if (log.isDebugEnabled())` で囲みましょう。
   - question: |
       次のコードを実行したときのログ出力として正しいのは?(`e` は `new IllegalStateException("応答なし")`)
       ```java
@@ -105,8 +115,13 @@ quiz:
       - "コンパイルエラー(例外は {} に入れられない)"
       - "採点に失敗: {} と表示され、その下にスタックトレース"
     answer: 3
+    why:
+      - "例外が `{}` に入って文字列になると読んだ答え。最後の Throwable は例外扱いで、スタックトレースが出る"
+      - "`{}` に例外のメッセージが入ると読んだ答え。最後の Throwable は例外扱いで、`{}` は残りスタックトレースが出る"
+      - "例外は `{}` と一緒に渡せないと読んだ答え。文字列と Throwable を受ける形があり、コンパイルは通る"
+      - ""
     explanation: |
-      SLF4J は **最後の引数が Throwable なら、それを「例外」として扱い** スタックトレースを出します。その分 `{}` に入れる引数が無くなるので、メッセージは `採点に失敗: {}` のまま残ります(実際に Logback で確かめた出力です)。
+      引数が例外 1 つだけなので、コンパイル時に `error(String msg, Throwable t)` のほうが選ばれ、`e` は **「例外」として扱われて** スタックトレースが出ます。`{}` に入れる引数は無いので、メッセージは `採点に失敗: {}` のまま残ります(実際に Logback で確かめた出力です)。
       正しくは `log.error("採点に失敗 id={}", id, e)` のように、`{}` の数だけ値を渡し、例外はその後ろに付けます。1行だけになるのは `"採点に失敗: " + e` と連結した場合で、スタックトレースが失われます。
   - question: |
       `com.example.payment.PaymentService` の DEBUG ログを見たくて `logging.level.com.example.payment: DEBUG` を設定しましたが、出てきません。原因として最も怪しいのは?
@@ -123,6 +138,11 @@ quiz:
       - "logging.level にはクラス名まで書かないと効かない"
       - "DEBUG ログは Spring Boot では一切出せない"
     answer: 1
+    why:
+      - "static の Logger には設定が効かないと読んだ答え。`static final` は定番で、原因は渡したクラス"
+      - ""
+      - "logging.level にはクラス名まで要ると読んだ答え。パッケージ単位の前方一致で書ける"
+      - "Boot では DEBUG を出せないと読んだ答え。logging.level で出せ、原因はロガー名の取り違え"
     explanation: |
       ロガー名は `getLogger` に渡したクラスの完全修飾名で決まります。コピペで `OrderService.class` のまま残っていると、ログは `com.example.order.OrderService` の名前で出るので、`com.example.payment` の設定は効きません。ログの出どころ表示も嘘になります。
       `static final` で持つのは定番の書き方で問題ありません。`logging.level` はパッケージ単位(前方一致)で書けます。
@@ -141,9 +161,14 @@ quiz:
       - "会員登録: Member[name=ハル, email=haru@example.com, password=p@ss1234]"
       - "会員登録: Member[name=ハル, email=haru@example.com, password=****](自動でマスクされる)"
     answer: 2
+    why:
+      - "`toString()` を書いていない普通のクラスと同じと読んだ答え"
+      - "record は一部のフィールドだけを出すと読んだ答え"
+      - ""
+      - "パスワードは自動で隠れると読んだ答え。マスクの機能は無く、そのまま残る"
     explanation: |
-      record は `toString()` を自動生成し、**全フィールドを名前付きで出力** します。オブジェクトを丸ごとログに渡すと、パスワードもメールアドレスもそのまま残ります。自動マスクのような機能はありません。
-      ハッシュ値だけになるのは `toString()` をオーバーライドしていない普通のクラスの場合です。ログには必要な項目だけを選んで出し、個人情報はマスクしましょう。
+      record は `toString()` を自動生成し、**全フィールドを名前付きで出力** します。オブジェクトを丸ごとログに渡すと、パスワードもメールアドレスもそのまま残ります。
+      ログには必要な項目だけを選んで出し、個人情報はマスクしましょう。
 columns:
   - type: genba
     title: 2021年12月、世界中のエンジニアの冬休みを奪った「Log4Shell」

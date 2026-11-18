@@ -9,8 +9,12 @@
         }
     }
     ```
-  choices: ["コンパイルエラー", "hi と出る"]
+  choices: ["コンパイルエラー", "hi と出る", "コンパイルは通り、実行時にエラー"]
   answer: 0
+  why:
+    - ""
+    - "同じクラスの中なら static でなくても呼べると読んだ答え"
+    - "呼べないことは実行して初めて分かると読んだ答え。static かどうかの食い違いはコンパイル時に分かる"
   explanation: |
     `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く static の main からは直接呼べず、`non-static method greet() cannot be referenced from a static context` になる。
 - after: return と早期 return
@@ -22,8 +26,12 @@
         System.out.println("返しました");
     }
     ```
-  choices: ["コンパイルエラー", "1 を返し、何も表示しない"]
+  choices: ["コンパイルエラー", "1 を返し、何も表示しない", "警告は出るが、1 を返す"]
   answer: 0
+  why:
+    - ""
+    - "届かない文は黙って捨てられると読んだ答え。コンパイラが `unreachable statement` で止める"
+    - "届かない文は警告で済むと読んだ答え。Java ではエラーになり、コンパイルが通らない"
   explanation: |
     `return` でメソッドは終わるので、直後の文には絶対に届かない。届かない文はコンパイラが `unreachable statement` で止める。
 - after: 可変長引数
@@ -32,7 +40,11 @@
     ```java
     static void log(String... tags, String msg) { }
     ```
-  choices: ["コンパイルエラー", "コンパイルできる"]
+  choices: ["コンパイルエラー", "コンパイルできる", "定義は通り、呼び出す行でエラー"]
   answer: 0
+  why:
+    - ""
+    - "可変長引数も、ほかの引数と同じくどこに置いてもよいと読んだ答え"
+    - "どこまでが tags か困るのは呼ぶときと読んだ答え。最後に置かない定義そのものがエラーになる"
   explanation: |
     可変長引数は1つだけ、しかも **最後** の引数にしか置けない。`log(String msg, String... tags)` の順なら通る。

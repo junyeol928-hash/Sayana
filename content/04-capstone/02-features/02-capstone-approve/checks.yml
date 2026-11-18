@@ -3,19 +3,45 @@
     モカが承認し終えた 5,000 円の申請に、開きっぱなしだった古い詳細画面からボス(ADMIN)が承認を押した。どうなる?
   choices: ["エンティティの approve が例外で拒否し、履歴は増えない", "ADMIN なので通り、承認の履歴が 2 件になる", "Service の承認者チェック(requireApprover)で拒否される"]
   answer: 0
+  why:
+    - ""
+    - "「誰が」のチェックが通れば承認できると読んだ答え。状態のチェックが別にある"
+    - "「誰が」のチェックで止まると考えた答え。ボスは ADMIN なので、`requireApprover` も金額のチェックも通る"
   explanation: |
-    「誰が」のチェック(承認者か・本人でないか・金額)はボスなら全部通る。止めるのはエンティティの `approve` が呼ぶ `ApprovalFlow.next` で、承認済は変更できない(ルール5)。例外が先に出るので、履歴の保存まで進まない。
+    止めるのは、エンティティの `approve` が呼ぶ `ApprovalFlow.next`。承認済は変更できない(ルール5)ので例外が先に出て、履歴の保存まで進まない。
 - after: "@Transactional:状態と履歴は一蓮托生"
   question: |
     `approve` の中で、履歴の INSERT が DB のエラー(`DataIntegrityViolationException`。RuntimeException の仲間)で失敗した。申請の状態は?
   choices: ["状態の変更もロールバックされ、申請中のまま", "状態の変更はコミットされ、承認済なのに履歴が無い"]
   answer: 0
+  why:
+    - ""
+    - "状態の変更は先に確定したと考えた答え。コミットはメソッドの最後で、例外が出れば UPDATE ごと取り消される"
   explanation: |
-    状態の UPDATE と履歴の INSERT は、`@Transactional` の 1 つのトランザクションの中にある。RuntimeException が外へ出れば両方なかったことになるので、「承認済なのに履歴が無い」は起きない。
+    状態の UPDATE と履歴の INSERT は、`@Transactional` の 1 つのトランザクションの中にある。RuntimeException が外へ出れば、両方なかったことになる。
 - after: 画面:承認待ち一覧とボタン
   question: |
     詳細画面で、コメント欄を空のまま「差戻し」ボタンを押した。どうなる?
   choices: ["差戻しの URL に送られ、詳細画面に「差戻しにはコメントが必要です」と出る", "フォームの th:action にある承認の URL に送られ、承認される", "comment が空なので 400 Bad Request になる"]
   answer: 0
+  why:
+    - ""
+    - "ボタンはフォームの送り先に送ると読んだ答え。`th:formaction` のボタンは、押したときだけ送り先を差戻しに変える"
+    - "空の comment が入口で弾かれると考えた答え。`required = false` なので、Controller までは届く"
   explanation: |
-    `th:formaction` を付けたボタンは、押したときだけ送り先を `/requests/{id}/return` に変える。`comment` は `required = false` なので 400 にはならず、エンティティの `returnBack` が空のコメントを例外で拒否し、承認と同じく catch してメッセージを出す。
+    `th:formaction` のボタンは、送り先を `/requests/{id}/return` に変える。空のコメントはエンティティの `returnBack` が例外で拒否し、承認と同じく catch してメッセージを出す。
+- before: 太郎と部長が同じ申請を同時に
+  hides: 1
+  question: |
+    まだ `@Version` が無い承認くんで、承認者 2 人が同じ申請中の申請をほぼ同時に承認した。どちらのトランザクションも、先に「申請中」を読んでいる。どうなる?
+  choices:
+    - "両方とも通り、承認が 2 回・履歴が 2 件になる"
+    - "後の人は、ルール5(確定後は変更不可)の例外で止まる"
+    - "後の人のトランザクションは、`@Transactional` が衝突に気づいてロールバックする"
+  answer: 0
+  why:
+    - ""
+    - "後の人は承認済を読むと考えた答え。2 人とも、読んだのは申請中"
+    - "`@Transactional` が同時の操作も防ぐと考えた答え。防ぐのは途中で失敗したときの中途半端で、他人との衝突は見ない"
+  explanation: |
+    ルール5のチェックは、自分のトランザクションが読んだ状態(申請中)で判定する。2 人とも通るので、状態の UPDATE も履歴の INSERT も 2 回ずつ走る。

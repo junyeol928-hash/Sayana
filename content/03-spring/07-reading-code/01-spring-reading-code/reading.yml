@@ -25,6 +25,11 @@
     - "issue → save → existsByCardIdAndStatus → 200"
     - "バリデーションで弾かれて 400"
   answer: 1
+  why:
+    - "C100 に有効な鍵があると読んだ答え。まだ無いので false が返り、save に進む"
+    - ""
+    - "保存してから重複を調べると読んだ答え。先に exists で調べ、成功時は `HttpStatus.CREATED` の 201"
+    - "入力が制約に違反すると読んだ答え。cardId は空でなく keyVersion は範囲内で、`@Valid` を通る"
   explanation: "cardId・keyVersion とも制約を満たすので @Valid は通過します。C100 に ACTIVE な鍵がまだないため existsByCardIdAndStatus は false を返し、if の中には入らず save が実行され、201 + KeyIssueResponse が返ります。"
   trace:
     - "@Valid: cardId=\"C100\"(空でない)、keyVersion=1(1〜255の範囲内)→ 制約OK"
@@ -58,9 +63,14 @@
   choices:
     - "201 + KeyIssueResponse"
     - "500 + 何もなし"
-    - "409 + ErrorResponse(\"E409\", ...)"
+    - "409 + `ErrorResponse(\"E409\", ...)`"
     - "issueが2回呼ばれて201が返る"
   answer: 2
+  why:
+    - "重複の判定(`existsByCardIdAndStatus`)を見落とした答え"
+    - "例外を誰も受けず、500 になると読んだ答え"
+    - ""
+    - "例外のあと処理がやり直されると読んだ答え。やり直しの仕組みは無い"
   explanation: "既に ACTIVE な鍵があるので existsByCardIdAndStatus は true を返し、if の中で KeyAlreadyExistsException が投げられます。save は実行されず、この例外は @RestControllerAdvice の handleDuplicate に届き、409 + ErrorResponse が返ります。"
   trace:
     - "existsByCardIdAndStatus(\"C001\",\"ACTIVE\") → 該当ありなので true"
@@ -92,6 +102,11 @@
     - "呼ばれるが、cardId が null に置き換わって処理される"
     - "呼ばれるが、例外がその場でもみ消される"
   answer: 1
+  why:
+    - "空文字でも通ると読んだ答え。`@NotBlank` は空文字を違反とし、本体に入る前に止まる"
+    - ""
+    - "違反した値が null に直されると読んだ答え。値は直されず、`@Valid` で止まって 400"
+    - "検証の例外がその場で消えると読んだ答え"
   explanation: "cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに @RestControllerAdvice でハンドラを書きます。"
   trace:
     - "リクエストボディが KeyIssueRequest に変換される。cardId=\"\""
@@ -117,6 +132,11 @@
     - "Service クラスの中で定義されている"
     - "存在しないのでコンパイルエラーになる"
   answer: 1
+  why:
+    - "`KeyRepository` の2行目に書いてあると読んだ答え。2行目は別のメソッド"
+    - ""
+    - "呼んでいる Service に定義があると読んだ答え"
+    - "見当たらないので無いと読んだ答え。コンパイルは通る"
   explanation: "KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元の JpaRepository が持つ基本 CRUD の1つで、extends の先まで確認しないと見つかりません。"
   trace:
     - "1行目: KeyRepository は JpaRepository<KeyEntity, Long> を継承している"
@@ -143,6 +163,11 @@
     - "アプリ全体のすべての処理"
     - "save のみ"
   answer: 1
+  why:
+    - "中で呼んだメソッドなら、別スレッドでも同じトランザクションと読んだ答え"
+    - ""
+    - "`@Transactional` がアプリ全体に効くと読んだ答え。範囲はメソッド単位で、issue の開始から終了まで"
+    - "DB を書く行だけが範囲と読んだ答え。範囲はメソッド単位で、exists の確認も含む"
   explanation: "@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(9行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
   trace:
     - "1行目: @Transactional の範囲は issue メソッドの本体(3〜9行目)"

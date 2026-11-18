@@ -182,9 +182,13 @@ quiz:
       ```
     choices: ["@Autowired が効いて MailSender が自動で入り、正常に動く", "コンパイルエラーになる", "mail が null のままなので NullPointerException になる", "NoSuchBeanDefinitionException になる"]
     answer: 2
+    why:
+      - "`@Autowired` を書けば値が入ると読んだ答え。入れるのはコンテナで、自分で `new` すると null のまま"
+      - "フィールドが未初期化だとコンパイルが止まると読んだ答え。フィールドは null で始まり、コンパイルは通る"
+      - ""
+      - "コンテナが Bean を探して失敗すると読んだ答え。自分で `new` したのでコンテナは関わらない"
     explanation: |
       `@Autowired` で値を入れるのは **IoC コンテナ** です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
-      コンパイルは問題なく通ります。`NoSuchBeanDefinitionException` はコンテナが Bean を探して見つからなかったときの例外で、コンテナを使っていないここでは出ません。
       コンストラクタインジェクションにしておけば、`new OrderService(偽物)` と依存を渡すしかないので、この事故は起きません。
   - question: |
       次の3クラスを `new AnnotationConfigApplicationContext(Smtp.class, Log.class, Shop.class)` で登録しました。どうなる?
@@ -204,6 +208,11 @@ quiz:
       ```
     choices: ["NoUniqueBeanDefinitionException(候補が2つ)で起動に失敗する", "先に登録した Smtp が注入される", "後に登録した Log が注入される", "sender に null が渡される"]
     answer: 0
+    why:
+      - ""
+      - "登録した順で先の Bean が選ばれると読んだ答え。登録順では選ばれず、候補が2つで起動に失敗する"
+      - "後から登録した Bean が上書きすると読んだ答え。登録順では選ばれず、候補が2つで起動に失敗する"
+      - "合う Bean を決められないと null が入ると読んだ答え。null にはせず、例外で起動に失敗する"
     explanation: |
       `Sender` 型の Bean が2つあり、どちらを渡すべきかコンテナには決められないので、`expected single matching bean but found 2: smtp,log` というエラーで起動に失敗します。登録順で勝手に選ばれることはありません。
       解決するには、どちらかに `@Primary` を付けるか、`Shop` のコンストラクタ引数に `@Qualifier("smtp")` のように Bean 名を指定します。
@@ -225,6 +234,11 @@ quiz:
       ```
     choices: ["2 false", "1 false", "2 true", "3 true"]
     answer: 3
+    why:
+      - "`getBean` のたびに新しいインスタンスができると読んだ答え。既定は singleton で a と b は同じ"
+      - "呼ぶたびに count が 0 から始まると読んだ答え。count は残り、a と b は同じなので 3 まで進む"
+      - "a と b が同じとは読めたが、`b.next()` の分を数え落とした答え。同じ count を3回増やすので 3"
+      - ""
     explanation: |
       Bean の既定スコープは **singleton** なので、`getBean` は何度呼んでも同じインスタンスを返します。`a` と `b` は同じオブジェクトで `a == b` は `true`。
       `a.next()`(1)→ `b.next()`(2、同じ count を増やす)→ `a.next()`(3)なので `3 true` です。
@@ -245,6 +259,11 @@ quiz:
       ```
     choices: ["SmtpSender(@Primary が最優先)", "LogSender(@Qualifier の指定が優先)", "候補が2つなので起動エラー", "両方が List で渡される"]
     answer: 1
+    why:
+      - "`@Primary` が `@Qualifier` より強いと読んだ答え。`@Qualifier` で先に1つに絞られ、`@Primary` の出番はない"
+      - ""
+      - "`@Qualifier` があっても候補が2つ残ると読んだ答え。名前で1つに絞られるので起動する"
+      - "候補が複数あるとまとめて渡ると読んだ答え。まとめて受けるのは引数の型を `List<Sender>` にしたとき"
     explanation: |
       `@Qualifier` は注入する側で「この名前の Bean をくれ」と指定するもので、まず候補をその名前に絞り込みます。`@Primary` は「候補が複数残ったときの既定」なので、`@Qualifier` で1つに絞られた時点で出番はありません。よって `LogSender` です。
       `@Qualifier` が無い引数には `@Primary` の `SmtpSender` が入ります。複数まとめて欲しいときは、引数の型を `List<Sender>` や `Map<String, Sender>` にします。
@@ -252,6 +271,11 @@ quiz:
       ライブラリが提供している `JsonMapper` クラス(ソースは変更できない)を、設定値を渡して作り、Bean として登録したい。最も適切な方法は?
     choices: ["JsonMapper クラスに @Component を付ける", "使う側のフィールドに @Autowired を付ければ自動で作られる", "@Configuration クラスに、JsonMapper を new して返す @Bean メソッドを書く", "使う側のコンストラクタの中で new JsonMapper(...) する"]
     answer: 2
+    why:
+      - "自分のクラスと同じく `@Component` を付ければよいと読んだ答え。ソースを変えられないので付けられない"
+      - "`@Autowired` が Bean を作ってくれると読んだ答え。登録済みの Bean を入れるだけで、無ければ例外"
+      - ""
+      - "使う側で作れば Bean になると読んだ答え。`new` しても Bean にはならず、new だらけの形に戻る"
     explanation: |
       ソースを変更できないクラスにはアノテーションを付けられません。`@Configuration` クラスの `@Bean` メソッドで `new` して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。
       `@Autowired` は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(`NoSuchBeanDefinitionException`)。使う側で `new` するのは、まさに DI をやめて元の「new だらけ」に戻る書き方です。

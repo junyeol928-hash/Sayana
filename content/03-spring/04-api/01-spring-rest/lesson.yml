@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Web サーバーは起動せず、Spring MVC の仕組みだけを動かして REST API を呼び出します。
-      POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。それぞれのステータスの番号と、Location ヘッダが付くのはどれかを予想してから見よう。
+      POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。Content-Type を付け忘れた POST は、何番が返る?それぞれのステータスの番号と、Location ヘッダが付くのはどれかを予想してから見よう。
     code: |
       // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
       // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
@@ -86,7 +86,7 @@ samples:
   - title: Jackson で record ⇔ JSON(日時の扱い)
     libraries: [spring]
     description: |
-      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。
+      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。② の `dueDate` は、文字列・数値・配列のどれで出る?
       `dueDate` がそれぞれどんな形で出るか(そもそも変換できるか)を予想してから見よう。③が Spring Boot の既定と同じ設定です。
     code: |
       // Jackson で record ⇔ JSON。LocalDate の扱いに注目
@@ -140,6 +140,11 @@ quiz:
       - "201 Created と Location ヘッダだけ(本文なし)"
       - "302 Found で /api/tasks/7 にリダイレクト"
     answer: 1
+    why:
+      - "作成でも 200 が返ると読んだ答え。`created(uri)` はステータスを 201 にして Location を付ける"
+      - ""
+      - "`created` は本文なしと読んだ答え。続く `.body(t)` で JSON も入り、本文なしは `.build()` のとき"
+      - "Location ヘッダをリダイレクトと読んだ答え。作ったものの場所を知らせるだけで、ステータスは 201"
     explanation: |
       `ResponseEntity.created(uri)` はステータスを **201 Created** にし、`Location` ヘッダに URI を入れます。続く `.body(t)` で本文に JSON も入ります。
       `.body(...)` の代わりに `.build()` なら本文なしになります。302 はブラウザを別の URL に移動させるリダイレクトで、画面アプリの PRG パターンで使うもの。API の作成結果には使いません。
@@ -150,6 +155,11 @@ quiz:
       ```
     choices: ["400 Bad Request", "404 Not Found", "415 Unsupported Media Type", "500 Internal Server Error"]
     answer: 2
+    why:
+      - "送った中身がおかしいと読んだ答え。中身の前に形式が JSON でなく、変換できないので 415"
+      - "URL が合わないと読んだ答え。URL は合っていて、問題は送った形式"
+      - ""
+      - "変換できないのをサーバー側の故障と読んだ答え。形式が合わないのは送る側の誤りで 415"
     explanation: |
       curl の `-d` は、何も指定しないと `Content-Type: application/x-www-form-urlencoded` で送ります。`@RequestBody` の引数をその形式から変換できる HttpMessageConverter が無いので、
       Spring は `HttpMediaTypeNotSupportedException` を投げ、**415 Unsupported Media Type** になります。
@@ -161,18 +171,27 @@ quiz:
       // new TaskResponse(1, LocalDate.of(2026, 10, 31)) を返す
       ```
     choices:
-      - '{"id":1,"dueDate":"2026-10-31"}'
-      - '{"id":1,"dueDate":[2026,10,31]}'
-      - '{"id":1,"dueDate":1793404800000}'
+      - '`{"id":1,"dueDate":"2026-10-31"}`'
+      - '`{"id":1,"dueDate":[2026,10,31]}`'
+      - '`{"id":1,"dueDate":1793404800000}`'
       - "InvalidDefinitionException(LocalDate は変換できない)"
     answer: 0
+    why:
+      - ""
+      - "`JavaTimeModule` を足しただけの素の Jackson の出力と取り違えた答え"
+      - "日付を数値で書くと読んだ答え。それは `java.util.Date` を timestamps 設定で書いたときの形"
+      - "`LocalDate` を変換する部品が無いと読んだ答え。それは Boot を使わない素の Jackson の話"
     explanation: |
       Spring Boot は Jackson に **JavaTimeModule** を自動登録し、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしているので、日付は **ISO-8601 の文字列** `"2026-10-31"` になります。
-      `[2026,10,31]` は JavaTimeModule だけ登録して設定を変えていない素の Jackson の出力、例外は JavaTimeModule すら無いときの結果です。エポックミリ秒の数値は `java.util.Date` を timestamps 設定で書いたときの形です。
   - question: |
       「ID 3 のタスクを削除する」API の URL とメソッドとして、REST の現場ルールに最も合っているのは?
     choices: ["POST /api/deleteTask?id=3", "GET /api/tasks/3/delete", "DELETE /api/task/3", "DELETE /api/tasks/3"]
     answer: 3
+    why:
+      - "操作を URL の動詞で表すと読んだ答え。操作は DELETE メソッドで表し、URL は名詞にする"
+      - "削除を GET で受けてよいと読んだ答え。GET は状態を変えない約束で、リンクを踏まれただけで消える"
+      - "単数形でもよいと読んだ答え。動きは正しいが、一覧・作成の /api/tasks と形が揃わない"
+      - ""
     explanation: |
       操作は HTTP メソッド(DELETE)で表し、URL はリソースを **複数形の名詞** で表すので `DELETE /api/tasks/3` です。
       `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(GET は「状態を変えない」約束のメソッド)。
@@ -191,6 +210,11 @@ quiz:
       - "done が送られていないので 400 Bad Request"
       - "JSON の変換で例外になる"
     answer: 1
+    why:
+      - "送らない項目は変わらないと読んだ答え。boolean の done は false になり、そのまま setDone される"
+      - ""
+      - "項目が足りないと 400 になると読んだ答え。Jackson は足りない項目を既定値で埋め、エラーにしない"
+      - "項目の不足で変換が失敗すると読んだ答え。足りない done には false が入り、例外にならない"
     explanation: |
       JSON に無い項目は、record の引数に **その型のデフォルト値** が入ります。`boolean` なら `false` なので、`req.done()` は false になり、完了済みのタスクが未完了に戻ります。
       Jackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は `Boolean` のような **null になれる型** にして、`null` なら変更しない、と書き分けます。

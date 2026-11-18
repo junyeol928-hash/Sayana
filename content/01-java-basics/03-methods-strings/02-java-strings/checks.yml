@@ -1,10 +1,14 @@
 - after: == と equals、文字列プール
   question: |
     `rank` は null かもしれない。例外を出さずに比べられるのは?
-  choices: ['`"GOLD".equals(rank)`', '`rank.equals("GOLD")`']
+  choices: ['`"GOLD".equals(rank)`', '`rank.equals("GOLD")`', '`"GOLD".equals(rank.strip())`']
   answer: 0
+  why:
+    - ""
+    - "比べる向きはどちらでも同じと読んだ答え。null の rank に対してメソッドを呼ぶので例外になる"
+    - "固定値の側から呼んだので安全と読んだ答え。先に `rank.strip()` を呼ぶので、そこで例外になる"
   explanation: |
-    固定値の側から呼べば、rank が null でも false が返るだけ。`rank.equals(...)` は null に対してメソッドを呼ぶので `NullPointerException` になる。
+    固定値の側からメソッドを呼び、rank は引数として渡すだけなので、rank が null でも false が返るだけ。
 - after: よく使うメソッド
   question: |
     出力は?(前後の空白は全角スペース)
@@ -12,8 +16,12 @@
     String name = "　山田　";
     System.out.println(name.trim().length());
     ```
-  choices: ["4", "2"]
+  choices: ["4", "2", "コンパイルエラー"]
   answer: 0
+  why:
+    - ""
+    - "`trim` が全角スペースも消すと読んだ答え"
+    - "全角スペースを書いたので止まると読んだ答え。文字列リテラルの中の全角は、ただの文字"
   explanation: |
     `trim` が消すのは ASCII の空白だけで、全角スペースは残るので 4 文字のまま。全角まで消して 2 にしたいなら `strip` を使う。
 - after: 書式:format / formatted / テキストブロック
@@ -27,5 +35,9 @@
     ```
   choices: ["2 個", "6 個", "0 個"]
   answer: 0
+  why:
+    - ""
+    - "ソースに書いたインデントがそのまま残ると読んだ答え。A の行にそろった共通の分は取り除かれる"
+    - "行頭の空白が全部消えると読んだ答え。消えるのは共通の分だけで、A より深い 2 個は残る"
   explanation: |
     閉じの `"""` と最も浅い行(A の行)にそろった共通のインデントが取り除かれる。B の行はそれより 2 個深いので、その 2 個が残る。

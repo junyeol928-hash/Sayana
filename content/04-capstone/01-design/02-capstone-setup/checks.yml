@@ -3,8 +3,12 @@
     `url` だけを `jdbc:h2:mem:approval` に変えて再起動した。前回の起動までに入っていたデータは引き継がれる?
   choices: ["引き継がれない", "引き継がれる(ddl-auto: update なので)", "引き継がれる(data/approval.mv.db に残る)"]
   answer: 0
+  why:
+    - ""
+    - "`update` がデータを守ると読んだ答え。`update` は表を作り足すだけで、データが残るかは url の mem / file で決まる"
+    - "前のファイルが読まれると考えた答え。`.mv.db` を使うのは file モードで、mem はメモリの中だけ"
   explanation: |
-    `mem` はメモリの中だけの DB で、アプリを止めると中身ごと消える。`.mv.db` に残るのは `file` モードのときで、`update` は表を作り足すだけでデータを守る設定ではない(社員がまた入るのは data.sql が毎回流れるから)。
+    `mem` はメモリの中だけの DB で、アプリを止めると中身ごと消える。社員がまた入るのは、`data.sql` が起動のたびに流れるから。
 - after: Repository:画面ごとの検索を名前で宣言
   question: |
     承認待ち一覧は `findByStatusOrderBySubmittedAtAsc(SUBMITTED)` で出す。次の 3 件のうち、一覧の先頭に来るのは?
@@ -13,12 +17,20 @@
     - C:下書き(まだ申請していない)
   choices: ["A(10/1 に申請)", "B(10/5 に申請)", "C(下書き)"]
   answer: 0
+  why:
+    - ""
+    - "新しい順と読んだ答え。`Asc` は古い順で、B が先頭になるのは `Desc` のとき"
+    - "申請日時が空なら先頭に来ると考えた答え。`ByStatus` で申請中だけに絞るので、下書きは一覧に出ない"
   explanation: |
-    `Status` で申請中だけに絞るので下書きの C は出ない。`OrderBySubmittedAtAsc` は申請日時の古い順なので、いちばん待たせている A が先頭。B が先頭になるのは `Desc`(新しい順)のとき。
+    `Status` で申請中だけに絞り、`OrderBySubmittedAtAsc` で申請日時の古い順に並べる。いちばん待たせている A が先頭。
 - after: 初期データ:data.sql と CommandLineRunner
   question: |
     data.sql のハルの行の role を `'APPLICANT'` から `'APPROVER'` に書き換えて再起動した(`MERGE ... KEY (email)` のまま)。社員テーブルは?
   choices: ["ハルが APPROVER に変わり、3 人のまま", "APPLICANT と APPROVER のハルが 2 人になる", "一意制約違反で起動に失敗する"]
   answer: 0
+  why:
+    - ""
+    - "`INSERT` のように行が足されると読んだ答え。`MERGE` は足す前に、既にある行を探す"
+    - "同じ email の行を入れ直すと考えた答え。重複も違反も起きない"
   explanation: |
-    `MERGE ... KEY (email)` は、同じ email の行があれば更新、なければ追加する。ハルの email はもうあるので、その行の role が書き換わる。増えたり制約違反で落ちたりするのは `INSERT` で書いたとき。
+    `MERGE ... KEY (email)` は、同じ email の行があれば更新、なければ追加する。ハルの email はもうあるので、その行の role が書き換わる。

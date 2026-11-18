@@ -8,6 +8,10 @@
     ```
   choices: ["POST /api/keys/rotate", "POST /kms/api/keys/rotate", "POST /kms/rotate"]
   answer: 1
+  why:
+    - "Java のソースだけを見た答え。`application.yml` の `context-path` の `/kms` が前に付く"
+    - ""
+    - "メソッドのパスだけをつないだ答え。クラスの `@RequestMapping` の `/api/keys` も間に入る"
   explanation: |
     URL はクラスの `@RequestMapping` とメソッドの `@PostMapping` をつないだもので、さらに前に `context-path` が付く。`/kms` は Java のソースには無く、`application.yml` にしか書かれていない。
 - after: 例外とトランザクションの境界
@@ -15,6 +19,9 @@
     `@Transactional` の付いた `KeyService.revoke` を、Controller(トランザクションなし)が 2 回続けて呼んだ。2 回目で RuntimeException が出ると、1 回目の失効は?
   choices: ["2 回目と一緒にロールバックされる", "コミット済みで残る"]
   answer: 1
+  why:
+    - "2 回の呼び出しが 1 つのトランザクションと読んだ答え。境界はプロキシの入口と出口で、呼ぶたびに別"
+    - ""
   explanation: |
     トランザクションはプロキシの入口で始まり出口で終わるので、2 回呼べば別々に 2 つできる。1 回目は戻った時点でコミット済みで、2 回目の失敗では取り消されない。
 - after: ソースに書かれていない「見えない処理」
@@ -22,5 +29,24 @@
     `OrderService` のコンストラクタ引数は `PaymentClient` インターフェース。実装クラスは `CardPaymentClient` と `BankPaymentClient` の 2 つ。どちらが渡されるかを読むときに探す目印は?
   choices: ["`@Transactional`", "クラス名の並び順", "`@Primary` や `@Qualifier`"]
   answer: 2
+  why:
+    - "AOP の目印と取り違えた答え。`@Transactional` はトランザクションの目印で、どの実装かとは関係ない"
+    - "名前の順で決まると読んだ答え。1 つに決められなければ、起動時にエラーで止まる"
+    - ""
   explanation: |
-    同じ型の実装が複数あると、Spring は `@Primary`・`@Qualifier` で 1 つを選ぶ。クラス名の順では決まらず、1 つに決められなければ起動時にエラーで止まる。`@Transactional` はトランザクションの目印で、どの実装かとは関係ない。
+    同じ型の実装が複数あると、Spring は `@Primary`・`@Qualifier` で 1 つを選ぶ。
+- before: 正常に終われば KeyIssueResponse が
+  hides: 3
+  question: |
+    鍵を発行する Service の `issue` で、ACTIVE な鍵がすでにあった。投げられた `KeyAlreadyExistsException` は、Controller にも Service にも try-catch が無い。この例外は、どこでレスポンスに変わる?
+  choices:
+    - "別のクラスの `@ExceptionHandler` が受けて、決めたステータスで返す"
+    - "`@Transactional` のプロキシが受けて、ロールバックしたあと 201 を返す"
+    - "どこでも受けられず、try-catch を足すまで必ず 500 になる"
+  answer: 0
+  why:
+    - ""
+    - "ロールバックと例外の受け止めを混同した答え。プロキシは戻したあと、例外をそのまま外へ流す"
+    - "try-catch が無ければ誰も受けないと読んだ答え。`@RestControllerAdvice` が横から受けられる"
+  explanation: |
+    業務例外は投げっぱなしにして、`@RestControllerAdvice` の `@ExceptionHandler` で受けるのが Spring の普通の形。受けている所は、例外クラス名で検索して探す。

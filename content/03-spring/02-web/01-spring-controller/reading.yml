@@ -23,7 +23,12 @@
     - "500"
     - "400"
   answer: 1
-  explanation: "keyId = \"K999\" で find すると空の Optional が返り、map は実行されず orElse の notFound().build() が返ります。よって 404、ボディなしです。"
+  why:
+    - "空の Optional でも `map` の `ok` が動くと読んだ答え"
+    - ""
+    - "空の Optional で例外になると読んだ答え。orElse があるので例外にならず 404 が返る"
+    - "存在しない ID を送る側の誤りの 400 と読んだ答え。このコードは notFound() で 404 を返す"
+  explanation: "keyId = `\"K999\"` で find すると空の Optional が返り、map は実行されず orElse の notFound().build() が返ります。よって 404、ボディなしです。"
   trace:
     - "2,7行目: GET /api/keys/{keyId} に一致。keyId = \"K999\""
     - "9行目: keyService.find(\"K999\") → 空の Optional"
@@ -53,11 +58,16 @@
   question: "(予習:`@RequestBody` は JSON のボディをオブジェクトで受け取る注釈、`@Valid` はそのオブジェクトの入力ルール(`@NotBlank` など)を検証する印、`@RestControllerAdvice` の `@ExceptionHandler` は投げられた例外を受けてレスポンスにするメソッドです。この章の「フォームとバリデーション」と第4章「REST API」「例外ハンドリング」で詳しく扱います)ボディ `{\"cardId\":\"C001\",\"hostChallenge\":\"abcd\"}` を POST すると?"
   choices:
     - "sessionService.start が呼ばれ 200"
-    - "400 と {\"code\":\"E400\"}"
+    - "400 と `{\"code\":\"E400\"}`"
     - "500"
     - "404"
   answer: 1
-  explanation: "(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の \"abcd\" は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。"
+  why:
+    - "`@Pattern` を見落とし、`abcd` も通ると読んだ答え"
+    - ""
+    - "検証の失敗が 500 のまま返ると読んだ答え。`@RestControllerAdvice` のハンドラを見落としている"
+    - "検証に失敗すると URL に合わないと読んだ答え。URL は一致し、検証の失敗はハンドラが 400 にする"
+  explanation: "(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の `\"abcd\"` は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。"
   trace:
     - "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換"
     - "3行目: cardId = \"C001\" → @NotBlank OK"
@@ -85,12 +95,17 @@
     // Service が throw new CryptoUnavailableException() した
   question: "(予習:`@RestControllerAdvice` のクラスの `@ExceptionHandler(型)` メソッドは、その型の例外が Controller から投げられたときに呼ばれ、戻り値がレスポンスになります。第4章「例外ハンドリング」で詳しく扱います)応答は?"
   choices:
-    - "503 \"gateway\""
-    - "500 \"other\""
+    - "503 と `gateway`"
+    - "500 と `other`"
     - "両方のハンドラが実行される"
     - "ハンドラが2つあるので起動時に例外"
   answer: 0
-  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 \"gateway\" です。両方のハンドラが実行されることはありません。"
+  why:
+    - ""
+    - "`Exception` のハンドラも当てはまるので、そちらが選ばれると読んだ答え"
+    - "当てはまるハンドラが全部、順に動くと読んだ答え"
+    - "ハンドラが複数あると衝突すると読んだ答え。型が違えば並べてよく、近い型のほうが選ばれる"
+  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 と本文 `gateway` です。"
   trace:
     - "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
     - "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致"
@@ -117,11 +132,16 @@
     public String ping() { return "pong"; }
   question: "(予習:Filter は DispatcherServlet より手前で全リクエストを受ける部品で、`chain.doFilter(...)` を呼ぶと次の処理(最後は Controller)へ進みます。第6章「Spring Security入門」で詳しく扱います)ヘッダなしで `GET /api/ping` を送ると?"
   choices:
-    - "200 \"pong\""
+    - "200 と `pong`"
     - "401 でボディなし。ping() は呼ばれない"
     - "500"
     - "ping() が呼ばれた後に 401"
   answer: 1
+  why:
+    - "ヘッダが無くても Filter を素通りすると読んだ答え"
+    - ""
+    - "token が null で例外になると読んだ答え。先に null を判定しているので、401 を返して終わる"
+    - "Filter が Controller の後で動くと読んだ答え。Filter はリクエストの入口で先に動く"
   explanation: "token が null なので if に入り、401 をセットして return します。chain.doFilter を呼んでいないので DispatcherServlet にも Controller にも届かず、ping() は一度も実行されません。Filter は Controller より手前で動くことを確認する問題です。"
   trace:
     - "6行目: X-Api-Token ヘッダなし → token = null"
@@ -150,12 +170,17 @@
     // ChallengeRequest は @Data @NoArgsConstructor @AllArgsConstructor のクラス(cardId フィールドを持つ)。受付サーバ側は cardId = "C001"
   question: "(予習:`restTemplate.postForObject(URL, 送るオブジェクト, 戻りの型)` は、別のサーバーへ JSON を POST し、返ってきた JSON を指定した型に変換する呼び出しです。受け取る側の `@RequestBody` は JSON のボディをオブジェクトにする注釈(第4章「REST API」))受付サーバの `requestChallenge(\"C001\")` の結果は?"
   choices:
-    - "業務サーバの challenge() が呼ばれ、ChallengeResponse(\"0011223344556677\") が返る"
+    - "業務サーバの challenge() が呼ばれ、`ChallengeResponse(\"0011223344556677\")` が返る"
     - "業務サーバで 400 になり受付サーバで例外"
     - "URL が一致せず 404"
     - "受付サーバで JSON 変換に失敗"
   answer: 0
-  explanation: "受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの @RequestMapping(\"/api\") + @PostMapping(\"/challenge\") に一致します。ボディ {\"cardId\":\"C001\"} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。"
+  why:
+    - ""
+    - "`cardId` が届かず null になると読んだ答え。`@NoArgsConstructor` と `@Data` があれば JSON から入る"
+    - "クラスとメソッドのパスをつなげ損ねた答え。2つは足し合わされる"
+    - "戻りの JSON を型に変換できないと読んだ答え。第3引数の型に変換される"
+  explanation: "受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの `@RequestMapping(\"/api\")` + `@PostMapping(\"/challenge\")` に一致します。ボディ `{\"cardId\":\"C001\"}` が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。"
   trace:
     - "3行目: 受付サーバが POST {baseUrl}/api/challenge、ボディは ChallengeRequest(\"C001\") → {\"cardId\":\"C001\"}"
     - "9,11行目: 業務サーバの URL は /api + /challenge = /api/challenge、POST → 一致"

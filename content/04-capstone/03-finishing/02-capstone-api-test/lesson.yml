@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Jackson(Spring MVC が JSON 変換に使うライブラリ)で、エンティティ風のクラスと DTO の record を JSON にして比べます。
-      エンティティのほうの JSON には、関連先の `Employee` のどの項目まで入るか。予想してから実行結果を見よう。
+      エンティティのほうの JSON には、関連先の `Employee` のどの項目まで入る? 予想してから実行結果を見よう。
     code: |
       // エンティティをそのまま JSON にすると何が出る? DTO なら?
       // ここを変えてみよう:Employee に password 項目を足す /
@@ -50,8 +50,8 @@ samples:
   - title: 承認 API を MockMvc で叩いて 200 / 409 / 404 を見る
     libraries: [spring]
     description: |
-      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。申請 1 を2回、存在しない 99 を1回承認したとき、それぞれのステータスと Content-Type は何か。
-      予想してから実行結果を見よう。そのあと `onRule` の `@ExceptionHandler` を消すと、2回目の承認がどうなるかも試しましょう。
+      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。申請 1 を2回、存在しない 99 を1回承認したとき、ステータスはそれぞれいくつになる?
+      Content-Type も、予想してから実行結果を見よう。そのあと `onRule` の `@ExceptionHandler` を消すと、2回目の承認がどうなるかも試しましょう。
       最初に Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // 承認 API を MockMvc で叩く:200 / 409 / 404 を見比べる
@@ -155,10 +155,14 @@ quiz:
       ```
     choices: ["200 と application/json(本文は承認済の申請の詳細)", "409 と application/problem+json(detail に例外のメッセージ)", "500 と text/html(エラーページ)", "400 と application/json(本文なし)"]
     answer: 1
+    why:
+      - "例外が無視されると読んだ答え。例外で承認そのものが止まっている"
+      - ""
+      - "ハンドラが無いときの動きと取り違えた答え。500 になるのは例外が外まで出たとき"
+      - "業務ルール違反を 400 と読んだ答え。400 はリクエストの形が変なときに使う"
     explanation: |
       Controller の中で投げられた `BusinessRuleException` は、同じ Controller の `@ExceptionHandler(BusinessRuleException.class)` が受け取ります。
       `ProblemDetail` を返すと、ステータスは `ProblemDetail` の `status`(ここでは `CONFLICT` = 409)になり、Content-Type は `application/problem+json` になります。
-      ハンドラがなければ例外は外まで飛び出し、Spring Boot では 500 になります。400 は「リクエストの形が変」なときのコードで、状態による失敗には使いません。
   - question: |
       次のテストを実行したら、テストメソッドに入る前にエラーで止まりました。原因は?
       ```java
@@ -179,10 +183,14 @@ quiz:
       (`RequestApiController` のコンストラクタは `RequestQueryService` と `ApprovalService` を受け取る)
     choices: ["@WithMockUser の roles に ROLE_ を付けていない", "MockMvc は @Autowired できない", "get が MockMvcRequestBuilders ではなく別クラスの get になっている", "ApprovalService の Bean がなく、Controller を作れない"]
     answer: 3
+    why:
+      - "`roles` に `ROLE_` が要ると読んだ答え。自動で付くので、付けるとむしろエラー"
+      - "MockMvc は注入できないと読んだ答え。`@WebMvcTest` が用意するので `@Autowired` できる"
+      - "import の取り違えと読んだ答え。テストに入る前に止まるのは Bean が足りないから"
+      - ""
     explanation: |
       `@WebMvcTest` は Controller などの Web 層の Bean **だけ** を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
       Controller のコンストラクタに渡すものがなく `No qualifying bean of type '...ApprovalService'` でコンテキストの起動に失敗します。`@MockitoBean ApprovalService approvalService;` を足せば直ります。
-      `@WithMockUser(roles = "APPROVER")` は自動で `ROLE_` を付けてくれるので正しい書き方です(`ROLE_` を付けるとむしろエラー)。MockMvc は `@WebMvcTest` が用意するので `@Autowired` できます。
   - question: |
       `list` が次のように書かれています。`GET /api/requests?status=submitted` を送ると、どうなる?
       ```java
@@ -196,17 +204,26 @@ quiz:
       ```
     choices: ["400 Bad Request になる", "status が null として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
     answer: 0
+    why:
+      - ""
+      - "変換できない値は null になると読んだ答え。`required = false` は無いときに null にするだけ"
+      - "大文字小文字を無視して変換されると読んだ答え。enum への変換は区別する"
+      - "変換の失敗をサーバーの異常と読んだ答え。リクエストの形が変として 400 になる"
     explanation: |
       文字列から enum への変換は `RequestStatus.valueOf` と同じく **大文字小文字を区別** します。`submitted` という定数はないので変換に失敗し、
-      Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。`required = false` は「パラメータが無いとき」に null にするだけで、変換に失敗した値を null にはしません。
-      Controller のコードまで届かないので 500 にもなりません。API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
+      Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。
+      API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
   - question: |
       業務ルール3「100,000円以上の承認は ADMIN だけ」の境界(99,999円と100,000円)を確かめるテストを足したい。テストピラミッドの考え方で、最もふさわしい場所は?
     choices: ["@SpringBootTest で H2 に申請を入れ、MockMvc で承認 API を呼ぶテスト", "@WebMvcTest で、ApprovalService を @MockitoBean にした Controller のテスト", "ApprovalService の単体テスト(テーブル駆動)に行を足す", "テストは書かず、リリース前にブラウザで手で確かめる"]
     answer: 2
+    why:
+      - "全体を通すテストが一番と読んだ答え。確かめられるが遅く、ルールの組み合わせは単体テストで回す"
+      - "Controller のテストでルールを確かめると読んだ答え。仕込んだ偽物の動きを確かめるだけになる"
+      - ""
+      - "手の確認で足りると読んだ答え。毎回はやらなくなるので、境界の守りにならない"
     explanation: |
       金額と役割の組み合わせは **業務ルール** なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
-      `@WebMvcTest` では Service が偽物なので、ルールそのものは確かめられません(仕込んだ偽物の動きを確かめるだけになります)。`@SpringBootTest` でも確かめられますが遅く、組み合わせを増やすほど全体が重くなります。手での確認は毎回はやらなくなるので、境界の守りにはなりません。
   - question: |
       承認くんの方針(業務ルール違反は 409、ロールでの門前払いは Spring Security)どおりの組み合わせはどれ?
       - (ア)存在しない申請 99 番を承認しようとした
@@ -214,6 +231,11 @@ quiz:
       - (ウ)APPLICANT(申請者)ロールの社員が `GET /api/requests` を呼んだ(`/api/**` は APPROVER・ADMIN だけ)
     choices: ["ア 409 / イ 404 / ウ 403", "ア 404 / イ 409 / ウ 403", "ア 404 / イ 400 / ウ 401", "ア 400 / イ 409 / ウ 404"]
     answer: 1
+    why:
+      - "404 と 409 を逆に読んだ答え。申請が無いのは 404、状態で断るのは 409"
+      - ""
+      - "状態の失敗を 400、権限不足を 401 と読んだ答え。正しくは 409 と 403"
+      - "存在しない申請を 400、権限不足を 404 と読んだ答え。正しくは 404 と 403"
     explanation: |
       (ア)は「その申請がない」ので **404**(`RequestNotFoundException`)。(イ)は申請はあるが「今の状態ではできない」ので **409**(`BusinessRuleException`)。(ウ)はログインはしているがロールが足りないので **403** Forbidden です。
       401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(enum に変換できない値など)に使います。

@@ -13,6 +13,11 @@
     - "1行目(Exception in thread)"
     - "特定できない"
   answer: 1
+  why:
+    - "呼び出し元の行を発生場所と読んだ答え。下の at 行ほど呼び出し元へさかのぼる"
+    - ""
+    - "例外名の行を発生場所と読んだ答え。1行目は種類と原因で、場所は at 行に出る"
+    - "スタックトレースからは場所が分からないと読んだ答え。一番上の at 行が発生場所"
   explanation: "スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 Greeter.java の15行目で name が null のまま toUpperCase() を呼んでいることが原因です。"
   trace:
     - "1〜2行目: 例外の種類は NullPointerException、原因は name が null であること"
@@ -34,6 +39,11 @@
     - "ArrayIndexOutOfBoundsException が発生する"
     - "コンパイルエラー"
   answer: 2
+  why:
+    - "ループが添字 2 で終わると読んだ答え。`<=` なので i が 3 でも回り、`scores[3]` に触れる"
+    - "ループが1回も回らないと読んだ答え。i が 0〜2 で足したあと、i が 3 で例外になる"
+    - ""
+    - "範囲外の添字をコンパイラが見抜くと読んだ答え。添字の範囲は実行時に調べられる"
   explanation: "条件が i <= scores.length になっているため、i が 3(存在しない添字)のときに scores[3] にアクセスしてしまい、実行時に ArrayIndexOutOfBoundsException が発生します。配列の最後の添字は length - 1 です。"
   trace:
     - "i=0: scores[0]=70 → sum=70"
@@ -59,7 +69,12 @@
     - "何も表示されない"
     - "コンパイルエラーの内容"
   answer: 1
-  explanation: "コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドが calcTotal(10, 0) を呼び出した時点の状態(price=10, qty=0 を渡した箇所)を確認できます。なお qty=0 のためこのままだと ArithmeticException が発生します。"
+  why:
+    - "1段下も今のメソッドと読んだ答え。1段下は呼び出し元の main のフレーム"
+    - ""
+    - "1段下には何も無いと読んだ答え。calcTotal を呼んだ main のフレームが積まれている"
+    - "コールスタックをエラー一覧と取り違えた答え。並ぶのは実行中のメソッド呼び出しの段"
+  explanation: "コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドの段で、calcTotal(10, 0) を呼んでいる 3 行目と、その時点の main の変数(args。total はまだ代入前)を確認できます。なお qty=0 のためこのままだと ArithmeticException が発生します。"
   trace:
     - "main が calcTotal(10, 0) を呼び出す"
     - "コールスタックの一番上が calcTotal(price=10, qty=0)"
@@ -81,9 +96,14 @@
     - "コンパイルエラー"
     - "実行時エラー"
   answer: 1
-  explanation: "role(呼び出し側の \"ADMIN\")と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。"
+  why:
+    - "`==` を中身の比較と読んだ答え。`==` は参照を比べ、`new String` は別のインスタンス"
+    - ""
+    - "String 同士の `==` は書けないと読んだ答え。文法上は通り、参照の比較になる"
+    - "`==` の比較で例外が出ると読んだ答え。例外は出ず、別のインスタンスなので false"
+  explanation: "role(呼び出し側の `\"ADMIN\"`)と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。"
   trace:
-    - "isAdminUser(\"ADMIN\") が呼ばれ、role には \"ADMIN\" という文字列への参照が入る"
-    - "2行目: adminRole は new String(\"ADMIN\") で明示的に別インスタンスとして作られる"
+    - "`isAdminUser(\"ADMIN\")` が呼ばれ、role には `\"ADMIN\"` という文字列への参照が入る"
+    - "2行目: adminRole は `new String(\"ADMIN\")` で明示的に別インスタンスとして作られる"
     - "3行目: role == adminRole は「同じインスタンスか」を見るので false"
     - "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる"

@@ -13,7 +13,7 @@ samples:
   - title: 申請フォームの入力チェックを動かす
     libraries: [spring]
     description: |
-      `RequestForm` を Validator で直接検証します。経費精算なのに金額なし・理由は空白だけのフォームは、何件の、どの項目のエラーになるか。予想してから実行結果を見よう。
+      `RequestForm` を Validator で直接検証します。経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? どの項目のエラーかも、予想してから実行結果を見よう。
       最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
@@ -63,7 +63,7 @@ samples:
             .forEach(System.out::println);
   - title: 自分の申請だけを日本語の状態で一覧にする
     description: |
-      一覧の考え方をメモリ上で再現します。社員 1 の一覧に何件が並び、状態の欄に何と出るか。予想してから実行結果を見よう。
+      一覧の考え方をメモリ上で再現します。社員 1 の一覧に何件が並び、状態の欄に何と出る? 予想してから実行結果を見よう。
     code: |
       // 「自分の申請だけ」を一覧に出す Service の考え方(メモリ版)
       // ここを変えてみよう:CURRENT_EMPLOYEE_ID を 2 に / 申請を足してみる
@@ -96,7 +96,15 @@ samples:
       }
 quiz:
   - question: |
-      レッスンの `RequestForm` を次の値で検証しました。エラー(制約違反)は何件?
+      `RequestForm` の検証は次のとおり(抜き出し)。この値で検証すると、エラー(制約違反)は何件?
+      ```java
+      @NotBlank @Size(max = 50) private String title;
+      @NotNull private RequestType type;
+      @Min(1) private Integer amount;
+      @NotBlank private String reason;
+      // 経費精算・備品購入なら amount が null でないこと
+      @AssertTrue public boolean isAmountEntered() { … }
+      ```
       ```java
       form.setTitle("");
       form.setType(RequestType.EXPENSE);
@@ -105,6 +113,11 @@ quiz:
       ```
     choices: ["1件", "3件", "2件", "4件"]
     answer: 2
+    why:
+      - "金額の 0 を見落とした答え。0 は「1 以上」に反する"
+      - "金額 0 で相関チェックも落ちると読んだ答え。0 は「金額なし」ではない"
+      - ""
+      - "`@Size` や相関チェックまで落ちると数えた答え。空文字は 50 字を超えない"
     explanation: |
       `title` が空なので `@NotBlank` で1件、`amount` が 0 なので `@Min(1)` で1件、合わせて **2件** です。
       相関チェック `isAmountEntered()` は「経費精算で金額が **null** か」だけを見ます。0 は null ではないので `true` になり、エラーは出ません。
@@ -117,6 +130,11 @@ quiz:
       ```
     choices: ["isAmountEntered", "amount", "type", "amountEntered"]
     answer: 3
+    why:
+      - "メソッド名がそのまま項目名になると読んだ答え。先頭の `is` は外れる"
+      - "金額のチェックなので `amount` に付くと読んだ答え。付くのはメソッド名から作る項目"
+      - "種類で必須かが決まるので `type` に付くと読んだ答え。付くのはメソッド名から作る項目"
+      - ""
     explanation: |
       Bean Validation は JavaBeans の規約で getter をプロパティとして扱います。`boolean` を返す `isXxx()` はプロパティ `xxx` なので、`isAmountEntered()` は **`amountEntered`** です。
       だから画面では `th:errors="*{amountEntered}"` と書きます。`amount` の横に出したいなら、`amount` の入力欄のそばにこの span を置けば十分です。
@@ -142,10 +160,15 @@ quiz:
       ```
     choices: ["エラーは表示されるが、種類のセレクトボックスが「選択してください」だけになる", "400 Bad Request になる", "types が無いので 500 エラーになる", "GET のときの types がセッションから復元されて正常に表示される"]
     answer: 0
+    why:
+      - ""
+      - "入力エラーで 400 になると読んだ答え。エラーは引数の BindingResult が受け止める"
+      - "null の `types` で例外が出ると読んだ答え。テンプレートは null を空として扱う"
+      - "Model がリクエストをまたいで残ると読んだ答え。セッションには入れていない"
     explanation: |
       Model は **リクエストごと** に作られます。GET で入れた `types` は POST のリクエストには残っていません。
       `th:each="t : ${types}"` は `types` が null だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
-      BindingResult が直後にあるので 400 にもなりません。対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
+      対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
   - question: |
       `list.html` に次のように書きました。申請の状態が `RequestStatus.DRAFT` のとき、セルに表示されるのは?
       ```html
@@ -153,19 +176,28 @@ quiz:
       ```
     choices: ["下書き", "DRAFT", "0", "RequestStatus.DRAFT"]
     answer: 1
+    why:
+      - "表示名が自動で出ると読んだ答え。表示名は自分で呼び出す"
+      - ""
+      - "宣言順の番号が出ると読んだ答え。`th:text` は `toString()` の定数名を出す"
+      - "型名付きで出ると読んだ答え。enum の `toString()` は定数名だけを返す"
     explanation: |
       `th:text` は値を文字列にして出します。enum の `toString()` は(上書きしていなければ)定数名を返すので **`DRAFT`** です。
-      `ordinal()` の `0` や、型名付きの表記にはなりません。テンプレートの中の「状態」はプロトタイプ用の仮の文字で、描画時に置き換えられます。
+      テンプレートの中の「状態」はプロトタイプ用の仮の文字で、描画時に置き換えられます。
       利用者に見せるなら `${r.status.label()}` のように表示名を出します。
   - question: |
       `RequestForm` に `status`(状態)や `applicantId`(申請者)の項目を **作らない** 一番の理由は?
     choices: ["Thymeleaf が enum の項目を扱えないから", "項目が多いと Bean Validation が遅くなるから", "パラメータを足すだけで、状態や申請者を好きな値にできてしまうから", "JPA のエンティティと同じ名前の項目はフォームに置けないから"]
     answer: 2
+    why:
+      - "Thymeleaf の制約と読んだ答え。Thymeleaf は enum も扱える"
+      - "性能の問題と読んだ答え。問題は速さではなく安全"
+      - ""
+      - "名前の重なりが禁止と読んだ答え。同じ名前の項目も置ける"
     explanation: |
       `@ModelAttribute` は、リクエストパラメータと **同じ名前のプロパティすべて** に値を詰めます。フォームに `status` があれば、
       開発者ツールで `status=APPROVED` を足すだけで「最初から承認済み」の申請が作れてしまいます(マスアサインメント)。
       状態と申請者は利用者が入力するものではないので、Service が決めます(新規は `DRAFT`、申請者はログイン中の人)。
-      Thymeleaf は enum を扱えますし、同名の項目を置くこと自体は文法上の問題ではありません。
 columns:
   - type: mistake
     title: "@AssertTrue を付けたのに、相関チェックが一度も動かない"

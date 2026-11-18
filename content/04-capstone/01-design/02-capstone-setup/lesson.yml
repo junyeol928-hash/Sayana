@@ -12,7 +12,7 @@ samples:
   - title: ORDINAL で保存していたら何が起きるか
     description: |
       `@Enumerated` を付けないと、enum は宣言順の番号(`ordinal()`)で保存されます。後から定数を途中に足したとき、DB に残っている番号がどう読まれるかを再現します。
-      保存した3つの値は、番号(`ordinal()`)で読むと何に、名前(`name()`)で読むと何になるか。予想してから実行結果を見よう。
+      保存した3つの値を番号(`ordinal()`)で読み直すと、それぞれ何になる? 名前(`name()`)で読んだ場合も、予想してから実行結果を見よう。
     code: |
       // ORDINAL(宣言順の番号)で保存していたら……を再現する
       // 「保存したとき」の enum
@@ -39,7 +39,7 @@ samples:
   - title: 承認くんの派生クエリを PartTree で読む
     description: |
       Spring Data は起動時に、Repository のメソッド名を `PartTree` で解析して SQL の条件と並び順に変換します。承認くんで使う名前を直接解析してみましょう。
-      4つ目の `findByApplicantName…` はどのプロパティの条件になるか、つづりを間違えた5つ目はどうなるか。予想してから実行結果を見よう。DB には接続しません。
+      4つ目の `findByApplicantName…` は、どのプロパティの条件になる? つづりを間違えた5つ目がどうなるかも、予想してから実行結果を見よう。DB には接続しません。
     libraries: [spring, jpa]
     code: |
       import java.time.LocalDateTime;
@@ -94,6 +94,11 @@ quiz:
       ```
     choices: ["SUBMITTED", "起動時にエラーになる", "CHECKING", "null"]
     answer: 2
+    why:
+      - "名前で保存されていると読んだ答え。既定の ORDINAL は番号で保存する"
+      - "enum を変えると起動で弾かれると読んだ答え。起動時に番号の意味までは確かめない"
+      - ""
+      - "合わない値は null になると読んだ答え。番号 1 は新しい enum にもある"
     explanation: |
       ORDINAL は宣言順の番号で保存します。保存時の `SUBMITTED` は 0 始まりで **1** です。新しい enum では 1 番が `CHECKING` なので、データは1バイトも変わっていないのに「確認中」として読まれます。
       番号の範囲内なのでエラーにも null にもならず、**黙って意味がずれる** のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
@@ -108,19 +113,31 @@ quiz:
             ddl-auto: update
           defer-datasource-initialization: true
       ```
-    choices: ["data.sql が流れず、NoSuchElementException(No value present)で起動に失敗する", "正常に起動し、社員3人が登録される", "Table \"EMPLOYEE\" not found で起動に失敗する", "data.sql が2回流れて社員が6人になる"]
+    choices:
+      - "data.sql が流れず、NoSuchElementException(No value present)で起動に失敗する"
+      - "正常に起動し、社員3人が登録される"
+      - '`Table "EMPLOYEE" not found` で起動に失敗する'
+      - "data.sql が2回流れて社員が6人になる"
     answer: 0
+    why:
+      - ""
+      - "ファイルモードでも data.sql が流れると読んだ答え。既定では file の DB は対象外"
+      - "テーブルが無いと読んだ答え。それは `defer-datasource-initialization` を書き忘れたときのエラー"
+      - "data.sql が2回流れると読んだ答え。このファイルモードの設定では1回も流れない"
     explanation: |
       Spring Boot は既定(`spring.sql.init.mode: embedded`)では、**メモリモードの組み込み DB にしか** `data.sql` を流しません。`jdbc:h2:file:` は対象外なので、`data.sql` は黙って無視されます。
       テーブル自体は `ddl-auto: update` で作られるので「テーブルがない」エラーにはならず、社員0人のまま `orElseThrow()` が `NoSuchElementException` を投げます。`sql.init.mode: always` を足せば流れます。
-      `Table "EMPLOYEE" not found` になるのは、逆に `defer-datasource-initialization` を書き忘れたときです。
   - question: |
       `ApprovalRequest` のフィールドは `title`・`status`・`applicant`(Employee)・`createdAt`・`submittedAt` です。次の Repository メソッドのうち、**アプリの起動時にエラーになる** のはどれ?
     choices: ["List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);", "long countByStatus(RequestStatus status);", "List<ApprovalRequest> findByApplicantNameAndStatus(String name, RequestStatus status);", "List<ApprovalRequest> findByStatusOrderBySubmitedAtAsc(RequestStatus status);"]
     answer: 3
+    why:
+      - "関連の Employee で絞る形を誤りと読んだ答え。`applicant` も `createdAt` もある正しい派生クエリ"
+      - "件数を返す形を誤りと読んだ答え。`countByStatus` で戻り値 `long` は正しい派生クエリ"
+      - "`ApplicantName` を存在しない項目と読んだ答え。関連先の `applicant.name` で絞る正しい形"
+      - ""
     explanation: |
       最後のメソッドは `SubmitedAt`(t が1つ)とつづりを間違えています。Spring Data は起動時にメソッド名を解析し、`No property 'submitedAt' found for type 'ApprovalRequest'; Did you mean 'submittedAt'` で起動を止めます。
-      `findByApplicantNameAndStatus` は `applicant.name`(関連先の Employee の name)で絞る正しい派生クエリです。`countByStatus` は件数を返す派生クエリで、戻り値 `long` も正しい形です。
   - question: |
       起動クラス `ApprovalAppApplication` は `com.example.approval` パッケージにあります。Repository を次のパッケージに置いて起動したらどうなる?
       ```java
@@ -131,9 +148,14 @@ quiz:
       ```
     choices: ["問題なく起動し、Repository も使える", "Repository が見つからず、それを注入する Bean の作成で起動に失敗する", "Repository は見つかるが、メソッドを呼ぶと NullPointerException になる", "コンパイルエラーになる"]
     answer: 1
+    why:
+      - "どのパッケージでもスキャンされると読んだ答え。探すのは起動クラスのパッケージとその下だけ"
+      - ""
+      - "Bean が無くても起動はすると読んだ答え。注入する所で Bean が見つからず、起動で止まる"
+      - "パッケージ違いでコンパイルが止まると読んだ答え。import すれば通り、問題はスキャンの範囲"
     explanation: |
       `@SpringBootApplication` は、**起動クラスのパッケージ(com.example.approval)とその下** だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
-      その結果、CommandLineRunner など `EmployeeRepository` を注入したい所で `required a bean of type ... that could not be found` になり、起動に失敗します。import すればコンパイルは通るので、コンパイルエラーにはなりません。
+      その結果、CommandLineRunner など `EmployeeRepository` を注入したい所で `required a bean of type ... that could not be found` になり、起動に失敗します。
   - question: |
       `data.sql` を次のように書き、H2 ファイルモード(`sql.init.mode: always`)で使っています。**2回目の起動** で何が起きる?
       ```sql
@@ -142,9 +164,14 @@ quiz:
       ```
     choices: ["何も起きない(同じ行は自動で無視される)", "ハルが2人になる", "主キー(または email の一意制約)違反で起動に失敗する", "テーブルが作り直されてデータが消える"]
     answer: 2
+    why:
+      - "同じ行は自動で無視されると読んだ答え。INSERT はすでにある id = 1 の行にぶつかる"
+      - "id を指定した INSERT でも行が増えると読んだ答え。同じ id = 1 は主キー違反になる"
+      - ""
+      - "起動のたびにテーブルが作り直されると読んだ答え。`ddl-auto: update` は作り直さない"
     explanation: |
       ファイルモードではデータが残っているので、2回目の起動で同じ `id = 1` を INSERT しようとして `Unique index or primary key violation` になり、起動に失敗します。id を外しても今度は email の一意制約にぶつかります(一意制約がなければハルが増えます)。
-      承認くんでは `MERGE INTO employee (...) KEY (email) VALUES ...` にして、何度流しても同じ結果になる(冪等な)初期データにしています。`ddl-auto: update` はテーブルを作り直しません。
+      承認くんでは `MERGE INTO employee (...) KEY (email) VALUES ...` にして、何度流しても同じ結果になる(冪等な)初期データにしています。
 columns:
   - type: trivia
     title: JPA がエンティティに「引数なしコンストラクタ」と「final 禁止」を求める理由

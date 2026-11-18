@@ -68,7 +68,7 @@ samples:
           ctx.getBean(AlertService.class).alert("ディスク残量 5%");
       }
   - title: "@ConditionalOnClass の考え方:自動設定レポートもどき"
-    description: 自動設定は「そのクラス(jar)がクラスパスにあるか」で使うかどうかを決めます。Spring の `ClassUtils.isPresent` で同じ判定をして、`--debug` のレポート風に表示します。
+    description: 自動設定は「そのクラス(jar)がクラスパスにあるか」で使うかどうかを決めます。Spring の `ClassUtils.isPresent` で同じ判定をして、`--debug` のレポート風に表示します。5 つの候補のうち、Negative matches に回るのはどれ?
     libraries: [spring]
     code: |
       import org.springframework.util.ClassUtils;
@@ -111,13 +111,22 @@ quiz:
       `@SpringBootApplication` が内部でまとめているアノテーションの組み合わせとして正しいのはどれ?
     choices: ["@Component + @Autowired + @Bean", "@SpringBootConfiguration(中身は @Configuration)+ @EnableAutoConfiguration + @ComponentScan", "@Configuration + @EnableWebMvc + @Bean", "@Service + @Repository + @Controller"]
     answer: 1
+    why:
+      - "Bean にまつわる注釈をまとめたものと読んだ答え。中身は設定・自動設定・スキャンの3つ"
+      - ""
+      - "Web アプリ用の設定をまとめたものと読んだ答え。`@EnableWebMvc` は入っておらず、Boot で付けると Web の自動設定が引っ込む"
+      - "層ごとの印をまとめたものと読んだ答え。それらはクラスを Bean にする側の印で、中身は設定・自動設定・スキャン"
     explanation: |
       `@SpringBootApplication` は `@SpringBootConfiguration`(`@Configuration` の特殊版)・`@EnableAutoConfiguration`(自動設定)・`@ComponentScan`(メインクラスのパッケージ以下を探索)の合成アノテーションです。だからメインクラスの中に `@Bean` メソッドを書くこともできます。
-      `@EnableWebMvc` は Spring MVC の設定を自分で全部引き受けるときのもので、Boot で付けると Web の自動設定が引っ込んでしまいます。`@Service` などはクラスを Bean にする側の印です。
   - question: |
       メインクラスが `com.example.shop.ShopApplication` のとき、`@Service` を付けても **Bean として見つからない** のはどれ?
     choices: ["com.example.shop.OrderService", "com.example.shop.order.OrderService", "com.example.shop.order.mail.MailService", "com.example.common.AuditService"]
     answer: 3
+    why:
+      - "メインクラスと同じパッケージは対象外と読んだ答え。同じパッケージもスキャンされる"
+      - "サブパッケージは探さないと読んだ答え。`com.example.shop.order` も対象"
+      - "探すのは1階層下までと読んだ答え。`com.example.shop` の下なら何階層下でも対象"
+      - ""
     explanation: |
       `@ComponentScan` はメインクラスのパッケージ `com.example.shop` と、その **サブパッケージ** だけを探します。`com.example.shop.order` や `com.example.shop.order.mail` は何階層下でも対象です。
       `com.example.common` は名前が似ていても `com.example.shop` の下ではないので対象外。使おうとすると `required a bean of type 'com.example.common.AuditService' that could not be found` で起動に失敗します。
@@ -135,9 +144,13 @@ quiz:
       ```
     choices: ["ObjectMapper の Bean は myObjectMapper だけになる", "myObjectMapper と jacksonObjectMapper の2つになり、起動エラー", "jacksonObjectMapper が優先され、myObjectMapper は無視される", "自動設定がすべて無効になる"]
     answer: 0
+    why:
+      - ""
+      - "自動設定も同じ型の Bean を作って衝突すると読んだ答え。`@ConditionalOnMissingBean` で自動設定側は作られない"
+      - "自動設定のほうが優先されると読んだ答え。利用者の Bean が先にあると、自動設定は引っ込む"
+      - "1つ自前で書くと自動設定全体が止まると読んだ答え。止まるのは条件が成立しない jacksonObjectMapper だけ"
     explanation: |
       利用者の設定が先に処理され、その後に自動設定が評価されます。`@ConditionalOnMissingBean` は「同じ型の Bean がまだ無いときだけ作る」なので、`myObjectMapper` がある以上 `jacksonObjectMapper` は作られません(back off)。
-      2つ登録されて衝突することも、自動設定が全部止まることもありません。止まるのは条件が成立しなかった `jacksonObjectMapper` の1つだけです。
   - question: |
       STS でアプリを起動したら、次のログで止まりました。最も可能性の高い原因と対処は?
       ```text
@@ -150,9 +163,13 @@ quiz:
       ```
     choices: ["Tomcat がインストールされていないので、Tomcat をインストールする", "Spring Web の starter が足りないので pom.xml に追加する", "前に起動した同じアプリ(か別のアプリ)が 8080 を使ったまま。それを停止するか server.port を変える", "@SpringBootApplication の付け忘れ"]
     answer: 2
+    why:
+      - "Tomcat を別に入れる必要があると読んだ答え。Tomcat はライブラリとして同梱される組み込み型"
+      - "Web の部品が足りないと読んだ答え。starter が無ければ Web サーバを起動しようとせず、このメッセージは出ない"
+      - ""
+      - "起動の失敗を注釈の付け忘れと読んだ答え。ログの `Port 8080 was already in use` が原因そのもの"
     explanation: |
       `Port 8080 was already in use` は「8080番ポートを既に誰かが使っている」という意味です。STS では、停止し忘れたアプリを再度 Run して二重起動になるのが定番。Boot Dashboard や Console の停止ボタンで前のアプリを止めるか、`application.properties` に `server.port=8081` のように別ポートを指定します。
-      Tomcat は組み込み(ライブラリとして同梱)なので、別途インストールは不要です。Web の starter が無ければ、そもそも Web サーバを起動しようとしません。
   - question: |
       次のアプリを起動したとき、Console に出る順番として正しいのは?
       ```java
@@ -169,6 +186,11 @@ quiz:
       (C は Spring Boot が出すログ `Started DemoApplication in 1.2 seconds`)
     choices: ["B → A → C", "A → C → B", "A → B → C", "C → A → B"]
     answer: 1
+    why:
+      - "`run` がコンストラクタより先に呼ばれると読んだ答え。インスタンスが無いと `run` は呼べない"
+      - ""
+      - "`run` が起動ログより前に呼ばれると読んだ答え。`run` は Started のログが出た後に呼ばれる"
+      - "Bean が起動完了の後に作られると読んだ答え。Bean は準備中に作られ、Started のログはその後"
     explanation: |
       Bean はコンテナの準備中(`refresh`)に `new` されるので、まず A。準備が終わると Spring Boot が `Started ... in x seconds` をログに出し(C)、その **後で** `CommandLineRunner` の `run` が呼ばれます(B)。
       `run` は「起動が全部終わった後に1回だけ」実行されるので、DI 済みの Bean を安心して使えます。コンストラクタより先に `run` が呼ばれることはありません(インスタンスが無いと呼べないため)。

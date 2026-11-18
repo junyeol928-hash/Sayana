@@ -15,7 +15,12 @@
     - "NullPointerException"
     - "コンパイルエラー"
   answer: 0
-  explanation: "scores.get(\"a\") は 90、scores.get(\"b\") は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。"
+  why:
+    - ""
+    - "無いキーの null がそのまま出ると読んだ答え。orElse の既定値を見落としている"
+    - "null を Optional に包むと落ちると読んだ答え。落ちるのは of のほう"
+    - "Optional の中の Integer を int に入れられないと読んだ答え。orElse の結果はアンボクシングで int になる"
+  explanation: "`scores.get(\"a\")` は 90、`scores.get(\"b\")` は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。"
   trace:
     - "1〜2行目: scores は {a=90}"
     - "4行目: get(\"a\")=90 → ofNullable は中身ありの Optional → orElse(0) は 90"
@@ -42,7 +47,12 @@
     - "何も出力されない"
     - "コンパイルエラー"
   answer: 1
-  explanation: "name は Optional.empty() なので orElseThrow のラムダが実行され、NotFoundException(\"no name\") が投げられます。try の中の println には到達せず、catch で捕まえて \"caught: no name\" と出力されます。"
+  why:
+    - "空の Optional から null が取り出せると読んだ答え。実際は例外が投げられる"
+    - ""
+    - "例外で全部飛ばされると読んだ答え。catch の println は動く"
+    - "throws の宣言が要ると読んだ答え。継承元を見ると要らない"
+  explanation: "name は Optional.empty() なので orElseThrow のラムダが実行され、`NotFoundException(\"no name\")` が投げられます。try の中の println には到達せず、catch で捕まえて `caught: no name` と出力されます。"
   trace:
     - "5行目: name は空の Optional"
     - "7行目: 中身が無いので orElseThrow のラムダが実行され例外が投げられる"
@@ -67,7 +77,12 @@
     - "NullPointerException"
     - "unknown unknown"
   answer: 0
-  explanation: "p1.address() は Address(\"Tokyo\") なので map で city() が呼ばれ \"Tokyo\"。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして orElse(\"unknown\") が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。"
+  why:
+    - ""
+    - "空の Optional の map が null を返すと読んだ答え。空のまま次へ進む"
+    - "null の住所で例外になると読んだ答え。空の Optional では map の中身が動かない"
+    - "p1 の住所も取れないと読んだ答え。p1 は Address を持つので、map で Tokyo が取れる"
+  explanation: "p1.address() は `Address(\"Tokyo\")` なので map で city() が呼ばれ `\"Tokyo\"`。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして `orElse(\"unknown\")` の値が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。"
   trace:
     - "7行目: p1.address()=Address(\"Tokyo\") → map で city() → \"Tokyo\""
     - "8行目: p2.address()=null → ofNullable で空 → map は何もしない → orElse(\"unknown\")"
@@ -93,6 +108,11 @@
     - "NullPointerException"
     - "コンパイルエラー"
   answer: 1
+  why:
+    - "filter を見落とした答え。Sato は無効のユーザー"
+    - ""
+    - "filter で落ちた後の map が null を扱うと読んだ答え。空なら map は呼ばれない"
+    - "Optional に filter と map を続けて書けないと読んだ答え。Stream と同じようにつなげられる"
   explanation: "id=1L の User は見つかりますが isActive が false なので、filter によって空の Optional に変わります。以降 map(UserDto::from) は何もせず素通りするので、最終的に result は空、isPresent() は false です。"
   trace:
     - "8行目: id=1L の User(isActive=false) を登録"

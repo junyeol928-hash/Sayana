@@ -113,9 +113,13 @@ quiz:
       - "false / true / Point[x=1, y=2]"
       - "false / true / Point@1b6d3586 のような文字列"
     answer: 2
+    why:
+      - "`==` が値を比べ、toString も自動では作られないと読んだ答え。どちらも逆"
+      - "equals も参照の比較と読んだ答え。record では値の比較になる"
+      - ""
+      - "toString は自動で作られないと読んだ答え。その形は普通のクラスの出力"
     explanation: |
       `==` は参照型では「同じオブジェクトか」を比べるので、`new` を2回した `a` と `b` は `false`。record は **全コンポーネントの値で比べる equals** を自動生成するので `equals` は `true`。toString も自動生成され、`Point[x=1, y=2]` の形式になります。
-      `Point@1b6d3586` のような「クラス名@ハッシュ値」は、toString をオーバーライドしていない普通のクラスの出力です。
   - question: |
       次のうち、**コンパイルエラーになる** record はどれ?
     choices:
@@ -124,9 +128,14 @@ quiz:
       - "record R(int x) { int twice() { return x * 2; } }"
       - "record R(int x) implements Comparable<R> { public int compareTo(R o) { return Integer.compare(x, o.x); } }"
     answer: 0
+    why:
+      - ""
+      - "record には static フィールドも置けないと読んだ答え。static なら置ける"
+      - "record にメソッドを足せないと読んだ答え。インスタンスメソッドは自由に足せる"
+      - "record はインターフェースも実装できないと読んだ答え。implements は書ける"
     explanation: |
       record のフィールドは暗黙に `private final` なので、メソッド内で再代入すると `cannot assign a value to final variable x` になります。値を変えたいなら、新しい record を作って返すのが流儀です。
-      static フィールド、インスタンスメソッドの追加、インターフェースの実装はどれも許されています。禁止されているのは **インスタンスフィールドの追加**(`field declaration must be static`)と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。
+      record で禁止されているのは **インスタンスフィールドの追加**(`field declaration must be static`)と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。
   - question: |
       注文ステータスを `ordinal()` の値で DB に保存していました。
       ```java
@@ -143,8 +152,13 @@ quiz:
       - "ArrayIndexOutOfBoundsException が発生する"
       - "コンパイル時に警告が出るので、リリース前に気づける"
     answer: 1
+    why:
+      - "保存値が定数名を覚えていると読んだ答え。保存したのは ordinal の 1 で、今の 1 は PAID"
+      - ""
+      - "保存値が配列の外に出ると読んだ答え。値は 1 で範囲内なので、例外なく PAID に化ける"
+      - "コンパイラがずれに気づくと読んだ答え。DB の中身はコンパイラに見えない"
     explanation: |
-      保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。配列の範囲内なので例外は出ず、コンパイラも DB の中身までは知らないので警告もありません。**黙ってデータが壊れる** のが ordinal 永続化の怖さです。
+      保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。**黙ってデータが壊れる** のが ordinal 永続化の怖さです。
       永続化には `name()`(`"SHIPPED"`)か、enum に持たせた業務上のコード値を使います。
   - question: |
       次のコードを実行したときの結果は?
@@ -159,8 +173,13 @@ quiz:
       - "null と出力される"
       - "IllegalArgumentException が発生する"
     answer: 3
+    why:
+      - "valueOf が大文字に直して探すと読んだ答え。実際は書いたとおりに探す"
+      - "入力の文字列がそのまま定数になると読んだ答え。一致する定数が無く、例外になる"
+      - "見つからないと null が返ると読んだ答え。valueOf は IllegalArgumentException を投げる"
+      - ""
     explanation: |
-      `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。null を返したり、勝手に大文字に直したりはしません。
+      `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。
       画面やファイルから来た文字列は `input.strip().toUpperCase()` で整えてから渡し、例外を捕まえて「不正な入力」として扱うのが定番です。なお `null` を渡すと `NullPointerException: Name is null` です。
   - question: |
       次のコードについて正しい説明はどれ?
@@ -180,9 +199,14 @@ quiz:
       - "コンパイルは通り、price(Size.L) を呼ぶと例外が発生する"
       - "enum の switch 式には必ず default が必要なので、コンパイルエラーになる"
     answer: 1
+    why:
+      - "書いていない定数は 0 になると読んだ答え。switch 式は全定数か default が要り、コンパイルエラー"
+      - ""
+      - "漏れが実行時に分かると読んだ答え。switch 式の網羅はコンパイル時に確かめられる"
+      - "enum の switch 式に default が必須と読んだ答え。全定数を書けば default なしで通る"
     explanation: |
       switch 式は必ず値を返す必要があるので、enum の **全定数** を case に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
-      「enum には default が必須」ではありません。むしろ全定数を書いて default を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で default を書かない理由です。
+      全定数を書いて default を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で default を書かない理由です。
 columns:
   - type: genba
     title: JPA の @Enumerated はデフォルトが ORDINAL
