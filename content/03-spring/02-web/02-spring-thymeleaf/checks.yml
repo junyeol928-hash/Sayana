@@ -43,4 +43,4 @@
     - "`EL1008E` の場合と取り違えた答え。綴りや getter のときは `on object of type 'Item'` と型が出る"
     - "テンプレートが見つからない場合と取り違えた答え。それなら `Error resolving template` と出る"
   explanation: |
-    `on null` は、`.name` の手前の `item` が null だったという意味。null かもしれないなら `${item?.name}` と書く。
+    `on null` は、`.name` の手前の `item` が `null` だったという意味。`null` かもしれないなら `${item?.name}` と書く。

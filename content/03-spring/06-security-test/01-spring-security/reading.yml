@@ -85,7 +85,7 @@
     - ""
     - "`@PreAuthorize` のメソッドを中から呼べないと読んだ答え。普通に呼べ、権限チェックが飛ばされるだけ"
     - "一般ユーザーを未認証と読んだ答え。ログイン済みで、しかも内部呼び出しなので権限チェックも無い"
-  explanation: "@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。"
+  explanation: "`@PreAuthorize` は AOP のプロキシが外からの呼び出しを横取りして動きます。`deactivateUser` から `this.deleteUser(...)` を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも `deleteUser` の中身が実行されてしまいます。"
   trace:
     - "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
     - "5行目: `deactivateUser` の中で `this.deleteUser(userId)` を呼ぶ(内部呼び出し)"
@@ -119,7 +119,7 @@
     - "認証情報が無いと読んだ答え。Authorization ヘッダは付いていて、止めるのは CSRF のチェック"
     - ""
     - "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する"
-  explanation: "csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -> csrf.disable()) にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(/error)を permitAll にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
+  explanation: "`csrf()` を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。`httpBasic` で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では `csrf(csrf -> csrf.disable())` にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(`/error`)を `permitAll` にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
   trace:
     - "5〜6行目: `authorizeHttpRequests` と `httpBasic` は設定しているが `csrf()` の呼び出しがない"
     - "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る"
@@ -157,7 +157,7 @@
     - ""
     - "`Authentication` を引数で受けられないと読んだ答え。受けられ、コンパイルは通る"
     - "検証を通れば強い権限になると読んだ答え。何もセットしていないので未認証のまま"
-  explanation: "キーの検証自体は通っていますが、SecurityContextHolder.getContext().setAuthentication(...) を呼び忘れているため、認証情報は一度もセットされません。chain.doFilter は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も Authentication は空(null 相当)になります。"
+  explanation: "キーの検証自体は通っていますが、`SecurityContextHolder.getContext().setAuthentication(...)` を呼び忘れているため、認証情報は一度もセットされません。`chain.doFilter` は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も `Authentication` は空(`null` 相当)になります。"
   trace:
     - "5〜6行目: ヘッダのキーを検証し、正しいと分かる"
     - "7行目: しかし SecurityContextHolder に認証情報をセットする処理がない"

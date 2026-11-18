@@ -218,7 +218,7 @@ quiz:
       - "`null` を両方の違反と読んだ答え。`@Size` も `@Pattern` も `null` は素通しする"
       - "`null` の長さや形を調べて落ちると読んだ答え。各チェックは最初に `null` を判定して `true` を返す"
     explanation: |
-      `@Size` や `@Pattern`、`@Email`、`@Min` などは **null を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
+      `@Size` や `@Pattern`、`@Email`、`@Min` などは **`null` を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
       したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。
   - question: |
       `name` を空欄にして POST したとき、どうなる?(`MemberForm` の `name` には `@NotBlank` が付いている)
@@ -272,8 +272,8 @@ quiz:
       - ""
       - "`@NotBlank` を `@NotNull` と同じと読んだ答え。文字列専用なので、`Integer` では検証時に例外になる"
     explanation: |
-      `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「Integer を @NotBlank でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
-      `@NotBlank` は文字列(CharSequence)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
+      `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「`Integer` を `@NotBlank` でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
+      `@NotBlank` は文字列(`CharSequence`)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
   - question: |
       次の処理の後、ブラウザが移動する URL は?
       ```java

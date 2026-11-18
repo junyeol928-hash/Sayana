@@ -12,7 +12,7 @@
     - "旧API も例外で知らせると読んだ答え。旧API は戻り値で知らせる"
     - "新API も戻り値で知らせると読んだ答え。新API は例外で知らせる"
   explanation: |
-    旧API の `File.delete()` は失敗しても false を返すだけで、戻り値を見なければ失敗に気づけない。`Files.delete` は `NoSuchFileException` などの例外で原因まで教えてくれる。
+    旧API の `File.delete()` は失敗しても `false` を返すだけで、戻り値を見なければ失敗に気づけない。`Files.delete` は `NoSuchFileException` などの例外で原因まで教えてくれる。
 - after: 文字コード:UTF-8 を明示する理由
   question: |
     Excel で「CSV(コンマ区切り)」として保存した、日本語を含むファイル。charset を省略して読むと?
@@ -26,7 +26,7 @@
     - "`Files` も OS の既定の文字コードで読むと読んだ答え。`Files` の既定は、OS に関係なく UTF-8"
     - "合わない文字は化けるだけと読んだ答え。readAllLines は不正なバイトで例外を投げる"
   explanation: |
-    `Files` のメソッドは charset を省略すると、OS に関係なく常に UTF-8 で読む。MS932 の日本語は UTF-8 としては不正なバイトなので `MalformedInputException` になる。`Charset.forName("MS932")` を渡せば読める。
+    `Files` のメソッドは charset を省略すると、OS に関係なく常に UTF-8 で読む。`MS932` の日本語は UTF-8 としては不正なバイトなので `MalformedInputException` になる。`Charset.forName("MS932")` を渡せば読める。
 - after: IOException の扱い
   question: |
     `main` に `throws IOException` を付けた。次の行はコンパイルできる?

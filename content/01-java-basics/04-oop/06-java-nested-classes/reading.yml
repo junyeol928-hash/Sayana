@@ -69,7 +69,7 @@
     - "`value++` が外側の `Counter` の `value` を増やすと読んだ答え。増えるのは匿名クラス自身の `value`(1→2)"
     - "ただの `value` も外側の `value` と読んだ答え。匿名クラス自身の `value` が外側の名前を隠す"
     - "両方の `value` が増えると読んだ答え。増えるのは匿名クラス自身の `value` だけで、外側は 10 のまま"
-  explanation: "匿名クラス自身が value というフィールドを持っているので、ただの value はこの匿名クラス自身のもの(1→2)を指します。外側の Counter が持つ value(10)には触れていないので、10 のままです。区別したいときに Counter.this.value と書きます。"
+  explanation: "匿名クラス自身が `value` というフィールドを持っているので、ただの `value` はこの匿名クラス自身のもの(1→2)を指します。外側の `Counter` が持つ `value`(10)には触れていないので、10 のままです。区別したいときに `Counter.this.value` と書きます。"
   trace:
     - "`makeIncrementer()` が匿名 Runnable を作って返す(この時点ではまだ run しない)"
     - "`r.run()` を呼ぶと、匿名クラス自身の `value`(1)が `value++` で 2 になる"
@@ -102,8 +102,8 @@
     - ""
     - "内部クラスからは外側の値が見えず、0 になると読んだ答え"
     - "外側のインスタンスが無いと読んだ答え。`w.new Statement()` で w に結び付いている"
-    - "private の balance に、内部クラスからは触れないと読んだ答え"
-  explanation: "Statement は非static の内部クラスなので、外側 Wallet の private フィールド balance にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
+    - "private の `balance` に、内部クラスからは触れないと読んだ答え"
+  explanation: "Statement は非static の内部クラスなので、外側 Wallet の private フィールド `balance` にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
   trace:
     - "Wallet を作ると `balance = 1000`"
     - "`w.new Statement()` で、`w` に結び付いた Statement インスタンスを作る"
@@ -138,7 +138,7 @@
     - "宣言時の値が取り込まれると読んだ答え"
     - "実行してから問題が分かると読んだ答え"
     - ""
-  explanation: "label は宣言時と if の中の2箇所で代入されています。urgent が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、一度値が決まったあとに再代入されない(実質的final)必要があります。"
+  explanation: "`label` は宣言時と if の中の2箇所で代入されています。`urgent` が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、一度値が決まったあとに再代入されない(実質的final)必要があります。"
   trace:
     - '`label` を `"normal"` で初期化'
     - "if (urgent) の中で label に再代入するコードがある(実行されるかは関係ない)"
@@ -165,7 +165,7 @@
   answer: 0
   why:
     - ""
-    - "message が空のままと読んだ答え。コンストラクタで渡した「失敗しました」が message に入る"
+    - "`message` が空のままと読んだ答え。コンストラクタで渡した「失敗しました」が `message` に入る"
     - "内部クラス(static なし)と取り違えた答え"
     - "外側を作っていないので、実行時に落ちると読んだ答え"
   explanation: "Error は static ネストクラスなので、外側 Response のインスタンスが無くても Response.Error という型名でそのまま new できます。Response のインスタンスを作る必要はありません。"

@@ -43,4 +43,4 @@
     - "null は 0 に置き換わると読んだ答え"
     - "`Integer` と `int` は型が違うので代入できないと読んだ答え"
   explanation: |
-    `Integer` から `int` へはアンボクシングで自動変換されるので、コンパイルは通る。実行時に null から int を取り出そうとして `NullPointerException` になる。
+    `Integer` から `int` へはアンボクシングで自動変換されるので、コンパイルは通る。実行時に null から `int` を取り出そうとして `NullPointerException` になる。

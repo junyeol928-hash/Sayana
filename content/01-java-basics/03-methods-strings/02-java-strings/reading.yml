@@ -45,7 +45,7 @@
     - "`new String` も、プールの同じものを返すと読んだ答え"
     - "リテラル同士の連結も `intern()` も、別物を作ると読んだ答え"
     - "`intern()` が新しい文字列を作ると読んだ答え"
-  explanation: "`\"ad\" + \"min\"` はリテラルどうしの連結なのでコンパイル時に `\"admin\"` にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。"
+  explanation: "`\"ad\" + \"min\"` はリテラルどうしの連結なのでコンパイル時に `\"admin\"` にまとめられ、プールの同じオブジェクトになります(x == y は true)。`new String` は別オブジェクト(x == z は false)。equals は中身比較なので true。`intern()` はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では `intern` を見ることは稀ですが、== が危ういことの理解に役立ちます。"
   trace:
     - '1行目: プールに `"admin"` が置かれ、`x` が指す'
     - '2行目: リテラルどうしの `+` はコンパイル時に `"admin"` になる → `x` と同じものを指す'
@@ -106,7 +106,7 @@
     - ""
     - "空白だけの文字列が、空文字になって返ると読んだ答え"
     - "null にも `isBlank()` が呼ばれると読んだ答え"
-  explanation: "`\"  Tmp \"` は null でも空白でもないので先に進み、strip して `\"Tmp\"`、大文字小文字を無視して `\"tmp\"` と一致するので `\"TEMP\"`。`\" \"` は isBlank が true で `\"NONE\"`。null は `code == null` が true になり、|| の右側(isBlank)は評価されないので例外にならず `\"NONE\"`。||(短絡評価)と定数を左に置く書き方が null を守っています。"
+  explanation: "`\"  Tmp \"` は null でも空白でもないので先に進み、`strip` して `\"Tmp\"`、大文字小文字を無視して `\"tmp\"` と一致するので `\"TEMP\"`。`\" \"` は `isBlank` が true で `\"NONE\"`。null は `code == null` が true になり、|| の右側(`isBlank`)は評価されないので例外にならず `\"NONE\"`。||(短絡評価)と定数を左に置く書き方が null を守っています。"
   trace:
     - '`normalize("  Tmp ")`: 2行目 false → 5行目 `strip` で `"Tmp"`、`equalsIgnoreCase` で true → `"TEMP"`'
     - '`normalize(" ")`: 2行目 `isBlank` が true → `"NONE"`'

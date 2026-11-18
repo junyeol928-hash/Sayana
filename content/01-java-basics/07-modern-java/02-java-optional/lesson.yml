@@ -220,7 +220,7 @@ quiz:
       - ""
       - "空の Optional に `ifPresent` を呼ぶと例外と読んだ答え。値が無ければ何もしない"
     explanation: |
-      `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。null かもしれない値は `ofNullable` で包みます。
+      `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。`null` かもしれない値は `ofNullable` で包みます。
   - question: |
       Optional の使い方として、**現場で推奨される** のはどれ?
     choices: ["フィールドを `private Optional<String> nickname;` にする", "メソッドの引数を `void send(Optional<String> cc)` にする", "`List<Optional<String>>` で「歯抜け」のリストを表す", "検索メソッドの戻り値を `Optional<Employee> findById(String id)` にする"]

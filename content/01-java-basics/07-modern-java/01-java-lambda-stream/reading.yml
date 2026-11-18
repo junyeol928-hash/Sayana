@@ -103,7 +103,7 @@
     - ""
     - "年齢を昇順と読んだ答え。`reverseOrder()` が付いている"
     - "並べる向きを両方とも逆に読んだ答え。部署は昇順で dev が先、年齢は降順で aki が先"
-  explanation: "comparing(Emp::dept) で部署名の昇順(dev が ops より前)。同じ dev の中は thenComparing(Emp::age, reverseOrder()) で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(dept()、age())もメソッド参照で使えます。"
+  explanation: "`comparing(Emp::dept)` で部署名の昇順(dev が ops より前)。同じ dev の中は `thenComparing(Emp::age, reverseOrder())` で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(`dept()`、`age()`)もメソッド参照で使えます。"
   trace:
     - "6行目: 第1基準 `dept` 昇順 → dev, dev, ops"
     - "6行目: 第2基準 `age` 降順(dev 内)→ aki(30 歳), yui(25 歳)"
@@ -214,14 +214,14 @@
     - "`NullPointerException`"
   answer: 1
   why:
-    - "無いキーの件数は 0 と読んだ答え。groupingBy は 0 件の部署を作らない"
+    - "無いキーの件数は 0 と読んだ答え。`groupingBy` は 0 件の部署を作らない"
     - ""
     - "`counting()` を見落とした答え。値は社員の一覧ではなく件数(`Long`)"
     - "`null` を連結すると例外と読んだ答え。実際は文字として出る"
-  explanation: "groupingBy(dept, counting()) は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。`\"hr\"` はキーが存在しないので Map.get は null を返し、文字列連結なので `null` と表示されます。counting() を付けなければ値は社員の `List<Emp>` になり、`m.get(\"dev\")` は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
+  explanation: "`groupingBy(Emp::dept, counting())` は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。`\"hr\"` はキーが存在しないので `Map.get` は `null` を返し、文字列連結なので `null` と表示されます。`counting()` を付けなければ値は社員の `List<Emp>` になり、`m.get(\"dev\")` は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
   trace:
     - "6行目: `dept` ごとにまとめて件数を数える → `{dev=3, ops=1}`"
-    - "7行目: `m.get(\"dev\")` は 3、`m.get(\"hr\")` はキーがないので null"
+    - "7行目: `m.get(\"dev\")` は 3、`m.get(\"hr\")` はキーがないので `null`"
     - "文字列連結なので `3 null`"
 - title: "toMap の重複キー"
   level: 3
@@ -244,7 +244,7 @@
     - "後の値で上書きされると読んだ答え。上書きには第 3 引数が要り、無いと例外になる"
     - "同じキーの値が足されると読んだ答え。合計には第 3 引数が要り、無いと例外になる"
     - ""
-  explanation: "toMap は既定でキーの重複を許しません。3つ目の要素でキー `\"X\"` が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -> b)、400(合計)にしたければ (a, b) -> a + b を第3引数に渡します。"
+  explanation: "`toMap` は既定でキーの重複を許しません。3つ目の要素でキー `\"X\"` が2回目になった時点で `IllegalStateException: Duplicate key X` が発生します。300 にしたければ `toMap(Item::code, Item::price, (a, b) -> b)`、400(合計)にしたければ `(a, b) -> a + b` を第3引数に渡します。"
   trace:
     - "5行目: X→100 を登録、Y→200 を登録"
     - "3つ目の `Item(\"X\", 300)`: キー X が既にある → 重複キーの扱いが未指定 → 例外"
@@ -272,9 +272,9 @@
   why:
     - "Optional には必ず中身があると読んだ答え。見つからなければ空になる"
     - ""
-    - "空のリストで null が返ると読んだ答え。実際は空の Optional になる"
+    - "空のリストで `null` が返ると読んだ答え。実際は空の Optional になる"
     - "空の `List.of()` は渡せないと読んだ答え。型は推論され、コンパイルは通る"
-  explanation: "空のリストを流すので要素は1つもなく、findFirst() は空の Optional を返します。isPresent() は false。Stream は要素がなくても例外にはならず、null も返しません。ここが「null を返さず Optional で返す」設計の利点です。"
+  explanation: "空のリストを流すので要素は1つもなく、`findFirst()` は空の Optional を返します。`isPresent()` は `false`。Stream は要素がなくても例外にはならず、`null` も返しません。ここが「`null` を返さず Optional で返す」設計の利点です。"
   trace:
     - "9行目: 空のリストで呼ぶ"
     - "2〜5行目: 要素が0個なので filter / sorted / map は何も処理しない"

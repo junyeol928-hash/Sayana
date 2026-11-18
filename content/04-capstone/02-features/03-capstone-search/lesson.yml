@@ -50,8 +50,8 @@ samples:
       }
   - title: 任意条件は「値があるときだけ部品を足す」
     description: |
-      Specification と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。今の条件(`type` だけ null)では、部品は何個使われ、どの申請が残る?
-      最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+      Specification と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+      今の条件(`type` だけ null)では、部品は何個使われ、どの申請が残る?
     code: |
       import java.util.function.Predicate;
 
@@ -89,8 +89,8 @@ samples:
       }
   - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
     description: |
-      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。指定なし(null)の `type` はリンクに入る? 日本語と空白はどう書かれる?
-      Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
+      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
+      指定なし(null)の `type` はリンクに入る? 日本語と空白はどう書かれる?
     libraries: [spring]
     code: |
       import org.springframework.web.util.UriComponentsBuilder;
@@ -170,7 +170,7 @@ quiz:
       - "空白だけのキーワードも足されると読んだ答え。`hasKeyword()` が false なので足されない"
     explanation: |
       値がある条件だけ部品を足すので、`status` は null で足されず、キーワードは空白だけなので `hasKeyword()` が false で足されません。残るのは `typeIs` の1つだけです。
-      「status is null」になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
+      `status is null` になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
   - question: |
       検索結果の「次へ」リンクを次のように書きました。`/requests/search?status=SUBMITTED&keyword=出張` で検索してから「次へ」を押すと、どうなる?
       ```html

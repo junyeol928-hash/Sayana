@@ -145,7 +145,7 @@ quiz:
       - "日本語の文字列は比べられないと読んだ答え。コンパイルは通り、実行時に本文が化けて失敗する"
     explanation: |
       `StringHttpMessageConverter` の既定の文字コードは **ISO-8859-1** で、日本語を表せないため `?????` に化け、`Response content expected:<こんにちは> but was:<?????>` で失敗します。
-      standaloneSetup では `setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)` と `defaultResponseCharacterEncoding(StandardCharsets.UTF_8)` を指定します。Spring Boot(`@WebMvcTest` や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。
+      `standaloneSetup` では `setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8), ...)` と `defaultResponseCharacterEncoding(StandardCharsets.UTF_8)` を指定します。Spring Boot(`@WebMvcTest` や本番)では自動設定が UTF-8 にしてくれるので、この問題は起きません。
   - question: |
       Mockito で次のように書いた。`service.findByCustomer("C002")` を呼ぶと何が返る?
       ```java
@@ -196,7 +196,7 @@ quiz:
       - "Mockito そのものが遅いと読んだ答え"
       - "並列で動かないことが主な原因と読んだ答え"
     explanation: |
-      Spring のテスト基盤は、**設定が同じ** テストクラス同士で ApplicationContext を使い回します(コンテキストキャッシュ)。`@MockitoBean` の組み合わせ、`@ActiveProfiles`、`@TestPropertySource` が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。`@DirtiesContext` も強制的に作り直します。
+      Spring のテスト基盤は、**設定が同じ** テストクラス同士で `ApplicationContext` を使い回します(コンテキストキャッシュ)。`@MockitoBean` の組み合わせ、`@ActiveProfiles`、`@TestPropertySource` が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。`@DirtiesContext` も強制的に作り直します。
       対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。
 columns:
   - type: trivia

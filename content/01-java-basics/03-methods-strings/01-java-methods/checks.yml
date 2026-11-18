@@ -16,7 +16,7 @@
     - "同じクラスの中なら `static` でなくても呼べると読んだ答え"
     - "呼べないことは実行して初めて分かると読んだ答え。`static` かどうかの食い違いはコンパイル時に分かる"
   explanation: |
-    `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く static の main からは直接呼べず、`non-static method greet() cannot be referenced from a static context` になる。
+    `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く `static` の main からは直接呼べず、`non-static method greet() cannot be referenced from a static context` になる。
 - after: return と早期 return
   question: |
     次のメソッドはどうなる?

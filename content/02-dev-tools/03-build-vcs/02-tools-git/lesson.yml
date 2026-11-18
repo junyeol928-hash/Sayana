@@ -25,7 +25,7 @@ quiz:
       - "ファイルを消して外す答え。ステージに載せた分だけがコミットに入るので、消す必要はない"
       - "後から履歴を書き換える答え。ステージで2つだけ選べば force push は要らない"
     explanation: |
-      これこそ **ステージ** の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを `git add`(STS では Git Staging ビューで **Unstaged Changes** から **Staged Changes** へドラッグ)してコミットすれば、README.md の変更は作業ツリーに残ったままになります。
+      これこそ **ステージ** の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを `git add`(STS では Git Staging ビューで **Unstaged Changes** から **Staged Changes** へドラッグ)してコミットすれば、`README.md` の変更は作業ツリーに残ったままになります。
   - question: |
       `application-local.yml` に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。**最初に** やるべきことは?
     choices:

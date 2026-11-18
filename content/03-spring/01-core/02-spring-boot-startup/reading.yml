@@ -63,7 +63,7 @@
     - "フィールドの初期値が優先されると読んだ答え。yml の 300 で上書きされる"
     - "`max-count` と `maxCount` が結びつかないと読んだ答え。ハイフン区切りのキーはキャメルケースのフィールドに対応する"
     - "yml にキーが無いと例外になると読んだ答え。無いキーのフィールドは初期値の 3 のまま"
-  explanation: "max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
+  explanation: "`max-count` は `maxCount` に、`idle-seconds` は `idleSeconds` に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。`retryCount` は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
   trace:
     - "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む"
     - "11行目: `max-count` → `maxCount = 100`"
@@ -97,7 +97,7 @@
     - ""
     - "`@Profile` を付けても Bean は両方作られると読んだ答え"
     - "プロファイルを指定しないときの動きと取り違えた答え。stg は `plainSender` の `@Profile` に含まれる"
-  explanation: "stg では `@Profile({\"dev\",\"stg\"})` の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に UnsatisfiedDependencyException になります(原因は NoSuchBeanDefinitionException。Bean が見つからない)。"
+  explanation: "stg では `@Profile({\"dev\",\"stg\"})` の `plainSender` だけが有効になり、`secureSender` は作られません。よって候補は1つで `PlainCommandSender`(仕事では `PlainApduSender`)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に `UnsatisfiedDependencyException` になります(原因は `NoSuchBeanDefinitionException`。Bean が見つからない)。"
   trace:
     - "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない"
     - "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる"
@@ -132,7 +132,7 @@
     - ""
     - "`null` と連結すると例外になると読んだ答え。文字列の連結では `null` も `\"null\"` として連結される"
     - "未注入の `host` を空文字と読んだ答え。`String` フィールドの初期値は `null` で、連結すると `null:9000`"
-  explanation: "フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は `null:9000` になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。"
+  explanation: "フィールドへの `@Value` の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では `host` はまだ `null` なので、`endpoint` は `null:9000` になります。`@PostConstruct` の時点では `host` は `crypto1`(仕事では `hsm1`)になっていますが、`endpoint` はもう作られた後です。この問題を避けるため、設定値を使う初期化は `@PostConstruct` に書くか、コンストラクタ注入で受け取ります。"
   trace:
     - "7〜9行目: Spring がまず `new` する。この時点で `host` は `null` → `endpoint` は `null:9000`"
     - "3〜4行目: `new` の後に `@Value` が処理され、`host` が `crypto1` になる"

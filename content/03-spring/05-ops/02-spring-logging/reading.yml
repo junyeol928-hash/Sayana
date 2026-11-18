@@ -50,7 +50,7 @@
     - "`double` の割り算と取り違えた答え。`int` どうしの `10 / 0` は例外になり、`catch` で 0 を返す"
     - "例外が呼び出し元まで伝わると読んだ答え。`catch` で捕まえて 0 を返し、投げ直していない"
     - "ログの引数の数が `{}` と合わないと読んだ答え。最後の例外は別扱いで、コンパイルは通る"
-  explanation: "b が 0 のとき a / b は ArithmeticException を投げますが、catch で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。"
+  explanation: "`b` が 0 のとき `a / b` は `ArithmeticException` を投げますが、`catch` で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。"
   trace:
     - "3行目: `10 / 0` で `ArithmeticException`"
     - "4行目: catch で捕まえる"
@@ -84,7 +84,7 @@
     - "モックが本物の Repository を呼ぶと読んだ答え。モックは中身が無く、既定値を返す"
     - "スタブが無いと `null` が返ると読んだ答え。`Optional` を返すメソッドの既定値は空の `Optional`"
     - "`when` を書かないとコンパイルが通らないと読んだ答え。スタブは任意で、コンパイルは通る"
-  explanation: "スタブ(when...thenReturn)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。Optional の既定値は null ではなく Optional.empty() 相当の空の Optional なので、result.isEmpty() は true になりテストは成功します。"
+  explanation: "スタブ(`when...thenReturn`)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。`Optional` の既定値は `null` ではなく `Optional.empty()` 相当の空の `Optional` なので、`result.isEmpty()` は `true` になりテストは成功します。"
   trace:
     - "3行目: userRepository はモック(本物のDBには繋がらない)"
     - "9行目: when を設定していないので、findById は既定の空 Optional を返す"
@@ -115,7 +115,7 @@
     - ""
     - "再試行の回数を多く読んだ答え。`verify` は `times(2)` で、2回呼ばれたと確かめている"
     - "1回目の例外が呼び出し元へ出ると読んだ答え。テストは例外なしで `ok` が `true` になると確かめている"
-  explanation: "thenThrow(...).thenReturn(true) は「1回目は例外、2回目は成功」という順番のスタブです。最終的に ok は true、charge が2回呼ばれたことを verify(times(2)) が確認しているので、RetryService は失敗時に1回再試行してから成功を返す仕様だと読み取れます。"
+  explanation: "`thenThrow(...).thenReturn(true)` は「1回目は例外、2回目は成功」という順番のスタブです。最終的に `ok` は `true`、`charge` が2回呼ばれたことを `verify(times(2))` が確認しているので、`RetryService` は失敗時に1回再試行してから成功を返す仕様だと読み取れます。"
   trace:
     - "3〜5行目: charge の1回目は例外、2回目は true を返すよう設定"
     - "7行目: chargeWithRetry を呼ぶ(中でおそらく try-catchして再試行している)"

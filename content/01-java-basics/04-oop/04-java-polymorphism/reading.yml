@@ -92,7 +92,7 @@
     - "呼び出し先の処理が後回しになると読んだ答え"
     - "呼ばれる側の service が先に動くと読んだ答え"
     - "`place()` の途中で呼び出し元に戻ると読んだ答え"
-  explanation: "シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。controller が1を出力→ service.place() を呼ぶ(同期メッセージ)→ service が2,3を出力して戻る→ controller が続きの4を出力、という順です。"
+  explanation: "シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。controller が1を出力→ `service.place()` を呼ぶ(同期メッセージ)→ service が2,3を出力して戻る→ controller が続きの4を出力、という順です。"
   trace:
     - "`handle()` が呼ばれ `1: controller start` を出力"
     - "`service.place()` を呼び出す(シーケンス図の同期メッセージに相当)"
@@ -124,7 +124,7 @@
     - ""
     - "分岐をくり返しと取り違えた答え。if-else は alt で、-100 は else に入って例外になる"
     - "分岐は図にしないと読んだ答え。if-else は alt で表し、-100 は else に入って例外になる"
-  explanation: "if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、IllegalArgumentException が発生します。"
+  explanation: "if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、`IllegalArgumentException` が発生します。"
   trace:
     - "2行目: `request.getAmount()` は -100 なので条件は false"
     - "5行目の else に入る"

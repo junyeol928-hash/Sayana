@@ -121,7 +121,7 @@ quiz:
       - "`dev` 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
       - "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ"
     explanation: |
-      プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
+      プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は `dev` 側の 8081 が勝ち、`dev` 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
     choices: ["`dojo.exec.max-heap`", "`DOJO.EXEC.MAX-HEAP`", "`DOJO_EXEC_MAXHEAP`", "`DOJOEXECMAXHEAP`"]

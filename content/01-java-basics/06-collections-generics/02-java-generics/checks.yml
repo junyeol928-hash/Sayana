@@ -27,7 +27,7 @@
     - "`extends` を「`Integer` を入れられる」と読んだ答え。中身の型が分からないので `add` できない"
     - "親の型のリストも受け取れると読んだ答え。ジェネリクスは不変で、`List<Number>` は渡せない"
   explanation: |
-    値を入れる引数は `super`。`? super Integer` は Integer かその親のリストを受け取り、Integer を安全に入れられる。
+    値を入れる引数は `super`。`? super Integer` は `Integer` かその親のリストを受け取り、`Integer` を安全に入れられる。
 - after: 入れ子の型は外側から「〜の」で読む
   question: |
     `interface OrderRepository extends JpaRepository<Order, Long>`。親の `Optional<T> findById(ID id)` は、どんな形で使える?

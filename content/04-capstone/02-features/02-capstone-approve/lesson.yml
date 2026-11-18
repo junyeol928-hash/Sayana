@@ -12,8 +12,8 @@ goals:
 samples:
   - title: 「誰が」のルールは Service、状態のルールはエンティティ
     description: |
-      承認の流れを素の Java で再現します。承認者の太郎が10万円ちょうどの申請を承認し、続けて部長が承認します。太郎と部長の承認は、それぞれ通る? 止まるならどのルールで、履歴は最後に何件残る?
-      そのあと `amount` と `actor` を書き換えて、どのルールで止まるかを確かめましょう。
+      承認の流れを素の Java で再現します。見終わったら `amount` と `actor` を書き換えて、どのルールで止まるかを確かめましょう。
+      承認者の太郎が10万円ちょうどの申請を承認し、続けて部長が承認します。太郎と部長の承認は、それぞれ通る? 止まるならどのルールで、履歴は最後に何件残る?
     code: |
       // 承認の業務ルール(2・3・6)を Service でチェックする流れ
       // ここを変えてみよう:amount を 99_999 / 100_000 に、actor を taro / bucho / hanako に
@@ -79,8 +79,8 @@ samples:
       System.out.println("履歴 " + histories.size() + " 件: " + histories);
   - title: 楽観ロック(@Version)の仕組み
     description: |
-      2人が同じ申請を同時に読み込んで承認したときの動きを、メモリ上で再現します。JPA は UPDATE の WHERE に「読んだときの version」を付けます。
-      後から来た部長の承認はどうなり、履歴は何件残る? そのあと `checkVersion` を `false` にして、何が変わるかも確かめましょう。
+      2人が同じ申請を同時に読み込んで承認したときの動きを、メモリ上で再現します。JPA は UPDATE の WHERE に「読んだときの version」を付けます。見終わったら `checkVersion` を `false` にして、何が変わるかも確かめましょう。
+      後から来た部長の承認はどうなり、履歴は何件残る?
     code: |
       // 楽観ロック(@Version)の仕組みをメモリ上で再現する
       // ここを変えてみよう:checkVersion を false にすると、二重承認が通ってしまう
@@ -189,7 +189,7 @@ quiz:
       - ""
       - "履歴の保存でチェックすると読んだ答え。履歴はルールを守った結果の記録"
     explanation: |
-      「誰が操作したか」が要るルールなので、操作する人を受け取る **ApprovalService** で守ります。
+      「誰が操作したか」が要るルールなので、操作する人を受け取る **`ApprovalService`** で守ります。
       ボタンを出さないのは利用者への親切にすぎず、`POST /requests/5/approve` は curl や開発者ツールからでも送れます。
   - question: |
       `ApprovalRequest` に `@Version private Long version;` を付けました。太郎と部長のトランザクションが、ほぼ同時に version=3 の申請中の申請を読み込み、
@@ -221,7 +221,7 @@ quiz:
     explanation: |
       問題は2つあります。①「以上」なのに `>` なので、100,000円ちょうどが `false`(ADMIN 不要)になる。②`amount` が `null` のとき、
       比較のために `Integer` から `int` への **アンボクシング** が起き、`NullPointerException` になる。
-      正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と null のテストを必ず書きます。
+      正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と `null` のテストを必ず書きます。
 columns:
   - type: genba
     title: 「承認したけど、やっぱり取り消して」と言われたら

@@ -12,8 +12,8 @@ goals:
 samples:
   - title: Spring Data がメソッド名をどう読むか(PartTree)
     description: |
-      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。`DepartmentName` は、どのプロパティの条件として読まれる?
-      `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。DB には接続しません。
+      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。DB には接続しません。出力の `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。
+      `DepartmentName` は、どのプロパティの条件として読まれる?
     libraries: [spring, jpa]
     code: |
       import org.springframework.data.repository.query.parser.Part;
@@ -89,7 +89,7 @@ quiz:
       - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
       - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
-      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。Did you mean 'name' と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
+      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。`Did you mean 'name'` と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
   - question: |
       社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。

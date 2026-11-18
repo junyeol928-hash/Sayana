@@ -62,7 +62,7 @@
     - "case 2 から break を越えて下へ落ちると読んだ答え"
     - "中身の無い case 2 は一致にならないと読んだ答え"
     - "中身の無い case を並べると文法違反と読んだ答え"
-  explanation: "case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month が 2 なので case 2 に一致し、`\"冬\"` を代入して break します。"
+  explanation: "case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。`month` が 2 なので case 2 に一致し、`\"冬\"` を代入して break します。"
   trace:
     - "3行目: `month` の値 2 と case を照合"
     - "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)"
@@ -98,7 +98,7 @@
     - ""
     - "Sato も 5 文字以上と数えた答え"
     - "null の `b` にも `length()` が呼ばれると読んだ答え"
-  explanation: "&& の左が `b != null` なので、null の b は右の length() を評価する前に false 確定し、例外は起きません。`\"Sato\"`(4文字)は 5 以上でないため条件を満たさず、`\"Suzuki\"`(6文字)だけが条件を満たすので count は 1 になります。"
+  explanation: "&& の左が `b != null` なので、null の b は右の `length()` を評価する前に false 確定し、例外は起きません。`\"Sato\"`(4文字)は 5 以上でないため条件を満たさず、`\"Suzuki\"`(6文字)だけが条件を満たすので `count` は 1 になります。"
   trace:
     - '5行目: `a` は `"Sato"`。null ではない → `length()` は 4 → 5以上ではない → false(`count` は増えない)'
     - "8行目: `b` は null。`b != null` が false → 短絡評価で `length()` は呼ばれない → 例外なし、false"

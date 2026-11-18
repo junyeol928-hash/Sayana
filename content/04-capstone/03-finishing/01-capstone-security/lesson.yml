@@ -12,9 +12,8 @@ goals:
 samples:
   - title: ボタンが見えることと、承認できることは別
     description: |
-      画面の `sec:authorize` はロールしか見ません。一方、サーバー側の判定は「自分の申請か」「金額はいくらか」まで見ます。
+      画面の `sec:authorize` はロールしか見ません。一方、サーバー側の判定は「自分の申請か」「金額はいくらか」まで見ます。見終わったら金額や申請者を変えて、そういうケースをほかにも探してみましょう。
       今の申請(ハルの 12 万円)で、ボタンは出るのにサーバーが断るのは誰?
-      金額や申請者を変えて、ボタンは出るのにサーバーが断るケースを探してみましょう。
     code: |
       enum Role { APPLICANT, APPROVER, ADMIN }
       record Emp(long id, String name, Role role) {}
@@ -169,7 +168,7 @@ quiz:
       - "URL のルールが申請者まで見ると読んだ答え。Filter が見るのはロールだけ"
       - "金額だけで決まると読んだ答え。少額でも、自分の申請はルール2で承認できない"
     explanation: |
-      URL のルールが見るのはロールだけなので、APPROVER の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)が `BusinessRuleException` を投げて拒否します。
+      URL のルールが見るのはロールだけなので、`APPROVER` の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)が `BusinessRuleException` を投げて拒否します。
       ボタンを隠しても画面を通らないリクエストは届くので、Service で必ず判定するのです。
   - question: |
       次のフォームで「承認」を押すと 403 になりました。原因として正しいものは?

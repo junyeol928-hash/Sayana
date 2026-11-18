@@ -148,8 +148,8 @@ quiz:
       - "`Dog` 型の `d` から呼ぶ `fetch()` を疑った答え。`d` は `Dog` 型なので呼べる"
       - ""
     explanation: |
-      **呼べるメソッドは変数の型で決まります**。`a` の変数の型は `Animal` なので、実体が Dog でも Animal にない `fetch()` は呼べず、`cannot find symbol` になります。
-      (1) はアップキャストで常に OK。(2) はダウンキャストで、明示しているのでコンパイルは通ります(実体が Dog なので実行時も成功)。(3) は `d` が Dog 型なので呼べます。
+      **呼べるメソッドは変数の型で決まります**。`a` の変数の型は `Animal` なので、実体が `Dog` でも `Animal` にない `fetch()` は呼べず、`cannot find symbol` になります。
+      (1) はアップキャストで常に OK。(2) はダウンキャストで、明示しているのでコンパイルは通ります(実体が `Dog` なので実行時も成功)。(3) は `d` が `Dog` 型なので呼べます。
   - question: |
       次のコードを実行するとどうなる?
       ```java
@@ -165,7 +165,7 @@ quiz:
       - "`Cat` を `Dog` にするキャストを、コンパイラが止めると読んだ答え"
       - "キャストに失敗すると `null` が入ると読んだ答え"
     explanation: |
-      `Animal` 型の変数の中身は Dog かもしれないので、コンパイラはダウンキャストを通します。しかし実行時に JVM が実体を検査し、Cat を Dog にはできないので `ClassCastException: class Cat cannot be cast to class Dog` が発生します。
+      `Animal` 型の変数の中身は `Dog` かもしれないので、コンパイラはダウンキャストを通します。しかし実行時に JVM が実体を検査し、`Cat` を `Dog` にはできないので `ClassCastException: class Cat cannot be cast to class Dog` が発生します。
       安全にやるなら `if (a instanceof Dog d) { ... }` で確かめてから使います。
   - question: |
       次のコードを実行したときの出力は?

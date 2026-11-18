@@ -12,8 +12,8 @@ goals:
 samples:
   - title: ロールバックされる例外・されない例外・効かない呼び出し
     description: |
-      DB の代わりに「開始・コミット・ロールバック」を表示するトランザクションマネージャを登録して、`@Transactional` の動きを観察します。
-      `Bean のクラス` には `OrderService` の名前がそのまま出るだろうか。② の RuntimeException と ③ の検査例外では、コミットとロールバックのどちらになる?④ の同じクラスの中からの呼び出しでも、`[TX]` の行は出るだろうか。そのあとコメントの「ここを変えてみよう」を試してください。
+      DB の代わりに「開始・コミット・ロールバック」を表示するトランザクションマネージャを登録して、`@Transactional` の動きを観察します。見終わったら、コメントの「ここを変えてみよう」も試してください。
+      `Bean のクラス` には `OrderService` の名前がそのまま出るだろうか。② の RuntimeException と ③ の検査例外では、コミットとロールバックのどちらになる?④ の同じクラスの中からの呼び出しでも、`[TX]` の行は出るだろうか。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -108,7 +108,7 @@ quiz:
       - "検査例外の扱いが足りないと読んだ答え。`throws` で宣言してあるのでコンパイルは通る"
       - "Spring が検査例外を実行時例外に包むと読んだ答え。包み直さず、そのまま伝わってコミットされる"
     explanation: |
-      `@Transactional` が既定でロールバックするのは RuntimeException と Error だけです。検査例外は「呼び出し側が対処する想定内の結果」とみなされ、例外は呼び出し元にそのまま伝わりつつ、トランザクションは **コミット** されます。
+      `@Transactional` が既定でロールバックするのは `RuntimeException` と `Error` だけです。検査例外は「呼び出し側が対処する想定内の結果」とみなされ、例外は呼び出し元にそのまま伝わりつつ、トランザクションは **コミット** されます。
       在庫も戻したいなら `@Transactional(rollbackFor = PaymentException.class)` と書きます。
   - question: |
       `OrderService` は DI で受け取ったプロキシ経由で `importAll` が呼ばれます。このとき、トランザクションはどうなる?

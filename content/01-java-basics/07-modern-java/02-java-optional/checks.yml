@@ -53,4 +53,4 @@
     - "null を空文字と同じと読んだ答え。null はどの文字列も指しておらず、`length()` を呼べない"
     - "null が返ることをコンパイラが見抜くと読んだ答え。戻り値の型は `String` なので通る"
   explanation: |
-    null はどのオブジェクトも指していないので、`.length()` を呼んだ所で NullPointerException になる。戻り値の型が `String` なので、null が返るかどうかはコンパイラにも読む人にも分からない。
+    null はどのオブジェクトも指していないので、`.length()` を呼んだ所で `NullPointerException` になる。戻り値の型が `String` なので、null が返るかどうかはコンパイラにも読む人にも分からない。

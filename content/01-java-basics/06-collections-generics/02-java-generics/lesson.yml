@@ -71,7 +71,7 @@ samples:
       System.out.println("最大値: " + max(List.of("kiwi", "apple", "melon")));
   - title: ワイルドカード(? extends と ? super)
     description: |
-      `sum` は値を **取り出す** だけなので `? extends Number`、`addSamples` は値を **入れる** だけなので `? super Integer`。PECS の実例です。
+      `sum` は値を **取り出す** だけなので `? extends Number`、`addSamples` は値を **入れる** だけなので `? super Integer`。PECS の実例です。`sum(ints)` の合計は `6` と `6.0` のどちらで表示される?
     code: |
       static double sum(List<? extends Number> list) {
           double total = 0;
@@ -126,7 +126,7 @@ quiz:
       - "ワイルドカードにも `Integer` のリストは入らないと読んだ答え。`? extends Number` は `Number` の子のリストを受け入れる"
       - "`? super` の向きを逆に読んだ答え。`? super Integer` は親の型のリストを受け入れる"
     explanation: |
-      `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で Integer のリストに Double が混ざってしまうからです。
+      `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で `Integer` のリストに `Double` が混ざってしまうからです。
   - question: |
       次のコードで、**コンパイルエラーになる** のはどの行?
       ```java

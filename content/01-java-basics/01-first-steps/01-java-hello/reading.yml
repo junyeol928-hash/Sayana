@@ -96,7 +96,7 @@
             System.out.println("hello");
         }
     }
-  question: "javac Main.java を実行すると?"
+  question: "`javac Main.java` を実行すると?"
   choices:
     - "hello と表示される"
     - "Greeting.class ができて正常に終わる"
@@ -104,15 +104,15 @@
     - "実行時エラー(ファイル名の不一致)"
   answer: 2
   why:
-    - "javac が実行までしてくれると読んだ答え。javac はコンパイルだけで、このファイルはそこで止まる"
+    - "`javac` が実行までしてくれると読んだ答え。`javac` はコンパイルだけで、このファイルはそこで止まる"
     - "クラス名とファイル名が違ってもよいと読んだ答え。public クラスはクラス名と同じファイル名に置く"
     - ""
-    - "javac は通って実行で問題が出ると読んだ答え。ファイル名の不一致はコンパイルの段階で見つかる"
+    - "`javac` は通って実行で問題が出ると読んだ答え。ファイル名の不一致はコンパイルの段階で見つかる"
   explanation: "public なクラスの名前はファイル名と一致していなければなりません。Greeting は Main.java の中には置けないので、コンパイルの段階でエラーになります。IDE で「クラス名を変えたのにファイル名がそのまま」のときによく起きます。"
   trace:
     - "1行目: コメント。ファイル名が Main.java だと分かる"
     - "2行目: public class Greeting → public なクラスは Greeting.java に置く必要がある"
-    - "javac: ファイル名とクラス名の不一致を検出してエラー。.class は作られない"
+    - "`javac`: ファイル名とクラス名の不一致を検出してエラー。.class は作られない"
 - title: "static のない main"
   level: 3
   code: |
@@ -121,7 +121,7 @@
             System.out.println("run");
         }
     }
-  question: "JDK 21(プレビュー機能なし)で、javac App.java は成功した。続けて java App を実行すると?"
+  question: "JDK 21(プレビュー機能なし)で、`javac App.java` は成功した。続けて `java App` を実行すると?"
   choices:
     - "run と表示される"
     - "何も表示されず正常終了"

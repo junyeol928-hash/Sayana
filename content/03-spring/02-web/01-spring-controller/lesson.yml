@@ -13,8 +13,8 @@ samples:
   - title: Controller を MockMvc で呼んでみる
     libraries: [spring]
     description: |
-      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。`GET /users/abc` と `POST /hello` は、それぞれ何番が返る?
-      パスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。`[...]` は Spring が内部で投げた例外の名前です。
+      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。出力の `[...]` は Spring が内部で投げた例外の名前です。見終わったらパスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。
+      `GET /users/abc` と `POST /hello` は、それぞれ何番が返る?
     code: |
       // Controller を MockMvc で呼んでみる(Web サーバーは起動しない)
       // ここを変えてみよう:URL やクエリを書き換える / name を消す

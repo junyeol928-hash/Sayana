@@ -27,7 +27,7 @@
     - "`balance` を全インスタンスで共有と読んだ答え。static ではないので実体ごとに別の箱"
     - "`w2` の `deposit(30)` を見落とした答え。`w2` にも 30 が入る"
     - "`w2` への入金も `w1` に足されると読んだ答え。`w1` と `w2` は別の実体で、`w1` は 150"
-  explanation: "w1 と w2 は別々の実体で、balance の箱もそれぞれ持っています。w1 には `100 + 50` で 150、w2 には 30 が入ります。"
+  explanation: "`w1` と `w2` は別々の実体で、`balance` の箱もそれぞれ持っています。`w1` には `100 + 50` で 150、`w2` には 30 が入ります。"
   trace:
     - "8〜9行目: 実体を2つ作る。それぞれ `balance` は 0"
     - "10〜11行目: w1 の balance が 100 → 150"
@@ -94,7 +94,7 @@
     - ""
     - "呼んだ順を取り違えた答え"
     - "myNo も static で、全員で共有すると読んだ答え"
-  explanation: "total は static なので全員で共有され、enter() が3回呼ばれて 3 になります。myNo は実体ごとで、「そのとき の total」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。"
+  explanation: "`total` は static なので全員で共有され、`enter()` が3回呼ばれて 3 になります。myNo は実体ごとで、「そのときの `total`」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。"
   trace:
     - "13行目: `a.enter()` → `total` は 1、`a.myNo` は 1"
     - "14行目: `b.enter()` → `total` は 2、`b.myNo` は 2"
@@ -130,7 +130,7 @@
     - ""
     - "同じ名前どうしの代入を文法違反と読んだ答え。引数を引数に入れるだけで通ってしまう"
     - "null のフィールドを返すと例外になると読んだ答え。null を返して表示するだけなら null と出る"
-  explanation: "5行目の `code = code;` は「引数を引数に代入」しているだけで、フィールド code には何も入りません。`this.code = code;` と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。"
+  explanation: "5行目の `code = code;` は「引数を引数に代入」しているだけで、フィールド `code` には何も入りません。`this.code = code;` と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。"
   trace:
     - "13行目: Item を作る。フィールド `code` は null"
     - '14行目: `setCode("A-100")` → 5行目で引数 `code` に引数 `code` を代入(意味なし)。フィールドは null のまま'
@@ -162,7 +162,7 @@
     - "名前だけの `count` もフィールドと読み、`report()` も見落とした答え"
     - ""
     - "フィールドと同じ名前のローカル変数を文法違反と読んだ答え"
-  explanation: "show() の中では、ローカル変数 count(1)がフィールド count(10)を隠します。名前だけの count はローカル変数、this.count はフィールドなので `1 10` になります。しかし report() は static メソッドで、static でないフィールド count を参照しているためコンパイルエラーです。"
+  explanation: "`show()` の中では、ローカル変数 `count`(1)がフィールド `count`(10)を隠します。名前だけの `count` はローカル変数、`this.count` はフィールドなので `1 10` になります。しかし `report()` は static メソッドで、static でないフィールド `count` を参照しているためコンパイルエラーです。"
   trace:
     - "5行目: ローカル変数 `count = 1` を宣言。同名のフィールドは `this.count` でしか見えなくなる"
     - "6行目: `count` は 1、`this.count` は 10 → `1 10`(ここは問題ない)"
@@ -247,7 +247,7 @@
     - ""
     - "`this(...)` を飛ばして自分の行だけ動くと読んだ答え。呼び先の A と B も実行される"
     - "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると B、C と残りの行が動く"
-  explanation: "this(...) は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。Room() → Room(String) → Room(String, int) と潜っていき、いちばん奥の A から順に表示されます。"
+  explanation: "`this(...)` は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。`Room()` → `Room(String)` → `Room(String, int)` と潜っていき、いちばん奥の A から順に表示されます。"
   trace:
     - "22行目: `new Room()` → 5行目 `Room()` に入る"
     - '6行目: `this("未設定")` → 10行目 `Room(String)` に入る(7行目はまだ)'
@@ -285,7 +285,7 @@
     - "初期化子がコンストラクタより後に動くと読んだ答え"
     - ""
     - "初期化子もコンストラクタの代入も効かないと読んだ答え"
-  explanation: "初期化子で `retry = 3`、`mode = \"safe\"` になったあと、コンストラクタ本体で mode だけ `\"fast\"` に上書きされます。retry はコンストラクタで触っていないので初期化子の 3 のままです。"
+  explanation: "初期化子で `retry = 3`、`mode = \"safe\"` になったあと、コンストラクタ本体で mode だけ `\"fast\"` に上書きされます。`retry` はコンストラクタで触っていないので初期化子の 3 のままです。"
   trace:
     - '14行目: `new` → 既定値(`retry=0`, `mode=null`)→ 初期化子(`retry=3`, `mode="safe"`)'
     - '5〜6行目: コンストラクタ本体で `mode = "fast"`(`retry` はそのまま)'
@@ -319,7 +319,7 @@
     - ""
     - "同じ名前どうしの代入を文法違反と読んだ答え"
     - "null を返すと例外になると読んだ答え"
-  explanation: "5行目は引数 nickname を引数 nickname に代入しているだけで、フィールドには何も入りません。`this.nickname = nickname;` が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。"
+  explanation: "5行目は引数 `nickname` を引数 `nickname` に代入しているだけで、フィールドには何も入りません。`this.nickname = nickname;` が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。"
   trace:
     - '13行目: `new Profile("neko")` → フィールド `nickname` は null'
     - "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)"
@@ -351,7 +351,7 @@
     - "final のフィールドがコンストラクタに入らないと読んだ答え"
     - ""
     - "final でないフィールドがあるとコンパイルが通らないと読んだ答え"
-  explanation: "@RequiredArgsConstructor は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、mailSender は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、mailSender は null のまま。10行目で NullPointerException です。final の付け忘れが原因です。"
+  explanation: "`@RequiredArgsConstructor` は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、`mailSender` は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、`mailSender` は null のまま。10行目で `NullPointerException` です。final の付け忘れが原因です。"
   trace:
     - "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)"
     - "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま"

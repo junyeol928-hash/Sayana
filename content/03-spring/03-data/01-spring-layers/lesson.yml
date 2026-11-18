@@ -167,7 +167,7 @@ quiz:
       - "Bean の有無をコンパイラが調べると読んだ答え。コンパイルは通り、コンテナを作るときに失敗する"
     explanation: |
       DI コンテナは作成時(refresh 時)にシングルトンの Bean をまとめて作り、コンストラクタの引数に渡す Bean を探します。`OrderRepository` 型の Bean が無いので `No qualifying bean of type 'OrderRepository' available` を原因とする `UnsatisfiedDependencyException` が発生し、次の行には進みません。
-      「起動時に失敗する」のはコンストラクタインジェクションの長所で、null のまま動き出して後で NPE、ということになりません。
+      「起動時に失敗する」のはコンストラクタインジェクションの長所で、`null` のまま動き出して後で NPE、ということになりません。
   - question: |
       次の Controller の問題点として正しいものは?
       ```java

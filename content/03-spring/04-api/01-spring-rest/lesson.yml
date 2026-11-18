@@ -182,7 +182,7 @@ quiz:
       - "日付を数値で書くと読んだ答え。それは `java.util.Date` を timestamps 設定で書いたときの形"
       - "`LocalDate` を変換する部品が無いと読んだ答え。それは Boot を使わない素の Jackson の話"
     explanation: |
-      Spring Boot は Jackson に **JavaTimeModule** を自動登録し、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしているので、日付は **ISO-8601 の文字列** `"2026-10-31"` になります。
+      Spring Boot は Jackson に **`JavaTimeModule`** を自動登録し、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしているので、日付は **ISO-8601 の文字列** `"2026-10-31"` になります。
   - question: |
       「ID 3 のタスクを削除する」API の URL とメソッドとして、REST の現場ルールに最も合っているのは?
     choices: ["`POST /api/deleteTask?id=3`", "`GET /api/tasks/3/delete`", "`DELETE /api/task/3`", "`DELETE /api/tasks/3`"]
@@ -194,7 +194,7 @@ quiz:
       - ""
     explanation: |
       操作は HTTP メソッド(DELETE)で表し、URL はリソースを **複数形の名詞** で表すので `DELETE /api/tasks/3` です。
-      `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(GET は「状態を変えない」約束のメソッド)。
+      `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(`GET` は「状態を変えない」約束のメソッド)。
       `DELETE /api/task/3` は動き自体は正しいですが、単数形なので `/api/tasks`(一覧・作成)と URL の形が揃いません。
   - question: |
       完了済み(done = true)のタスク 5 に `PATCH /api/tasks/5` で `{"title":"新しい名前"}` を送りました。次の実装だと、どうなる?
@@ -216,8 +216,8 @@ quiz:
       - "項目が足りないと 400 になると読んだ答え。Jackson は足りない項目を既定値で埋め、エラーにしない"
       - "項目の不足で変換が失敗すると読んだ答え。足りない `done` には `false` が入り、例外にならない"
     explanation: |
-      JSON に無い項目は、record の引数に **その型のデフォルト値** が入ります。`boolean` なら `false` なので、`req.done()` は false になり、完了済みのタスクが未完了に戻ります。
-      Jackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は `Boolean` のような **null になれる型** にして、`null` なら変更しない、と書き分けます。
+      JSON に無い項目は、record の引数に **その型のデフォルト値** が入ります。`boolean` なら `false` なので、`req.done()` は `false` になり、完了済みのタスクが未完了に戻ります。
+      Jackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は `Boolean` のような **`null` になれる型** にして、`null` なら変更しない、と書き分けます。
 columns:
   - type: trivia
     title: REST は博士論文から生まれた

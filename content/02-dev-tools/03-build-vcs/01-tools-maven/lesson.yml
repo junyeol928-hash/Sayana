@@ -67,26 +67,26 @@ quiz:
       - "parent の版の表を見落とした答え。Spring の部品は表に載っているので省ける"
     explanation: |
       Spring Boot の parent が持つ **dependencyManagement**(推奨バージョン表)に載っているライブラリだけ、version を省略できます。starter-web は当然載っていますが、commonmark は載っていないので
-      `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの pom.xml で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
-      同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
+      `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの `pom.xml` で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
+      同じ `pom.xml` なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
   - question: |
       `./mvnw install` を実行したところ、テストが1件失敗しました。このとき起きることとして正しいのは?
     choices:
-      - test フェーズは失敗扱いだが、package と install は続けて実行される
+      - "`test` フェーズは失敗扱いだが、`package` と `install` は続けて実行される"
       - 失敗したテストだけ飛ばして、jar が作られる
-      - install は「登録」だけなので、コンパイルもテストも行われない
-      - test フェーズで止まり、jar は作られず ~/.m2 への登録もされない
+      - "`install` は「登録」だけなので、コンパイルもテストも行われない"
+      - "`test` フェーズで止まり、jar は作られず `~/.m2` への登録もされない"
     answer: 3
     why:
       - "失敗しても後のフェーズが続くと読んだ答え。失敗したフェーズで止まる"
-      - "落ちたテストを飛ばして進むと読んだ答え。1件でも失敗すると test フェーズで止まる"
+      - "落ちたテストを飛ばして進むと読んだ答え。1件でも失敗すると `test` フェーズで止まる"
       - "`install` を登録だけの操作と読んだ答え。指定したフェーズより前が順に全部実行される"
       - ""
     explanation: |
-      フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら validate → compile → test → package → verify → install の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
+      フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら `validate` → `compile` → `test` → `package` → `verify` → `install` の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
       「テストが落ちたものは jar にしない」のが Maven の安全装置です。テストを飛ばす `-DskipTests` というオプションもありますが、「落ちるから飛ばす」は現場では御法度です。
   - question: |
-      `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では util を管理していないものとします)
+      `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では `util` を管理していないものとします)
       ```text
       com.example:shop:jar:1.0
       +- com.example:a:jar:1.0:compile
@@ -107,9 +107,9 @@ quiz:
       - "同じ jar が2つ載ると読んだ答え。同じ groupId:artifactId はどちらか1つだけが選ばれる"
       - "版の衝突をエラーと読んだ答え。Maven は黙って根に近い方を選ぶ"
     explanation: |
-      Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。util 3.0 は shop → a → b → util の3段目、util 2.0 は shop → c → util の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
-      「新しい方が勝つ」わけではないので、b が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
-      衝突はエラーにならず黙って解決されるので、dependency:tree で確認する習慣が大事です。
+      Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。`util` 3.0 は `shop → a → b → util` の3段目、`util` 2.0 は `shop → c → util` の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
+      「新しい方が勝つ」わけではないので、`b` が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
+      衝突はエラーにならず黙って解決されるので、`dependency:tree` で確認する習慣が大事です。
   - question: |
       ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for switch(`case Integer i ->`)を使っています。結果は?
       ```xml

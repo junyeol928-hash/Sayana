@@ -99,7 +99,7 @@
     - "連結の結果だけを見て、`region.toUpperCase()` を見落とした答え"
     - ""
     - "`null` の変数を使うとコンパイルで止まると読んだ答え。`null` かどうかは実行して初めて分かる"
-  explanation: "region には null(どのオブジェクトも指していない)が入っています。3行目の `env + \"/\" + region` は null を `null` という文字としてつなぐだけなので、label は `prod/null` になり例外は出ません。しかし4行目の `region.toUpperCase()` は null に対してメソッドを呼ぶので、その瞬間に NullPointerException です。println は引数を全部計算してから表示するので、`prod/null` も表示されません。**参照型の変数を使う前に値が入っているか**を追うのが実務の読解の基本です。"
+  explanation: "`region` には `null`(どのオブジェクトも指していない)が入っています。3行目の `env + \"/\" + region` は `null` を `null` という文字としてつなぐだけなので、label は `prod/null` になり例外は出ません。しかし4行目の `region.toUpperCase()` は `null` に対してメソッドを呼ぶので、その瞬間に `NullPointerException` です。println は引数を全部計算してから表示するので、`prod/null` も表示されません。**参照型の変数を使う前に値が入っているか**を追うのが実務の読解の基本です。"
   trace:
     - '1行目: `env` は `"prod"`(final なので再代入はできない)'
     - "2行目: region は null。どのオブジェクトも指していない"

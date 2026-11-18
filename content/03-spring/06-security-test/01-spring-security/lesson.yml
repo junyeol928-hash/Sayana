@@ -94,7 +94,7 @@ quiz:
       - "`encode` は毎回同じで `matches` は通らないと読んだ答え。実際は毎回違う文字列になり、`matches` は `true`"
       - "文字列が違うので照合も通らないと読んだ答え。`matches` は保存値の中のソルトで計算し直すので `true`"
     explanation: |
-      BCrypt は encode のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
+      BCrypt は `encode` のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
       ソルトは保存値(`$2a$10$` に続く部分)の中に入っているので、`matches` はそのソルトで計算し直して比べ、`true` になります。だからパスワードの照合に `equals` を使ってはいけません。
   - question: |
       Spring Security を有効にしたアプリで、次の Thymeleaf のフォームから送信したら 403 Forbidden になった。原因として最も適切なのは?

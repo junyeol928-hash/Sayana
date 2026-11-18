@@ -99,7 +99,7 @@ quiz:
       - "Ctrl+D で直ると読んだ答え。Ctrl+D は行削除で、import は足さない"
     explanation: |
       **Ctrl+Shift+O(Organize Imports)** は、足りない import を追加し、使っていない import を削除します。`List` と `ArrayList` の import が一度に入ります。`List` のように同名のクラスが複数ある(`java.util.List` と `java.awt.List`)場合は、どちらにするか選ぶダイアログが出るので `java.util.List` を選びます。
-      赤線の上で Ctrl+1 → **Import 'List' (java.util)** でも直せます。
+      赤線の上で Ctrl+1 を押し、`java.util` の `List` を import する候補を選んでも直せます。
   - question: |
       `counter.next()` は呼ぶたびに 1, 2, 3, … を返すメソッドです。次のコードの `n` を **Alt+Shift+I**(インライン化)したところ、`System.out.println(counter.next() + counter.next());` になりました。出力はどう変わる?
       ```java

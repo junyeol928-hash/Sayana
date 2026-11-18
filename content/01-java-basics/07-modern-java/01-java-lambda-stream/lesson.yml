@@ -292,7 +292,7 @@ quiz:
       - ""
       - "`count` という変数名とぶつかると読んだ答え。`count()` は `Stream` のメソッドで、変数とは別"
     explanation: |
-      ラムダ式から参照できるローカル変数は、`final` か **実質 final**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
+      ラムダ式から参照できるローカル変数は、`final` か **実質 `final`**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
       数えたいなら (D) のように `count()` を使うのが正解です。
   - question: |
       次のコードを実行するとどうなる?

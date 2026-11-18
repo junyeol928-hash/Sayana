@@ -50,4 +50,4 @@
     - "if 文の並びのように、届かない case も黙って通ると読んだ答え。javac はそれをエラーにする"
     - "`when` 付きの case が優先されると読んだ答え。case は上から照合し、下の `when` には届かない"
   explanation: |
-    条件なしの `case Card c` がすべての Card を先に受け止めるので、下の `when` 付きの case には絶対に届かない。javac はこれを `dominated` のコンパイルエラーにする。`when` 付きを上に書けば通る。
+    条件なしの `case Card c` がすべての `Card` を先に受け止めるので、下の `when` 付きの case には絶対に届かない。javac はこれを `dominated` のコンパイルエラーにする。`when` 付きを上に書けば通る。

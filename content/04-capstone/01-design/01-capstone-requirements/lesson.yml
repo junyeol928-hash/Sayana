@@ -11,8 +11,8 @@ goals:
 samples:
   - title: 状態遷移をシナリオで流してみる
     description: |
-      状態遷移図を写した enum に、ハルの申請のシナリオを流します。最後の「承認後の差戻し」は通る? 5つの遷移それぞれの結果と、最終状態はどうなる?
-      そのあとシナリオの並びを変えて、どの遷移が許されるかを確かめてみましょう。
+      状態遷移図を写した enum に、ハルの申請のシナリオを流します。見終わったらシナリオの並びを変えて、どの遷移が許されるかを確かめてみましょう。
+      最後の「承認後の差戻し」は通る? 5つの遷移それぞれの結果と、最終状態はどうなる?
     code: |
       // 承認くんの状態遷移を enum で表して、シナリオを流してみる
       enum RequestStatus {
@@ -104,8 +104,8 @@ quiz:
       - ""
       - "どの遷移も通らないと読んだ答え。下書きからの申請は最初の1歩で通る"
     explanation: |
-      DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は **許された遷移にない**(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。
-      続く SUBMITTED → RETURNED(差戻し)は OK、RETURNED → SUBMITTED(再申請)も OK なので、最後は `SUBMITTED` です。
+      `DRAFT` → `SUBMITTED` は OK。次の `SUBMITTED` → `WITHDRAWN` は **許された遷移にない**(申請中は取り下げられない)のでスキップされ、状態は `SUBMITTED` のまま。
+      続く `SUBMITTED` → `RETURNED`(差戻し)は OK、`RETURNED` → `SUBMITTED`(再申請)も OK なので、最後は `SUBMITTED` です。
   - question: |
       `RequestStatus` が次のように書かれています。同じプロジェクトで enum に定数 `CANCELLED` を1つ追加して保存(コンパイル)すると、どうなる?
       ```java
@@ -127,7 +127,7 @@ quiz:
       - "網羅漏れを警告どまりと読んだ答え。enum の switch 式は網羅していないとコンパイルエラー"
     explanation: |
       enum を対象にした switch **式** は、`default` がない場合 **全定数を網羅** していないと `the switch expression does not cover all possible input values` のコンパイルエラーになります。
-      これが「遷移の決め忘れをコンパイラに見つけてもらう」仕組みです。`default -> false` を書いてしまうと網羅チェックが効かなくなり、CANCELLED は黙って false になります。
+      これが「遷移の決め忘れをコンパイラに見つけてもらう」仕組みです。`default -> false` を書いてしまうと網羅チェックが効かなくなり、`CANCELLED` は黙って `false` になります。
   - question: |
       業務ルール3(100,000円以上は ADMIN だけが承認できる)を、次のように実装しました。**ルールと違う結果** になる金額はどれ?
       ```java

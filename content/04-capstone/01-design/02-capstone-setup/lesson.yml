@@ -154,7 +154,7 @@ quiz:
       - "Bean が無くても起動はすると読んだ答え。注入する所で Bean が見つからず、起動で止まる"
       - "パッケージ違いでコンパイルが止まると読んだ答え。import すれば通り、問題はスキャンの範囲"
     explanation: |
-      `@SpringBootApplication` は、**起動クラスのパッケージ(com.example.approval)とその下** だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
+      `@SpringBootApplication` は、**起動クラスのパッケージ(`com.example.approval`)とその下** だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
       その結果、CommandLineRunner など `EmployeeRepository` を注入したい所で `required a bean of type ... that could not be found` になり、起動に失敗します。
   - question: |
       `data.sql` を次のように書き、H2 ファイルモード(`sql.init.mode: always`)で使っています。**2回目の起動** で何が起きる?

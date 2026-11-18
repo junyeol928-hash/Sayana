@@ -84,7 +84,7 @@ quiz:
       - "WARN を超えるものだけが出ると読んだ答え。基準の WARN 自身も出るので2行"
     explanation: |
       ロガー名 `com.example.shop.OrderService` は `com.example` に前方一致(ドット区切り)するので、`root` の INFO ではなく `com.example` の WARN が効きます。出力されるのは WARN **以上** なので、WARN と ERROR の2行です。
-      「INFO・WARN・ERROR の3行」は root の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。
+      「INFO・WARN・ERROR の3行」は `root` の設定だけを見た場合。より具体的に一致した設定が優先される点がポイントです。
   - question: |
       DEBUG が無効(INFO に設定)のとき、次の行を実行すると `calcTotal(items)` は呼ばれる?
       ```java

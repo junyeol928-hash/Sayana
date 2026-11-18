@@ -13,8 +13,8 @@ samples:
   - title: 申請フォームの入力チェックを動かす
     libraries: [spring]
     description: |
-      `RequestForm` を Validator で直接検証します。経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? それぞれどの項目のエラー?
-      最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
+      `RequestForm` を Validator で直接検証します。最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
+      経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? それぞれどの項目のエラー?
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
       // ここを変えてみよう:type を LEAVE に / amount を null や 0 に / title を "" や 51文字に

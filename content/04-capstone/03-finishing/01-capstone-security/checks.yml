@@ -30,4 +30,4 @@
     - "型を自動でそろえてくれると考えた答え。詰め替えはしない"
     - "`User` では認証できないと考えた答え。標準の `User` でも、ログインの仕組みには乗る"
   explanation: |
-    `User` も UserDetails なのでログインは通る。ただ `@AuthenticationPrincipal LoginUser user` は型が合わないと黙って null を入れるので、`user.id()` で落ちる。
+    `User` も UserDetails なのでログインは通る。ただ `@AuthenticationPrincipal LoginUser user` は型が合わないと黙って `null` を入れるので、`user.id()` で落ちる。

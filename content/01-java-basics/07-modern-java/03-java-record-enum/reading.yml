@@ -18,10 +18,10 @@
   answer: 0
   why:
     - ""
-    - "valueOf が新しいインスタンスを作ると読んだ答え。実際は既存の定数を返す"
-    - "ordinal を 1 から数えた答え。ordinal は 0 始まりで、最初の RED は 0"
-    - "valueOf が別物を作り、equals も別と見ると読んだ答え。実際はどちらも同じ物"
-  explanation: "enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は `\"RED\"` です。"
+    - "`valueOf` が新しいインスタンスを作ると読んだ答え。実際は既存の定数を返す"
+    - "`ordinal` を 1 から数えた答え。`ordinal` は 0 始まりで、最初の `RED` は 0"
+    - "`valueOf` が別物を作り、`equals` も別と見ると読んだ答え。実際はどちらも同じ物"
+  explanation: "enum の各定数はインスタンスが1つだけなので、`valueOf` で取り出しても同じ物を指します。`==` も `equals` も `true`。`ordinal()` は `RED` が最初なので 0、`name()` は `\"RED\"` です。"
   trace:
     - "3行目: `a` は `RED`(唯一のインスタンス)を指す"
     - "4行目: `valueOf(\"RED\")` も同じ `RED` を返す"
@@ -47,9 +47,9 @@
   why:
     - "`==` も値で比べると読んだ答え。`==` は参照の比較"
     - ""
-    - "record を普通のクラスと同じと読んだ答え。record は equals と toString を自動で持つ"
-    - "1 行の宣言だけでは使えないと読んだ答え。コンストラクタや equals、toString は自動で作られる"
-  explanation: "new を2回しているので別インスタンス → == は false。record は全フィールドを比べる equals を自動生成するので equals は true。toString も「型名[フィールド=値, ...]」の形で自動生成されます。"
+    - "record を普通のクラスと同じと読んだ答え。record は `equals` と `toString` を自動で持つ"
+    - "1 行の宣言だけでは使えないと読んだ答え。コンストラクタや `equals`、`toString` は自動で作られる"
+  explanation: "`new` を2回しているので別インスタンス → `==` は `false`。record は全フィールドを比べる `equals` を自動生成するので `equals` は `true`。`toString` も「型名[フィールド=値, ...]」の形で自動生成されます。"
   trace:
     - "3〜4行目: 別々の Point インスタンスを2つ作る(中身は同じ)"
     - "5行目: `==` は参照比較 → 別物なので `false`"
@@ -155,8 +155,8 @@
     - ""
     - "`default` が要ると読んだ答え。sealed なら全種類を書けば要らない"
     - "`Ok(0)` に合う case が無いと読んだ答え。`when` の無い `case Ok` が受け取る"
-  explanation: "`Ok(0)` は最初の case のガード(`value > 0`)を満たさないので次の `case Ok` に入り `zero or negative`。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので `default` は不要で、コンパイルも通ります。"
+  explanation: "`Ok(0)` は最初の case のガード(`value > 0`)を満たさないので次の `case Ok` に入り `zero or negative`。`Ng` は3つ目の case。sealed で `Ok` と `Ng` の2種類しか無いと分かっているので `default` は不要で、コンパイルも通ります。"
   trace:
     - "12行目: `r` は `Ok(0)`。1つ目の case は `0 > 0` が `false` → スキップ"
     - "2つ目の `case Ok ok` に一致 → `\"zero or negative\"`"
-    - "13行目: r は `Ng` → 3つ目の case → `ng: timeout`"
+    - "13行目: `r` は `Ng` → 3つ目の case → `ng: timeout`"

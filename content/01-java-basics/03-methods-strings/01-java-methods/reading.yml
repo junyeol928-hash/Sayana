@@ -114,8 +114,8 @@
     - ""
     - "return でプログラム全体が終わると読んだ答え。return はそのメソッドだけを抜け、次の呼び出しへ進む"
     - "0 も負の数と読んだ答え。`n < 0` に 0 は入らないので `run:0` が出る"
-    - "if の中身を飛ばして読んだ答え。-1 では skip を出し、return で run は出さない"
-  explanation: "n が負のときだけ skip を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。"
+    - "if の中身を飛ばして読んだ答え。-1 では `skip` を出し、return で run は出さない"
+  explanation: "n が負のときだけ `skip` を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。"
   trace:
     - "9行目: `n = 3` → if は false → `run:3` と表示"
     - "10行目: `n = -1` → if は true → `skip` と表示 → return で終了(6行目は実行されない)"

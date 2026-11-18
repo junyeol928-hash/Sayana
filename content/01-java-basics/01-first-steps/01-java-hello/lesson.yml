@@ -137,7 +137,7 @@ quiz:
       - ""
     explanation: |
       `public` なクラスは、クラス名と同じ名前のファイルに書く必要があります。`public class Hello` は `Hello.java` に書かなければならず、
-      `javac` は「クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります」というコンパイルエラーにします(`.class` は1つも作られません)。
+      `javac` は `クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります` というコンパイルエラーにします(`.class` は1つも作られません)。
       なお `java Main.java` のような単一ファイル実行(Java 11+)ではこのルールが適用されず Hi が表示されますが、問題は `javac` の場合です。
 
   - question: |

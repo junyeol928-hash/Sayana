@@ -193,7 +193,7 @@ quiz:
       - ""
       - "`||` も右辺を評価すると読んだ答え。左辺が `true` なので右辺の割り算は実行されない"
     explanation: |
-      `||` は **短絡評価** するので、左辺 `count == 0` が true の時点で右辺 `total / count` は評価されず、1行目は true。
+      `||` は **短絡評価** するので、左辺 `count == 0` が `true` の時点で右辺 `total / count` は評価されず、1行目は `true`。
       一方 `|` は短絡しないので左右を両方評価し、`total / count`(100 ÷ 0)で `ArithmeticException: / by zero` が発生する。
       条件をつなぐときは `&&` / `||` を使うのが原則。
 columns:
