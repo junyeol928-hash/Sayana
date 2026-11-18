@@ -110,6 +110,20 @@ await scrollTo(".quiz-q:nth-child(2) .choice", 150);
 await shot("m-quiz-inline");
 await scrollTo("#quiz-result", 130);
 await shot("m-quiz-score");
+// サンプルの実行結果(予想してから開く欄)。閉じた形と開いた形
+await scrollTo("#run .sample", 130);
+await shot("m-sample-closed");
+await js(`document.querySelector("#run .sample-result").open = true;`);
+await scrollTo("#run .sample-result", 260);
+await shot("m-sample-result");
+// 復習(レッスンを混ぜ、選択肢の並びを入れ替える)。1 問答えたあとの形も
+await open(mobileArg + "#/review");
+await js(`window.scrollTo(0, 0);`);
+await shot("m-review");
+await js(`const f = document.querySelector("#rq"); if (f) { f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); }
+  await new Promise((r) => setTimeout(r, 800));`);
+await scrollTo("#ra", 200);
+await shot("m-review-answer");
 await open(mobileArg + "#/reading");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-reading");
@@ -137,6 +151,9 @@ await js(`const ans = [2, 1, 3, 1, 2]; document.querySelectorAll("form.quiz .qui
   document.querySelector("form.quiz button[type=submit]").click(); await new Promise((r) => setTimeout(r, 2000));`);
 await scrollTo("form.quiz .quiz-q:nth-child(2) .choice", 160);
 await shot("pc-quiz");
+await open(pcArg + "review");
+await js(`window.scrollTo(0, 0);`);
+await shot("pc-review");
 await open(pcArg + "glossary");
 await js(`const t = [...document.querySelectorAll(".term")].find((x) => x.querySelector(".term-count") && x.textContent.includes("equals")); window.scrollTo(0, t.getBoundingClientRect().top + scrollY - 220); await new Promise((r) => setTimeout(r, 600));`);
 await shot("pc-glossary");
