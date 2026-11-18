@@ -5,22 +5,24 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 ## 現状
 - 公開中(`main`)は 2026-11-02 の作り直し([PR #7](https://github.com/junyeol928-hash/Sayana/pull/7))。スマホ版は GitHub Pages の https://junyeol928-hash.github.io/Sayana/m/ (Pages は `main` の直下から配信。`main` に入れば公開される)
 - ブランチ `claude/upgrade-learning`(未 push・未マージ。2026-11-19)で、教材の正確さの総点検と、学びやすさの作り直しをした。中身は下の「変更内容」。push・PR・Pages への反映はユーザーの確認待ち
-- 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で 2026-11-19 に確認)、`./mvnw test`
+- 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で 2026-11-19 に確認)、`./mvnw test`(488 件、2026-11-19 に全部通過)
 - 相互レビュー: 18 回目から目標を Awwwards の Site of the Day にした(物差しは [review-rubric.md](review-rubric.md) の「18 回目から」。合格の線は加重平均 8.5・どの軸も 8.0・学びやすさ 8.5)。点数の移り変わりと直したことは [design-review.md](design-review.md) の末尾、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は 18〜21 回目のどれも利用上限で審査できていない(次に使えるのは 2026-11-20 00:51)。代わりに独立の Claude 2 人(2 人目は学びやすさに厳しい審査員)で採点している
-  - 20 回目: 8.35(学びやすさ 8.5)と 8.30(8.0)。21 回目の結果は design-review.md の末尾
+  - 20 回目: 8.35(学びやすさ 8.5)と 8.30(8.0)。21 回目: 8.40(9.0)と 8.60(8.5。2 人目は合格の線を越えた)。22 回目の結果は design-review.md の末尾
 - トップページ「特別なご案内♡」(公開リポジトリにある個人的なページ)の扱いは、ユーザーに確認中(残す / 別の場所へ / 消す)
 - 実機のスマホでの見た目と操作は、まだ確かめていない(ヘッドレスの Edge の撮影とオフラインの確認だけ)
 
 ## 変更内容(直近。ブランチ claude/upgrade-learning)
 - 教材の正確さ: 全 4 部・用語集を公式ドキュメントと実行で点検し、誤り・不正確を直した。サンプル 149 本は JShell で実行し、出力を `src/main/resources/mobile/sample-outputs.json` に控えた(`SampleOutputs`。同じ JDK なら `CurriculumTest` が控えと本物の出力を比べる)。総合演習の始め方は Initializr が 3.5 を出さなくなったので pom.xml から
 - 手を止めて(`checks.yml`、全 55 レッスンで 173 問): 本文の節の終わり(`after`)か、答えを見せる直前(`before`。答えるまで後ろの `hides` 個の塊を畳む)に置く押して答える 1 問。選択肢ごとの `why`(選んだ誤答に向けた 1 文)。スマホは復習にも入る。書き方は [CONTENT_FORMAT.md](CONTENT_FORMAT.md)
-- クイズ 275 問・読解 171 問にも `why` を書いた。判定のすぐ下に出る(レッスン・読解・復習、PC とスマホ)
-- 復習: 1・3・7・14 日の 4 目の運針(正解で縫う・間違えるとほどける・卒業で褐が染み込む)、レッスンを混ぜて出す、答える前はレッスン名を出さない、選択肢の並びを日ごとに入れ替える、10 問ごとの区切りと今日の終わりに今日の運針と間違えた問題の行、PC の 1200px 以上は 2 列。縹(クイズ合格)に数えるのは各日の最初の採点だけ(`ProgressService.FIRST_ATTEMPT_RULE_FROM` より前の記録は従来どおり全部数える)
+- クイズ 275 問・読解 171 問にも `why` を書いた。判定 → why → 刺し子の線 → 解説 の形(レッスン・読解・復習、PC とスマホ)。why は「どう読み違えたか」、解説は「正解の筋」で、同じ話をくり返さない(`CurriculumTest#proseRules` が 12 字以上の同じ並び・地の文の ASCII の引用符・予想の問いの無いサンプルを落とす)
+- 復習: 1・3・7・14 日の 4 目の運針(正解で縫う・間違えるとほどける・卒業で褐が染み込む)、レッスンを混ぜて出す、答える前はレッスン名を出さない、選択肢の並びを日ごとに入れ替える、10 問ごとの区切りと今日の終わりに今日の運針と間違えた問題の行(選んだ誤答の読み違え。スマホは `reviewLog[日].choices`、PC は `ReviewItem.lastChoice`)、今日の終わりから間違えた問題の解き直し(記録しない)、PC の 1200px 以上は 2 列(答えたら解説はコードの下)。縹(クイズ合格)に数えるのは各日の最初の採点だけ(`ProgressService.FIRST_ATTEMPT_RULE_FROM` より前の記録は従来どおり全部数える)
 - スマホのサンプルの下に「予想したら、実行結果を見る」(PC で実行した控え。説明の中の問いを「予想: 〜」で繰り返す)
 - スマホのホーム: 期限の来た復習があって次が演習の日は、主ボタンを「今日の復習から」に
 - 撮影 `scripts/review-shots.mjs` に、手を止めて・実行結果・復習(間違えたあと・区切り)を足した。PC の復習を撮るには、PC の記録(`data/dojo`)に今日が期日の問題が要る(撮影の中でクイズを解くと spring-di の問題は翌日に回る)
 - `scripts/verify-exercise.sh` が PyYAML のある python と `$JAVA_HOME` の java を使うようにした
+- 本文の書体: Windows で BIZ UDPGothic の欧文の下が欠けるので、ASCII だけ端末の Segoe UI から取る(`Dojo Latin`。撮影の `pc-font-check` で確かめる)
+- 全 149 本のサンプルの説明に予想の問い(スマホの「予想: 〜」)。答えの前の問いと同じコードが直前の本文にあれば、本文側を出さない
 
 ## 次に依頼すること
 - push と PR はユーザーの確認待ち。マージすると Pages に出る。マージの前に `./mvnw test`(5 分ほど)と `node scripts/offline-check.mjs . <出力フォルダ>` を通す
