@@ -10,7 +10,7 @@
 
 ## STS ってなに?
 
-**STS(Spring Tool Suite 4)** は、Java の定番 IDE **Eclipse** に、Spring 開発用の拡張を最初から入れて配布したものです。中身は Eclipse なので、Eclipse の操作・ショートカット・ネット上の情報はほぼそのまま通用します。
+**STS** は、Java の定番 IDE **Eclipse** に、Spring 開発用の拡張を最初から入れて配布したものです。いまの正式名は **Spring Tools for Eclipse**(5.x。4.x までは Spring Tool Suite 4)ですが、いまも略して STS と呼ばれます。中身は Eclipse なので、Eclipse の操作・ショートカット・ネット上の情報はほぼそのまま通用します。
 
 Spring 向けに足されているのは主にこの3つです。
 
@@ -19,17 +19,17 @@ Spring 向けに足されているのは主にこの3つです。
 - `application.properties` などの設定ファイルの入力補完
 
 ::: trivia VS Code 版もある
-Spring Tools 4 には VS Code 用の拡張もあります。この道場では、Spring の現場で長く使われてきた Eclipse 版の STS で説明します。
+Spring Tools には VS Code 用の拡張もあります。この道場では、Spring の現場で長く使われてきた Eclipse 版の STS で説明します。
 :::
 
 ## Windows へのインストール
 
 インストーラはありません。**展開して置くだけ** です。
 
-1. **spring.io/tools** から Windows(x86_64)用をダウンロード。配布形式は版によって **zip** か **自己展開 jar**(`...self-extracting.jar`)です
-2. 自己展開 jar はダブルクリック、または `java -jar ファイル名.jar` で展開(Java 21 が入っていれば動きます)
-3. できたフォルダ(`sts-4.xx.x.RELEASE`)を **`C:\dev\` のような短いパス** に置く
-4. 中の **`SpringToolSuite4.exe`** を起動
+1. **spring.io/tools** から Windows(x86_64)用の **zip**(`spring-tools-for-eclipse-5.x.x.RELEASE-e4.xx.0-win32.win32.x86_64.zip`)をダウンロード
+2. **7-Zip などで展開** する(エクスプローラーの「すべて展開」はパスが長すぎて失敗することがあります)
+3. 展開したフォルダ(名前は版によって違います)を **`C:\dev\` のような短いパス** に置く
+4. 中の起動用の **`.exe`** を起動(4.x までは `SpringToolSuite4.exe`)
 
 置き場所は **日本語・スペースを含まないフォルダ** にします。`C:\Users\山田\ダウンロード` や `C:\Program Files` は避けてください。古いツールやスクリプトの中には、スペースや非 ASCII 文字を含むパスを正しく扱えないものがあるからです。`Program Files` は管理者権限がないと書き込めず、STS の更新やプラグイン追加で失敗する原因にもなります。
 
@@ -41,7 +41,7 @@ Spring Tools 4 には VS Code 用の拡張もあります。この道場では�
 
 | 役割 | 何が使われるか | 設定場所 |
 |---|---|---|
-| STS 本体の起動 | 同梱の JRE | `SpringToolSuite4.ini` |
+| STS 本体の起動 | 同梱の JRE | STS の `.ini`(exe と同じ名前) |
 | プロジェクトの実行 | 登録した JDK | Installed JREs |
 
 プロジェクト側には **JDK 21** を登録して既定にします。
@@ -57,7 +57,7 @@ Spring Tools 4 には VS Code 用の拡張もあります。この道場では�
 
 **実行環境(Execution Environment)** は「Java 21 相当の何か」という抽象的な名前です。プロジェクトの設定には `C:\Program Files\...\jdk-21` のような具体的なパスではなく `JavaSE-21` という名前だけが記録され、各 PC の STS がそれを自分の JDK に対応づけます。だから JDK の置き場所が人によって違っても、同じプロジェクトを開けるわけです。
 
-STS 本体がどの Java で動いているかは、**Help > About Spring Tool Suite 4 > Installation Details > Configuration**(ヘルプ > Spring Tool Suite 4 について > インストール詳細 > 構成)の `java.home` で確かめられます。`plugins` フォルダの中の JRE が出てきたら、それが同梱 JRE です。
+STS 本体がどの Java で動いているかは、**Help > About(製品名)> Installation Details > Configuration**(ヘルプ > (製品名)について > インストール詳細 > 構成)の `java.home` で確かめられます。About の後ろには製品名が入ります(4.x では About Spring Tool Suite 4)。`plugins` フォルダの中の JRE が出てきたら、それが同梱 JRE です。
 
 ちなみに STS は保存時のコンパイルに Eclipse 独自のコンパイラ(ECJ)を使います。エラーメッセージの文言がコマンドラインの `javac` と少し違うのはこのためです。
 
@@ -140,7 +140,7 @@ Hello.java:3: error: unmappable character (0x93)
 
 **重い・`OutOfMemoryError: Java heap space`**
 
-STS 本体のメモリ上限は、exe と同じフォルダの **`SpringToolSuite4.ini`** の `-Xmx` で決まります。
+STS 本体のメモリ上限は、exe と同じフォルダにある **exe と同じ名前の `.ini` ファイル**(Eclipse の起動設定。4.x までは `SpringToolSuite4.ini`)の `-Xmx` で決まります。
 
 ```text
 -vmargs
@@ -156,12 +156,12 @@ STS 本体のメモリ上限は、exe と同じフォルダの **`SpringToolSuit
 :::
 
 ::: point まとめ
-- STS = Eclipse + Spring 向け拡張。**日本語・スペースなしの短いパス** に展開し、`SpringToolSuite4.exe` で起動
+- STS = Eclipse + Spring 向け拡張。**日本語・スペースなしの短いパス** に展開し、中の `.exe` で起動
 - ワークスペースは設定とプロジェクトの置き場所。`C:\dev\workspace` のような場所に
 - **STS を動かす JRE とプロジェクトの JDK は別物**。Installed JREs で **JDK 21 を登録して既定** に
 - 画面は **パースペクティブ(配置)> ビュー(小窓)+ エディタ**。閉じたら **Show View**、崩れたら **Reset Perspective**
 - Text file encoding は **UTF-8**。文字コードは「バイト列の読み方の約束」
-- STS のメモリ不足は `SpringToolSuite4.ini` の `-Xmx`(`-vmargs` より後ろ)
+- STS のメモリ不足は、exe と同じ名前の `.ini` の `-Xmx`(`-vmargs` より後ろ)
 :::
 
 ::: sensei

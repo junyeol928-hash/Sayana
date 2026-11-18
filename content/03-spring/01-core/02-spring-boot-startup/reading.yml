@@ -17,12 +17,12 @@
     @Value("${gateway.backend.base-url}") String baseUrl;
     @Value("${gateway.backend.timeout-millis:1000}") int timeout;
     @Value("${gateway.backend.retry:2}") int retry;
-  question: "baseUrl / timeout / retry の値は?"
+  question: "(予習:`@Value(\"${キー:既定値}\")` は設定ファイルの値をフィールドに入れる注釈で、キーが無ければ `:` の後ろの既定値を使います。prod プロファイルで起動すると `application-prod.yml` も読まれ、同じキーは共通の `application.yml` を上書きします。詳しくは第5章「設定ファイルとプロファイル」)baseUrl / timeout / retry の値は?"
   choices:
-    - "localhost:8081 / 3000 / 2"
-    - "back.internal / 3000 / 2"
-    - "back.internal / 1000 / 2"
-    - "back.internal / 3000 / 起動時に例外"
+    - "http://localhost:8081 / 3000 / 2"
+    - "https://backend.internal / 3000 / 2"
+    - "https://backend.internal / 1000 / 2"
+    - "https://backend.internal / 3000 / 起動時に例外"
   answer: 1
   explanation: "(キーの頭の gateway は、仕事では tsm)base-url は prod の yml が共通を上書きして https://backend.internal。timeout-millis は prod にないので共通の 3000(既定値の 1000 は使われない)。retry はどこにもないので既定値の 2 です。既定値があるので例外にはなりません。"
   trace:
@@ -46,7 +46,7 @@
         private int idleSeconds = 60;
         private int retryCount = 3;
     }
-  question: "起動後の maxCount / idleSeconds / retryCount は?"
+  question: "(予習:`@ConfigurationProperties(prefix = \"…\")` は、設定ファイルの prefix 以下のキーを、名前が対応するフィールドにまとめて入れる注釈です。`@Getter @Setter` は Lombok が getter / setter を作る印。詳しくは第5章「設定ファイルとプロファイル」)起動後の maxCount / idleSeconds / retryCount は?"
   choices:
     - "100 / 300 / 3"
     - "100 / 60 / 3"
@@ -75,14 +75,14 @@
     public class CommandService {
         private final CommandSender sender;
     }
-  question: "`--spring.profiles.active=stg` で起動すると、sender には何が入る?"
+  question: "(予習:`@Profile(\"prod\")` を付けた Bean は、そのプロファイルが有効なときだけ作られます。プロファイルは起動引数 `--spring.profiles.active=…` で選びます。詳しくは第5章「設定ファイルとプロファイル」)`--spring.profiles.active=stg` で起動すると、sender には何が入る?"
   choices:
     - "SecureCommandSender"
     - "PlainCommandSender"
     - "両方の候補があり起動時に例外"
     - "どちらも作られず起動時に例外"
   answer: 1
-  explanation: "stg では @Profile({\"dev\",\"stg\"}) の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず NoSuchBeanDefinitionException(4)になります。"
+  explanation: "stg では @Profile({\"dev\",\"stg\"}) の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に NoSuchBeanDefinitionException(Bean が見つからない)になります。"
   trace:
     - "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない"
     - "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる"
@@ -105,7 +105,7 @@
             System.out.println(endpoint);
         }
     }
-  question: "yml に `gateway.crypto.host: crypto1` があるとき、起動時の出力は?"
+  question: "(予習:`@Value` は設定ファイルの値をフィールドに入れる注釈、`@PostConstruct` は「Bean を作り終えた後に1回だけ呼ばれるメソッド」の印です。@Value は第5章「設定ファイルとプロファイル」で詳しく扱います)yml に `gateway.crypto.host: crypto1` があるとき、起動時の出力は?"
   choices:
     - "crypto1:9000"
     - "null:9000"

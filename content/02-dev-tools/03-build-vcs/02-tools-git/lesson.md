@@ -70,7 +70,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 
 # 進捗・提出履歴の H2 データベース
-data/
+/data/
 
 # APIキーなどの秘密情報
 .env
@@ -83,8 +83,8 @@ application-local.yml
 ```
 
 - **target/**:Maven が作る成果物。`./mvnw package` でいつでも作り直せるので履歴に入れない(入れると、ビルドのたびに大量の差分が出る)
-- **`!` で始まる行**:除外の取り消し。Wrapper の jar だけは配布物として残す
-- **data/**:個人の学習記録。他人と共有するものではない
+- **`!` で始まる行**:それより前の行(や個人のグローバル設定)で除外したものを取り消す。たとえば `*.jar` を無視する設定があっても、Wrapper の jar だけは残す、という使い方(このアプリの Wrapper は jar を使わない方式なので、実際には jar はありません)
+- **/data/**:個人の学習記録。他人と共有するものではない。先頭の `/` は「リポジトリ直下の data だけ」という意味。`/` が無い `data/` だと、スマホ版の教材 `m/data/` まで無視されてしまう
 - **.env / application-local.yml**:APIキーなどの秘密情報。**一度でもコミットすると履歴に残る**
 - **.project / .classpath**:STS(Eclipse)が環境ごとに作る設定。チームで IDE が違っても困らないよう入れず、受け取った側は **Maven プロジェクトとしてインポート** して作り直す
 
@@ -179,7 +179,7 @@ hint: work that you do not have locally.
 ::: point まとめ
 - ファイルは **作業ツリー → (add) → ステージ → (commit) → ローカル → (push) → リモート** と移る
 - ブランチはコミットを指す **名札**。main は守り、作業は **feature ブランチ + プルリクエスト**
-- **.gitignore** に target/(作り直せる)・data/(個人のもの)・秘密情報・IDE 設定を書く。コミット済みのものは `git rm --cached`
+- **.gitignore** に target/(作り直せる)・/data/(個人のもの)・秘密情報・IDE 設定を書く。コミット済みのものは `git rm --cached`
 - STS では **Git Staging ビュー**・**Team > Commit / Push / Pull**・**Compare With > HEAD Revision**・**History** を使う
 - GitHub の認証は **個人アクセストークン**。コンフリクトは **相手と確認して** 印を消してコミット
 - **APIキーをコミットしたら即無効化**。**共有ブランチに force push しない**

@@ -2,7 +2,7 @@ id: sts-setup
 title: STSの導入と画面構成
 status: ready
 minutes: 15
-summary: STS(Spring Tool Suite 4)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。
+summary: STS(Spring Tools for Eclipse)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。
 goals:
   - STS が Eclipse に Spring 向けの拡張を加えた IDE であることを説明できる
   - 日本語やスペースを含まないフォルダに STS を展開し、ワークスペースを選んで起動できる
@@ -41,7 +41,7 @@ samples:
 
 quiz:
   - question: |
-      STS がたびたび `OutOfMemoryError: Java heap space` で固まるので、`SpringToolSuite4.ini` を次のように編集して再起動した。
+      STS がたびたび `OutOfMemoryError: Java heap space` で固まるので、STS の起動設定ファイル(exe と同じ名前の `.ini`)を次のように編集して再起動した。
       しかし状況が変わらない。原因として最も適切なものはどれ?
 
       ```text
@@ -59,7 +59,7 @@ quiz:
       - "ini ではなく、Installed JREs の設定でメモリを増やす必要がある"
     answer: 2
     explanation: |
-      `SpringToolSuite4.ini` では、**`-vmargs` の行より後ろ** が JVM に渡すオプションです。前に書いた `-Xmx4096m` は STS(Eclipse)への引数として扱われ、黙って無視されます。
+      STS(Eclipse)の `.ini` では、**`-vmargs` の行より後ろ** が JVM に渡すオプションです。前に書いた `-Xmx4096m` は STS(Eclipse)への引数として扱われ、黙って無視されます。
       `-Xms256m` の下に移せば効きます。単位は `m`(メガ)や `g`(ギガ)で正しく、4096m も PC のメモリが足りていれば問題ありません。
       Installed JREs は **プロジェクトを実行する JDK** の登録で、STS 本体のメモリとは関係ありません。
 
@@ -130,8 +130,8 @@ columns:
   - type: trivia
     title: Eclipse は星の名前で育ち、Pleiades は「すばる」
     body: |
-      Eclipse は以前、毎年のリリースに天文にちなんだ名前を付けていました。Callisto、Europa、Ganymede(どれも木星の衛星)、
-      Galileo、Helios、Indigo、Juno、Kepler、Luna、Mars、Neon、Oxygen、Photon……と続き、2018年からは年4回の定期リリースになって
+      Eclipse は以前、毎年のリリースに名前を付けていました。最初は Callisto、Europa、Ganymede(どれも木星の衛星)、
+      その後は Galileo、Helios、Indigo、Juno、Kepler、Luna、Mars、Neon、Oxygen、Photon……と、科学にちなんだ名前を頭文字の ABC 順(G, H, I, …)に並べ、2018年からは年4回の定期リリースになって
       **2018-09** のような年月の名前に変わりました。STS もこの Eclipse の版の上に作られていて、ダウンロードしたファイル名の
       `e4.xx` の部分が土台の Eclipse の版を表しています。
 
@@ -159,8 +159,7 @@ columns:
       Eclipse 系の `plugins` フォルダの中は深い階層と長いファイル名だらけで、Windows の昔からのパス長の上限(約260文字)を超えやすいのが原因です。
       ダウンロード先の `C:\Users\山田\Downloads\` という長いパスで展開するとさらに危険です。
 
-      対策は3つ。①**自己展開 jar 版** を使う(`java -jar` で展開すれば問題が起きにくい)、②7-Zip などのツールで展開する、
-      ③ **`C:\dev\` のような短いパス** にファイルを移してから展開する。「起動はするけど動きが変」なら、まず展開し直しを疑いましょう。
+      対策は2つ。①7-Zip などのツールで展開する、② **`C:\dev\` のような短いパス** にファイルを移してから展開する。「起動はするけど動きが変」なら、まず展開し直しを疑いましょう。
 
 sts:
   intro: |
@@ -169,16 +168,14 @@ sts:
   steps:
     - title: STS をダウンロードして展開する
       detail: |
-        ブラウザで **spring.io/tools** を開き、Eclipse 版の **Windows x86_64** 用をダウンロードします。
+        ブラウザで **spring.io/tools** を開き、Spring Tools for Eclipse の **Windows x86_64** 用の zip(`spring-tools-for-eclipse-5.x.x.RELEASE-e4.xx.0-win32.win32.x86_64.zip`)をダウンロードします。
+        7-Zip などで展開します(エクスプローラーの「すべて展開」はパスが長すぎて失敗することがあります)。
 
-        - **自己展開 jar**(`...self-extracting.jar`)の場合:ダブルクリック、またはコマンドプロンプトで `java -jar ファイル名.jar` を実行します
-        - **zip** の場合:7-Zip などで展開します(エクスプローラーの「すべて展開」はパスが長すぎて失敗することがあります)
-
-        できた `sts-4.xx.x.RELEASE` フォルダを **`C:\dev\`** に移動します。中に **`SpringToolSuite4.exe`** と **`SpringToolSuite4.ini`** があれば成功です。
+        展開したフォルダ(名前は版によって違います)を **`C:\dev\`** に移動します。中に起動用の **`.exe`** と、それと同じ名前の **`.ini`** があれば成功です(4.x までは `SpringToolSuite4.exe` と `SpringToolSuite4.ini`)。
         `C:\Program Files` や、日本語・スペースを含むフォルダには置かないでください。
     - title: 起動してワークスペースを選ぶ
       detail: |
-        `SpringToolSuite4.exe` をダブルクリックします(よく使うのでタスクバーにピン留めしておくと便利です)。
+        STS のフォルダの `.exe` をダブルクリックします(よく使うのでタスクバーにピン留めしておくと便利です)。
 
         **Select a directory as workspace**(ワークスペースとしてのディレクトリー選択)のダイアログで、**Workspace** 欄に `C:\dev\workspace` と入力して **Launch**(起動)を押します。
         フォルダが無ければ自動で作られます。STS のウィンドウが開き、Welcome(ようこそ)画面が出たら閉じて構いません。
@@ -204,8 +201,8 @@ sts:
         同じ画面の **New text file line delimiter**(新規テキスト・ファイルの行区切り文字)は、チームの決まりが無ければ既定のままで構いません(Git の回で扱います)。
     - title: STS 本体がどの Java で動いているか確かめる
       detail: |
-        **Help > About Spring Tool Suite 4**(ヘルプ > Spring Tool Suite 4 について)→ **Installation Details**(インストール詳細)→ **Configuration**(構成)タブを開きます。
-        **Ctrl+F** で `java.home` を探すと、STS 本体を動かしている Java の場所が分かります。`sts-4.xx.x.RELEASE\plugins\...` の中の JRE なら同梱 JRE です。
+        **Help > About(製品名)**(ヘルプ > (製品名)について。4.x では About Spring Tool Suite 4)→ **Installation Details**(インストール詳細)→ **Configuration**(構成)タブを開きます。
+        **Ctrl+F** で `java.home` を探すと、STS 本体を動かしている Java の場所が分かります。STS のフォルダの `plugins\...` の中の JRE なら同梱 JRE です。
         さっき登録したプロジェクト用の JDK 21 とは **別物** であることを確かめましょう。同じ画面で `-Xmx` を探すと、STS 本体のメモリ上限も見られます。
     - title: ビューを閉じて、元に戻す
       detail: |
@@ -219,13 +216,13 @@ sts:
     - title: (任意)Pleiades で日本語化する
       detail: |
         メニューを日本語にしたい場合だけ行います。Pleiades の配布ページから **Pleiades プラグイン**(Windows 版)をダウンロードして展開し、中の `setup.exe` を実行します。
-        **日本語化するアプリケーション** に `C:\dev\sts-4.xx.x.RELEASE\SpringToolSuite4.exe` を選んで **日本語化する** を押し、STS を再起動します。
-        `SpringToolSuite4.ini` に `-javaagent:...pleiades.jar` という行が追加され、メニューが「ファイル」「ウィンドウ」のように変わっていれば成功です。
+        **日本語化するアプリケーション** に `C:\dev\` に置いた STS のフォルダの `.exe` を選んで **日本語化する** を押し、STS を再起動します。
+        exe と同じ名前の `.ini` に `-javaagent:...pleiades.jar` という行が追加され、メニューが「ファイル」「ウィンドウ」のように変わっていれば成功です。
         元に戻したいときは、この行を削除して再起動します。
 
 checklist:
   - key: sts-launched
-    text: STS を日本語・スペースを含まないフォルダ(例 C:\dev)に展開し、SpringToolSuite4.exe で起動できた
+    text: STS を日本語・スペースを含まないフォルダ(例 C:\dev)に展開し、中の .exe で起動できた
   - key: workspace-chosen
     text: ワークスペースを OneDrive 外の短いパス(例 C:\dev\workspace)に決めた
   - key: jdk21-default
@@ -237,4 +234,4 @@ checklist:
   - key: views-restored
     text: ビューを閉じて Show View で戻し、Reset Perspective で配置を初期状態に戻せた
   - key: ini-located
-    text: SpringToolSuite4.ini を開き、-vmargs の後ろにある -Xmx の行を見つけた(書き換えは必要になったときでよい)
+    text: exe と同じ名前の .ini を開き、-vmargs の後ろにある -Xmx の行を見つけた(書き換えは必要になったときでよい)

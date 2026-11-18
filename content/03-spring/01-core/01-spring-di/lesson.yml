@@ -300,6 +300,7 @@ sts:
   intro: |
     STS で Spring Boot のプロジェクトを作り、`@Service` と `CommandLineRunner` で DI を体験します。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    STS のウィザード(裏は start.spring.io)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
     `CommandLineRunner` は「アプリの起動が終わった直後に1回だけ実行される処理」を書くためのインターフェースです(詳しくは次のレッスン)。
   steps:
     - title: Spring Starter Project を作る

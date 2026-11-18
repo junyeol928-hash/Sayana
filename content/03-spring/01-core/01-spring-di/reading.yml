@@ -26,7 +26,7 @@
     - "起動時に例外"
     - "null"
   answer: 1
-  explanation: "CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ起動時に NoUniqueBeanDefinitionException(3)になります。"
+  explanation: "CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ、候補が2つで選べず、起動時に NoUniqueBeanDefinitionException になります。"
   trace:
     - "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)"
     - "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される"
@@ -86,7 +86,7 @@
     - "backendClient が2個作られる"
     - "@Bean メソッドの順序が逆なのでエラー"
   answer: 1
-  explanation: "@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。メソッドの記述順(4)は関係ありません。Bean は singleton なので backendClient は1個だけ(3)です。"
+  explanation: "@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。@Bean メソッドを書いた順番は関係ないのでエラーにはならず、Bean は singleton なので backendClient が2個作られることもありません。"
   trace:
     - "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される"
     - "4行目: backendClient は RestTemplate に依存すると分かる"

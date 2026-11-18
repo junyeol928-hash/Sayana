@@ -206,7 +206,7 @@ sts:
       detail: |
         エクスプローラーのアドレス欄に `%USERPROFILE%\.m2\repository` と入力して開きます(`.m2` は隠しフォルダ扱いになっていることがあるので、アドレス欄から直接入るのが確実です)。
         `com\h2database\h2\2.3.232` と降りていき、`h2-2.3.232.jar` と `h2-2.3.232.pom` があれば成功です。座標(groupId / artifactId / version)がそのままフォルダ構成になっていることを確かめてください。
-        `wrapper\dists` の下には、mvnw がダウンロードした Maven 本体も入っています。
+        ひとつ上の `%USERPROFILE%\.m2\wrapper\dists` には、mvnw がダウンロードした Maven 本体(`apache-maven-3.9.11`)が入っています(`repository` の中ではありません)。
     - title: コマンドラインでも同じことをする
       detail: |
         PowerShell でプロジェクトのフォルダ(pom.xml のある場所)に移動し、次を実行します(コマンドプロンプトなら `./` を付けずに `mvnw`)。

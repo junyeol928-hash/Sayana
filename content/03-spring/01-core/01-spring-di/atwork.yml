@@ -22,7 +22,7 @@
   notes:
     1: "Bean にする印。Spring が起動時にこのクラスを1個作る"
     2: "final フィールド4つを引数にとるコンストラクタが自動生成される = 4つとも注入"
-    7: "業務サーバ(仕事では Back サーバ)を呼ぶ部品。中身は RestTemplate や WebClient を包んだクラス(Web 章)"
+    7: "業務サーバ(仕事では Back サーバ)を呼ぶ部品。中身は RestTemplate や WebClient(外部の API を呼ぶ Spring の部品。この道場の本文では扱わない)を包んだクラス"
     8: "java.time.Clock も Bean にしておくと、テストで時刻を固定できる"
     10: "処理中の値(cardId など)は引数とローカル変数だけ。フィールドには置かない"
     13: "SessionEntity は Spring の Bean ではなく、処理のたびに new する普通のオブジェクト"

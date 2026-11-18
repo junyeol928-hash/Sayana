@@ -143,6 +143,7 @@ columns:
 
       `pom.xml` に `<repository>` として `https://repo.spring.io/snapshot` などが追加されていたら、うっかり選んだサインです。
       学習でも仕事でも、**何も付いていない正式版** を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
+      ただし start.spring.io(STS のウィザードも裏で同じ)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
 
 sts:
   intro: |
@@ -170,6 +171,7 @@ sts:
     - title: 依存に Spring Web を選んで作成する
       detail: |
         2ページ目の **Spring Boot Version** は、`SNAPSHOT`・`M`・`RC` が付いていない正式版を選びます。
+        start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
         **Available**(使用可能)の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れます。右側の **Selected**(選択済み)に Spring Web が出れば OK。
         **Finish**(完了)を押します。
 
@@ -188,7 +190,7 @@ sts:
       detail: |
         道場アプリを STS で動かしている場合は、先に止めておきます(次の手順で衝突を体験するなら、動かしたままで構いません)。
 
-        **Boot Dashboard**(見当たらなければ **Window > Show View > Other... > Spring > Boot Dashboard**)の **local** を開き、`demo` を選んで **▶(Start)** を押します。
+        **Boot Dashboard**(見当たらなければ **Window > Show View > Other... > Spring > Boot Dashboard**)の **local** を開き、`demo` を選んで **▶((Re)start)** を押します。
         Console に `Tomcat started on port 8080 (http)` と `Started DemoApplication in ...` が出たら起動成功です。
 
         ブラウザで `http://localhost:8080` を開き、**Whitelabel Error Page**(`status=404`)が出れば OK。まだ画面を作っていないので 404 で正解です。
@@ -199,7 +201,7 @@ sts:
 
         1. Console ビューの赤い四角 **Terminate**(終了)で、失敗した方を止める(すでに止まっていれば不要)
         2. `src/main/resources/application.properties` に `server.port=8081` を1行追加して保存
-        3. Boot Dashboard で `demo` を選び、**Restart**(再始動)ボタン(または ■ で止めて ▶)を押す
+        3. Boot Dashboard で `demo` を選び、▶(**(Re)start**)ボタンを押す(動いているアプリは止めてから起動し直されます)
         4. Console に `Tomcat started on port 8081` と出て、`http://localhost:8081` で Whitelabel Error Page が出れば成功
 
         終わったら Boot Dashboard の **■(Stop)** で demo を止めます。

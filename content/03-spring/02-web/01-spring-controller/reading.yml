@@ -50,7 +50,7 @@
             return ResponseEntity.badRequest().body(new ErrorResponse("E400"));
         }
     }
-  question: "ボディ `{\"cardId\":\"C001\",\"hostChallenge\":\"abcd\"}` を POST すると?"
+  question: "(予習:`@RequestBody` は JSON のボディをオブジェクトで受け取る注釈、`@Valid` はそのオブジェクトの入力ルール(`@NotBlank` など)を検証する印、`@RestControllerAdvice` の `@ExceptionHandler` は投げられた例外を受けてレスポンスにするメソッドです。この章の「フォームとバリデーション」と第4章「REST API」「例外ハンドリング」で詳しく扱います)ボディ `{\"cardId\":\"C001\",\"hostChallenge\":\"abcd\"}` を POST すると?"
   choices:
     - "sessionService.start が呼ばれ 200"
     - "400 と {\"code\":\"E400\"}"
@@ -83,14 +83,14 @@
     }
 
     // Service が throw new CryptoUnavailableException() した
-  question: "応答は?"
+  question: "(予習:`@RestControllerAdvice` のクラスの `@ExceptionHandler(型)` メソッドは、その型の例外が Controller から投げられたときに呼ばれ、戻り値がレスポンスになります。第4章「例外ハンドリング」で詳しく扱います)応答は?"
   choices:
     - "503 \"gateway\""
     - "500 \"other\""
     - "両方のハンドラが実行される"
     - "ハンドラが2つあるので起動時に例外"
   answer: 0
-  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 \"gateway\" です。両方が実行される(3)ことはありません。"
+  explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 \"gateway\" です。両方のハンドラが実行されることはありません。"
   trace:
     - "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
     - "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致"
@@ -115,7 +115,7 @@
 
     @GetMapping("/api/ping")
     public String ping() { return "pong"; }
-  question: "ヘッダなしで `GET /api/ping` を送ると?"
+  question: "(予習:Filter は DispatcherServlet より手前で全リクエストを受ける部品で、`chain.doFilter(...)` を呼ぶと次の処理(最後は Controller)へ進みます。第6章「Spring Security入門」で詳しく扱います)ヘッダなしで `GET /api/ping` を送ると?"
   choices:
     - "200 \"pong\""
     - "401 でボディなし。ping() は呼ばれない"
@@ -147,8 +147,8 @@
             return ResponseEntity.ok(new ChallengeResponse("0011223344556677"));
         }
     }
-    // ChallengeRequest は @Data で cardId フィールドを持つ。受付サーバ側は cardId = "C001"
-  question: "受付サーバの `requestChallenge(\"C001\")` の結果は?"
+    // ChallengeRequest は @Data @NoArgsConstructor @AllArgsConstructor のクラス(cardId フィールドを持つ)。受付サーバ側は cardId = "C001"
+  question: "(予習:`restTemplate.postForObject(URL, 送るオブジェクト, 戻りの型)` は、別のサーバーへ JSON を POST し、返ってきた JSON を指定した型に変換する呼び出しです。受け取る側の `@RequestBody` は JSON のボディをオブジェクトにする注釈(第4章「REST API」))受付サーバの `requestChallenge(\"C001\")` の結果は?"
   choices:
     - "業務サーバの challenge() が呼ばれ、ChallengeResponse(\"0011223344556677\") が返る"
     - "業務サーバで 400 になり受付サーバで例外"

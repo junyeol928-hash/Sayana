@@ -82,7 +82,7 @@ public class MemberForm {
 | `@Size` `@Min` `@Max` | 長さ・数値の範囲 | OK |
 | `@Email` `@Pattern` | 形式・正規表現 | OK |
 
-大事なのは右列。**`@NotNull` 系以外は null を OK とみなします**。「未入力かどうかは別の注釈の担当」という設計なので、必須項目は `@NotBlank` などと組み合わせます。メッセージは `@NotBlank(message = "名前を入力してください")` のように変えられます(省略時は JVM のロケールに応じた既定文。日本語環境なら「空白は許可されていません」)。
+大事なのは右列。**`@NotNull` 系以外は null を OK とみなします**。「未入力かどうかは別の注釈の担当」という設計なので、必須項目は `@NotBlank` などと組み合わせます。メッセージは `@NotBlank(message = "名前を入力してください")` のように変えられます(省略時は Hibernate Validator の既定文。言語は、Spring MVC の画面ではリクエストのロケール(ブラウザの言語設定)、Spring を通さずに検証したときは JVM の既定ロケールで決まり、日本語なら「空白は許可されていません」)。
 
 ::: trivia javax から jakarta へ
 古い記事の `javax.validation` は、Java EE が Eclipse 財団へ移管された際、商標の都合で `jakarta.*` に改名されたもの。Spring Boot 3 以降は `jakarta` 一択です。
