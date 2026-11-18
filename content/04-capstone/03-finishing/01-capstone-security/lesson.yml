@@ -179,7 +179,8 @@ columns:
 
       承認くんは `BCryptPasswordEncoder` を直接 Bean にしているので、`{bcrypt}` は付けません。
       逆に、`PasswordEncoder` の Bean を定義し忘れると Delegating が使われ、`{ }` の無いハッシュに対して
-      `There is no password encoder mapped for the id 'null'` という例外になります。
+      `Given that there is no default password encoder configured, each password must have a password encoding prefix.` で始まる例外になります
+      (Spring Security 5 系では `There is no PasswordEncoder mapped for the id "null"` でした。ネットの記事はこちらが多い)。
   - type: genba
     title: "「そのユーザーは存在しません」と言ってはいけない"
     body: |
@@ -194,18 +195,18 @@ columns:
   - type: mistake
     title: "Role が「あいまい」と言われてコンパイルできない"
     body: |
-      `SecurityConfig` や初期データのクラスで import を `*` でまとめると、次のコンパイルエラーに出会うことがあります。
+      `SecurityConfig` や初期データのクラスで import を `*` でまとめると、次のコンパイルエラーに出会うことがあります(Maven でビルドしたときの javac の表示。STS のエディターでは `The type Role is ambiguous` と出ます)。
 
       ```text
       reference to Role is ambiguous
-        both class org.springframework.context.annotation.Role
-        and enum com.example.approval.domain.Role match
+        both enum com.example.approval.domain.Role in com.example.approval.domain
+        and class org.springframework.context.annotation.Role in org.springframework.context.annotation match
       ```
 
       Spring にも `@Role` アノテーションがあり、`org.springframework.context.annotation.*` と `com.example.approval.domain.*` を
       両方 `*` で import すると、どちらの `Role` か決められないのです。
       STS の **Ctrl+Shift+O**(インポートの編成)は候補が複数あると選択ダイアログを出すので、そこで自分の `Role` を選び、
-      import は1クラスずつ書けば起きません。`User` や `Page` でも同じことが起きます。
+      import は1クラスずつ書けば起きません。`User` や `Pageable`(`java.awt.print.Pageable` とぶつかる)でも同じことが起きます。
 sts:
   intro: |
     承認くん(`approval-app`)にログインを付けます。capstone-approve までで、申請・承認・差戻しが「固定の社員ID」で動いている前提です。
@@ -213,15 +214,31 @@ sts:
   steps:
     - title: Spring Security を依存に追加する
       detail: |
-        **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` を右クリックし、**Spring > Add Starters**(Spring > スターターの追加)を選びます。
-        検索欄に `Security` と入れて **Spring Security** にチェックを入れ、**Next**(次へ)を押すと `pom.xml` の変更点が表示されるので、**Finish**(完了)を押します。
+        **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` の `pom.xml` を開き、**pom.xml** タブで `<dependencies>` の中に次の3つを足します。
+        STS の **Spring > Add Starters** は start.spring.io を使うので、Spring Boot 3.5 のプロジェクトでは使えません(capstone-setup で Maven プロジェクトとして作ったのと同じ理由です)。
 
-        `pom.xml` を開き、`spring-boot-starter-security` と `thymeleaf-extras-springsecurity6`(groupId は `org.thymeleaf.extras`)の2つが入っていることを確かめます。
-        後者が無ければ `<dependencies>` に手で足します(`<version>` は書かない。Spring Boot が管理します)。保存後、プロジェクトを右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新)(**Alt+F5**)。
+        ```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        ```
+
+        `<version>` は書きません(Spring Boot が管理します)。2つ目は Thymeleaf の `sec:authorize` と `#authentication`、3つ目は capstone-api-test のテストで使う `@WithMockUser`・`user(...)`・`csrf()` のためです。
+        保存後、プロジェクトを右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新)(**Alt+F5**)。
     - title: Employee にパスワードを足す
       detail: |
         `domain/Employee.java` に `private String password;`(BCrypt のハッシュ。60文字)と getter / setter を足します。
-        `repository/EmployeeRepository.java` には `Optional<Employee> findByEmail(String email);` を足します。
+        `repository/EmployeeRepository.java` に、capstone-setup で宣言した `Optional<Employee> findByEmail(String email);` があることを確かめます(ログインで使います)。
 
         開発用のパスワードは、初期データの入れ方に合わせて BCrypt で入れます。`data.sql` で入れている場合は、`config` パッケージに次のクラスを作ると、パスワードが空の社員に `pass1234` を設定できます。
         初期データを `CommandLineRunner` で入れている場合は、その中で `encoder.encode("pass1234")` をセットしてください。
@@ -295,6 +312,27 @@ sts:
         画面上で演習1を解き、`AccessPolicy`・`Operation`・`Decision` を `service` パッケージに別ファイルで作ります(`AccessPolicy` には `@Component`)。
         `Actor` の代わりに社員ID とロール、`RequestInfo` の代わりに `ApprovalRequest` を受け取るように引数を直し、`ApprovalService` の各操作の先頭で呼んで、拒否なら `BusinessRuleException(d.reason())` を投げます。
         capstone-approve で書いた個別のチェックと重なる部分は、`AccessPolicy` 側に一本化します。
+
+        詳細画面も同じです。URL のルールでは `/requests/{id}` はログインしていれば誰でも通るので、このままだと ID を書き換えるだけで他人の申請が見えます。
+        `RequestController` のコンストラクタで `AccessPolicy accessPolicy` も受け取り、`detail` で申請を読んだ後に `VIEW` を判定します。
+
+        ```java
+        @GetMapping("/{id}")
+        public String detail(@PathVariable Long id, Model model,
+                @AuthenticationPrincipal LoginUser user) {
+            ApprovalRequest req = requestService.findById(id);
+            Decision d = accessPolicy.check(
+                    user.id(), user.role(), Operation.VIEW, req);
+            if (!d.allowed()) {
+                throw new AccessDeniedException(d.reason());   // 403
+            }
+            model.addAttribute("req", req);
+            model.addAttribute("histories", approvalService.findHistories(id));
+            return "requests/detail";
+        }
+        ```
+
+        `AccessDeniedException` は `org.springframework.security.access.AccessDeniedException` を選びます。Spring Security がこれを受けて 403 にします。
     - title: ロールごとにログインして確かめる
       detail: |
         **Boot Dashboard** で `approval-app` を **(Re)start** し、`http://localhost:8080/requests` を開きます。
@@ -306,7 +344,7 @@ sts:
         6. ログアウトを押すと `/login?logout` に戻り、ブラウザの「戻る」で一覧を開こうとしてもログイン画面に飛ばされる
 checklist:
   - key: security-starter
-    text: Add Starters で Spring Security を追加し、pom.xml に spring-boot-starter-security と thymeleaf-extras-springsecurity6 が入った
+    text: pom.xml に spring-boot-starter-security・thymeleaf-extras-springsecurity6・spring-security-test を足し、Maven > Update Project で依存が入った
   - key: security-login
     text: 自作のログイン画面(/login)からメールアドレスと BCrypt のパスワードでログインでき、間違えると ?error が出た
   - key: security-url-rules

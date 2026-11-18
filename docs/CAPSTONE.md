@@ -9,7 +9,7 @@ STS で Spring Boot プロジェクトを作り、レッスンごとに機能を
 
 | 項目 | 値 |
 |---|---|
-| プロジェクト | STS: File > New > Spring Starter Project。Name `approval-app`、Group `com.example`、Package `com.example.approval`、Java 21、Maven |
+| プロジェクト | STS: File > New > Maven Project で作り、capstone-setup に載せた Spring Boot 3.5.16 の pom.xml に置き換える(start.spring.io はサポートの終わった 3.5 を選べないため)。Name `approval-app`、Group `com.example`、Package `com.example.approval`、Java 21 |
 | 依存 | Spring Web / Thymeleaf / Validation / Spring Data JPA / H2 Database / Spring Security(capstone-security で追加)/ Spring Boot DevTools |
 | パッケージ | `domain`(エンティティ・enum・例外)/ `repository` / `service` / `web`(画面)/ `web.api`(REST)/ `config` |
 
@@ -87,7 +87,7 @@ stateDiagram-v2
 ### 実装上の決めごと(各レッスンで共有)
 
 - `application.yml`: H2 ファイルモード `jdbc:h2:file:./data/approval`、`ddl-auto: update`、`defer-datasource-initialization: true`、`sql.init.mode: always`
-- Repository: `EmployeeRepository.findByEmail`(Optional)、`ApprovalRequestRepository.findByApplicantOrderByCreatedAtDesc` / `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)/ `countByStatus`、`ApprovalHistoryRepository.findByRequestOrderByAtAsc`
+- Repository: `EmployeeRepository.findByEmail`(Optional)、`ApprovalRequestRepository.findByApplicantOrderByCreatedAtDesc` / `findByApplicantIdOrderByCreatedAtDesc`(capstone-apply で足す)/ `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)/ `countByStatus`、`ApprovalHistoryRepository.findByRequestOrderByAtAsc` / `findByRequestIdOrderByAtAsc`(capstone-approve で足す)
 - 承認者は申請ごとに固定しない。`approver` には最後に承認・差戻しした人が入る。再申請は承認待ちに戻り、APPROVER/ADMIN の誰でも処理できる
 - 検索条件 `SearchCondition` は `service` パッケージ(REST API からも使う)
 - ログイン前の仮の社員ID(capstone-apply の `CURRENT_EMPLOYEE_ID`、capstone-approve の `CURRENT_APPROVER_ID`)は capstone-security で `@AuthenticationPrincipal` に置き換える

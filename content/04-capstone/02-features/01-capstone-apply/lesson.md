@@ -32,7 +32,7 @@ flowchart TD
 ## 設計の考え方:誰が何を決めるか
 
 - **フォーム**(`RequestForm`)は画面の入力欄だけを持つ。`status` や `applicant` の欄は **作らない**。作るとパラメータに `status=APPROVED` を足すだけで「承認済み」の申請が作れてしまいます(マスアサインメント)。
-- **状態と申請者は Service が決める**。新規は必ず `DRAFT`、申請者は「ログイン中の人」。
+- **状態と申請者はフォームでは決めない**。新規は必ず `DRAFT`(エンティティの初期値)、申請者は Service が「ログイン中の人」を入れる。
 - **ログインはまだ無い**。当面は Controller の定数 `CURRENT_EMPLOYEE_ID = 1L`(初期データの社員の id)で代用し、capstone-security で **ログインユーザーに置き換え** ます。
 
 ::: sensei
@@ -70,15 +70,15 @@ public class RequestForm {
     }
 
     public ApprovalRequest toEntity() {
-        ApprovalRequest r = new ApprovalRequest();
-        r.setTitle(title);
-        r.setType(type);
-        r.setAmount(type.requiresAmount() ? amount : null);
-        r.setReason(reason);
-        return r;
+        // 申請者はまだ空(Service が入れる)
+        return new ApprovalRequest(title, type,
+                type.requiresAmount() ? amount : null,
+                reason, null);
     }
 }
 ```
+
+`toEntity()` は capstone-setup で作った5つの引数のコンストラクタを使います。引数なしのコンストラクタは JPA 用の `protected` なので、別パッケージ(`web`)からは `new` できません。
 
 金額は「経費精算・備品購入なら必須、休暇なら不要」。**他の項目(type)の値で必須かどうかが変わる** ので、フィールドに `@NotNull` は付けられません。こういう複数項目にまたがるチェックが **相関チェック** です。`@AssertTrue` を付けた `isAmountEntered()` は、Bean Validation から `amountEntered` という項目として検証されます。
 
@@ -96,7 +96,7 @@ public enum RequestType {
 }
 ```
 
-`RequestStatus` にも同じく `label()`(下書き・申請中・承認済・差戻し・取下げ)を持たせます。
+`RequestStatus` は、capstone-setup で入れた `label()`(下書き・申請中・承認済・差戻し・取下げ)をそのまま使います。
 
 ## Service:DRAFT で保存し、自分の申請だけ返す
 
@@ -115,9 +115,8 @@ public class RequestService {
         Employee me = employees.findById(applicantId)
             .orElseThrow(() -> new BusinessRuleException(
                 "社員が見つかりません"));
-        r.setApplicant(me);
-        r.setStatus(RequestStatus.DRAFT);
-        r.setCreatedAt(LocalDateTime.now());
+        r.assignApplicant(me);
+        // 状態は初期値の DRAFT、作成日時は @PrePersist
         return requests.save(r);
     }
 
@@ -128,6 +127,8 @@ public class RequestService {
     }
 }
 ```
+
+`assignApplicant` は、今回 `ApprovalRequest` に足す「申請者を入れるだけ」のメソッドです。capstone-setup で決めたとおり setter は作らず、入口を必要な分だけ用意します。
 
 `findByApplicantIdOrderByCreatedAtDesc` は Spring Data JPA の **派生クエリ** です。`ApplicantId` は「`applicant` の `id`」とプロパティをたどって解釈されます。`ApprovalRequestRepository` に宣言を1行足すだけで、SQL は書きません。
 
@@ -237,7 +238,7 @@ validating type '...RequestType'.
 :::
 
 ::: point まとめ
-- フォームは入力欄だけ。**状態と申請者は Service が決める**(新規は `DRAFT`)
+- フォームは入力欄だけ。**状態と申請者はフォームで決めない**(新規は `DRAFT`、申請者は Service が入れる)
 - 他の項目で必須が変わるルールは **`@AssertTrue` の相関チェック**
 - 依存は **web → service → domain**。フォームからエンティティへの詰め替えは web 側で
 - 選択肢など全画面で要るものは **`@ModelAttribute` メソッド** で Model へ

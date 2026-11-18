@@ -193,7 +193,7 @@ public String search(
 
 ## 動作確認
 
-`application.properties` に `spring.jpa.show-sql=true` を入れて起動し、次を確かめます。
+`application.yml` の `spring.jpa.show-sql: true`(capstone-setup で設定済み)のまま起動し、次を確かめます。
 
 - `/requests/search` → 全件が新しい順、「全 N 件中 1〜20 件目」
 - `?status=SUBMITTED&keyword=出張` → SQL の where が2条件だけになる

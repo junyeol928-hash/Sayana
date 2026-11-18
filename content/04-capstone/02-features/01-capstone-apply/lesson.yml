@@ -120,7 +120,7 @@ quiz:
     explanation: |
       Bean Validation は JavaBeans の規約で getter をプロパティとして扱います。`boolean` を返す `isXxx()` はプロパティ `xxx` なので、`isAmountEntered()` は **`amountEntered`** です。
       だから画面では `th:errors="*{amountEntered}"` と書きます。`amount` の横に出したいなら、`amount` の入力欄のそばにこの span を置けば十分です。
-      エラーを `amount` 自体に付けたいなら、クラスレベルの独自制約を作るか、Service で `result.rejectValue("amount", ...)` します。
+      エラーを `amount` 自体に付けたいなら、クラスレベルの独自制約を作るか、Controller で `result.rejectValue("amount", ...)` します(`BindingResult` は Web 層のものなので、Service には渡しません)。
   - question: |
       次の Controller で、POST /requests が入力エラーになって `requests/new` を返したとき、画面はどうなる?
       ```java
@@ -180,8 +180,8 @@ columns:
       public boolean checkAmount() { ... }       // is / get で始まらない
       ```
 
-      Bean Validation がメソッドを検証するのは、JavaBeans の **getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
-      `Boolean` なら `getXxx()` でなければなりません。条件を外れたメソッドは **エラーも警告も出ずに無視** されます。
+      Bean Validation がメソッドを検証するのは、**getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
+      `Boolean` なら `getXxx()` でなければなりません(Hibernate Validator は独自に `boolean hasXxx()` も getter として扱います)。条件を外れたメソッドは **エラーも警告も出ずに無視** されます。
 
       対策は、相関チェックにも必ずテストを書くこと(演習のように Validator で直接検証できます)。
   - type: genba
@@ -221,12 +221,13 @@ sts:
     - title: 依存関係と初期データを確認する
       detail: |
         **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` の `pom.xml` を開き、**Dependencies** タブ(または `pom.xml` タブ)に
-        `spring-boot-starter-validation` と `spring-boot-starter-thymeleaf` があることを確認します。無ければプロジェクトを右クリック >
-        **Spring > Add Starters**(Spring > スターターの追加)で **Validation** / **Thymeleaf** を足します。
+        `spring-boot-starter-validation` と `spring-boot-starter-thymeleaf` があることを確認します。無ければ capstone-setup の `pom.xml` の全文と見比べて、
+        `<dependencies>` に足りない `<dependency>` を手で足し(`<version>` は書かない)、**Maven > Update Project...**(**Alt+F5**)します。
+        STS の **Spring > Add Starters** は start.spring.io を使うので、Spring Boot 3.5 のプロジェクトでは使えません。
 
         初期データ(capstone-setup で入れたもの)に **id=1 の社員** がいることも確認しておきます。この社員を「ログイン中の人」の代わりに使います。
         役割は何でも構いません(承認者も自分の経費は申請するので、申請は全員できます)。
-    - title: enum に表示名を足す(domain)
+    - title: enum の表示名と、申請者を入れるメソッドを用意する(domain)
       detail: |
         `com.example.approval.domain` の `RequestType.java` を開き、表示名と「金額が必須か」の判定を足します。
 
@@ -250,8 +251,17 @@ sts:
         }
         ```
 
-        `RequestStatus.java` にも同じ形で `label()` を足します(`DRAFT("下書き")`・`SUBMITTED("申請中")`・`APPROVED("承認済")`・
-        `RETURNED("差戻し")`・`WITHDRAWN("取下げ")`)。capstone-requirements で作った `canTransitionTo` などのメソッドはそのまま残します。
+        `RequestStatus.java` には、capstone-setup で入れた `label()`(`DRAFT("下書き")`・`SUBMITTED("申請中")`・`APPROVED("承認済")`・
+        `RETURNED("差戻し")`・`WITHDRAWN("取下げ")`)がすでにあります。`public String label()` になっていることだけ確かめます(画面のテンプレートから呼ぶため)。
+
+        続けて `ApprovalRequest.java` に、申請者を入れるだけのメソッドを足します。setter は作らない方針のままです(状態は初期値の `DRAFT`、作成日時は `@PrePersist` が入れます)。
+
+        ```java
+        public void assignApplicant(Employee applicant) {
+            this.applicant = applicant;
+        }
+        ```
+
         保存して、Package Explorer に赤い × が出ていなければ OK です。
     - title: Repository に「自分の申請」の派生クエリを足す(repository)
       detail: |

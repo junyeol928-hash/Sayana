@@ -2,9 +2,9 @@ id: capstone-setup
 title: プロジェクト作成とエンティティ
 status: ready
 minutes: 15
-summary: 承認くんの土台を作る。Spring Starter Project の作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。
+summary: 承認くんの土台を作る。Spring Boot 3.5.16 の pom.xml でのプロジェクト作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。
 goals:
-  - 設計どおりの依存・パッケージ構成で Spring Starter Project を作り、起動クラスより下にパッケージを置く理由を説明できる
+  - 設計どおりの依存・パッケージ構成で Spring Boot のプロジェクトを作り、起動クラスより下にパッケージを置く理由を説明できる
   - H2 ファイルモードで ddl-auto・sql.init.mode・defer-datasource-initialization を設定し、data.sql を何度流しても壊れないように書ける
   - "@Entity・@Enumerated(EnumType.STRING)・@ManyToOne(LAZY)・@PrePersist で Employee / ApprovalRequest / ApprovalHistory を書ける"
   - 画面の検索を派生クエリ(OrderBy・count・関連エンティティでの絞り込み)で宣言し、H2 コンソールで中身を確かめられる
@@ -188,24 +188,130 @@ sts:
     第4部のワークスペース(`C:\work\approval-ws`)で `approval-app` を作り、エンティティ・Repository・初期データまで作って H2 コンソールで確認します。
     このレッスンで作ったプロジェクトに、次のレッスンから機能を足していきます。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
   steps:
-    - title: Spring Starter Project を作る
+    - title: Maven プロジェクトを作る
       detail: |
-        **File > New > Spring Starter Project**(ファイル > 新規 > Spring スターター・プロジェクト)を選び、次のとおり入力して **Next**(次へ)。
-        - **Name**:`approval-app`、**Type**:`Maven`、**Packaging**:`Jar`、**Java Version**:`21`
-        - **Group**:`com.example`、**Artifact**:`approval-app`、**Package**:`com.example.approval`
-    - title: 依存関係を6つ選ぶ
-      detail: |
-        **Spring Boot Version** は 3.5 系を選び、検索欄で次の6つを探してチェックを入れます。
-        **Spring Web**・**Thymeleaf**・**Validation**・**Spring Data JPA**・**H2 Database**・**Spring Boot DevTools**
+        **Spring Starter Project** は使いません。その中で使う start.spring.io は、OSS のサポートが終わった Spring Boot 3.5 を選べなくなっているからです(4.x で作って版だけ書き換えても、4.x とは starter の名前が違うので動きません)。
 
-        **Spring Security はまだ選びません**(capstone-security で足します)。**Finish**(完了)を押し、右下の進捗バーが消えて
-        **Package Explorer**(パッケージ・エクスプローラー)に `approval-app` と `ApprovalAppApplication.java` が出れば成功です。
+        **File > New > Project...**(ファイル > 新規 > プロジェクト...)で **Maven > Maven Project**(Maven > Maven プロジェクト)を選んで **Next**(次へ)。
+        **Create a simple project (skip archetype selection)**(シンプルなプロジェクトの作成(アーキタイプ選択のスキップ))にチェックを入れて **Next**。
+        - **Group Id**:`com.example`、**Artifact Id**:`approval-app`、**Packaging**:`jar`
+
+        **Finish**(完了)を押すと、**Package Explorer**(パッケージ・エクスプローラー)に `approval-app` ができます。
+    - title: pom.xml を Spring Boot 3.5.16 用に置き換え、起動クラスを作る
+      detail: |
+        `approval-app` の `pom.xml` を開き、下の **pom.xml** タブで中身を全部消して次の全文を貼り、**Ctrl+S** で保存します。依存は6つで、**Spring Security はまだ入れません**(capstone-security で足します)。
+
+        ```xml
+        <?xml version="1.0" encoding="UTF-8"?>
+        <project xmlns="http://maven.apache.org/POM/4.0.0"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+            <modelVersion>4.0.0</modelVersion>
+
+            <parent>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-parent</artifactId>
+                <version>3.5.16</version>
+                <relativePath/>
+            </parent>
+
+            <groupId>com.example</groupId>
+            <artifactId>approval-app</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <name>approval-app</name>
+
+            <properties>
+                <java.version>21</java.version>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-validation</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-jpa</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <scope>runtime</scope>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </project>
+        ```
+
+        プロジェクトを右クリック > **Maven > Update Project...**(Maven > プロジェクトの更新)(**Alt+F5**)で **OK**。依存のダウンロードが終わり、**Maven Dependencies** に `spring-boot-3.5.16.jar` などが並べば成功です。
+        依存の版(`<version>`)は親の `spring-boot-starter-parent` がそろえるので書きません。
+
+        続けて、Initializr なら作ってくれる2つのクラスを書きます。`src/main/java` を右クリック > **New > Package** で `com.example.approval` を作り、**New > Class** で起動クラスを作ります。
+
+        ```java
+        package com.example.approval;
+
+        import org.springframework.boot.SpringApplication;
+        import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+        @SpringBootApplication
+        public class ApprovalAppApplication {
+
+            public static void main(String[] args) {
+                SpringApplication.run(ApprovalAppApplication.class, args);
+            }
+        }
+        ```
+
+        `src/test/java` にも同じ `com.example.approval` パッケージを作り、起動できるかだけを確かめるテストを置きます(capstone-api-test で使います)。
+
+        ```java
+        package com.example.approval;
+
+        import org.junit.jupiter.api.Test;
+        import org.springframework.boot.test.context.SpringBootTest;
+
+        @SpringBootTest
+        class ApprovalAppApplicationTests {
+
+            @Test
+            void contextLoads() {
+            }
+        }
+        ```
     - title: パッケージを作る
       detail: |
         `src/main/java` の `com.example.approval` を右クリックし、**New > Package**(新規 > パッケージ)で
         `com.example.approval.domain` と `com.example.approval.repository` を作ります。`service`・`web`・`config` は使うレッスンで作ります。
         Package Explorer の表示が平らで分かりにくいときは、ビュー右上の **⋮(View Menu)> Package Presentation > Hierarchical**(パッケージの表示 > 階層)にすると木構造で見えます。
-    - title: enum を4つ作る
+    - title: enum を4つと、ApprovalFlow・BusinessRuleException を作る
       detail: |
         `domain` を右クリックして **New > Enum**(新規 > 列挙型)で `Role`・`RequestType`・`RequestStatus`・`Action` を作ります。
 
@@ -214,8 +320,11 @@ sts:
         public enum RequestType { EXPENSE, LEAVE, PURCHASE }
         ```
 
-        `RequestStatus` と `Action` は、前回の演習の答え(`canTransitionTo`・`isFinal`・`label`・`target` 付き)をそのまま使います。
-        同じく前回の `BusinessRuleException`(`RuntimeException` のサブクラス)も **New > Class** で `domain` に作っておきます。
+        `RequestStatus` と `Action` は、前回の演習の答え(`canTransitionTo`・`isFinal`・`label`・`target` 付き)を使います。
+        続けて **New > Class** で、同じ前回の答えの `ApprovalFlow`(`next`・`requiresAdmin`)と `BusinessRuleException`(`RuntimeException` のサブクラス)も `domain` に作ります。
+
+        演習の答えは1ファイルにまとめるため、メソッドやコンストラクタに `public` が付いていません。ここでは、enum・クラスと、`label()`・`target()`・`canTransitionTo`・`isFinal`・`next`・`requiresAdmin`・`BusinessRuleException` のコンストラクタに **すべて `public` を付けます**。
+        画面のテンプレート(`${h.action.label()}` など)や `service` パッケージから呼ぶからです。Thymeleaf の式は `public` のメソッドしか呼べず、付け忘れると `EL1004E: Method call: Method label() cannot be found` で画面が 500 になります。
     - title: Employee エンティティを作る
       detail: |
         `domain` に **New > Class**(新規 > クラス)で `Employee` を作ります。
@@ -274,7 +383,8 @@ sts:
         }
         ```
 
-        getter は全フィールド分を生成します。状態を変えるメソッド(申請する・承認する…)は capstone-approve で足すので、**setter はまだ作りません**。
+        getter は全フィールド分を生成します。**setter は作りません**。申請者を入れるメソッドは capstone-apply で、状態を変えるメソッド(申請する・承認する…)は capstone-approve で、必要な分だけ足します。
+        引数なしコンストラクタは JPA 用の `protected` なので、アプリのコードは5つの引数を取る `public` のコンストラクタで作ります。
     - title: ApprovalHistory エンティティを作る
       detail: |
         ```java
@@ -339,7 +449,7 @@ sts:
         ```
     - title: application.yml と data.sql を書く
       detail: |
-        `src/main/resources/application.properties` を選んで **F2**(または右クリック > **Refactor > Rename**(リファクタリング > 名前変更))で `application.yml` にリネームし、解説の内容を書きます。
+        `src/main/resources` を右クリックして **New > File**(新規 > ファイル)で `application.yml` を作り、解説の内容を書きます(Maven プロジェクトとして作ったので `application.properties` はありません)。
         YAML はインデントが命です。**タブではなく半角スペース2つ** で揃えてください。
 
         続けて `src/main/resources` を右クリックして **New > File**(新規 > ファイル)で `data.sql` を作り、解説の `MERGE INTO employee ...` を書きます。

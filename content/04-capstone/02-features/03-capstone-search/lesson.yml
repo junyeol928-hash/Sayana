@@ -160,7 +160,7 @@ quiz:
     answer: 2
     explanation: |
       値がある条件だけ部品を足すので、`status` は null で足されず、キーワードは空白だけなので `hasKeyword()` が false で足されません。残るのは `typeIs` の1つだけです。
-      「status is null」になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白のキーワードで like をすると、空白を含む申請だけに絞られてしまいます。
+      「status is null」になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
   - question: |
       検索結果の「次へ」リンクを次のように書きました。`/requests/search?status=SUBMITTED&keyword=出張` で検索してから「次へ」を押すと、どうなる?
       ```html
@@ -370,7 +370,7 @@ sts:
         検索フォームには `page` を入れていないので、条件を変えて検索し直すと自動で先頭ページに戻ります(3ページ目のまま条件を変えて「0件」に見える事故を防げます)。
     - title: 起動して検索とページングを確かめる
       detail: |
-        `application.properties` に `spring.jpa.show-sql=true` が無ければ足し、**Boot Dashboard** で `approval-app` を選んで **(Re)start** するか、
+        `application.yml` に `spring.jpa.show-sql: true`(capstone-setup で設定済み)があることを確かめ、**Boot Dashboard** で `approval-app` を選んで **(Re)start** するか、
         プロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動します。
 
         ブラウザで次の URL を順に開きます。初期データが少ないときは `size=2` にするとページングを確かめやすくなります。

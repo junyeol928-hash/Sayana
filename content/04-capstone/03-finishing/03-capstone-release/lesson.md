@@ -55,6 +55,8 @@ Spring Boot は例外を `/error` に回し、ステータスに合わせて `te
 
 画面で存在しない申請を開いたときに 404 にするため、`RequestNotFoundException` に `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けます。domain に Web の注釈が入るのが気になるなら、画面用の `@ControllerAdvice` で 404 にしても構いません。
 
+あわせて、画面の詳細が通る `RequestService.findById` も、見つからないときは `BusinessRuleException` ではなく `RequestNotFoundException` を投げるように変えます(capstone-api-test で変えたのは `ApprovalService` の方だけです)。変えないと「ない」が業務ルール違反の扱いのまま 500 になります。
+
 ### API 向け:@RestControllerAdvice で1か所に
 
 前回 Controller の中に書いた `@ExceptionHandler` を、`web.api` 専用の **@RestControllerAdvice** に集めます(Controller からは消します)。
@@ -185,12 +187,14 @@ public class DevPasswordInitializer { ... }
 ## jar を作って java -jar で起動
 
 ```text
-> .\mvnw package
+> mvn package
 [INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
 [INFO] Building jar: ...\approval-app-0.0.1-SNAPSHOT.jar
 [INFO] BUILD SUCCESS
 > java -jar target\approval-app-0.0.1-SNAPSHOT.jar
 ```
+
+承認くんは capstone-setup で Maven プロジェクトとして作ったので、Initializr が付ける `mvnw`(Maven Wrapper)はありません。STS の **Run As > Maven build...** で Goals に `package` を入れるか、Maven を入れてあれば上のように `mvn package` です。
 
 `package` の途中で全テストが流れ、**1本でも赤なら jar はできません**。`-DskipTests` で飛ばすのは「テストが守ってくれる」を自分で外す行為です。
 
@@ -206,7 +210,7 @@ public class DevPasswordInitializer { ... }
 
 ## リリース前チェックリスト
 
-- `mvnw package` が BUILD SUCCESS(全テスト緑)
+- `package` が BUILD SUCCESS(全テスト緑)
 - 起動ログに `The following 1 profile is active: "prod"`
 - prod で `/h2-console` が開けない
 - 開発用パスワードを入れるクラスに `@Profile("dev")` が付いている
@@ -239,7 +243,7 @@ flowchart LR
 
 - **本番 DB と Flyway**:PostgreSQL などに替え、テーブル定義を SQL ファイルでバージョン管理する
 - **Docker**:jar と DB をコンテナにして、誰の PC でも同じ手順で起動する
-- **CI**:GitHub Actions で push のたびに `mvnw verify` を流し、赤ならマージさせない
+- **CI**:GitHub Actions で push のたびに `mvn verify` を流し、赤ならマージさせない
 - **監視**:Spring Boot Actuator の `/actuator/health` で生死を見る
 
 ## よくあるミス

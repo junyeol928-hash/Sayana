@@ -53,7 +53,7 @@ flowchart LR
 
 ### 依存と URL ルール
 
-`pom.xml` に `spring-boot-starter-security` と `thymeleaf-extras-springsecurity6` を足します(バージョンは Spring Boot が管理するので書かない)。
+`pom.xml` に `spring-boot-starter-security` と `thymeleaf-extras-springsecurity6`、テスト用の `spring-security-test` を手で足します(バージョンは Spring Boot が管理するので書かない。3.5 のプロジェクトでは STS の Add Starters が使えないため)。
 
 ```java
 // config/SecurityConfig.java

@@ -8,7 +8,7 @@ goals:
   - "@RestControllerAdvice で BusinessRuleException → 409、存在しない申請 → 404、想定外の例外 → 500(中身を漏らさず errorId を返す)を共通形式で返せる"
   - 業務ログを INFO で「誰が・どの申請を・どうしたか」を ID で出し、個人情報を出さない理由を説明できる
   - application-dev.yml / application-prod.yml を分け、prod で H2 コンソール無効・ddl-auto=validate・ファイルログにできる
-  - ./mvnw package で jar を作って java -jar で起動し、リリース前チェックリストで確認できる
+  - Maven の package で jar を作って java -jar で起動し、リリース前チェックリストで確認できる
 samples:
   - title: API のエラーを @RestControllerAdvice で1か所にまとめる
     libraries: [spring]
@@ -185,7 +185,7 @@ columns:
   - type: trivia
     title: java -jar 1つで Web アプリが動く理由
     body: |
-      普通の jar には自分のクラスしか入っていませんが、`mvnw package` で作った承認くんの jar は数十MBあります。Boot の Maven プラグインが **依存ライブラリと組み込み Tomcat まで詰めた「fat jar」** に作り直すからです。
+      普通の jar には自分のクラスしか入っていませんが、`package` で作った承認くんの jar は数十MBあります。Boot の Maven プラグインが **依存ライブラリと組み込み Tomcat まで詰めた「fat jar」** に作り直すからです。
 
       jar を ZIP として開くと、`BOOT-INF/classes`(自分のクラス)と `BOOT-INF/lib`(依存の jar が数十個)が入っています。`META-INF/MANIFEST.MF` の `Main-Class` は自分のクラスではなく Spring Boot の `JarLauncher` で、これが jar の中の jar を読めるクラスローダーを作ってから、`Start-Class` に書かれた `ApprovalAppApplication` の main を呼びます。
 
@@ -216,7 +216,8 @@ sts:
         Package Explorer(パッケージ・エクスプローラー)で `src/main/resources/templates` を右クリック → **New > Folder**(新規 > フォルダー)で `error` を作ります。
         `error` を右クリック → **New > File**(新規 > ファイル)で `404.html` と `500.html` を作り、解説のように「何が起きたか」と「一覧へ戻る」リンクだけを書きます(例外のメッセージは出さない)。
 
-        `RequestNotFoundException` に `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けて保存し、Boot Dashboard から再起動します。
+        `RequestNotFoundException` に `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けて保存します。
+        続けて `RequestService.findById` の `orElseThrow(() -> new BusinessRuleException("申請が見つかりません"))` を `orElseThrow(() -> new RequestNotFoundException(id))` に変えます(画面の詳細はこちらを通るので、変えないと 404 ではなく 500 になります)。保存したら Boot Dashboard から再起動します。
         ログインして `http://localhost:8080/requests/9999` と `http://localhost:8080/no-such-page` を開き、どちらも自作の 404 ページが出れば成功です(白い Whitelabel Error Page が出たら、フォルダー名が `templates/error` になっているか確認)。
     - title: ApiExceptionHandler を作って Controller から移す
       detail: |
@@ -248,7 +249,7 @@ sts:
         プロジェクトを右クリック → **Run As > Maven build...**(実行 > Maven ビルド...)を選び、**Goals**(ゴール)に `package` と入力して **Run**(実行)。
         Console に `Tests run: …, Failures: 0, Errors: 0` と `BUILD SUCCESS` が出たら、プロジェクトを選んで **F5**(リフレッシュ)し、`target` フォルダーに `approval-app-0.0.1-SNAPSHOT.jar` ができていることを確かめます。
 
-        コマンドで作るなら、プロジェクトのフォルダーで PowerShell を開いて `.\mvnw package`(コマンドプロンプトなら `mvnw package`)です。テストが1本でも赤いと `BUILD FAILURE` になり、jar はできません。
+        承認くんは Maven プロジェクトとして作ったので `mvnw`(Maven Wrapper)はありません。コマンドで作るなら、Maven を入れてプロジェクトのフォルダーで `mvn package` です。テストが1本でも赤いと `BUILD FAILURE` になり、jar はできません。
     - title: java -jar で dev として起動する
       detail: |
         プロジェクトのフォルダー(例:`C:\work\approval-ws\approval-app`)でコマンドプロンプトを開き、次を実行します。
@@ -269,14 +270,15 @@ sts:
         1. `Schema-validation: missing table [...]` で起動が止まる(空の DB なので validate が止めた)
         2. 一度だけ末尾に `--spring.jpa.hibernate.ddl-auto=create` を足して起動し、`Started …` が出たら **Ctrl+C**(テーブルができる)
         3. 足したものを外し、`--spring.profiles.active=prod` だけで起動し直す → `The following 1 profile is active: "prod"` と `Started …` が出る
-        4. `http://localhost:8080/h2-console` が自作の 404 ページになる(H2 コンソール無効)
+        4. 起動ログに dev で出ていた `H2 console available at '/h2-console'` が出ない(H2 コンソール無効。ブラウザで開いてもログイン画面に回される)
         5. エクスプローラーで `logs\approval.log` と `data\approval-prod.mv.db` ができていることを確認する(dev の `data\approval.mv.db` とは別ファイル)
 
         prod の DB は空で、`DevPasswordInitializer` も動かないので、ログインできる社員はいません。本番の社員とパスワードは初期データとは別に投入するもので、これが正しい状態です。
     - title: リリース前チェックリストで確認し、Git にタグを打つ
       detail: |
-        解説の「リリース前チェックリスト」を1つずつ確認します。次に、プロジェクト直下の `.gitignore` を開いて `data/` と `logs/` の2行を足します(DB ファイルやログを Git に入れないため)。
+        解説の「リリース前チェックリスト」を1つずつ確認します。次に、プロジェクト直下の `.gitignore` を開いて `data/` と `logs/` の2行を足します(DB ファイルやログを Git に入れないため)。Package Explorer に見えないときは、ビューのメニュー(︙)の **Filters...** で `.*` resources のチェックを外します。まだ無ければ **New > File** で `.gitignore` を作り、`target/` も足します。
 
+        `approval-app` がまだ Git の管理下になければ、先にプロジェクトを右クリック → **Team > Share Project...**(チーム > プロジェクトの共有...)でリポジトリを作ります。
         **Git Staging**(Git ステージング)ビューで変更をコミットしたら、プロジェクトを右クリック → **Team > Advanced > Tag...**(チーム > 拡張 > タグ...)で `v1.0.0` というタグを作ります。
         「どのコミットをリリースしたか」がタグで残り、あとで不具合が出たときにそのときのコードへすぐ戻れます。承認くん、完成です。
 checklist:
@@ -291,7 +293,7 @@ checklist:
   - key: rel-dev-only
     text: DevPasswordInitializer に @Profile("dev") を付け、開発用パスワードが prod では設定されないようにした
   - key: rel-jar
-    text: Run As > Maven build(package)か mvnw package で BUILD SUCCESS になり、java -jar で起動してログインできた
+    text: Run As > Maven build(package)か mvn package で BUILD SUCCESS になり、java -jar で起動してログインできた
   - key: rel-prod
     text: prod で起動して validate で止まるのを見て、テーブル作成後は起動し、/h2-console が開けず logs\approval.log ができることを確認した
   - key: rel-release-check

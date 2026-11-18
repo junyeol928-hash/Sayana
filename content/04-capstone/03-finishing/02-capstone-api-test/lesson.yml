@@ -301,7 +301,7 @@ sts:
         **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、**Source folder** を `approval-app/src/test/java` にして `RequestApiControllerTest` を作ります。
 
         解説の 409 と 403 のテストに、`queryService.get(99L)` が `RequestNotFoundException` を投げる 404 のテストを足し、エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。
-        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します。
+        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します(どちらも capstone-security で `pom.xml` に足した `spring-security-test` に入っています)。
 
         `@WithMockUser` が作るのは Spring の `User` なので、`@AuthenticationPrincipal LoginUser` の引数には **null** が入ります(`user.id()` で NullPointerException)。`LoginUser` が要る承認のテストは、必ず `.with(user(moka))` で本物の `LoginUser` を渡します。
         `.with(csrf())` を消して実行すると 403 になることも確かめておきましょう。
@@ -310,7 +310,10 @@ sts:
         `src/test/java` の `com.example.approval.service` に `ApprovalServiceTest` を作り、解説の `@ParameterizedTest` + `@CsvSource` と、`arrange` メソッドを書きます。
         `arrange` では、ID 2 で `role` の社員と、別の社員(ID 1)が出した申請(ID 1、`amount` と `status` は引数どおり)を作り、
         `employeeRepo.findById(2L)` と `requestRepo.findById(1L)` がそれを返すよう `when(...).thenReturn(Optional.of(...))` で仕込みます。
+        id は `@GeneratedValue` の項目で、コンストラクタでも setter でも入りません。`ReflectionTestUtils.setField(actor, "id", 2L)`(`org.springframework.test.util`)のように入れます(申請者と申請も同じ)。
+        入れ忘れると、`ApprovalService` の「自分の申請か」の比較で NullPointerException になります。
         状態は `setStatus` が無いので、`SUBMITTED` なら `submit(...)`、`APPROVED` なら `submit` の後に別の承認者で `approve(...)` を呼んで作ります。
+        capstone-security で `ApprovalService` が `AccessPolicy` も受け取るようにしたなら、`@Spy AccessPolicy accessPolicy = new AccessPolicy();` も足します(本物の判定を `@InjectMocks` に渡すため。足さないと `null` が渡ります)。
 
         **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ** 結果が並びます。
         次に `ApprovalFlow.requiresAdmin` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。

@@ -36,7 +36,7 @@
 
 ## エンティティ:状態の変え方を自分で守る
 
-capstone-requirements の `ApprovalFlow.next`(遷移できなければ例外)を使います。`ApprovalRequest` の `setStatus` は消しておきます。
+capstone-requirements で書き、capstone-setup で `domain` に置いた `ApprovalFlow.next`(遷移できなければ例外)を使います。`ApprovalRequest` には `setStatus` を作りません(capstone-setup から setter なしの方針です)。
 
 ```java
 public void approve(Employee approver, String comment,
@@ -117,7 +117,7 @@ sequenceDiagram
     S-->>C: 申請 / 例外ならロールバック
 ```
 
-クラスに付けた `@Transactional` で、全メソッドが1つのトランザクションになります。状態の UPDATE と履歴の INSERT は **両方成功するか、両方なかったことになるか** のどちらか。「承認済みなのに履歴が無い」はありえません(ルール6)。
+クラスに付けた `@Transactional` で、public メソッドを呼ぶたびに、そのメソッド全体が1つのトランザクションになります。状態の UPDATE と履歴の INSERT は **両方成功するか、両方なかったことになるか** のどちらか。「承認済みなのに履歴が無い」はありえません(ルール6)。
 
 Spring がロールバックするのは、既定では **RuntimeException(と Error)** が外へ出たときだけ。チェック例外ならコミットされます。`BusinessRuleException` を `RuntimeException` にしたのはこのためです(ルール7)。
 

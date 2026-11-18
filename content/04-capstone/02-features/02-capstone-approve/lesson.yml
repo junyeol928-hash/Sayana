@@ -251,7 +251,7 @@ sts:
   steps:
     - title: エンティティに状態を変えるメソッドと @Version を足す(domain)
       detail: |
-        `domain` の `ApprovalRequest.java` に次を足します。`ApprovalFlow`・`Action`・`BusinessRuleException` は capstone-requirements で作ったもの(同じ domain パッケージ)です。
+        `domain` の `ApprovalRequest.java` に次を足します。`ApprovalFlow`・`Action`・`BusinessRuleException` は capstone-setup で `domain` パッケージに作ったもの(中身は capstone-requirements の演習の答え)です。
 
         ```java
         @Version
@@ -286,19 +286,18 @@ sts:
         }
         ```
 
-        `@Version` は **`jakarta.persistence.Version`** を選びます。続けて `setStatus` を削除し、`status` フィールドを
-        `private RequestStatus status = RequestStatus.DRAFT;` にします。保存すると、前回の `RequestService.createDraft` の
-        `r.setStatus(RequestStatus.DRAFT);` が赤くなるので、その行を消します(初期値で DRAFT になります)。**Problems**(問題)ビューにエラーが残っていなければ OK。
+        `@Version` は **`jakarta.persistence.Version`** を選びます。`status` は capstone-setup から `private RequestStatus status = RequestStatus.DRAFT;` のままで、
+        `setStatus` は作りません。状態を変える入口は、上の4つのメソッドだけです。**Problems**(問題)ビューにエラーが残っていなければ OK。
 
-        初期データを `data.sql` の INSERT で入れている場合は、`approval_request` の INSERT に `version` 列(値は `0`)を足しておきます。
+        `ddl-auto: update` は `version` 列を足すだけなので、これまでに作った申請は `version` が NULL のままです。アプリを起動して列ができたら、H2 コンソールで
+        `UPDATE approval_request SET version = 0 WHERE version IS NULL;` を実行しておきます(しないと、その申請を操作したときに NullPointerException になります)。
+        初期データを `data.sql` の INSERT で入れている場合は、`approval_request` の INSERT に `version` 列(値は `0`)も足します。
     - title: 履歴と Repository を整える(domain・repository)
       detail: |
-        `domain` の `ApprovalHistory.java` に、履歴を1行で作れるコンストラクタを足します(JPA 用の引数なしコンストラクタは `protected` で残す)。
+        `domain` の `ApprovalHistory.java` に、日時も受け取るコンストラクタを足します。capstone-setup で作った JPA 用の `protected` の引数なしコンストラクタと、4つの引数のコンストラクタはそのまま残します。
+        Service で時刻を1回だけ取り、申請と履歴に同じ日時を入れるためです。
 
         ```java
-        protected ApprovalHistory() {
-        }
-
         public ApprovalHistory(ApprovalRequest request, Employee actor,
                                Action action, String comment, LocalDateTime at) {
             this.request = request;
@@ -309,13 +308,10 @@ sts:
         }
         ```
 
-        `repository` の2つのインターフェースに派生クエリを足します。
+        `ApprovalRequestRepository` には、capstone-setup で宣言した `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)があることを確かめます(もう一度書くと重複でコンパイルエラーです)。
+        `ApprovalHistoryRepository` には、画面から申請の ID で履歴を引く派生クエリを1行足します。
 
         ```java
-        // ApprovalRequestRepository
-        List<ApprovalRequest> findByStatusOrderBySubmittedAtAsc(RequestStatus status);
-
-        // ApprovalHistoryRepository
         List<ApprovalHistory> findByRequestIdOrderByAtAsc(Long requestId);
         ```
     - title: ApprovalService を作る(service)
@@ -615,7 +611,7 @@ sts:
         余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行** になることも確かめましょう(確認後は必ず戻す)。
 checklist:
   - key: entity-methods
-    text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、setStatus を消してもコンパイルエラーが残っていない
+    text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、Problems ビューにコンパイルエラーが残っていない
   - key: full-flow
     text: 申請 → 差戻し → 再申請 → 承認 を画面で通し、履歴が4行表示された
   - key: blank-comment

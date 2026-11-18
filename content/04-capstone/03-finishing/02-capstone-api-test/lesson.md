@@ -34,7 +34,7 @@ src/test/java/com/example/approval
 
 ### エンティティではなく record の DTO を返す
 
-エンティティをそのまま返すと、Jackson が関連をたどって `applicant` の **email やパスワードのハッシュまで JSON に出します**。列を足すたびに API の形も勝手に変わります。そこで API 専用の型 **DTO**(Data Transfer Object:受け渡し専用のデータの入れ物)を record で作ります。
+エンティティをそのまま返すと、Jackson が関連をたどります。JOIN して読んだときは `applicant` の **email やパスワードのハッシュまで JSON に出ます**。LAZY のまま(中身は Hibernate のプロキシ)だと、`No serializer found for class …ByteBuddyInterceptor` で変換そのものが失敗します。どちらにしても、列を足すたびに API の形も勝手に変わります。そこで API 専用の型 **DTO**(Data Transfer Object:受け渡し専用のデータの入れ物)を record で作ります。
 
 ```java
 package com.example.approval.web.api;
@@ -244,7 +244,7 @@ class ApprovalServiceTest {
 }
 ```
 
-`arrange` は、操作者(ID 2・`role` の社員)と別の社員の申請(ID 1)を作り、`employeeRepo.findById` / `requestRepo.findById` が返すよう `when` で仕込むメソッドです。CSV の `"ADMIN"` は JUnit が enum に自動変換します。
+`arrange` は、操作者(ID 2・`role` の社員)と別の社員の申請(ID 1)を作り、`employeeRepo.findById` / `requestRepo.findById` が返すよう `when` で仕込むメソッドです。id は自動採番の項目でコンストラクタでは入らないので、spring-test の `ReflectionTestUtils.setField(actor, "id", 2L)` で入れます。CSV の `"ADMIN"` は JUnit が enum に自動変換します。
 
 境界の `99999` と `100000` が並び、ケースの追加も1行です。
 

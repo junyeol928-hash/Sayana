@@ -1,5 +1,5 @@
 ::: haru
-設計図はできた! 今日こそ Spring Starter Project っすね。依存は全部チェック入れときます!
+設計図はできた! 今日こそプロジェクト作成っすね。依存は全部入れときます!
 :::
 
 ::: sensei
@@ -10,13 +10,15 @@
 
 ## プロジェクトを作る:依存は今使うものだけ
 
-STS の **File > New > Spring Starter Project** で、設計どおりに作ります。
+承認くんは Spring Boot **3.5.16** で作ります。ただし STS の **Spring Starter Project** は使いません。中で使っている Spring Initializr(start.spring.io)は、OSS のサポートが終わった版を選べなくなり、いまは 4.x しか出さないからです。
+
+そこで STS で **Maven プロジェクト** を作り、`pom.xml` を教材の全文(「STSでやってみよう」)に置き換えます。Initializr が作ってくれる起動クラスとテストクラスも自分で書きます。
 
 | 項目 | 値 |
 |---|---|
-| Name | `approval-app` |
-| Group / Package | `com.example` / `com.example.approval` |
-| Java / Type | 21 / Maven |
+| Group / Artifact | `com.example` / `approval-app` |
+| Package | `com.example.approval` |
+| Java / Spring Boot | 21 / 3.5.16 |
 
 依存はこの6つ。Spring Security は capstone-security で `pom.xml` に足します。
 
@@ -46,7 +48,7 @@ com.example.approval
 
 ## application.yml:H2 はファイルモード
 
-`src/main/resources/application.properties` を `application.yml` にリネームして書きます。
+`src/main/resources/application.yml` を作って書きます。
 
 ```yaml
 spring:
@@ -189,7 +191,7 @@ flowchart LR
 社員: ハル / APPLICANT
 社員: モカ / APPROVER
 社員: ボス / ADMIN
-申請: 客先訪問の交通費 / DRAFT / 2026-10-11T09:48:15.78
+申請: 客先訪問の交通費 / DRAFT / 2026-10-11T09:48:15.781234
 ```
 
 ## H2 コンソールで中身を見る
