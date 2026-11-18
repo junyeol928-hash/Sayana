@@ -135,6 +135,11 @@ function practice(ref, type, lessonId, correct) {
 function reviewAnswer(ref, correct) {
   const item = S.review[ref];
   const t = today();
+  item.last = Date.now();
+  // 今日の復習の数と正解(復習の画面の上と、終わったときに見せる)
+  const log = S.reviewLog = S.reviewLog || {};
+  log[t] = { n: (log[t]?.n || 0) + 1, ok: (log[t]?.ok || 0) + (correct ? 1 : 0) };
+  for (const d of Object.keys(log)) if (d < addDays(t, -60)) delete log[d];
   if (!correct) {
     Object.assign(item, { stage: 0, due: addDays(t, INTERVALS[0]), graduated: false, lapses: item.lapses + 1 });
   } else {
@@ -159,6 +164,36 @@ function dueItems() {
     .filter(([, it]) => !it.graduated && it.due <= t)
     .sort((a, b) => a[1].due.localeCompare(b[1].due));
 }
+
+/**
+ * 次に出す復習。同じレッスンの問題を続けて出さず、いちばん長く復習していないレッスンから出す(交互に混ぜる)。
+ * 似た問題を続けて解くより、混ぜて解くほうが「どの知識を使う問題か」を見分ける力がつく。PC版の ReviewService と同じ規則
+ */
+function nextDue(due) {
+  const lastByLesson = {};
+  for (const it of Object.values(S.review)) {
+    if (it.last && (lastByLesson[it.lessonId] || 0) < it.last) lastByLesson[it.lessonId] = it.last;
+  }
+  let best = due[0];
+  for (const e of due) if ((lastByLesson[e[1].lessonId] || 0) < (lastByLesson[best[1].lessonId] || 0)) best = e;
+  return best;
+}
+
+/** 選択肢の並び。復習では位置で覚えてしまわないよう入れ替える。同じ日は同じ並び(開き直しても変わらない) */
+function choiceOrder(n, seed) {
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    const j = ((h ^ (h >>> 16)) >>> 0) % (i + 1);
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
+const todayReviewed = () => S.reviewLog?.[today()] || { n: 0, ok: 0 };
 
 // ------------------------------------------------------------ データ
 
@@ -783,7 +818,7 @@ function atWorkBlock(a) {
 }
 
 /** 読解の1問。ref は記録と復習のキー(lessonId@番号) */
-function readingCard(r, ref, from) {
+function readingCard(r, ref, from, order) {
   const done = S.reading[ref];
   const lv = Math.max(1, Math.min(3, r.level || 1));
   return `<li class="reading-q" data-ref="${esc(ref)}">
@@ -793,7 +828,7 @@ function readingCard(r, ref, from) {
     <pre class="code-lines"><code class="language-java">${esc(r.code)}</code></pre>
     <form data-action="reading">
       <fieldset style="border:0;padding:0;margin:0"><legend class="reading-question">${r.questionHtml}</legend>
-      ${r.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${c}</span></label>`).join("")}</fieldset>
+      ${(order || r.choicesHtml.map((_, j) => j)).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${r.choicesHtml[j]}</span></label>`).join("")}</fieldset>
       <button class="btn" type="submit">答え合わせ</button>
       ${done ? `<span class="small muted" style="margin-left:8px">前回: ${done.ok ? "正解" : "不正解"}</span>` : ""}
     </form>
@@ -811,7 +846,8 @@ function readingAnswerHtml(r, ok) {
 // 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
 function lockAnswer(form, answer, choice, onReset) {
   const ok = choice === answer;
-  form.querySelectorAll("label.choice").forEach((label, j) => {
+  form.querySelectorAll("label.choice").forEach((label) => {
+    const j = Number(label.querySelector("input").value);
     label.classList.toggle("is-answer", j === answer);
     label.classList.toggle("is-wrong", j === choice && !ok);
     label.querySelector(".choice-tag")?.remove();
@@ -1314,23 +1350,26 @@ async function renderGlossary() {
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
+  const done = todayReviewed();
   if (due.length === 0) {
     view().innerHTML = `<h1 class="page-title">復習</h1>
       <div class="card empty-state"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
-      <div class="talk-bubble"><p>今日の復習はおしまい。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で順番に出てくるよ。` : "レッスンでクイズや読解を解くと、ここに出てくるよ。"}</p></div></div>
+      <div class="talk-bubble"><p>${done.n ? `今日は ${done.n} 問を思い出して、${done.ok} 問正解。` : ""}今日の復習はおしまい。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で順番に出てくるよ。` : "レッスンでクイズや読解を解くと、ここに出てくるよ。"}</p></div></div>
       <a class="btn primary" href="#/">ホームへ</a></div>`;
     return;
   }
-  const [ref, item] = due[0];
+  const [ref, item] = nextDue(due);
   const L = await lesson(item.lessonId);
-  const head = `<h1 class="page-title">復習</h1><p class="review-progress">残り <b>${due.length}</b> 問 ·
-    <a href="#/lesson/${esc(L.id)}">${esc(L.title)}</a> <span class="pill">段階 ${item.stage + 1} / 4</span></p>`;
+  const order = (n) => choiceOrder(n, ref + "|" + today());
+  const head = `<h1 class="page-title">復習</h1><p class="review-progress">残り <b>${due.length}</b> 問${done.n ? `(今日 ${done.n} 問済み)` : ""} ·
+    <a href="#/lesson/${esc(L.id)}">${esc(L.title)}</a> <span class="pill">段階 ${item.stage + 1} / 4</span></p>
+    <p class="muted small review-mix">いろいろなレッスンの問題を混ぜて出します。選択肢の並びも毎回変わります。</p>`;
   const next = (it) => `<p class="review-note">次回: <b>${intervalLabel(it)}</b></p><button class="btn primary" id="next">次の復習へ</button>`;
   if (item.type === "quiz") {
     const q = L.quiz[Number(ref.split("#")[1])];
     if (!q) { delete S.review[ref]; save(); return renderReview(); }
     view().innerHTML = head + `<div class="card review-quiz"><div class="md">${q.questionHtml}</div>
-      <form id="rq">${q.choicesHtml.map((c, j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${c}</span></label>`).join("")}
+      <form id="rq">${order(q.choicesHtml.length).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${q.choicesHtml[j]}</span></label>`).join("")}
       <button class="btn primary" type="submit">答える</button></form><div id="ra" aria-live="polite"></div></div>`;
     $("#rq").onsubmit = (ev) => {
       ev.preventDefault();
@@ -1347,7 +1386,7 @@ async function renderReview() {
   } else if (item.type === "reading") {
     const r = (L.reading || [])[Number(ref.split("@")[1])];
     if (!r) { delete S.review[ref]; save(); return renderReview(); }
-    view().innerHTML = head + `<ol class="reading-list">${readingCard(r, ref)}</ol><div id="ra"></div>`;
+    view().innerHTML = head + `<ol class="reading-list">${readingCard(r, ref, undefined, order(r.choicesHtml.length))}</ol><div id="ra"></div>`;
     const form = view().querySelector("form[data-action=reading]");
     form.onsubmit = (ev) => {
       ev.preventDefault();
@@ -1357,7 +1396,8 @@ async function renderReview() {
       const it = reviewAnswer(ref, ok);
       recordDay();
       form.querySelectorAll("input,button").forEach((x) => { x.disabled = true; });
-      form.querySelectorAll("label.choice").forEach((label, j) => {
+      form.querySelectorAll("label.choice").forEach((label) => {
+        const j = Number(label.querySelector("input").value);
         label.classList.toggle("is-answer", j === r.answer);
         label.classList.toggle("is-wrong", j === choice && !ok);
       });

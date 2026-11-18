@@ -113,7 +113,7 @@ quiz:
     answer: 0
     explanation: |
       enum を対象にした switch **式** は、`default` がない場合 **全定数を網羅** していないと `the switch expression does not cover all possible input values` のコンパイルエラーになります。
-      これが「遷移の決め忘れをコンパイラに見つけてもらう」仕組みです。`default -> false` を書いてしまうと網羅チェックが効かなくなり、CANCELLED は黙って false になります(選択肢2の状態)。
+      これが「遷移の決め忘れをコンパイラに見つけてもらう」仕組みです。`default -> false` を書いてしまうと網羅チェックが効かなくなり、CANCELLED は黙って false になります(「CANCELLED のときは false が返る」は、default を書いてしまったときの状態)。
       boolean を返す式なので null にはなりません。
   - question: |
       業務ルール3(100,000円以上は ADMIN だけが承認できる)を、次のように実装しました。**ルールと違う結果** になる金額はどれ?

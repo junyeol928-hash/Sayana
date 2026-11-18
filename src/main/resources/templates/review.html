@@ -5,18 +5,19 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container narrow">
     <h1 class="page-title">復習キュー</h1>
-    <p class="muted">クイズと演習は、解いた日から <b>1日後 → 3日後 → 7日後 → 14日後</b> に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。</p>
+    <p class="muted">クイズと演習は、解いた日から <b>1日後 → 3日後 → 7日後 → 14日後</b> に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。
+        いろいろなレッスンの問題を混ぜて出し、クイズの選択肢の並びも毎回変えます(位置で覚えてしまわないように)。</p>
 
     <div th:if="${item == null}" class="card empty-state">
         <div class="talk talk-sensei">
             <div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
-            <div class="talk-bubble"><p>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>
+            <div class="talk-bubble"><p><th:block th:if="${todayCount > 0}" th:text="|今日は ${todayCount} 問を思い出して、${todayCorrect} 問正解。|"></th:block>今日の復習はおしまい!新しいレッスンに進もう。忘れかけた頃にまた出すからね。</p></div>
         </div>
         <a class="btn primary" th:href="@{/}">ホームへ</a>
     </div>
 
     <th:block th:if="${item != null}">
-        <p class="review-progress">残り <b th:text="${due.size()}"></b> 問 ・
+        <p class="review-progress">残り <b th:text="${due.size()}"></b> 問<span th:if="${todayCount > 0}" th:text="|(今日 ${todayCount} 問済み)|"></span> ・
             <a th:href="@{/lessons/{id}(id=${item.lessonId})}" th:text="${itemLesson.title}"></a>
             <span class="pill small" th:text="'段階 ' + ${item.stage + 1} + '/4'"></span>
             <span class="pill small ng" th:if="${item.lapses > 0}" th:text="'つまずき ' + ${item.lapses}"></span>
@@ -26,9 +27,9 @@
             <div class="md" th:utext="${question.questionHtml}"></div>
             <form th:attr="hx-post=@{/review/{id}/quiz(id=${item.id})}" hx-target="#review-answer" hx-swap="innerHTML"
                   hx-on::after-request="this.querySelectorAll('input,button').forEach(e => e.disabled = true)">
-                <label th:each="c, cs : ${question.choicesHtml}" class="choice">
-                    <input type="radio" name="choice" th:value="${cs.index}" required>
-                    <span th:utext="${c}"></span>
+                <label th:each="i : ${choiceOrder}" class="choice">
+                    <input type="radio" name="choice" th:value="${i}" required>
+                    <span th:utext="${question.choicesHtml.get(i)}"></span>
                 </label>
                 <button class="btn primary" type="submit">答える</button>
             </form>

@@ -45,17 +45,21 @@ public class ReviewController {
         model.addAttribute("upcomingItems", review.upcoming().stream().filter(this::stillExists).limit(30).toList());
         model.addAttribute("graduated", review.graduatedCount());
         model.addAttribute("lessonTitles", LessonTitles.of(content));
-        if (!due.isEmpty()) {
-            ReviewItem item = due.get(0);
+        int[] tally = review.todayTally();
+        model.addAttribute("todayCount", tally[0]);
+        model.addAttribute("todayCorrect", tally[1]);
+        review.next(due).ifPresent(item -> {
             model.addAttribute("item", item);
             Lesson lesson = content.lesson(item.getLessonId()).orElse(null);
             model.addAttribute("itemLesson", lesson);
             if (item.getItemType() == ReviewItem.Type.QUIZ) {
-                model.addAttribute("question", lesson.quiz().get(item.quizIndex()));
+                Lesson.QuizQuestion q = lesson.quiz().get(item.quizIndex());
+                model.addAttribute("question", q);
+                model.addAttribute("choiceOrder", review.choiceOrder(item, q.choicesHtml().size()));
             } else {
                 model.addAttribute("view", views.forReview(catalog.find(item.getItemRef()).orElseThrow(), item.getId()));
             }
-        }
+        });
         return "review";
     }
 

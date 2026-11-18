@@ -3,7 +3,15 @@ package com.sayana.dojo.progress;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +89,54 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<ReviewItem> due() {
         return items.findByGraduatedFalseAndDueDateLessThanEqualOrderByDueDateAscIdAsc(LocalDate.now(clock));
+    }
+
+    /**
+     * 次に出す復習。同じレッスンの問題を続けて出さず、いちばん長く復習していないレッスンの問題から出す(交互に混ぜる)。
+     * 似た問題を続けて解くより、混ぜて解くほうが「どの知識を使う問題か」を見分ける力がつく。スマホ版の nextDue と同じ規則。
+     *
+     * @param due 期限の来た問題(期限の古い順)
+     */
+    @Transactional(readOnly = true)
+    public Optional<ReviewItem> next(List<ReviewItem> due) {
+        if (due.isEmpty()) {
+            return Optional.empty();
+        }
+        Map<String, Instant> lastByLesson = new HashMap<>();
+        for (ReviewItem it : items.findAll()) {
+            if (it.getLastReviewedAt() != null) {
+                lastByLesson.merge(it.getLessonId(), it.getLastReviewedAt(), (a, b) -> a.isAfter(b) ? a : b);
+            }
+        }
+        // 同じ古さなら期限の古い順(min は最初に見つかったものを残す)
+        return due.stream().min(Comparator.comparing(it -> lastByLesson.getOrDefault(it.getLessonId(), Instant.EPOCH)));
+    }
+
+    /** 今日の復習の数と正解の数(同じ問題を 1 日に 2 回解いたら 1 問と数える)。 */
+    @Transactional(readOnly = true)
+    public int[] todayTally() {
+        LocalDate today = LocalDate.now(clock);
+        int n = 0;
+        int ok = 0;
+        for (ReviewItem it : items.findAll()) {
+            if (it.getLastReviewedAt() != null && LocalDate.ofInstant(it.getLastReviewedAt(), clock.getZone()).equals(today)) {
+                n++;
+                if (Boolean.TRUE.equals(it.getLastCorrect())) {
+                    ok++;
+                }
+            }
+        }
+        return new int[] {n, ok};
+    }
+
+    /**
+     * 選択肢を見せる並び。復習では位置で覚えてしまわないよう入れ替える。同じ問題は同じ日なら同じ並び(開き直しても変わらない)。
+     */
+    public List<Integer> choiceOrder(ReviewItem item, int size) {
+        List<Integer> order = new ArrayList<>(IntStream.range(0, size).boxed().toList());
+        long seed = (item.getItemRef() + "|" + LocalDate.now(clock)).hashCode();
+        Collections.shuffle(order, new Random(seed));
+        return order;
     }
 
     @Transactional(readOnly = true)
