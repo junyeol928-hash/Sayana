@@ -852,6 +852,7 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .sample-result[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
 .sample-result .run-result { margin-top: 0; }
 .sample .sample-result pre { margin-left: 0; margin-right: 0; border-radius: var(--r-s); padding: 10px 12px; }
+.sample-result .console { white-space: pre-wrap; overflow-wrap: anywhere; } /* 出力は書き写さないので、箱の幅で折り返して読ませる */
 .solution { margin: 4px 0; }
 .solution summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 .generated-list { padding-left: 1.2em; }

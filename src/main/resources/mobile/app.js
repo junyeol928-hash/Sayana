@@ -857,7 +857,8 @@ function readingAnswerHtml(r, ok) {
 
 /** 読解フォームの答え合わせ。記録して復習キューに入れる */
 // 答え合わせのあとは回答を固定し、正解・あなたの答えを文字でも付ける(クイズと同じ規則)。「もう一度解く」で解き直せる
-function lockAnswer(form, answer, choice, onReset) {
+/** 選択肢に正解とあなたの答えを付ける(色だけでなく文字でも)。並びを入れ替えた復習でも合うよう、位置ではなく値で見る */
+function markChoices(form, answer, choice) {
   const ok = choice === answer;
   form.querySelectorAll("label.choice").forEach((label) => {
     const j = Number(label.querySelector("input").value);
@@ -868,6 +869,10 @@ function lockAnswer(form, answer, choice, onReset) {
     if (j === answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
   });
   form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+}
+
+function lockAnswer(form, answer, choice, onReset) {
+  markChoices(form, answer, choice);
   const submit = form.querySelector("button[type=submit]");
   submit.hidden = true;
   let again = form.querySelector("[data-answer-reset]");
@@ -1391,6 +1396,7 @@ async function renderReview() {
       const it = reviewAnswer(ref, ok);
       recordDay();
       ev.target.querySelectorAll("input,button").forEach((x) => { x.disabled = true; });
+      markChoices(ev.target, q.answer, choice);
       $("#ra").innerHTML = `<div class="quiz-answer ${ok ? "correct" : "wrong"}"><div class="q-mark big">${ok ? "正解" : "不正解"}</div>
         <p>正解: <b>${q.choicesHtml[q.answer]}</b></p><div class="explanation md">${q.explanationHtml}</div>${next(it)}</div>`;
       decorate($("#ra"));
@@ -1409,11 +1415,7 @@ async function renderReview() {
       const it = reviewAnswer(ref, ok);
       recordDay();
       form.querySelectorAll("input,button").forEach((x) => { x.disabled = true; });
-      form.querySelectorAll("label.choice").forEach((label) => {
-        const j = Number(label.querySelector("input").value);
-        label.classList.toggle("is-answer", j === r.answer);
-        label.classList.toggle("is-wrong", j === choice && !ok);
-      });
+      markChoices(form, r.answer, choice);
       const out = view().querySelector(".reading-answer");
       out.innerHTML = readingAnswerHtml(r, ok) + next(it);
       out.hidden = false;
