@@ -9,6 +9,9 @@ problem: |
       String name;   // 氏名
       String dept;   // 部署
       int salary;    // 月給(円)
+
+      Employee(String name, String dept, int salary) { … }   // 3つのフィールドに入れる
+      public String toString() { … }                         // "佐藤(営業 300000円)" の形式
   }
   ```
 

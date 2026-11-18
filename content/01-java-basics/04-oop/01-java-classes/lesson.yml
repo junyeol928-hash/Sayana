@@ -40,7 +40,7 @@ samples:
 
       System.out.println(a);   // toString() が呼ばれる
       System.out.println(b);
-      // toString メソッドを消すと Employee@xxxx という表示になる
+      // toString メソッドを消すと Employee@xxxx のような表示になる(JShell では前に REPL.$JShell$.. が付く)
   - title: コンストラクタのオーバーロードと static
     description: |
       `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数えます。`count` は全インスタンスで1つだけです。

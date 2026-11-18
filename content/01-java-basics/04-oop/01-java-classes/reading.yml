@@ -294,7 +294,7 @@
             mailSender.send(r);
         }
     }
-  question: "Spring がこのクラスを作って send を呼んだとき、何が起きる?"
+  question: "`@RequiredArgsConstructor` は Lombok の注釈で、**初期化していない final のフィールドだけ** を引数に取るコンストラクタを自動で作ります。Spring(第3部)はそのコンストラクタを呼んで部品を渡します。Spring がこのクラスを作って send を呼んだとき、何が起きる?"
   choices:
     - "正常にメールが送られる"
     - "reportRepository が null で NullPointerException"

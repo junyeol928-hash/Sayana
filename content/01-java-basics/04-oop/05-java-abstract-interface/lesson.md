@@ -166,11 +166,11 @@ Arrays.sort(items);   // compareTo で安い順に
 `compareTo` は「自分が相手より **前なら負、同じなら0、後なら正**」を返す約束です。`<Item>` は比べる相手の型(ジェネリクスの章で詳しく)。`Arrays.sort` は `Comparable` という約束だけを頼りに並べています。実装し忘れると、実行時に `ClassCastException: class Item cannot be cast to class java.lang.Comparable` で落ちます。
 
 ::: trivia sealed で実装クラスを限定する(Java 17+)
-`sealed interface Shape permits Circle, Square {}` と書くと、実装できるのはその2つだけに。種類が確定するので switch の網羅性チェックが効きます(モダンJavaの章で再登場)。
+`sealed interface Shape permits Circle, Square {}` と書くと、実装できるのはその2つだけに。種類が確定するので switch の網羅性チェックが効きます(モダンJavaの章の読解問題で再登場)。
 :::
 
 ::: warn @Override は必ず付ける
-`compareTo` を `compareto` と打ち間違えても、`@Override` がなければ「ただの新メソッド」として通ります。抽象メソッドなら未実装エラーで気づけますが、default メソッドの上書きミスは誰も教えてくれません。
+`toString` を `tostring` と打ち間違えても、`@Override` がなければ「ただの新メソッド」として通ります。`compareTo` のような抽象メソッドなら未実装のエラーで気づけますが、`toString` や default メソッドのように **親に実装がある** メソッドの上書きミスは誰も教えてくれません。
 :::
 
 ::: point まとめ

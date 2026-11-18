@@ -100,7 +100,7 @@ samples:
       new Checkout(new NoDiscount()).pay(2980);
       new Checkout(new SaleDiscount(20)).pay(2980);
   - title: Comparable を実装して並べ替える
-    description: "`Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べます。`implements Comparable<Item>` を消すと実行時に ClassCastException になります。"
+    description: "`Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べます。`implements Comparable<Item>` を消すと、`@Override` 付きの `compareTo` は上書きする相手がなくなりコンパイルエラーになります(`@Override` も消すとコンパイルは通り、実行時に ClassCastException)。"
     code: |
       // Comparable を実装して Arrays.sort で並べ替える
       // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)
@@ -226,9 +226,9 @@ columns:
     body: |
       Spring の現場で必ず見かけるのが `OrderService`(インターフェース)と `OrderServiceImpl`(唯一の実装)のペア。実装は1つなのに、なぜ分けるのでしょう。
 
-      歴史的な理由は2つあります。①昔の Spring はトランザクション管理などを **JDK の動的プロキシ** で実現していて、これはインターフェースがないと使えなかった。②テストで偽物(モック)に差し替えるにはインターフェースが必要だった。
+      歴史的な理由は2つあります。①昔の Spring はトランザクション管理などを **JDK の動的プロキシ** で実現していて、これはインターフェースがないと使えなかった。②初期のモックライブラリには、インターフェースしか偽物(モック)にできないものが多かった。
 
-      ところが今は事情が変わりました。Spring Boot 2.0 以降はクラスを直接継承する **CGLIB プロキシ** が既定になり、Mockito もクラスを直接モックできます。最近は「実装が1つならインターフェースは作らない」チームも増えています。
+      ところが今は事情が変わりました。Spring Boot 2.0 以降はクラスを直接継承する **CGLIB プロキシ** が既定になり、Mockito はクラスも直接モックできます(5 系からは final クラスも既定で)。最近は「実装が1つならインターフェースは作らない」チームも増えています。
 
       一方、決済方法・通知手段・外部APIのように **本当に実装が複数ありうる所** では、今でもインターフェースが主役です。そのときは `Impl` ではなく `CreditCardPayment` `StripePayment` のように **違いが分かる名前** を付けるのが良い習慣です。
   - type: mistake

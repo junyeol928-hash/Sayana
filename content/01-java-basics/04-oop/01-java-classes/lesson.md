@@ -120,7 +120,7 @@ Employee(String name) {
 }
 ```
 
-`this(...)` は **コンストラクタの先頭の文** でなければなりません。途中に書くと `call to this must be first statement in constructor` です。
+`this(...)` は **コンストラクタの先頭の文** でなければなりません。途中に書くと `call to this must be first statement in constructor` です(Java 21 の決まり。Java 25 からは、`this` を使わない文に限って `this(...)` の前に書けるようになりました)。
 
 ### デフォルトコンストラクタが消える罠
 
@@ -164,10 +164,10 @@ class Employee {
 
 実体 A から見ても B から見ても `issuedCount` は同じ1つの箱なので、どちらで発券しても数字は通しで増えていきます。
 
-`static` メソッドには `this` がないので、インスタンスのフィールドを直接触れません。`main` から書くとよく出るエラーです。
+`static` メソッドには `this` がないので、インスタンスのフィールドを直接触れません。`main` から `salary` を書くとよく出るエラーです(static の `count` なら問題なく使えます)。
 
 ```text
-error: non-static variable count cannot be referenced
+error: non-static variable salary cannot be referenced
   from a static context
 ```
 
@@ -217,7 +217,7 @@ Exception in thread "main"
   because "staff[0]" is null
 ```
 
-Java 14 以降はこのように「何が null だったか」まで教えてくれます(Helpful NullPointerExceptions)。
+Java 15 以降は、既定でこのように「何が null だったか」まで教えてくれます(Helpful NullPointerExceptions。Java 14 ではオプション `-XX:+ShowCodeDetailsInExceptionMessages` を付けたときだけ)。変数名まで出るのは STS や Maven のようにデバッグ情報付きでコンパイルしたときで、`javac` を素で使うと `"<local1>[0]"` のような番号になります。
 
 ## toString で中身を表示する
 

@@ -188,7 +188,7 @@ System.out.println(a.equals(b)); // false !
 `equals` を定義しないと、`Object` から受け継いだ「同じインスタンスか」(`==` と同じ)で比べます。中身で比べるには `equals` と **`hashCode`** をセットでオーバーライドします。書き方はコレクションのレッスンで扱います。
 
 ::: genba 「@Data 付けときました」
-Lombok の `@Data` は getter/setter/equals などを自動生成する便利な注釈。でも全フィールドに **setter まで生える** ので、「private なのに何でも書き換えられる」クラスの完成です。必要な `@Getter` だけ付けるのが現場の作法。
+Lombok の `@Data` は getter/setter/equals などを自動生成する便利な注釈。でも final でない全フィールドに **setter まで生える** ので、「private なのに何でも書き換えられる」クラスの完成です。必要な `@Getter` だけ付けるのが現場の作法。
 :::
 
 ::: haru

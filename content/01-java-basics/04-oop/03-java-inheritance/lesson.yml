@@ -63,7 +63,8 @@ samples:
           C() { System.out.println("C のコンストラクタ"); }
       }
 
-      // ここを変えてみよう:new B() にする / B の super(); を2行目に移動してみる(エラーになる)
+      // ここを変えてみよう:new B() にする / B の super(); を2行目に移動してみる
+      // (Java 21 ではコンパイルエラー。Java 25 以降は this を使わない文なら super() の前に書ける)
       new C();
   - title: toString と equals をオーバーライドする
     description: "Object から引き継いだ `toString()` は「クラス名@ハッシュ値」、`equals()` は「同じオブジェクトか」の判定です。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。"
@@ -187,7 +188,7 @@ columns:
 
       その結果、Stack は Vector の public メソッドを全部引き継ぎ、**「上に積んで上から取る」はずのスタックの途中に `add(0, x)` で割り込める** ようになってしまいました。「スタックは配列の一種」という is-a が成り立っていなかったのです。今では Javadoc 自身が `ArrayDeque` などの別クラスを使うよう勧めています。
 
-      `java.util.Properties extends Hashtable` も同類です。設定値(文字列)を入れる箱なのに、親の `put` で文字列以外も入れられ、`getProperty` が `null` を返す事故が起きえます。『Effective Java』は「継承のために設計して文書化せよ、さもなくば継承を禁止せよ」と述べ、これらを反面教師に挙げています。
+      `java.util.Properties extends Hashtable` も同類です。設定値(文字列)を入れる箱なのに、親の `put` で文字列以外も入れられ、`getProperty` が `null` を返す事故が起きえます。『Effective Java』は「継承よりコンポジションを選ぶ」の項でこれらを反面教師に挙げ、「継承のために設計して文書化せよ、さもなくば継承を禁止せよ」とも述べています。
   - type: mistake
     title: 親のコンストラクタから、子がオーバーライドしたメソッドを呼ぶと……
     body: |

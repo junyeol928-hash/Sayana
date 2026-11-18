@@ -38,7 +38,7 @@
     22: "変数はインターフェース型。実体(Stripe か Fake)は Spring が起動時に決めて注入する"
     26: "どちらの pay が動くかは、ソースを読んでも決まらない。プロファイル設定(application.yml)で決まる"
   points:
-    - "インターフェース型のフィールドを見たら、`implements` しているクラスを検索する(IDE の「実装へ移動」Ctrl+Alt+B)。実装が複数あれば @Profile / @Primary / @Qualifier で選ばれている"
+    - "インターフェース型のフィールドを見たら、`implements` しているクラスを検索する(STS なら型名を選んで Ctrl+T で実装クラスの一覧、IntelliJ なら Ctrl+Alt+B)。実装が複数あれば @Profile / @Primary / @Qualifier で選ばれている"
     - "処理の中身を読みたいときはインターフェースではなく実装クラス(Impl)へ"
     - "Repository インターフェースは実装クラスが無いのが正常。メソッド名から SQL を推測する"
     - "`List` / `Map` / `Optional` など、変数の型がインターフェースで実体が別クラス、という形は至るところにある"

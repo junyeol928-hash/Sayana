@@ -121,7 +121,7 @@
 
     KeyEntity entity = new KeyEntity("C001", 3);
     System.out.println(entity.getCardId() + ":" + entity.getKeyVersion());
-  question: "出力は?"
+  question: "`@AllArgsConstructor` は、全フィールドを宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(`@Getter` は本文で扱ったもの)。出力は?"
   choices:
     - "C001:3"
     - "コンパイルエラー(getCardId は存在しない)"
@@ -146,11 +146,11 @@
 
     // 別の場所で:
     new KeyIssueService(repo, clock);
-  question: "この呼び出しはコンパイルできる?"
+  question: "`@RequiredArgsConstructor` は、**初期化していない final のフィールド** を宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(第3部で詳しく)。この呼び出しはコンパイルできる?"
   choices:
     - "できる。final の2つを引数にとるコンストラクタが生成されているため"
     - "できない。3引数のコンストラクタしか生成されないため"
-    - "できる。全フィールド4つを渡す必要があるため"
+    - "できる。全フィールド3つを渡す必要があるため"
     - "できない。@RequiredArgsConstructor は Service では使えないため"
   answer: 0
   explanation: "@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。"
@@ -160,7 +160,7 @@
     - "4行目: cryptoClient は final でない → 対象外"
     - "5行目: clock は final → 対象"
     - "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)"
-    - "8行目: 引数の型と順序が一致するのでコンパイルできる"
+    - "9行目: 引数の型と順序が一致するのでコンパイルできる"
 - title: "双方向関連の @Data と StackOverflowError"
   level: 3
   code: |
@@ -182,7 +182,7 @@
 
     // 呼び出し側
     System.out.println(keyEntity);
-  question: "System.out.println(keyEntity) を実行すると?"
+  question: "`@Data` は toString も自動で作り、その toString は全フィールドを文字列にします。`@Entity` / `@OneToMany` / `@ManyToOne` は JPA(第3部)の注釈で、ここでは「KeyEntity と ResultEntity がお互いを参照している」とだけ読めば十分です。results に ResultEntity が入っている keyEntity で System.out.println(keyEntity) を実行すると?"
   choices:
     - "正常に文字列が表示される"
     - "StackOverflowError が発生することがある"
@@ -211,7 +211,7 @@
             .commandHex("00A4040C")
             .build();
     System.out.println(req);
-  question: "出力される timeoutMillis の値は?"
+  question: "`@Builder` は `CommandRequest.builder().項目名(値)….build()` の形で組み立てる Builder(「ネストクラス」のレッスンで扱う)を自動で作る Lombok の注釈、`@ToString` は toString を作る注釈です。出力される timeoutMillis の値は?"
   choices:
     - "0(セットされなかったので既定値)"
     - "コンパイルエラー"
@@ -237,7 +237,7 @@
     // 呼び出し側(try-catch なし)
     TemplateLoader loader = new TemplateLoader();
     String content = loader.load("not-exist.txt");
-  question: "存在しないファイルを渡して load を呼ぶと?"
+  question: "`Files.readString` はファイルを読むメソッドで、読めないと IOException(catch か throws の宣言が必須の「検査例外」。第5章)を投げます。`@SneakyThrows` は、その throws 宣言を書かずに済ませる Lombok の注釈です。存在しないファイルを渡して load を呼ぶと?"
   choices:
     - "コンパイルエラー(IOException を catch していない)"
     - "実行時に例外(IOException 系)が発生し、呼び出し元は catch していないので処理が止まる"
@@ -248,5 +248,5 @@
   trace:
     - "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる"
     - "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない"
-    - "9行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)"
+    - "10行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)"
     - "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる"

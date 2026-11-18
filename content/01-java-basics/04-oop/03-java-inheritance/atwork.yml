@@ -28,7 +28,7 @@
     }
   notes:
     1: "JPA:「このクラス自体はテーブルにしないが、子の Entity にフィールドを引き継がせる」印"
-    2: "abstract = 単独では new できない共通の土台(次章)。id と createdAt を全 Entity にまとめて持たせる"
+    2: "abstract = 単独では new できない共通の土台(「抽象クラスとインターフェース」のレッスンで)。id と createdAt を全 Entity にまとめて持たせる"
     10: "protected = サブクラスから呼べる・上書きできる。private だと子から見えない"
     16: "extends で id・createdAt・onCreate() を引き継ぐ。Order の本文には書いていないが存在する"
     20: "例外クラスも継承で作る。RuntimeException の子 = 非検査例外(例外の章で)"
