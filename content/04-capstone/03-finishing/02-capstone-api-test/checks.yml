@@ -1,0 +1,21 @@
+- after: 設計の考え方
+  question: |
+    承認者のモカが、API で **自分の** 申請(申請中・5,000 円)を承認しようとした。承認くんの方針で返るのは?
+  choices: ["409 Conflict", "403 Forbidden", "404 Not Found"]
+  answer: 0
+  explanation: |
+    モカは APPROVER なので、ロールしか見ない Security の URL ルールは通る。自分の申請かどうかは業務ルール2で、Service の `BusinessRuleException` → 409。403 にする流派もあるが、承認くんは「ロールでの門前払いだけが 403」と線を引いている。
+- after: "Controller のテスト:@WebMvcTest + @MockitoBean"
+  question: |
+    画面の JavaScript から `fetch` で `POST /api/requests/5/approve` を送った。ログイン中のセッション Cookie は付くが、CSRF トークンは付けていない。どうなる?
+  choices: ["403 になる", "API なので CSRF は確かめられず、承認される"]
+  answer: 0
+  explanation: |
+    承認くんの API は画面と同じセッション Cookie で認証するので、`/api/**` でも CSRF 対策を外していない。トークンを `X-CSRF-TOKEN` ヘッダで送れば通る(テストの `.with(csrf())` と同じ役目)。
+- after: Service は単体テストで、ルールを表にする
+  question: |
+    表に `"ADMIN, 100000, RETURNED, ?"`(ADMIN が 10 万円の差戻し中の申請を承認)の行を足す。期待値は?
+  choices: ["NG(BusinessRuleException)", "OK(ADMIN なので承認できる)"]
+  answer: 0
+  explanation: |
+    ADMIN なので金額のルール3は通るが、差戻しの申請は再申請で申請中に戻るまで承認できない(RETURNED → APPROVED の矢印は無い)。例外になり、履歴の `save` も呼ばれない。

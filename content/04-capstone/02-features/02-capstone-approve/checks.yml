@@ -1,0 +1,21 @@
+- after: ApprovalService:誰がやってよいかと履歴
+  question: |
+    モカが承認し終えた 5,000 円の申請に、開きっぱなしだった古い詳細画面からボス(ADMIN)が承認を押した。どうなる?
+  choices: ["エンティティの approve が例外で拒否し、履歴は増えない", "ADMIN なので通り、承認の履歴が 2 件になる", "Service の承認者チェック(requireApprover)で拒否される"]
+  answer: 0
+  explanation: |
+    「誰が」のチェック(承認者か・本人でないか・金額)はボスなら全部通る。止めるのはエンティティの `approve` が呼ぶ `ApprovalFlow.next` で、承認済は変更できない(ルール5)。例外が先に出るので、履歴の保存まで進まない。
+- after: "@Transactional:状態と履歴は一蓮托生"
+  question: |
+    `approve` の中で、履歴の INSERT が DB のエラー(`DataIntegrityViolationException`。RuntimeException の仲間)で失敗した。申請の状態は?
+  choices: ["状態の変更もロールバックされ、申請中のまま", "状態の変更はコミットされ、承認済なのに履歴が無い"]
+  answer: 0
+  explanation: |
+    状態の UPDATE と履歴の INSERT は、`@Transactional` の 1 つのトランザクションの中にある。RuntimeException が外へ出れば両方なかったことになるので、「承認済なのに履歴が無い」は起きない。
+- after: 画面:承認待ち一覧とボタン
+  question: |
+    詳細画面で、コメント欄を空のまま「差戻し」ボタンを押した。どうなる?
+  choices: ["差戻しの URL に送られ、詳細画面に「差戻しにはコメントが必要です」と出る", "フォームの th:action にある承認の URL に送られ、承認される", "comment が空なので 400 Bad Request になる"]
+  answer: 0
+  explanation: |
+    `th:formaction` を付けたボタンは、押したときだけ送り先を `/requests/{id}/return` に変える。`comment` は `required = false` なので 400 にはならず、エンティティの `returnBack` が空のコメントを例外で拒否し、承認と同じく catch してメッセージを出す。

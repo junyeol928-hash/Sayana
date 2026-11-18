@@ -12,7 +12,7 @@ samples:
   - title: ORDINAL で保存していたら何が起きるか
     description: |
       `@Enumerated` を付けないと、enum は宣言順の番号(`ordinal()`)で保存されます。後から定数を途中に足したとき、DB に残っている番号がどう読まれるかを再現します。
-      名前(`name()`)で保存していれば、並びが変わっても同じ状態に戻せることを確かめてください。
+      保存した3つの値は、番号(`ordinal()`)で読むと何に、名前(`name()`)で読むと何になるか。予想してから実行結果を見よう。
     code: |
       // ORDINAL(宣言順の番号)で保存していたら……を再現する
       // 「保存したとき」の enum
@@ -39,7 +39,7 @@ samples:
   - title: 承認くんの派生クエリを PartTree で読む
     description: |
       Spring Data は起動時に、Repository のメソッド名を `PartTree` で解析して SQL の条件と並び順に変換します。承認くんで使う名前を直接解析してみましょう。
-      `applicant.name` のように関連先のプロパティでも絞れること、つづりを間違えると `Did you mean ...` と教えてくれることも確かめられます。DB には接続しません。
+      4つ目の `findByApplicantName…` はどのプロパティの条件になるか、つづりを間違えた5つ目はどうなるか。予想してから実行結果を見よう。DB には接続しません。
     libraries: [spring, jpa]
     code: |
       import java.time.LocalDateTime;

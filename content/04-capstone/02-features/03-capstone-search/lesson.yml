@@ -13,7 +13,7 @@ samples:
   - title: PageRequest と Page の数字を確かめる
     description: |
       45件の結果を20件ずつに分けたとき、`Pageable`(要求)と `Page`(結果)がそれぞれ何を持っているかを見ます。DB の代わりに `subList` で切り出しています。
-      最後に、負の page を `PageRequest.of` に渡すと例外になることも確かめます(だから URL の値はそのまま渡せません)。
+      page=1 のとき OFFSET はいくつで、中身は何件目からか。最後に負の page を `PageRequest.of` に渡したらどうなるかも、予想してから実行結果を見よう。
     libraries: [spring, jpa]
     code: |
       import org.springframework.data.domain.*;
@@ -89,7 +89,7 @@ samples:
       }
   - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
     description: |
-      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。日本語・空白・`%`・`&` は URL エンコードされ、URL だけで条件を復元できます。
+      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。指定なし(null)の `type` はリンクに入るか、日本語と空白はどう書かれるか。予想してから実行結果を見よう。
       Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
     libraries: [spring]
     code: |

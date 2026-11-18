@@ -1,0 +1,21 @@
+- after: エラーの返し先を、画面と API で分ける
+  question: |
+    `ApiExceptionHandler` の `basePackageClasses` を消した。画面で存在しない申請 `GET /requests/9999` を開くと?
+  choices: ["404 の ProblemDetail(JSON)がブラウザに出る", "templates/error/404.html の画面が出る", "500 のシステムエラーになる"]
+  answer: 0
+  explanation: |
+    範囲を絞らない `@RestControllerAdvice` は画面の Controller にも効くので、`RequestNotFoundException` を `onNotFound` が受けて JSON を返す。404.html が出るのは、範囲を `web.api` に絞って画面の例外を Spring Boot の `/error` に任せたとき。
+- after: 業務ログ:誰が・どの申請を・どうしたか
+  question: |
+    `approve` の最後で `log.info("承認 requestId=…")` を出したあと、コミットの時点で楽観ロックに失敗した。ログと DB は?
+  choices: ["ログには「承認」の行が残るが、DB は承認されていない", "ロールバックでログの行も消える", "ログはコミットの後に出るので、行は出ない"]
+  answer: 0
+  explanation: |
+    ログはメソッドの中、つまりコミットの前に出て、ロールバックされても消えない。だからログと DB がずれる。避けたいなら `@TransactionalEventListener`(既定でコミット後に動く)で出す。
+- after: プロファイル:dev と prod
+  question: |
+    `--spring.profiles.active=prod` を付けて起動した(`application.yml` は `spring.profiles.default: dev`)。`@Profile("dev")` の `DevPasswordInitializer` は?
+  choices: ["Bean にならず、開発用パスワードは入らない", "default が dev なので dev も有効になり、パスワードが入る", "dev 用のクラスが残っているので起動に失敗する"]
+  answer: 0
+  explanation: |
+    `spring.profiles.default` が使われるのは、有効なプロファイルが 1 つも無いときだけ。prod を指定すれば dev は有効にならず、`@Profile("dev")` のクラスは Bean にならない。

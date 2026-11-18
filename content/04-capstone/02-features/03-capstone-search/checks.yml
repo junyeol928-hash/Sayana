@@ -1,0 +1,21 @@
+- after: 設計①:任意条件をどう組み立てるか
+  question: |
+    任意の条件に「金額の下限」を足して 4 つにした。派生クエリで全組み合わせを書くと何本? Specification なら部品はいくつ?
+  choices: ["派生クエリ 16 本・部品 4 個", "派生クエリ 8 本・部品 4 個", "派生クエリ 4 本・部品 16 個"]
+  answer: 0
+  explanation: |
+    4 つそれぞれに「使う/使わない」があるので 2⁴ = 16 本。8 本は条件 3 つのときの数で、1 つ増えるたびに倍になる。Specification は条件 1 つ = 部品 1 つなので、1 個足して 4 個。
+- after: 設計②:ページングとソート
+  question: |
+    count クエリを減らしたくて、検索の戻り値を `Page` から `Slice` に変えた。画面で出せなくなるのは?
+  choices: ["「全 N 件中」の総件数", "「次へ」のリンク", "そのページの 20 件の中身"]
+  answer: 0
+  explanation: |
+    `Slice` は count クエリを出さないので、総件数も総ページ数も知らない。次のページがあるかは分かる(`hasNext()`)ので、「次へ」は出せる。
+- after: STS での実装
+  question: |
+    `search` の引数から `BindingResult binding` を消した。`/requests/search?status=FOO` が来ると?
+  choices: ["400 Bad Request になる", "status は指定なしとして検索される", "status が FOO の申請(0 件)が返る"]
+  answer: 0
+  explanation: |
+    `BindingResult` が `cond` の直後にあれば、変換できない値はそこに記録され、status は null(指定なし)のまま処理が続く。無ければ Spring MVC が `MethodArgumentNotValidException` を投げて 400 にする。

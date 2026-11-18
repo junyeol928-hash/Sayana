@@ -13,7 +13,7 @@ samples:
   - title: 申請フォームの入力チェックを動かす
     libraries: [spring]
     description: |
-      `RequestForm` を Validator で直接検証します。経費精算なのに金額が無いと、相関チェック(`amountEntered`)のエラーになります。
+      `RequestForm` を Validator で直接検証します。経費精算なのに金額なし・理由は空白だけのフォームは、何件の、どの項目のエラーになるか。予想してから実行結果を見よう。
       最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
@@ -63,7 +63,7 @@ samples:
             .forEach(System.out::println);
   - title: 自分の申請だけを日本語の状態で一覧にする
     description: |
-      一覧の考え方をメモリ上で再現します。申請者IDで絞り込み、状態は enum の名前ではなく `label` で表示します。
+      一覧の考え方をメモリ上で再現します。社員 1 の一覧に何件が並び、状態の欄に何と出るか。予想してから実行結果を見よう。
     code: |
       // 「自分の申請だけ」を一覧に出す Service の考え方(メモリ版)
       // ここを変えてみよう:CURRENT_EMPLOYEE_ID を 2 に / 申請を足してみる

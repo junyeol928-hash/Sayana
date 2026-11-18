@@ -13,9 +13,9 @@ samples:
   - title: API のエラーを @RestControllerAdvice で1か所にまとめる
     libraries: [spring]
     description: |
-      承認済の申請の承認(409)、DB が落ちた想定の想定外の例外(500)、enum に変換できない値(400)、対応していない HTTP メソッド(405)を順に送ります。
-      500 の本文には例外のメッセージが出ず、`errorId` だけが返ること、ログ(ここでは `[ログ]` の行)には中身が全部出ることを確かめましょう。
-      `extends ResponseEntityExceptionHandler` を消して実行し直すと、400 と 405 まで 500 になります。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
+      承認済の申請の承認、DB が落ちた想定の想定外の例外、enum に変換できない値、対応していない HTTP メソッドを順に送ります。
+      それぞれのステータスは何か、想定外の例外のとき本文とログ(ここでは `[ログ]` の行)に何が出るか。予想してから実行結果を見よう。
+      そのあと `extends ResponseEntityExceptionHandler` を消して実行し直すと、どの応答が変わるかも試しましょう。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // API のエラーを @RestControllerAdvice で1か所にまとめる
       // ここを変えてみよう:extends ResponseEntityExceptionHandler を消すと

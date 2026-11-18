@@ -1,0 +1,21 @@
+- after: RequestForm:入力ルールと相関チェック
+  question: |
+    種類に「休暇」を選び、金額欄に `5000` と入れたまま保存した(件名・理由は入力済み)。どうなる?
+  choices: ["エラーにならず、金額は null で保存される", "相関チェックのエラーになる", "エラーにならず、金額 5000 円で保存される"]
+  answer: 0
+  explanation: |
+    `isAmountEntered()` は金額の要らない種類なら true を返すだけなので、エラーは出ない。保存では `toEntity()` が `type.requiresAmount() ? amount : null` で休暇の金額を捨てるので、5000 円は残らない。
+- after: Controller:3つのハンドラと PRG
+  question: |
+    下書きを保存して一覧(`/requests`)に戻ったあと、ブラウザの再読み込みを押した。どうなる?
+  choices: ["一覧を読み直すだけで、下書きは増えない", "POST がもう一度送られ、同じ下書きがもう 1 件できる", "下書きは増えないが、「下書きを保存しました」がもう一度出る"]
+  answer: 0
+  explanation: |
+    保存後は `redirect:/requests` でブラウザに GET し直させている(PRG)ので、再読み込みで送り直すのは GET だけ。フラッシュ属性のメッセージもリダイレクト先で 1 回使われたら消えるので、2 度目は出ない。
+- after: 画面:new.html と list.html
+  question: |
+    件名と理由だけ入れ、種類は「選択してください」、金額は空のまま送った。出るエラーは?
+  choices: ["「種類を選んでください」だけ", "空文字を enum に変換できず 400 Bad Request", "「種類を選んでください」と「経費精算・備品購入は金額が必須です」"]
+  answer: 0
+  explanation: |
+    空文字は enum への変換で null になるので変換エラーにはならず、`@NotNull` が働く。相関チェックは種類が未選択なら true を返す(`@NotNull` の担当)ので、金額のエラーは重ならない。

@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Jackson(Spring MVC が JSON 変換に使うライブラリ)で、エンティティ風のクラスと DTO の record を JSON にして比べます。
-      エンティティのほうは、関連先の `Employee` の **email や role まで** 出てしまいます。
+      エンティティのほうの JSON には、関連先の `Employee` のどの項目まで入るか。予想してから実行結果を見よう。
     code: |
       // エンティティをそのまま JSON にすると何が出る? DTO なら?
       // ここを変えてみよう:Employee に password 項目を足す /
@@ -50,8 +50,8 @@ samples:
   - title: 承認 API を MockMvc で叩いて 200 / 409 / 404 を見る
     libraries: [spring]
     description: |
-      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。同じ申請を2回承認すると2回目は 409、存在しない ID は 404 になり、
-      どちらも `application/problem+json`(ProblemDetail)で返ります。`onRule` の `@ExceptionHandler` を消すと、例外が Controller の外まで飛び出す様子も見られます。
+      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。申請 1 を2回、存在しない 99 を1回承認したとき、それぞれのステータスと Content-Type は何か。
+      予想してから実行結果を見よう。そのあと `onRule` の `@ExceptionHandler` を消すと、2回目の承認がどうなるかも試しましょう。
       最初に Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // 承認 API を MockMvc で叩く:200 / 409 / 404 を見比べる
