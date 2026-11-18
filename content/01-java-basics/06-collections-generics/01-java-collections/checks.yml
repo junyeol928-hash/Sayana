@@ -12,7 +12,7 @@
   answer: 0
   why:
     - ""
-    - "添字を 1 から数えた答え。添字は 0 始まりで、get(0) が先頭の C"
+    - "添字を 1 から数えた答え。添字は 0 始まりで、`get(0)` が先頭の C"
     - "add(0, …) を置き換えと読んだ答え。差し込みなので、A と B は後ろへずれる"
   explanation: |
     `add(0, "C")` は先頭に差し込み、A と B を後ろへずらすので `[C, A, B]`。添字は 0 始まりなので `get(1)` は A。
@@ -35,7 +35,7 @@
     a.set(0, "Z");
     System.out.println(a);
     ```
-  choices: ["[Z, B]", "UnsupportedOperationException", "コンパイルエラー"]
+  choices: ["`[Z, B]`", "`UnsupportedOperationException`", "コンパイルエラー"]
   answer: 0
   why:
     - ""

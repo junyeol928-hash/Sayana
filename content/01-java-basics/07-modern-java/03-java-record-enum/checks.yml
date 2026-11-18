@@ -8,7 +8,7 @@
     list.add("B");
     System.out.println(c.items());
     ```
-  choices: ["[A, B]", "[A]", "UnsupportedOperationException"]
+  choices: ["`[A, B]`", "`[A]`", "`UnsupportedOperationException`"]
   answer: 0
   why:
     - ""
@@ -26,7 +26,7 @@
     }
     OrderStatus.fromCode("DELIVERED");
     ```
-  choices: ["IllegalArgumentException(不明なコード)", "DELIVERED が返る"]
+  choices: ["`IllegalArgumentException`(不明なコード)", "`DELIVERED` が返る"]
   answer: 0
   why:
     - ""

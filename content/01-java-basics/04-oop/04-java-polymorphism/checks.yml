@@ -22,7 +22,7 @@
     Animal a = new Dog();
     String s = (String) a;
     ```
-  choices: ["コンパイルエラー", "実行時に ClassCastException", "`a.toString()` の文字列が s に入る"]
+  choices: ["コンパイルエラー", "実行時に `ClassCastException`", "`a.toString()` の文字列が `s` に入る"]
   answer: 0
   why:
     - ""

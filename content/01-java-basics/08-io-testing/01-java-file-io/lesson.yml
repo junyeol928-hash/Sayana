@@ -187,12 +187,12 @@ quiz:
       System.out.println(p.getFileName());
       System.out.println(p.getParent().getFileName());
       ```
-    choices: ["data と 2026", "sales.csv と 2026", "sales.csv と data/2026", "NoSuchFileException が発生する"]
+    choices: ["data と 2026", "sales.csv と 2026", "sales.csv と data/2026", "`NoSuchFileException` が発生する"]
     answer: 1
     why:
-      - "getFileName() がパスの先頭を返すと読んだ答え。返すのは最後の要素の sales.csv"
+      - "`getFileName()` がパスの先頭を返すと読んだ答え。返すのは最後の要素の `sales.csv`"
       - ""
-      - "親のパスがそのまま出ると読んだ答え。getParent() の後の getFileName() で最後の 2026 だけになる"
+      - "親のパスがそのまま出ると読んだ答え。`getParent()` の後の `getFileName()` で最後の `2026` だけになる"
       - "Path を作るとファイルに触ると読んだ答え。作るだけでは触らない"
     explanation: |
       `getFileName()` はパスの **最後の要素** を返すので `sales.csv`。`getParent()` は `data/2026` で、その最後の要素は `2026` です。
@@ -205,11 +205,11 @@ quiz:
           System.out.println(s);
       }
       ```
-    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ null が出力される", "コンパイルは通り、memo.txt が無いと NoSuchFileException で落ちる", "コンパイルエラーになる"]
+    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ null が出力される", "コンパイルは通り、memo.txt が無いと `NoSuchFileException` で落ちる", "コンパイルエラーになる"]
     answer: 3
     why:
-      - "無いファイルは空として読まれると読んだ答え。その前に IOException を扱っておらず、コンパイルが通らない"
-      - "無いファイルで null が返ると読んだ答え。その前に IOException を扱っておらず、コンパイルが通らない"
+      - "無いファイルは空として読まれると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
+      - "無いファイルで null が返ると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
       - "readString を宣言なしで呼べると読んだ答え。実行の前にコンパイルで止まる"
       - ""
     explanation: |
@@ -234,7 +234,7 @@ quiz:
       コマンドプロンプトから `java` で起動した場合は `cd` していた場所が基準になるので、同じコードでも結果が変わります。
   - question: |
       次のうち、try-with-resources で閉じる **必要がない** ものはどれ?
-    choices: ["Files.readAllLines(path) が返す List<String>", "Files.lines(path) が返す Stream<String>", "Files.list(dir) が返す Stream<Path>", "Files.newBufferedReader(path) が返す BufferedReader"]
+    choices: ["`Files.readAllLines(path)` が返す `List<String>`", "`Files.lines(path)` が返す `Stream<String>`", "`Files.list(dir)` が返す `Stream<Path>`", "`Files.newBufferedReader(path)` が返す `BufferedReader`"]
     answer: 0
     why:
       - ""

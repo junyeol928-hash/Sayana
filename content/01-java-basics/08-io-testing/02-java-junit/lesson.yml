@@ -201,10 +201,10 @@ quiz:
                   () -> Integer.parseInt("abc"));
       }
       ```
-    choices: ["NumberFormatException なので失敗する", "成功する", "コンパイルエラーになる", "例外がテストの外に漏れてエラーになる"]
+    choices: ["`NumberFormatException` なので失敗する", "成功する", "コンパイルエラーになる", "例外がテストの外に漏れてエラーになる"]
     answer: 1
     why:
-      - "型がぴったり一致しないと失敗と読んだ答え。NumberFormatException は IllegalArgumentException の子で成功する"
+      - "型の完全一致が要ると読んだ答え。`NumberFormatException` は `IllegalArgumentException` の子で成功する"
       - ""
       - "例外を投げる処理はラムダで渡せないと読んだ答え。投げる処理をラムダで渡すのが assertThrows の使い方"
       - "投げられた例外がテストの外に出ると読んだ答え。assertThrows が受け止める"
@@ -219,7 +219,7 @@ quiz:
           return h < 12 ? "おはよう" : "こんにちは";
       }
       ```
-    choices: ["テストを午前と午後に1回ずつ実行する運用にする", "テストの中で12時になるまで待つ", "時刻を引数で受け取る greeting(LocalTime now) にする", "greeting を private にしてテストしない"]
+    choices: ["テストを午前と午後に1回ずつ実行する運用にする", "テストの中で12時になるまで待つ", "時刻を引数 `LocalTime now` で受け取る", "`greeting` を private にしてテストしない"]
     answer: 2
     why:
       - "実行する時間を変えれば両方試せると読んだ答え。いつでも同じ結果という自動テストの前提が崩れる"

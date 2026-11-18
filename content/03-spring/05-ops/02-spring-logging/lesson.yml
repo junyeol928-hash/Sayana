@@ -78,8 +78,8 @@ quiz:
     choices: ["4行すべて", "INFO・WARN・ERROR の3行", "WARN・ERROR の2行", "ERROR の1行だけ"]
     answer: 2
     why:
-      - "設定で出力が絞られないと読んだ答え。com.example の WARN が効き、WARN 以上だけが出る"
-      - "root の INFO だけを見た答え。ロガー名が com.example に一致するので、WARN が効く"
+      - "設定で出力が絞られないと読んだ答え。`com.example` の WARN が効き、WARN 以上だけが出る"
+      - "`root` の INFO だけを見た答え。ロガー名が `com.example` に一致するので、WARN が効く"
       - ""
       - "WARN を超えるものだけが出ると読んだ答え。基準の WARN 自身も出るので2行"
     explanation: |
@@ -91,16 +91,16 @@ quiz:
       log.debug("合計: " + calcTotal(items));
       ```
     choices:
-      - "呼ばれる。メソッドの引数は呼び出し前に評価されるので、連結も calcTotal も実行される"
+      - "呼ばれる。メソッドの引数は呼び出し前に評価されるので、連結も `calcTotal` も実行される"
       - "呼ばれない。SLF4J が DEBUG 無効を検知して、引数の評価を省略する"
       - "呼ばれない。JIT コンパイラが不要な呼び出しを必ず削除する"
-      - "コンパイルエラーになる。debug には {} を含む文字列しか渡せない"
+      - "コンパイルエラーになる。`debug` には `{}` を含む文字列しか渡せない"
     answer: 0
     why:
       - ""
       - "SLF4J が引数の計算を止められると読んだ答え。引数は呼び出し前に全部評価され、レベルの判定はその後"
       - "JIT が不要な呼び出しを消すと読んだ答え。副作用のある呼び出しを勝手に消すことはない"
-      - "debug には `{}` が必須と読んだ答え。連結した文字列も渡せ、コンパイルは通る"
+      - "`debug` には `{}` が必須と読んだ答え。連結した文字列も渡せ、コンパイルは通る"
     explanation: |
       Java はメソッドを呼ぶ前に引数を全部評価します(正格評価)。`log.debug` の中でレベルが判定されるのは、`"合計: " + calcTotal(items)` が計算し終わった **後** です。そのため DEBUG が無効でも `calcTotal` は実行され、結果は捨てられます。
       `log.debug("合計: {}", total)` なら連結や `toString()` は省けますが、`calcTotal(items)` を引数に書けばそれ自体はやはり呼ばれます。重い計算は `if (log.isDebugEnabled())` で囲みましょう。
@@ -110,10 +110,10 @@ quiz:
       log.error("採点に失敗: {}", e);
       ```
     choices:
-      - "採点に失敗: java.lang.IllegalStateException: 応答なし(1行だけ)"
-      - "採点に失敗: 応答なし(1行だけ)"
-      - "コンパイルエラー(例外は {} に入れられない)"
-      - "採点に失敗: {} と表示され、その下にスタックトレース"
+      - "`採点に失敗: java.lang.IllegalStateException: 応答なし`(1行だけ)"
+      - "`採点に失敗: 応答なし`(1行だけ)"
+      - "コンパイルエラー(例外は `{}` に入れられない)"
+      - "`採点に失敗: {}` と表示され、その下にスタックトレース"
     answer: 3
     why:
       - "例外が `{}` に入って文字列になると読んだ答え。最後の Throwable は例外扱いで、スタックトレースが出る"
@@ -133,16 +133,16 @@ quiz:
       }
       ```
     choices:
-      - "Logger を static にしているので、設定が反映されない"
-      - "getLogger に別クラス(OrderService)を渡しているので、ロガー名が com.example.order.OrderService になっている"
-      - "logging.level にはクラス名まで書かないと効かない"
+      - "Logger を `static` にしているので、設定が反映されない"
+      - "`getLogger` に別クラスの `OrderService.class` を渡している"
+      - "`logging.level` にはクラス名まで書かないと効かない"
       - "DEBUG ログは Spring Boot では一切出せない"
     answer: 1
     why:
-      - "static の Logger には設定が効かないと読んだ答え。`static final` は定番で、原因は渡したクラス"
+      - "`static` の Logger には設定が効かないと読んだ答え。`static final` は定番で、原因は渡したクラス"
       - ""
-      - "logging.level にはクラス名まで要ると読んだ答え。パッケージ単位の前方一致で書ける"
-      - "Boot では DEBUG を出せないと読んだ答え。logging.level で出せ、原因はロガー名の取り違え"
+      - "`logging.level` にはクラス名まで要ると読んだ答え。パッケージ単位の前方一致で書ける"
+      - "Boot では DEBUG を出せないと読んだ答え。`logging.level` で出せ、原因はロガー名の取り違え"
     explanation: |
       ロガー名は `getLogger` に渡したクラスの完全修飾名で決まります。コピペで `OrderService.class` のまま残っていると、ログは `com.example.order.OrderService` の名前で出るので、`com.example.payment` の設定は効きません。ログの出どころ表示も嘘になります。
       `static final` で持つのは定番の書き方で問題ありません。`logging.level` はパッケージ単位(前方一致)で書けます。
@@ -156,10 +156,10 @@ quiz:
       log.info("会員登録: {}", m);
       ```
     choices:
-      - "会員登録: Member@1b6d3586 のようなハッシュ値だけ"
-      - "会員登録: Member[name=ハル](record は最初のフィールドだけ出す)"
-      - "会員登録: Member[name=ハル, email=haru@example.com, password=p@ss1234]"
-      - "会員登録: Member[name=ハル, email=haru@example.com, password=****](自動でマスクされる)"
+      - "`会員登録: Member@1b6d3586` のようなハッシュ値だけ"
+      - "`会員登録: Member[name=ハル]`(record は最初のフィールドだけ出す)"
+      - "`会員登録: Member[name=ハル, email=haru@example.com, password=p@ss1234]`"
+      - "`会員登録: Member[name=ハル, email=haru@example.com, password=****]`(自動でマスクされる)"
     answer: 2
     why:
       - "`toString()` を書いていない普通のクラスと同じと読んだ答え"

@@ -21,10 +21,10 @@
     - "a と b を逆に読んだ答え"
   explanation: "3行目の + は新しい文字列 `\"spring boot\"` を作り、a がそれを指し直します。元の `\"spring\"` は変更されないので、b は `\"spring\"` のまま。参照型でも、不変オブジェクトは「共有していても書き換わらない」のがポイントです。"
   trace:
-    - "1行目: \"spring\" を作り、a が指す"
-    - "2行目: b も同じ \"spring\" を指す"
-    - "3行目: 新しい \"spring boot\" が作られ、a だけがそれを指し直す。\"spring\" はそのまま"
-    - "4〜5行目: a は \"spring boot\"、b は \"spring\""
+    - '1行目: `"spring"` を作り、`a` が指す'
+    - '2行目: `b` も同じ `"spring"` を指す'
+    - '3行目: 新しい `"spring boot"` が作られ、`a` だけがそれを指し直す。`"spring"` はそのまま'
+    - '4〜5行目: `a` は `"spring boot"`、`b` は `"spring"`'
 - title: "== と equals の違い"
   level: 2
   code: |
@@ -42,16 +42,16 @@
   answer: 0
   why:
     - ""
-    - "new String も、プールの同じものを返すと読んだ答え"
-    - "リテラル同士の連結も intern() も、別物を作ると読んだ答え"
-    - "intern() が新しい文字列を作ると読んだ答え"
+    - "`new String` も、プールの同じものを返すと読んだ答え"
+    - "リテラル同士の連結も `intern()` も、別物を作ると読んだ答え"
+    - "`intern()` が新しい文字列を作ると読んだ答え"
   explanation: "`\"ad\" + \"min\"` はリテラルどうしの連結なのでコンパイル時に `\"admin\"` にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。"
   trace:
-    - "1行目: プールに \"admin\" が置かれ、x が指す"
-    - "2行目: リテラルどうしの + はコンパイル時に \"admin\" になる → x と同じものを指す"
-    - "3行目: new なのでプール外に別の \"admin\" が作られる"
-    - "4行目: intern はプールの \"admin\" を返す → x と同じ"
-    - "5行目: true false true true"
+    - '1行目: プールに `"admin"` が置かれ、`x` が指す'
+    - '2行目: リテラルどうしの `+` はコンパイル時に `"admin"` になる → `x` と同じものを指す'
+    - '3行目: `new` なのでプール外に別の `"admin"` が作られる'
+    - '4行目: `intern` はプールの `"admin"` を返す → `x` と同じ'
+    - "5行目: `true false true true` と表示"
 - title: "StringBuilder の追跡"
   level: 2
   code: |
@@ -71,15 +71,15 @@
   answer: 0
   why:
     - ""
-    - "末尾の - を消す deleteCharAt を見落とした答え"
-    - "戻り値を受け取らない insert と append は効かないと読んだ答え"
-    - "deleteCharAt で - が全部消えると読んだ答え"
+    - "末尾の `-` を消す `deleteCharAt` を見落とした答え"
+    - "戻り値を受け取らない `insert` と `append` は効かないと読んだ答え"
+    - "`deleteCharAt` で `-` が全部消えると読んだ答え"
   explanation: "ループで `1-2-3-` が作られ、`deleteCharAt` で末尾の `-` を消して `1-2-3`。`insert(0, \"[\")` で先頭に `[` を入れ、`append(\"]\")` で末尾に `]` を付けます。StringBuilder は自分自身を書き換えるので、戻り値を受け取らなくても反映されます。"
   trace:
-    - "2〜4行目: append を繰り返して \"1-2-3-\""
-    - "5行目: length()-1 番目(末尾の \"-\")を削除 → \"1-2-3\""
-    - "6行目: 先頭に \"[\"、末尾に \"]\" → \"[1-2-3]\""
-    - "7行目: println は toString を呼ぶので \"[1-2-3]\""
+    - "2〜4行目: `append` を繰り返して中身は `1-2-3-`"
+    - "5行目: `length()-1` 番目(末尾の `-`)を削除 → `1-2-3`"
+    - "6行目: 先頭に `[`、末尾に `]` → `[1-2-3]`"
+    - "7行目: `println` は `toString` を呼ぶので `[1-2-3]` と表示"
 - title: "null 安全な比較と早期 return"
   level: 2
   code: |
@@ -96,22 +96,22 @@
     System.out.println(normalize("  Tmp ") + " " + normalize(" ") + " " + normalize(null));
   question: "出力は?"
   choices:
-    - "TMP NONE NONE"
-    - "TEMP NONE NONE"
-    - "TEMP  NONE"
-    - "NullPointerException が発生"
+    - "`TMP NONE NONE`"
+    - "`TEMP NONE NONE`"
+    - "`TEMP  NONE`"
+    - "`NullPointerException` が発生"
   answer: 1
   why:
     - "大文字にする最後の return に進むと読んだ答え"
     - ""
     - "空白だけの文字列が、空文字になって返ると読んだ答え"
-    - "null にも isBlank() が呼ばれると読んだ答え"
+    - "null にも `isBlank()` が呼ばれると読んだ答え"
   explanation: "`\"  Tmp \"` は null でも空白でもないので先に進み、strip して `\"Tmp\"`、大文字小文字を無視して `\"tmp\"` と一致するので `\"TEMP\"`。`\" \"` は isBlank が true で `\"NONE\"`。null は `code == null` が true になり、|| の右側(isBlank)は評価されないので例外にならず `\"NONE\"`。||(短絡評価)と定数を左に置く書き方が null を守っています。"
   trace:
-    - "normalize(\"  Tmp \"): 2行目 false → 5行目 strip で \"Tmp\"、equalsIgnoreCase で true → \"TEMP\""
-    - "normalize(\" \"): 2行目 isBlank が true → \"NONE\""
-    - "normalize(null): 2行目 code == null が true。|| の右は評価されない → \"NONE\""
-    - "結果: TEMP NONE NONE"
+    - '`normalize("  Tmp ")`: 2行目 false → 5行目 `strip` で `"Tmp"`、`equalsIgnoreCase` で true → `"TEMP"`'
+    - '`normalize(" ")`: 2行目 `isBlank` が true → `"NONE"`'
+    - '`normalize(null)`: 2行目 `code == null` が true。`||` の右は評価されない → `"NONE"`'
+    - "結果: `TEMP NONE NONE` と表示"
 - title: "Base64 と文字コードの往復"
   level: 3
   code: |
@@ -129,14 +129,14 @@
     - "3 4 false false"
   answer: 1
   why:
-    - "1 文字は 1 バイトと読み、== も true とした答え"
+    - "1 文字は 1 バイトと読み、`==` も true とした答え"
     - ""
-    - "Base64 でも長さが変わらないと読み、== も true とした答え"
+    - "Base64 でも長さが変わらないと読み、`==` も true とした答え"
     - "往復で中身が変わると読んだ答え"
   explanation: "`\"鍵\"` は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。"
   trace:
-    - "2行目: 日本語1文字は UTF-8 で 3 バイト → raw.length は 3"
+    - "2行目: 日本語1文字は UTF-8 で 3 バイト → `raw.length` は 3"
     - "3行目: 3 バイト → Base64 で 4 文字(パディングなし)"
     - "4行目: 4 文字 → 元の 3 バイトに戻る"
-    - "5行目: 同じ UTF-8 で戻すので中身は \"鍵\"。ただし新しいオブジェクト"
-    - "6行目: 3 4 true false"
+    - '5行目: 同じ UTF-8 で戻すので中身は `"鍵"`。ただし新しいオブジェクト'
+    - "6行目: `3 4 true false` と表示"

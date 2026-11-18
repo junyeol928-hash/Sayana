@@ -123,10 +123,10 @@ quiz:
   - question: |
       次のうち、**コンパイルエラーになる** record はどれ?
     choices:
-      - "record R(int x) { void set(int v) { this.x = v; } }"
-      - "record R(int x) { static int count = 0; }"
-      - "record R(int x) { int twice() { return x * 2; } }"
-      - "record R(int x) implements Comparable<R> { public int compareTo(R o) { return Integer.compare(x, o.x); } }"
+      - "`record R(int x) { void set(int v) { this.x = v; } }`"
+      - "`record R(int x) { static int count = 0; }`"
+      - "`record R(int x) { int twice() { return x * 2; } }`"
+      - "`record R(int x) implements Comparable<R> { public int compareTo(R o) { return Integer.compare(x, o.x); } }`"
     answer: 0
     why:
       - ""
@@ -147,9 +147,9 @@ quiz:
       ```
       保存時に「発送済み(SHIPPED)」だった注文を読み込んで `Status.values()[保存値]` で復元すると、どうなる?
     choices:
-      - "SHIPPED に正しく復元される"
-      - "PAID として復元される"
-      - "ArrayIndexOutOfBoundsException が発生する"
+      - "`SHIPPED` に正しく復元される"
+      - "`PAID` として復元される"
+      - "`ArrayIndexOutOfBoundsException` が発生する"
       - "コンパイル時に警告が出るので、リリース前に気づける"
     answer: 1
     why:
@@ -168,15 +168,15 @@ quiz:
       System.out.println(Rank.valueOf(input));
       ```
     choices:
-      - "GOLD と出力される"
-      - "gold と出力される"
-      - "null と出力される"
-      - "IllegalArgumentException が発生する"
+      - "`valueOf` が大文字に直すので `GOLD` と出力される"
+      - "入力どおり `gold` と出力される"
+      - "見つからないので `null` と出力される"
+      - "`IllegalArgumentException` が発生する"
     answer: 3
     why:
-      - "valueOf が大文字に直して探すと読んだ答え。実際は書いたとおりに探す"
+      - "`valueOf` が大文字に直して探すと読んだ答え。実際は書いたとおりに探す"
       - "入力の文字列がそのまま定数になると読んだ答え。一致する定数が無く、例外になる"
-      - "見つからないと null が返ると読んだ答え。valueOf は IllegalArgumentException を投げる"
+      - "見つからないと null が返ると読んだ答え。`valueOf` は `IllegalArgumentException` を投げる"
       - ""
     explanation: |
       `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。
@@ -194,9 +194,9 @@ quiz:
       }
       ```
     choices:
-      - "コンパイルは通り、price(Size.L) を呼ぶと 0 が返る"
-      - "L を網羅していないので、コンパイルエラーになる"
-      - "コンパイルは通り、price(Size.L) を呼ぶと例外が発生する"
+      - "コンパイルは通り、`price(Size.L)` を呼ぶと 0 が返る"
+      - "`L` を網羅していないので、コンパイルエラーになる"
+      - "コンパイルは通り、`price(Size.L)` を呼ぶと例外が発生する"
       - "enum の switch 式には必ず default が必要なので、コンパイルエラーになる"
     answer: 1
     why:

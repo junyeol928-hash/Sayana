@@ -10,7 +10,7 @@
         double area() { return 4; }
     }
     ```
-  choices: ["コンパイルエラー", "コンパイルは通り、perimeter() を呼んだときにエラー", "コンパイルは通り、perimeter() は 0 を返す"]
+  choices: ["コンパイルエラー", "コンパイルは通り、`perimeter()` を呼んだときにエラー", "コンパイルは通り、`perimeter()` は 0 を返す"]
   answer: 0
   why:
     - ""

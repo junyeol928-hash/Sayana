@@ -23,7 +23,7 @@
 - after: Service は単体テストで、ルールを表にする
   question: |
     表に `"ADMIN, 100000, RETURNED, ?"`(ADMIN が 10 万円の差戻し中の申請を承認)の行を足す。期待値は?
-  choices: ["NG(BusinessRuleException)", "OK(ADMIN なので承認できる)"]
+  choices: ["NG(例外 `BusinessRuleException`)", "OK(ADMIN なので承認できる)"]
   answer: 0
   why:
     - ""

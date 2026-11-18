@@ -153,7 +153,7 @@ quiz:
           return pd;
       }
       ```
-    choices: ["200 と application/json(本文は承認済の申請の詳細)", "409 と application/problem+json(detail に例外のメッセージ)", "500 と text/html(エラーページ)", "400 と application/json(本文なし)"]
+    choices: ["200 と `application/json`(本文は承認済の申請の詳細)", "409 と `application/problem+json`(`detail` に例外のメッセージ)", "500 と `text/html`(エラーページ)", "400 と `application/json`(本文なし)"]
     answer: 1
     why:
       - "例外が無視されると読んだ答え。例外で承認そのものが止まっている"

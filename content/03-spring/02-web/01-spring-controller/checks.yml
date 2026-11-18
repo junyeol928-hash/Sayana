@@ -5,8 +5,8 @@
   answer: 0
   why:
     - ""
-    - "GET と POST の役目を逆に覚えた答え。データを変えない検索が GET、作る登録が POST"
-    - "「フォームだから POST」と読んだ答え。フォームでも、データを変えない検索は GET で送る"
+    - "GET と POST の役目を逆に覚えた答え"
+    - "「フォームだから POST」と読んだ答え"
   explanation: |
     検索はデータを変えない「取得」で、何度送っても困らないので GET。会員登録はデータを作るので POST。何をしたいかで決める。
 - after: マッピングとパラメータの受け取り
@@ -18,12 +18,12 @@
         return "page=" + page;
     }
     ```
-  choices: ["page=1", "400 Bad Request", "page=0"]
+  choices: ["`page=1`", "400 Bad Request", "`page=0`"]
   answer: 0
   why:
     - ""
-    - "空文字を `int` に変換しようとして失敗すると読んだ答え。空文字のときも `defaultValue` が使われる"
-    - "空を `int` の初期値 0 と読んだ答え。値が空なら、`defaultValue` の 1 が入る"
+    - "空文字を `int` に変換しようとして失敗すると読んだ答え"
+    - "空を `int` の初期値 0 と読んだ答え"
   explanation: |
     `defaultValue` を付けると、パラメータが無いときだけでなく、`?page=` のように空文字のときも既定値が使われる。だから `page=1`。
 - after: 戻り値いろいろ:JSON・ステータス・リダイレクト
@@ -42,7 +42,7 @@
   answer: 0
   why:
     - ""
-    - "`toString()` の結果が本体になると読んだ答え。オブジェクトは Jackson が JSON に変換する"
+    - "`toString()` の結果が本体になると読んだ答え"
     - "`@Controller` の動きと取り違えた答え。`@RestController` の戻り値は、ビュー名ではなく本体"
   explanation: |
     オブジェクトを返すと、HttpMessageConverter(中身は Jackson)が JSON に変換する。record のアクセサ名が JSON の項目名になる。

@@ -36,7 +36,7 @@
     Integer stock = null;
     int n = stock;
     ```
-  choices: ["NullPointerException", "n は 0 になる", "コンパイルエラー"]
+  choices: ["`NullPointerException`", "`n` は 0 になる", "コンパイルエラー"]
   answer: 0
   why:
     - ""

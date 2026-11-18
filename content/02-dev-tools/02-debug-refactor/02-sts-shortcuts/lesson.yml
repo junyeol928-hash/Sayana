@@ -53,10 +53,10 @@ quiz:
       count += account;
       ```
     choices:
-      - "変数 count の宣言と、それを使っている count += の部分だけ"
+      - "変数 `count` の宣言と、それを使っている `count +=` の部分だけ"
       - '上に加えて、文字列 `"count"` も `"total"` になる'
-      - "上に加えて、account も actotal になる"
-      - "count という文字が含まれる箇所すべて"
+      - "上に加えて、`account` も `actotal` になる"
+      - "`count` という文字が含まれる箇所すべて"
     answer: 0
     why:
       - ""
@@ -76,7 +76,7 @@ quiz:
           System.out.println("最高点: " + max);
       }
       ```
-    choices: ["static void maxOf(int[] scores)", "static int maxOf(int[] scores)", "static int maxOf()", "static int maxOf(int max, int[] scores)"]
+    choices: ["`static void maxOf(int[] scores)`", "`static int maxOf(int[] scores)`", "`static int maxOf()`", "`static int maxOf(int max, int[] scores)`"]
     answer: 1
     why:
       - "戻り値を見落とした答え。`void` では `max` を呼び出し元に返せない"

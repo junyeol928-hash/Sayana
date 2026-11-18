@@ -8,8 +8,8 @@
   answer: 0
   why:
     - ""
-    - "メソッドの `@ConditionalOnMissingBean` だけを見た答え。先にクラスの `@ConditionalOnClass` が外れる"
-    - "無いクラスを読み込んで落ちると考えた答え。条件の外れた自動設定は読み飛ばされ、エラーにならない"
+    - "メソッドの `@ConditionalOnMissingBean` だけを見た答え"
+    - "無いクラスを読み込んで落ちると考えた答え"
   explanation: |
     クラスに付いた `@ConditionalOnClass(ObjectMapper.class)` が成り立たないので、この自動設定は丸ごと使われない。中の `@ConditionalOnMissingBean` が見られるのは、設定が使われたあと。
 - after: 起動ログの読み方
@@ -40,11 +40,11 @@
     import javax.servlet.http.HttpServletRequest;
     import javax.crypto.Cipher;
     ```
-  choices: ["javax.servlet の行だけ", "両方", "javax.crypto の行だけ"]
+  choices: ["`javax.servlet` の行だけ", "両方", "`javax.crypto` の行だけ"]
   answer: 0
   why:
     - ""
-    - "`javax` を全部 `jakarta` に変えると読んだ答え。`javax.crypto` は JDK のパッケージで変わらない"
-    - "変わった側と変わらない側を逆に覚えた答え。変わったのは Java EE から来た `javax.servlet`"
+    - "`javax` を全部 `jakarta` に変えると読んだ答え"
+    - "変わった側と変わらない側を逆に覚えた答え"
   explanation: |
     3.0 から `jakarta.*` に変わったのは、Java EE(サーバー向けの仕様)から来たパッケージ。`javax.servlet` は `jakarta.servlet` に書き換え、JDK 自体に入っている `javax.crypto` はそのまま使う。

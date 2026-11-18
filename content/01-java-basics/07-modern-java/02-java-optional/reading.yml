@@ -10,9 +10,9 @@
     System.out.println(a + " " + b);
   question: "出力は?"
   choices:
-    - "90 0"
-    - "90 null"
-    - "NullPointerException"
+    - "`90 0`"
+    - "`90 null`"
+    - "`NullPointerException`"
     - "コンパイルエラー"
   answer: 0
   why:
@@ -23,9 +23,9 @@
   explanation: "`scores.get(\"a\")` は 90、`scores.get(\"b\")` は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。"
   trace:
     - "1〜2行目: scores は {a=90}"
-    - "4行目: get(\"a\")=90 → ofNullable は中身ありの Optional → orElse(0) は 90"
-    - "5行目: get(\"b\")=null → ofNullable は空の Optional → orElse(0) は 0"
-    - "6行目: \"90 0\""
+    - "4行目: `get(\"a\")` = 90 → `ofNullable` は中身ありの Optional → `orElse(0)` は 90"
+    - "5行目: `get(\"b\")` = null → `ofNullable` は空の Optional → `orElse(0)` は 0"
+    - "6行目: `90 0`"
 - title: "orElseThrow と例外"
   level: 2
   code: |
@@ -57,7 +57,7 @@
     - "5行目: name は空の Optional"
     - "7行目: 中身が無いので orElseThrow のラムダが実行され例外が投げられる"
     - "8行目: 到達しない"
-    - "9行目: catch で捕まえ \"caught: no name\" を表示"
+    - "9行目: catch で捕まえ `caught: no name` を表示"
 - title: "map の連鎖と null 混入"
   level: 2
   code: |
@@ -72,10 +72,10 @@
     System.out.println(city1 + " " + city2);
   question: "`record Address(...)` などは、値を持つクラスを1行で書く書き方です(次の「recordとenum」で習います)。値は `p1.address()` のように取り出します。出力は?"
   choices:
-    - "Tokyo unknown"
-    - "Tokyo null"
-    - "NullPointerException"
-    - "unknown unknown"
+    - "`Tokyo unknown`"
+    - "`Tokyo null`"
+    - "`NullPointerException`"
+    - "`unknown unknown`"
   answer: 0
   why:
     - ""
@@ -84,9 +84,9 @@
     - "p1 の住所も取れないと読んだ答え。p1 は Address を持つので、map で Tokyo が取れる"
   explanation: "p1.address() は `Address(\"Tokyo\")` なので map で city() が呼ばれ `\"Tokyo\"`。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして `orElse(\"unknown\")` の値が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。"
   trace:
-    - "7行目: p1.address()=Address(\"Tokyo\") → map で city() → \"Tokyo\""
-    - "8行目: p2.address()=null → ofNullable で空 → map は何もしない → orElse(\"unknown\")"
-    - "9行目: \"Tokyo unknown\""
+    - "7行目: `p1.address()` = `Address(\"Tokyo\")` → `map` で `city()` → `\"Tokyo\"`"
+    - "8行目: `p2.address()` = null → `ofNullable` で空 → `map` は何もしない → `orElse(\"unknown\")`"
+    - "9行目: `Tokyo unknown`"
 - title: "Service の findById と DTO 変換"
   level: 3
   code: |
@@ -103,9 +103,9 @@
     System.out.println(result.isPresent());
   question: "最後の行の出力は?"
   choices:
-    - "true"
-    - "false"
-    - "NullPointerException"
+    - "`true`"
+    - "`false`"
+    - "`NullPointerException`"
     - "コンパイルエラー"
   answer: 1
   why:

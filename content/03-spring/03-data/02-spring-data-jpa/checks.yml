@@ -11,18 +11,18 @@
   why:
     - "外部キーの列名を書くと読んだ答え。`dept_id` は `@JoinColumn` の列名で、`mappedBy` には使わない"
     - ""
-    - "相手の型 `Department` から名前が決まると読んだ答え。書くのは Employee 側のフィールド名"
+    - "相手の型 `Department` から名前が決まると読んだ答え"
   explanation: |
     `mappedBy` には、外部キーを持つ側(Employee)の **フィールド名** を書く。ここでは `belongsTo`。
 - after: JpaRepository:継承するだけで CRUD
   question: |
     `findById(5L)` で読んだ社員の名前を `setName` で変えて、`save` に渡した。DB の行はどうなる?
-  choices: ["id 5 の行が更新される(UPDATE)", "新しい行が足される(INSERT)", "同じ id の行がもうあるので、主キーの重複で例外になる"]
+  choices: ["`id` 5 の行が更新される(`UPDATE`)", "新しい行が足される(`INSERT`)", "同じ `id` の行がもうあるので、主キーの重複で例外になる"]
   answer: 0
   why:
     - ""
-    - "`save` はいつも新しく足すと読んだ答え。新規とみなすのは id が null のときだけ"
-    - "同じ id で INSERT して主キーがぶつかると読んだ答え。id 付きは既存とみなされ、UPDATE になる"
+    - "`save` はいつも新しく足すと読んだ答え"
+    - "同じ `id` で `INSERT` して主キーがぶつかると読んだ答え"
   explanation: |
     `save` は id を見て決める。`null` なら新規として INSERT、値があれば既存として UPDATE(`merge`)。DB から読んだ社員には id 5 が入っているので、同じ行が更新される。
 - after: 現場の三大落とし穴
@@ -34,8 +34,8 @@
   choices: ["5 人", "4 人", "部署が未設定の社員がいるので、例外になる"]
   answer: 1
   why:
-    - "部署の無い社員も含まれると読んだ答え。`join fetch` は内部結合で、相手の無い行は消える"
+    - "部署の無い社員も含まれると読んだ答え"
     - ""
-    - "null の部署に触って落ちると読んだ答え。内部結合でその行が外れるだけで、例外にはならない"
+    - "`null` の部署に触って落ちると読んだ答え"
   explanation: |
     `join fetch` は内部結合なので、部署の無い社員は結果から消えて 4 人。全員を取るなら `left join fetch` にする。

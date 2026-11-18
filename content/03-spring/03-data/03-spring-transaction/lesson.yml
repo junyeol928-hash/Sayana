@@ -100,7 +100,7 @@ quiz:
       - "ロールバックされ、在庫は元に戻る"
       - "コミットされ、在庫は減ったままになる"
       - "コンパイルエラーになる"
-      - "PaymentException が RuntimeException に包まれて投げ直され、ロールバックされる"
+      - "`PaymentException` が `RuntimeException` に包まれて投げ直され、ロールバックされる"
     answer: 1
     why:
       - "例外が出れば、種類を問わずロールバックされると読んだ答え"
@@ -123,14 +123,14 @@ quiz:
       public void order(Order o) { ... }
       ```
     choices:
-      - "importAll 全体で1つのトランザクションになる"
-      - "order の呼び出しごとに1つずつトランザクションが開始される"
+      - "`importAll` 全体で1つのトランザクションになる"
+      - "`order` の呼び出しごとに1つずつトランザクションが開始される"
       - "起動時にエラーになる"
-      - "order の @Transactional は効かず、トランザクションは開始されない"
+      - "`order` の `@Transactional` は効かず、トランザクションは開始されない"
     answer: 3
     why:
-      - "中で呼んだ `@Transactional` が外側まで広がると読んだ答え。importAll には付いておらず、order のも自己呼び出しで効かない"
-      - "`@Transactional` がどこから呼んでも効くと読んだ答え。this からの呼び出しはプロキシを通らず効かない"
+      - "中で呼んだ `@Transactional` が外側まで広がると読んだ答え。`importAll` には付いておらず、`order` のも自己呼び出しで効かない"
+      - "`@Transactional` がどこから呼んでも効くと読んだ答え。`this` からの呼び出しはプロキシを通らず効かない"
       - "自己呼び出しを Spring が起動時に止めると読んだ答え。エラーも警告も出ず、黙って無視される"
       - ""
     explanation: |
@@ -139,10 +139,10 @@ quiz:
   - question: |
       「決済サービスの `PaymentException`(検査例外)が起きたときもロールバックしたい」場合の指定として正しいものは?
     choices:
-      - "@Transactional(rollbackFor = PaymentException.class)"
-      - "@Transactional(noRollbackFor = PaymentException.class)"
-      - "@Transactional(readOnly = true)"
-      - "@Transactional(propagation = Propagation.REQUIRES_NEW)"
+      - "`@Transactional(rollbackFor = PaymentException.class)`"
+      - "`@Transactional(noRollbackFor = PaymentException.class)`"
+      - "`@Transactional(readOnly = true)`"
+      - "`@Transactional(propagation = Propagation.REQUIRES_NEW)`"
     answer: 0
     why:
       - ""
@@ -166,7 +166,7 @@ quiz:
       ```
       (`accountService` は別の Bean で、`@Transactional` は付いていないものとする)
     choices:
-      - "IllegalStateException なのでロールバックされる"
+      - "`IllegalStateException` なのでロールバックされる"
       - "warn ログが出た後、例外が呼び出し元に伝わる"
       - "例外を catch して正常終了したので、入金だけがコミットされる"
       - "何も更新されない"
@@ -175,7 +175,7 @@ quiz:
       - "`RuntimeException` なら、catch しても必ずロールバックされると読んだ答え"
       - "catch しても例外が外へ出ると読んだ答え。catch して投げ直していないので、正常に終わる"
       - ""
-      - "withdraw で失敗したので入金も無かったと読んだ答え。先に deposit が実行され、それがコミットされる"
+      - "`withdraw` で失敗したので入金も無かったと読んだ答え。先に `deposit` が実行され、それがコミットされる"
     explanation: |
       Spring がロールバックを判断するのは「メソッドから例外が **外へ出たか**」です。メソッドの中で catch して正常に戻ると成功とみなされ、先に実行した入金(`deposit`)だけがコミットされます。お金が湧いて出る事故です。
       ロールバックしたいなら catch せずに投げる(ログを出すなら catch してから投げ直す)のが基本です。
@@ -183,7 +183,7 @@ quiz:
       商品エンティティに `@Version private Integer version;` があります。A さんと B さんが **同じ version = 3** の商品を読み込み、A さんが先に価格を変更して保存しました。続けて B さんが在庫数を変更して保存すると?
     choices:
       - "B さんの変更で上書きされ、A さんの価格変更は消える"
-      - "B さんの保存は失敗し、ObjectOptimisticLockingFailureException になる"
+      - "B さんの保存は失敗し、例外になる"
       - "A さんと B さんの変更が自動でマージされる"
       - "B さんの保存は、A さんのトランザクションが終わるまで待たされてから成功する"
     answer: 1

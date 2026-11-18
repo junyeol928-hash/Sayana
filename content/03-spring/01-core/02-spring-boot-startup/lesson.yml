@@ -109,18 +109,18 @@ samples:
 quiz:
   - question: |
       `@SpringBootApplication` が内部でまとめているアノテーションの組み合わせとして正しいのはどれ?
-    choices: ["@Component + @Autowired + @Bean", "@SpringBootConfiguration(中身は @Configuration)+ @EnableAutoConfiguration + @ComponentScan", "@Configuration + @EnableWebMvc + @Bean", "@Service + @Repository + @Controller"]
+    choices: ["`@Component` + `@Autowired` + `@Bean`", "`@SpringBootConfiguration` + `@EnableAutoConfiguration` + `@ComponentScan`", "`@SpringBootConfiguration` + `@EnableWebMvc` + `@ComponentScan`", "`@Service` + `@Repository` + `@Controller`"]
     answer: 1
     why:
       - "Bean にまつわる注釈をまとめたものと読んだ答え。中身は設定・自動設定・スキャンの3つ"
       - ""
-      - "Web アプリ用の設定をまとめたものと読んだ答え。`@EnableWebMvc` は入っておらず、Boot で付けると Web の自動設定が引っ込む"
+      - "自動設定の代わりに Web 用の設定が入ると読んだ答え。`@EnableWebMvc` は入っておらず、Boot で付けると Web の自動設定が引っ込む"
       - "層ごとの印をまとめたものと読んだ答え。それらはクラスを Bean にする側の印で、中身は設定・自動設定・スキャン"
     explanation: |
       `@SpringBootApplication` は `@SpringBootConfiguration`(`@Configuration` の特殊版)・`@EnableAutoConfiguration`(自動設定)・`@ComponentScan`(メインクラスのパッケージ以下を探索)の合成アノテーションです。だからメインクラスの中に `@Bean` メソッドを書くこともできます。
   - question: |
       メインクラスが `com.example.shop.ShopApplication` のとき、`@Service` を付けても **Bean として見つからない** のはどれ?
-    choices: ["com.example.shop.OrderService", "com.example.shop.order.OrderService", "com.example.shop.order.mail.MailService", "com.example.common.AuditService"]
+    choices: ["`com.example.shop.OrderService`", "`com.example.shop.order.OrderService`", "`com.example.shop.order.mail.MailService`", "`com.example.common.AuditService`"]
     answer: 3
     why:
       - "メインクラスと同じパッケージは対象外と読んだ答え。同じパッケージもスキャンされる"
@@ -142,13 +142,13 @@ quiz:
           }
       }
       ```
-    choices: ["ObjectMapper の Bean は myObjectMapper だけになる", "myObjectMapper と jacksonObjectMapper の2つになり、起動エラー", "jacksonObjectMapper が優先され、myObjectMapper は無視される", "自動設定がすべて無効になる"]
+    choices: ["`ObjectMapper` の Bean は `myObjectMapper` だけになる", "`myObjectMapper` と `jacksonObjectMapper` の2つになり、起動エラー", "`jacksonObjectMapper` が優先され、`myObjectMapper` は無視される", "自動設定がすべて無効になる"]
     answer: 0
     why:
       - ""
       - "自動設定も同じ型の Bean を作って衝突すると読んだ答え。`@ConditionalOnMissingBean` で自動設定側は作られない"
       - "自動設定のほうが優先されると読んだ答え。利用者の Bean が先にあると、自動設定は引っ込む"
-      - "1つ自前で書くと自動設定全体が止まると読んだ答え。止まるのは条件が成立しない jacksonObjectMapper だけ"
+      - "1つ自前で書くと自動設定全体が止まると読んだ答え。止まるのは条件が成立しない `jacksonObjectMapper` だけ"
     explanation: |
       利用者の設定が先に処理され、その後に自動設定が評価されます。`@ConditionalOnMissingBean` は「同じ型の Bean がまだ無いときだけ作る」なので、`myObjectMapper` がある以上 `jacksonObjectMapper` は作られません(back off)。
   - question: |
@@ -161,7 +161,7 @@ quiz:
       Web server failed to start.
       Port 8080 was already in use.
       ```
-    choices: ["Tomcat がインストールされていないので、Tomcat をインストールする", "Spring Web の starter が足りないので pom.xml に追加する", "前に起動した同じアプリ(か別のアプリ)が 8080 を使ったまま。それを停止するか server.port を変える", "@SpringBootApplication の付け忘れ"]
+    choices: ["Tomcat がインストールされていないので、Tomcat をインストールする", "Spring Web の starter が足りないので `pom.xml` に追加する", "前のアプリが 8080 を使ったまま。止めるか `server.port` を変える", "`@SpringBootApplication` の付け忘れ"]
     answer: 2
     why:
       - "Tomcat を別に入れる必要があると読んだ答え。Tomcat はライブラリとして同梱される組み込み型"

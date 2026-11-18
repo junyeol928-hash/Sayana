@@ -115,7 +115,7 @@ quiz:
     choices: ["B", "BCD", "BC", "ABC"]
     answer: 2
     why:
-      - "アロー構文(case 2 ->)と読んだ答え。従来の switch は break が無いと下へ落ちる"
+      - "アロー構文(`case 2 ->`)と読んだ答え。従来の `switch` は `break` が無いと下へ落ちる"
       - "break を見落とした答え。case 3 の break で抜けるので D は出ない"
       - ""
       - "case 1 から順に実行すると読んだ答え。switch は一致した case 2 へ飛ぶ"
@@ -129,12 +129,12 @@ quiz:
       `B` だけになるのは、アロー構文(`case 2 ->`)で書いた場合です。
   - question: |
       `int x = 3;` `boolean ok = false;` と宣言されているとき、**コンパイルエラーになる** のはどれ?
-    choices: ["if (ok = true) { }", "if (x == 5) { }", "if (!ok) { }", "if (x = 5) { }"]
+    choices: ["`if (ok = true) { }`", "`if (x == 5) { }`", "`if (!ok) { }`", "`if (x = 5) { }`"]
     answer: 3
     why:
-      - "代入ならどれもエラーと読んだ答え。ok = true の値は boolean なので通ってしまう"
-      - "== の比較を疑った答え。int 同士の比較で boolean になるので条件として正しい"
-      - "!ok を疑った答え。boolean の否定なので条件として正しい"
+      - "代入ならどれもエラーと読んだ答え。`ok = true` の値は `boolean` なので通ってしまう"
+      - "`==` の比較を疑った答え。`int` 同士の比較で `boolean` になるので条件として正しい"
+      - "`!ok` を疑った答え。`boolean` の否定なので条件として正しい"
       - ""
     explanation: |
       `x = 5` は代入式で、その値は `int` の `5` です。Java の if の条件は `boolean` でなければならず、int → boolean の変換は存在しないので `incompatible types: int cannot be converted to boolean` になります。
@@ -191,10 +191,10 @@ quiz:
     choices: ["true と true", "true と false", "false と true", "false と false"]
     answer: 2
     why:
-      - "== でも中身を比べると読んだ答え"
-      - "== と equals の役割を逆に読んだ答え"
+      - "`==` でも中身を比べると読んだ答え"
+      - "`==` と `equals` の役割を逆に読んだ答え"
       - ""
-      - "equals も、別のオブジェクトなら false になると読んだ答え"
+      - "`equals` も、別のオブジェクトなら false になると読んだ答え"
     explanation: |
       `b` は実行時に連結して作られた **新しい String オブジェクト** です。`==` は参照型に対して「同じオブジェクトを指しているか」を比べるので、中身が同じでもリテラルの `"Java"` とは別物で `false`。中身を比べる `equals` は `true` です。
       リテラル同士(`"Java" == "Java"`)ならインターンにより同じオブジェクトになるので `true` になることがあり、これが「テストでは動いたのに本番で壊れる」原因です。文字列は必ず `equals` で比べましょう。

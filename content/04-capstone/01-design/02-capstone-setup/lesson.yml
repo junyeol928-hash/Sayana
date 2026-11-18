@@ -114,7 +114,7 @@ quiz:
           defer-datasource-initialization: true
       ```
     choices:
-      - "data.sql が流れず、NoSuchElementException(No value present)で起動に失敗する"
+      - "data.sql が流れず、社員が見つからずに起動に失敗する"
       - "正常に起動し、社員3人が登録される"
       - '`Table "EMPLOYEE" not found` で起動に失敗する'
       - "data.sql が2回流れて社員が6人になる"
@@ -146,7 +146,7 @@ quiz:
       public interface EmployeeRepository
               extends JpaRepository<Employee, Long> { }
       ```
-    choices: ["問題なく起動し、Repository も使える", "Repository が見つからず、それを注入する Bean の作成で起動に失敗する", "Repository は見つかるが、メソッドを呼ぶと NullPointerException になる", "コンパイルエラーになる"]
+    choices: ["問題なく起動し、Repository も使える", "Repository が見つからず、それを注入する Bean の作成で起動に失敗する", "Repository は見つかるが、メソッドを呼ぶと `NullPointerException` になる", "コンパイルエラーになる"]
     answer: 1
     why:
       - "どのパッケージでもスキャンされると読んだ答え。探すのは起動クラスのパッケージとその下だけ"
@@ -162,7 +162,7 @@ quiz:
       INSERT INTO employee (id, name, email, role)
         VALUES (1, 'ハル', 'haru@example.com', 'APPLICANT');
       ```
-    choices: ["何も起きない(同じ行は自動で無視される)", "ハルが2人になる", "主キー(または email の一意制約)違反で起動に失敗する", "テーブルが作り直されてデータが消える"]
+    choices: ["何も起きない(同じ行は自動で無視される)", "ハルが2人になる", "主キー違反で起動に失敗する", "テーブルが作り直されてデータが消える"]
     answer: 2
     why:
       - "同じ行は自動で無視されると読んだ答え。INSERT はすでにある id = 1 の行にぶつかる"

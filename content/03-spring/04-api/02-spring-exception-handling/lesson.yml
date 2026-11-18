@@ -191,9 +191,9 @@ quiz:
       }
       ```
     choices:
-      - "404 で本文は advice(より近い型のハンドラが勝つ)"
+      - "404 で本文は `advice`(より近い型のハンドラが勝つ)"
       - "500(ハンドラが2つあって決められない)"
-      - "400 で本文は controller"
+      - "400 で本文は `controller`"
       - "起動時にエラーになる"
     answer: 2
     why:
@@ -236,18 +236,18 @@ quiz:
       }
       ```
     choices:
-      - "409、Content-Type は application/problem+json、本文に type・title・status・detail・instance"
-      - "200(ResponseEntity で包まないとステータスは変わらない)で ProblemDetail の JSON"
-      - "409、text/plain で detail の文字列だけ"
-      - "500(ProblemDetail は Spring Boot の設定を有効にしないと使えない)"
+      - "409、`application/problem+json` で本文に `type`・`title`・`status` など"
+      - "200(`ResponseEntity` で包まないとステータスは変わらない)で `ProblemDetail` の JSON"
+      - "409、`text/plain` で `detail` の文字列だけ"
+      - "500(`ProblemDetail` は Spring Boot の設定を有効にしないと使えない)"
     answer: 0
     why:
       - ""
       - "`ResponseEntity` で包まないとステータスが変わらないと読んだ答え"
-      - "detail の文字列だけが、そのまま返ると読んだ答え"
+      - "`detail` の文字列だけが、そのまま返ると読んだ答え"
       - "設定を有効にしないと使えないと読んだ答え"
     explanation: |
-      `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は **その status をレスポンスのステータス** にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。`instance` にはリクエストのパスが自動で入ります。
+      `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は **その status をレスポンスのステータス** にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。本文は `type`・`title`・`status`・`detail`・`instance` の JSON で、`instance` にはリクエストのパスが自動で入ります。
       `spring.mvc.problemdetails.enabled` は「Spring MVC 自身の例外を ProblemDetail にするか」の設定で、自分のハンドラで `ProblemDetail` を返すだけなら不要です。
   - question: |
       次の Advice を書いてアプリを起動すると、どうなる?
@@ -263,9 +263,9 @@ quiz:
       }
       ```
     choices:
-      - "正常に起動し、自分の invalid が使われる"
-      - "起動時に IllegalStateException(Ambiguous @ExceptionHandler method mapped for ...)で失敗する"
-      - "正常に起動するが、親クラスのハンドラが使われ invalid は無視される"
+      - "正常に起動し、自分の `invalid` が使われる"
+      - "起動時に `IllegalStateException` で失敗する"
+      - "正常に起動するが、親クラスのハンドラが使われ `invalid` は無視される"
       - "コンパイルエラーになる"
     answer: 1
     why:
@@ -274,21 +274,21 @@ quiz:
       - "親クラスのハンドラが優先されると読んだ答え。どちらとも決められず、起動時に失敗する"
       - "ハンドラの重複をコンパイラが見つけると読んだ答え。文法は正しく、失敗するのは起動時"
     explanation: |
-      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `Ambiguous @ExceptionHandler` で失敗します。
+      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `IllegalStateException`(`Ambiguous @ExceptionHandler method mapped for ...`)で失敗します。
       継承している場合は、`@ExceptionHandler` を書かずに `handleMethodArgumentNotValid(...)` を `@Override` するのが正解です。Java の文法としては正しいのでコンパイルは通ります。
   - question: |
       Thymeleaf を使った画面アプリで、**404 のときだけ** 独自のエラー画面を出したい。Spring Boot が自動で使ってくれるファイルの置き場所は?
     choices:
-      - "src/main/resources/templates/404.html"
-      - "src/main/resources/templates/errors/not-found.html"
-      - "src/main/resources/templates/error/404.html"
-      - "src/main/resources/error-404.html"
+      - "`src/main/resources/templates/404.html`"
+      - "`src/main/resources/templates/errors/not-found.html`"
+      - "`src/main/resources/templates/error/404.html`"
+      - "`src/main/resources/error-404.html`"
     answer: 2
     why:
-      - "error フォルダが要らないと読んだ答え。templates/error/ の中に置かないと使われない"
-      - "フォルダ名やファイル名を自由に付けられると読んだ答え。error(単数形)の中に、ステータスコードの名前で置く"
+      - "`error` フォルダが要らないと読んだ答え。`templates/error/` の中に置かないと使われない"
+      - "フォルダ名やファイル名を自由に付けられると読んだ答え。`error`(単数形)の中に、ステータスコードの名前で置く"
       - ""
-      - "templates の外でも見つかると読んだ答え。Thymeleaf の画面は templates/error/404.html に置く"
+      - "`templates` の外でも見つかると読んだ答え。Thymeleaf の画面は `templates/error/404.html` に置く"
     explanation: |
       Spring Boot の /error は、`templates/error/<ステータスコード>.html` → `templates/error/<系列>xx.html`(例:`5xx.html`)→ `templates/error.html` の順に探します。
       フォルダ名は `error`(単数形)で、ファイル名はステータスコードそのもの。`templates/404.html` のように error フォルダの外に置くと使われず、Whitelabel Error Page のままです。

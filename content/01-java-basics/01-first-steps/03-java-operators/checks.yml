@@ -42,7 +42,7 @@
   explanation: |
     `&&` は `||` より優先度が高いので、`true || (false && false)` と読む。左が true なので全体も true。
 - before: "+ は、どちらかのオペランドが"
-  hides: 3
+  hides: 5
   question: |
     出力は?
     ```java

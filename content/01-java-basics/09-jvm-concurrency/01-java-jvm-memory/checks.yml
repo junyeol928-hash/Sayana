@@ -42,11 +42,11 @@
         System.out.println("捕まえた");
     }
     ```
-  choices: ["「捕まえた」は出ず、StackOverflowError で止まる", "「捕まえた」と出て、処理が続く", "コンパイルエラー(止まらない再帰)"]
+  choices: ["`捕まえた` は出ず、`StackOverflowError` で止まる", "`捕まえた` と出て、処理が続く", "コンパイルエラー(止まらない再帰)"]
   answer: 0
   why:
     - ""
-    - "StackOverflowError を Exception の仲間と読んだ答え。Error の仲間なので catch (Exception e) を素通りする"
+    - "`StackOverflowError` を `Exception` の子と読んだ答え。`Error` は `Exception` の catch を素通りする"
     - "止まらない再帰をコンパイラが見抜くと読んだ答え。コンパイルは通り、実行してから落ちる"
   explanation: |
     `StackOverflowError` は `Exception` ではなく `Error` の仲間なので、`catch (Exception e)` では捕まらない。Error は catch して続行するものではなく、再帰をループに直すなど原因を直す。

@@ -119,7 +119,7 @@
     - "java.sql.Date / java.sql.Date"
   answer: 1
   why:
-    - "getName() が短いクラス名を返すと読んだ答え"
+    - "`getName()` が短いクラス名を返すと読んだ答え"
     - ""
     - "2 つの Date がぶつかると読んだ答え"
     - "後の行の完全修飾名に、短い Date も引きずられると読んだ答え"
@@ -128,7 +128,7 @@
     - "1行目: 短い名前 Date = java.util.Date と決まる"
     - "5行目: d1 は java.util.Date のインスタンス"
     - "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない"
-    - "7〜8行目: getName() は完全修飾名を返す → java.util.Date、java.sql.Date"
+    - "7〜8行目: `getName()` は完全修飾名を返す → `java.util.Date`、`java.sql.Date`"
 - title: "生成されたgetterを呼ぶ"
   level: 1
   code: |
@@ -156,9 +156,9 @@
   explanation: "@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。"
   trace:
     - "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される"
-    - "8行目: KeyEntity(\"C001\", 3) → cardId=\"C001\", keyVersion=3 で生成"
-    - "9行目: getCardId() → \"C001\"、getKeyVersion() → 3"
-    - "結果: \"C001:3\""
+    - '8行目: `KeyEntity("C001", 3)` → `cardId="C001"`, `keyVersion=3` で生成'
+    - '9行目: `getCardId()` → `"C001"`、`getKeyVersion()` → 3'
+    - "結果: `C001:3` と表示"
 - title: "final の有無でコンストラクタの引数が変わる"
   level: 2
   code: |
@@ -215,21 +215,21 @@
   question: "`@Data` は toString も自動で作り、その toString は全フィールドを文字列にします。`@Entity` / `@OneToMany` / `@ManyToOne` は JPA(第3部)の注釈で、ここでは「KeyEntity と ResultEntity がお互いを参照している」とだけ読めば十分です。results に ResultEntity が入っている keyEntity で System.out.println(keyEntity) を実行すると?"
   choices:
     - "正常に文字列が表示される"
-    - "StackOverflowError が発生することがある"
-    - "NullPointerException が必ず発生する"
+    - "`StackOverflowError` が発生することがある"
+    - "`NullPointerException` が必ず発生する"
     - "コンパイルエラー"
   answer: 1
   why:
-    - "toString() がお互いを呼び合うことを見落とした答え。results と key をたどり続けて止まらない"
+    - "`toString()` がお互いを呼び合うことを見落とした答え。`results` と `key` をたどり続けて止まらない"
     - ""
     - "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる"
-    - "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の toString() で起きる"
+    - "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の `toString()` で起きる"
   explanation: "@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。"
   trace:
-    - "18行目: keyEntity.toString() が呼ばれる(println が内部で呼ぶ)"
-    - "@Data の toString() は results フィールドも含める → 各 ResultEntity.toString() を呼ぶ"
-    - "ResultEntity.toString() は key フィールド(元の KeyEntity)を含める → keyEntity.toString() を再び呼ぶ"
-    - "この呼び合いが止まらず、スタックが尽きて StackOverflowError"
+    - "18行目: `keyEntity.toString()` が呼ばれる(`println` が内部で呼ぶ)"
+    - "`@Data` の `toString()` は `results` フィールドも含める → 各 `ResultEntity.toString()` を呼ぶ"
+    - "`ResultEntity.toString()` は `key` フィールド(元の KeyEntity)を含める → `keyEntity.toString()` を再び呼ぶ"
+    - "この呼び合いが止まらず、スタックが尽きて `StackOverflowError`"
 - title: "Builder のメソッドチェーンを読む"
   level: 2
   code: |
@@ -256,7 +256,7 @@
   why:
     - ""
     - "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え"
-    - "設定しない項目があると build() で落ちると読んだ答え"
+    - "設定しない項目があると `build()` で落ちると読んだ答え"
     - "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0"
   explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。"
   trace:
@@ -279,9 +279,9 @@
     String content = loader.load("not-exist.txt");
   question: "`Files.readString` はファイルを読むメソッドで、読めないと IOException(catch か throws の宣言が必須の「検査例外」。第5章)を投げます。`@SneakyThrows` は、その throws 宣言を書かずに済ませる Lombok の注釈です。存在しないファイルを渡して load を呼ぶと?"
   choices:
-    - "コンパイルエラー(IOException を catch していない)"
-    - "実行時に例外(IOException 系)が発生し、呼び出し元は catch していないので処理が止まる"
-    - "null が返る"
+    - "コンパイルエラー(`IOException` を catch していない)"
+    - "実行時に例外(`IOException` 系)が発生し、呼び出し元は catch していないので処理が止まる"
+    - "`null` が返る"
     - "空文字が返る"
   answer: 1
   why:

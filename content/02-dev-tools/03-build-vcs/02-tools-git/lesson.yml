@@ -15,9 +15,9 @@ quiz:
       3つのファイルを変更しました。このうち `InvoiceService.java` と `InvoiceServiceTest.java` の2つだけを1つのコミットにし、`README.md` の変更は次のコミットに回したい。どうする?
     choices:
       - '`git commit -a -m "請求額の端数処理を修正"` を実行する'
-      - 2つのファイルだけを git add(STS なら Git Staging ビューで Staged Changes に移す)してからコミットする
+      - 2つのファイルだけを `git add` してからコミットする
       - README.md を一度削除してからコミットし、後で元に戻す
-      - いったん3つともコミットして、あとで git push --force で README.md の分を消す
+      - いったん3つともコミットして、あとで `git push --force` で README.md の分を消す
     answer: 1
     why:
       - "`commit -a` で2つだけ入ると読んだ答え。`-a` は変更した管理対象を全部ステージし、README.md も入る"
@@ -30,7 +30,7 @@ quiz:
       `application-local.yml` に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。**最初に** やるべきことは?
     choices:
       - application-local.yml を削除するコミットを作って push する
-      - git commit --amend でコミットを書き換え、git push --force する
+      - "`git commit --amend` でコミットを書き換え、`git push --force` する"
       - リポジトリを非公開(Private)に切り替える
       - Claude Console でそのAPIキーを無効化し、新しいキーを発行する
     answer: 3
@@ -51,8 +51,8 @@ quiz:
       hint: work that you do not have locally.
       ```
     choices:
-      - git pull でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する
-      - git push --force で自分の履歴を送り込む
+      - "`git pull` でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する"
+      - "`git push --force` で自分の履歴を送り込む"
       - ローカルのリポジトリを削除して clone し直し、変更を手で書き直す
       - 新しいブランチを作って、そちらを main に名前変更してから push する
     answer: 0
@@ -66,10 +66,10 @@ quiz:
   - question: |
       `target/` フォルダを最初のコミットで間違って入れてしまいました。あとから `.gitignore` に `target/` を書きましたが、ビルドするたびに `target/` の中のファイルが「変更あり」と表示され続けます。どうする?
     choices:
-      - .gitignore の書き方が間違っているので、/target/** に書き直す
-      - STS を再起動すれば .gitignore が反映される
-      - git rm -r --cached target を実行して管理対象から外し、そのことをコミットする
-      - .gitignore 自体をまだコミットしていないのが原因なので、.gitignore をコミットすれば表示されなくなる
+      - "`.gitignore` の書き方が間違っているので、`/target/**` に書き直す"
+      - "STS を再起動すれば `.gitignore` が反映される"
+      - "`git rm -r --cached target` を実行して管理対象から外し、そのことをコミットする"
+      - "`.gitignore` 自体をまだコミットしていないのが原因なので、`.gitignore` をコミットすれば表示されなくなる"
     answer: 2
     why:
       - ".gitignore の書き方が原因と読んだ答え。`target/` で正しく、管理済みのファイルには効かない"
@@ -82,7 +82,7 @@ quiz:
       main ブランチで作業していて、これから「送料無料ラインの変更」に取りかかります。現場の一般的な運用(main + feature ブランチ + プルリクエスト)に沿った最初の操作は?
     choices:
       - main のまま変更してコミットし、そのまま main に push する
-      - feature/free-shipping のようなブランチを作って切り替える(STS なら Team > Switch To > New Branch...)
+      - feature/free-shipping などのブランチを作って切り替える
       - リポジトリのフォルダを丸ごとコピーして、コピー側で作業する
       - 変更が終わるまでコミットせず、最後に1回だけまとめてコミットする
     answer: 1

@@ -122,10 +122,10 @@ quiz:
     choices: ["2", "12", "21", "コンパイルエラー"]
     answer: 1
     why:
-      - "super() を書いていないので、親のコンストラクタは動かないと読んだ答え"
+      - "`super()` を書いていないので、親のコンストラクタは動かないと読んだ答え"
       - ""
       - "子の本体が先に動くと読んだ答え"
-      - "super() を書かないとエラーと読んだ答え"
+      - "`super()` を書かないとエラーと読んだ答え"
     explanation: |
       `Q()` に `super()` は書かれていませんが、コンパイラが先頭に **引数なしの `super()` を自動挿入** します。そのため親の `P()` が先に実行されて `1`、続いて `2` が出力され、`12` です。
   - question: |
@@ -140,10 +140,10 @@ quiz:
           Circle(double r) { this.r = r; }
       }
       ```
-    choices: ["問題なくコンパイルできる", "Shape の name が private なので Circle が継承できずエラー", "Circle のコンストラクタで引数なしの Shape() を呼ぼうとしてエラー", "Circle が final フィールドを持つのでエラー"]
+    choices: ["問題なくコンパイルできる", "`Shape` の `name` が `private` なので `Circle` が継承できずエラー", "`Circle` のコンストラクタで引数なしの `Shape()` を呼ぼうとしてエラー", "`Circle` が `final` フィールドを持つのでエラー"]
     answer: 2
     why:
-      - "自動で入る super() を見落とした答え"
+      - "自動で入る `super()` を見落とした答え"
       - "private フィールドがあると継承できないと読んだ答え。継承はでき、子から直接触れないだけ"
       - ""
       - "final フィールドが原因と読んだ答え。r はコンストラクタで初期化しているので問題ない"
@@ -165,8 +165,8 @@ quiz:
     answer: 0
     why:
       - ""
-      - "pai() を pay() のオーバーライドと読んだ答え"
-      - "名前の違うメソッドの追加をエラーと読んだ答え。@Override が無いので気づかれずに通る"
+      - "`pai()` を `pay()` のオーバーライドと読んだ答え"
+      - "名前の違うメソッドの追加をエラーと読んだ答え。`@Override` が無いので気づかれずに通る"
       - "親と子のメソッドの結果が足されると読んだ答え"
     explanation: |
       `pai` は `pay` の typo なので **オーバーライドではなく、新しいメソッドの追加** です。`p.pay()` は親から引き継いだ `pay()` を呼ぶので `100` が出力されます。コンパイルエラーにもならないのが怖いところです。
@@ -183,12 +183,12 @@ quiz:
       }
       System.out.println(new Sub().hello());
       ```
-    choices: ["Sub", "Base", "StackOverflowError が発生する", "Base+Sub"]
+    choices: ["`Sub`", "`Base`", "`StackOverflowError` が発生する", "`Base+Sub`"]
     answer: 3
     why:
-      - "super.hello() が返す Base を見落とした答え"
-      - "親の hello() がそのまま返ると読んだ答え"
-      - "super.hello() が自分自身を呼ぶと読んだ答え"
+      - "`super.hello()` が返す `Base` を見落とした答え"
+      - "親の `hello()` がそのまま返ると読んだ答え"
+      - "`super.hello()` が自分自身を呼ぶと読んだ答え"
       - ""
     explanation: |
       `super.hello()` は **親クラス側の実装** を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。

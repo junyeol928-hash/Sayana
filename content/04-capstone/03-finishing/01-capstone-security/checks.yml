@@ -23,7 +23,7 @@
 - after: よくあるミス
   question: |
     `LoginUserDetailsService` を、Spring 標準の `User`(`User.withUsername(...)...build()`)を返すように書き換えた。ログインして承認を押すと?
-  choices: ["ログインはできるが、`user` が null で `user.id()` が NullPointerException になる", "Spring が User を LoginUser に詰め替えるので、普通に承認できる", "ログインの時点で失敗する"]
+  choices: ["ログインはできるが、`user` が `null` で `user.id()` が `NullPointerException` になる", "Spring が `User` を `LoginUser` に詰め替えるので、普通に承認できる", "ログインの時点で失敗する"]
   answer: 0
   why:
     - ""

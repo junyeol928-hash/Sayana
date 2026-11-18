@@ -5,7 +5,7 @@
     new File("x.txt").delete();      // 旧API
     Files.delete(Path.of("x.txt"));  // 新API
     ```
-  choices: ["File は false を返すだけ、Files は NoSuchFileException", "どちらも NoSuchFileException", "どちらも false を返すだけ"]
+  choices: ["`File` は `false` を返すだけ、`Files` は `NoSuchFileException`", "どちらも `NoSuchFileException`", "どちらも `false` を返すだけ"]
   answer: 0
   why:
     - ""
@@ -19,7 +19,7 @@
     ```java
     List<String> lines = Files.readAllLines(csv);
     ```
-  choices: ["MalformedInputException で落ちる", "日本語 Windows なら MS932 として正しく読める", "落ちずに、文字化けした行が返る"]
+  choices: ["`MalformedInputException` で落ちる", "日本語 Windows なら `MS932` として正しく読める", "落ちずに、文字化けした行が返る"]
   answer: 0
   why:
     - ""
@@ -33,11 +33,11 @@
     ```java
     paths.forEach(p -> System.out.println(Files.readString(p)));
     ```
-  choices: ["コンパイルエラー", "できる", "できる(中の IOException は UncheckedIOException に自動で包まれる)"]
+  choices: ["コンパイルエラー", "できる", "できる(中の `IOException` は `UncheckedIOException` に自動で包まれる)"]
   answer: 0
   why:
     - ""
     - "main の throws がラムダの中にも効くと読んだ答え。ラムダの中身は Consumer の accept の中"
-    - "UncheckedIOException に自動で包まれると読んだ答え。包むのは自分で書く catch の仕事"
+    - "`UncheckedIOException` に自動で包まれると読んだ答え。包むのは自分で書く catch の仕事"
   explanation: |
     `forEach` に渡すラムダは `Consumer` の実装で、その `accept` はチェック例外を投げられない。外側の `main` の `throws` はラムダの中には効かない。ラムダの中で catch して `new UncheckedIOException(e)` で包むか、for 文で書く。

@@ -47,7 +47,7 @@
         return (double) sum / a.length;
     }
     ```
-  choices: ["53.333333333333336", "53.0", "ArrayIndexOutOfBoundsException で落ちる"]
+  choices: ["`53.333333333333336`", "`53.0`", "`ArrayIndexOutOfBoundsException` で落ちる"]
   answer: 0
   why:
     - ""

@@ -116,11 +116,11 @@ quiz:
       }
       ```
       ※ `OrderController` はコンストラクタで `OrderService`(`@Service`)を受け取る。
-    choices: ["そのまま成功する", "404 で失敗する", "OrderService の Bean が無く、コンテキストの起動に失敗する", "本物の OrderService と DB が使われる"]
+    choices: ["そのまま成功する", "Controller が登録されず 404 で失敗する", "`OrderService` の Bean が無く起動に失敗する", "本物の `OrderService` と DB が使われる"]
     answer: 2
     why:
       - "`@WebMvcTest` でも `@Service` まで自動で作られる、と読んだ答え"
-      - "Controller が登録されないと読んだ答え。OrderController は対象に入るが、渡す OrderService が無くて起動に失敗する"
+      - "Controller が登録されないと読んだ答え。`OrderController` は対象に入るが、渡す `OrderService` が無くて起動に失敗する"
       - ""
       - "`@SpringBootTest` と同じと読んだ答え。`@WebMvcTest` では `@Service` も DB も使われない"
     explanation: |
@@ -136,7 +136,7 @@ quiz:
       mvc.perform(get("/hello"))
          .andExpect(content().string("こんにちは"));
       ```
-    choices: ["成功する", "本文が「?????」になって失敗する", "404 で失敗する", "コンパイルエラー"]
+    choices: ["成功する", "本文が「?????」で失敗する", "URL が見つからず 404 で失敗する", "コンパイルエラー"]
     answer: 1
     why:
       - "文字コードが既定で UTF-8 と読んだ答え"
@@ -154,12 +154,12 @@ quiz:
           .thenReturn(List.of(new Order("O-1", "ペン", 300)));
       ```
       ※ `findByCustomer` の戻り値の型は `List<Order>`
-    choices: ["空のリスト", "ペンの注文1件のリスト", "null", "例外が発生する"]
+    choices: ["空のリスト", "ペンの注文1件のリスト", "`null`", "例外が発生する"]
     answer: 0
     why:
       - ""
-      - "仕込みがどの引数でも効くと読んだ答え。C001 のときだけ効き、ほかの引数では既定値が返る"
-      - "仕込んでいない呼び出しは null と読んだ答え。戻り値が List なら空のリストが返る"
+      - "仕込みがどの引数でも効くと読んだ答え。`C001` のときだけ効き、ほかの引数では既定値が返る"
+      - "仕込んでいない呼び出しは `null` と読んだ答え。戻り値が `List` なら空のリストが返る"
       - "仕込み忘れが例外になると読んだ答え。例外にならず、既定値の空のリストが返る"
     explanation: |
       `when(...).thenReturn(...)` は **その引数で呼ばれたとき** だけ効きます。仕込んでいない引数 `"C002"` では Mockito の既定値が返り、戻り値が `List` などのコレクションなら **空のコレクション**、`int` なら `0`、普通のオブジェクトなら `null` です。
@@ -176,11 +176,11 @@ quiz:
           }
       }
       ```
-    choices: ["@RestController にしていないから", "Model に空のリストを入れたから", "テンプレートファイル orders.html が無いから", "画面名 `\"orders\"` が URL `/orders` と同じで、自分自身に転送しようとしたから(Circular view path)"]
+    choices: ["`@RestController` にしていないから", "`Model` に空のリストを入れたから", "テンプレートファイル `orders.html` が `templates` に無いから", "画面名 `\"orders\"` が URL と同じで、自分に転送しようとしたから"]
     answer: 3
     why:
       - "画面を返す `@Controller` そのものが原因と読んだ答え"
-      - "空のリストを入れたのが原因と読んだ答え。Model の中身は関係ない"
+      - "空のリストを入れたのが原因と読んだ答え。`Model` の中身は関係ない"
       - "テンプレートが描画されると読んだ答え。`orders.html` があっても無くても同じ結果になる"
       - ""
     explanation: |
@@ -188,10 +188,10 @@ quiz:
       画面名を `orders/list` のようにフォルダで分けるのが定番の回避策です(`view().name("orders/list")` で検証できます)。
   - question: |
       テストクラスが10個ある。全部 `@SpringBootTest` だが、クラスごとに `@MockitoBean` で差し替える Bean がバラバラ。テスト全体がとても遅い。主な原因として最も適切なのは?
-    choices: ["MockMvc が毎回 Tomcat を起動しているから", "設定が違うとみなされ、コンテキストキャッシュが効かず ApplicationContext を何度も作り直しているから", "@MockitoBean は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから"]
+    choices: ["`MockMvc` が毎回 Tomcat を起動しているから", "コンテキストキャッシュが効かず、`ApplicationContext` を毎回作り直すから", "`@MockitoBean` は Mockito を使うので、それ自体が遅いから", "JUnit 5 はテストクラスを並列実行できないから"]
     answer: 1
     why:
-      - "MockMvc がサーバーを起動すると読んだ答え。MockMvc は Tomcat を起動せず、DispatcherServlet を直接呼ぶ"
+      - "`MockMvc` がサーバーを起動すると読んだ答え。`MockMvc` は Tomcat を起動せず、`DispatcherServlet` を直接呼ぶ"
       - ""
       - "Mockito そのものが遅いと読んだ答え"
       - "並列で動かないことが主な原因と読んだ答え"

@@ -6,7 +6,7 @@
     names[0] = "Haru";
     System.out.println(names[1].length());
     ```
-  choices: ["NullPointerException", "0", "4"]
+  choices: ["`NullPointerException`", "`0`", "`4`"]
   answer: 0
   why:
     - ""

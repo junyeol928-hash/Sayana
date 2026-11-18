@@ -195,12 +195,12 @@ quiz:
       System.out.println(tasks.length);
       System.out.println(tasks[0].title);
       ```
-    choices: ["2 と null が出力される", "2 が出力されたあと NullPointerException", "0 と null が出力される", "コンパイルエラー"]
+    choices: ["`2` と `null` が出力される", "`2` のあと `NullPointerException` が発生", "`0` と `null` が出力される", "コンパイルエラー(null かもしれない要素を読んでいる)"]
     answer: 1
     why:
-      - "new Task[2] で Task のインスタンスもできると読んだ答え。要素は null で、.title で NPE になる"
+      - "`new Task[2]` で `Task` のインスタンスもできると読んだ答え。要素は null で、`.title` で NPE になる"
       - ""
-      - "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、tasks[0] は null"
+      - "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、`tasks[0]` は null"
       - "null の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる"
     explanation: |
       `new Task[2]` で作られるのは **Task を入れる枠が2つある配列** だけで、Task のインスタンスは作られません。要素は参照型の既定値 `null` です。`tasks.length` は 2 ですが、`tasks[0].title` は null のフィールドを読もうとして `NullPointerException` になります。

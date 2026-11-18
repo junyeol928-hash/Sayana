@@ -9,7 +9,7 @@
             .subject("見積もりの件")
             .build();
     ```
-  choices: ["コンパイルエラー", "to が設定され、subject 以降もつながる", "実行時に NullPointerException"]
+  choices: ["コンパイルエラー", "`to` が設定され、`subject` 以降もつながる", "実行時に `NullPointerException`"]
   answer: 0
   why:
     - ""
@@ -23,7 +23,7 @@
     ```java
     Car.FuelGauge g = new Car.FuelGauge();
     ```
-  choices: ["コンパイルエラー", "fuel が 0 のメーターができる", "実行時に NullPointerException"]
+  choices: ["コンパイルエラー", "`fuel` が 0 のメーターができる", "実行時に `NullPointerException`"]
   answer: 0
   why:
     - ""
@@ -45,11 +45,11 @@
         }
     }
     ```
-  choices: ["コンパイルでき、至急 と出る", "コンパイルエラー(実質的 final でない)", "コンパイルでき、通常 と出る"]
+  choices: ["コンパイルでき、`至急` と出る", "コンパイルエラー(実質的 final でない)", "コンパイルでき、`通常` と出る"]
   answer: 0
   why:
     - ""
     - "フィールドにもローカル変数と同じ制限がかかると読んだ答え。制限はローカル変数だけ"
-    - "初期値の 通常 がコピーされると読んだ答え。フィールドは run() のときに今の値を読む"
+    - "初期値の `通常` がコピーされると読んだ答え。フィールドは `run()` のときに今の値を読む"
   explanation: |
     実質的 final の制限がかかるのは、外側の **ローカル変数** だけ。フィールドは値をコピーせず外側のインスタンス経由で読むので、再代入していても使える。

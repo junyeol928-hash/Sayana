@@ -178,7 +178,7 @@ quiz:
           .orElse("未入力");
       System.out.println(r);
       ```
-    choices: ["未入力", "空行(何も表示されない)", "   (空白3つ)", "NoSuchElementException"]
+    choices: ["未入力", "空行(何も表示されない)", "   (空白3つ)", "`NoSuchElementException`"]
     answer: 0
     why:
       - ""
@@ -203,7 +203,7 @@ quiz:
     choices: ["AB", "DAB", "DADB", "DDAB"]
     answer: 1
     why:
-      - "値があれば orElse の引数は評価されないと読んだ答え。引数の def() は呼ぶ前に必ず評価される"
+      - "値があれば orElse の引数は評価されないと読んだ答え。引数の `def()` は呼ぶ前に必ず評価される"
       - ""
       - "orElseGet のラムダも動き、出力が混ざると読んだ答え。a + b は最後にまとめて出し、ラムダは動かない"
       - "orElseGet のラムダも動くと読んだ答え。値があるのでラムダは実行されない"
@@ -238,7 +238,7 @@ quiz:
       ```java
       findEmployee(id).map(e -> findDept(e))
       ```
-    choices: ["Optional<Dept>", "Optional<Optional<Dept>>", "Dept", "コンパイルエラーになる"]
+    choices: ["`Optional<Dept>`", "`Optional<Optional<Dept>>`", "`Dept`", "コンパイルエラーになる(`map` には渡せない)"]
     answer: 1
     why:
       - "map が包みを 1 枚にならすと読んだ答え。それは flatMap で、map は戻り値をさらに包む"

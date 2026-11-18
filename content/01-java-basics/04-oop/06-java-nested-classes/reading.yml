@@ -66,15 +66,15 @@
   answer: 0
   why:
     - ""
-    - "`value++` が外側の Counter の value を増やすと読んだ答え。増えるのは匿名クラス自身の value(1→2)"
-    - "ただの `value` も外側の value と読んだ答え。匿名クラス自身の value が外側の名前を隠す"
-    - "両方の value が増えると読んだ答え。増えるのは匿名クラス自身の value だけで、外側は 10 のまま"
+    - "`value++` が外側の `Counter` の `value` を増やすと読んだ答え。増えるのは匿名クラス自身の `value`(1→2)"
+    - "ただの `value` も外側の `value` と読んだ答え。匿名クラス自身の `value` が外側の名前を隠す"
+    - "両方の `value` が増えると読んだ答え。増えるのは匿名クラス自身の `value` だけで、外側は 10 のまま"
   explanation: "匿名クラス自身が value というフィールドを持っているので、ただの value はこの匿名クラス自身のもの(1→2)を指します。外側の Counter が持つ value(10)には触れていないので、10 のままです。区別したいときに Counter.this.value と書きます。"
   trace:
-    - "makeIncrementer() が匿名 Runnable を作って返す(この時点ではまだ run しない)"
-    - "r.run() を呼ぶと、匿名クラス自身の value(1)が value++ で 2 になる"
-    - "Counter.this.value は外側 Counter インスタンスの value で、変更していないので 10 のまま"
-    - "\"2 10\" と表示される"
+    - "`makeIncrementer()` が匿名 Runnable を作って返す(この時点ではまだ run しない)"
+    - "`r.run()` を呼ぶと、匿名クラス自身の `value`(1)が `value++` で 2 になる"
+    - "`Counter.this.value` は外側 Counter インスタンスの `value` で、変更していないので 10 のまま"
+    - "`2 10` と表示される"
 - title: "内部クラスから外側フィールドへのアクセス"
   level: 1
   code: |
@@ -93,9 +93,9 @@
     System.out.println(s.print());
   question: "出力は?"
   choices:
-    - "残高: 1000"
-    - "残高: 0"
-    - "NullPointerException が発生"
+    - "`残高: 1000`"
+    - "`残高: 0`"
+    - "`NullPointerException` が発生"
     - "コンパイルエラー"
   answer: 0
   why:
@@ -105,10 +105,10 @@
     - "private の balance に、内部クラスからは触れないと読んだ答え"
   explanation: "Statement は非static の内部クラスなので、外側 Wallet の private フィールド balance にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
   trace:
-    - "Wallet を作ると balance = 1000"
-    - "w.new Statement() で、w に結び付いた Statement インスタンスを作る"
-    - "print() の中の balance は、結び付いている w の balance を指す"
-    - "\"残高: 1000\" と表示される"
+    - "Wallet を作ると `balance = 1000`"
+    - "`w.new Statement()` で、`w` に結び付いた Statement インスタンスを作る"
+    - "`print()` の中の `balance` は、結び付いている `w` の `balance` を指す"
+    - "`残高: 1000` と表示される"
 - title: "実質的final違反のコンパイルエラー"
   level: 3
   code: |
@@ -140,10 +140,10 @@
     - ""
   explanation: "label は宣言時と if の中の2箇所で代入されています。urgent が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、一度値が決まったあとに再代入されない(実質的final)必要があります。"
   trace:
-    - "label を \"normal\" で初期化"
+    - '`label` を `"normal"` で初期化'
     - "if (urgent) の中で label に再代入するコードがある(実行されるかは関係ない)"
     - "この時点で label は実質的final ではなくなる"
-    - "匿名クラスの run() の中で label を使おうとしている行でコンパイルエラー"
+    - "匿名クラスの `run()` の中で `label` を使おうとしている行でコンパイルエラー"
 - title: "static ネストクラスの new の書き方"
   level: 1
   code: |
@@ -171,5 +171,5 @@
   explanation: "Error は static ネストクラスなので、外側 Response のインスタンスが無くても Response.Error という型名でそのまま new できます。Response のインスタンスを作る必要はありません。"
   trace:
     - "Error は static なので Response とは無関係に生成できる"
-    - "new Response.Error(\"失敗しました\") で message に文字列が入る"
-    - "e.message を表示 → \"失敗しました\""
+    - '`new Response.Error("失敗しました")` で `message` に文字列が入る'
+    - "`e.message` を表示 → `失敗しました`"

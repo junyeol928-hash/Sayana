@@ -166,7 +166,7 @@ quiz:
           System.out.println("数値ではない");
       }
       ```
-    choices: ["数値でない text なら「数値ではない」と出力される", "数値でない text なら両方の catch が実行される", "実行時に ClassCastException が発生する", "2つ目の catch には絶対に届かないのでコンパイルエラー"]
+    choices: ["数値でない text なら「数値ではない」と出力される", "数値でない text なら両方の catch が実行される", "実行時に `ClassCastException` が発生する", "2つ目の catch には絶対に届かないのでコンパイルエラー"]
     answer: 3
     why:
       - "一番合う catch が選ばれると読んだ答え。catch は上から順で、届かない後ろの catch はコンパイルエラー"
@@ -181,10 +181,10 @@ quiz:
     choices: ["`void a() { throw new IllegalStateException(\"x\"); }`", "`void b() throws IOException { throw new IOException(\"x\"); }`", "`void c() { throw new IOException(\"x\"); }`", "`void d() { throw new NumberFormatException(\"x\"); }`"]
     answer: 2
     why:
-      - "IllegalStateException にも宣言が要ると読んだ答え。RuntimeException の子なので宣言なしで投げられる"
+      - "`IllegalStateException` にも宣言が要ると読んだ答え。`RuntimeException` の子なので宣言なしで投げられる"
       - "検査例外は catch しないと投げられないと読んだ答え。throws で宣言すれば catch せずに投げられる"
       - ""
-      - "NumberFormatException を検査例外と取り違えた答え。RuntimeException の子なので宣言なしで投げられる"
+      - "`NumberFormatException` を検査例外と取り違えた答え。`RuntimeException` の子なので宣言なしで投げられる"
     explanation: |
       `IOException` は `RuntimeException` の系統ではない **検査例外** なので、投げるメソッドは catch するか `throws IOException` で宣言しなければなりません。`c()` はどちらもしていないので `unreported exception IOException; must be caught or declared to be thrown` になります。
       `b()` は throws で宣言しているのでOK。`IllegalStateException` と `NumberFormatException` は `RuntimeException` のサブクラス(非検査例外)なので、宣言なしで投げられます。
@@ -210,9 +210,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "開いた順に閉じると読んだ答え。close() は逆順で、後に開いた 2 から閉じる"
+      - "開いた順に閉じると読んだ答え。`close()` は逆順で、後に開いた 2 から閉じる"
       - "リソースごとにブロックを回すと読んだ答え。全部を開いてから body を 1 回だけ実行する"
-      - "close() を呼んでいないので閉じないと読んだ答え。AutoCloseable なら自動で逆順に呼ばれる"
+      - "`close()` を呼んでいないので閉じないと読んだ答え。`AutoCloseable` なら自動で逆順に呼ばれる"
     explanation: |
       try-with-resources は `( )` の中のリソースを **書いた順に開き**、ブロックを抜けるときに **逆の順番で** `close()` を呼びます。後に開いたリソースは先に開いたものに依存していることが多い(DB接続の上で作った SQL 文など)ので、依存している側から閉じるためです。
       `close()` を明示的に呼んでいなくても、`AutoCloseable` を実装していれば自動で呼ばれます。
@@ -225,13 +225,13 @@ quiz:
           throw new ConfigException("設定の読み込みに失敗");
       }
       ```
-    choices: ["IOException は非検査例外なので catch できない", "catch した例外を cause として渡していないので、根本原因がスタックトレースから消える", "catch ブロックの中で throw することはできない", "ConfigException は Exception を直接継承していないと throw できない"]
+    choices: ["`IOException` は非検査例外なので catch できない", "catch した例外を cause として渡していないので、根本原因がスタックトレースから消える", "catch ブロックの中で throw することはできない", "`ConfigException` は `Exception` を直接継承していないと throw できない"]
     answer: 1
     why:
-      - "IOException を非検査例外と取り違えた答え。IOException は検査例外で、どちらにしても catch はできる"
+      - "`IOException` を非検査例外と取り違えた答え。`IOException` は検査例外で、どちらにしても catch はできる"
       - ""
       - "catch の中では投げ直せないと読んだ答え。catch の中で throw するのは普通の書き方"
-      - "独自例外は Exception の直接の子に限ると読んだ答え。Exception か RuntimeException の子孫なら投げられる"
+      - "独自例外は `Exception` の直接の子に限ると読んだ答え。`Exception` か `RuntimeException` の子孫なら投げられる"
     explanation: |
       例外をラップして投げ直すこと自体は正しい設計ですが、`new ConfigException("...", e)` のように **元の例外 `e` を cause として渡さない** と、スタックトレースから `Caused by:` が消えます。ファイル名の誤りなのか、権限不足なのか、根本原因が分からなくなります。
 columns:

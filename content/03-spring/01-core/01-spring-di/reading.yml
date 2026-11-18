@@ -24,19 +24,19 @@
     - "`\"socket\"`"
     - "`\"logging\"`"
     - "起動時に例外"
-    - "null"
+    - "`null`"
   answer: 1
   why:
     - "`@Primary` を見落とし、先に書かれた `SocketCommandSender` が入ると読んだ答え"
     - ""
     - "候補が2つあるので起動に失敗すると読んだ答え。`@Primary` が付いた側が選ばれて起動する"
-    - "どちらにも決めきれず、null が入ると読んだ答え。実際は `@Primary` の側が入る"
+    - "どちらにも決めきれず、`null` が入ると読んだ答え。実際は `@Primary` の側が入る"
   explanation: "CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ、候補が2つで選べず、起動時に NoUniqueBeanDefinitionException になります。"
   trace:
     - "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)"
     - "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される"
     - "起動時: 候補2つのうち @Primary の LoggingCommandSender が選ばれて注入される"
-    - "16行目: sender.send(...) → LoggingCommandSender.send → \"logging\""
+    - "16行目: `sender.send(...)` → `LoggingCommandSender.send` → `\"logging\"`"
 - title: "final が抜けたフィールド"
   level: 2
   code: |
@@ -56,14 +56,14 @@
   choices:
     - "`\"OK\"` が返る"
     - "起動時に例外で失敗する"
-    - "8行目で NullPointerException"
+    - "8行目で `NullPointerException`"
     - "コンパイルエラー"
   answer: 2
   why:
     - "`@RequiredArgsConstructor` が全フィールドに注入すると読んだ答え。対象は `final` の方だけ"
-    - "注入されないフィールドがあると起動で止まると読んだ答え。null のフィールドは、使うまで誰も気づかない"
+    - "注入されないフィールドがあると起動で止まると読んだ答え。`null` のフィールドは、使うまで誰も気づかない"
     - ""
-    - "final でないフィールドを Lombok がエラーにすると読んだ答え。コンストラクタの引数から外れるだけで、コンパイルは通る"
+    - "`final` でないフィールドを Lombok がエラーにすると読んだ答え。コンストラクタの引数から外れるだけで、コンパイルは通る"
   explanation: "@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。"
   trace:
     - "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ"
@@ -91,10 +91,10 @@
     }
   question: "起動時に何が起きる?"
   choices:
-    - "BackendClient が Bean にならず起動失敗"
-    - "restTemplate が先に作られ、backendClient に渡され、SessionService に注入される"
-    - "backendClient が2個作られる"
-    - "@Bean メソッドの順序が逆なのでエラー"
+    - "`BackendClient` が Bean にならず起動失敗"
+    - "`restTemplate` が先に作られ、`backendClient` に渡され、`SessionService` に注入される"
+    - "`backendClient` が2個作られる"
+    - "`@Bean` メソッドの順序が逆なのでエラー"
   answer: 1
   why:
     - "`@Component` が無いクラスは Bean にならないと読んだ答え。`@Bean` メソッドの戻り値が Bean になる"
@@ -127,16 +127,16 @@
   question: "アプリを起動すると?"
   choices:
     - "正常に起動する"
-    - "HexUtil が見つからず起動時に例外"
-    - "KeyIssueService が Bean にならない"
+    - "`HexUtil` が見つからず起動時に例外"
+    - "`KeyIssueService` が Bean にならない"
     - "コンパイルエラー"
   answer: 1
   why:
-    - "`@Component` が付いていれば必ず Bean になると読んだ答え。HexUtil はスキャン範囲の外で Bean にならない"
+    - "`@Component` が付いていれば必ず Bean になると読んだ答え。`HexUtil` はスキャン範囲の外で Bean にならない"
     - ""
     - "`KeyIssueService` もスキャン範囲の外と読んだ答え。`gateway.service` は `gateway` の下なので範囲内"
     - "Bean が見つからない問題をコンパイル時の誤りと取り違えた答え。コンパイルは通り、起動時に失敗する"
-  explanation: "スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。"
+  explanation: "スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため、起動が UnsatisfiedDependencyException で失敗します(原因は NoSuchBeanDefinitionException)。"
   trace:
     - "2行目: スキャンの基準パッケージは jp.example.gateway"
     - "6〜8行目: jp.example.gateway.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している"

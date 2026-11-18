@@ -153,12 +153,12 @@ quiz:
       List<Integer> b = new ArrayList<>();
       System.out.println(a.getClass() == b.getClass());
       ```
-    choices: ["true", "false", "コンパイルエラー", "実行時に ClassCastException"]
+    choices: ["true", "false", "コンパイルエラー", "実行時に `ClassCastException`"]
     answer: 0
     why:
       - ""
       - "型引数が実行時まで残ると読んだ答え。型消去でどちらもただの ArrayList になる"
-      - "型の違うリストのクラスは比べられないと読んだ答え。getClass() どうしの比較は合法"
+      - "型の違うリストのクラスは比べられないと読んだ答え。`getClass()` どうしの比較は合法"
       - "比べるときにキャストが起きると読んだ答え。キャストしていないので例外は出ない"
     explanation: |
       Java のジェネリクスは **型消去** で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
@@ -184,8 +184,8 @@ quiz:
       `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる** 呼び出しはどれ?
     choices:
       - "`max(List.of(3, 1, 2))`"
-      - "`max(List.of(new Object(), new Object()))`"
-      - "`max(List.of(\"b\", \"a\"))`"
+      - "`max(List.of(new Object()))`"
+      - "`max(List.of(\"kiwi\", \"fig\"))`"
       - "`max(List.of(2.5, 1.0))`"
     answer: 1
     why:

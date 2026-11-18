@@ -1,7 +1,7 @@
 - after: まず覚える12個
   question: |
     JDK に入っている `String` クラスのソースを開いて読みたい。押すのは?
-  choices: ["Ctrl+Shift+T(型を開く)", "Ctrl+Shift+R(リソースを開く)", "どちらでも開ける"]
+  choices: ["`Ctrl+Shift+T`(型を開く)", "`Ctrl+Shift+R`(リソースを開く)", "どちらでも開ける"]
   answer: 0
   why:
     - ""
@@ -33,7 +33,7 @@
   question: |
     古いプロジェクトで、保存時のフォーマット(Format source code)を有効にした。1 行だけ直して保存したら、差分が数百行になった。どう設定すればよかった?
   choices:
-    - "フォーマットを Format edited lines(編集した行だけ)にする"
+    - "フォーマットを編集した行だけ(Format edited lines)にする"
     - "Organize imports のチェックを外す"
   answer: 0
   why:

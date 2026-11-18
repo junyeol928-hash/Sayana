@@ -52,7 +52,7 @@ quiz:
       int total = price + calcTax(price);   // ← ここで停止中
       System.out.println(total);
       ```
-    choices: ["F5(Step Into)", "F6(Step Over)", "F7(Step Return)", "F8(Resume)"]
+    choices: ["`F5`(Step Into)", "`F6`(Step Over)", "`F7`(Step Return)", "`F8`(Resume)"]
     answer: 1
     why:
       - "F5 で次の行へ進むと読んだ答え。F5 は `calcTax` の中に入ってしまう"

@@ -149,8 +149,8 @@ quiz:
     why:
       - "抽象クラスは変数の型にも使えないと読んだ答え。型としては使え、子のインスタンスを入れられる"
       - ""
-      - "Dog の new を疑った答え。Dog は voice() を実装した普通のクラスなので new できる"
-      - "抽象メソッドは呼べないと読んだ答え。Animal に宣言があるので呼べ、Dog の voice() が動く"
+      - "`new Dog()` を疑った答え。`Dog` は `voice()` を実装した普通のクラスなので new できる"
+      - "抽象メソッドは呼べないと読んだ答え。`Animal` に宣言があるので呼べ、`Dog` の `voice()` が動く"
     explanation: |
       抽象クラスは **`new` できない** ので、(B) が `Animal is abstract; cannot be instantiated` になります。
       (A) は「親の型の変数に子のインスタンスを入れる」ポリモーフィズムで、抽象クラスでも型としては普通に使えます。(D) は `Animal` に `voice()` が宣言されているので呼べて、実際には `Dog` の `voice()` が動きます。
@@ -171,13 +171,13 @@ quiz:
 
       new Backup().run();
       ```
-    choices: ["バックアップ ", "開始 終了", "開始 バックアップ 終了", "コンパイルエラー(Backup に run() がない)"]
+    choices: ["`バックアップ`", "`開始 終了`", "`開始 バックアップ 終了`", "コンパイルエラー(`Backup` に `run()` がない)"]
     answer: 2
     why:
-      - "run() が子の work() だけを動かすと読んだ答え"
-      - "親の run() から子の work() は呼ばれないと読んだ答え"
+      - "`run()` が子の `work()` だけを動かすと読んだ答え"
+      - "親の `run()` から子の `work()` は呼ばれないと読んだ答え"
       - ""
-      - "final の run() は子から呼べないと読んだ答え"
+      - "final の `run()` は子から呼べないと読んだ答え"
     explanation: |
       典型的な **テンプレートメソッド** です。`run()` は親 `Job` から継承されているので `Backup` でも呼べます。`run()` の中の `work()` は、実行時のオブジェクト(`Backup`)の実装が呼ばれるので「開始 バックアップ 終了」になります。
       `run()` が `final` なのは「流れを子に書き換えさせない」ためで、呼び出すことは問題なくできます。
@@ -191,12 +191,12 @@ quiz:
           String greet() { return "Hello"; }
       }
       ```
-    choices: ["問題なくコンパイルできる", "Greeter の greet() に public が書かれていないのでエラー", "Hello に @Override がないのでエラー", "Hello の greet() に public がないのでエラー"]
+    choices: ["問題なくコンパイルできる", "`Greeter` の `greet()` に `public` が書かれていないのでエラー", "`Hello` に `@Override` がないのでエラー", "`Hello` の `greet()` に `public` がないのでエラー"]
     answer: 3
     why:
-      - "約束の greet() が暗黙に public であることを見落とした答え"
-      - "インターフェース側にも public を書く必要があると読んだ答え"
-      - "@Override が無いとエラーと読んだ答え。付けるべきだが、無くてもコンパイルは通る"
+      - "約束の `greet()` が暗黙に `public` であることを見落とした答え"
+      - "インターフェース側にも `public` を書く必要があると読んだ答え"
+      - "`@Override` が無いとエラーと読んだ答え。付けるべきだが、無くてもコンパイルは通る"
       - ""
     explanation: |
       インターフェースのメソッドは、書かなくても **暗黙に `public abstract`** です。実装側の `greet()` は修飾子なし(パッケージ公開)なので、約束より公開範囲を狭めたことになり `attempting to assign weaker access privileges; was public` というエラーになります。`public String greet()` と書けば通ります。
@@ -210,7 +210,7 @@ quiz:
 
       System.out.println(new C().hi());
       ```
-    choices: ["C で hi() を上書きしないとコンパイルエラー", "A と出力される(先に書いた方が優先)", "B と出力される(後に書いた方が優先)", "実行時に例外が発生する"]
+    choices: ["`C` で `hi()` を上書きしないとコンパイルエラー", "`A` と出力される(先に書いた方が優先)", "`B` と出力される(後に書いた方が優先)", "実行時に例外が発生する"]
     answer: 0
     why:
       - ""
@@ -236,10 +236,10 @@ quiz:
       Arrays.sort(ps);
       System.out.println(Arrays.toString(ps));
       ```
-    choices: ["[1, 2, 3]", "[3, 2, 1]", "[2, 3, 1]", "ClassCastException が発生する"]
+    choices: ["`[1, 2, 3]`", "`[3, 2, 1]`", "`[2, 3, 1]`", "`ClassCastException` が発生する"]
     answer: 1
     why:
-      - "compare の引数の順を見落とした答え"
+      - "`compare` の引数の順を見落とした答え"
       - ""
       - "sort しても並びが変わらないと読んだ答え"
       - "自作クラスは並べられないと読んだ答え。Comparable を実装しているので並べられる"

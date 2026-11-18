@@ -13,7 +13,7 @@
   answer: 0
   why:
     - ""
-    - "Name() が name() を上書きしたと読んだ答え。大文字の N で別のメソッドになり、上書きしていない"
+    - "`Name()` が `name()` を上書きしたと読んだ答え。大文字の N で別のメソッドになり、上書きしていない"
     - "綴り違いをコンパイラが見つけると読んだ答え。止めてくれるのは @Override を付けたときだけ"
   explanation: |
     `Name()` は大文字の N で、親の `name()` とは別のメソッドになる。上書きしていないので親の `name()` が呼ばれて base。
@@ -42,11 +42,11 @@
     Audited a = m.getAnnotation(Audited.class);
     System.out.println(a.value());
     ```
-  choices: ["NullPointerException", "空文字が出る", "コンパイルエラー"]
+  choices: ["`NullPointerException`", "空文字(`\"\"`)が出る", "コンパイルエラー"]
   answer: 0
   why:
     - ""
-    - "付いていなければ空の値が入ると読んだ答え。getAnnotation が null を返し、value() を呼べない"
+    - "付いていなければ空の値が入ると読んだ答え。`getAnnotation` が null を返し、`value()` を呼べない"
     - "付いていないことをコンパイラが見抜くと読んだ答え。付いているかは実行時に決まる"
   explanation: |
     付いていないアノテーションを `getAnnotation` すると null が返り、その `value()` を呼ぶので NPE になる。だから読む側は `if (a == null)` で「目印なし」を先に分ける。

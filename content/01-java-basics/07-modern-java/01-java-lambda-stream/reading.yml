@@ -22,7 +22,7 @@
   trace:
     - "1行目: String を受け取って長さ(Integer)を返す処理"
     - "2行目: Integer を受け取って 3 より大きいか返す処理"
-    - "4行目: 内側 len.apply(\"lambda\") = 6 → big.test(6) = true"
+    - "4行目: 内側 `len.apply(\"lambda\")` = 6 → `big.test(6)` = true"
 - title: "メソッド参照をラムダに戻す"
   level: 2
   code: |
@@ -47,7 +47,7 @@
     - "10 倍の map を見落とした答え。数値にした後で 10 倍している"
   explanation: "Integer::parseInt は s -> Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -> n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -> System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので `302010`。"
   trace:
-    - "3行目: \"3\",\"1\",\"2\" → 3, 1, 2"
+    - "3行目: `\"3\"`, `\"1\"`, `\"2\"` → 3, 1, 2"
     - "4行目: → 30, 10, 20"
     - "5行目: 降順 → 30, 20, 10"
     - "7行目: print(改行なし)で 302010"
@@ -71,14 +71,14 @@
     - "コンパイルエラー"
   answer: 1
   why:
-    - "tasks.add でラムダがすぐ動くと読んだ答え。入れるだけで、run() まで動かない"
+    - "`tasks.add` でラムダがすぐ動くと読んだ答え。入れるだけで、`run()` まで動かない"
     - ""
     - "どのラムダも最後の値を見ると読んだ答え。n は回ごとに別の変数"
     - "ループの中のラムダは変数を使えないと読んだ答え。毎回新しい final の n なので使える"
   explanation: "4行目でラムダを作って List に入れるだけで、この時点では実行されません。`start` が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。"
   trace:
     - "2〜5行目: n=1, 2, 3 をそれぞれ持つ3つのラムダを作って保存(まだ実行しない)"
-    - "6行目: \"start \" を表示"
+    - "6行目: `\"start \"` を表示"
     - "7〜9行目: 保存したラムダを順に実行 → 1 4 9"
     - "結果: start 1 4 9"
 - title: "Comparator の多段ソート"
@@ -188,7 +188,7 @@
     - "filter を全部終えてから map と読んだ答え。実際は 1 要素ずつ流れる"
     - ""
     - "filter で落ちた 2 も map に行くと読んだ答え。2 は filter で落ち、M2 は出ない"
-    - "遅延評価で何も動かないと読んだ答え。終端操作の toList() があるので要素が流れる"
+    - "遅延評価で何も動かないと読んだ答え。終端操作の `toList()` があるので要素が流れる"
   explanation: "要素は1つずつ全段を通ります。1 は filter を通過して map へ(F1 M1)、2 は filter で落ちるので map に行かない(F2)、3 は通過(F3 M3)。「filter を全部やってから map」ではないのがポイントです。"
   trace:
     - "10行目の toList() が呼ばれて初めて流れ始める"
@@ -208,21 +208,21 @@
     System.out.println(m.get("dev") + " " + m.get("hr"));
   question: "`record Emp(...)` は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。出力は?"
   choices:
-    - "3 0"
-    - "3 null"
-    - "[A, C, D] null"
-    - "NullPointerException"
+    - "`3 0`"
+    - "`3 null`"
+    - "`[A, C, D] null`"
+    - "`NullPointerException`"
   answer: 1
   why:
     - "無いキーの件数は 0 と読んだ答え。groupingBy は 0 件の部署を作らない"
     - ""
-    - "counting() を見落とした答え。値は社員の一覧ではなく件数(Long)"
+    - "`counting()` を見落とした答え。値は社員の一覧ではなく件数(`Long`)"
     - "null を連結すると例外と読んだ答え。実際は文字として出る"
   explanation: "groupingBy(dept, counting()) は部署ごとの件数 `Map<String, Long>` を作ります。dev は 3 件。`\"hr\"` はキーが存在しないので Map.get は null を返し、文字列連結なので `null` と表示されます。counting() を付けなければ値は社員の `List<Emp>` になり、`m.get(\"dev\")` は `[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]` のような一覧になります(そのときは変数の型も `Map<String, List<Emp>>` にしないとコンパイルできません)。"
   trace:
     - "6行目: dept ごとにまとめて件数を数える → {dev=3, ops=1}"
-    - "7行目: m.get(\"dev\") は 3、m.get(\"hr\") はキーがないので null"
-    - "文字列連結なので \"3 null\""
+    - "7行目: `m.get(\"dev\")` は 3、`m.get(\"hr\")` はキーがないので null"
+    - "文字列連結なので `3 null`"
 - title: "toMap の重複キー"
   level: 3
   code: |
@@ -234,10 +234,10 @@
     System.out.println(priceByCode.get("X"));
   question: "`record Item(...)` は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。実行すると?"
   choices:
-    - "100"
-    - "300"
-    - "400"
-    - "IllegalStateException"
+    - "`100`"
+    - "`300`"
+    - "`400`"
+    - "`IllegalStateException`"
   answer: 3
   why:
     - "最初の値が残ると読んだ答え。実際は 2 回目の X で例外になる"
@@ -247,7 +247,7 @@
   explanation: "toMap は既定でキーの重複を許しません。3つ目の要素でキー `\"X\"` が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -> b)、400(合計)にしたければ (a, b) -> a + b を第3引数に渡します。"
   trace:
     - "5行目: X→100 を登録、Y→200 を登録"
-    - "3つ目の Item(\"X\", 300): キー X が既にある → 重複キーの扱いが未指定 → 例外"
+    - "3つ目の `Item(\"X\", 300)`: キー X が既にある → 重複キーの扱いが未指定 → 例外"
     - "6行目には到達しない"
 - title: "Service の Entity → DTO 変換と findFirst"
   level: 3
@@ -264,9 +264,9 @@
     System.out.println(r.isPresent());
   question: "最後の行の出力は?"
   choices:
-    - "true"
-    - "false"
-    - "NullPointerException"
+    - "`true`"
+    - "`false`"
+    - "`NullPointerException`"
     - "コンパイルエラー"
   answer: 1
   why:

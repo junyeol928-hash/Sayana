@@ -34,9 +34,9 @@
     }
   question: "このコードを実行すると?"
   choices:
-    - "sum が 240 になる"
-    - "sum が 0 のまま"
-    - "ArrayIndexOutOfBoundsException が発生する"
+    - "`sum` が 240 になる"
+    - "`sum` が 0 のまま"
+    - "`ArrayIndexOutOfBoundsException` が発生する"
     - "コンパイルエラー"
   answer: 2
   why:
@@ -91,8 +91,8 @@
     boolean result = isAdminUser("ADMIN");
   question: "result の値と、その原因は?"
   choices:
-    - "true。文字列の中身が同じだから"
-    - "false。== が参照(インスタンス)を比較しているから"
+    - "`true`。文字列の中身が同じだから"
+    - "`false`。`==` が参照(インスタンス)を比較しているから"
     - "コンパイルエラー"
     - "実行時エラー"
   answer: 1

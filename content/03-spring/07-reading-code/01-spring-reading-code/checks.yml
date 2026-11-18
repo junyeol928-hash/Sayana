@@ -6,12 +6,12 @@
     クラス          : @RequestMapping("/api/keys")
     メソッド        : @PostMapping("/rotate")
     ```
-  choices: ["POST /api/keys/rotate", "POST /kms/api/keys/rotate", "POST /kms/rotate"]
+  choices: ["`POST /api/keys/rotate`", "`POST /kms/api/keys/rotate`", "`POST /kms/rotate`"]
   answer: 1
   why:
-    - "Java のソースだけを見た答え。`application.yml` の `context-path` の `/kms` が前に付く"
+    - "Java のソースだけを見た答え"
     - ""
-    - "メソッドのパスだけをつないだ答え。クラスの `@RequestMapping` の `/api/keys` も間に入る"
+    - "メソッドのパスだけをつないだ答え"
   explanation: |
     URL はクラスの `@RequestMapping` とメソッドの `@PostMapping` をつないだもので、さらに前に `context-path` が付く。`/kms` は Java のソースには無く、`application.yml` にしか書かれていない。
 - after: 例外とトランザクションの境界
@@ -20,7 +20,7 @@
   choices: ["2 回目と一緒にロールバックされる", "コミット済みで残る"]
   answer: 1
   why:
-    - "2 回の呼び出しが 1 つのトランザクションと読んだ答え。境界はプロキシの入口と出口で、呼ぶたびに別"
+    - "2 回の呼び出しが 1 つのトランザクションと読んだ答え"
     - ""
   explanation: |
     トランザクションはプロキシの入口で始まり出口で終わるので、2 回呼べば別々に 2 つできる。1 回目は戻った時点でコミット済みで、2 回目の失敗では取り消されない。
@@ -47,6 +47,6 @@
   why:
     - ""
     - "ロールバックと例外の受け止めを混同した答え。プロキシは戻したあと、例外をそのまま外へ流す"
-    - "try-catch が無ければ誰も受けないと読んだ答え。`@RestControllerAdvice` が横から受けられる"
+    - "try-catch が無ければ誰も受けないと読んだ答え"
   explanation: |
     業務例外は投げっぱなしにして、`@RestControllerAdvice` の `@ExceptionHandler` で受けるのが Spring の普通の形。受けている所は、例外クラス名で検索して探す。

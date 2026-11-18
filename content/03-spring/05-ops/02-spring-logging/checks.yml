@@ -27,10 +27,10 @@
     pool.submit(() -> { MDC.put("requestId", "A-001"); log.info("1件目"); });
     pool.submit(() -> log.info("2件目 requestId={}", MDC.get("requestId")));
     ```
-  choices: ["null", "A-001", "実行のたびに null だったり A-001 だったりする"]
+  choices: ["`null`", "`A-001`", "実行のたびに `null` だったり `A-001` だったりする"]
   answer: 1
   why:
-    - "処理が終わると MDC も消えると読んだ答え。スレッドに貼った値は、消さない限り残る"
+    - "処理が終わると MDC も消えると読んだ答え"
     - ""
     - "スレッドの取り合いで結果が揺れると読んだ答え。スレッドは 1 本なので、毎回同じスレッドが順に動かす"
   explanation: |

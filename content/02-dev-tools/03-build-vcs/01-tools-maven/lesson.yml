@@ -24,13 +24,13 @@ quiz:
       - 問題なくコンパイルできる
       - テストコード(src/test/java)からなら使えるので、警告だけ出てコンパイルできる
       - コンパイルエラーになる
-      - コンパイルは通り、実行時に ClassNotFoundException になる
+      - コンパイルは通り、実行時に `ClassNotFoundException` になる
     answer: 2
     why:
       - "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ"
       - "テストで使えることと本体のコンパイルを混ぜた答え。本体からの import は警告でなくエラー"
       - ""
-      - "コンパイル後に落ちると読んだ答え。それは provided の jar を実行環境が用意しないときの話"
+      - "コンパイルは通り、実行時に落ちると読んだ答え。runtime の jar は、本体のコンパイルにそもそも使えない"
     explanation: |
       **runtime** スコープの jar は、テストと実行時のクラスパスには載りますが、**本体(src/main)のコンパイル時のクラスパスには載りません**。そのため `package org.h2 does not exist`(パッケージ org.h2 は存在しません)というコンパイルエラーになります。
       これは「DB ドライバのクラスを直接使わず、JDBC / JPA の標準インターフェース越しに使え」という設計をビルドで強制してくれる仕組みです。
@@ -55,7 +55,7 @@ quiz:
       </dependencies>
       ```
     choices:
-      - "starter-web は parent のバージョン表から補われるが、commonmark は「version is missing」のエラーになる"
+      - "starter-web は parent の表で補われ、commonmark はエラーになる"
       - 両方とも parent が version を補うので成功する
       - version を省略すると Maven Central の最新版が自動で使われるので成功する
       - 両方とも version が無いのでエラーになる
@@ -124,7 +124,7 @@ quiz:
       ```
     choices:
       - JDK 21 で動かしているので問題なくコンパイルできる
-      - コンパイルは通るが、実行時に UnsupportedClassVersionError になる
+      - コンパイルは通るが、実行時に `UnsupportedClassVersionError` になる
       - コンパイルエラーになる
       - properties は単なるメモなので、ビルド結果に影響しない
     answer: 2

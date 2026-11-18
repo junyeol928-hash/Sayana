@@ -6,7 +6,7 @@
   why:
     - "例外の名前から 404 になると読んだ答え。名前だけでは、ステータスは決まらない"
     - ""
-    - "利用者の指定ミスなので 400 と読んだ答え。誰も処理しない例外は、中身によらず 500 になる"
+    - "利用者の指定ミスなので 400 と読んだ答え"
   explanation: |
     誰も処理しない例外は Tomcat まで漏れ、Spring Boot の /error が 500 を返す。
 - after: "@RestControllerAdvice:全 Controller 共通にする"
@@ -18,22 +18,22 @@
     @ExceptionHandler(TaskNotFoundException.class)
     ProblemDetail notFound(TaskNotFoundException ex) { ... }
     ```
-  choices: ["any", "notFound", "どちらか決まらず起動時にエラー"]
+  choices: ["`any`", "`notFound`", "どちらか決まらず起動時にエラー"]
   answer: 1
   why:
-    - "親の型のハンドラが先に受けると読んだ答え。両方当てはまるときは、例外に近い型が選ばれる"
+    - "親の型のハンドラが先に受けると読んだ答え"
     - ""
-    - "どちらにも当てはまるので曖昧と読んだ答え。型が違えば近い方に決まり、エラーにならない"
+    - "どちらにも当てはまるので曖昧と読んだ答え"
   explanation: |
     投げられた例外に一番近い型のハンドラが選ばれる。`TaskNotFoundException` そのものを受ける `notFound` が、親の `RuntimeException` を受ける `any` より近い。
 - after: 画面アプリでは error テンプレート
   question: |
     `templates/error/404.html` と `templates/error/5xx.html` を置いた。503 のときに使われるのは?
-  choices: ["error/404.html", "Whitelabel Error Page", "error/5xx.html"]
+  choices: ["`error/404.html`", "Whitelabel Error Page", "`error/5xx.html`"]
   answer: 2
   why:
     - "置いたエラー画面のどれかが代わりに使われると読んだ答え。`404.html` は 404 のときだけ"
-    - "`503.html` が無いので既定に戻ると読んだ答え。ちょうどが無ければ、次に `5xx.html` を探す"
+    - "`503.html` が無いので既定に戻ると読んだ答え"
     - ""
   explanation: |
     まずステータスちょうどの `error/503.html` を探し、無いので 500 番台まとめての `5xx.html` を使う。

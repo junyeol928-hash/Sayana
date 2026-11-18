@@ -7,7 +7,7 @@
         int reset();
     }
     ```
-  choices: ["コンパイルエラー", "できる(apply の実装になる)", "できるが、c.reset() を呼ぶと実行時に例外"]
+  choices: ["コンパイルエラー", "できる(apply の実装になる)", "できるが、`c.reset()` を呼ぶと実行時に例外"]
   answer: 0
   why:
     - ""
@@ -30,7 +30,7 @@
   why:
     - ""
     - "filter のあとも Order のままと読んだ答え。map で金額に変わり、Integer が流れる"
-    - "sorted で List に集まると読んだ答え。List になるのは終端操作の toList() のあと"
+    - "`sorted` で `List` に集まると読んだ答え。`List` になるのは終端操作の `toList()` のあと"
   explanation: |
     `filter` までは Order のまま流れ、`map` で金額に変わる。`map` が返すのは `Stream<Integer>`(int は自動で Integer に包まれる)。
 - after: collect と数値の集計
@@ -43,7 +43,7 @@
   answer: 0
   why:
     - ""
-    - "中身が数なら Stream のまま足せると読んだ答え。Stream<Integer> には sum() が無い"
-    - "足せないと分かるのは動かしたときと読んだ答え。sum() が無いことはコンパイルで分かる"
+    - "中身が数なら Stream のまま足せると読んだ答え。`Stream<Integer>` には `sum()` が無い"
+    - "足せないと分かるのは動かしたときと読んだ答え。`sum()` が無いことはコンパイルで分かる"
   explanation: |
     `Stream<Integer>` には `sum()` が無いので、コンパイルの時点で止まる。`nums.stream().mapToInt(n -> n).sum()` のように `IntStream` に変えてから合計する。

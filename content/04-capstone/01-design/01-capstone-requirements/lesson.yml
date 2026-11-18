@@ -78,7 +78,12 @@ samples:
       }
 quiz:
   - question: |
-      解説の `RequestStatus`(状態遷移図どおりの `canTransitionTo`)を使って、次のコードを実行したときの出力は?
+      `RequestStatus` の `canTransitionTo` は、次の遷移だけ `true` を返します(ほかは `false`)。
+      - `DRAFT` → `SUBMITTED` か `WITHDRAWN`
+      - `SUBMITTED` → `APPROVED` か `RETURNED`
+      - `RETURNED` → `SUBMITTED` か `WITHDRAWN`
+
+      次のコードを実行したときの出力は?
       ```java
       RequestStatus s = RequestStatus.DRAFT;
       List<RequestStatus> steps = List.of(
@@ -94,12 +99,12 @@ quiz:
     choices: ["WITHDRAWN", "RETURNED", "SUBMITTED", "DRAFT"]
     answer: 2
     why:
-      - "申請中でも取り下げられると読んだ答え。その矢印は図に無い"
+      - "申請中でも取り下げられると読んだ答え。`SUBMITTED` から `WITHDRAWN` への遷移は無い"
       - "差戻しの後の再申請を見落とした答え。差戻しからは再申請できる"
       - ""
       - "どの遷移も通らないと読んだ答え。下書きからの申請は最初の1歩で通る"
     explanation: |
-      DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は **図に矢印がない**(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。
+      DRAFT → SUBMITTED は OK。次の SUBMITTED → WITHDRAWN は **許された遷移にない**(申請中は取り下げられない)のでスキップされ、状態は SUBMITTED のまま。
       続く SUBMITTED → RETURNED(差戻し)は OK、RETURNED → SUBMITTED(再申請)も OK なので、最後は `SUBMITTED` です。
   - question: |
       `RequestStatus` が次のように書かれています。同じプロジェクトで enum に定数 `CANCELLED` を1つ追加して保存(コンパイル)すると、どうなる?
@@ -141,7 +146,9 @@ quiz:
       ルールは「100,000円 **以上**」なので、100,000円ちょうどは ADMIN が必要です。ところが `>` は「超える」なので `100_000 > 100_000` は false になり、APPROVER でも承認できてしまいます。
       差が出るのは **境界値ちょうど** だけ。だから境界値のテストが必須なのです。
   - question: |
-      ADMIN(管理者)のボスが、自分で 150,000円の備品購入(PURCHASE)を申請しました。業務ルール1〜7に従うと、この申請を承認できるのは誰?
+      ADMIN(管理者)のボスが、自分で 150,000円の備品購入(PURCHASE)を申請しました。次の業務ルールに従うと、この申請を承認できるのは誰?
+      - ルール2:承認・差戻しは APPROVER か ADMIN。**自分の申請は承認できない**
+      - ルール3:**100,000円以上** の承認は ADMIN だけ
     choices: ["ボス本人(ADMIN なので)", "APPROVER のモカ先輩", "誰も承認できないので自動で承認済になる", "ボス以外の ADMIN"]
     answer: 3
     why:
@@ -160,7 +167,7 @@ quiz:
       boolean returned;
       boolean withdrawn;
       ```
-    choices: ["boolean は DB に保存できない", "approved と returned が同時に true のような、ありえない状態を作れてしまう", "フィールドが増えてメモリを大量に使う", "getter の名前が isXxx になって読みにくい"]
+    choices: ["boolean は DB に保存できない", "approved と returned が同時に true の状態を作れる", "フィールドが増えてメモリを大量に使う", "getter の名前が isXxx になって読みにくい"]
     answer: 1
     why:
       - "boolean は DB に保存できないと読んだ答え。保存はできるが、矛盾した組み合わせを作れてしまう"

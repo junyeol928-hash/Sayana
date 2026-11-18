@@ -265,13 +265,13 @@ quiz:
       「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
   - question: |
       メソッド参照 `String::length` と同じ意味のラムダ式はどれ?
-    choices: ["s -> s.length()", "() -> String.length()", "s -> String.length(s)", "(s, t) -> s.length() + t.length()"]
+    choices: ["`s -> s.length()`", "`() -> String.length()`", "`s -> String.length(s)`", "`(s, t) -> s.length() + t.length()`"]
     answer: 0
     why:
       - ""
-      - "引数を受け取らない static の呼び出しと読んだ答え。受け取った文字列そのものの length() を呼ぶ"
+      - "引数を受け取らない static の呼び出しと読んだ答え。受け取った文字列そのものの `length()` を呼ぶ"
       - "static メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
-      - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その length() を返す"
+      - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その `length()` を返す"
     explanation: |
       `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
       static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
@@ -290,7 +290,7 @@ quiz:
       - "宣言の行がエラーと読んだ答え。宣言は普通で、ラムダの中で count を書き換える行がエラー"
       - "ラムダの中で println を呼べないと読んだ答え。外の変数に触れていないので問題ない"
       - ""
-      - "`count` という変数名とぶつかると読んだ答え。count() は Stream のメソッドで、変数とは別"
+      - "`count` という変数名とぶつかると読んだ答え。`count()` は `Stream` のメソッドで、変数とは別"
     explanation: |
       ラムダ式から参照できるローカル変数は、`final` か **実質 final**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
       数えたいなら (D) のように `count()` を使うのが正解です。
@@ -301,11 +301,11 @@ quiz:
       System.out.println(s.count());
       System.out.println(s.toList());
       ```
-    choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと、実行時に例外が発生する"]
+    choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと例外になる"]
     answer: 3
     why:
       - "Stream を何度でも使えると読んだ答え。2 回目の終端操作で例外になる"
-      - "使い終わった Stream は空になると読んだ答え。空を返すのではなく IllegalStateException"
+      - "使い終わった Stream は空になると読んだ答え。空を返すのではなく `IllegalStateException`"
       - "使用済みかをコンパイラが見ると読んだ答え。追跡されないので通り、実行時に例外になる"
       - ""
     explanation: |

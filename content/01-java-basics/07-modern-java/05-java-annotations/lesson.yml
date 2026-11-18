@@ -169,7 +169,7 @@ quiz:
       アノテーションそのものについて、正しい説明は?
     choices:
       - "付けるだけで、自動的に何かの処理が実行される"
-      - "コードに付けた目印で、読む側(コンパイラやフレームワーク)が意味を決める"
+      - "コードに付けた目印で、意味を決めるのは読む側"
       - "コメントの一種で、コンパイル後には必ず消える"
       - "付けたメソッドの戻り値を書き換える"
     answer: 1
@@ -208,7 +208,7 @@ quiz:
       ソース上は両方付いていても、実行時に読めるのは `RUNTIME` だけ。Spring や JUnit が読むアノテーションがすべて `RUNTIME` なのはこのためです。
   - question: |
       `@Audited("X")` のように、要素の名前を書かずに値だけ渡せるのは、`@interface Audited` にどの要素があるから?
-    choices: ["String name();", "String text();", "String value();", "要素の名前は何でもよい"]
+    choices: ["`String name();`", "`String text();`", "`String value();`", "要素の名前は何でもよい"]
     answer: 2
     why:
       - "name なら名前を省けると読んだ答え。省けるのは value だけで、name は `name =` が要る"
@@ -241,7 +241,7 @@ quiz:
     choices: ["5 0", "null", "コンパイルエラー", "3 0"]
     answer: 3
     why:
-      - "call() に付けた値を読んだ答え。取り出しているのは ping() のアノテーションで、times は default の 3"
+      - "`call()` に付けた値を読んだ答え。取り出しているのは `ping()` のアノテーションで、`times` は default の 3"
       - "要素なしの @Retry は取れないと読んだ答え。RUNTIME なので取れて、要素は default の値になる"
       - "要素を書かない @Retry は書けないと読んだ答え。全要素に default があるので書ける"
       - ""
@@ -250,10 +250,10 @@ quiz:
   - question: |
       プロジェクトの中で、見慣れない自作アノテーション `@RequiresRole("ADMIN")` を見つけました。「このアノテーションが何をしているか」を知る一番確実な方法は?
     choices:
-      - "@interface RequiresRole の定義を読む"
-      - "Java の公式ドキュメントで RequiresRole を調べる"
-      - "RequiresRole.class でプロジェクトを検索し、このアノテーションを読んでいるクラスを探す"
-      - "@RequiresRole が付いたメソッドの本体を読む"
+      - "`@interface RequiresRole` の定義を開き、中の処理を読む"
+      - "Java の公式ドキュメントで `RequiresRole` を調べる"
+      - "`RequiresRole.class` で検索し、読んでいるクラスを探す"
+      - "`@RequiresRole` が付いたメソッドの本体を読む"
     answer: 2
     why:
       - "定義に処理があると読んだ答え。定義は要素の宣言だけで、処理は読んでいる側にある"

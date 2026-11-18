@@ -178,12 +178,14 @@ quiz:
       `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を RuntimeException で表します(ルール7)。
       なお、チェックは状態を変える **前** に置くのが本来の順番です。
   - question: |
-      業務ルール2「自分の申請は承認できない」を守る場所として、レッスンの設計で **本体** になるのはどこ?
-    choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "RequestForm の Bean Validation", "ApprovalService の approve メソッド", "ApprovalHistory の保存処理"]
+      承認くんでは、`ApprovalController` が画面からの POST を受けて Service を呼ぶ。`RequestForm` の Bean Validation は新規申請の入力だけを確かめ、
+      `ApprovalService` が操作する人の ID を受け取って、承認・差戻しと履歴の保存をする。
+      業務ルール2「自分の申請は承認できない」を守る **本体** はどこ?
+    choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "`RequestForm` の Bean Validation", "`ApprovalService` の `approve` メソッド", "`ApprovalHistory` の保存処理"]
     answer: 2
     why:
       - "ボタンを隠せば守れると読んだ答え。画面を通らない送り方がある"
-      - "入力チェックで守れると読んだ答え。RequestForm は新規申請用で、操作する人を知らない"
+      - "入力チェックで守れると読んだ答え。`RequestForm` は新規申請用で、操作する人を知らない"
       - ""
       - "履歴の保存でチェックすると読んだ答え。履歴はルールを守った結果の記録"
     explanation: |
@@ -192,7 +194,7 @@ quiz:
   - question: |
       `ApprovalRequest` に `@Version private Long version;` を付けました。太郎と部長のトランザクションが、ほぼ同時に version=3 の申請中の申請を読み込み、
       先に太郎が承認してコミットしました。その後、部長のトランザクションで起きることは?
-    choices: ["部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件になって例外が出て、部長の履歴の INSERT もロールバックされる"]
+    choices: ["部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件で例外になり、部長の履歴もロールバックされる"]
     answer: 3
     why:
       - "`@Version` が無いときの動きと取り違えた答え。付けると後の更新は弾かれる"
@@ -209,13 +211,13 @@ quiz:
           return amount > 100_000;
       }
       ```
-    choices: ["100,000円ちょうどを承認者が承認でき、休暇(null)では NullPointerException になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(null)で NullPointerException になる点だけが問題", "Integer と int は比べられないのでコンパイルエラーになる"]
+    choices: ["100,000円ちょうどを承認者が承認でき、休暇では `NullPointerException` になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(`null`)で `NullPointerException` になる点だけが問題", "`Integer` と `int` は比べられないのでコンパイルエラーになる"]
     answer: 0
     why:
       - ""
-      - "null を見落とした答え。休暇の金額は null で来る"
+      - "`null` を見落とした答え。休暇の金額は `null` で来る"
       - "境界を見落とした答え。`>` では境界ちょうどの金額が漏れる"
-      - "Integer と int は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない"
+      - "`Integer` と `int` は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない"
     explanation: |
       問題は2つあります。①「以上」なのに `>` なので、100,000円ちょうどが `false`(ADMIN 不要)になる。②`amount` が `null` のとき、
       比較のために `Integer` から `int` への **アンボクシング** が起き、`NullPointerException` になる。

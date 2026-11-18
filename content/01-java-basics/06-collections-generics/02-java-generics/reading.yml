@@ -13,14 +13,14 @@
     System.out.println(doubled);
   question: "出力は?"
   choices:
-    - "20"
-    - "1010"
+    - "`20`"
+    - "`1010`"
     - "コンパイルエラー"
-    - "ClassCastException"
+    - "`ClassCastException`"
   answer: 0
   why:
     - ""
-    - "数値を文字列として 2 つ並べると読んだ答え。get() は Integer で、int として掛け算され 20"
+    - "数値を文字列として 2 つ並べると読んだ答え。`get()` は `Integer` で、`int` として掛け算され 20"
     - "Integer に `* 2` はできないと読んだ答え。アンボクシングで int になり計算できる"
     - "取り出しでキャストに失敗すると読んだ答え。T = Integer なので型は合っていて、キャストも要らない"
   explanation: "`Holder<Integer>` なので get() の戻り値は Integer。Integer は自動で int に変換される(アンボクシング)ので * 2 が計算でき、20 になります。T = Integer と当てはめて読めば、キャストなしで数値として扱えることが分かります。"
@@ -52,9 +52,9 @@
     - "1 つのメソッドを違う型で呼べないと読んだ答え。T は呼ぶたびに決まる"
   explanation: "`twice(\"hi\")` では T = String、`twice(7)` では T = Integer と推論されます。最後の行は左から評価:a.size() は 2、b.get(0) は 7、2 + 7 = 9(int どうしの足し算)。そこに a.get(1) の `\"hi\"` が連結されて `9hi`。ジェネリクスと文字列連結の順序を同時に読む問題です。"
   trace:
-    - "5行目: T = String。a は [\"hi\", \"hi\"]"
-    - "6行目: T = Integer。b は [7, 7]"
-    - "7行目: 2 + 7 = 9(まだ数値)→ 9 + \"hi\" = \"9hi\""
+    - "5行目: T = String。a は `[\"hi\", \"hi\"]`"
+    - "6行目: T = Integer。b は `[7, 7]`"
+    - "7行目: `2 + 7` = 9(まだ数値)→ `9 + \"hi\"` → `9hi`"
 - title: "境界を越える型"
   level: 2
   code: |
@@ -80,8 +80,8 @@
   explanation: "`<T extends Comparable<T>>` は「T は自分自身と比較できる型に限る」という境界です。Integer と String は Comparable を実装しているので OK。Object は Comparable ではないので、7行目は境界を満たさずコンパイルエラーになります。実行前に止まるのが境界の役目です。"
   trace:
     - "1行目: 境界付きジェネリックメソッド。Comparable の compareTo が使える"
-    - "5行目: T = Integer。3.compareTo(8) は負 → 8"
-    - "6行目: T = String。\"pear\".compareTo(\"apple\") は正 → pear"
+    - "5行目: T = Integer。3 と 8 を `compareTo` で比べると負 → 8"
+    - "6行目: T = String。`\"pear\".compareTo(\"apple\")` は正 → `pear`"
     - "7行目: Object は Comparable ではない → コンパイルエラー"
 - title: "入れ子の Map を読む"
   level: 2
@@ -94,10 +94,10 @@
     System.out.println(dev.size() + " " + byDept.size() + " " + byDept.get("hr"));
   question: "出力は?"
   choices:
-    - "2 2 null"
-    - "2 3 null"
-    - "3 2 []"
-    - "NullPointerException が発生"
+    - "`2 2 null`"
+    - "`2 3 null`"
+    - "`3 2 []`"
+    - "`NullPointerException` が発生"
   answer: 0
   why:
     - ""
@@ -106,9 +106,9 @@
     - "無いキーの get が例外を出すと読んだ答え。get は null を返すだけで、そのまま表示される"
   explanation: "`Map<String, List<String>>` は「部署名 → 名前リスト」。computeIfAbsent は「キーがなければ作って入れ、あればそれを返す」ので、`\"dev\"` のリストに 2 人、`\"ops\"` に 1 人。Map のキーは 2 個。存在しない `\"hr\"` の get は null(例外にはなりません)。get の戻り値の型が `List<String>` だと分かれば、dev.size() が読めます。"
   trace:
-    - "2行目: \"dev\" がないので新しい ArrayList を作って登録し、\"taro\" を追加"
-    - "3行目: \"dev\" はあるのでそのリストに \"hanako\" を追加 → 2人"
-    - "4行目: \"ops\" を新規作成して \"jiro\" を追加"
+    - "2行目: `\"dev\"` がないので新しい `ArrayList` を作って登録し、`\"taro\"` を追加"
+    - "3行目: `\"dev\"` はあるのでそのリストに `\"hanako\"` を追加 → 2人"
+    - "4行目: `\"ops\"` を新規作成して `\"jiro\"` を追加"
     - "5行目: 型は `List<String>`。要素は 2"
     - "6行目: 2 2 null(Map.get は存在しないキーで null を返す)"
 - title: "共通レスポンス型の T を追う"
@@ -144,4 +144,4 @@
     - "8行目: `static <T>` の T = `List<Integer>`。res は `ApiResponse<List<Integer>>`"
     - "10行目: getData() は `List<Integer>` → Integer を1つずつ取り出せる"
     - "11行目: 10 + 20 + 30 = 60"
-    - "13行目: 実行時のクラス名は空文字ではない → false。出力 \"60 false\""
+    - "13行目: 実行時のクラス名は空文字ではない → `false`。出力 `60 false`"

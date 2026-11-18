@@ -260,8 +260,8 @@ quiz:
       初めて触るプロジェクトで、`POST /api/orders` の動きを調べることになった。1本の API を追う順番として最も適切なのは?
     choices:
       - "Repository → Service → Controller → DTO"
-      - "Controller(URL の特定)→ リクエスト DTO → Service → Repository → レスポンス・例外ハンドラ"
-      - "例外ハンドラ → Controller → Service → Repository"
+      - "Controller → リクエスト DTO → Service → Repository → 例外ハンドラ"
+      - "例外ハンドラ → Controller → リクエスト DTO → Service → Repository"
       - "Entity をすべて読んでから、Controller を全部読む"
     answer: 1
     why:
@@ -289,13 +289,13 @@ quiz:
           }
       }
       ```
-    choices: ["誰も catch していないので 500", "Advice が受け取り、409 + ErrorResponse", "例外は無視され、201 が返る", "コンパイルエラーになる(throws 宣言が無い)"]
+    choices: ["誰も catch していないので 500", "Advice が受け取り、409 + `ErrorResponse`", "例外は無視され、201 が返る", "コンパイルエラーになる(`throws` 宣言が無い)"]
     answer: 1
     why:
       - "try-catch が無いので処理されないと読んだ答え。Advice の `@ExceptionHandler` が受けて 409 を返す"
       - ""
       - "例外が無視されると読んだ答え。例外で処理は止まり、Advice が 409 にする"
-      - "`throws` 宣言が要ると読んだ答え。RuntimeException の子なので、宣言なしでコンパイルできる"
+      - "`throws` 宣言が要ると読んだ答え。`RuntimeException` の子なので、宣言なしでコンパイルできる"
     explanation: |
       業務例外は Controller を素通りして DispatcherServlet まで届き、`@RestControllerAdvice` の **同じ型(または親の型)を受ける `@ExceptionHandler`** が呼ばれます。ここでは `dup` が 409 + `ErrorResponse` を返します。
       try-catch が見当たらなくても「処理されていない」とは限りません。受けるハンドラが本当に無いときだけ 500 になります。`RuntimeException` の子(非検査例外)なので、`throws` 宣言が無くてもコンパイルできます。
@@ -310,7 +310,7 @@ quiz:
       KeyEntity key = keyRepository.findById(keyId)
               .orElseThrow(() -> new KeyNotFoundException(keyId));
       ```
-    choices: ["KeyRepository の中に書かれている", "継承元の JpaRepository(とその親)で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
+    choices: ["`KeyRepository` インターフェースの中に書かれている", "継承元の `JpaRepository` 側で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
     answer: 1
     why:
       - "`KeyRepository` の中に書いてあると読んだ答え。中にあるのは別のメソッド1つだけ"
@@ -339,13 +339,13 @@ quiz:
       - "例外が起きたので、失効もロールバックされる"
       - "メソッドが普通に return したのでコミットされ、今の鍵は失効したまま残る"
       - "検査例外なので、コンパイルエラーになる"
-      - "@Transactional が例外を自動で投げ直し、500 になる"
+      - "`@Transactional` が例外を自動で投げ直し、500 になる"
     answer: 1
     why:
       - "例外が起きればロールバックされると読んだ答え。catch して普通に return したので、コミットされる"
       - ""
       - "検査例外の扱いが足りないと読んだ答え。catch しているのでコンパイルは通る"
-      - "`@Transactional` が例外を投げ直すと読んだ答え。catch した例外はそこで終わり、null が返る"
+      - "`@Transactional` が例外を投げ直すと読んだ答え。catch した例外はそこで終わり、`null` が返る"
     explanation: |
       ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
       直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。
@@ -364,10 +364,10 @@ quiz:
           ...
       ```
     choices:
-      - "KeyIssueController.java の 24 行目"
-      - "InvocableHandlerMethod(Spring の内部)"
-      - "CryptoClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
-      - "KeyIssueService$$SpringCGLIB$$0(<generated>)"
+      - "`KeyIssueController.java` の 24 行目"
+      - "`InvocableHandlerMethod`(Spring の内部)"
+      - "`CryptoClient.java` の 57 行目"
+      - "`KeyIssueService$$SpringCGLIB$$0(<generated>)`"
     answer: 2
     why:
       - "呼び出しの入口から調べると考えた答え。Controller の行は、呼び出し元をたどるときに使う"

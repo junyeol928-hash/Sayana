@@ -9,12 +9,12 @@
   choices:
     - "`[偽] ご注文ありがとうございます: 本` と出る"
     - "本物の SMTP サーバーにメールが送られる"
-    - "Spring が無いので注入されず、NullPointerException になる"
+    - "Spring が無いので注入されず、`NullPointerException` になる"
   answer: 0
   why:
     - ""
-    - "本物の `SmtpMailSender` を中で `new` する作りと取り違えた答え。ここでは渡したラムダを呼ぶだけ"
-    - "DI には Spring が要ると読んだ答え。コンストラクタで渡したラムダが、そのまま `MailSender` として使われる"
+    - "本物の `SmtpMailSender` を中で `new` する作りと取り違えた答え"
+    - "DI には Spring が要ると読んだ答え"
   explanation: |
     `OrderService` は `MailSender` インターフェースにだけ依存していて、コンストラクタで渡されたラムダが `send` として呼ばれる。DI は「外から渡す」設計の話で、Spring が無くても成り立つ。
 - after: コンストラクタインジェクションが推奨される理由
@@ -27,12 +27,12 @@
         OrderService(MailSender mail) { this.mail = mail; }
     }
     ```
-  choices: ["注入されている", "null のまま", "引数なしのコンストラクタが無いので、起動時にエラーになる"]
+  choices: ["注入されている", "`null` のまま", "引数なしのコンストラクタが無いので、起動時にエラーになる"]
   answer: 0
   why:
     - ""
-    - "`@Autowired` が無いと注入されないと読んだ答え。null のままになるのは、コンテナを通さず自分で `new` したとき"
-    - "コンテナは引数なしで `new` すると読んだ答え。コンストラクタが 1 つなら、それに Bean を渡して作る"
+    - "`@Autowired` が無いと注入されないと読んだ答え。`null` のままになるのは、コンテナを通さず自分で `new` したとき"
+    - "コンテナは引数なしで `new` すると読んだ答え"
   explanation: |
     コンストラクタが 1 つだけなら `@Autowired` は省略でき(Spring 4.3 以降)、コンテナはそのコンストラクタに Bean を渡して作る。現場では省略が普通。
 - after: 同じ型の Bean が2つあるとき
@@ -44,11 +44,11 @@
         return new SmtpMailSender("smtp.example.com");
     }
     ```
-  choices: ["fastMail", "smtpMailSender", "mailSender"]
+  choices: ["`fastMail`", "`smtpMailSender`", "`mailSender`"]
   answer: 0
   why:
     - ""
-    - "`@Component` の決まり(クラス名の先頭を小文字)を当てはめた答え。`@Bean` ではメソッド名が Bean 名"
+    - "`@Component` の決まり(クラス名の先頭を小文字)を当てはめた答え"
     - "戻り値の型 `MailSender` から名前が付くと読んだ答え。型の名前は Bean 名に使われない"
   explanation: |
     `@Bean` の Bean 名は既定でメソッド名なので `fastMail`。注入する側には `@Qualifier("fastMail")` と書く。

@@ -159,7 +159,7 @@ quiz:
       ロール `APPROVER` のモカさんが、**自分が出した** 申請(5,000円・申請中)の承認を、curl で `POST /requests/8/approve` に直接送りました(ログイン済みのセッションと CSRF トークン付き)。承認くんではどうなるのが正しい?
     choices:
       - "画面に承認ボタンが表示されないので、リクエストは届かない"
-      - "SecurityFilterChain は通る(ロールは OK)が、Service の判定で BusinessRuleException になり承認されない"
+      - "SecurityFilterChain は通るが、Service の判定で拒否される"
       - "SecurityFilterChain が「自分の申請」を見抜いて 403 を返す"
       - "5,000円なので承認される"
     answer: 1
@@ -169,7 +169,7 @@ quiz:
       - "URL のルールが申請者まで見ると読んだ答え。Filter が見るのはロールだけ"
       - "金額だけで決まると読んだ答え。少額でも、自分の申請はルール2で承認できない"
     explanation: |
-      URL のルールが見るのはロールだけなので、APPROVER の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)で拒否します。
+      URL のルールが見るのはロールだけなので、APPROVER の `POST /requests/*/approve` は Filter を通ります。「この申請の申請者がモカさん本人か」は申請を DB から読まないと分からないため、Service の `AccessPolicy`(業務ルール2)が `BusinessRuleException` を投げて拒否します。
       ボタンを隠しても画面を通らないリクエストは届くので、Service で必ず判定するのです。
   - question: |
       次のフォームで「承認」を押すと 403 になりました。原因として正しいものは?

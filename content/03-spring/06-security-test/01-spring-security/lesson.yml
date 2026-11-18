@@ -86,13 +86,13 @@ quiz:
       System.out.println(a.equals(b));
       System.out.println(enc.matches("haru-pass", a));
       ```
-    choices: ["true と true", "false と true", "true と false", "false と false"]
+    choices: ["`true` と `true`", "`false` と `true`", "`true` と `false`", "`false` と `false`"]
     answer: 1
     why:
-      - "同じパスワードなら encode の結果も同じ文字列になる、と読んだ答え"
+      - "同じパスワードなら `encode` の結果も同じ文字列になる、と読んだ答え"
       - ""
-      - "encode は毎回同じで matches は通らないと読んだ答え。実際は毎回違う文字列になり、matches は true"
-      - "文字列が違うので照合も通らないと読んだ答え。matches は保存値の中のソルトで計算し直すので true"
+      - "`encode` は毎回同じで `matches` は通らないと読んだ答え。実際は毎回違う文字列になり、`matches` は `true`"
+      - "文字列が違うので照合も通らないと読んだ答え。`matches` は保存値の中のソルトで計算し直すので `true`"
     explanation: |
       BCrypt は encode のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
       ソルトは保存値(`$2a$10$` に続く部分)の中に入っているので、`matches` はそのソルトで計算し直して比べ、`true` になります。だからパスワードの照合に `equals` を使ってはいけません。
@@ -104,7 +104,7 @@ quiz:
         <button>注文</button>
       </form>
       ```
-    choices: ["method を get にしていないから", "ログインしていないから", "/orders に @PreAuthorize が付いていないから", "th:action ではなく action なので CSRF トークンが入っていないから"]
+    choices: ["`method` を `get` にしていないから", "ログインしていないから", "`/orders` に `@PreAuthorize` が付いていないから", "`th:action` ではなく `action` なので CSRF トークンが入っていないから"]
     answer: 3
     why:
       - "POST だから拒否されたと読んだ答え。更新を GET にすると、URL を踏ませるだけで実行される別の問題を生む"
@@ -133,12 +133,12 @@ quiz:
           public void deleteUser(long id) { ... }
       }
       ```
-    choices: ["設定クラスに @EnableMethodSecurity が付いていない", "hasRole('ROLE_ADMIN') と書くべきだった", "メソッドが public だから", "PasswordEncoder の Bean が無い"]
+    choices: ["`@EnableMethodSecurity` が付いていない", "`hasRole('ROLE_ADMIN')` と書くべきだった", "メソッドが `public` だから", "`PasswordEncoder` の Bean が無い"]
     answer: 0
     why:
       - ""
-      - "`hasRole` に ROLE_ を書くと読んだ答え。`hasRole` は自動で ROLE_ を付けるので、書くと誤り"
-      - "public が原因と読んだ答え。外から呼ばれる public メソッドに付けるのが基本"
+      - "`hasRole` に `ROLE_` を書くと読んだ答え。`hasRole` は自動で `ROLE_` を付けるので、書くと誤り"
+      - "`public` が原因と読んだ答え。外から呼ばれる `public` メソッドに付けるのが基本"
       - "パスワードの部品が原因と読んだ答え。`@PreAuthorize` を効かせるのは `@EnableMethodSecurity`"
     explanation: |
       `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると **エラーも警告も出ずに無視される** ので、テストで「拒否されること」まで確かめるのが大切です。

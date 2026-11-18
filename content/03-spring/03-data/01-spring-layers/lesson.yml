@@ -141,13 +141,13 @@ quiz:
           }
       }
       ```
-    choices: ["@Service ではなく @Component を付けるべき", "メソッド名が register なのが良くない", "Service が Model やビュー名という画面の都合を知っていて、バッチや REST API から再利用しにくい", "Service のメソッドは static にすべき"]
+    choices: ["`@Service` ではなく、汎用の `@Component` を付けるべき", "メソッド名が `register` なのが良くない", "Service が `Model` やビュー名という画面の都合を知っている", "Service のメソッドは `static` にすべき"]
     answer: 2
     why:
       - "付ける注釈の種類が問題と読んだ答え。`@Service` は `@Component` の特殊化で、付けて正しい"
-      - "名前の付け方が問題と読んだ答え。問題は Service が Model やビュー名を扱っていること"
+      - "名前の付け方が問題と読んだ答え。問題は Service が `Model` やビュー名を扱っていること"
       - ""
-      - "Service は static で書くものと読んだ答え。static にすると DI できなくなる"
+      - "Service は `static` で書くものと読んだ答え。`static` にすると DI できなくなる"
     explanation: |
       `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合** です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
   - question: |
@@ -158,11 +158,11 @@ quiz:
               OrderService.class);
       System.out.println("作成OK");
       ```
-    choices: ["コンテナを作る時点で例外(UnsatisfiedDependencyException)になり、「作成OK」は出ない", "「作成OK」と出て、注文するときに NullPointerException になる", "OrderRepository の実装を Spring が自動で作るので正常に動く", "コンパイルエラーになる"]
+    choices: ["コンテナを作る時点で例外になり、「作成OK」は出ない", "「作成OK」と出て、注文するときに `NullPointerException` になる", "`OrderRepository` の実装を Spring が自動で作るので正常に動く", "コンパイルエラーになる"]
     answer: 0
     why:
       - ""
-      - "依存が無くても null のまま作られると読んだ答え。引数に渡す Bean が無く、作成時に例外で止まる"
+      - "依存が無くても `null` のまま作られると読んだ答え。引数に渡す Bean が無く、作成時に例外で止まる"
       - "インターフェースから実装が作られると読んだ答え。それは Spring Data のリポジトリだけで、普通のインターフェースでは起きない"
       - "Bean の有無をコンパイラが調べると読んだ答え。コンパイルは通り、コンテナを作るときに失敗する"
     explanation: |
@@ -184,17 +184,17 @@ quiz:
           }
       }
       ```
-    choices: ["@PathVariable は long で受け取れない", "redirect: は Service で書くべき", "フィールドが2つあるとコンストラクタインジェクションできない", "層を飛ばして Repository を直接呼んでおり、キャンセルの業務ルール(発送済みは不可など)を通らない更新経路ができる"]
+    choices: ["`@PathVariable` は `long` で受け取れない", "`redirect:` は Controller ではなく Service で書くべき", "フィールドが2つあるとコンストラクタインジェクションできない", "Repository を直接呼び、業務ルールを通らない更新経路ができる"]
     answer: 3
     why:
-      - "パスの値は文字列でしか受け取れないと読んだ答え。long に変換して受け取れる"
+      - "パスの値は文字列でしか受け取れないと読んだ答え。`long` に変換して受け取れる"
       - "画面の行き先を業務ロジックと読んだ答え。リダイレクト先を決めるのは Controller の仕事"
       - "依存が2つあると注入できないと読んだ答え。コンストラクタインジェクションは引数がいくつでもよい"
       - ""
     explanation: |
       Controller が Repository を直接呼ぶ「層飛ばし」です。キャンセルには「発送済みならキャンセル不可」「在庫を戻す」といった業務ルールがあるはずで、それは Service にまとめておくべきもの。Controller から直接削除できる経路があると、ルールを素通りした更新が紛れ込みます。
   - question: 昔の Spring プロジェクトで「`OrderService` インターフェース + `OrderServiceImpl` クラス」の組が定番だった理由として、もっとも適切なものは?
-    choices: ["Java の文法上、クラスに @Service を付けられなかったから", "@Transactional などを実現するプロキシを、インターフェースが必要な JDK の仕組みで作ることが多かったから", "インターフェースにしないと DI コンテナに登録できなかったから", "Impl という名前のクラスしか Spring がスキャンしなかったから"]
+    choices: ["Java の文法上、クラスに `@Service` を付けられなかったから", "プロキシを JDK の動的プロキシで作ることが多く、インターフェースが要ったから", "インターフェースにしないと DI コンテナに登録できなかったから", "`Impl` という名前のクラスしか Spring がスキャンしなかったから"]
     answer: 1
     why:
       - "クラスに注釈を付けられないと読んだ答え。クラスにも `@Service` は付けられる"
@@ -216,13 +216,13 @@ quiz:
           }
       }
       ```
-    choices: ["StockRepository がインターフェースだから", "メソッドが public だから", "Service が自分で実装クラスを new しているので、テストでメモリ実装に差し替えられないから", "@Service が付いているクラスは new できないから"]
+    choices: ["`StockRepository` がインターフェースで、実体が見えないから", "メソッドが `public` だから", "実装クラスを自分で `new` していて、メモリ実装に差し替えられないから", "`@Service` が付いているクラスは `new` できないから"]
     answer: 2
     why:
-      - "インターフェースが邪魔をしていると読んだ答え。差し替えのための良い設計で、問題は実装を new していること"
-      - "公開範囲が原因と読んだ答え。原因は実装を new で決め打ちし、差し替えられないこと"
+      - "インターフェースが邪魔をしていると読んだ答え。差し替えのための良い設計で、問題は実装を `new` していること"
+      - "公開範囲が原因と読んだ答え。原因は実装を `new` で決め打ちし、差し替えられないこと"
       - ""
-      - "`@Service` を付けると new できないと読んだ答え。注釈が付いていても普通に new できる"
+      - "`@Service` を付けると `new` できないと読んだ答え。注釈が付いていても普通に `new` できる"
     explanation: |
       フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を **コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
 columns:

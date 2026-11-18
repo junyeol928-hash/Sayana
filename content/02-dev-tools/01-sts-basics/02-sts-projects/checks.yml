@@ -15,7 +15,7 @@
 - after: エラーが消えないときの順番
   question: |
     STS を開いたまま、エクスプローラー(STS の外)で `.java` ファイルを書き換えた。STS のエディタは古い内容のまま。まず試すのは?
-  choices: ["F5(Refresh)", "Maven > Update Project...", "Project > Clean..."]
+  choices: ["F5 キー(Refresh)", "Maven > Update Project...", "Project > Clean..."]
   answer: 0
   why:
     - ""

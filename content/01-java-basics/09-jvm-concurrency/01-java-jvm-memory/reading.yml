@@ -96,9 +96,9 @@
     System.out.println(coupon.discount);
   question: "実行するとどうなる?"
   choices:
-    - "0 と表示される"
-    - "null と表示される"
-    - "NullPointerException が発生する"
+    - "`0` と表示される"
+    - "`null` と表示される"
+    - "`NullPointerException` が発生する"
     - "コンパイルエラー"
   answer: 2
   why:
@@ -136,13 +136,13 @@
   why:
     - "total をインスタンスごとの箱と読んだ答え。static なので共有され、2 個目で 2 になる"
     - ""
-    - "id を代入してから total を増やすと読んだ答え。total++ が先なので、最初の id は 1"
+    - "`id` を代入してから `total` を増やすと読んだ答え。`total++` が先なので、最初の `id` は 1"
     - "コンストラクタで static を触れないと読んだ答え。インスタンス側から static のフィールドは使える"
   explanation: "total は static なので、a と b の間で同じ箱を共有しています。1個目の生成で total が 1 になり id=1、2個目の生成で total が 2 になり id=2。最後の Counter.total はその時点の共有値 2 です。"
   trace:
     - "10行目: Counter a を作る → コンストラクタ内で total が 0→1、a.id = 1"
     - "11行目: Counter b を作る → 同じ total が 1→2、b.id = 2"
-    - "12行目: a.id(1)、b.id(2)、Counter.total(2)を表示 → \"1 2 2\""
+    - "12行目: `a.id`(1)、`b.id`(2)、`Counter.total`(2)を表示 → `1 2 2`"
 - title: "終わらない再帰と StackOverflowError"
   level: 3
   code: |
@@ -154,10 +154,10 @@
     countDown(5);
   question: "実行するとどうなる?"
   choices:
-    - "5, 4, 3, 2, 1, 0 と表示されて終わる"
-    - "5 から負の数までずっと表示され続け、やがて StackOverflowError が発生する"
+    - "`5, 4, 3, 2, 1, 0` と表示されて終わる"
+    - "5 から負の数までずっと表示され続け、やがて `StackOverflowError` が発生する"
     - "コンパイルエラーになる"
-    - "0 を返してすぐに終了する"
+    - "`0` を返してすぐに終了する"
   answer: 1
   why:
     - "0 で止まると読んだ答え。終了条件が無いので、負の数へ進み続ける"

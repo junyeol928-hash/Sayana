@@ -1,7 +1,7 @@
 - after: エラーの返し先を、画面と API で分ける
   question: |
     `ApiExceptionHandler` の `basePackageClasses` を消した。画面で存在しない申請 `GET /requests/9999` を開くと?
-  choices: ["404 の ProblemDetail(JSON)がブラウザに出る", "templates/error/404.html の画面が出る", "500 のシステムエラーになる"]
+  choices: ["404 の `ProblemDetail`(JSON)がブラウザに出る", "`templates/error/404.html` の画面が出る", "500 のシステムエラーになる"]
   answer: 0
   why:
     - ""

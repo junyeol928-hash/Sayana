@@ -110,9 +110,9 @@ quiz:
         port: 8081
       ```
     choices:
-      - "8080 と jdbc:h2:file:./data/app"
-      - "8081 と jdbc:h2:file:./data/app"
-      - "8081 と 未設定(application-dev.yml に書いていないので)"
+      - "8080 と `jdbc:h2:file:./data/app`"
+      - "8081 と `jdbc:h2:file:./data/app`"
+      - "8081 と 未設定(`application-dev.yml` に書いていないので)"
       - "起動エラー(同じキーが2か所にあるので)"
     answer: 1
     why:
@@ -124,13 +124,13 @@ quiz:
       プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
-    choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJOEXECMAXHEAP"]
+    choices: ["`dojo.exec.max-heap`", "`DOJO.EXEC.MAX-HEAP`", "`DOJO_EXEC_MAXHEAP`", "`DOJOEXECMAXHEAP`"]
     answer: 2
     why:
-      - "キーをそのまま環境変数名にすると読んだ答え。. や - を含む名前は多くのシェルで設定すらできない"
-      - "大文字にするだけでよいと読んだ答え。. は _ に変え、- は削除する"
+      - "キーをそのまま環境変数名にすると読んだ答え。`.` や `-` を含む名前は多くのシェルで設定すらできない"
+      - "大文字にするだけでよいと読んだ答え。`.` は `_` に変え、`-` は削除する"
       - ""
-      - "区切りも全部消すと読んだ答え。. は _ に変えるもので、消すと1語のキーになり対応しない"
+      - "区切りも全部消すと読んだ答え。`.` は `_` に変えるもので、消すと1語のキーになり対応しない"
     explanation: |
       変換ルールは「`.` を `_` に」「`-` は削除」「全部大文字」の3つなので `DOJO_EXEC_MAXHEAP` です。
       `DOJOEXECMAXHEAP` は区切りの `_` が無いので、`dojoexecmaxheap` という1語のキーになり、対応しません。
@@ -161,16 +161,16 @@ quiz:
         port:9090
       ```
     choices:
-      - "server.port は application.yml では変更できず、コマンドライン引数でしか指定できない"
-      - "port: の後ろにスペースが無いので、port:9090 という1つの文字列として読まれた"
+      - "`server.port` は `application.yml` では変更できず、コマンドライン引数でしか指定できない"
+      - "`port:` の後ろにスペースが無いので、`port:9090` という1つの文字列として読まれた"
       - "YAML ではポート番号を `\"9090\"` のように引用符で囲む必要がある"
-      - "application.properties が無いと application.yml は読まれない"
+      - "`application.properties` が無いと `application.yml` は読まれない"
     answer: 1
     why:
-      - "server.port はファイルで変えられないと読んだ答え。ファイルでも変えられ、原因はコロンの後ろのスペース"
+      - "`server.port` はファイルで変えられないと読んだ答え。ファイルでも変えられ、原因はコロンの後ろのスペース"
       - ""
       - "数値に引用符が要ると読んだ答え。数値はそのまま書けばよく、原因はコロンの後ろのスペース"
-      - "yml は単独では読まれないと読んだ答え。application.yml だけでも読まれる"
+      - "yml は単独では読まれないと読んだ答え。`application.yml` だけでも読まれる"
     explanation: |
       YAML のキーと値の区切りは「コロン + スペース」です。`port:9090` はスペースが無いので区切りとみなされず、`server` の値が `"port:9090"` という文字列になります。`server.port` というキーは存在しないことになり、既定の 8080 で黙って起動します。
   - question: |
@@ -182,13 +182,13 @@ quiz:
       @Bean @Profile("dev")
       PaymentGateway fakeGateway() { ... }
       ```
-    choices: ["realGateway だけ", "fakeGateway だけ", "どちらも登録されない", "両方登録される"]
+    choices: ["`realGateway` だけ", "`fakeGateway` だけ", "どちらも登録されない", "両方登録される"]
     answer: 2
     why:
-      - "指定が無いと prod 扱いと読んだ答え。有効なのは default だけで、prod の Bean は作られない"
-      - "指定が無いと dev 扱いと読んだ答え。有効なのは default だけで、dev の Bean も作られない"
+      - "指定が無いと `prod` 扱いと読んだ答え。有効なのは `default` だけで、`prod` の Bean は作られない"
+      - "指定が無いと `dev` 扱いと読んだ答え。有効なのは `default` だけで、`dev` の Bean も作られない"
       - ""
-      - "指定が無いと `@Profile` が無視されると読んだ答え。default だけが有効で、どちらも登録されない"
+      - "指定が無いと `@Profile` が無視されると読んだ答え。`default` だけが有効で、どちらも登録されない"
     explanation: |
       プロファイルを指定しないときに有効なのは `default` プロファイルだけです。`prod` も `dev` も有効ではないので、どちらの Bean も登録されません。この状態で `PaymentGateway` を注入しようとすると、起動時に `No qualifying bean of type 'PaymentGateway'` で失敗します。
       「指定し忘れたときにどうなるか」まで決めておくのが大事で、安全側(本物の決済をしない側)を `@Profile("!prod")` にしておくと、指定し忘れても事故になりません。

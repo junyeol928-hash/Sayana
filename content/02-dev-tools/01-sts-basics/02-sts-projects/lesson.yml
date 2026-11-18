@@ -26,7 +26,7 @@ quiz:
       ```
     choices:
       - "pom.xml から spring-boot-starter-web を削除する"
-      - "demo の application.properties に server.port=8081 と書いて、起動し直す"
+      - "demo 側で server.port=8081 にして起動し直す"
       - "Project > Clean... を実行してから起動し直す"
       - "Maven > Update Project... を実行してから起動し直す"
     answer: 1
@@ -36,7 +36,7 @@ quiz:
       - "ビルドの問題と読んだ答え。Clean はコンパイルのやり直しで、ポートの取り合いは解けない"
       - "設定の問題と読んだ答え。Update Project は pom.xml の読み直しで、ポートの取り合いは解けない"
     explanation: |
-      ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo 側の番号を `server.port=8081` で変えるか、
+      ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo の `application.properties` に `server.port=8081` と書いて番号を変えるか、
       道場アプリを止めれば起動できます。
 
   - question: |
@@ -47,7 +47,7 @@ quiz:
       - "JDK 21 が登録されていないので、Installed JREs に登録してからやり直す"
       - "インターネットに繋がっていないので、依存ライブラリを取得できていない"
       - "pom.xml が壊れているので、作り直す必要がある"
-      - "Existing Projects into Workspace は .project があるフォルダ用。Maven > Existing Maven Projects で取り込む"
+      - ".project が無いので、Existing Maven Projects で取り込む"
     answer: 3
     why:
       - "JDK の未登録が原因と読んだ答え。それなら取り込んだ後のビルドエラーとして出る"
@@ -111,7 +111,7 @@ quiz:
       - "Project > Clean... を実行する"
       - "STS を再インストールする"
       - "pom.xml の <java.version> を 17 に戻す"
-      - "プロジェクトを右クリック > Maven > Update Project... を実行する"
+      - "Maven > Update Project... を実行する"
     answer: 3
     why:
       - "コンパイルし直せば直ると読んだ答え。古いのは STS 側の設定なので、Clean では反映されない"
@@ -120,7 +120,7 @@ quiz:
       - ""
     explanation: |
       メッセージのとおり、`pom.xml` の変更が STS 側の設定(`.classpath` や `.settings` の Java の版)にまだ反映されていない状態です。
-      **Maven > Update Project...** で `pom.xml` を読み直すと、JRE System Library が `JavaSE-21` に変わり、エラーが消えます。
+      プロジェクトの右クリックメニューの **Maven > Update Project...** で `pom.xml` を読み直すと、JRE System Library が `JavaSE-21` に変わり、エラーが消えます。
 
 columns:
   - type: trivia

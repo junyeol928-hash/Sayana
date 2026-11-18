@@ -122,10 +122,10 @@ quiz:
     choices: ["JAVA!", "java", "JAVA", "java!"]
     answer: 1
     why:
-      - "toUpperCase() と concat() が、s 自身を書き換えると読んだ答え"
+      - "`toUpperCase()` と `concat()` が、`s` 自身を書き換えると読んだ答え"
       - ""
-      - "toUpperCase() だけが s を書き換えると読んだ答え"
-      - "concat() だけが s に足されると読んだ答え"
+      - "`toUpperCase()` だけが `s` を書き換えると読んだ答え"
+      - "`concat()` だけが `s` に足されると読んだ答え"
     explanation: |
       String は **不変(immutable)** です。`toUpperCase()` も `concat("!")` も、元の `s` を書き換えるのではなく **新しい String を作って返す** だけ。戻り値をどこにも受け取っていないので捨てられ、`s` は `"java"` のままです。
       `JAVA!` にしたいなら `s = s.toUpperCase().concat("!");` のように、戻り値を変数に代入する必要があります。戻り値を捨ててもコンパイルエラーにはならないので、気づきにくいミスです。
@@ -140,10 +140,10 @@ quiz:
     choices: ["true true true", "false false true", "true false true", "false false false"]
     answer: 2
     why:
-      - "new String も、プールの同じものを返すと読んだ答え"
+      - "`new String` も、プールの同じものを返すと読んだ答え"
       - "`\"Ja\" + \"va\"` も、実行時に新しく作ると読んだ答え"
       - ""
-      - "equals も、同じオブジェクトかどうかを比べると読んだ答え"
+      - "`equals` も、同じオブジェクトかどうかを比べると読んだ答え"
     explanation: |
       `"Ja" + "va"` は **定数同士の連結** なので、コンパイル時に `"Java"` という1つのリテラルになり、文字列プールの同じオブジェクトを指します。だから `a == b` は `true`。
       `new String("Java")` は **必ず新しいオブジェクト** を作るので `a == c` は `false`。中身を比べる `equals` は `true` です。

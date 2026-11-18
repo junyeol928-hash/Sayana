@@ -126,10 +126,10 @@ quiz:
     choices: ["行A", "行B", "行C", "行D"]
     answer: 2
     why:
-      - "コンストラクタを書いていない new Item() を疑った答え。デフォルトコンストラクタが自動で作られる"
-      - "private のフィールドを変えるメソッドは外から呼べないと読んだ答え。add() 自体は private ではない"
+      - "コンストラクタを書いていない `new Item()` を疑った答え。デフォルトコンストラクタが自動で作られる"
+      - "private のフィールドを変えるメソッドは外から呼べないと読んだ答え。`add()` 自体は private ではない"
       - ""
-      - "getStock() 経由でも private は読めないと読んだ答え"
+      - "`getStock()` 経由でも private は読めないと読んだ答え"
     explanation: |
       `stock` は `private` なので、`Item` クラスの外からは直接読み書きできません。行C は `stock has private access in Item` になります。
       private フィールドを自由に使えるのは、クラスの内側(Item 自身のメソッドの中)だけです。

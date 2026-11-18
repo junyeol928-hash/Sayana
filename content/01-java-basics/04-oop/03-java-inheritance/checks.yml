@@ -9,7 +9,7 @@
         String show() { return name; }
     }
     ```
-  choices: ["コンパイルエラー", "show() が「佐藤」を返す", "show() が null を返す"]
+  choices: ["コンパイルエラー", "`show()` が「佐藤」を返す", "`show()` が null を返す"]
   answer: 0
   why:
     - ""
@@ -27,7 +27,7 @@
         int salary() { return salary() + 50_000; }
     }
     ```
-  choices: ["StackOverflowError で落ちる", "250000 が返る", "コンパイルエラー"]
+  choices: ["`StackOverflowError` で落ちる", "`250000` が返る", "コンパイルエラー"]
   answer: 0
   why:
     - ""

@@ -6,7 +6,7 @@
     list.add(42);
     String s = (String) list.get(0);
     ```
-  choices: ["3 行目で ClassCastException", "2 行目でコンパイルエラー", "2 行目で実行時エラー"]
+  choices: ["3 行目で `ClassCastException`", "2 行目の `add(42)` でコンパイルエラー", "2 行目の `add(42)` で実行時エラー"]
   answer: 0
   why:
     - ""

@@ -59,10 +59,10 @@ quiz:
       List<Employee> findTop3ByDepartmentNameOrderByAgeDesc(String name);
       ```
     choices:
-      - "名前が name の社員を、部署の年齢順に3件"
-      - "部署名が name の社員を全件取り、年齢の若い順に並べて先頭3件"
-      - "部署名が name の社員を、年齢の高い順に並べて先頭3件"
-      - "部署名が name の部署を3件、社員の年齢順に"
+      - "名前が `name` の社員を、部署の年齢順に3件"
+      - "部署名が `name` の社員を全件取り、年齢の若い順に並べて先頭3件"
+      - "部署名が `name` の社員を、年齢の高い順に並べて先頭3件"
+      - "部署名が `name` の部署を3件、社員の年齢順に"
     answer: 2
     why:
       - "`DepartmentName` を社員の name と読んだ答え。関連先 department の name をたどる条件"
@@ -78,8 +78,8 @@ quiz:
       List<Employee> findByNmae(String name);
       ```
     choices:
-      - "起動時に No property 'nmae' found for type 'Employee' のエラーで起動に失敗する"
-      - "起動はするが、このメソッドを呼んだときに初めて例外になる"
+      - "起動時に `No property 'nmae' found` のエラーで失敗する"
+      - "起動はするが、`findByNmae` を呼んだときに初めて例外になる"
       - "コンパイルエラーになる"
       - "条件が無視されて全件が返る"
     answer: 0
@@ -89,7 +89,7 @@ quiz:
       - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
       - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
-      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
+      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException`(`No property 'nmae' found for type 'Employee'`)になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
   - question: |
       社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
@@ -104,7 +104,7 @@ quiz:
     why:
       - "社員と部署を一度に取ると読んだ答え。LAZY の部署は触ったときに1件ずつ取る"
       - "部署をまとめて1回で取ると読んだ答え。LAZY の部署は社員ごとに1回ずつ取り、計 1 + 10"
-      - "社員一覧を取る1回を数え落とした答え。findAll の1回と部署の10回で 11"
+      - "社員一覧を取る1回を数え落とした答え。`findAll` の1回と部署の10回で 11"
       - ""
     explanation: |
       `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが **N+1 問題** です。
@@ -112,25 +112,25 @@ quiz:
   - question: |
       `@Query` の JPQL として正しいものはどれ?(エンティティは `Employee`、テーブル名は `employees`、フィールドは `age`、列名も `age`)
     choices:
-      - "select * from employees where age >= :age"
-      - "select e from Employee e where e.age >= :age"
-      - "select e from employees e where e.age >= :age"
-      - "select Employee from Employee where age >= ?"
+      - "`select * from employees where age >= :age`"
+      - "`select e from Employee e where e.age >= :age`"
+      - "`select e from employees e where e.age >= :age`"
+      - "`select Employee from Employee where age >= ?`"
     answer: 1
     why:
       - "SQL の書き方と読んだ答え。JPQL にテーブル名や `select *` は無い"
       - ""
-      - "from にテーブル名を書くと読んだ答え。JPQL の from に書くのはエンティティ名の Employee"
+      - "`from` にテーブル名を書くと読んだ答え。JPQL の `from` に書くのはエンティティ名の `Employee`"
       - "クラス名をそのまま select に書けると読んだ答え。JPQL は別名を付けて `select e` と `e.age` で書く"
     explanation: |
       JPQL は **エンティティ(クラス名)とフィールド名** に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
       `employees` はテーブル名なので JPQL では使えません(エンティティ名として解決できずエラー)。`select *` は SQL の書き方で、JPQL にはありません。テーブル名で生の SQL を書きたいときは `@Query(value = "...", nativeQuery = true)` を使います。
   - question: |
       本番環境の `spring.jpa.hibernate.ddl-auto` の設定として、最も適切なものは?
-    choices: ["create", "update", "validate", "create-drop"]
+    choices: ["`create`", "`update`", "`validate`", "`create-drop`"]
     answer: 2
     why:
-      - "起動のたびに表を合わせてくれて便利と読んだ答え。create は起動のたびに作り直し、全データが消える"
+      - "起動のたびに表を合わせてくれて便利と読んだ答え。`create` は起動のたびに作り直し、全データが消える"
       - "足りない分だけ直すので安全と読んだ答え。列の削除や型変更はせず記録も残らないので、本番の変更管理に向かない"
       - ""
       - "終了時に片付くので安全と読んだ答え。起動・終了のたびに作り直すので全データが消える"

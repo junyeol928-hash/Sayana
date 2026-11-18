@@ -19,7 +19,7 @@
     - "実行時エラー"
   answer: 2
   why:
-    - "Name() が name() を上書きすると読んだ答え。大文字の Name は別のメソッドで、@Override がエラーにする"
+    - "`Name()` が `name()` を上書きすると読んだ答え。大文字の `Name` は別のメソッドで、`@Override` がエラーにする"
     - "@Override が無いときの結果と取り違えた答え。上書き対象が無いので、@Override がコンパイルで止める"
     - ""
     - "上書きの失敗が実行時に分かると読んだ答え。@Override がコンパイル時に見つける"
@@ -28,10 +28,9 @@
     - "6行目: Name() は name() と別名 → 新しいメソッドの定義"
     - "5行目: @Override は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
     - "実行には至らない"
-- title: "要素のデフォルト値"
+- title: "@Retention を書かないとき"
   level: 2
   code: |
-    @Retention(RetentionPolicy.RUNTIME)
     @interface Retry {
         int times() default 3;
         long waitMillis() default 0;
@@ -40,31 +39,28 @@
     class Client {
         @Retry(times = 5)
         public void call() {}
-
-        @Retry
-        public void ping() {}
     }
 
-    Method m = Client.class.getMethod("ping");
+    Method m = Client.class.getMethod("call");
     Retry r = m.getAnnotation(Retry.class);
     System.out.println(r.times() + " " + r.waitMillis());
   question: "出力は?"
   choices:
-    - "5 0"
-    - "3 0"
-    - "null"
-    - "コンパイルエラー"
-  answer: 1
+    - "`5 0` と出力される"
+    - "`3 0` と出力される"
+    - "`null` と出力される"
+    - "`NullPointerException` で止まる"
+  answer: 3
   why:
-    - "call() に付けた値を読んだ答え。取り出しているのは ping() のアノテーションで、times は default の 3"
+    - "`@Retry(times = 5)` が付いているので読めると読んだ答え。保持期間の指定が無い"
+    - "default の値が使われると読んだ答え。そもそもアノテーションを取り出せていない"
+    - "取れないときは `null` と出ると読んだ答え。`r` 自体が `null` なので、呼び出しで落ちる"
     - ""
-    - "要素なしの @Retry は取れないと読んだ答え。RUNTIME なので取れて、要素は default の値になる"
-    - "要素を書かない @Retry は書けないと読んだ答え。全要素に default があるので書ける"
-  explanation: "ping() には @Retry が引数なしで付いているので、要素はすべてデフォルト値(times = 3、waitMillis = 0)です。call() の 5 は関係ありません。RUNTIME なので getAnnotation で取り出せます。"
+  explanation: "`@Retention` を書かないと保持期間は `CLASS` で、class ファイルには残っても実行時には読めません。`getAnnotation` は `null` を返し、`r.times()` で `NullPointerException` になります。実行時に読むアノテーションには `@Retention(RetentionPolicy.RUNTIME)` が要ります。"
   trace:
-    - "15行目: ping メソッドの Method オブジェクトを取得"
-    - "16行目: RUNTIME なので @Retry が取れる(null ではない)"
-    - "17行目: 引数なしで付けたので times は default の 3、waitMillis は 0"
+    - "1行目: `@Retention` が無いので、保持期間は既定の `CLASS`"
+    - "11〜12行目: 実行時には `@Retry` が見えず、`getAnnotation` は `null` を返す"
+    - "13行目: `null` に対して `r.times()` を呼び、`NullPointerException`"
 - title: "Retention と getAnnotation"
   level: 2
   code: |
@@ -119,8 +115,8 @@
   question: "何が起きる?"
   choices:
     - "`revoked` がログに出て正常終了"
-    - "AccessDeniedException が投げられ、`revoked` は出ない"
-    - "@RequiresAdmin は何もしないので普通に実行される"
+    - "`AccessDeniedException` が投げられ、`revoked` は出ない"
+    - "`@RequiresAdmin` は何もしないので普通に実行される"
     - "コンパイルエラー"
   answer: 1
   why:
@@ -159,7 +155,7 @@
     - "record の部品にアノテーションを付けられないと読んだ答え。付けられて、Jackson が実行時に読む"
   explanation: "`@JsonProperty(\"user_id\")` でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。"
   trace:
-    - "2行目: userId → キー名を \"user_id\" に変更"
+    - "2行目: `userId` → キー名を `\"user_id\"` に変更"
     - "3行目: displayName はそのまま"
     - "4行目: passwordHash は出力しない(機密情報を漏らさない定番の使い方)"
-    - "出力: {\"user_id\":1,\"displayName\":\"Sato\"}"
+    - "出力: `{\"user_id\":1,\"displayName\":\"Sato\"}`"
