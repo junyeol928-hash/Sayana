@@ -18,13 +18,14 @@ import com.sayana.dojo.exec.GradeResult;
 import com.sayana.dojo.exec.Grader;
 import com.sayana.dojo.exec.JShellRunner;
 import com.sayana.dojo.exec.RunResult;
+import com.sayana.dojo.mobile.SampleOutputs;
 
 /**
  * 教材そのもののテスト。
  * <ul>
  *   <li>全演習の模範解答が採点テストに合格する</li>
  *   <li>全演習の雛形はコンパイルでき、採点テストには落ちる(テストが甘くない)</li>
- *   <li>全サンプルが JShell で最後まで動く</li>
+ *   <li>全サンプルが JShell で最後まで動き、スマホ版に載せる実行結果の控えと同じ出力になる</li>
  *   <li>公開レッスンに必要な要素(解説・サンプル・演習・クイズ5問・コラム)がそろっている</li>
  * </ul>
  */
@@ -34,6 +35,15 @@ class CurriculumTest {
     private static final ContentRepository CONTENT = new ContentRepository(PROPS, new MarkdownRenderer());
     private static final Grader GRADER = new Grader(PROPS, new ExecutionGate(PROPS));
     private static final JShellRunner RUNNER = new JShellRunner(PROPS, new ExecutionGate(PROPS));
+    private static final SampleOutputs.Data OUTPUTS = loadOutputs();
+
+    private static SampleOutputs.Data loadOutputs() {
+        try {
+            return SampleOutputs.load(SampleOutputs.FILE);
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
 
     static Stream<Arguments> exercises() {
         return CONTENT.allExercises().stream().map(e -> Arguments.of(e.key(), e));
@@ -116,5 +126,15 @@ class CurriculumTest {
         assertThat(r.status()).as(name + "\n" + r.errorText() + "\n" + r.output())
                 .isIn(RunResult.Status.OK, RunResult.Status.EXCEPTION);
         assertThat(r.output() + String.join("", r.values())).as(name + " の出力").isNotBlank();
+        // スマホ版に載せる実行結果の控えが、本当の出力と同じこと(控えを作ったのと同じ JDK のときだけ比べる)
+        if (OUTPUTS.jdk() == Runtime.version().feature()) {
+            SampleOutputs.Entry saved = OUTPUTS.entries().get(SampleOutputs.key(sample));
+            if (saved != null && !saved.varies()) {
+                assertThat(saved.output()).as(name + " の控えの出力(違ったら ./mvnw -q compile exec:java で作り直す)")
+                        .isEqualTo(r.output());
+                assertThat(saved.values()).as(name + " の控えの式の値").isEqualTo(r.values());
+                assertThat(saved.exception()).as(name + " の控えの例外").isEqualTo(r.exception());
+            }
+        }
     }
 }

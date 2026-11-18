@@ -90,7 +90,7 @@
 
     <section id="run" class="lesson-section" th:if="${!lesson.samples.isEmpty()}" aria-labelledby="run-title">
         <h2 class="section-title" id="run-title">サンプルを動かす</h2>
-        <p class="section-lead">サンプルはこの画面で実行できます(JShell)。書き換えて何度でも動かしてみよう。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
+        <p class="section-lead">実行する前に、何が出るかを<b>予想</b>してから押そう。予想と違った所が、いちばん身につく所です。サンプルはこの画面で実行でき(JShell)、書き換えて何度でも試せます。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
         <div class="sample" th:each="s, st : ${lesson.samples}">
             <h3 th:text="${s.title}"></h3>
             <div class="md" th:utext="${s.descriptionHtml}"></div>

@@ -844,6 +844,14 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .hint-title { font-weight: 700; color: var(--ki); font-size: .875rem; }
 .hint-3 { background: var(--shu-soft); }
 .hint-count { font-size: .8em; margin-left: 2px; color: var(--ink-muted); }
+/* スマホ版のサンプルの実行結果(予想してから開く)。開く前は模範解答の欄と同じ形 */
+.sample-result { margin: 4px 0 0; }
+.sample-result > summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.sample-result > summary::-webkit-details-marker { display: none; }
+.sample-result > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -4px; transition: transform .16s var(--ease); }
+.sample-result[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.sample-result .run-result { margin-top: 0; }
+.sample .sample-result pre { margin-left: 0; margin-right: 0; border-radius: var(--r-s); padding: 10px 12px; }
 .solution { margin: 4px 0; }
 .solution summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 .generated-list { padding-left: 1.2em; }

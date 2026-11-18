@@ -613,9 +613,9 @@ async function renderLesson(id) {
     ${L.samples.length ? `
     <section id="run" class="lesson-section" aria-labelledby="run-title">
       ${title("run", "サンプルを見る")}
-      <p class="run-note">スマホ版ではコードを実行できません。出力を予想しながら読んで、PC版か Codespaces 版で動かしてみましょう。</p>
+      <p class="run-note">まず出力を<b>予想</b>してから、「実行結果を見る」で答え合わせ。予想と違った所が、いちばん身につく所です。書き換えて試すのは PC版か Codespaces 版で。</p>
       ${L.samples.map((s) => `<div class="sample"><h3>${esc(s.title)}</h3><div class="md">${s.descriptionHtml}</div>
-        <pre><code class="language-java">${esc(s.code)}</code></pre></div>`).join("")}
+        <pre><code class="language-java">${esc(s.code)}</code></pre>${sampleResult(s.result)}</div>`).join("")}
     </section>` : ""}
     <section id="quiz" class="lesson-section" aria-labelledby="quiz-title">
       ${title("quiz", "クイズ")}
@@ -805,6 +805,19 @@ function trackLesson(id, keys) {
 }
 
 /** 仕事のコード。番号の付いた行を、下の説明と結びつける */
+/** サンプルの実行結果(PC で実行した控え)。予想してから開くように、最初は閉じておく */
+function sampleResult(r) {
+  if (!r) return "";
+  const failed = r.status !== "OK";
+  const body = `${r.output ? `<pre class="console">${esc(r.output)}</pre>` : ""}
+    ${r.values?.length ? `<div class="values">${r.values.map((v) => `<div class="value-line"><span class="arrow" aria-hidden="true">⇒</span> <code>${esc(v)}</code></div>`).join("")}</div>` : ""}
+    ${r.exception ? `<pre class="exception">${esc(r.exception)}</pre>` : ""}
+    ${!r.output && !r.values?.length && !r.exception ? `<p class="muted small">(出力はありません)</p>` : ""}
+    ${r.varies ? `<p class="muted small">スレッドの順番や、@ の後ろの番号(ハッシュコード)などは、実行のたびに変わることがあります。</p>` : ""}`;
+  return `<details class="sample-result"><summary>予想したら、実行結果を見る</summary>
+    <div class="run-result ${failed ? "status-exception" : "status-ok"}"><div class="run-meta"><span class="run-status">${failed ? "実行時例外で止まる" : "実行結果"}</span></div>${body}</div></details>`;
+}
+
 function atWorkBlock(a) {
   const notes = Object.entries(a.notesHtml || {});
   return `<article class="atwork">
