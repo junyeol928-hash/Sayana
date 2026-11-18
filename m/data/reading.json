@@ -7,6 +7,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>3行目は行全体がコメントなので実行されません。5行目は three を表示した後の // 以降がコメントなので four は出ません。</p>\n",
   "traceHtml" : [ "3行目: 先頭が // なので行全体がコメント。何も起きない", "4行目: two を表示して改行", "5行目: three を表示。その後ろの // 以降は無視される", "結果: two、three の2行" ],
+  "whyHtml" : [ "// を付けた所も実行されると読んだ答え。// から行末まではコメントで、one も four も出ない", "", "行の途中から始まる // はコメントにならないと読んだ答え", "コメントの中に println があると文法エラーになると読んだ答え。コメントの中身は無視される" ],
   "ref" : "java-hello@0",
   "lesson" : "java-hello"
 }, {
@@ -18,6 +19,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>print は改行しないので、Java、空白、道場 が同じ行に並び、println で改行されます。6行目は + で文字列がつながって「へようこそ」が2行目に出ます。</p>\n",
   "traceHtml" : [ "3行目: Java(改行なし)", "4行目: 空白(改行なし)→ ここまでで「Java 」", "5行目: 道場 を続けて表示して改行 →「Java 道場」", "6行目: &quot;へ&quot; + &quot;ようこそ&quot; → &quot;へようこそ&quot; を表示して改行" ],
+  "whyHtml" : [ "道場 を出す println の改行を見落とした答え。へようこそ は次の行に出る", "", "print も 1 回ごとに改行すると読んだ答え", "Java を出す print のあとで改行されると読んだ答え" ],
   "ref" : "java-hello@1",
   "lesson" : "java-hello"
 }, {
@@ -29,6 +31,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>4行目の /* から7行目の */ までがまとめてコメントです。中の2つの println はコードに見えますが実行されません。「使わなくなった処理をコメントアウトした」典型の形です。</p>\n",
   "traceHtml" : [ "3行目: start を表示", "4〜7行目: /* 〜 */ の中なので a も b も実行されない", "8行目: end を表示", "結果: start、end の2行" ],
+  "whyHtml" : [ "/* と <em>/ に挟まれた println も実行されると読んだ答え。/</em> から */ までは何行でもコメント", "", "/* 以降がファイルの最後までコメントになると読んだ答え。*/ でコメントが閉じて end は出る", "コメントの中にコードを書くとエラーになると読んだ答え。コメントの中身は無視される" ],
   "ref" : "java-hello@2",
   "lesson" : "java-hello"
 }, {
@@ -40,6 +43,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>public なクラスの名前はファイル名と一致していなければなりません。Greeting は Main.java の中には置けないので、コンパイルの段階でエラーになります。IDE で「クラス名を変えたのにファイル名がそのまま」のときによく起きます。</p>\n",
   "traceHtml" : [ "1行目: コメント。ファイル名が Main.java だと分かる", "2行目: public class Greeting → public なクラスは Greeting.java に置く必要がある", "javac: ファイル名とクラス名の不一致を検出してエラー。.class は作られない" ],
+  "whyHtml" : [ "javac が実行までしてくれると読んだ答え。javac はコンパイルだけで、このファイルはそこで止まる", "クラス名とファイル名が違ってもよいと読んだ答え。public クラスはクラス名と同じファイル名に置く", "", "javac は通って実行で問題が出ると読んだ答え。ファイル名の不一致はコンパイルの段階で見つかる" ],
   "ref" : "java-hello@3",
   "lesson" : "java-hello"
 }, {
@@ -51,6 +55,7 @@
   "answer" : 3,
   "explanationHtml" : "<p>static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として認めるのは <code>public static void main(String[] args)</code> だけ。main はあっても static ではないので、起動時に「static ではありません」というエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。</p>\n",
   "traceHtml" : [ "javac: 文法エラーは無いので App.class ができる", "java App: JVM が public static void main(String[]) を探す", "2行目の main には static が無いので条件に合わない", "結果: 「main メソッドが static ではありません」という趣旨のエラーで停止" ],
+  "whyHtml" : [ "JDK 25 からの決まりで読んだ答え。問いは JDK 21 での動き", "入口が無いと黙って終わると読んだ答え。JVM は main が static でないとエラーを出して止まる", "main に static が無いのを文法の誤りと読んだ答え", "" ],
   "ref" : "java-hello@4",
   "lesson" : "java-hello"
 }, {
@@ -62,6 +67,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>int(基本データ型)は値がコピーされるので b を変えても a は 10 のまま。配列(参照型)は住所がコピーされるので arr2 経由の変更が arr1 にも見えます。</p>\n",
   "traceHtml" : [ "1〜2行目: a=10、b にも 10 がコピーされる(別々の箱)", "3行目: b だけが 20 になる。a は 10 のまま", "4〜5行目: arr1 が配列 {1,2} を指し、arr2 も同じ配列を指す", "6行目: 同じ配列の [0] が 50 になる → arr1[0] も 50", "7行目: &quot;10 50&quot; と表示" ],
+  "whyHtml" : [ "配列も代入でコピーされて別物になると読んだ答え。arr2 = arr1 は同じ配列を指すので 50 になる", "int の代入も同じ箱を共有すると読んだ答え。int は値のコピーなので a は 10 のまま", "", "int と配列の振る舞いを逆に読んだ答え。int は値のコピー、配列は同じものを指す" ],
   "ref" : "java-variables@0",
   "lesson" : "java-variables"
 }, {
@@ -73,6 +79,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>avg1 は int/int=4 を double に入れるので 4.0。avg2 は先に sum を 17.0 にしてから割るので 4.25。avg3 はカッコの中(17/4=4)を先に計算してから double にするので 4.0。<strong>キャストがどこに掛かるか</strong>で結果が変わります。</p>\n",
   "traceHtml" : [ "3行目: 17 / 4 → int の 4 → double の箱に入れて 4.0", "4行目: (double) は sum だけに掛かる → 17.0 / 4 → 4.25", "5行目: (double) は (sum / count) 全体に掛かる → (4) → 4.0", "6行目: &quot;4.0 4.25 4.0&quot;" ],
+  "whyHtml" : [ "double に入れれば割り算も小数になると読んだ答え。int / int は 4 に切り捨ててから代入される", "", "キャストを外側に付けても小数で割れると読んだ答え。avg3 はカッコの中の 17 / 4 = 4 が先", "double の 4 が 4 と表示されると読んだ答え。double は 4.0 と小数点付きで出る" ],
   "ref" : "java-variables@1",
   "lesson" : "java-variables"
 }, {
@@ -82,8 +89,9 @@
   "questionHtml" : "3行の出力は?",
   "choicesHtml" : [ "結果: 12 / 結果: 3 / 3円", "結果: 3 / 結果: 3 / 12円", "結果: 12 / 結果: 3 / 12円", "結果: 3 / 結果: 3 / 3円" ],
   "answer" : 0,
-  "explanationHtml" : "<ul>\n<li>は左から順に評価されます。文字列が左にあると以降は連結(&quot;結果: 1&quot; + 2 → &quot;結果: 12&quot;)。カッコで先に足し算すれば 3。最後の行は x + y(数値の足し算=3)が先で、その後に &quot;円&quot; がつながります。</li>\n</ul>\n",
+  "explanationHtml" : "<ul>\n<li>は左から順に評価されます。文字列が左にあると以降は連結(<code>&quot;結果: 1&quot; + 2</code> → <code>&quot;結果: 12&quot;</code>)。カッコで先に足し算すれば 3。最後の行は x + y(数値の足し算=3)が先で、その後に <code>&quot;円&quot;</code> がつながります。</li>\n</ul>\n",
   "traceHtml" : [ "3行目: &quot;結果: &quot; + 1 → &quot;結果: 1&quot;、+ 2 → &quot;結果: 12&quot;", "4行目: (1 + 2) = 3 が先 → &quot;結果: 3&quot;", "5行目: 1 + 2 = 3 が先(まだ文字列が出てきていない)→ &quot;3円&quot;" ],
+  "whyHtml" : [ "", "文字列と数値の + の働きを、1 行目と 3 行目で逆に読んだ答え", "後ろに文字列があると、x + y も連結になると読んだ答え", "文字列の後ろの x + y も、先に足し算されると読んだ答え" ],
   "ref" : "java-variables@2",
   "lesson" : "java-variables"
 }, {
@@ -93,8 +101,9 @@
   "questionHtml" : "最後の行を実行すると?(<code>toUpperCase()</code> は文字列を大文字にした文字列を返すメソッド)",
   "choicesHtml" : [ "prod/ と表示", "prod/null と表示", "NullPointerException が発生", "コンパイルエラー" ],
   "answer" : 2,
-  "explanationHtml" : "<p>region には null(どのオブジェクトも指していない)が入っています。3行目の <code>env + &quot;/&quot; + region</code> は null を &quot;null&quot; という文字としてつなぐだけなので、label は &quot;prod/null&quot; になり例外は出ません。しかし4行目の <code>region.toUpperCase()</code> は null に対してメソッドを呼ぶので、その瞬間に NullPointerException です。println は引数を全部計算してから表示するので、&quot;prod/null&quot; も表示されません。<strong>参照型の変数を使う前に値が入っているか</strong>を追うのが実務の読解の基本です。</p>\n",
+  "explanationHtml" : "<p>region には null(どのオブジェクトも指していない)が入っています。3行目の <code>env + &quot;/&quot; + region</code> は null を <code>null</code> という文字としてつなぐだけなので、label は <code>prod/null</code> になり例外は出ません。しかし4行目の <code>region.toUpperCase()</code> は null に対してメソッドを呼ぶので、その瞬間に NullPointerException です。println は引数を全部計算してから表示するので、<code>prod/null</code> も表示されません。<strong>参照型の変数を使う前に値が入っているか</strong>を追うのが実務の読解の基本です。</p>\n",
   "traceHtml" : [ "1行目: env は &quot;prod&quot;(final なので再代入はできない)", "2行目: region は null。どのオブジェクトも指していない", "3行目: &quot;prod&quot; + &quot;/&quot; + null → &quot;prod/null&quot;。連結だけなら例外にならない", "4行目: region.toUpperCase() → region が null なので例外", "結果: NullPointerException で処理が止まり、何も表示されない" ],
+  "whyHtml" : [ "null の連結を空文字と読み、その後の region.toUpperCase() も見落とした答え", "連結の結果だけを見て、region.toUpperCase() を見落とした答え", "", "null の変数を使うとコンパイルで止まると読んだ答え。null かどうかは実行して初めて分かる" ],
   "ref" : "java-variables@3",
   "lesson" : "java-variables"
 }, {
@@ -106,6 +115,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>2行目は後置なので b には増やす前の 3 が入り、a は 4 になる。3行目は前置なので a を 5 にしてから c に 5 を渡す。最後は a=5、b=3、c=5。</p>\n",
   "traceHtml" : [ "1行目: a = 3", "2行目: b = 3(元の値)、そのあと a = 4", "3行目: 先に a = 5、それから c = 5", "4行目: &quot;5 3 5&quot;" ],
+  "whyHtml" : [ "", "後置 a++ でも増えた後の値が入ると読んだ答え。b には増やす前の 3 が入る", "a が 2 回増えることを見落とした答え。a++ で 4、++a で 5 になる", "前置 ++a も増やす前の値を渡すと読んだ答え。前置は a を 5 にしてから c に渡す" ],
   "ref" : "java-operators@0",
   "lesson" : "java-operators"
 }, {
@@ -117,6 +127,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>rate1 は 3 / 8 が int で 0 になり、0 * 100 = 0 → 0.0。rate2 は先に done を 3.0 にするので 3.0 / 8 = 0.375、× 100 で 37.5。rate3 は 3 * 100 = 300 が先で、300 / 8 = 37(int の切り捨て)→ 37.0。<strong>割る前に掛けるか、小数にしてから割るか</strong>で結果が変わります。</p>\n",
   "traceHtml" : [ "3行目: 3 / 8 → 0(int)、0 * 100 → 0、double の箱に入れて 0.0", "4行目: (double) 3 → 3.0、3.0 / 8 → 0.375、× 100 → 37.5", "5行目: 3 * 100 → 300、300 / 8 → 37(int)、double の箱に入れて 37.0", "6行目: &quot;0.0 37.5 37.0&quot;" ],
+  "whyHtml" : [ "double に入れれば計算も小数になると読んだ答え。右辺は int で計算し、3 / 8 は 0 になる", "", "掛けてから割れば小数が残ると読んだ答え。300 / 8 も int の割り算で 37 に切り捨てられる", "double の値が整数の形で表示されると読んだ答え。double は 0.0、37.0 と小数点付きで出る" ],
   "ref" : "java-operators@1",
   "lesson" : "java-operators"
 }, {
@@ -128,6 +139,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>2行目は左 (code != null) が false なので右は実行されず a = false。3行目は左 (code == null) が true なので右は実行されず b = true。どちらも code のメソッドは呼ばれないため例外は起きません。</p>\n",
   "traceHtml" : [ "1行目: code は null", "2行目: code != null → false → &amp;&amp; の右はスキップ → a = false", "3行目: code == null → true → || の右はスキップ → b = true", "4行目: &quot;false true&quot;" ],
+  "whyHtml" : [ "", "b の左辺 code == null を false と読んだ答え。code は null なので左辺が true で b は true", "&amp;&amp; の左辺の != を読み落とした答え。code != null は false なので a は false", "null に startsWith() を呼ぶと読んだ答え。&amp;&amp; と || は左で決まれば右を実行しない" ],
   "ref" : "java-operators@2",
   "lesson" : "java-operators"
 }, {
@@ -139,6 +151,7 @@
   "answer" : 0,
   "explanationHtml" : "<p><code>x = x + 2.5;</code> と書くと double を int に入れられずコンパイルエラーですが、<code>x += 2.5;</code> は「暗黙のキャスト付き」で <code>x = (int)(x + 2.5)</code> と同じ扱い。12.5 が切り捨てられて x = 12 になります。3行目は後置なので 12 * 2 = 24 が y に入り、その後 x は 13。</p>\n",
   "traceHtml" : [ "2行目: 10 + 2.5 = 12.5 → (int) で 12 → x = 12", "3行目: x++ は 12 を渡してから x = 13。y = 12 * 2 = 24", "4行目: &quot;13 24&quot;" ],
+  "whyHtml" : [ "", "後置 x++ でも、増えた後の 13 で掛けると読んだ答え", "x++ の増加を見落とした答え", "x += 2.5 を x = x + 2.5 と同じと読んだ答え" ],
   "ref" : "java-operators@3",
   "lesson" : "java-operators"
 }, {
@@ -150,6 +163,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>3行目は + が &gt; より先に評価されるので、<code>(&quot;在庫: &quot; + stock) &gt; 0</code> つまり「文字列 &gt; 整数」の比較になり、これはコンパイルエラーです。2行目のようにカッコで三項演算子を囲めば意図どおり動きます。<strong>三項演算子を連結に混ぜるときはカッコ必須</strong>と覚えましょう。</p>\n",
   "traceHtml" : [ "2行目: &quot;在庫: &quot; + 0 → &quot;在庫: 0&quot;、カッコの中は stock &gt; 0 が false → &quot;なし&quot;、つないで &quot;在庫: 0なし&quot;", "3行目: &quot;在庫: &quot; + stock → &quot;在庫: 0&quot;(String)、次に &quot;在庫: 0&quot; &gt; 0 → String と int は比較できない", "結果: コンパイルエラー(実行されない)" ],
+  "whyHtml" : [ "3 行目の &gt; が + より先に効くと読んだ答え。先に連結した文字列と 0 を比べてコンパイルエラー", "カッコが無くても三項演算子が先にまとまると読んだ答え。+ が先で、文字列 &gt; 0 の比較になる", "", "型の合わない比較が実行時に見つかると読んだ答え。文字列と数値の &gt; はコンパイルの段階で止まる" ],
   "ref" : "java-operators@4",
   "lesson" : "java-operators"
 }, {
@@ -161,6 +175,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>temp は 28 なので最初の条件(30以上)は false、次の条件(20以上)が true になり、そこで確定します。</p>\n",
   "traceHtml" : [ "3行目: 28 &gt;= 30 → false", "5行目: 28 &gt;= 20 → true。comment = &quot;過ごしやすい&quot;", "以降の else には進まない", "10行目: &quot;過ごしやすい&quot; と表示" ],
+  "whyHtml" : [ "最初の条件 temp &gt;= 30 を満たすと読んだ答え。28 は 30 未満なので次の 20 以上で決まる", "", "else if を飛ばして else まで進むと読んだ答え。28 は 20 以上なので else if で決まる", "どの分岐にも入らないと読んだ答え。28 &gt;= 20 が true で comment に値が入る" ],
   "ref" : "java-if@0",
   "lesson" : "java-if"
 }, {
@@ -170,8 +185,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "冬", "春", "その他", "コンパイルエラー" ],
   "answer" : 0,
-  "explanationHtml" : "<p>case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month=2 は case 2 に一致し、&quot;冬&quot; を代入して break します。</p>\n",
+  "explanationHtml" : "<p>case 12・1・2 は break を共有せずに連続で並べることで「複数条件を1つの処理にまとめる」書き方です。month=2 は case 2 に一致し、<code>&quot;冬&quot;</code> を代入して break します。</p>\n",
   "traceHtml" : [ "3行目: month(2) と case を照合", "6行目: case 2 に一致 → 6行目から実行開始(break がないので上から降りてきていい)", "7行目: season = &quot;冬&quot;", "8行目: break で switch を抜ける", "17行目: &quot;冬&quot; と表示" ],
+  "whyHtml" : [ "", "case 2 から break を越えて下へ落ちると読んだ答え", "中身の無い case 2 は一致にならないと読んだ答え", "中身の無い case を並べると文法違反と読んだ答え" ],
   "ref" : "java-if@1",
   "lesson" : "java-if"
 }, {
@@ -181,8 +197,9 @@
   "questionHtml" : "出力は?(例外になるかも含めて考える)",
   "choicesHtml" : [ "0", "1", "2", "NullPointerException が発生する" ],
   "answer" : 1,
-  "explanationHtml" : "<p>&amp;&amp; の左が <code>b != null</code> なので、null の b は右の length() を評価する前に false 確定し、例外は起きません。&quot;Sato&quot;(4文字)は 5 以上でないため条件を満たさず、&quot;Suzuki&quot;(6文字)だけが条件を満たすので count は 1 になります。</p>\n",
+  "explanationHtml" : "<p>&amp;&amp; の左が <code>b != null</code> なので、null の b は右の length() を評価する前に false 確定し、例外は起きません。<code>&quot;Sato&quot;</code>(4文字)は 5 以上でないため条件を満たさず、<code>&quot;Suzuki&quot;</code>(6文字)だけが条件を満たすので count は 1 になります。</p>\n",
   "traceHtml" : [ "5行目: a は &quot;Sato&quot;。null ではない → length()=4 → 5以上ではない → false(count 増えない)", "8行目: b は null。b != null が false → 短絡評価で length() は呼ばれない → 例外なし、false", "11行目: c は &quot;Suzuki&quot;。null ではない → length()=6 → 5以上 → true → count++", "14行目: count は 1 と表示" ],
+  "whyHtml" : [ "Suzuki も 5 文字未満と数えた答え", "", "Sato も 5 文字以上と数えた答え", "null の b にも length() が呼ばれると読んだ答え" ],
   "ref" : "java-if@2",
   "lesson" : "java-if"
 }, {
@@ -190,10 +207,11 @@
   "level" : 3,
   "code" : "public String check(Integer age) {\n    String result;\n    if (age != null) {\n        if (age >= 18) {\n            result = \"成人\";\n        } else {\n            result = \"未成年\";\n        }\n    } else {\n        result = \"不明\";\n    }\n    return result;\n}\n",
   "questionHtml" : "このメソッドをガード節で書き直したとき、age = null での戻り値は元と比べて?",
-  "choicesHtml" : [ "&quot;成人&quot;に変わる", "&quot;未成年&quot;に変わる", "&quot;不明&quot;のまま変わらない", "例外が発生するようになる" ],
+  "choicesHtml" : [ "<code>&quot;成人&quot;</code> に変わる", "<code>&quot;未成年&quot;</code> に変わる", "<code>&quot;不明&quot;</code> のまま変わらない", "例外が発生するようになる" ],
   "answer" : 2,
-  "explanationHtml" : "<p>ネストした if をガード節(if (age == null) return &quot;不明&quot;; if (age &gt;= 18) return &quot;成人&quot;; return &quot;未成年&quot;;)に書き換えても、条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。</p>\n",
+  "explanationHtml" : "<p>ネストした if をガード節(<code>if (age == null) return &quot;不明&quot;;</code> <code>if (age &gt;= 18) return &quot;成人&quot;;</code> <code>return &quot;未成年&quot;;</code>)に書き換えると、null は最初の行で <code>&quot;不明&quot;</code> を返します。条件の組み合わせと結果の対応は変わりません。読みやすさが変わるだけで、動作(入出力の対応)は同じにするのがリファクタリングの原則です。</p>\n",
   "traceHtml" : [ "元のコード: age が null → 外側の else に入り result = &quot;不明&quot;", "ガード節版: if (age == null) return &quot;不明&quot;; が最初に一致してそこで終了", "どちらも age=null のときは &quot;不明&quot; を返す点で同じ" ],
+  "whyHtml" : [ "ガード節にすると null が「成人」の分岐に流れると読んだ答え", "null が最後の return まで落ちると読んだ答え", "", "ガード節で null のまま age &gt;= 18 に進むと読んだ答え" ],
   "ref" : "java-if@3",
   "lesson" : "java-if"
 }, {
@@ -205,6 +223,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>1から4までの整数を順に足しているので 1+2+3+4=10 です。</p>\n",
   "traceHtml" : [ "初期化: i=1, sum=0", "i=1: 条件 1&lt;=4 true → sum=0+1=1 → i=2", "i=2: 条件 true → sum=1+2=3 → i=3", "i=3: 条件 true → sum=3+3=6 → i=4", "i=4: 条件 true → sum=6+4=10 → i=5", "i=5: 条件 5&lt;=4 false → ループ終了 → 10 と表示" ],
+  "whyHtml" : [ "i &lt;= 4 を i &lt; 4 と読んだ答え。4 も含むので 1+2+3+4 で 10", "", "sum += i を代入と読んだ答え。+= は足し込むので、最後は合計の 10", "ループの外の sum を中から使えないと読んだ答え。外側の変数は内側から見える" ],
   "ref" : "java-loops@0",
   "lesson" : "java-loops"
 }, {
@@ -212,10 +231,11 @@
   "level" : 2,
   "code" : "int x = 10;\nwhile (x < 5) {\n    System.out.println(\"while:\" + x);\n    x++;\n}\nint y = 10;\ndo {\n    System.out.println(\"do-while:\" + y);\n    y++;\n} while (y < 5);\n",
   "questionHtml" : "出力は?",
-  "choicesHtml" : [ "何も出力されない", "&quot;do-while:10&quot; だけ出力される", "&quot;while:10&quot; だけ出力される", "両方とも1回ずつ出力される" ],
+  "choicesHtml" : [ "何も出力されない", "<code>do-while:10</code> だけ出力される", "<code>while:10</code> だけ出力される", "両方とも1回ずつ出力される" ],
   "answer" : 1,
-  "explanationHtml" : "<p>while は条件(x&lt;5)を先に判定するため、x=10 の時点で false となり1回も実行されません。do-while は先に本体を実行してから条件判定するため、y=10 でも &quot;do-while:10&quot; が必ず1回出力されます。</p>\n",
+  "explanationHtml" : "<p>while は条件(x&lt;5)を先に判定するため、x=10 の時点で false となり1回も実行されません。do-while は先に本体を実行してから条件判定するため、y=10 でも <code>do-while:10</code> が必ず1回出力されます。</p>\n",
   "traceHtml" : [ "while: x=10 で条件 10&lt;5 は false → ループ本体は1度も実行されない", "do-while: 条件判定より先に本体を実行 → &quot;do-while:10&quot; を出力してから y++", "その後 y=11 で条件 11&lt;5 を判定 → false → 終了" ],
+  "whyHtml" : [ "do-while も先に条件を判定すると読んだ答え", "", "while と do-while の判定の順を逆に読んだ答え", "while も、本体を 1 回は実行すると読んだ答え" ],
   "ref" : "java-loops@1",
   "lesson" : "java-loops"
 }, {
@@ -227,6 +247,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>break は直近のループ、つまり内側の j のループだけを抜けます。外側の i のループは3回とも実行されるため、各 i について j=0 のときだけ表示されて j=1 で内側を抜ける、を3回くり返します。</p>\n",
   "traceHtml" : [ "i=0: j=0で&quot;00 &quot;表示、j=1でbreak(内側だけ終了)", "i=1: j=0で&quot;10 &quot;表示、j=1でbreak", "i=2: j=0で&quot;20 &quot;表示、j=1でbreak", "結果: &quot;00 10 20 &quot;" ],
+  "whyHtml" : [ "break を見落とした答え。j が 1 になった所で内側のループを抜ける", "", "break が外側のループまで抜けると読んだ答え。break が抜けるのは直近の内側のループだけ", "j == 1 の判定で最初から抜けると読んだ答え。j = 0 では break せず 1 回は表示する" ],
   "ref" : "java-loops@2",
   "lesson" : "java-loops"
 }, {
@@ -238,6 +259,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>拡張 for の n は、配列の各要素の値がコピーされたローカル変数です(int は基本データ型なので値コピー)。n を書き換えても元の配列 nums の中身には影響しません。</p>\n",
   "traceHtml" : [ "1周目: n に nums[0]=1 がコピーされる → n=10 にしても nums[0] はそのまま", "2周目: n に nums[1]=2 がコピーされる → n=20 にしても nums[1] はそのまま", "3周目: n に nums[2]=3 がコピーされる → n=30 にしても nums[2] はそのまま", "結果: nums は変化せず &quot;1 2 3&quot;" ],
+  "whyHtml" : [ "n への代入が配列に戻ると読んだ答え。n は要素の値をコピーした別の変数", "", "拡張 for の変数には代入できないと読んだ答え。n はただのローカル変数で書き換えられる", "ループ中に書き換えると例外になると読んだ答え。n を変えても配列には触れていない" ],
   "ref" : "java-loops@3",
   "lesson" : "java-loops"
 }, {
@@ -247,8 +269,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "21", "07014", "14", "ArrayIndexOutOfBoundsException" ],
   "answer" : 0,
-  "explanationHtml" : "<p>new int[4] は {0, 0, 0, 0}。a[1] = 7、a[3] = 14 になり、残りは 0 のまま。全部 int なので + は足し算で 0 + 7 + 0 + 14 = 21。文字列が混ざっていないので連結にはなりません。</p>\n",
+  "explanationHtml" : "<p>new int[4] は {0, 0, 0, 0}。a[1] = 7、a[3] = 14 になり、残りは 0 のまま。全部 int なので + は足し算で 0 + 7 + 0 + 14 = 21。</p>\n",
   "traceHtml" : [ "1行目: a = {0, 0, 0, 0}", "2行目: a = {0, 7, 0, 0}", "3行目: a[1] * 2 = 14 → a = {0, 7, 0, 14}", "4行目: 0 + 7 + 0 + 14 = 21" ],
+  "whyHtml" : [ "", "<ul>\n<li>が文字列の連結になると読んだ答え</li>\n</ul>", "a[3] だけが値を持つと読んだ答え", "添え字を 1 始まりと読んで a[0] を範囲外とした答え。new int[4] の添え字は 0〜3 でどれも範囲内" ],
   "ref" : "java-arrays@0",
   "lesson" : "java-arrays"
 }, {
@@ -258,8 +281,9 @@
   "questionHtml" : "<code>List</code>(<code>ArrayList</code>)は後の「コレクション」のレッスンで習う、長さを変えられる配列のようなものです。<code>add(値)</code> は末尾へ追加、<code>add(i, 値)</code> は添え字 i の位置へ追加、<code>remove(i)</code> は添え字 i の削除、<code>get(i)</code> は i 番目の取り出し、<code>size()</code> は要素数です。出力は?",
   "choicesHtml" : [ "X3", "B3", "X2", "IndexOutOfBoundsException" ],
   "answer" : 0,
-  "explanationHtml" : "<p>remove(0) で A が消え [B, C] に詰まる。add(1, &quot;X&quot;) は「添え字 1 の位置に割り込む」ので [B, X, C]。get(1) は X、size() は 3。文字列 + 数値 で &quot;X3&quot;。</p>\n",
+  "explanationHtml" : "<p>remove(0) で A が消え [B, C] に詰まる。<code>add(1, &quot;X&quot;)</code> は「添え字 1 の位置に割り込む」ので [B, X, C]。get(1) は X、size() は 3。文字列 + 数値 で <code>X3</code>。</p>\n",
   "traceHtml" : [ "2〜4行目: q = [A, B, C]", "5行目: 先頭を削除 → <a rel=\"nofollow\" href=\"後ろが前に詰まる\">B, C</a>", "6行目: 添え字 1 に X を挿入 → [B, X, C]", "7行目: &quot;X&quot; + 3 → &quot;X3&quot;" ],
+  "whyHtml" : [ "", "<code>add(1, &quot;X&quot;)</code> を先頭への追加と読んだ答え", "add(1, …) を置き換えと読んだ答え", "remove(0) の後は添え字 1 に入れられないと読んだ答え。残り 2 個でも添え字 1 には割り込める" ],
   "ref" : "java-arrays@1",
   "lesson" : "java-arrays"
 }, {
@@ -271,6 +295,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>2行目の remove(1) は int 引数なので添え字 1 → 20 が消えて [10, 30]。3行目は Integer 引数なので「値 10」→ [30]。同じ remove でも引数の型で意味が変わります。</p>\n",
   "traceHtml" : [ "1行目: [10, 20, 30] を可変のリストとしてコピー", "2行目: 添え字 1 を削除 → [10, 30]", "3行目: 値 10 を削除 → [30]", "4行目: [30]" ],
+  "whyHtml" : [ "", "値 10 を渡す 3 行目の remove を見落とした答え", "remove(1) を、値 1 を消すと読んだ答え", "Integer.valueOf(10) も添え字と読んだ答え" ],
   "ref" : "java-arrays@2",
   "lesson" : "java-arrays"
 }, {
@@ -282,6 +307,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>copy は new ArrayList&lt;&gt;(base) で作った別物なので add できます(3行目は成功)。しかし base は List.of で作った変更不可のリストなので、4行目で UnsupportedOperationException が発生し、5行目には到達しません。「どの行で落ちるか」まで追うのが読解のポイントです。</p>\n",
   "traceHtml" : [ "1行目: base は変更不可の [a, b]", "2行目: copy は base の中身をコピーした可変の <a rel=\"nofollow\" href=\"別の本体\">a, b</a>", "3行目: copy = [a, b, c]。base は影響を受けない", "4行目: base.add → 変更不可なので例外。ここで停止" ],
+  "whyHtml" : [ "base への add を見落とした答え。List.of のリストは変更できず、4 行目で例外になる", "copy と base が同じリストを指すと読んだ答え。copy は別物で、しかも 4 行目で例外になる", "", "変更できないことをコンパイラが見抜くと読んだ答え。List.of も List 型で add は通り、実行時に落ちる" ],
   "ref" : "java-arrays@3",
   "lesson" : "java-arrays"
 }, {
@@ -293,6 +319,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>m[0] は「0 行目の配列の住所」なので row は同じ本体を指し、row[1] = 9 は m[0][1] にも見えます。一方 clone() は新しい本体を作るので、copy[0] = 0 は m[1] に影響しません。<strong>= は同じものを指す、clone / copyOf / new ArrayList&lt;&gt;(…) は別物を作る</strong>という区別です。</p>\n",
   "traceHtml" : [ "1行目: m は 2 つの行配列を指す", "2行目: row は m[0] と同じ配列 {1, 2} を指す", "3行目: その配列の [1] を 9 に → m[0] = {1, 9}", "4行目: copy は {3, 4} の複製(別の本体)", "5行目: copy = {0, 4}。m[1] は {3, 4} のまま", "6行目: &quot;9 3&quot;" ],
+  "whyHtml" : [ "", "row = m[0] で行が複製されると読んだ答え。row は同じ行を指すので m[0][1] は 9", "clone() も同じ行を指すと読んだ答え。clone() は別の配列を作るので m[1][0] は 3 のまま", "= と clone() の振る舞いを逆に読んだ答え。= は同じものを指し、clone() は別物を作る" ],
   "ref" : "java-arrays@4",
   "lesson" : "java-arrays"
 }, {
@@ -302,8 +329,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "Hi, Taro / Hi, Hana", "Hi, Hana / Hi, Hana", "Taro / Hana", "コンパイルエラー" ],
   "answer" : 0,
-  "explanationHtml" : "<p>greet は呼ばれるたびに、渡された name で新しい文字列を作って返します。1回目は &quot;Hi, Taro&quot;、2回目は &quot;Hi, Hana&quot; が、それぞれ a と b に入ります。</p>\n",
+  "explanationHtml" : "<p>greet は呼ばれるたびに、渡された name で新しい文字列を作って返します。1回目は <code>&quot;Hi, Taro&quot;</code>、2回目は <code>&quot;Hi, Hana&quot;</code> が、それぞれ a と b に入ります。</p>\n",
   "traceHtml" : [ "3行目: greet(&quot;Taro&quot;) を呼ぶ → 8行目で name = &quot;Taro&quot; → 9行目で &quot;Hi, Taro&quot; を返す → a に入る", "4行目: greet(&quot;Hana&quot;) を呼ぶ → name = &quot;Hana&quot; → &quot;Hi, Hana&quot; を返す → b に入る", "5行目: &quot;Hi, Taro / Hi, Hana&quot; と表示" ],
+  "whyHtml" : [ "", "後の呼び出しが前の結果を上書きすると読んだ答え", "greet が name をそのまま返すと読んだ答え", "main より後ろに書いたメソッドは呼べないと読んだ答え。クラスの中ならどこに書いても呼べる" ],
   "ref" : "java-methods@0",
   "lesson" : "java-methods"
 }, {
@@ -315,6 +343,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>count には 10 のコピーが渡されるので、増やしても c は 10 のまま。scores には配列の住所のコピーが渡されるので、scores[0] を増やすと s[0] も 11 になります。</p>\n",
   "traceHtml" : [ "8行目: update に c の値 10 と、s の住所を渡す", "2行目: メソッド内の count が 11 になる(c とは別の箱)", "3行目: 同じ配列の [0] が 11 になる → s[0] も 11", "9行目: &quot;10 11&quot; と表示" ],
+  "whyHtml" : [ "配列も中身のコピーを渡すと読んだ答え。scores は s と同じ配列を指すので s[0] は 11", "int も呼び出し元に届くと読んだ答え。count は c の値のコピーなので c は 10 のまま", "", "int と配列の振る舞いを逆に読んだ答え。int は値のコピー、配列は同じものを指す" ],
   "ref" : "java-methods@1",
   "lesson" : "java-methods"
 }, {
@@ -324,8 +353,9 @@
   "questionHtml" : "4行の出力は?",
   "choicesHtml" : [ "int:5 / double:5.0 / String:5 / String:A", "int:5 / double:5.0 / String:5 / int:65", "int:5 / int:5 / String:5 / int:65", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>5 は int、5.0 は double、&quot;5&quot; は String なので、それぞれ一致する定義が選ばれます。'A' は char で、char 版が無いため「情報を失わずに変換できる」int 版が選ばれ、'A' の文字コード 65 が表示されます。</p>\n",
+  "explanationHtml" : "<p>5 は int、5.0 は double、<code>&quot;5&quot;</code> は String なので、それぞれ一致する定義が選ばれます。'A' は char で、char 版が無いため「情報を失わずに変換できる」int 版が選ばれ、'A' の文字コード 65 が表示されます。</p>\n",
   "traceHtml" : [ "5行目: 5 は int → show(int) → int:5", "6行目: 5.0 は double → show(double) → double:5.0", "7行目: &quot;5&quot; は String → show(String) → String:5", "8行目: 'A' は char。char 版は無い → char は int に自動変換できる → show(int) → int:65" ],
+  "whyHtml" : [ "'A' が String 版に渡ると読んだ答え", "", "5.0 も int 版に入ると読んだ答え", "char 版が無いと呼べないと読んだ答え" ],
   "ref" : "java-methods@2",
   "lesson" : "java-methods"
 }, {
@@ -337,6 +367,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>n が負のときだけ skip を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。</p>\n",
   "traceHtml" : [ "9行目: n = 3 → if は false → &quot;run:3&quot;", "10行目: n = -1 → if は true → &quot;skip&quot; → return で終了(6行目は実行されない)", "11行目: n = 0 → 0 &lt; 0 は false → &quot;run:0&quot;" ],
+  "whyHtml" : [ "", "return でプログラム全体が終わると読んだ答え。return はそのメソッドだけを抜け、次の呼び出しへ進む", "0 も負の数と読んだ答え。n &lt; 0 に 0 は入らないので run:0 が出る", "if の中身を飛ばして読んだ答え。-1 では skip を出し、return で run は出さない" ],
   "ref" : "java-methods@3",
   "lesson" : "java-methods"
 }, {
@@ -348,6 +379,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>a は x と同じ配列を指すので a[0] = 100 は x[0] に見えます。b は最初 y と同じ配列を指していますが、3行目で新しい配列に向け直されます。以降の b[0] = 300 は新しい配列への変更で、y の配列は 2 のままです。</p>\n",
   "traceHtml" : [ "9行目: a は x の配列(住所コピー)、b は y の配列(住所コピー)を指す", "2行目: a の配列の [0] を 100 に → x[0] も 100", "3行目: b が新しい配列 {200} を指し直す。y は元の {2} のまま", "4行目: 新しい配列の [0] を 300 に。y には無関係", "10行目: &quot;100 2&quot; と表示" ],
+  "whyHtml" : [ "b の向け直しが y にも届くと読んだ答え。新しい配列に向けた後の 300 は y と無関係", "", "配列の中身の変更も呼び出し元に届かないと読んだ答え。a は x と同じ配列なので x[0] は 100", "b = new … で y も新しい配列を指すと読んだ答え。y は元の配列のままで 2" ],
   "ref" : "java-methods@4",
   "lesson" : "java-methods"
 }, {
@@ -357,8 +389,9 @@
   "questionHtml" : "2行の出力は?",
   "choicesHtml" : [ "spring boot / spring boot", "spring boot / spring", "spring / spring", "spring / spring boot" ],
   "answer" : 1,
-  "explanationHtml" : "<p>3行目の + は新しい文字列 &quot;spring boot&quot; を作り、a がそれを指し直します。元の &quot;spring&quot; は変更されないので、b は &quot;spring&quot; のまま。参照型でも、不変オブジェクトは「共有していても書き換わらない」のがポイントです。</p>\n",
+  "explanationHtml" : "<p>3行目の + は新しい文字列 <code>&quot;spring boot&quot;</code> を作り、a がそれを指し直します。元の <code>&quot;spring&quot;</code> は変更されないので、b は <code>&quot;spring&quot;</code> のまま。参照型でも、不変オブジェクトは「共有していても書き換わらない」のがポイントです。</p>\n",
   "traceHtml" : [ "1行目: &quot;spring&quot; を作り、a が指す", "2行目: b も同じ &quot;spring&quot; を指す", "3行目: 新しい &quot;spring boot&quot; が作られ、a だけがそれを指し直す。&quot;spring&quot; はそのまま", "4〜5行目: a は &quot;spring boot&quot;、b は &quot;spring&quot;" ],
+  "whyHtml" : [ "連結で元の文字列が書き換わると読んだ答え", "", "連結の結果を a に代入したことを見落とした答え", "a と b を逆に読んだ答え" ],
   "ref" : "java-strings@0",
   "lesson" : "java-strings"
 }, {
@@ -368,8 +401,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "true false true true", "true true true true", "false false true false", "true false true false" ],
   "answer" : 0,
-  "explanationHtml" : "<p>&quot;ad&quot; + &quot;min&quot; はリテラルどうしの連結なのでコンパイル時に &quot;admin&quot; にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。</p>\n",
+  "explanationHtml" : "<p><code>&quot;ad&quot; + &quot;min&quot;</code> はリテラルどうしの連結なのでコンパイル時に <code>&quot;admin&quot;</code> にまとめられ、プールの同じオブジェクトになります(x == y は true)。new String は別オブジェクト(x == z は false)。equals は中身比較なので true。intern() はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では intern を見ることは稀ですが、== が危ういことの理解に役立ちます。</p>\n",
   "traceHtml" : [ "1行目: プールに &quot;admin&quot; が置かれ、x が指す", "2行目: リテラルどうしの + はコンパイル時に &quot;admin&quot; になる → x と同じものを指す", "3行目: new なのでプール外に別の &quot;admin&quot; が作られる", "4行目: intern はプールの &quot;admin&quot; を返す → x と同じ", "5行目: true false true true" ],
+  "whyHtml" : [ "", "new String も、プールの同じものを返すと読んだ答え", "リテラル同士の連結も intern() も、別物を作ると読んだ答え", "intern() が新しい文字列を作ると読んだ答え" ],
   "ref" : "java-strings@1",
   "lesson" : "java-strings"
 }, {
@@ -379,8 +413,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "[1-2-3]", "[1-2-3-]", "1-2-3", "[123]" ],
   "answer" : 0,
-  "explanationHtml" : "<p>ループで &quot;1-2-3-&quot; が作られ、deleteCharAt で末尾の &quot;-&quot; を消して &quot;1-2-3&quot;。insert(0, &quot;[&quot;) で先頭に [ を入れ、append(&quot;]&quot;) で末尾に ] を付けます。StringBuilder は自分自身を書き換えるので、戻り値を受け取らなくても反映されます。</p>\n",
+  "explanationHtml" : "<p>ループで <code>1-2-3-</code> が作られ、<code>deleteCharAt</code> で末尾の <code>-</code> を消して <code>1-2-3</code>。<code>insert(0, &quot;[&quot;)</code> で先頭に <code>[</code> を入れ、<code>append(&quot;]&quot;)</code> で末尾に <code>]</code> を付けます。StringBuilder は自分自身を書き換えるので、戻り値を受け取らなくても反映されます。</p>\n",
   "traceHtml" : [ "2〜4行目: append を繰り返して &quot;1-2-3-&quot;", "5行目: length()-1 番目(末尾の &quot;-&quot;)を削除 → &quot;1-2-3&quot;", "6行目: 先頭に &quot;[&quot;、末尾に &quot;]&quot; → &quot;[1-2-3]&quot;", "7行目: println は toString を呼ぶので &quot;[1-2-3]&quot;" ],
+  "whyHtml" : [ "", "末尾の - を消す deleteCharAt を見落とした答え", "戻り値を受け取らない insert と append は効かないと読んだ答え", "deleteCharAt で - が全部消えると読んだ答え" ],
   "ref" : "java-strings@2",
   "lesson" : "java-strings"
 }, {
@@ -390,8 +425,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "TMP NONE NONE", "TEMP NONE NONE", "TEMP  NONE", "NullPointerException が発生" ],
   "answer" : 1,
-  "explanationHtml" : "<p>&quot;  Tmp &quot; は null でも空白でもないので先に進み、strip して &quot;Tmp&quot;、大文字小文字を無視して &quot;tmp&quot; と一致するので &quot;TEMP&quot;。&quot; &quot; は isBlank が true で &quot;NONE&quot;。null は <code>code == null</code> が true になり、|| の右側(isBlank)は評価されないので例外にならず &quot;NONE&quot;。||(短絡評価)と定数を左に置く書き方が null を守っています。</p>\n",
+  "explanationHtml" : "<p><code>&quot;  Tmp &quot;</code> は null でも空白でもないので先に進み、strip して <code>&quot;Tmp&quot;</code>、大文字小文字を無視して <code>&quot;tmp&quot;</code> と一致するので <code>&quot;TEMP&quot;</code>。<code>&quot; &quot;</code> は isBlank が true で <code>&quot;NONE&quot;</code>。null は <code>code == null</code> が true になり、|| の右側(isBlank)は評価されないので例外にならず <code>&quot;NONE&quot;</code>。||(短絡評価)と定数を左に置く書き方が null を守っています。</p>\n",
   "traceHtml" : [ "normalize(&quot;  Tmp &quot;): 2行目 false → 5行目 strip で &quot;Tmp&quot;、equalsIgnoreCase で true → &quot;TEMP&quot;", "normalize(&quot; &quot;): 2行目 isBlank が true → &quot;NONE&quot;", "normalize(null): 2行目 code == null が true。|| の右は評価されない → &quot;NONE&quot;", "結果: TEMP NONE NONE" ],
+  "whyHtml" : [ "大文字にする最後の return に進むと読んだ答え", "", "空白だけの文字列が、空文字になって返ると読んだ答え", "null にも isBlank() が呼ばれると読んだ答え" ],
   "ref" : "java-strings@3",
   "lesson" : "java-strings"
 }, {
@@ -401,8 +437,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "1 4 true true", "3 4 true false", "3 3 true true", "3 4 false false" ],
   "answer" : 1,
-  "explanationHtml" : "<p>&quot;鍵&quot; は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。</p>\n",
+  "explanationHtml" : "<p><code>&quot;鍵&quot;</code> は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。</p>\n",
   "traceHtml" : [ "2行目: 日本語1文字は UTF-8 で 3 バイト → raw.length は 3", "3行目: 3 バイト → Base64 で 4 文字(パディングなし)", "4行目: 4 文字 → 元の 3 バイトに戻る", "5行目: 同じ UTF-8 で戻すので中身は &quot;鍵&quot;。ただし新しいオブジェクト", "6行目: 3 4 true false" ],
+  "whyHtml" : [ "1 文字は 1 バイトと読み、== も true とした答え", "", "Base64 でも長さが変わらないと読み、== も true とした答え", "往復で中身が変わると読んだ答え" ],
   "ref" : "java-strings@4",
   "lesson" : "java-strings"
 }, {
@@ -414,6 +451,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>w1 と w2 は別々の実体で、balance の箱もそれぞれ持っています。w1 には 100 + 50 = 150、w2 には 30 が入ります。</p>\n",
   "traceHtml" : [ "8〜9行目: 実体を2つ作る。それぞれ balance = 0", "10〜11行目: w1 の balance が 100 → 150", "12行目: w2 の balance が 30", "13行目: &quot;150 30&quot;" ],
+  "whyHtml" : [ "", "balance を全インスタンスで共有と読んだ答え。static ではないので実体ごとに別の箱", "w2 の deposit(30) を見落とした答え。w2 にも 30 が入る", "w2 への入金も w1 に足されると読んだ答え。w1 と w2 は別の実体で、w1 は 150" ],
   "ref" : "java-classes@0",
   "lesson" : "java-classes"
 }, {
@@ -425,6 +463,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>w2 = w1 は住所のコピーなので、w1 と w2 は同じ実体を指します。どちら経由で deposit しても同じ balance が増えて 120。w3 は別の実体なので 5 です。new の回数(2回)= 実体の数、と数えるのがコツです。</p>\n",
   "traceHtml" : [ "1行目: 実体 A を作り w1 が指す", "2行目: w2 も実体 A を指す(コピーされたのは住所)", "3行目: 実体 B を作り w3 が指す", "4〜5行目: 実体 A の balance が 100 → 120", "6行目: 実体 B の balance が 5", "7行目: &quot;120 120 5&quot;" ],
+  "whyHtml" : [ "w2 = w1 で別の実体ができると読んだ答え。同じ実体を指すので w1 も w2 も 120", "", "w2 に別の balance があると読んだ答え。w1 と w2 は同じ実体なので w2 も 120", "w3 も同じ実体と読んだ答え。new した w3 は別の実体なので 5" ],
   "ref" : "java-classes@1",
   "lesson" : "java-classes"
 }, {
@@ -436,6 +475,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>total は static なので全員で共有され、enter() が3回呼ばれて 3 になります。myNo は実体ごとで、「そのとき の total」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。</p>\n",
   "traceHtml" : [ "13行目: a.enter() → total = 1、a.myNo = 1", "14行目: b.enter() → total = 2、b.myNo = 2", "15行目: a.enter() → total = 3、a.myNo = 3(上書き)", "16行目: &quot;3 2 3&quot;" ],
+  "whyHtml" : [ "a の 2 回目の enter() を見落とした答え", "", "呼んだ順を取り違えた答え", "myNo も static で、全員で共有すると読んだ答え" ],
   "ref" : "java-classes@2",
   "lesson" : "java-classes"
 }, {
@@ -447,6 +487,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>5行目の code = code; は「引数を引数に代入」しているだけで、フィールド code には何も入りません。this.code = code; と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。</p>\n",
   "traceHtml" : [ "13行目: Item を作る。フィールド code は null", "14行目: setCode(&quot;A-100&quot;) → 5行目で引数 code に引数 code を代入(意味なし)。フィールドは null のまま", "15行目: getCode() は フィールド code を返す → null" ],
+  "whyHtml" : [ "code = code でフィールドに入ると読んだ答え。どちらの code も引数を指し、フィールドは null のまま", "", "同じ名前どうしの代入を文法違反と読んだ答え。引数を引数に入れるだけで通ってしまう", "null のフィールドを返すと例外になると読んだ答え。null を返して表示するだけなら null と出る" ],
   "ref" : "java-classes@3",
   "lesson" : "java-classes"
 }, {
@@ -454,10 +495,11 @@
   "level" : 3,
   "code" : "public class Box {\n    private int count = 10;\n\n    void show() {\n        int count = 1;\n        System.out.println(count + \" \" + this.count);\n    }\n\n    static void report() {\n        System.out.println(count);\n    }\n}\n",
   "questionHtml" : "このコードは?",
-  "choicesHtml" : [ "show() は &quot;1 10&quot; と表示し、report() は 10 と表示する", "show() は &quot;10 10&quot; と表示する", "report() でコンパイルエラーになる", "show() でコンパイルエラーになる" ],
+  "choicesHtml" : [ "show() は <code>1 10</code> と表示し、report() は 10 と表示する", "show() は <code>10 10</code> と表示する", "report() でコンパイルエラーになる", "show() でコンパイルエラーになる" ],
   "answer" : 2,
-  "explanationHtml" : "<p>show() の中では、ローカル変数 count(1)がフィールド count(10)を隠します。名前だけの count はローカル変数、this.count はフィールドなので &quot;1 10&quot; になります。しかし report() は static メソッドで、static でないフィールド count を参照しているためコンパイルエラーです。</p>\n",
+  "explanationHtml" : "<p>show() の中では、ローカル変数 count(1)がフィールド count(10)を隠します。名前だけの count はローカル変数、this.count はフィールドなので <code>1 10</code> になります。しかし report() は static メソッドで、static でないフィールド count を参照しているためコンパイルエラーです。</p>\n",
   "traceHtml" : [ "5行目: ローカル変数 count = 1 を宣言。同名のフィールドは this.count でしか見えなくなる", "6行目: count は 1、this.count は 10 → &quot;1 10&quot;(ここは問題ない)", "10行目: static メソッドから インスタンスフィールド count を参照 → 「どの実体の count か」決まらない → コンパイルエラー", "結果: コンパイルが通らないので、何も実行されない" ],
+  "whyHtml" : [ "static メソッドからもフィールド count を読めると読んだ答え", "名前だけの count もフィールドと読み、report() も見落とした答え", "", "フィールドと同じ名前のローカル変数を文法違反と読んだ答え" ],
   "ref" : "java-classes@4",
   "lesson" : "java-classes"
 }, {
@@ -469,6 +511,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>引数1つなら Ticket(String) が選ばれて price は 1000 固定。引数2つなら Ticket(String, int) が選ばれて price は 1500 です。引数の数で動くコンストラクタが決まります。</p>\n",
   "traceHtml" : [ "20行目: 引数1つ → 5行目のコンストラクタ → seat = &quot;A-1&quot;、price = 1000", "21行目: 引数2つ → 10行目のコンストラクタ → seat = &quot;B-2&quot;、price = 1500", "22行目: &quot;A-1/1000 B-2/1500&quot;" ],
+  "whyHtml" : [ "", "引数 1 つのコンストラクタは price に触れないと読んだ答え。this.price = 1000 を入れている", "price を全部の Ticket で共有と読んだ答え。price は実体ごとで、a は 1000", "同じ名前のコンストラクタは 2 つ書けないと読んだ答え。引数が違えばオーバーロードできる" ],
   "ref" : "java-classes@5",
   "lesson" : "java-classes"
 }, {
@@ -480,6 +523,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>this(...) は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。Room() → Room(String) → Room(String, int) と潜っていき、いちばん奥の A から順に表示されます。</p>\n",
   "traceHtml" : [ "22行目: new Room() → 5行目 Room() に入る", "6行目: this(&quot;未設定&quot;) → 10行目 Room(String) に入る(7行目はまだ)", "11行目: this(name, 4) → 15行目 Room(String, int) に入る(12行目はまだ)", "16〜18行目: フィールド保存 → &quot;A&quot; を表示 → 戻る", "12行目: &quot;B&quot; を表示 → 戻る", "7行目: &quot;C&quot; を表示 → 完成" ],
+  "whyHtml" : [ "呼んだ順に表示されると読んだ答え。this(...) が先に奥まで進み、奥の A から戻りながら出る", "", "this(...) を飛ばして自分の行だけ動くと読んだ答え。呼び先の A と B も実行される", "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると B、C と残りの行が動く" ],
   "ref" : "java-classes@6",
   "lesson" : "java-classes"
 }, {
@@ -489,8 +533,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "0:fast", "3:safe", "3:fast", "0:null" ],
   "answer" : 2,
-  "explanationHtml" : "<p>初期化子で retry = 3、mode = &quot;safe&quot; になったあと、コンストラクタ本体で mode だけ &quot;fast&quot; に上書きされます。retry はコンストラクタで触っていないので初期化子の 3 のままです。</p>\n",
+  "explanationHtml" : "<p>初期化子で <code>retry = 3</code>、<code>mode = &quot;safe&quot;</code> になったあと、コンストラクタ本体で mode だけ <code>&quot;fast&quot;</code> に上書きされます。retry はコンストラクタで触っていないので初期化子の 3 のままです。</p>\n",
   "traceHtml" : [ "14行目: new → 既定値(retry=0, mode=null)→ 初期化子(retry=3, mode=&quot;safe&quot;)", "5〜6行目: コンストラクタ本体で mode = &quot;fast&quot;(retry はそのまま)", "15行目: &quot;3:fast&quot;" ],
+  "whyHtml" : [ "コンストラクタがあると初期化子が効かないと読んだ答え", "初期化子がコンストラクタより後に動くと読んだ答え", "", "初期化子もコンストラクタの代入も効かないと読んだ答え" ],
   "ref" : "java-classes@7",
   "lesson" : "java-classes"
 }, {
@@ -502,6 +547,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>5行目は引数 nickname を引数 nickname に代入しているだけで、フィールドには何も入りません。this.nickname = nickname; が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。</p>\n",
   "traceHtml" : [ "13行目: new Profile(&quot;neko&quot;) → フィールド nickname は null", "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)", "14行目: getNickname() はフィールドを返す → null" ],
+  "whyHtml" : [ "<code>nickname = nickname</code> でフィールドに入ると読んだ答え", "", "同じ名前どうしの代入を文法違反と読んだ答え", "null を返すと例外になると読んだ答え" ],
   "ref" : "java-classes@8",
   "lesson" : "java-classes"
 }, {
@@ -513,6 +559,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>@RequiredArgsConstructor は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、mailSender は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、mailSender は null のまま。10行目で NullPointerException です。final の付け忘れが原因です。</p>\n",
   "traceHtml" : [ "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)", "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま", "6行目: static final の定数はインスタンスの初期化とは無関係", "9行目: reportRepository は注入済みなので動く", "10行目: mailSender が null → NullPointerException" ],
+  "whyHtml" : [ "mailSender も Spring が入れてくれると読んだ答え", "final のフィールドがコンストラクタに入らないと読んだ答え", "", "final でないフィールドがあるとコンパイルが通らないと読んだ答え" ],
   "ref" : "java-classes@9",
   "lesson" : "java-classes"
 }, {
@@ -524,6 +571,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>String、Integer、System は java.lang なので import 不要ですが、List と ArrayList は java.util にあります。import が無いのでコンパイラは名前を解決できず、7行目でエラーになります。</p>\n",
   "traceHtml" : [ "5〜6行目: String と Integer は java.lang → import 不要で OK", "7行目: List と ArrayList は java.util → import が無い → コンパイルエラー", "8行目: System も java.lang だが、7行目で止まるので実行には至らない" ],
+  "whyHtml" : [ "java.util のクラスも import 不要と読んだ答え", "", "String にも import が要ると読んだ答え", "名前の解決が実行時に行われると読んだ答え。見つからないクラスはコンパイルの段階で止まる" ],
   "ref" : "java-encapsulation@0",
   "lesson" : "java-encapsulation"
 }, {
@@ -535,6 +583,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>Stock クラス自体は public なので import は通ります(11行目は OK)。しかし quantity フィールドは修飾子なし(パッケージプライベート)なので、別パッケージ shop.web からは見えません。16行目でコンパイルエラーです。getQuantity() を使えば通ります。</p>\n",
   "traceHtml" : [ "3行目: Stock は public → 別パッケージから import できる", "4行目: quantity は修飾子なし → shop.core の中からしか見えない", "11行目: import は OK(クラスは見える)", "16行目: s.quantity は shop.web から見えない → コンパイルエラー" ],
+  "whyHtml" : [ "修飾子なしのフィールドも、別パッケージから見えると読んだ答え", "見えないフィールドは既定値で読めると読んだ答え", "", "import の段階で弾かれると読んだ答え" ],
   "ref" : "java-encapsulation@1",
   "lesson" : "java-encapsulation"
 }, {
@@ -546,6 +595,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>max と min は Clamp クラスのメソッドではありませんが、import static により Math.max / Math.min をクラス名なしで呼べます。max(150, 0) = 150、min(150, 100) = 100 です。</p>\n",
   "traceHtml" : [ "1〜2行目: Math.max と Math.min を裸の名前で使えるようにする", "7行目: 内側 max(150, 0) → 150。外側 min(150, 100) → 100", "8行目: 100 と表示" ],
+  "whyHtml" : [ "min(…, 100) の上限を見落とした答え", "", "max(v, 0) が小さい方の 0 を返すと読んだ答え", "max と min は、クラス名が無いと呼べないと読んだ答え" ],
   "ref" : "java-encapsulation@2",
   "lesson" : "java-encapsulation"
 }, {
@@ -557,6 +607,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。</p>\n",
   "traceHtml" : [ "1行目: 短い名前 Date = java.util.Date と決まる", "5行目: d1 は java.util.Date のインスタンス", "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない", "7〜8行目: getName() は完全修飾名を返す → java.util.Date、java.sql.Date" ],
+  "whyHtml" : [ "getName() が短いクラス名を返すと読んだ答え", "", "2 つの Date がぶつかると読んだ答え", "後の行の完全修飾名に、短い Date も引きずられると読んだ答え" ],
   "ref" : "java-encapsulation@3",
   "lesson" : "java-encapsulation"
 }, {
@@ -568,6 +619,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>@Getter によりgetCardId()とgetKeyVersion()が生成され、@AllArgsConstructorにより全フィールドを引数にとるコンストラクタが生成されます。ソースにはどちらも書かれていませんが、コンパイル後には存在します。</p>\n",
   "traceHtml" : [ "1〜2行目: @Getter でgetter2つ、@AllArgsConstructorで全フィールドのコンストラクタが生成される", "8行目: KeyEntity(&quot;C001&quot;, 3) → cardId=&quot;C001&quot;, keyVersion=3 で生成", "9行目: getCardId() → &quot;C001&quot;、getKeyVersion() → 3", "結果: &quot;C001:3&quot;" ],
+  "whyHtml" : [ "", "ソースに無い getter は呼べないと読んだ答え", "コンストラクタの引数がフィールドに入らないと読んだ答え", "生成されたメソッドが、実行時には無いと読んだ答え" ],
   "ref" : "java-encapsulation@4",
   "lesson" : "java-encapsulation"
 }, {
@@ -579,6 +631,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>@RequiredArgsConstructor が引数にとるのは final(と @NonNull)のフィールドだけです。keyRepository と clock は final なので、KeyIssueService(KeyRepository, Clock) というコンストラクタが生成され、この呼び出しと一致します。final でない cryptoClient(仕事では hsmClient)は対象外です。</p>\n",
   "traceHtml" : [ "1行目: final(または @NonNull)のフィールドだけを引数にとるコンストラクタが生成される", "3行目: keyRepository は final → 対象", "4行目: cryptoClient は final でない → 対象外", "5行目: clock は final → 対象", "生成される: KeyIssueService(KeyRepository keyRepository, Clock clock)", "9行目: 引数の型と順序が一致するのでコンパイルできる" ],
+  "whyHtml" : [ "", "final の有無に関係なく、全フィールドを取ると読んだ答え", "全フィールドを取る <code>@AllArgsConstructor</code> と取り違えた答え", "この注釈を付けられるクラスに制限があると読んだ答え" ],
   "ref" : "java-encapsulation@5",
   "lesson" : "java-encapsulation"
 }, {
@@ -590,6 +643,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>@Data の toString() は results フィールドも文字列化しようとし、各 ResultEntity の toString() はさらに key フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、StackOverflowError になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。</p>\n",
   "traceHtml" : [ "18行目: keyEntity.toString() が呼ばれる(println が内部で呼ぶ)", "@Data の toString() は results フィールドも含める → 各 ResultEntity.toString() を呼ぶ", "ResultEntity.toString() は key フィールド(元の KeyEntity)を含める → keyEntity.toString() を再び呼ぶ", "この呼び合いが止まらず、スタックが尽きて StackOverflowError" ],
+  "whyHtml" : [ "toString() がお互いを呼び合うことを見落とした答え。results と key をたどり続けて止まらない", "", "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる", "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の toString() で起きる" ],
   "ref" : "java-encapsulation@6",
   "lesson" : "java-encapsulation"
 }, {
@@ -599,8 +653,9 @@
   "questionHtml" : "<code>@Builder</code> は <code>CommandRequest.builder().項目名(値)….build()</code> の形で組み立てる Builder(「ネストクラス」のレッスンで扱う)を自動で作る Lombok の注釈、<code>@ToString</code> は toString を作る注釈です。出力される timeoutMillis の値は?",
   "choicesHtml" : [ "0(セットされなかったので既定値)", "コンパイルエラー", "実行時例外", "null" ],
   "answer" : 0,
-  "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。int は参照型ではないので null にはなりません。</p>\n",
+  "explanationHtml" : "<p>Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。</p>\n",
   "traceHtml" : [ "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない", "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる", "int の既定値は 0 なので timeoutMillis は 0", "結果: toString() の出力に timeoutMillis=0 が含まれる" ],
+  "whyHtml" : [ "", "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え", "設定しない項目があると build() で落ちると読んだ答え", "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0" ],
   "ref" : "java-encapsulation@7",
   "lesson" : "java-encapsulation"
 }, {
@@ -612,6 +667,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。</p>\n",
   "traceHtml" : [ "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる", "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない", "10行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)", "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる" ],
+  "whyHtml" : [ "検査例外を catch していないので、コンパイラが止めると読んだ答え", "", "この注釈が例外を握りつぶすと読んだ答え", "読めないファイルは空として扱われると読んだ答え" ],
   "ref" : "java-encapsulation@8",
   "lesson" : "java-encapsulation"
 }, {
@@ -623,6 +679,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>label() は FamilyPlan に書かれていないので、親 Plan の版がそのまま使われます。monthlyFee() は子で上書きしているので 2500 です。</p>\n",
   "traceHtml" : [ "10行目: FamilyPlan を new(親 Plan() → 子 FamilyPlan() の順に初期化)", "11行目: f.label() → 子に無い → 親の label() → &quot;基本プラン&quot;", "11行目: f.monthlyFee() → 子で上書き済み → 2500" ],
+  "whyHtml" : [ "子の上書きを見落とした答え", "", "子に書いていない label() は呼べないと読んだ答え", "子に無い label() は null を返すと読んだ答え" ],
   "ref" : "java-inheritance@0",
   "lesson" : "java-inheritance"
 }, {
@@ -634,6 +691,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>Bottom() の super() が Middle() を呼び、Middle() の(自動で補われた)super() が Top() を呼びます。いちばん上の Top から順に本体が実行されるので T → M → B です。</p>\n",
   "traceHtml" : [ "14行目: new Bottom() → Bottom() に入る → 9行目 super() で Middle() へ", "5行目: Middle() の1行目に自動の super() → Top() へ", "2行目: Top() の本体 → &quot;T&quot; → Middle に戻る", "5行目: Middle() の本体 → &quot;M&quot; → Bottom に戻る", "10行目: Bottom() の残り → &quot;B&quot;" ],
+  "whyHtml" : [ "親のコンストラクタは動かないと読んだ答え。super() をたどって Top と Middle も実行される", "子の本体から先に動くと読んだ答え。super() が先頭なので一番上の Top から順に出る", "", "Middle の super() を見落とした答え。書いていなくても自動で入り、Top も実行される" ],
   "ref" : "java-inheritance@1",
   "lesson" : "java-inheritance"
 }, {
@@ -643,8 +701,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "Hello, Ken", "Ken-san", "Hello, Ken-san", "無限ループ" ],
   "answer" : 2,
-  "explanationHtml" : "<p>子の hello() は、super.hello(name) で親の版を呼んで &quot;Hello, Ken&quot; を受け取り、&quot;-san&quot; を足して返します。super. を付けずに hello(name) と書くと自分自身を呼び続けて StackOverflowError になります。</p>\n",
+  "explanationHtml" : "<p>子の hello() は、<code>super.hello(name)</code> で親の版を呼んで <code>&quot;Hello, Ken&quot;</code> を受け取り、<code>&quot;-san&quot;</code> を足して返します。<code>super.</code> を付けずに <code>hello(name)</code> と書くと自分自身を呼び続けて StackOverflowError になります。</p>\n",
   "traceHtml" : [ "14行目: g.hello(&quot;Ken&quot;) → 子の hello (8行目) が動く", "9行目: super.hello(&quot;Ken&quot;) → 親の hello (2行目) → &quot;Hello, Ken&quot;", "9行目: &quot;Hello, Ken&quot; + &quot;-san&quot; → &quot;Hello, Ken-san&quot; を返す" ],
+  "whyHtml" : [ "子の上書きを見落とした答え", "<code>super.hello(name)</code> が name だけを返すと読んだ答え", "", "<code>super.hello()</code> も自分自身を呼ぶと読んだ答え" ],
   "ref" : "java-inheritance@2",
   "lesson" : "java-inheritance"
 }, {
@@ -654,8 +713,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "900", "1000", "コンパイルエラー", "実行時エラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>子の discount(long) は引数の型が親の discount(int) と違うため、上書きではなく「別のメソッド(オーバーロード)」です。呼び出しの 1000 は int なので、ぴったり一致する親の discount(int) が選ばれ 1000 が返ります。@Override を付けていればコンパイルエラーで気づけました。</p>\n",
+  "explanationHtml" : "<p>子の <code>discount(long)</code> は引数の型が親の <code>discount(int)</code> と違うため、上書きではなく「別のメソッド(オーバーロード)」です。呼び出しの 1000 は int なので、ぴったり一致する親の <code>discount(int)</code> がコンパイル時に選ばれ 1000 が返ります。@Override を付けていればコンパイルエラーで気づけました。</p>\n",
   "traceHtml" : [ "5行目: 引数が long → 親の discount(int) とはシグネチャが違う → 上書きではない", "8行目: PremiumMember は discount(int)(親から継承)と discount(long)(自分)の2つを持つ", "9行目: 1000 は int → 完全一致する discount(int) が選ばれる → 親の版 → 1000" ],
+  "whyHtml" : [ "子の discount(long) を上書きと読んだ答え", "", "同じ名前で引数の型を変えるとエラーと読んだ答え", "どちらを呼ぶか、実行時に決められず落ちると読んだ答え" ],
   "ref" : "java-inheritance@3",
   "lesson" : "java-inheritance"
 }, {
@@ -665,8 +725,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "init: base", "init: child", "init: null", "コンパイルエラー" ],
   "answer" : 2,
-  "explanationHtml" : "<p>new Child() では、まず親 Base() が動きます。その中で呼ばれる describe() は、実体が Child なので<strong>子の上書き版</strong>が動きます。しかしこの時点では子のフィールド初期化子(label = &quot;child&quot;)はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。</p>\n",
+  "explanationHtml" : "<p>new Child() では、まず親 Base() が動きます。その中で呼ばれる describe() は、実体が Child なので<strong>子の上書き版</strong>が動きます。しかしこの時点では子のフィールド初期化子(<code>label = &quot;child&quot;</code>)はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。</p>\n",
   "traceHtml" : [ "14行目: new Child() → 親 Base() が先に動く(子の初期化子はまだ)", "3行目: describe() を呼ぶ → 実体は Child なので子の describe() (11行目)", "11行目: label はまだ初期化されていない → null を返す", "3行目: &quot;init: null&quot; と表示", "その後: 子の初期化子で label = &quot;child&quot; になるが、表示はもう終わっている" ],
+  "whyHtml" : [ "親のコンストラクタの中では、親の describe() が動くと読んだ答え", "子のフィールドが先に初期化されると読んだ答え", "", "上書きできるメソッドをコンストラクタで呼ぶとエラーと読んだ答え。危険だが文法上は通る" ],
   "ref" : "java-inheritance@4",
   "lesson" : "java-inheritance"
 }, {
@@ -678,6 +739,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>extends で継いでいる Animal との関係は「継承」、implements で実装している Flyable(インターフェース)との関係は「実現」です。キーワードを見れば関係の種類がそのまま分かります。</p>\n",
   "traceHtml" : [ "7行目: class Bird extends Animal → Animal とは継承関係(白抜き三角+実線)", "7行目: implements Flyable → Flyable とは実現関係(白抜き三角+点線)", "8行目: fly() を具体的に実装しているのが「実現」の意味そのもの" ],
+  "whyHtml" : [ "implements も継承と読んだ答え。インターフェースを実装する関係は実現", "", "継承と実現を逆に読んだ答え。extends は継承、implements は実現", "extends も実現と読んだ答え。クラスを extends する関係は継承" ],
   "ref" : "java-polymorphism@0",
   "lesson" : "java-polymorphism"
 }, {
@@ -689,6 +751,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>(A) は Library が自分のコンストラクタで new Book(...) して部品を作り、そのまま持ち続けているのでコンポジションです(Library と一緒に生まれ、一緒に消える)。(B) は外で作られた Book をコンストラクタで受け取っているだけなので集約です(同じ Book をほかのクラスも持てる)。</p>\n",
   "traceHtml" : [ "(A) 4〜6行目: Library のコンストラクタの中で new Book(...) している → 部品を作るのも持ち続けるのも Library → コンポジション", "(B) 12〜14行目: favorite はコンストラクタの引数として外から渡される → ReadingClub は生成に関与しない → 集約" ],
+  "whyHtml" : [ "final で持てばコンポジションと読んだ答え。(B) は外で作った Book を受け取るので集約", "", "作る側と受け取る側を逆に読んだ答え。自分で new する (A) がコンポジション", "フィールドに持つだけなら集約と読んだ答え。(A) は自分で new し、一緒に生まれ消えるのでコンポジション" ],
   "ref" : "java-polymorphism@1",
   "lesson" : "java-polymorphism"
 }, {
@@ -700,6 +763,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。controller が1を出力→ service.place() を呼ぶ(同期メッセージ)→ service が2,3を出力して戻る→ controller が続きの4を出力、という順です。</p>\n",
   "traceHtml" : [ "handle() が呼ばれ &quot;1: controller start&quot; を出力", "service.place() を呼び出す(シーケンス図の同期メッセージに相当)", "place() の中で &quot;2: service start&quot;、&quot;3: service end&quot; を出力して呼び出し元に戻る(リプライメッセージ)", "controller に戻り、続きの &quot;4: controller end&quot; を出力" ],
+  "whyHtml" : [ "", "呼び出し先の処理が後回しになると読んだ答え", "呼ばれる側の service が先に動くと読んだ答え", "place() の途中で呼び出し元に戻ると読んだ答え" ],
   "ref" : "java-polymorphism@2",
   "lesson" : "java-polymorphism"
 }, {
@@ -711,6 +775,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、IllegalArgumentException が発生します。</p>\n",
   "traceHtml" : [ "2行目: request.getAmount() は -100 なので条件は false", "5行目の else に入る", "6行目: IllegalArgumentException を throw する", "この if-else 全体が、シーケンス図では alt [amount &gt; 0] / [else] の2区画として描かれる" ],
+  "whyHtml" : [ "if-else を opt と読んだ答え。どちらか一方を必ず通る分岐は alt で、-100 では例外になる", "", "分岐をくり返しと取り違えた答え。if-else は alt で、-100 は else に入って例外になる", "分岐は図にしないと読んだ答え。if-else は alt で表し、-100 は else に入って例外になる" ],
   "ref" : "java-polymorphism@3",
   "lesson" : "java-polymorphism"
 }, {
@@ -722,6 +787,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>変数 g の型は Greeter のままですが、指している実体が EnglishGreeter → JapaneseGreeter と変わるので、動く greet() も変わります。同じ g.greet() という呼び出しで違う結果になるのがポリモーフィズムです。</p>\n",
   "traceHtml" : [ "11行目: g は EnglishGreeter の実体を指す", "12行目: g.greet() → 実体 EnglishGreeter の greet → &quot;Hello&quot;", "13行目: g が JapaneseGreeter の実体を指し直す(変数の型は Greeter のまま)", "14行目: g.greet() → 実体 JapaneseGreeter の greet → &quot;こんにちは&quot;" ],
+  "whyHtml" : [ "", "代入の順を逆に読んだ答え", "g は最初の実体のまま変わらないと読んだ答え", "Greeter 型の変数に、別のクラスは入れ直せないと読んだ答え" ],
   "ref" : "java-abstract-interface@0",
   "lesson" : "java-abstract-interface"
 }, {
@@ -731,8 +797,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "2900", "3600", "1700", "コンパイルエラー" ],
   "answer" : 0,
-  "explanationHtml" : "<p>リストの型は List ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので 1200 + 500 + 1200 = 2900 です。</p>\n",
+  "explanationHtml" : "<p>リストの型は <code>List&lt;Fee&gt;</code> ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので 1200 + 500 + 1200 = 2900 です。</p>\n",
   "traceHtml" : [ "11行目: Fee 型のリストに、子クラスの実体を3つ入れる(アップキャスト)", "13〜14行目 1周目: f は AdultFee → 1200", "2周目: f は ChildFee → 500(合計 1700)", "3周目: f は AdultFee → 1200(合計 2900)", "16行目: 2900" ],
+  "whyHtml" : [ "", "全部が AdultFee の 1200 と読んだ答え", "同じ AdultFee は 1 回だけ数えると読んだ答え", "抽象クラスの型ではリストを作れないと読んだ答え" ],
   "ref" : "java-abstract-interface@1",
   "lesson" : "java-abstract-interface"
 }, {
@@ -742,8 +809,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "H|a,b,c H|x:1", "H|a,b,c {|x:1", "{|a,b,c {|x:1", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>export() は親に1つだけあり、その中で header() と body() を呼びます。CsvExporter は body() だけ上書きしているので header は親の &quot;H&quot;。JsonExporter は header() も上書きしているので &quot;{&quot;。どちらも「流れは親、中身は実体」で決まります。</p>\n",
+  "explanationHtml" : "<p>export() は親に1つだけあり、その中で header() と body() を呼びます。CsvExporter は body() だけ上書きしているので header は親の <code>&quot;H&quot;</code>。JsonExporter は header() も上書きしているので <code>&quot;{&quot;</code>。どちらも「流れは親、中身は実体」で決まります。</p>\n",
   "traceHtml" : [ "21行目: e1.export() → 親の export (2行目) → header() は上書きなし → &quot;H&quot;、body() は Csv の版 → &quot;a,b,c&quot; → &quot;H|a,b,c&quot;", "21行目: e2.export() → 親の export → header() は Json の版 → &quot;{&quot;、body() は Json の版 → &quot;x:1&quot; → &quot;{|x:1&quot;" ],
+  "whyHtml" : [ "e2 側の header() の上書きを見落とした答え", "", "片方の上書きがもう片方にも効くと読んだ答え", "abstract でない header() を上書きするとエラーと読んだ答え。普通のメソッドも上書きできる" ],
   "ref" : "java-abstract-interface@2",
   "lesson" : "java-abstract-interface"
 }, {
@@ -753,8 +821,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "sub sub", "base base", "base sub", "sub base" ],
   "answer" : 2,
-  "explanationHtml" : "<p>メソッドは実体の型で決まる(動的ディスパッチ)ので b.kind() は Sub の版で &quot;sub&quot;。しかし<strong>フィールドはオーバーライドされず、変数の型で決まります</strong>。b の型は Base なので b.kind は Base のフィールド &quot;base&quot; です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。</p>\n",
+  "explanationHtml" : "<p>メソッドは実体の型で決まる(動的ディスパッチ)ので b.kind() は Sub の版で <code>&quot;sub&quot;</code>。しかし<strong>フィールドはオーバーライドされず、変数の型で決まります</strong>。b の型は Base なので b.kind は Base のフィールド <code>&quot;base&quot;</code> です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。</p>\n",
   "traceHtml" : [ "11行目: 変数の型 Base、実体 Sub(アップキャスト)", "12行目: b.kind → フィールドは変数の型 Base で解決 → &quot;base&quot;", "12行目: b.kind() → メソッドは実体 Sub で解決 → &quot;sub&quot;", "結果: &quot;base sub&quot;" ],
+  "whyHtml" : [ "フィールドも実体の型で選ばれると読んだ答え", "メソッドも変数の型で選ばれると読んだ答え", "", "フィールドとメソッドの決まり方を逆に読んだ答え" ],
   "ref" : "java-abstract-interface@3",
   "lesson" : "java-abstract-interface"
 }, {
@@ -764,8 +833,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "S sub", "B sub", "B base", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。x.tag() は変数の型 Base の tag() が選ばれて &quot;B&quot;。一方、インスタンスメソッド name() は実体 Sub の版で &quot;sub&quot; です。static メソッドを変数経由で呼ぶのは紛らわしいので、Base.tag() のようにクラス名で呼ぶのが作法です。</p>\n",
+  "explanationHtml" : "<p>static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。x.tag() は変数の型 Base の tag() が選ばれて <code>&quot;B&quot;</code>。一方、インスタンスメソッド name() は実体 Sub の版で <code>&quot;sub&quot;</code> です。static メソッドを変数経由で呼ぶのは紛らわしいので、Base.tag() のようにクラス名で呼ぶのが作法です。</p>\n",
   "traceHtml" : [ "11行目: 変数の型 Base、実体 Sub", "12行目: x.tag() → static は変数の型(Base)で決まる → &quot;B&quot;", "12行目: x.name() → インスタンスメソッドは実体(Sub)で決まる → &quot;sub&quot;", "結果: &quot;B sub&quot;" ],
+  "whyHtml" : [ "static メソッドも実体の型で選ばれると読んだ答え", "", "name() も変数の型で選ばれると読んだ答え", "変数経由の static 呼び出しを文法違反と読んだ答え" ],
   "ref" : "java-abstract-interface@4",
   "lesson" : "java-abstract-interface"
 }, {
@@ -777,6 +847,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>s の実体は Square なので、最初の instanceof Circle は false、次の instanceof Square が true になり、sq という Square 型の変数が使えます。sq.side はフィールド side(2.0)です。area() ではなく side を表示している点に注意してください。</p>\n",
   "traceHtml" : [ "10行目: 変数の型 Shape、実体 Square", "11行目: s instanceof Circle → 実体は Square → false", "13行目: s instanceof Square → true → sq(Square 型)が使える", "14行目: sq.side は 2(double なので 2.0)→ &quot;square 2.0&quot;" ],
+  "whyHtml" : [ "変数の型が Shape なら、Circle の判定にも当てはまると読んだ答え", "", "area() の値を表示すると読んだ答え", "instanceof でキャストに失敗すると読んだ答え。合わない型は false になるだけで例外は出ない" ],
   "ref" : "java-abstract-interface@5",
   "lesson" : "java-abstract-interface"
 }, {
@@ -788,6 +859,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>static ブロックは読み込み時に親(Base)→子(Derived)の順で1回だけ実行されます(A→B)。そのあとインスタンスの初期化ブロック→コンストラクタが親→子の順で走ります(C→D→E→F)。</p>\n",
   "traceHtml" : [ "new Derived() の実行で、まだ読み込まれていない Derived を読み込む", "Derived の親 Base が先に読み込まれ、Base の static ブロックが実行される → A", "続いて Derived の static ブロックが実行される → B", "インスタンス生成:Base のインスタンス初期化ブロック → C、Base のコンストラクタ → D", "続いて Derived のインスタンス初期化ブロック → E、Derived のコンストラクタ → F" ],
+  "whyHtml" : [ "", "親の分を全部終えてから子の static が動くと読んだ答え。static は親→子とも、インスタンスの初期化より先", "static ブロックがインスタンスを作った後と読んだ答え。クラスの読み込み時に、new の初期化より先に動く", "親の初期化ブロックをコンストラクタの後と読んだ答え。初期化ブロックはコンストラクタ本体の前に動く" ],
   "ref" : "java-nested-classes@0",
   "lesson" : "java-nested-classes"
 }, {
@@ -799,6 +871,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>匿名クラス自身が value というフィールドを持っているので、ただの value はこの匿名クラス自身のもの(1→2)を指します。外側の Counter が持つ value(10)には触れていないので、10 のままです。区別したいときに Counter.this.value と書きます。</p>\n",
   "traceHtml" : [ "makeIncrementer() が匿名 Runnable を作って返す(この時点ではまだ run しない)", "r.run() を呼ぶと、匿名クラス自身の value(1)が value++ で 2 になる", "Counter.this.value は外側 Counter インスタンスの value で、変更していないので 10 のまま", "&quot;2 10&quot; と表示される" ],
+  "whyHtml" : [ "", "<code>value++</code> が外側の Counter の value を増やすと読んだ答え。増えるのは匿名クラス自身の value(1→2)", "ただの <code>value</code> も外側の value と読んだ答え。匿名クラス自身の value が外側の名前を隠す", "両方の value が増えると読んだ答え。増えるのは匿名クラス自身の value だけで、外側は 10 のまま" ],
   "ref" : "java-nested-classes@1",
   "lesson" : "java-nested-classes"
 }, {
@@ -810,6 +883,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>Statement は非static の内部クラスなので、外側 Wallet の private フィールド balance にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。</p>\n",
   "traceHtml" : [ "Wallet を作ると balance = 1000", "w.new Statement() で、w に結び付いた Statement インスタンスを作る", "print() の中の balance は、結び付いている w の balance を指す", "&quot;残高: 1000&quot; と表示される" ],
+  "whyHtml" : [ "", "内部クラスからは外側の値が見えず、0 になると読んだ答え", "外側のインスタンスが無いと読んだ答え。<code>w.new Statement()</code> で w に結び付いている", "private の balance に、内部クラスからは触れないと読んだ答え" ],
   "ref" : "java-nested-classes@2",
   "lesson" : "java-nested-classes"
 }, {
@@ -817,10 +891,11 @@
   "level" : 3,
   "code" : "class Handler {\n    Runnable build(boolean urgent) {\n        String label = \"normal\";\n        if (urgent) {\n            label = \"urgent\";\n        }\n        return new Runnable() {\n            @Override\n            public void run() {\n                System.out.println(label);\n            }\n        };\n    }\n}\n",
   "questionHtml" : "このコードは?",
-  "choicesHtml" : [ "urgent の値に応じて &quot;normal&quot; か &quot;urgent&quot; が表示される", "常に &quot;normal&quot; と表示される", "実行時エラーになる", "コンパイルエラーになる" ],
+  "choicesHtml" : [ "urgent の値に応じて <code>normal</code> か <code>urgent</code> が表示される", "常に <code>normal</code> と表示される", "実行時エラーになる", "コンパイルエラーになる" ],
   "answer" : 3,
   "explanationHtml" : "<p>label は宣言時と if の中の2箇所で代入されています。urgent が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、一度値が決まったあとに再代入されない(実質的final)必要があります。</p>\n",
   "traceHtml" : [ "label を &quot;normal&quot; で初期化", "if (urgent) の中で label に再代入するコードがある(実行されるかは関係ない)", "この時点で label は実質的final ではなくなる", "匿名クラスの run() の中で label を使おうとしている行でコンパイルエラー" ],
+  "whyHtml" : [ "ローカル変数は何度代入しても、匿名クラスから使えると読んだ答え", "宣言時の値が取り込まれると読んだ答え", "実行してから問題が分かると読んだ答え", "" ],
   "ref" : "java-nested-classes@3",
   "lesson" : "java-nested-classes"
 }, {
@@ -832,6 +907,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>Error は static ネストクラスなので、外側 Response のインスタンスが無くても Response.Error という型名でそのまま new できます。Response のインスタンスを作る必要はありません。</p>\n",
   "traceHtml" : [ "Error は static なので Response とは無関係に生成できる", "new Response.Error(&quot;失敗しました&quot;) で message に文字列が入る", "e.message を表示 → &quot;失敗しました&quot;" ],
+  "whyHtml" : [ "", "message が空のままと読んだ答え。コンストラクタで渡した「失敗しました」が message に入る", "内部クラス(static なし)と取り違えた答え", "外側を作っていないので、実行時に落ちると読んだ答え" ],
   "ref" : "java-nested-classes@4",
   "lesson" : "java-nested-classes"
 }, {
@@ -843,6 +919,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>4行目で 0 除算 → ArithmeticException。5行目の B は飛ばされ、catch で C、finally で D、catch で受け止めたので処理は続き E。B だけが表示されません。</p>\n",
   "traceHtml" : [ "3行目: A を表示", "4行目: 10 / 0 → ArithmeticException 発生。5行目には進まない", "6〜7行目: 型が一致する catch → C を表示", "8〜9行目: finally → D を表示", "11行目: 例外は処理済みなので続行 → E を表示" ],
+  "whyHtml" : [ "例外の後も try の残りが動くと読んだ答え。0 除算の時点で try は中断し、B は出ない", "", "例外が起きると finally の後で止まると読んだ答え。実際は E まで出る", "0 除算の例外が catch の型に合わないと読んだ答え。型は合っていて、C が出る" ],
   "ref" : "java-exceptions@0",
   "lesson" : "java-exceptions"
 }, {
@@ -854,6 +931,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>null の s に length() を呼ぶと NullPointerException。上から照合すると IllegalArgumentException とは無関係、RuntimeException の子なので2つ目の catch で捕まります。3つ目の Exception にも一致しますが、最初に一致した1つだけが実行されます。</p>\n",
   "traceHtml" : [ "3行目: s は null → NullPointerException が投げられる", "4行目: IllegalArgumentException ではない → 不一致", "6行目: NullPointerException は RuntimeException の子 → 一致。ここで捕まる", "7行目: getSimpleName() はパッケージ名なしのクラス名 → &quot;実行時エラー: NullPointerException&quot;", "8行目: 既に捕まったので照合されない" ],
+  "whyHtml" : [ "null を「不正な引数」の例外と見た答え。null の呼び出しで起きるのは別の例外", "", "一番下の <code>Exception</code> の catch が受けると読んだ答え。先に合った catch で止まる", "null に <code>length()</code> を呼んでも何も起きないと読んだ答え。実際は例外になり、catch に入る" ],
   "ref" : "java-exceptions@1",
   "lesson" : "java-exceptions"
 }, {
@@ -865,6 +943,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>parse の中で NumberFormatException が発生します。parse には catch が無いので例外は上に抜けますが、抜ける途中で parse の finally が実行され [parse終了] が先に出ます。その後 main の catch で捕まり 変換失敗。12行目は実行されません。</p>\n",
   "traceHtml" : [ "11行目: parse(&quot;x1&quot;) を呼ぶ", "3行目: parseInt(&quot;x1&quot;) → NumberFormatException。return には至らない", "4〜5行目: parse を抜ける前に finally → [parse終了] を表示", "例外は main へ伝播。12行目は飛ばされる", "13〜14行目: catch で捕まえて 変換失敗 を表示" ],
+  "whyHtml" : [ "finally を見落とした答え。例外で抜けるときも finally は動く", "", "finally が main の catch の後に動くと読んだ答え。parse を抜ける途中で先に動く", "変換に失敗すると 0 が返ると読んだ答え。parseInt は例外を投げ、「値=」の行は実行されない" ],
   "ref" : "java-exceptions@2",
   "lesson" : "java-exceptions"
 }, {
@@ -876,6 +955,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>read() は throws IOException と宣言しており、IOException は検査例外です。呼ぶ側の main は catch も throws も書いていないので、コンパイラが9行目でエラーにします。実行には至りません。main に throws IOException を付けるか try-catch で囲めば通ります。</p>\n",
   "traceHtml" : [ "4行目: read は検査例外 IOException を投げうると宣言", "9行目: main は対処(catch / throws)を書いていない → コンパイルエラー", "10行目: コンパイルが通らないので実行されない" ],
+  "whyHtml" : [ "例外のメッセージが s に入ると読んだ答え。実際はコンパイルの段階で止まる", "検査例外の扱い漏れが実行時に出ると読んだ答え。実際はコンパイルで見つかる", "", "例外のときは null が返ると読んだ答え。実際はコンパイルの段階で止まる" ],
   "ref" : "java-exceptions@3",
   "lesson" : "java-exceptions"
 }, {
@@ -885,8 +965,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "lookup failed / NumberFormatException", "lookup failed / null", "NumberFormatException が捕まらず落ちる", "コンパイルエラー(throws が無い)" ],
   "answer" : 0,
-  "explanationHtml" : "<p>find の中で NumberFormatException を catch し、それを原因(cause)として DataAccessException に包んで投げ直しています。DataAccessException は RuntimeException 系なので throws は不要。main で捕まえ、getMessage() は &quot;lookup failed&quot;、getCause() は元の NumberFormatException です。</p>\n",
+  "explanationHtml" : "<p>find の中で NumberFormatException を catch し、それを原因(cause)として DataAccessException に包んで投げ直しています。DataAccessException は RuntimeException 系なので throws は不要。main で捕まえ、getMessage() は <code>&quot;lookup failed&quot;</code>、getCause() は元の NumberFormatException です。</p>\n",
   "traceHtml" : [ "15行目: find() を呼ぶ", "7行目: &quot;id-7&quot; は数値ではない → NumberFormatException", "8〜9行目: catch して、cause = e として DataAccessException を新たに throw。find を抜ける", "16行目: DataAccessException を catch", "17行目: メッセージ &quot;lookup failed&quot;、cause は NumberFormatException → 連結して表示" ],
+  "whyHtml" : [ "", "cause が渡っていないと読んだ答え。コンストラクタの <code>super(msg, cause)</code> で渡っている", "元の例外がそのまま main まで届くと読んだ答え。実際は find の中で捕まえている", "独自例外にはいつも throws が要ると読んだ答え。継承元を見ると宣言は要らない" ],
   "ref" : "java-exceptions@4",
   "lesson" : "java-exceptions"
 }, {
@@ -896,8 +977,9 @@
   "questionHtml" : "4行の出力は?",
   "choicesHtml" : [ "3 / null / -1 / 3", "8 / null / -1 / 2", "8 / 0 / -1 / 2", "8 / null / null / 3" ],
   "answer" : 1,
-  "explanationHtml" : "<p>&quot;pen&quot; は 3 → 8 に上書き。&quot;ink&quot; は無いので get は null、getOrDefault は -1。キーは pen と cup の2つなので size は 2。</p>\n",
+  "explanationHtml" : "<p><code>&quot;pen&quot;</code> は 3 → 8 に上書き。<code>&quot;ink&quot;</code> は無いので get は null、getOrDefault は -1。キーは pen と cup の2つなので size は 2。</p>\n",
   "traceHtml" : [ "2〜3行目: pen = 3 のあと同じキーで put → pen = 8 に上書き", "4行目: cup = 0 を登録。ペアは 2 組", "5行目: get(&quot;pen&quot;) → 8", "6行目: get(&quot;ink&quot;) → 無いので null", "7行目: getOrDefault(&quot;ink&quot;, -1) → -1", "8行目: size() → 2" ],
+  "whyHtml" : [ "同じキーの put を別のエントリと読んだ答え。実際は 8 に上書きされる", "", "無いキーの get は 0 を返すと読んだ答え。get に既定値は無い", "<code>getOrDefault</code> も null を返し、上書きも件数に入ると読んだ答え" ],
   "ref" : "java-collections@0",
   "lesson" : "java-collections"
 }, {
@@ -907,8 +989,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "5 5 true", "5 3 false", "3 3 false", "5 4 true" ],
   "answer" : 1,
-  "explanationHtml" : "<p>raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある &quot;osaka&quot; を add しても追加されず false が返ります。</p>\n",
+  "explanationHtml" : "<p>raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある <code>&quot;osaka&quot;</code> を add しても追加されず false が返ります。</p>\n",
   "traceHtml" : [ "1行目: List は重複を許すので 5 要素", "2行目: Set に変換 → 重複が除かれ 3 要素", "3行目: &quot;osaka&quot; は既にある → 追加されず、戻り値は false", "4行目: &quot;5 3 false&quot;" ],
+  "whyHtml" : [ "HashSet が重複も残すと読んだ答え。実際は重複が消える", "", "元の List の重複まで消えると読んだ答え。HashSet に詰めても raw は 5 つのまま", "既にある osaka を add すると増えると読んだ答え。実際は入らない" ],
   "ref" : "java-collections@1",
   "lesson" : "java-collections"
 }, {
@@ -920,6 +1003,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>defaultRoles() が返すのは List.of で作った不変 List です。型は List なので add はコンパイルできますが、実行すると UnsupportedOperationException。7行目の 1 は表示された後に落ちます。戻り値の型だけでは不変かどうか分からない例です。</p>\n",
   "traceHtml" : [ "6行目: List.of(&quot;USER&quot;) を受け取る。型は List だが中身は不変", "7行目: size() は読み取りなので OK → 1", "8行目: add は変更操作 → UnsupportedOperationException で停止", "9行目: 実行されない" ],
+  "whyHtml" : [ "<code>List.of</code> のリストに add できると読んだ答え。実際は不変で、add で落ちる", "", "不変なリストは型も別だと読んだ答え。コンパイラは気づかない", "最初の size() より先に add が効くと読んだ答え。上から順に 1 を出し、その後の add で落ちる" ],
   "ref" : "java-collections@2",
   "lesson" : "java-collections"
 }, {
@@ -931,6 +1015,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>拡張 for の途中で nums.remove を呼んでいるので、次に next() が呼ばれた瞬間に ConcurrentModificationException が投げられます。なお n は Integer なので remove(Object) が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら nums.removeIf(n -&gt; n % 2 == 0) です。</p>\n",
   "traceHtml" : [ "2行目: Iterator が nums を回し始める", "n = 1: 奇数なので何もしない", "n = 2: 偶数 → nums.remove(2) で List の構造が変わる", "次の next(): 変更を検知 → ConcurrentModificationException" ],
+  "whyHtml" : [ "拡張 for の中で remove できると読んだ答え。実際は次の要素へ進む所で例外になる", "4 を飛ばして 2 だけ消えると読んだ答え。2 を消した直後の next() で例外が出る", "", "ループ中の remove が元のリストに効かないと読んだ答え。nums 自体が変わり、次の next() で例外になる" ],
   "ref" : "java-collections@3",
   "lesson" : "java-collections"
 }, {
@@ -942,6 +1027,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。equals と hashCode を x, y で比べるように上書きすると(後で習う record なら自動で付きます)A / true になります。</p>\n",
   "traceHtml" : [ "8行目: 1つ目の Point インスタンス(#P1)をキーに &quot;A&quot; を登録", "9行目: 新しい Point(#P2)で get。hashCode が違う(または equals が false)→ 見つからず null", "10行目: 同じ理由で false", "対策: equals / hashCode を x, y に基づいて上書きする" ],
+  "whyHtml" : [ "中身が同じ Point は同じキーと読んだ答え。比べ方を上書きしていない", "", "get と containsKey で探し方が違うと読んだ答え。どちらも hashCode と equals で探し、両方見つからない", "自作クラスはキーにできないと読んだ答え。キーにはなれる" ],
   "ref" : "java-collections@4",
   "lesson" : "java-collections"
 }, {
@@ -953,6 +1039,7 @@
   "answer" : 0,
   "explanationHtml" : "<p><code>Holder&lt;Integer&gt;</code> なので get() の戻り値は Integer。Integer は自動で int に変換される(アンボクシング)ので * 2 が計算でき、20 になります。T = Integer と当てはめて読めば、キャストなしで数値として扱えることが分かります。</p>\n",
   "traceHtml" : [ "7行目: T = Integer が決まる。item に 10 が入る", "8行目: get() は Integer の 10 を返す → int に自動変換 → 10 * 2 = 20", "9行目: 20" ],
+  "whyHtml" : [ "", "数値を文字列として 2 つ並べると読んだ答え。get() は Integer で、int として掛け算され 20", "Integer に <code>* 2</code> はできないと読んだ答え。アンボクシングで int になり計算できる", "取り出しでキャストに失敗すると読んだ答え。T = Integer なので型は合っていて、キャストも要らない" ],
   "ref" : "java-generics@0",
   "lesson" : "java-generics"
 }, {
@@ -962,8 +1049,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "27hi", "9hi", "2hi7", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>twice(&quot;hi&quot;) では T = String、twice(7) では T = Integer と推論されます。最後の行は左から評価:a.size() は 2、b.get(0) は 7、2 + 7 = 9(int どうしの足し算)。そこに a.get(1) = &quot;hi&quot; が連結されて &quot;9hi&quot;。ジェネリクスと文字列連結の順序を同時に読む問題です。</p>\n",
+  "explanationHtml" : "<p><code>twice(&quot;hi&quot;)</code> では T = String、<code>twice(7)</code> では T = Integer と推論されます。最後の行は左から評価:a.size() は 2、b.get(0) は 7、2 + 7 = 9(int どうしの足し算)。そこに a.get(1) の <code>&quot;hi&quot;</code> が連結されて <code>9hi</code>。ジェネリクスと文字列連結の順序を同時に読む問題です。</p>\n",
   "traceHtml" : [ "5行目: T = String。a は [&quot;hi&quot;, &quot;hi&quot;]", "6行目: T = Integer。b は [7, 7]", "7行目: 2 + 7 = 9(まだ数値)→ 9 + &quot;hi&quot; = &quot;9hi&quot;" ],
+  "whyHtml" : [ "2 と 7 を文字列としてつなぐと読んだ答え。左の 2 つは int どうし", "", "足す順を取り違えた答え。hi は最後につながる", "1 つのメソッドを違う型で呼べないと読んだ答え。T は呼ぶたびに決まる" ],
   "ref" : "java-generics@1",
   "lesson" : "java-generics"
 }, {
@@ -975,6 +1063,7 @@
   "answer" : 2,
   "explanationHtml" : "<p><code>&lt;T extends Comparable&lt;T&gt;&gt;</code> は「T は自分自身と比較できる型に限る」という境界です。Integer と String は Comparable を実装しているので OK。Object は Comparable ではないので、7行目は境界を満たさずコンパイルエラーになります。実行前に止まるのが境界の役目です。</p>\n",
   "traceHtml" : [ "1行目: 境界付きジェネリックメソッド。Comparable の compareTo が使える", "5行目: T = Integer。3.compareTo(8) は負 → 8", "6行目: T = String。&quot;pear&quot;.compareTo(&quot;apple&quot;) は正 → pear", "7行目: Object は Comparable ではない → コンパイルエラー" ],
+  "whyHtml" : [ "Object も大小を比べられると読んだ答え。実際はコンパイルで止まる", "境界の違反が実行時に出ると読んだ答え。実際はコンパイルで止まる(大きいのも pear)", "", "メソッドの宣言そのものが誤りと読んだ答え。宣言は正しく、境界を満たさない呼び出しの行がエラー" ],
   "ref" : "java-generics@2",
   "lesson" : "java-generics"
 }, {
@@ -984,8 +1073,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "2 2 null", "2 3 null", "3 2 []", "NullPointerException が発生" ],
   "answer" : 0,
-  "explanationHtml" : "<p><code>Map&lt;String, List&lt;String&gt;&gt;</code> は「部署名 → 名前リスト」。computeIfAbsent は「キーがなければ作って入れ、あればそれを返す」ので、&quot;dev&quot; のリストに 2 人、&quot;ops&quot; に 1 人。Map のキーは 2 個。存在しない &quot;hr&quot; の get は null(例外にはなりません)。get の戻り値の型が <code>List&lt;String&gt;</code> だと分かれば、dev.size() が読めます。</p>\n",
+  "explanationHtml" : "<p><code>Map&lt;String, List&lt;String&gt;&gt;</code> は「部署名 → 名前リスト」。computeIfAbsent は「キーがなければ作って入れ、あればそれを返す」ので、<code>&quot;dev&quot;</code> のリストに 2 人、<code>&quot;ops&quot;</code> に 1 人。Map のキーは 2 個。存在しない <code>&quot;hr&quot;</code> の get は null(例外にはなりません)。get の戻り値の型が <code>List&lt;String&gt;</code> だと分かれば、dev.size() が読めます。</p>\n",
   "traceHtml" : [ "2行目: &quot;dev&quot; がないので新しい ArrayList を作って登録し、&quot;taro&quot; を追加", "3行目: &quot;dev&quot; はあるのでそのリストに &quot;hanako&quot; を追加 → 2人", "4行目: &quot;ops&quot; を新規作成して &quot;jiro&quot; を追加", "5行目: 型は <code>List&lt;String&gt;</code>。要素は 2", "6行目: 2 2 null(Map.get は存在しないキーで null を返す)" ],
+  "whyHtml" : [ "", "<code>computeIfAbsent</code> が呼ぶたびにキーを足すと読んだ答え。既にあるキーには足さない", "jiro も dev に入り、無いキーは空リストと読んだ答え。jiro は ops に入り、無いキーの get は null", "無いキーの get が例外を出すと読んだ答え。get は null を返すだけで、そのまま表示される" ],
   "ref" : "java-generics@3",
   "lesson" : "java-generics"
 }, {
@@ -997,6 +1087,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>ok(List.of(10, 20, 30)) で T = <code>List&lt;Integer&gt;</code> と推論され、res.getData() は <code>List&lt;Integer&gt;</code> を返します。拡張 for で合計 60。getClass().getSimpleName() は実行時のクラス名(ListN など実装クラスの名前)で、空ではないので isEmpty() は false。ポイントは「T に何が入ったか」を当てはめると getData() の型が分かり、for で回せると読めることです。</p>\n",
   "traceHtml" : [ "8行目: <code>static &lt;T&gt;</code> の T = <code>List&lt;Integer&gt;</code>。res は <code>ApiResponse&lt;List&lt;Integer&gt;&gt;</code>", "10行目: getData() は <code>List&lt;Integer&gt;</code> → Integer を1つずつ取り出せる", "11行目: 10 + 20 + 30 = 60", "13行目: 実行時のクラス名は空文字ではない → false。出力 &quot;60 false&quot;" ],
+  "whyHtml" : [ "", "実体のクラス名が空と読んだ答え。List.of の実装クラスにも名前がある", "T に <code>List&lt;Integer&gt;</code> は入らないと読んだ答え。T には型引数付きの型も入り、for で回せる", "<code>total += n</code> で最後の値だけが残ると読んだ答え。足し込むので 10 + 20 + 30 = 60" ],
   "ref" : "java-generics@4",
   "lesson" : "java-generics"
 }, {
@@ -1006,8 +1097,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "6", "true", "false", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>len.apply(&quot;lambda&quot;) は長さ 6 を返し、big.test(6) は 6 &gt; 3 で true。内側から順に「apply で Integer にする → test で boolean にする」と読みます。</p>\n",
+  "explanationHtml" : "<p><code>len.apply(&quot;lambda&quot;)</code> は長さ 6 を返し、big.test(6) は 6 &gt; 3 で true。内側から順に「apply で Integer にする → test で boolean にする」と読みます。</p>\n",
   "traceHtml" : [ "1行目: String を受け取って長さ(Integer)を返す処理", "2行目: Integer を受け取って 3 より大きいか返す処理", "4行目: 内側 len.apply(&quot;lambda&quot;) = 6 → big.test(6) = true" ],
+  "whyHtml" : [ "apply の結果をそのまま出すと読んだ答え。長さは test に渡される", "", "条件を逆に取った答え。lambda は 6 文字で、6 &gt; 3 は true", "Function の結果を Predicate に渡せないと読んだ答え。Integer を受け取る Predicate なので型が合う" ],
   "ref" : "java-lambda-stream@0",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1017,8 +1109,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "102030", "302010", "312", "321" ],
   "answer" : 1,
-  "explanationHtml" : "<p>Integer::parseInt は s -&gt; Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -&gt; n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -&gt; System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので &quot;302010&quot;。</p>\n",
+  "explanationHtml" : "<p>Integer::parseInt は s -&gt; Integer.parseInt(s)(static メソッドの参照)で文字列を数値に。n -&gt; n * 10 で 30, 10, 20。reverseOrder で降順に並べて 30, 20, 10。System.out::print は x -&gt; System.out.print(x)(特定オブジェクトのメソッドの参照)で改行なしに続けて出力するので <code>302010</code>。</p>\n",
   "traceHtml" : [ "3行目: &quot;3&quot;,&quot;1&quot;,&quot;2&quot; → 3, 1, 2", "4行目: → 30, 10, 20", "5行目: 降順 → 30, 20, 10", "7行目: print(改行なし)で 302010" ],
+  "whyHtml" : [ "並べ替えの向きを見落とした答え。<code>reverseOrder()</code> は降順", "", "map と sorted を見落とした答え。数値にして 10 倍し、降順に並べる", "10 倍の map を見落とした答え。数値にした後で 10 倍している" ],
   "ref" : "java-lambda-stream@1",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1028,8 +1121,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "1 4 9 start", "start 1 4 9", "start 9 9 9", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>4行目でラムダを作って List に入れるだけで、この時点では実行されません。&quot;start &quot; が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。</p>\n",
+  "explanationHtml" : "<p>4行目でラムダを作って List に入れるだけで、この時点では実行されません。<code>start</code> が先に表示され、その後 run() で順に実行されます。各ラムダは自分が作られたときの n(1, 2, 3)をキャプチャしているので 1 4 9。もし final int n を使わず i を直接使うと「i が変更される変数」なのでコンパイルエラーになります。</p>\n",
   "traceHtml" : [ "2〜5行目: n=1, 2, 3 をそれぞれ持つ3つのラムダを作って保存(まだ実行しない)", "6行目: &quot;start &quot; を表示", "7〜9行目: 保存したラムダを順に実行 → 1 4 9", "結果: start 1 4 9" ],
+  "whyHtml" : [ "tasks.add でラムダがすぐ動くと読んだ答え。入れるだけで、run() まで動かない", "", "どのラムダも最後の値を見ると読んだ答え。n は回ごとに別の変数", "ループの中のラムダは変数を使えないと読んだ答え。毎回新しい final の n なので使える" ],
   "ref" : "java-lambda-stream@2",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1041,6 +1135,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>comparing(Emp::dept) で部署名の昇順(dev が ops より前)。同じ dev の中は thenComparing(Emp::age, reverseOrder()) で年齢の降順 → aki(30)、yui(25)。最後に ops の ken。record のアクセサ(dept()、age())もメソッド参照で使えます。</p>\n",
   "traceHtml" : [ "6行目: 第1基準 dept 昇順 → dev, dev, ops", "6行目: 第2基準 age 降順(dev 内)→ aki(30), yui(25)", "7行目: aki yui ken" ],
+  "whyHtml" : [ "並べ替えが効かないと読んだ答え。実際は部署名で並ぶ", "", "年齢を昇順と読んだ答え。<code>reverseOrder()</code> が付いている", "並べる向きを両方とも逆に読んだ答え。部署は昇順で dev が先、年齢は降順で aki が先" ],
   "ref" : "java-lambda-stream@3",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1052,6 +1147,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>adder(5) は「x に 5 を足す処理」を返します(amount = 5 をキャプチャ)。add5.apply(1) = 6。andThen は「add5 をしてから add10 をする」合成なので both.apply(1) = (1 + 5) + 10 = 16。ラムダが引数の値を「覚えて」いること、そして Function どうしをつなげられることが読めれば、Spring の設定コードやライブラリのコールバックが読みやすくなります。</p>\n",
   "traceHtml" : [ "5行目: amount=5 を覚えたラムダ x -&gt; x + 5 が返る", "6行目: amount=10 を覚えたラムダ x -&gt; x + 10", "7行目: both = 「add5 → add10」の順に適用する処理", "8行目: add5.apply(1) = 6、both.apply(1) = 16" ],
+  "whyHtml" : [ "", "andThen で add10 だけが効くと読んだ答え。実際は add5 の後に続く", "引数の 1 を足し忘れた答え。x + amount の x が 1", "ラムダがメソッドの引数を覚えられないと読んだ答え。実質 final の amount はキャプチャできる" ],
   "ref" : "java-lambda-stream@4",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1061,8 +1157,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "[5, 4, 6, 3]", "[5, 6]", "[apple, banana]", "[5, 4, 6]" ],
   "answer" : 3,
-  "explanationHtml" : "<p>filter で長さが 3 より大きい語(apple=5, kiwi=4, banana=6)が残り、fig(3)は落ちます。map で長さの数値に置き換え、[5, 4, 6] になります。[apple, banana] は map をしなかった場合、[5, 6] は条件を「4 より大きい」と読み違えた場合です。</p>\n",
+  "explanationHtml" : "<p>filter で長さが 3 より大きい語(apple=5, kiwi=4, banana=6)が残り、fig(3)は落ちます。map で長さの数値に置き換え、[5, 4, 6] になります。</p>\n",
   "traceHtml" : [ "3行目: apple(5)○ kiwi(4)○ banana(6)○ fig(3)× → 3つ残る", "4行目: それぞれ String::length で 5, 4, 6 に", "5行目: List にまとめる", "6行目: [5, 4, 6]" ],
+  "whyHtml" : [ "filter を見落とした答え。長さ 3 の fig は条件を満たさず落ちる", "条件を「4 より大きい」と読んだ答え。<code>&gt; 3</code> なので長さ 4 の kiwi も残る", "map を見落とし、kiwi も落とした答え。残るのは長さの数値で、kiwi も入る", "" ],
   "ref" : "java-lambda-stream@5",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1074,6 +1171,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>要素は1つずつ全段を通ります。1 は filter を通過して map へ(F1 M1)、2 は filter で落ちるので map に行かない(F2)、3 は通過(F3 M3)。「filter を全部やってから map」ではないのがポイントです。</p>\n",
   "traceHtml" : [ "10行目の toList() が呼ばれて初めて流れ始める", "要素1: F1 → true → M1 → 10", "要素2: F2 → false → ここで終わり(M2 は出ない)", "要素3: F3 → true → M3 → 30", "出力: F1 M1 F2 F3 M3、out = [10, 30]" ],
+  "whyHtml" : [ "filter を全部終えてから map と読んだ答え。実際は 1 要素ずつ流れる", "", "filter で落ちた 2 も map に行くと読んだ答え。2 は filter で落ち、M2 は出ない", "遅延評価で何も動かないと読んだ答え。終端操作の toList() があるので要素が流れる" ],
   "ref" : "java-lambda-stream@6",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1083,8 +1181,9 @@
   "questionHtml" : "<code>record Emp(...)</code> は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。出力は?",
   "choicesHtml" : [ "3 0", "3 null", "[A, C, D] null", "NullPointerException" ],
   "answer" : 1,
-  "explanationHtml" : "<p>groupingBy(dept, counting()) は部署ごとの件数 <code>Map&lt;String, Long&gt;</code> を作ります。dev は 3 件。&quot;hr&quot; はキーが存在しないので Map.get は null を返し、文字列連結なので &quot;null&quot; と表示されます(例外にはなりません)。counting() を付けなければ値は社員の <code>List&lt;Emp&gt;</code> になり、m.get(&quot;dev&quot;) は <code>[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]</code> のような一覧になります(そのときは変数の型も <code>Map&lt;String, List&lt;Emp&gt;&gt;</code> にしないとコンパイルできません)。</p>\n",
+  "explanationHtml" : "<p>groupingBy(dept, counting()) は部署ごとの件数 <code>Map&lt;String, Long&gt;</code> を作ります。dev は 3 件。<code>&quot;hr&quot;</code> はキーが存在しないので Map.get は null を返し、文字列連結なので <code>null</code> と表示されます。counting() を付けなければ値は社員の <code>List&lt;Emp&gt;</code> になり、<code>m.get(&quot;dev&quot;)</code> は <code>[Emp[name=A, dept=dev], Emp[name=C, dept=dev], Emp[name=D, dept=dev]]</code> のような一覧になります(そのときは変数の型も <code>Map&lt;String, List&lt;Emp&gt;&gt;</code> にしないとコンパイルできません)。</p>\n",
   "traceHtml" : [ "6行目: dept ごとにまとめて件数を数える → {dev=3, ops=1}", "7行目: m.get(&quot;dev&quot;) は 3、m.get(&quot;hr&quot;) はキーがないので null", "文字列連結なので &quot;3 null&quot;" ],
+  "whyHtml" : [ "無いキーの件数は 0 と読んだ答え。groupingBy は 0 件の部署を作らない", "", "counting() を見落とした答え。値は社員の一覧ではなく件数(Long)", "null を連結すると例外と読んだ答え。実際は文字として出る" ],
   "ref" : "java-lambda-stream@7",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1094,8 +1193,9 @@
   "questionHtml" : "<code>record Item(...)</code> は、値を持つクラスを1行で書く書き方です(「recordとenum」で習います)。実行すると?",
   "choicesHtml" : [ "100", "300", "400", "IllegalStateException" ],
   "answer" : 3,
-  "explanationHtml" : "<p>toMap は既定でキーの重複を許しません。3つ目の要素でキー &quot;X&quot; が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -&gt; b)、400(合計)にしたければ (a, b) -&gt; a + b を第3引数に渡します。</p>\n",
+  "explanationHtml" : "<p>toMap は既定でキーの重複を許しません。3つ目の要素でキー <code>&quot;X&quot;</code> が2回目になった時点で IllegalStateException: Duplicate key X が発生します。300 にしたければ toMap(Item::code, Item::price, (a, b) -&gt; b)、400(合計)にしたければ (a, b) -&gt; a + b を第3引数に渡します。</p>\n",
   "traceHtml" : [ "5行目: X→100 を登録、Y→200 を登録", "3つ目の Item(&quot;X&quot;, 300): キー X が既にある → 重複キーの扱いが未指定 → 例外", "6行目には到達しない" ],
+  "whyHtml" : [ "最初の値が残ると読んだ答え。実際は 2 回目の X で例外になる", "後の値で上書きされると読んだ答え。上書きには第 3 引数が要り、無いと例外になる", "同じキーの値が足されると読んだ答え。合計には第 3 引数が要り、無いと例外になる", "" ],
   "ref" : "java-lambda-stream@8",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1107,6 +1207,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>空のリストを流すので要素は1つもなく、findFirst() は空の Optional を返します。isPresent() は false。Stream は要素がなくても例外にはならず、null も返しません。ここが「null を返さず Optional で返す」設計の利点です。</p>\n",
   "traceHtml" : [ "9行目: 空のリストで呼ぶ", "2〜5行目: 要素が0個なので filter / sorted / map は何も処理しない", "6行目: 最初の要素がない → Optional.empty()", "10行目: isPresent() → false" ],
+  "whyHtml" : [ "Optional には必ず中身があると読んだ答え。見つからなければ空になる", "", "空のリストで null が返ると読んだ答え。実際は空の Optional になる", "空の <code>List.of()</code> は渡せないと読んだ答え。型は推論され、コンパイルは通る" ],
   "ref" : "java-lambda-stream@9",
   "lesson" : "java-lambda-stream"
 }, {
@@ -1116,8 +1217,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "90 0", "90 null", "NullPointerException", "コンパイルエラー" ],
   "answer" : 0,
-  "explanationHtml" : "<p>scores.get(&quot;a&quot;) は 90、scores.get(&quot;b&quot;) は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。</p>\n",
+  "explanationHtml" : "<p><code>scores.get(&quot;a&quot;)</code> は 90、<code>scores.get(&quot;b&quot;)</code> は存在しないキーなので null です。ofNullable が null を空の Optional に変え、orElse(0) が既定値の 0 を返すので、b は 0 になります。</p>\n",
   "traceHtml" : [ "1〜2行目: scores は {a=90}", "4行目: get(&quot;a&quot;)=90 → ofNullable は中身ありの Optional → orElse(0) は 90", "5行目: get(&quot;b&quot;)=null → ofNullable は空の Optional → orElse(0) は 0", "6行目: &quot;90 0&quot;" ],
+  "whyHtml" : [ "", "無いキーの null がそのまま出ると読んだ答え。orElse の既定値を見落としている", "null を Optional に包むと落ちると読んだ答え。落ちるのは of のほう", "Optional の中の Integer を int に入れられないと読んだ答え。orElse の結果はアンボクシングで int になる" ],
   "ref" : "java-optional@0",
   "lesson" : "java-optional"
 }, {
@@ -1127,8 +1229,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "null", "caught: no name", "何も出力されない", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>name は Optional.empty() なので orElseThrow のラムダが実行され、NotFoundException(&quot;no name&quot;) が投げられます。try の中の println には到達せず、catch で捕まえて &quot;caught: no name&quot; と出力されます。</p>\n",
+  "explanationHtml" : "<p>name は Optional.empty() なので orElseThrow のラムダが実行され、<code>NotFoundException(&quot;no name&quot;)</code> が投げられます。try の中の println には到達せず、catch で捕まえて <code>caught: no name</code> と出力されます。</p>\n",
   "traceHtml" : [ "5行目: name は空の Optional", "7行目: 中身が無いので orElseThrow のラムダが実行され例外が投げられる", "8行目: 到達しない", "9行目: catch で捕まえ &quot;caught: no name&quot; を表示" ],
+  "whyHtml" : [ "空の Optional から null が取り出せると読んだ答え。実際は例外が投げられる", "", "例外で全部飛ばされると読んだ答え。catch の println は動く", "throws の宣言が要ると読んだ答え。継承元を見ると要らない" ],
   "ref" : "java-optional@1",
   "lesson" : "java-optional"
 }, {
@@ -1138,8 +1241,9 @@
   "questionHtml" : "<code>record Address(...)</code> などは、値を持つクラスを1行で書く書き方です(次の「recordとenum」で習います)。値は <code>p1.address()</code> のように取り出します。出力は?",
   "choicesHtml" : [ "Tokyo unknown", "Tokyo null", "NullPointerException", "unknown unknown" ],
   "answer" : 0,
-  "explanationHtml" : "<p>p1.address() は Address(&quot;Tokyo&quot;) なので map で city() が呼ばれ &quot;Tokyo&quot;。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして orElse(&quot;unknown&quot;) が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。</p>\n",
+  "explanationHtml" : "<p>p1.address() は <code>Address(&quot;Tokyo&quot;)</code> なので map で city() が呼ばれ <code>&quot;Tokyo&quot;</code>。p2.address() は null なので ofNullable が空の Optional にし、map は何もせず素通りして <code>orElse(&quot;unknown&quot;)</code> の値が返ります。map のおかげで null の Address に city() を呼ぶことがなく、例外は起きません。</p>\n",
   "traceHtml" : [ "7行目: p1.address()=Address(&quot;Tokyo&quot;) → map で city() → &quot;Tokyo&quot;", "8行目: p2.address()=null → ofNullable で空 → map は何もしない → orElse(&quot;unknown&quot;)", "9行目: &quot;Tokyo unknown&quot;" ],
+  "whyHtml" : [ "", "空の Optional の map が null を返すと読んだ答え。空のまま次へ進む", "null の住所で例外になると読んだ答え。空の Optional では map の中身が動かない", "p1 の住所も取れないと読んだ答え。p1 は Address を持つので、map で Tokyo が取れる" ],
   "ref" : "java-optional@2",
   "lesson" : "java-optional"
 }, {
@@ -1151,6 +1255,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>id=1L の User は見つかりますが isActive が false なので、filter によって空の Optional に変わります。以降 map(UserDto::from) は何もせず素通りするので、最終的に result は空、isPresent() は false です。</p>\n",
   "traceHtml" : [ "8行目: id=1L の User(isActive=false) を登録", "10行目: findDto(store, 1L) を呼ぶ → 2行目の store.get(1L) は見つかるので中身あり", "3行目: filter(User::isActive) が false → ここで空になる", "4行目: map は空なので何もしない", "11行目: isPresent() → false" ],
+  "whyHtml" : [ "filter を見落とした答え。Sato は無効のユーザー", "", "filter で落ちた後の map が null を扱うと読んだ答え。空なら map は呼ばれない", "Optional に filter と map を続けて書けないと読んだ答え。Stream と同じようにつなげられる" ],
   "ref" : "java-optional@3",
   "lesson" : "java-optional"
 }, {
@@ -1160,8 +1265,9 @@
   "questionHtml" : "3行の出力は?",
   "choicesHtml" : [ "true / true / 0 RED", "false / true / 0 RED", "true / true / 1 RED", "false / false / 0 RED" ],
   "answer" : 0,
-  "explanationHtml" : "<p>enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は &quot;RED&quot; です。</p>\n",
+  "explanationHtml" : "<p>enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は <code>&quot;RED&quot;</code> です。</p>\n",
   "traceHtml" : [ "3行目: a は RED(唯一のインスタンス)を指す", "4行目: valueOf(&quot;RED&quot;) も同じ RED を返す", "5〜6行目: 同じインスタンスなので == も equals も true", "7行目: RED は 0 番目、name() は &quot;RED&quot;" ],
+  "whyHtml" : [ "", "valueOf が新しいインスタンスを作ると読んだ答え。実際は既存の定数を返す", "ordinal を 1 から数えた答え。ordinal は 0 始まりで、最初の RED は 0", "valueOf が別物を作り、equals も別と見ると読んだ答え。実際はどちらも同じ物" ],
   "ref" : "java-record-enum@0",
   "lesson" : "java-record-enum"
 }, {
@@ -1173,6 +1279,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>new を2回しているので別インスタンス → == は false。record は全フィールドを比べる equals を自動生成するので equals は true。toString も「型名[フィールド=値, ...]」の形で自動生成されます。</p>\n",
   "traceHtml" : [ "3〜4行目: 別々の Point インスタンスを2つ作る(中身は同じ)", "5行目: == は参照比較 → 別物なので false", "6行目: record の equals は x と y を比較 → true", "7行目: 自動生成された toString → Point[x=1, y=2]" ],
+  "whyHtml" : [ "<code>==</code> も値で比べると読んだ答え。<code>==</code> は参照の比較", "", "record を普通のクラスと同じと読んだ答え。record は equals と toString を自動で持つ", "1 行の宣言だけでは使えないと読んだ答え。コンストラクタや equals、toString は自動で作られる" ],
   "ref" : "java-record-enum@1",
   "lesson" : "java-record-enum"
 }, {
@@ -1184,6 +1291,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>古い switch 文は break が無いので、MID に入ったあと HIGH の処理まで落ちて(フォールスルー)10 + 100 = 110。矢印 case の switch 式はフォールスルーしないので 10 です。</p>\n",
   "traceHtml" : [ "oldStyle: case MID から開始 → n = 10", "break が無いので case HIGH も実行 → n = 110", "newStyle: case MID -&gt; 10 で終わり", "出力: &quot;110 10&quot;" ],
+  "whyHtml" : [ "古い switch 文が break なしでも止まると読んだ答え。MID から HIGH まで落ちて 10 + 100 = 110", "", "フォールスルーが LOW から始まると読んだ答え。入るのは MID からで、LOW の n += 1 は通らない", "矢印の switch 式も下へ落ちると読んだ答え。矢印 case はフォールスルーせず 10" ],
   "ref" : "java-record-enum@2",
   "lesson" : "java-record-enum"
 }, {
@@ -1195,6 +1303,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>e1 は @ を含むので検証を通り、小文字に変換された値がフィールドに入ります。e2 は @ が無いので検証で例外になり、Email は作られません。コンパクトコンストラクタは「不正な record を作らせない門番」です。</p>\n",
   "traceHtml" : [ "10行目: 検証 OK → value を小文字化 → 末尾で自動的にフィールドに代入", "11行目: &quot;sato@example.com&quot; と表示", "12行目: &quot;sato&quot; は @ を含まない → IllegalArgumentException" ],
+  "whyHtml" : [ "", "小文字への変換が効かないと読んだ答え。代入し直した値がフィールドに入る", "@ の無い sato も通ると読んだ答え。検証で IllegalArgumentException になり、作られない", "<code>Email { … }</code> の中で引数に代入できないと読んだ答え。代入でき、その値が使われる" ],
   "ref" : "java-record-enum@3",
   "lesson" : "java-record-enum"
 }, {
@@ -1204,8 +1313,9 @@
   "questionHtml" : "<code>case Ok ok</code> は「Ok 型なら変数 ok で受け取る」、<code>when</code> はその case に入る追加の条件です(本文「switch で『型』を分ける」)。2行の出力は?",
   "choicesHtml" : [ "positive 0 / ng: timeout", "zero or negative / ng: timeout", "コンパイルエラー(default が無い)", "実行時エラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>Ok(0) は最初の case のガード(value &gt; 0)を満たさないので次の case Ok に入り &quot;zero or negative&quot;。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので default は不要で、コンパイルも通ります。</p>\n",
+  "explanationHtml" : "<p>Ok(0) は最初の case のガード(value &gt; 0)を満たさないので次の case Ok に入り <code>zero or negative</code>。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので default は不要で、コンパイルも通ります。</p>\n",
   "traceHtml" : [ "12行目: r は Ok(0)。1つ目の case は when 0 &gt; 0 が false → スキップ", "2つ目の case Ok ok に一致 → &quot;zero or negative&quot;", "13行目: r は Ng → 3つ目の case → &quot;ng: timeout&quot;" ],
+  "whyHtml" : [ "when の条件を見落とした答え。0 は条件を満たさない", "", "default が要ると読んだ答え。sealed なら全種類を書けば要らない", "Ok(0) に合う case が無いと読んだ答え。when の無い case Ok が受け取る" ],
   "ref" : "java-record-enum@4",
   "lesson" : "java-record-enum"
 }, {
@@ -1217,6 +1327,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>1/31 の1か月後は 2/31 が存在しないので月末の 2/28 に丸められます(2026 年はうるう年ではない)。3 行目は戻り値を捨てているので d は変わりません。</p>\n",
   "traceHtml" : [ "1行目: d = 2026-01-31", "2行目: 2026-02-31 は無い → 2026-02-28 に調整して next に入れる", "3行目: 新しい日付が作られるが捨てられる。d はそのまま", "4行目: &quot;2026-01-31 2026-02-28&quot;" ],
+  "whyHtml" : [ "", "plusDays が d を書き換えると読んだ答え。実際は新しい日付を返すだけ", "2 月 31 日があふれて 3 月に進むと読んだ答え。plusMonths はあふれさせない", "存在しない 2 月 31 日で例外と読んだ答え。実際は例外にならない" ],
   "ref" : "java-datetime@0",
   "lesson" : "java-datetime"
 }, {
@@ -1228,6 +1339,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>同じ日なので isBefore は false(「前」ではない)。isAfter も false なので、その否定 b は true。つまり a は「期限当日は無効」、b は「期限当日も有効」という判定です。差は 0 日。実務の有効期限バグはこの境界の読み違いから起きます。</p>\n",
   "traceHtml" : [ "3行目: 9/16 は 9/16 より前ではない → false", "4行目: 9/16 は 9/16 より後ではない → isAfter が false → 否定して true", "5行目: 同じ日の差 → 0", "6行目: &quot;false true 0&quot;" ],
+  "whyHtml" : [ "同じ日を isBefore で true と読んだ答え。同じ日は「前」ではないので false", "", "isAfter の否定を見落とした答え。isAfter は false で、<code>!</code> が付いて true になる", "当日を 1 日と数え、判定も逆に読んだ答え。差は 0 日で、a は false、b は true" ],
   "ref" : "java-datetime@1",
   "lesson" : "java-datetime"
 }, {
@@ -1239,6 +1351,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>UTC の 23:00 は東京では +9 時間で翌日の 08:00 です。同じ一瞬でも「日付」はタイムゾーンで変わります。日次バッチの「今日」や有効期限の判定でずれる典型例です。</p>\n",
   "traceHtml" : [ "1行目: UTC の 9/16 23:00 という一瞬", "2行目: 東京の時計で読むと 9/17 08:00 → 日付は 9/17", "3行目: UTC の時計で読むと 9/16 23:00 → 日付は 9/16", "4行目: &quot;2026-09-17 2026-09-16&quot;" ],
+  "whyHtml" : [ "タイムゾーンで日付は変わらないと読んだ答え。時刻がずれれば日付も変わる", "", "時差の向きを逆に読んだ答え。東京は UTC より 9 時間進んでいて、翌日になるのは東京", "UTC でも日付が進むと読んだ答え。Z は UTC なので、UTC では 9 月 16 日のまま" ],
   "ref" : "java-datetime@2",
   "lesson" : "java-datetime"
 }, {
@@ -1248,8 +1361,9 @@
   "questionHtml" : "<code>setScale(桁数, 丸め方)</code> は小数点以下の桁数をそろえるメソッドです。BigDecimal の <code>equals</code> は値と scale(小数点以下の桁数)の両方を比べ、<code>compareTo</code> は値だけを比べます。出力は?",
   "choicesHtml" : [ "85 true true", "85 false true", "85.0 false true", "84 false false" ],
   "answer" : 1,
-  "explanationHtml" : "<p>1000 × 0.085 = 85.000 を小数 0 桁に四捨五入して 85。equals は scale が違う(0 と 2)ので false、compareTo は数値が同じなので 0 → true。setScale(0) なので表示は &quot;85&quot; です。</p>\n",
+  "explanationHtml" : "<p>1000 × 0.085 = 85.000 を小数 0 桁に四捨五入して 85。equals は scale が違う(0 と 2)ので false、compareTo は数値が同じなので 0 → true。</p>\n",
   "traceHtml" : [ "3行目: 1000 × 0.085 = 85.000 → setScale(0, HALF_UP) → 85", "5行目: equals は 85(scale 0)と 85.00(scale 2)を別物と見る → false", "5行目: compareTo は数値比較 → 0 → == 0 は true", "出力: &quot;85 false true&quot;" ],
+  "whyHtml" : [ "equals も値だけで比べると読んだ答え。桁数の違いも equals では効く", "", "表示に小数が残ると読んだ答え。丸めた後は小数 0 桁", "掛け算で誤差が出ると読んだ答え。BigDecimal は 85.000 ちょうどで、値だけなら 85 と等しい" ],
   "ref" : "java-datetime@3",
   "lesson" : "java-datetime"
 }, {
@@ -1259,8 +1373,9 @@
   "questionHtml" : "<code>x &amp; 0xFF</code> は下位 8 ビットだけを残す書き方、<code>%02X</code> は 16 進 2 桁で表示する書式です。2行の出力は?",
   "choicesHtml" : [ "400 400 / 0190", "-112 400 / 0190", "-112 400 / 01-70", "400 -112 / 0190" ],
   "answer" : 1,
-  "explanationHtml" : "<p>0x90 = 144 は byte では -112 です。naive は (1 &lt;&lt; 8) = 256 と -112(全ビット上位が 1)を OR するので、結果は -112 になります。fixed は &amp; 0xFF で 144 に直してから合成するので 256 + 144 = 400。%02X は byte を 16 進 2 桁で出すので &quot;0190&quot;。</p>\n",
+  "explanationHtml" : "<p>0x90 = 144 は byte では -112 です。naive は (1 &lt;&lt; 8) = 256 と -112(全ビット上位が 1)を OR するので、結果は -112 になります。fixed は &amp; 0xFF で 144 に直してから合成するので 256 + 144 = 400。%02X は byte を 16 進 2 桁で出すので <code>0190</code>。</p>\n",
   "traceHtml" : [ "1行目: data[0] = 1、data[1] = -112(0x90 は負)", "2行目: 256 | (-112) → -112 の上位ビットが全部 1 なので OR しても -112", "3行目: (1 &lt;&lt; 8) | 144 = 400", "5行目: 01 と 90 → &quot;0190&quot;" ],
+  "whyHtml" : [ "byte をそのまま 0〜255 と読んだ答え。byte は符号付き", "", "%02X が符号付きで出すと読んだ答え。byte の -112 も 16 進 2 桁の 90 と出る", "&amp; 0xFF の効き方を逆に読んだ答え。&amp; 0xFF で直した fixed が 400、直さない naive が -112" ],
   "ref" : "java-datetime@4",
   "lesson" : "java-datetime"
 }, {
@@ -1270,8 +1385,9 @@
   "questionHtml" : "どうなる?",
   "choicesHtml" : [ "child と表示", "base と表示", "コンパイルエラー", "実行時エラー" ],
   "answer" : 2,
-  "explanationHtml" : "<p>Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、&quot;base&quot; と表示されるバグが隠れたままになります。</p>\n",
+  "explanationHtml" : "<p>Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、<code>base</code> と表示されるバグが隠れたままになります。</p>\n",
   "traceHtml" : [ "6行目: Name() は name() と別名 → 新しいメソッドの定義", "5行目: @Override は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー", "実行には至らない" ],
+  "whyHtml" : [ "Name() が name() を上書きすると読んだ答え。大文字の Name は別のメソッドで、@Override がエラーにする", "@Override が無いときの結果と取り違えた答え。上書き対象が無いので、@Override がコンパイルで止める", "", "上書きの失敗が実行時に分かると読んだ答え。@Override がコンパイル時に見つける" ],
   "ref" : "java-annotations@0",
   "lesson" : "java-annotations"
 }, {
@@ -1283,6 +1399,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>ping() には @Retry が引数なしで付いているので、要素はすべてデフォルト値(times = 3、waitMillis = 0)です。call() の 5 は関係ありません。RUNTIME なので getAnnotation で取り出せます。</p>\n",
   "traceHtml" : [ "15行目: ping メソッドの Method オブジェクトを取得", "16行目: RUNTIME なので @Retry が取れる(null ではない)", "17行目: 引数なしで付けたので times は default の 3、waitMillis は 0" ],
+  "whyHtml" : [ "call() に付けた値を読んだ答え。取り出しているのは ping() のアノテーションで、times は default の 3", "", "要素なしの @Retry は取れないと読んだ答え。RUNTIME なので取れて、要素は default の値になる", "要素を書かない @Retry は書けないと読んだ答え。全要素に default があるので書ける" ],
   "ref" : "java-annotations@1",
   "lesson" : "java-annotations"
 }, {
@@ -1294,6 +1411,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>@Draft は SOURCE なのでコンパイル後には消え、実行時には null。@Stable は RUNTIME なので取れます。フレームワークが読むアノテーションが必ず RUNTIME なのはこのためです。</p>\n",
   "traceHtml" : [ "7行目: 両方のアノテーションを付ける(ソース上は両方ある)", "10行目: Draft は class ファイルに残っていない → null → false", "11行目: Stable は実行時まで残る → 取れる → true" ],
+  "whyHtml" : [ "ソースに付いていれば実行時も読めると読んだ答え。SOURCE の @Draft はコンパイルで消える", "", "SOURCE と RUNTIME の残り方を逆に読んだ答え。実行時まで残るのは RUNTIME の @Stable", "アノテーションは実行時に読めないと読んだ答え。RUNTIME の @Stable は getAnnotation で取れる" ],
   "ref" : "java-annotations@2",
   "lesson" : "java-annotations"
 }, {
@@ -1301,10 +1419,11 @@
   "level" : 3,
   "code" : "@Aspect @Component\nclass GuardAspect {\n    @Around(\"@annotation(RequiresAdmin)\")\n    public Object guard(ProceedingJoinPoint pjp) throws Throwable {\n        if (!currentUserIsAdmin()) {\n            throw new AccessDeniedException(\"admin only\");\n        }\n        return pjp.proceed();\n    }\n}\n\n@Service\nclass KeyService {\n    @RequiresAdmin\n    public void revokeAll() { log.info(\"revoked\"); }\n}\n// 一般ユーザーとして、別の Bean から keyService.revokeAll() を呼ぶ\n",
   "questionHtml" : "何が起きる?",
-  "choicesHtml" : [ "&quot;revoked&quot; がログに出て正常終了", "AccessDeniedException が投げられ、&quot;revoked&quot; は出ない", "@RequiresAdmin は何もしないので普通に実行される", "コンパイルエラー" ],
+  "choicesHtml" : [ "<code>revoked</code> がログに出て正常終了", "AccessDeniedException が投げられ、<code>revoked</code> は出ない", "@RequiresAdmin は何もしないので普通に実行される", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>別の Bean からの呼び出しはプロキシを通るので、Aspect の guard が先に動きます。管理者でないので例外を投げ、proceed() に到達しません。よって revokeAll の本体は実行されず &quot;revoked&quot; も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。</p>\n",
+  "explanationHtml" : "<p>別の Bean からの呼び出しはプロキシを通るので、Aspect の guard が先に動きます。管理者でないので例外を投げ、proceed() に到達しません。よって revokeAll の本体は実行されず <code>revoked</code> も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。</p>\n",
   "traceHtml" : [ "呼び出し: keyService はプロキシ → guard() が横取り", "5行目: 一般ユーザーなので条件が true", "6行目: AccessDeniedException を投げる → 8行目には行かない", "revokeAll() の本体は一度も実行されない" ],
+  "whyHtml" : [ "Service に権限チェックが無いので通ると読んだ答え。チェックは本体の外で動く", "", "アノテーションは目印なので何も起きないと読んだ答え。それを読む Aspect が動いて例外を投げる", "権限がコンパイル時に確かめられると読んだ答え。コンパイルは通り、実行時に Aspect が例外で止める" ],
   "ref" : "java-annotations@3",
   "lesson" : "java-annotations"
 }, {
@@ -1312,10 +1431,11 @@
   "level" : 2,
   "code" : "record UserResponse(\n        @JsonProperty(\"user_id\") Long userId,\n        String displayName,\n        @JsonIgnore String passwordHash) {}\n\nString json = new ObjectMapper().writeValueAsString(\n        new UserResponse(1L, \"Sato\", \"xxxx\"));\nSystem.out.println(json);\n",
   "questionHtml" : "出力に最も近いものは?",
-  "choicesHtml" : [ "{&quot;userId&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;,&quot;passwordHash&quot;:&quot;xxxx&quot;}", "{&quot;user_id&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;}", "{&quot;user_id&quot;:1,&quot;display_name&quot;:&quot;Sato&quot;}", "コンパイルエラー" ],
+  "choicesHtml" : [ "<code>{&quot;userId&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;,&quot;passwordHash&quot;:&quot;xxxx&quot;}</code>", "<code>{&quot;user_id&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;}</code>", "<code>{&quot;user_id&quot;:1,&quot;display_name&quot;:&quot;Sato&quot;}</code>", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>@JsonProperty(&quot;user_id&quot;) でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。</p>\n",
+  "explanationHtml" : "<p><code>@JsonProperty(&quot;user_id&quot;)</code> でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。</p>\n",
   "traceHtml" : [ "2行目: userId → キー名を &quot;user_id&quot; に変更", "3行目: displayName はそのまま", "4行目: passwordHash は出力しない(機密情報を漏らさない定番の使い方)", "出力: {&quot;user_id&quot;:1,&quot;displayName&quot;:&quot;Sato&quot;}" ],
+  "whyHtml" : [ "アノテーションを見落とした答え。2 つとも出力を変えている", "", "@JsonProperty が全部のキーをスネークケースにすると読んだ答え。効くのは付けた userId だけ", "record の部品にアノテーションを付けられないと読んだ答え。付けられて、Jackson が実行時に読む" ],
   "ref" : "java-annotations@4",
   "lesson" : "java-annotations"
 }, {
@@ -1327,6 +1447,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>引数なしの read() は1バイトずつ、0〜255の範囲の int として返します。読めるものが無くなると -1 を返しループが終わります。10+20+30=60 が合計です。</p>\n",
   "traceHtml" : [ "1〜2行目: byte[] {10,20,30} を読み込み元にする", "5行目: 1回目 b=10、2回目 b=20、3回目 b=30(いずれも -1 ではないのでループ継続)", "4回目の read(): 読めるデータが無いので -1 が返り、ループ終了", "8行目: total = 10+20+30 = 60 を表示" ],
+  "whyHtml" : [ "最後に読んだ -1 が出ると読んだ答え。-1 は終わりの合図でループを抜け、合計の 60 が出る", "", "読んだ回数を数えると読んだ答え。total に足しているのは読んだ値で、10 + 20 + 30 = 60", "読み終わりで例外と読んだ答え。読むものが無くなると read() は -1 を返すだけ" ],
   "ref" : "java-file-io@0",
   "lesson" : "java-file-io"
 }, {
@@ -1338,6 +1459,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>2行目の getBytes() は引数なしなので既定の文字コードでエンコードされます。Java 18 以降の既定は OS に関係なく UTF-8 なのでふつうは true ですが、Java 17 以前や <code>-Dfile.encoding=COMPAT</code> で動かしている環境では、日本語 Windows なら MS932 になります。すると3行目の「UTF-8 で書かれているはず」という前提が崩れて文字化けし、false になります。エンコードとデコードで文字コードを揃えて明示するのが正解です。</p>\n",
   "traceHtml" : [ "1行目: text は &quot;日本語&quot;(文字の並び)", "2行目: getBytes() が既定の文字コードで byte[] に変換。Java 18 以降は UTF-8 だが、古い JDK や COMPAT 指定の環境では OS の文字コードになる", "3行目: 常に UTF-8 だとみなして byte[] から文字列に戻す", "2行目と3行目で使った文字コードが食い違うと、restored の中身が壊れる(文字化け)", "4行目: 環境によっては false になる" ],
+  "whyHtml" : [ "既定の文字コードはいつも UTF-8 と読んだ答え。古い Java や設定しだいで変わる", "", "<code>getBytes()</code> には引数が要ると読んだ答え。引数なしの版もある", "文字コードを指定しないと必ず化けると読んだ答え。既定が UTF-8 の環境では true になる" ],
   "ref" : "java-file-io@1",
   "lesson" : "java-file-io"
 }, {
@@ -1349,6 +1471,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>try ブロックの本体が先に実行され [本体] が出ます。その後、close は宣言と逆順(c → b → a)で呼ばれるので、続けて C, B, A の順に表示されます。</p>\n",
   "traceHtml" : [ "7〜8行目: try の本体を実行 → [本体] を表示", "ブロックを抜けるので close が呼ばれる。順番は宣言と逆(c, b, a)", "c.close() → &quot;C&quot; を表示", "b.close() → &quot;B&quot; を表示", "a.close() → &quot;A&quot; を表示", "結果: &quot;[本体]CBA&quot;" ],
+  "whyHtml" : [ "宣言した順に閉じると読んだ答え。close は逆順で、C、B、A の順に呼ばれる", "", "本体の前に宣言順で閉じると読んだ答え。本体が先に動き、抜けるときに逆順で閉じる", "本体の前に閉じると読んだ答え。本体が先に動き、ブロックを抜けるときに閉じる" ],
   "ref" : "java-file-io@2",
   "lesson" : "java-file-io"
 }, {
@@ -1358,8 +1481,9 @@
   "questionHtml" : "出力は(ファイルの中身に関わらず)?",
   "choicesHtml" : [ "true", "false", "実行時エラー", "コンパイルエラー" ],
   "answer" : 0,
-  "explanationHtml" : "<p>readAllLines は List&lt;String&gt; を返すので stream() や filter がそのまま使えます。空白行の数(blank)は全体の行数(all.size())を超えることは無いので、この比較は<strong>ファイルの中身に関わらず常に true</strong>になります。</p>\n",
+  "explanationHtml" : "<p>readAllLines は List&lt;String&gt; を返すので stream() や filter がそのまま使えます。空白行の数(blank)は全体の行数(all.size())を超えることは無いので、この比較は、読み込めれば<strong>ファイルの中身に関わらず常に true</strong>になります(UTF-8 として正しくないファイルは、readAllLines が MalformedInputException を投げて、比較までたどり着きません)。</p>\n",
   "traceHtml" : [ "1行目: 全行を読み込み、List&lt;String&gt; を得る", "2行目: List の stream() から、空白行だけを数える", "3行目: 空白行の数は全行数以下なので、常に true" ],
+  "whyHtml" : [ "", "空白行のほうが多くなりうると読んだ答え。空白行は全行の一部なので、行数を超えない", "空白行で filter が失敗すると読んだ答え。isBlank は空白行に true を返すだけで、例外は出ない", "<code>readAllLines</code> の戻り値に stream() が使えないと読んだ答え。戻り値はただのリスト" ],
   "ref" : "java-file-io@3",
   "lesson" : "java-file-io"
 }, {
@@ -1371,6 +1495,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>Files.lines(path) は裏でファイルを開いたままの Stream を返します。この Stream は collect() で終端操作されるだけで close() されないため、ファイルハンドルが開きっぱなしになります。try (Stream&lt;String&gt; lines = Files.lines(path)) { ... } のように try-with-resources で囲む必要があります。文法上は正しいのでコンパイルは通り、実行結果(中身)自体は正しく計算されるのが厄介な点です。</p>\n",
   "traceHtml" : [ "2行目: Files.lines がファイルを開いたまま Stream を返す。close は呼ばれていない", "3行目: filter と collect で結果自体は正しく作られる", "しかしメソッドを抜けてもファイルは開いたまま(このメソッドを何度も呼ぶと開いているファイル数が増え続ける)", "対策: <code>try (Stream&lt;String&gt; lines = Files.lines(path)) { return lines.filter(...).collect(...); }</code>" ],
+  "whyHtml" : [ "閉じ忘れがコンパイルで見つかると読んだ答え。コンパイラは気づかない", "閉じないと結果が狂うと読んだ答え。狂うのは結果ではない", "", "閉じ忘れで例外が出ると読んだ答え。例外は出ず、黙ってファイルを開いたままにする" ],
   "ref" : "java-file-io@4",
   "lesson" : "java-file-io"
 }, {
@@ -1382,6 +1507,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>c2 = c1 は住所のコピーなので、c1 と c2 は同じ Coupon の実体を指します。c2.discount を書き換えると、c1 から見ても 20 になります。</p>\n",
   "traceHtml" : [ "5〜6行目: c1 が新しい Coupon(discount=10)を指す", "7行目: c2 にも c1 と同じ住所がコピーされる(実体はひとつ)", "8行目: 同じ実体の discount を 20 に書き換える", "9行目: c1 側から見ても discount は 20 になっている" ],
+  "whyHtml" : [ "<code>c2 = c1</code> で実体が複製されると読んだ答え。コピーされるのは住所で、c2 の書き換えは c1 にも見える", "", "フィールドの初期値 0 が出ると読んだ答え。c1 に 10 を入れた後、同じ実体を c2 経由で 20 にした", "参照どうしは代入できないと読んだ答え。同じ型の変数なので代入でき、住所がコピーされる" ],
   "ref" : "java-jvm-memory@0",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1393,6 +1519,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>coupon の住所が値渡しで c にコピーされるため、c と coupon は同じ実体を指します。c.discount への書き換えは、呼び出し元の coupon.discount にも反映されます。</p>\n",
   "traceHtml" : [ "5〜6行目: coupon が discount=20 の実体を指す", "7行目: applyDiscount(coupon) → 引数 c に coupon と同じ住所がコピーされる", "2行目: c.discount を 20-5=15 に書き換える。c と coupon は同じ実体なので coupon.discount も 15 になる", "8行目: 15 と表示される" ],
+  "whyHtml" : [ "値渡しなので呼び出し元は変わらないと読んだ答え。渡るのは住所のコピーで、同じ実体の中身が変わる", "", "discount が初期値から計算されると読んだ答え。同じ実体の 20 から 5 を引いて 15", "引数のフィールドを書き換えられないと読んだ答え。書き換えられ、呼び出し元の実体に反映される" ],
   "ref" : "java-jvm-memory@1",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1404,6 +1531,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>c = new Coupon(); は、コピーされた住所の箱 c を新しい実体に向け直しただけです。呼び出し元の coupon は、最初に指していた discount=20 の実体を指したままなので、reset を呼んでも変わりません。</p>\n",
   "traceHtml" : [ "6〜7行目: coupon が discount=20 の実体を指す", "8行目: reset(coupon) → 引数 c に coupon と同じ住所がコピーされる", "2行目: c に新しい Coupon の住所を代入。ここで c だけが別の実体を指すようになる(coupon はそのまま)", "3行目: 新しい実体の discount を 0 にする。coupon が指す元の実体には影響しない", "9行目: coupon.discount は 20 のまま" ],
+  "whyHtml" : [ "引数への代入が呼び出し元に届くと読んだ答え。c を新しい実体に向け直すだけで、coupon は元のまま", "", "引数を付け替えると元の変数が空になると読んだ答え。coupon は元の実体を指したまま", "引数に代入できないと読んだ答え。代入はできるが、呼び出し元には伝わらない" ],
   "ref" : "java-jvm-memory@2",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1415,6 +1543,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>coupon はどこも指していない状態です。フィールドアクセス(coupon.discount)をしようとした瞬間、実行時に NullPointerException が発生します。文法上は正しいのでコンパイルは通ります。</p>\n",
   "traceHtml" : [ "1行目: coupon に null を代入。どこも指していない", "2行目: coupon.discount にアクセスしようとする", "行き先の実体がないため NullPointerException が発生し、処理が止まる" ],
+  "whyHtml" : [ "null でもフィールドの初期値が読めると読んだ答え。読む先の実体が無い", "null がそのまま表示されると読んだ答え。表示の前に、読む所で落ちる", "", "null の使い方をコンパイラが止めると読んだ答え。コンパイラは値までは追わない" ],
   "ref" : "java-jvm-memory@3",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1426,6 +1555,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>total は static なので、a と b の間で同じ箱を共有しています。1個目の生成で total が 1 になり id=1、2個目の生成で total が 2 になり id=2。最後の Counter.total はその時点の共有値 2 です。</p>\n",
   "traceHtml" : [ "10行目: Counter a を作る → コンストラクタ内で total が 0→1、a.id = 1", "11行目: Counter b を作る → 同じ total が 1→2、b.id = 2", "12行目: a.id(1)、b.id(2)、Counter.total(2)を表示 → &quot;1 2 2&quot;" ],
+  "whyHtml" : [ "total をインスタンスごとの箱と読んだ答え。static なので共有され、2 個目で 2 になる", "", "id を代入してから total を増やすと読んだ答え。total++ が先なので、最初の id は 1", "コンストラクタで static を触れないと読んだ答え。インスタンス側から static のフィールドは使える" ],
   "ref" : "java-jvm-memory@4",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1437,6 +1567,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>countDown には「ここで止まる」という終了条件(if文など)がありません。呼ばれるたびにスタックへ新しいフレームが積まれ続け、n はどんどん負の数へ進みます。スタックの上限を超えると StackOverflowError が発生し、強制的に処理が止まります。</p>\n",
   "traceHtml" : [ "6行目: countDown(5) を呼ぶ → フレームが1つ積まれる", "3行目: 終了条件がないので、n-1 でさらに自分自身を呼ぶ → フレームがまた積まれる", "この繰り返しで n は 4, 3, 2, ... と際限なく続き、フレームが積み上がり続ける", "スタックの上限を超えた時点で StackOverflowError が発生し、処理が止まる" ],
+  "whyHtml" : [ "0 で止まると読んだ答え。終了条件が無いので、負の数へ進み続ける", "", "終わらない再帰をコンパイラが止めると読んだ答え。コンパイルは通り、実行して落ちる", "return ですぐ戻ると読んだ答え。return の前に自分を呼び続け、戻らない" ],
   "ref" : "java-jvm-memory@5",
   "lesson" : "java-jvm-memory"
 }, {
@@ -1448,6 +1579,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>value++は複数ステップの操作なので、2つのスレッドが同時に実行すると加算が失われることがあります。結果は実行のタイミングに依存し、100000未満になることがあります。これが競合状態です。</p>\n",
   "traceHtml" : [ "inc() は value を読む→1を足す→書き戻す、の3ステップ", "2つのスレッドがほぼ同時にこの3ステップを実行すると、片方の加算がもう片方に上書きされて消えることがある", "結果として合計回数(100000)より少ない値になることがある(常にではないが、保証されない)" ],
+  "whyHtml" : [ "value++ を割り込まれない 1 つの操作と読んだ答え。読む・足す・書くの間に割り込まれ、加算が消えうる", "", "スレッドの加算が反映されないと読んだ答え。加算は進むが、一部が消えることがある", "@Service にフィールドを置けないと読んだ答え。置けてコンパイルも通るので、気づきにくい" ],
   "ref" : "java-concurrency@0",
   "lesson" : "java-concurrency"
 }, {
@@ -1459,6 +1591,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>withdraw は排他制御されていますが、getBalance には synchronized が付いていません。読み取り専用に見えても、書き込まれた値の可視性は保証されず、最新の値が見えないことがあります。読むメソッドにも保護が必要な場合があるのがポイントです。</p>\n",
   "traceHtml" : [ "4行目: withdraw は synchronized なので1度に1スレッドしか実行できない", "10行目: getBalance には synchronized が無い", "他のスレッドが withdraw を実行中でも、getBalance は保護されずに balance を読みに行ける(可視性の問題が起きうる)" ],
+  "whyHtml" : [ "getBalance にも <code>synchronized</code> が付いていると読んだ答え。付いているのは withdraw だけ", "", "<code>synchronized</code> はフィールドに関係ないと読んだ答え。中で書き換えた balance の見え方も守る", "片方だけ <code>synchronized</code> は書けないと読んだ答え。混ぜて書け、コンパイルも通る" ],
   "ref" : "java-concurrency@1",
   "lesson" : "java-concurrency"
 }, {
@@ -1470,6 +1603,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>AtomicIntegerのincrementAndGet()は不可分な(割り込まれない)操作として実装されているため、複数スレッドから同時に呼ばれても加算が失われません。join()で両スレッドの終了を待ってから読むので、必ず2000になります。</p>\n",
   "traceHtml" : [ "t1とt2がそれぞれ1000回ずつincrementAndGetを呼ぶ", "AtomicIntegerは各呼び出しを安全に(割り込まれずに)実行する", "t1.join()とt2.join()で両方の完了を待ってからcounter.get()を読む", "合計2000になる" ],
+  "whyHtml" : [ "素の <code>count++</code> と同じと読んだ答え。<code>incrementAndGet()</code> は別物", "", "2 つのスレッドが同じ 1000 回を分け合うと読んだ答え。それぞれが 1000 回ずつ足して 2000", "<code>AtomicInteger</code> をラムダから使えないと読んだ答え。counter は再代入されず、ラムダの中で使える" ],
   "ref" : "java-concurrency@2",
   "lesson" : "java-concurrency"
 }, {
@@ -1479,8 +1613,9 @@
   "questionHtml" : "出力は?",
   "choicesHtml" : [ "done", "timeout", "何も出力されない", "コンパイルエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>処理は完了までに5秒かかりますが、get(1, TimeUnit.SECONDS)は1秒で諦めてTimeoutExceptionを投げます。catchブロックでそれを受け取り&quot;timeout&quot;と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。</p>\n",
+  "explanationHtml" : "<p>処理は完了までに5秒かかりますが、get(1, TimeUnit.SECONDS)は1秒で諦めてTimeoutExceptionを投げます。catchブロックでそれを受け取り <code>timeout</code> と表示します。処理自体はバックグラウンドで動き続けますが、この出力には影響しません。</p>\n",
   "traceHtml" : [ "2〜5行目: 別スレッドで5秒かかる処理を投げる", "8行目: 1秒だけ待つように指定してget", "1秒経過してもまだ終わっていないのでTimeoutExceptionが発生", "10〜11行目: catchで捕まえ&quot;timeout&quot;と表示" ],
+  "whyHtml" : [ "get が処理の終わりまで待つと読んだ答え。時間を渡した get は 1 秒で待つのをやめる", "", "タイムアウトで黙って終わると読んだ答え。catch の println が動く", "Thread.sleep の例外を扱っていないと読んだ答え。値を返すラムダは Callable で、例外を投げてよい" ],
   "ref" : "java-concurrency@3",
   "lesson" : "java-concurrency"
 }, {
@@ -1492,6 +1627,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>両方のタスクがロックを取得する順番(lockA → lockB)が同じなので、デッドロックは起きません。先にlockAを取ったスレッドがlockBも取って処理を終え、ロックを解放してからもう一方が実行されます。デッドロックが起きるのは、taskBがlockBを先に取るなど順番が逆になっている場合です。</p>\n",
   "traceHtml" : [ "taskA: lockA → lockB の順で取得", "taskB: lockA → lockB の順で取得(taskAと同じ順番)", "先にlockAを確保した方が両方のロックを取り終えて処理を完了し、解放する", "もう一方はlockAが空くのを待ってから同様に実行される → 待たされるが、いずれ両方完了する" ],
+  "whyHtml" : [ "ロックを 2 つ使えば必ず詰まると読んだ答え。取る順が同じ lockA → lockB なので、片方が待つだけ", "", "synchronized を入れ子にできないと読んだ答え。入れ子にでき、コンパイルも通る", "ロックが取れないと例外になると読んだ答え。取れないときは例外でなく、空くまで待つ" ],
   "ref" : "java-concurrency@4",
   "lesson" : "java-concurrency"
 }, {
@@ -1503,6 +1639,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 Greeter.java の15行目で name が null のまま toUpperCase() を呼んでいることが原因です。</p>\n",
   "traceHtml" : [ "1〜2行目: 例外の種類は NullPointerException、原因は name が null であること", "3行目(一番上の at 行): Greeter.java の15行目で発生", "4行目: その Greeter.greet を呼び出したのは Main.java の5行目", "まず15行目を確認し、name がどこで null になったかをさらに追う" ],
+  "whyHtml" : [ "呼び出し元の行を発生場所と読んだ答え。下の at 行ほど呼び出し元へさかのぼる", "", "例外名の行を発生場所と読んだ答え。1行目は種類と原因で、場所は at 行に出る", "スタックトレースからは場所が分からないと読んだ答え。一番上の at 行が発生場所" ],
   "ref" : "sts-debugger@0",
   "lesson" : "sts-debugger"
 }, {
@@ -1514,6 +1651,7 @@
   "answer" : 2,
   "explanationHtml" : "<p>条件が i &lt;= scores.length になっているため、i が 3(存在しない添字)のときに scores[3] にアクセスしてしまい、実行時に ArrayIndexOutOfBoundsException が発生します。配列の最後の添字は length - 1 です。</p>\n",
   "traceHtml" : [ "i=0: scores[0]=70 → sum=70", "i=1: scores[1]=80 → sum=150", "i=2: scores[2]=90 → sum=240", "i=3: 条件 3&lt;=3 は true なので継続 → scores[3] は存在しない → ArrayIndexOutOfBoundsException" ],
+  "whyHtml" : [ "ループが添字 2 で終わると読んだ答え。<code>&lt;=</code> なので i が 3 でも回り、<code>scores[3]</code> に触れる", "ループが1回も回らないと読んだ答え。i が 0〜2 で足したあと、i が 3 で例外になる", "", "範囲外の添字をコンパイラが見抜くと読んだ答え。添字の範囲は実行時に調べられる" ],
   "ref" : "sts-debugger@1",
   "lesson" : "sts-debugger"
 }, {
@@ -1523,8 +1661,9 @@
   "questionHtml" : "7行目にブレークポイントを置いて実行し、コールスタックを1段下に見たとき表示される情報は?",
   "choicesHtml" : [ "calcTotal 自身の変数だけ", "main メソッドの、calcTotal を呼び出した時点の変数(args など)", "何も表示されない", "コンパイルエラーの内容" ],
   "answer" : 1,
-  "explanationHtml" : "<p>コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドが calcTotal(10, 0) を呼び出した時点の状態(price=10, qty=0 を渡した箇所)を確認できます。なお qty=0 のためこのままだと ArithmeticException が発生します。</p>\n",
+  "explanationHtml" : "<p>コールスタックの1段下は「今のメソッドを呼び出した側」です。この場合は main メソッドの段で、calcTotal(10, 0) を呼んでいる 3 行目と、その時点の main の変数(args。total はまだ代入前)を確認できます。なお qty=0 のためこのままだと ArithmeticException が発生します。</p>\n",
   "traceHtml" : [ "main が calcTotal(10, 0) を呼び出す", "コールスタックの一番上が calcTotal(price=10, qty=0)", "1段下が main(呼び出し元)", "7行目の price / qty は qty=0 のため実行すると ArithmeticException が発生する" ],
+  "whyHtml" : [ "1段下も今のメソッドと読んだ答え。1段下は呼び出し元の main のフレーム", "", "1段下には何も無いと読んだ答え。calcTotal を呼んだ main のフレームが積まれている", "コールスタックをエラー一覧と取り違えた答え。並ぶのは実行中のメソッド呼び出しの段" ],
   "ref" : "sts-debugger@2",
   "lesson" : "sts-debugger"
 }, {
@@ -1534,8 +1673,9 @@
   "questionHtml" : "result の値と、その原因は?",
   "choicesHtml" : [ "true。文字列の中身が同じだから", "false。== が参照(インスタンス)を比較しているから", "コンパイルエラー", "実行時エラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>role(呼び出し側の &quot;ADMIN&quot;)と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。</p>\n",
-  "traceHtml" : [ "isAdminUser(&quot;ADMIN&quot;) が呼ばれ、role には &quot;ADMIN&quot; という文字列への参照が入る", "2行目: adminRole は new String(&quot;ADMIN&quot;) で明示的に別インスタンスとして作られる", "3行目: role == adminRole は「同じインスタンスか」を見るので false", "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる" ],
+  "explanationHtml" : "<p>role(呼び出し側の <code>&quot;ADMIN&quot;</code>)と adminRole(new String で作った別インスタンス)は中身が同じでも別のオブジェクトです。== は参照を比較するので false になります。equals を使えば意図通り true になります。</p>\n",
+  "traceHtml" : [ "<code>isAdminUser(&quot;ADMIN&quot;)</code> が呼ばれ、role には <code>&quot;ADMIN&quot;</code> という文字列への参照が入る", "2行目: adminRole は <code>new String(&quot;ADMIN&quot;)</code> で明示的に別インスタンスとして作られる", "3行目: role == adminRole は「同じインスタンスか」を見るので false", "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる" ],
+  "whyHtml" : [ "<code>==</code> を中身の比較と読んだ答え。<code>==</code> は参照を比べ、<code>new String</code> は別のインスタンス", "", "String 同士の <code>==</code> は書けないと読んだ答え。文法上は通り、参照の比較になる", "<code>==</code> の比較で例外が出ると読んだ答え。例外は出ず、別のインスタンスなので false" ],
   "ref" : "sts-debugger@3",
   "lesson" : "sts-debugger"
 }, {
@@ -1543,10 +1683,11 @@
   "level" : 2,
   "code" : "public interface CommandSender { String send(byte[] command); }\n\n@Component\npublic class SocketCommandSender implements CommandSender {\n    public String send(byte[] command) { return \"socket\"; }\n}\n\n@Component @Primary\npublic class LoggingCommandSender implements CommandSender {\n    public String send(byte[] command) { return \"logging\"; }\n}\n\n@Service @RequiredArgsConstructor\npublic class CommandService {\n    private final CommandSender sender;\n    public String run() { return sender.send(new byte[0]); }\n}\n",
   "questionHtml" : "<code>commandService.run()</code> の戻り値は?",
-  "choicesHtml" : [ "&quot;socket&quot;", "&quot;logging&quot;", "起動時に例外", "null" ],
+  "choicesHtml" : [ "<code>&quot;socket&quot;</code>", "<code>&quot;logging&quot;</code>", "起動時に例外", "null" ],
   "answer" : 1,
   "explanationHtml" : "<p>CommandSender(仕事では ApduSender)型の Bean は2つありますが、LoggingCommandSender に @Primary が付いているので、型だけで要求している CommandService にはこちらが入ります。@Primary がなければ、候補が2つで選べず、起動時に NoUniqueBeanDefinitionException になります。</p>\n",
   "traceHtml" : [ "3〜11行目: CommandSender の実装 Bean が2つ登録される(SocketCommandSender と LoggingCommandSender)", "13〜15行目: @RequiredArgsConstructor により CommandSender を1つ受け取るコンストラクタが生成される", "起動時: 候補2つのうち @Primary の LoggingCommandSender が選ばれて注入される", "16行目: sender.send(...) → LoggingCommandSender.send → &quot;logging&quot;" ],
+  "whyHtml" : [ "<code>@Primary</code> を見落とし、先に書かれた <code>SocketCommandSender</code> が入ると読んだ答え", "", "候補が2つあるので起動に失敗すると読んだ答え。<code>@Primary</code> が付いた側が選ばれて起動する", "どちらにも決めきれず、null が入ると読んだ答え。実際は <code>@Primary</code> の側が入る" ],
   "ref" : "spring-di@0",
   "lesson" : "spring-di"
 }, {
@@ -1554,10 +1695,11 @@
   "level" : 2,
   "code" : "@Service\n@RequiredArgsConstructor\npublic class KeyIssueService {\n    private final KeyRepository keyRepository;\n    private CryptoClient cryptoClient;\n\n    public String issue(String cardId) {\n        byte[] key = cryptoClient.generateKey();\n        keyRepository.save(cardId, key);\n        return \"OK\";\n    }\n}\n",
   "questionHtml" : "Spring が起動し、<code>issue(&quot;C001&quot;)</code> を呼ぶと?",
-  "choicesHtml" : [ "&quot;OK&quot; が返る", "起動時に例外で失敗する", "8行目で NullPointerException", "コンパイルエラー" ],
+  "choicesHtml" : [ "<code>&quot;OK&quot;</code> が返る", "起動時に例外で失敗する", "8行目で NullPointerException", "コンパイルエラー" ],
   "answer" : 2,
   "explanationHtml" : "<p>@RequiredArgsConstructor が引数にするのは、初期化していない final フィールド(と @NonNull を付けたフィールド)です。この例では final の KeyRepository だけが該当するので、生成されるコンストラクタは KeyRepository の1引数です。cryptoClient(仕事では hsmClient)は注入されず null のまま。起動は成功し、issue を呼んで cryptoClient.generateKey() に到達した瞬間に NullPointerException です。</p>\n",
   "traceHtml" : [ "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ", "5行目: final がないため引数に含まれず、注入もされない → null", "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する", "8行目: cryptoClient が null → generateKey() を呼んだ瞬間に NullPointerException" ],
+  "whyHtml" : [ "<code>@RequiredArgsConstructor</code> が全フィールドに注入すると読んだ答え。対象は <code>final</code> の方だけ", "注入されないフィールドがあると起動で止まると読んだ答え。null のフィールドは、使うまで誰も気づかない", "", "final でないフィールドを Lombok がエラーにすると読んだ答え。コンストラクタの引数から外れるだけで、コンパイルは通る" ],
   "ref" : "spring-di@1",
   "lesson" : "spring-di"
 }, {
@@ -1567,8 +1709,9 @@
   "questionHtml" : "起動時に何が起きる?",
   "choicesHtml" : [ "BackendClient が Bean にならず起動失敗", "restTemplate が先に作られ、backendClient に渡され、SessionService に注入される", "backendClient が2個作られる", "@Bean メソッドの順序が逆なのでエラー" ],
   "answer" : 1,
-  "explanationHtml" : "<p>@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。@Bean メソッドを書いた順番は関係ないのでエラーにはならず、Bean は singleton なので backendClient が2個作られることもありません。</p>\n",
+  "explanationHtml" : "<p>@Bean メソッドの引数には他の Bean が注入されます。Spring は依存関係を見て、restTemplate() を先に呼び、その戻り値を backendClient()(仕事では backApiClient())の引数に渡します。呼ぶ順は書いた順ではなく依存関係で決まり、できた backendClient が SessionService に注入されます。</p>\n",
   "traceHtml" : [ "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される", "4行目: backendClient は RestTemplate に依存すると分かる", "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる", "4〜5行目: その RestTemplate を引数に backendClient() が呼ばれ、BackendClient の Bean ができる", "15行目: SessionService のコンストラクタに BackendClient の Bean が渡される" ],
+  "whyHtml" : [ "<code>@Component</code> が無いクラスは Bean にならないと読んだ答え。<code>@Bean</code> メソッドの戻り値が Bean になる", "", "<code>@Bean</code> メソッドを呼ぶたびに作られると読んだ答え。Bean は singleton で1個だけ", "<code>@Bean</code> メソッドを書いた順に呼ぶと読んだ答え" ],
   "ref" : "spring-di@2",
   "lesson" : "spring-di"
 }, {
@@ -1580,6 +1723,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>スキャンの基準は起動クラスのパッケージ jp.example.gateway(仕事では jp.example.tsm、起動クラスは TsmFrontApplication)です。HexUtil は jp.example.common にあり範囲外なので、@Component が付いていても Bean になりません。KeyIssueService は範囲内で Bean になりますが、必要な HexUtil の Bean がないため NoSuchBeanDefinitionException で起動が失敗します。</p>\n",
   "traceHtml" : [ "2行目: スキャンの基準パッケージは jp.example.gateway", "6〜8行目: jp.example.gateway.service は範囲内 → KeyIssueService は Bean 候補。HexUtil を要求している", "12行目: jp.example.common は範囲外 → HexUtil は Bean にならない", "起動時: KeyIssueService を作ろうとして HexUtil の Bean が見つからず、例外で停止" ],
+  "whyHtml" : [ "<code>@Component</code> が付いていれば必ず Bean になると読んだ答え。HexUtil はスキャン範囲の外で Bean にならない", "", "<code>KeyIssueService</code> もスキャン範囲の外と読んだ答え。<code>gateway.service</code> は <code>gateway</code> の下なので範囲内", "Bean が見つからない問題をコンパイル時の誤りと取り違えた答え。コンパイルは通り、起動時に失敗する" ],
   "ref" : "spring-di@3",
   "lesson" : "spring-di"
 }, {
@@ -1591,6 +1735,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>(キーの頭の gateway は、仕事では tsm)base-url は prod の yml が共通を上書きして https://backend.internal。timeout-millis は prod にないので共通の 3000(既定値の 1000 は使われない)。retry はどこにもないので既定値の 2 です。既定値があるので例外にはなりません。</p>\n",
   "traceHtml" : [ "13行目: gateway.backend.base-url → 共通と prod の両方にある → prod が勝ち https://backend.internal", "14行目: gateway.backend.timeout-millis → 共通にだけある → 3000(:1000 はキーがない時だけ)", "15行目: gateway.backend.retry → どこにもない → 既定値 2" ],
+  "whyHtml" : [ "prod で起動しても共通の yml だけが使われると読んだ答え", "", "prod に無いキーは既定値になると読んだ答え。共通の yml に 3000 があるのでそれが使われる", "どこにも無いキーは例外になると読んだ答え。<code>:2</code> の既定値があるので 2 が入る" ],
   "ref" : "spring-boot-startup@0",
   "lesson" : "spring-boot-startup"
 }, {
@@ -1602,6 +1747,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。</p>\n",
   "traceHtml" : [ "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む", "11行目: max-count → maxCount = 100", "12行目: idle-seconds → idleSeconds = 300(初期値 60 は上書き)", "13行目: retry-count は yml にない → 初期値 3 のまま" ],
+  "whyHtml" : [ "", "フィールドの初期値が優先されると読んだ答え。yml の 300 で上書きされる", "max-count と maxCount が結びつかないと読んだ答え。ハイフン区切りのキーはキャメルケースのフィールドに対応する", "yml にキーが無いと例外になると読んだ答え。無いキーのフィールドは初期値の 3 のまま" ],
   "ref" : "spring-boot-startup@1",
   "lesson" : "spring-boot-startup"
 }, {
@@ -1611,8 +1757,9 @@
   "questionHtml" : "(予習:<code>@Profile(&quot;prod&quot;)</code> を付けた Bean は、そのプロファイルが有効なときだけ作られます。プロファイルは起動引数 <code>--spring.profiles.active=…</code> で選びます。詳しくは第5章「設定ファイルとプロファイル」)<code>--spring.profiles.active=stg</code> で起動すると、sender には何が入る?",
   "choicesHtml" : [ "SecureCommandSender", "PlainCommandSender", "両方の候補があり起動時に例外", "どちらも作られず起動時に例外" ],
   "answer" : 1,
-  "explanationHtml" : "<p>stg では @Profile({&quot;dev&quot;,&quot;stg&quot;}) の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に NoSuchBeanDefinitionException(Bean が見つからない)になります。</p>\n",
+  "explanationHtml" : "<p>stg では <code>@Profile({&quot;dev&quot;,&quot;stg&quot;})</code> の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に NoSuchBeanDefinitionException(Bean が見つからない)になります。</p>\n",
   "traceHtml" : [ "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない", "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる", "12行目: CommandSender 型の候補は PlainCommandSender の1つだけ → それが注入される" ],
+  "whyHtml" : [ "<code>@Profile</code> を見ずに、先に書いた Bean が入ると読んだ答え", "", "<code>@Profile</code> を付けても Bean は両方作られると読んだ答え", "プロファイルを指定しないときの動きと取り違えた答え。stg は plainSender の <code>@Profile</code> に含まれる" ],
   "ref" : "spring-boot-startup@2",
   "lesson" : "spring-boot-startup"
 }, {
@@ -1622,8 +1769,9 @@
   "questionHtml" : "(予習:<code>@Value</code> は設定ファイルの値をフィールドに入れる注釈、<code>@PostConstruct</code> は「Bean を作り終えた後に1回だけ呼ばれるメソッド」の印です。@Value は第5章「設定ファイルとプロファイル」で詳しく扱います)yml に <code>gateway.crypto.host: crypto1</code> があるとき、起動時の出力は?",
   "choicesHtml" : [ "crypto1:9000", "null:9000", "起動時に例外", ":9000" ],
   "answer" : 1,
-  "explanationHtml" : "<p>フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は &quot;null:9000&quot; になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。</p>\n",
+  "explanationHtml" : "<p>フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は <code>null:9000</code> になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。</p>\n",
   "traceHtml" : [ "7〜9行目: Spring がまず new する。この時点で host は null → endpoint = &quot;null:9000&quot;", "3〜4行目: new の後に @Value が処理され、host = &quot;crypto1&quot; になる", "11〜13行目: 注入完了後に init() が呼ばれ、endpoint(&quot;null:9000&quot;)を出力" ],
+  "whyHtml" : [ "<code>@Value</code> がコンストラクタより先に入ると読んだ答え。フィールド注入は new の後なので、そのとき host は null", "", "null と連結すると例外になると読んだ答え。文字列の連結では null も「null」として連結される", "未注入の host を空文字と読んだ答え。String フィールドの初期値は null で、連結すると null:9000" ],
   "ref" : "spring-boot-startup@3",
   "lesson" : "spring-boot-startup"
 }, {
@@ -1633,8 +1781,9 @@
   "questionHtml" : "<code>GET /api/keys/K999</code> の応答は?",
   "choicesHtml" : [ "200 と空の JSON", "404 でボディなし", "500", "400" ],
   "answer" : 1,
-  "explanationHtml" : "<p>keyId = &quot;K999&quot; で find すると空の Optional が返り、map は実行されず orElse の notFound().build() が返ります。よって 404、ボディなしです。</p>\n",
+  "explanationHtml" : "<p>keyId = <code>&quot;K999&quot;</code> で find すると空の Optional が返り、map は実行されず orElse の notFound().build() が返ります。よって 404、ボディなしです。</p>\n",
   "traceHtml" : [ "2,7行目: GET /api/keys/{keyId} に一致。keyId = &quot;K999&quot;", "9行目: keyService.find(&quot;K999&quot;) → 空の Optional", "10行目: 空なので map の ResponseEntity::ok は呼ばれない", "11行目: orElse → ResponseEntity.notFound().build() → 404" ],
+  "whyHtml" : [ "空の Optional でも <code>map</code> の <code>ok</code> が動くと読んだ答え", "", "空の Optional で例外になると読んだ答え。orElse があるので例外にならず 404 が返る", "存在しない ID を送る側の誤りの 400 と読んだ答え。このコードは notFound() で 404 を返す" ],
   "ref" : "spring-controller@0",
   "lesson" : "spring-controller"
 }, {
@@ -1642,10 +1791,11 @@
   "level" : 2,
   "code" : "@Data\npublic class HandshakeRequest {\n    @NotBlank private String cardId;\n    @Pattern(regexp = \"^[0-9A-F]{16}$\") private String hostChallenge;\n}\n\n@PostMapping(\"/api/sessions\")\npublic SessionResponse start(@Valid @RequestBody HandshakeRequest req) {\n    return sessionService.start(req);\n}\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(MethodArgumentNotValidException.class)\n    public ResponseEntity<ErrorResponse> v(MethodArgumentNotValidException e) {\n        return ResponseEntity.badRequest().body(new ErrorResponse(\"E400\"));\n    }\n}\n",
   "questionHtml" : "(予習:<code>@RequestBody</code> は JSON のボディをオブジェクトで受け取る注釈、<code>@Valid</code> はそのオブジェクトの入力ルール(<code>@NotBlank</code> など)を検証する印、<code>@RestControllerAdvice</code> の <code>@ExceptionHandler</code> は投げられた例外を受けてレスポンスにするメソッドです。この章の「フォームとバリデーション」と第4章「REST API」「例外ハンドリング」で詳しく扱います)ボディ <code>{&quot;cardId&quot;:&quot;C001&quot;,&quot;hostChallenge&quot;:&quot;abcd&quot;}</code> を POST すると?",
-  "choicesHtml" : [ "sessionService.start が呼ばれ 200", "400 と {&quot;code&quot;:&quot;E400&quot;}", "500", "404" ],
+  "choicesHtml" : [ "sessionService.start が呼ばれ 200", "400 と <code>{&quot;code&quot;:&quot;E400&quot;}</code>", "500", "404" ],
   "answer" : 1,
-  "explanationHtml" : "<p>(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の &quot;abcd&quot; は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。</p>\n",
+  "explanationHtml" : "<p>(HandshakeRequest は、仕事では SessionStartRequest)hostChallenge の <code>&quot;abcd&quot;</code> は「16桁の 0-9A-F」に合わないので @Valid で失敗し、MethodArgumentNotValidException が投げられます。start の本体は実行されず、ハンドラが 400 に変換します。</p>\n",
   "traceHtml" : [ "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換", "3行目: cardId = &quot;C001&quot; → @NotBlank OK", "4行目: hostChallenge = &quot;abcd&quot; → 小文字4桁で @Pattern NG", "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない", "14〜16行目: ハンドラが受けて 400 + ErrorResponse(E400)" ],
+  "whyHtml" : [ "<code>@Pattern</code> を見落とし、<code>abcd</code> も通ると読んだ答え", "", "検証の失敗が 500 のまま返ると読んだ答え。<code>@RestControllerAdvice</code> のハンドラを見落としている", "検証に失敗すると URL に合わないと読んだ答え。URL は一致し、検証の失敗はハンドラが 400 にする" ],
   "ref" : "spring-controller@1",
   "lesson" : "spring-controller"
 }, {
@@ -1653,10 +1803,11 @@
   "level" : 2,
   "code" : "public class GatewayException extends RuntimeException { }\npublic class CryptoUnavailableException extends GatewayException { }\n\n@RestControllerAdvice\npublic class Handler {\n    @ExceptionHandler(GatewayException.class)\n    public ResponseEntity<String> gateway(GatewayException e) {\n        return ResponseEntity.status(503).body(\"gateway\");\n    }\n    @ExceptionHandler(Exception.class)\n    public ResponseEntity<String> other(Exception e) {\n        return ResponseEntity.status(500).body(\"other\");\n    }\n}\n\n// Service が throw new CryptoUnavailableException() した\n",
   "questionHtml" : "(予習:<code>@RestControllerAdvice</code> のクラスの <code>@ExceptionHandler(型)</code> メソッドは、その型の例外が Controller から投げられたときに呼ばれ、戻り値がレスポンスになります。第4章「例外ハンドリング」で詳しく扱います)応答は?",
-  "choicesHtml" : [ "503 &quot;gateway&quot;", "500 &quot;other&quot;", "両方のハンドラが実行される", "ハンドラが2つあるので起動時に例外" ],
+  "choicesHtml" : [ "503 と <code>gateway</code>", "500 と <code>other</code>", "両方のハンドラが実行される", "ハンドラが2つあるので起動時に例外" ],
   "answer" : 0,
-  "explanationHtml" : "<p>@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 &quot;gateway&quot; です。両方のハンドラが実行されることはありません。</p>\n",
+  "explanationHtml" : "<p>@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 と本文 <code>gateway</code> です。</p>\n",
   "traceHtml" : [ "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く", "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致", "10行目: Exception.class も一致するが、より具体的な GatewayException のハンドラが優先", "8行目: 503 + &quot;gateway&quot;" ],
+  "whyHtml" : [ "", "<code>Exception</code> のハンドラも当てはまるので、そちらが選ばれると読んだ答え", "当てはまるハンドラが全部、順に動くと読んだ答え", "ハンドラが複数あると衝突すると読んだ答え。型が違えば並べてよく、近い型のほうが選ばれる" ],
   "ref" : "spring-controller@2",
   "lesson" : "spring-controller"
 }, {
@@ -1664,10 +1815,11 @@
   "level" : 3,
   "code" : "@Component\npublic class TokenFilter extends OncePerRequestFilter {\n    @Override\n    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,\n                                    FilterChain chain) throws IOException, ServletException {\n        String token = req.getHeader(\"X-Api-Token\");\n        if (token == null || !token.equals(\"secret\")) {\n            res.setStatus(401);\n            return;\n        }\n        chain.doFilter(req, res);\n    }\n}\n\n@GetMapping(\"/api/ping\")\npublic String ping() { return \"pong\"; }\n",
   "questionHtml" : "(予習:Filter は DispatcherServlet より手前で全リクエストを受ける部品で、<code>chain.doFilter(...)</code> を呼ぶと次の処理(最後は Controller)へ進みます。第6章「Spring Security入門」で詳しく扱います)ヘッダなしで <code>GET /api/ping</code> を送ると?",
-  "choicesHtml" : [ "200 &quot;pong&quot;", "401 でボディなし。ping() は呼ばれない", "500", "ping() が呼ばれた後に 401" ],
+  "choicesHtml" : [ "200 と <code>pong</code>", "401 でボディなし。ping() は呼ばれない", "500", "ping() が呼ばれた後に 401" ],
   "answer" : 1,
   "explanationHtml" : "<p>token が null なので if に入り、401 をセットして return します。chain.doFilter を呼んでいないので DispatcherServlet にも Controller にも届かず、ping() は一度も実行されません。Filter は Controller より手前で動くことを確認する問題です。</p>\n",
   "traceHtml" : [ "6行目: X-Api-Token ヘッダなし → token = null", "7〜9行目: 条件成立 → ステータス 401 をセットして return", "11行目: chain.doFilter は実行されない → 後続に進まない", "15〜16行目: ping() は呼ばれない。応答は 401、ボディなし" ],
+  "whyHtml" : [ "ヘッダが無くても Filter を素通りすると読んだ答え", "", "token が null で例外になると読んだ答え。先に null を判定しているので、401 を返して終わる", "Filter が Controller の後で動くと読んだ答え。Filter はリクエストの入口で先に動く" ],
   "ref" : "spring-controller@3",
   "lesson" : "spring-controller"
 }, {
@@ -1675,10 +1827,11 @@
   "level" : 3,
   "code" : "// 受付サーバ(仕事では Front サーバ)\npublic ChallengeResponse requestChallenge(String cardId) {\n    return restTemplate.postForObject(baseUrl + \"/api/challenge\",\n            new ChallengeRequest(cardId), ChallengeResponse.class);\n}\n\n// 業務サーバ(仕事では Back サーバ)\n@RestController\n@RequestMapping(\"/api\")\npublic class ChallengeController {\n    @PostMapping(\"/challenge\")\n    public ResponseEntity<ChallengeResponse> challenge(@RequestBody ChallengeRequest req) {\n        if (req.getCardId() == null) return ResponseEntity.badRequest().build();\n        return ResponseEntity.ok(new ChallengeResponse(\"0011223344556677\"));\n    }\n}\n// ChallengeRequest は @Data @NoArgsConstructor @AllArgsConstructor のクラス(cardId フィールドを持つ)。受付サーバ側は cardId = \"C001\"\n",
   "questionHtml" : "(予習:<code>restTemplate.postForObject(URL, 送るオブジェクト, 戻りの型)</code> は、別のサーバーへ JSON を POST し、返ってきた JSON を指定した型に変換する呼び出しです。受け取る側の <code>@RequestBody</code> は JSON のボディをオブジェクトにする注釈(第4章「REST API」))受付サーバの <code>requestChallenge(&quot;C001&quot;)</code> の結果は?",
-  "choicesHtml" : [ "業務サーバの challenge() が呼ばれ、ChallengeResponse(&quot;0011223344556677&quot;) が返る", "業務サーバで 400 になり受付サーバで例外", "URL が一致せず 404", "受付サーバで JSON 変換に失敗" ],
+  "choicesHtml" : [ "業務サーバの challenge() が呼ばれ、<code>ChallengeResponse(&quot;0011223344556677&quot;)</code> が返る", "業務サーバで 400 になり受付サーバで例外", "URL が一致せず 404", "受付サーバで JSON 変換に失敗" ],
   "answer" : 0,
-  "explanationHtml" : "<p>受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの @RequestMapping(&quot;/api&quot;) + @PostMapping(&quot;/challenge&quot;) に一致します。ボディ {&quot;cardId&quot;:&quot;C001&quot;} が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。</p>\n",
+  "explanationHtml" : "<p>受付サーバは POST {baseUrl}/api/challenge を送り、業務サーバの <code>@RequestMapping(&quot;/api&quot;)</code> + <code>@PostMapping(&quot;/challenge&quot;)</code> に一致します。ボディ <code>{&quot;cardId&quot;:&quot;C001&quot;}</code> が ChallengeRequest に変換され、cardId は null でないので 200 と ChallengeResponse が返り、受付サーバ側で ChallengeResponse.class に変換されます。</p>\n",
   "traceHtml" : [ "3行目: 受付サーバが POST {baseUrl}/api/challenge、ボディは ChallengeRequest(&quot;C001&quot;) → {&quot;cardId&quot;:&quot;C001&quot;}", "9,11行目: 業務サーバの URL は /api + /challenge = /api/challenge、POST → 一致", "12行目: JSON → ChallengeRequest。cardId = &quot;C001&quot;", "13〜14行目: null でないので 200 + ChallengeResponse(&quot;0011223344556677&quot;)", "3〜4行目: 受付サーバは応答 JSON を ChallengeResponse に変換して返す" ],
+  "whyHtml" : [ "", "<code>cardId</code> が届かず null になると読んだ答え。<code>@NoArgsConstructor</code> と <code>@Data</code> があれば JSON から入る", "クラスとメソッドのパスをつなげ損ねた答え。2つは足し合わされる", "戻りの JSON を型に変換できないと読んだ答え。第3引数の型に変換される" ],
   "ref" : "spring-controller@4",
   "lesson" : "spring-controller"
 }, {
@@ -1688,19 +1841,21 @@
   "questionHtml" : "result に入る件数は?",
   "choicesHtml" : [ "0件", "1件", "2件", "3件" ],
   "answer" : 1,
-  "explanationHtml" : "<p>findByCardIdAndStatus は「WHERE card_id = ? AND status = ?」相当です。cardId=&quot;C001&quot; かつ status=&quot;ACTIVE&quot; の行は1件だけです。</p>\n",
+  "explanationHtml" : "<p>findByCardIdAndStatus は「WHERE card_id = ? AND status = ?」相当です。cardId が <code>&quot;C001&quot;</code> かつ status が <code>&quot;ACTIVE&quot;</code> の行は1件だけです。</p>\n",
   "traceHtml" : [ "1〜2行目: findByCardIdAndStatus という名前から WHERE card_id = ? AND status = ? が組み立てられる", "保存データのうち、card_id=&quot;C001&quot; の行は2件(ACTIVE と REVOKED)", "その中で status=&quot;ACTIVE&quot; も満たすのは1件だけ", "結果: result は1件" ],
+  "whyHtml" : [ "And の両方を満たす行が無いと読んだ答え", "", "status の条件を見落とした答え。C001 の2件のうち ACTIVE は1件だけ", "And を Or と読んだ答え。両方を満たす行だけが返るので1件" ],
   "ref" : "spring-data-jpa@0",
   "lesson" : "spring-data-jpa"
 }, {
   "title" : "検査例外とロールバック",
   "level" : 2,
   "code" : "@Transactional\npublic void issue(String cardId) throws CryptoCommunicationException {\n    keyRepository.save(new KeyEntity(cardId, 1, \"ACTIVE\"));\n    throw new CryptoCommunicationException(\"crypto timeout\");\n}\n// CryptoCommunicationException は Exception を直接継承した検査例外\n",
-  "questionHtml" : "issue(&quot;C001&quot;) を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)",
+  "questionHtml" : "<code>issue(&quot;C001&quot;)</code> を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)",
   "choicesHtml" : [ "ロールバックされ、保存されていない", "保存された行がそのまま残る", "起動時に例外になる", "コンパイルエラー" ],
   "answer" : 1,
   "explanationHtml" : "<p>@Transactional の既定のロールバック対象は RuntimeException と Error だけです。CryptoCommunicationException(仕事では HsmCommunicationException)は検査例外(Exception を直接継承)なので、rollbackFor の指定がない限りロールバックされず、save した内容が確定してしまいます。</p>\n",
   "traceHtml" : [ "3行目: save が実行される(まだ確定はしていない)", "4行目: 検査例外 CryptoCommunicationException が投げられる", "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外", "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る" ],
+  "whyHtml" : [ "例外が出れば、種類を問わずロールバックされると読んだ答え", "", "検査例外を投げる <code>@Transactional</code> は起動で止まると読んだ答え。起動は問題なく、呼んだときの話", "検査例外の扱いが足りないと読んだ答え。<code>throws</code> で宣言してあるのでコンパイルは通る" ],
   "ref" : "spring-data-jpa@1",
   "lesson" : "spring-data-jpa"
 }, {
@@ -1712,6 +1867,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>rollbackFor = Exception.class は「Exception(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。</p>\n",
   "traceHtml" : [ "1行目: rollbackFor で対象を Exception.class まで広げている", "3行目: save が実行される", "4行目: CryptoCommunicationException(Exception のサブクラス)が投げられる", "rollbackFor の条件に一致するのでロールバックが実行される", "結果: 3行目の保存内容も取り消され、テーブルに行は残らない" ],
+  "whyHtml" : [ "前の問題と同じ結果と読んだ答え。追加した <code>rollbackFor</code> を見落としている", "", "rollbackFor が例外を止めると読んだ答え。例外はそのまま投げられ、取り消しが起きるだけ", "<code>rollbackFor</code> に <code>Exception</code> は指定できないと読んだ答え。どの例外クラスでも指定できる" ],
   "ref" : "spring-data-jpa@2",
   "lesson" : "spring-data-jpa"
 }, {
@@ -1723,6 +1879,7 @@
   "answer" : 3,
   "explanationHtml" : "<p>findAll() で1回、その後ループの5回分、getResults() にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 1 + 5 = 6回になります。これが N+1 問題です。</p>\n",
   "traceHtml" : [ "1行目: findAll() で1回目のSELECT(5件のKeyEntityを取得)", "3行目: forループが5回まわる", "4行目: 1回目のループでkey.getResults()にアクセス → 遅延ロードのSELECTが発行される(2回目)", "同様に2〜5回目のループでもそれぞれSELECTが発行される(3〜6回目)", "合計: 1(findAll) + 5(各keyのresults) = 6回" ],
+  "whyHtml" : [ "関連も一緒に取ると読んだ答え。LAZY の results は触るたびに1回ずつ取る", "関連をまとめて1回で取ると読んだ答え。LAZY の results は key ごとに1回ずつで、計 1 + 5", "findAll の1回を数え落とした答え。findAll の1回とループの5回で 6", "" ],
   "ref" : "spring-data-jpa@3",
   "lesson" : "spring-data-jpa"
 }, {
@@ -1734,6 +1891,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>基準が WARN のとき、WARN と ERROR は出力され、DEBUG と INFO は出力されません。「基準以上を出す、基準未満は無視する」というフィルタの考え方です。</p>\n",
   "traceHtml" : [ "基準: WARN", "step1(DEBUG): WARN未満 → 出ない", "step2(INFO): WARN未満 → 出ない", "step3(WARN): 基準と同じ → 出る", "step4(ERROR): 基準より上 → 出る" ],
+  "whyHtml" : [ "レベルの設定で絞られないと読んだ答え", "", "WARN を超えるものだけが出ると読んだ答え。基準の WARN 自身も出る", "WARN の設定で、ログが全部止まると読んだ答え" ],
   "ref" : "spring-logging@0",
   "lesson" : "spring-logging"
 }, {
@@ -1745,6 +1903,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>b が 0 のとき a / b は ArithmeticException を投げますが、catch で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。</p>\n",
   "traceHtml" : [ "3行目: 10 / 0 で ArithmeticException", "4行目: catch で捕まえる", "5行目: WARN ログを出す(第3引数の e でスタックトレースも記録)", "6行目: 0 を返す(例外は外に伝わらない)", "9行目: 0 と表示" ],
+  "whyHtml" : [ "", "割り算の結果が返ると読んだ答え。b は 0 で例外になり、catch で 0 を返す", "例外が呼び出し元まで伝わると読んだ答え。catch で捕まえて 0 を返し、投げ直していない", "ログの引数の数が <code>{}</code> と合わないと読んだ答え。最後の例外は別扱いで、コンパイルは通る" ],
   "ref" : "spring-logging@1",
   "lesson" : "spring-logging"
 }, {
@@ -1756,6 +1915,7 @@
   "answer" : 0,
   "explanationHtml" : "<p>スタブ(when...thenReturn)を設定していないモックのメソッドは、戻り値の型に応じた既定値を返します。Optional の既定値は null ではなく Optional.empty() 相当の空の Optional なので、result.isEmpty() は true になりテストは成功します。</p>\n",
   "traceHtml" : [ "3行目: userRepository はモック(本物のDBには繋がらない)", "9行目: when を設定していないので、findById は既定の空 Optional を返す", "10行目: isEmpty() は true → assertTrue は成功" ],
+  "whyHtml" : [ "", "モックが本物の Repository を呼ぶと読んだ答え。モックは中身が無く、既定値を返す", "スタブが無いと null が返ると読んだ答え。Optional を返すメソッドの既定値は空の Optional", "when を書かないとコンパイルが通らないと読んだ答え。スタブは任意で、コンパイルは通る" ],
   "ref" : "spring-logging@2",
   "lesson" : "spring-logging"
 }, {
@@ -1767,6 +1927,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>thenThrow(...).thenReturn(true) は「1回目は例外、2回目は成功」という順番のスタブです。最終的に ok は true、charge が2回呼ばれたことを verify(times(2)) が確認しているので、RetryService は失敗時に1回再試行してから成功を返す仕様だと読み取れます。</p>\n",
   "traceHtml" : [ "3〜5行目: charge の1回目は例外、2回目は true を返すよう設定", "7行目: chargeWithRetry を呼ぶ(中でおそらく try-catchして再試行している)", "9行目: 最終的に true が返ったことを確認", "10行目: charge が合計2回呼ばれたことを確認 → 「1回失敗したら1回だけ再試行する」仕様と分かる" ],
+  "whyHtml" : [ "1回目の例外で終わると読んだ答え。2回目は true を返すスタブで、ok が true だと確かめている", "", "再試行の回数を多く読んだ答え。verify は times(2) で、2回呼ばれたと確かめている", "1回目の例外が呼び出し元へ出ると読んだ答え。テストは例外なしで ok が true になると確かめている" ],
   "ref" : "spring-logging@3",
   "lesson" : "spring-logging"
 }, {
@@ -1776,41 +1937,45 @@
   "questionHtml" : "認証済みだが ADMIN ロールを持たないユーザーが GET /api/admin/danger にアクセスすると?",
   "choicesHtml" : [ "200(通る)", "401", "403", "起動時に例外" ],
   "answer" : 0,
-  "explanationHtml" : "<p>requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの hasRole(&quot;ADMIN&quot;) は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。</p>\n",
+  "explanationHtml" : "<p>requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの <code>hasRole(&quot;ADMIN&quot;)</code> は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。</p>\n",
   "traceHtml" : [ "1〜2行目: /api/admin/** に permitAll() を設定", "3行目: /api/admin/danger にも hasRole(&quot;ADMIN&quot;) を設定しているが、2行目より後ろにある", "リクエスト時: /api/admin/danger は2行目の /api/admin/** に先にマッチする", "結果: 最初にマッチした permitAll() が適用され、認証すら不要で 200 が返る" ],
+  "whyHtml" : [ "", "認証が足りないと読んだ答え。ログイン済みのうえ、先に一致した <code>permitAll()</code> で通る", "後ろの <code>hasRole</code> が効くと読んだ答え。上から順に評価され、先に一致した <code>permitAll()</code> で通る", "ルールが重なると起動で止まると読んだ答え。重なっても起動し、先に一致したほうが使われる" ],
   "ref" : "spring-security@0",
   "lesson" : "spring-security"
 }, {
   "title" : "ROLE_ 接頭辞の付け忘れ",
   "level" : 1,
   "code" : "// UserDetailsService の中\nreturn User.withUsername(user.getUsername())\n        .password(user.getPasswordHash())\n        .authorities(user.getRole())   // \"ADMIN\"(接頭辞なし)\n        .build();\n\n// SecurityConfig の中\nhttp.authorizeHttpRequests(auth -> auth\n    .requestMatchers(\"/api/admin/**\").hasRole(\"ADMIN\")\n    .anyRequest().authenticated());\n",
-  "questionHtml" : "ROLE を &quot;ADMIN&quot; として持つユーザーが /api/admin/xxx にアクセスすると?",
+  "questionHtml" : "ROLE を <code>&quot;ADMIN&quot;</code> として持つユーザーが /api/admin/xxx にアクセスすると?",
   "choicesHtml" : [ "200", "401", "403", "コンパイルエラー" ],
   "answer" : 2,
-  "explanationHtml" : "<p>hasRole(&quot;ADMIN&quot;) は内部で hasAuthority(&quot;ROLE_ADMIN&quot;) を探します。UserDetailsService 側では接頭辞なしの &quot;ADMIN&quot; という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。</p>\n",
+  "explanationHtml" : "<p><code>hasRole(&quot;ADMIN&quot;)</code> は内部で <code>hasAuthority(&quot;ROLE_ADMIN&quot;)</code> を探します。UserDetailsService 側では接頭辞なしの <code>&quot;ADMIN&quot;</code> という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。</p>\n",
   "traceHtml" : [ "1〜5行目: 権限として &quot;ADMIN&quot;(ROLE_ なし)が登録される", "8〜10行目: hasRole(&quot;ADMIN&quot;) は &quot;ROLE_ADMIN&quot; という権限を探す", "判定時: ユーザーが持つのは &quot;ADMIN&quot; のみ → &quot;ROLE_ADMIN&quot; と一致しない", "結果: 認証は成功しているので 401 にはならず、権限不足の 403 になる" ],
+  "whyHtml" : [ "接頭辞なしの権限でも <code>hasRole</code> を満たすと読んだ答え", "権限の不一致を未認証と読んだ答え。認証はできているので、権限不足の 403", "", "ROLE_ の付け忘れをコンパイラが見つけると読んだ答え。ただの文字列なので、コンパイルは通る" ],
   "ref" : "spring-security@1",
   "lesson" : "spring-security"
 }, {
   "title" : "@PreAuthorize が効かない内部呼び出し",
   "level" : 3,
   "code" : "@Service\npublic class UserAdminService {\n\n    public void deactivateUser(String userId) {\n        this.deleteUser(userId);\n    }\n\n    @PreAuthorize(\"hasRole('ADMIN')\")\n    public void deleteUser(String userId) {\n        System.out.println(\"deleted: \" + userId);\n    }\n}\n\n// Controller から:\nuserAdminService.deactivateUser(\"u001\");   // 呼び出し元は一般ユーザー\n",
-  "questionHtml" : "一般ユーザーが deactivateUser(&quot;u001&quot;) を呼ぶと?",
-  "choicesHtml" : [ "AccessDeniedException が発生し、何も出力されない", "権限チェックされずに &quot;deleted: u001&quot; が出力される", "コンパイルエラー", "401 が返る" ],
+  "questionHtml" : "一般ユーザーが <code>deactivateUser(&quot;u001&quot;)</code> を呼ぶと?",
+  "choicesHtml" : [ "AccessDeniedException が発生し、何も出力されない", "権限チェックされずに <code>deleted: u001</code> が出力される", "コンパイルエラー", "401 が返る" ],
   "answer" : 1,
   "explanationHtml" : "<p>@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。</p>\n",
   "traceHtml" : [ "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)", "5行目: deactivateUser の中で this.deleteUser(userId) を呼ぶ(内部呼び出し)", "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない", "10行目: 権限チェックなしで deleteUser の本体が実行され、&quot;deleted: u001&quot; が出力される" ],
+  "whyHtml" : [ "内部呼び出しでも <code>@PreAuthorize</code> が効くと読んだ答え。this からの呼び出しはプロキシを通らない", "", "<code>@PreAuthorize</code> のメソッドを中から呼べないと読んだ答え。普通に呼べ、権限チェックが飛ばされるだけ", "一般ユーザーを未認証と読んだ答え。ログイン済みで、しかも内部呼び出しなので権限チェックも無い" ],
   "ref" : "spring-security@2",
   "lesson" : "spring-security"
 }, {
   "title" : "CSRF を無効化していないままの POST",
   "level" : 2,
   "code" : "@Configuration\npublic class SecurityConfig {\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())\n            .httpBasic(Customizer.withDefaults());\n        // csrf() の設定なし = デフォルト(有効)のまま\n        return http.build();\n    }\n}\n\n// クライアントから:\n// POST /api/items (Authorization ヘッダあり、CSRF トークンなし)\n",
-  "questionHtml" : "この POST リクエストを送ると?",
+  "questionHtml" : "この POST リクエストに、Spring Security の CSRF のフィルタはどう応える?",
   "choicesHtml" : [ "200 で正常に処理される", "401(認証情報がない)", "403(CSRF トークンがない)", "500(サーバエラー)" ],
   "answer" : 2,
-  "explanationHtml" : "<p>csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -&gt; csrf.disable()) にするのが定石です。</p>\n",
+  "explanationHtml" : "<p>csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -&gt; csrf.disable()) にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(/error)を permitAll にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。</p>\n",
   "traceHtml" : [ "5〜6行目: authorizeHttpRequests と httpBasic は設定しているが csrf() の呼び出しがない", "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る", "POST リクエストが CSRF フィルタに到達し、トークンチェックで失敗する", "結果: Controller に届く前に 403 で止まる" ],
+  "whyHtml" : [ "認証できれば POST も通ると読んだ答え。CSRF 保護が有効なままで、トークンが無いと 403", "認証情報が無いと読んだ答え。Authorization ヘッダは付いていて、止めるのは CSRF のチェック", "", "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する" ],
   "ref" : "spring-security@3",
   "lesson" : "spring-security"
 }, {
@@ -1822,6 +1987,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>キーの検証自体は通っていますが、SecurityContextHolder.getContext().setAuthentication(...) を呼び忘れているため、認証情報は一度もセットされません。chain.doFilter は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も Authentication は空(null 相当)になります。</p>\n",
   "traceHtml" : [ "5〜6行目: ヘッダのキーを検証し、正しいと分かる", "7行目: しかし SecurityContextHolder に認証情報をセットする処理がない", "9行目: chain.doFilter は呼ばれるので後続フィルタ・Controller には進む", "結果: 検証は通ったのに「誰か」が確定していないため、authentication は使えない(未認証扱い)" ],
+  "whyHtml" : [ "キーの検証が通れば、それだけで認証されると読んだ答え", "", "<code>Authentication</code> を引数で受けられないと読んだ答え。受けられ、コンパイルは通る", "検証を通れば強い権限になると読んだ答え。何もセットしていないので未認証のまま" ],
   "ref" : "spring-security@4",
   "lesson" : "spring-security"
 }, {
@@ -1833,6 +1999,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>cardId・keyVersion とも制約を満たすので @Valid は通過します。C100 に ACTIVE な鍵がまだないため existsByCardIdAndStatus は false を返し、if の中には入らず save が実行され、201 + KeyIssueResponse が返ります。</p>\n",
   "traceHtml" : [ "@Valid: cardId=&quot;C100&quot;(空でない)、keyVersion=1(1〜255の範囲内)→ 制約OK", "issue が呼ばれ、existsByCardIdAndStatus(&quot;C100&quot;,&quot;ACTIVE&quot;) → 該当なしなので false", "if (false) なので例外は投げられず、次に進む", "save が実行され、KeyEntity が保存される", "KeyIssueResponse が組み立てられ、Controller が 201 + そのオブジェクトを返す" ],
+  "whyHtml" : [ "C100 に有効な鍵があると読んだ答え。まだ無いので false が返り、save に進む", "", "保存してから重複を調べると読んだ答え。先に exists で調べ、成功時は <code>HttpStatus.CREATED</code> の 201", "入力が制約に違反すると読んだ答え。cardId は空でなく keyVersion は範囲内で、<code>@Valid</code> を通る" ],
   "ref" : "spring-reading-code@0",
   "lesson" : "spring-reading-code"
 }, {
@@ -1840,10 +2007,11 @@
   "level" : 2,
   "code" : "// POST /api/keys のボディ: {\"cardId\":\"C001\",\"keyVersion\":2}\n// C001 には既に ACTIVE な鍵が存在する\n\npublic KeyIssueResponse issue(KeyIssueRequest request) {\n    if (keyRepository.existsByCardIdAndStatus(request.getCardId(), \"ACTIVE\")) {\n        throw new KeyAlreadyExistsException(request.getCardId());\n    }\n    KeyEntity saved = keyRepository.save(\n        new KeyEntity(request.getCardId(), request.getKeyVersion(), \"ACTIVE\"));\n    return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());\n}\n\n@RestControllerAdvice\npublic class ApiExceptionHandler {\n    @ExceptionHandler(KeyAlreadyExistsException.class)\n    public ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {\n        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(\"E409\", e.getMessage()));\n    }\n}\n",
   "questionHtml" : "最終的な応答は?",
-  "choicesHtml" : [ "201 + KeyIssueResponse", "500 + 何もなし", "409 + ErrorResponse(&quot;E409&quot;, ...)", "issueが2回呼ばれて201が返る" ],
+  "choicesHtml" : [ "201 + KeyIssueResponse", "500 + 何もなし", "409 + <code>ErrorResponse(&quot;E409&quot;, ...)</code>", "issueが2回呼ばれて201が返る" ],
   "answer" : 2,
   "explanationHtml" : "<p>既に ACTIVE な鍵があるので existsByCardIdAndStatus は true を返し、if の中で KeyAlreadyExistsException が投げられます。save は実行されず、この例外は @RestControllerAdvice の handleDuplicate に届き、409 + ErrorResponse が返ります。</p>\n",
   "traceHtml" : [ "existsByCardIdAndStatus(&quot;C001&quot;,&quot;ACTIVE&quot;) → 該当ありなので true", "if (true) → KeyAlreadyExistsException(&quot;C001&quot;) が投げられる", "8〜10行目の save 以降は実行されない", "例外は Controller を素通りし、handleDuplicate が受け取る", "handleDuplicate が 409 + ErrorResponse(&quot;E409&quot;, メッセージ) を返す" ],
+  "whyHtml" : [ "重複の判定(<code>existsByCardIdAndStatus</code>)を見落とした答え", "例外を誰も受けず、500 になると読んだ答え", "", "例外のあと処理がやり直されると読んだ答え。やり直しの仕組みは無い" ],
   "ref" : "spring-reading-code@1",
   "lesson" : "spring-reading-code"
 }, {
@@ -1855,6 +2023,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに @RestControllerAdvice でハンドラを書きます。</p>\n",
   "traceHtml" : [ "リクエストボディが KeyIssueRequest に変換される。cardId=&quot;&quot;", "@Valid が @NotBlank をチェック → 空文字なので違反", "MethodArgumentNotValidException が投げられ、issue(12〜14行目)のメソッド本体には入らない", "ハンドラが無くても Spring の既定で 400 になる(項目ごとの中身を返すなら @ExceptionHandler を書く)" ],
+  "whyHtml" : [ "空文字でも通ると読んだ答え。<code>@NotBlank</code> は空文字を違反とし、本体に入る前に止まる", "", "違反した値が null に直されると読んだ答え。値は直されず、<code>@Valid</code> で止まって 400", "検証の例外がその場で消えると読んだ答え" ],
   "ref" : "spring-reading-code@2",
   "lesson" : "spring-reading-code"
 }, {
@@ -1866,6 +2035,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元の JpaRepository が持つ基本 CRUD の1つで、extends の先まで確認しないと見つかりません。</p>\n",
   "traceHtml" : [ "1行目: KeyRepository は JpaRepository&lt;KeyEntity, Long&gt; を継承している", "2行目: このインターフェース自身が宣言しているのは existsByCardIdAndStatus だけ", "7行目: findById が呼ばれているが、KeyRepository 自身には定義がない", "継承元の JpaRepository まで確認すると、findById(ID) が Optional&lt;Entity&gt; を返すメソッドとして定義されている" ],
+  "whyHtml" : [ "<code>KeyRepository</code> の2行目に書いてあると読んだ答え。2行目は別のメソッド", "", "呼んでいる Service に定義があると読んだ答え", "見当たらないので無いと読んだ答え。コンパイルは通る" ],
   "ref" : "spring-reading-code@3",
   "lesson" : "spring-reading-code"
 }, {
@@ -1877,6 +2047,7 @@
   "answer" : 1,
   "explanationHtml" : "<p>@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(9行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。</p>\n",
   "traceHtml" : [ "1行目: @Transactional の範囲は issue メソッドの本体(3〜9行目)", "3〜7行目: existsByCardIdAndStatus と save は同じトランザクション内", "8行目: notifyAsync は別スレッドで動くため、issue のトランザクションの外側で実行される", "9行目: return でメソッドが正常終了 → ここまでの変更(save)がコミットされる" ],
+  "whyHtml" : [ "中で呼んだメソッドなら、別スレッドでも同じトランザクションと読んだ答え", "", "<code>@Transactional</code> がアプリ全体に効くと読んだ答え。範囲はメソッド単位で、issue の開始から終了まで", "DB を書く行だけが範囲と読んだ答え。範囲はメソッド単位で、exists の確認も含む" ],
   "ref" : "spring-reading-code@4",
   "lesson" : "spring-reading-code"
 } ]
