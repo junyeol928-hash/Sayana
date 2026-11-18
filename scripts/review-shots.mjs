@@ -110,6 +110,12 @@ await scrollTo(".quiz-q:nth-child(2) .choice", 150);
 await shot("m-quiz-inline");
 await scrollTo("#quiz-result", 130);
 await shot("m-quiz-score");
+// 手を止めて(本文の途中の 1 問)。答える前と、誤答を押したあと
+await scrollTo("#read aside.check", 140);
+await shot("m-check");
+await js(`const b = [...document.querySelectorAll("#read aside.check")][0]; const wrong = [...b.querySelectorAll(".choice")].find((x) => Number(x.dataset.c) !== Number(b.dataset.answer)); wrong.click(); await new Promise((r) => setTimeout(r, 400));`);
+await scrollTo("#read aside.check", 140);
+await shot("m-check-answer");
 // サンプルの実行結果(予想してから開く欄)。閉じた形と開いた形
 await scrollTo("#run .sample", 130);
 await shot("m-sample-closed");
@@ -151,6 +157,8 @@ await js(`const ans = [2, 1, 3, 1, 2]; document.querySelectorAll("form.quiz .qui
   document.querySelector("form.quiz button[type=submit]").click(); await new Promise((r) => setTimeout(r, 2000));`);
 await scrollTo("form.quiz .quiz-q:nth-child(2) .choice", 160);
 await shot("pc-quiz");
+await scrollTo("aside.check", 160);
+await shot("pc-check");
 await open(pcArg + "review");
 await js(`window.scrollTo(0, 0);`);
 await shot("pc-review");
