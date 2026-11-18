@@ -12,7 +12,7 @@ goals:
 samples:
   - title: Builder(static ネストクラス)で検索条件を組み立てる
     description: |
-      `UserQuery.Builder` は static ネストクラスなので、`UserQuery` のインスタンスがなくても `new UserQuery.Builder()` で作れる。Builder で指定しなかった項目は、どう表示される? 予想してから見よう。
+      `UserQuery.Builder` は static ネストクラスなので、`UserQuery` のインスタンスがなくても `new UserQuery.Builder()` で作れる。Builder で指定しなかった項目は、どう表示される?
     code: |
       // Builder(static ネストクラス)で検索条件を組み立てる
       // ここを変えてみよう:minAge を指定しない検索を足す / onlyActive(false) を呼んでみる
@@ -53,7 +53,7 @@ samples:
       System.out.println(q2.describe());
   - title: 内部クラスと 外側.this
     description: |
-      `Gauge` は static のない内部クラス。`car1` だけ走らせたあと、`g1` と `g2` の `read()` はそれぞれ何 L と読む? 出力を予想してから見よう。
+      `Gauge` は static のない内部クラス。`car1` だけ走らせたあと、`g1` と `g2` の `read()` はそれぞれ何 L と読む?
     code: |
       // 内部クラスは外側のインスタンス1つに結び付く
       // ここを変えてみよう:car2 の fuel を変える / Gauge に static を付けるとどんなエラーになる?
@@ -126,7 +126,7 @@ samples:
       System.out.println("名前順: " + Arrays.toString(orders));
   - title: new したときの実行順を確かめる
     description: |
-      `new Derived()` を 2 回呼ぶ。A〜F の行は、1 回目と 2 回目でそれぞれどの順に出る? 出力を予想してから見よう。
+      `new Derived()` を 2 回呼ぶ。A〜F の行は、1 回目と 2 回目でそれぞれどの順に出る?
     code: |
       // static ブロック → 初期化ブロック → コンストラクタ の順番
       // ここを変えてみよう:3回目の new を足す / Derived のフィールドに初期値を付けて表示してみる
@@ -218,7 +218,7 @@ quiz:
     answer: 0
     why:
       - ""
-      - "static ブロックが new のたびに動くと読んだ答え"
+      - "static ブロックが `new` のたびに動くと読んだ答え"
       - "static ブロックを見落とした答え"
       - "初期化ブロックをコンストラクタの後と読み、static も毎回とした答え"
     explanation: |

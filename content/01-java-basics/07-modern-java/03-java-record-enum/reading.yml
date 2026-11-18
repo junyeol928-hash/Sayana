@@ -23,9 +23,9 @@
     - "valueOf が別物を作り、equals も別と見ると読んだ答え。実際はどちらも同じ物"
   explanation: "enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は `\"RED\"` です。"
   trace:
-    - "3行目: a は RED(唯一のインスタンス)を指す"
+    - "3行目: `a` は `RED`(唯一のインスタンス)を指す"
     - "4行目: `valueOf(\"RED\")` も同じ `RED` を返す"
-    - "5〜6行目: 同じインスタンスなので == も equals も true"
+    - "5〜6行目: 同じインスタンスなので `==` も `equals` も `true`"
     - "7行目: `RED` は 0 番目、`name()` は `\"RED\"`"
 - title: "record の equals"
   level: 2
@@ -39,9 +39,9 @@
     System.out.println(p1);
   question: "3行の出力は?"
   choices:
-    - "true / true / Point[x=1, y=2]"
-    - "false / true / Point[x=1, y=2]"
-    - "false / false / Point@1a2b3c"
+    - "`true` / `true` / `Point[x=1, y=2]`"
+    - "`false` / `true` / `Point[x=1, y=2]`"
+    - "`false` / `false` / `Point@1a2b3c`"
     - "コンパイルエラー"
   answer: 1
   why:
@@ -52,9 +52,9 @@
   explanation: "new を2回しているので別インスタンス → == は false。record は全フィールドを比べる equals を自動生成するので equals は true。toString も「型名[フィールド=値, ...]」の形で自動生成されます。"
   trace:
     - "3〜4行目: 別々の Point インスタンスを2つ作る(中身は同じ)"
-    - "5行目: == は参照比較 → 別物なので false"
-    - "6行目: record の equals は x と y を比較 → true"
-    - "7行目: 自動生成された toString → Point[x=1, y=2]"
+    - "5行目: `==` は参照比較 → 別物なので `false`"
+    - "6行目: record の `equals` は `x` と `y` を比較 → `true`"
+    - "7行目: 自動生成された `toString` → `Point[x=1, y=2]`"
 - title: "switch 式とフォールスルーの違い"
   level: 2
   code: |
@@ -85,15 +85,15 @@
     - "110 110"
   answer: 1
   why:
-    - "古い switch 文が break なしでも止まると読んだ答え。MID から HIGH まで落ちて 10 + 100 = 110"
+    - "古い switch 文が `break` なしでも止まると読んだ答え。`MID` から `HIGH` まで落ちて `10 + 100 = 110`"
     - ""
     - "フォールスルーが `LOW` から始まると読んだ答え。入るのは `MID` からで、`LOW` の `n += 1` は通らない"
     - "矢印の switch 式も下へ落ちると読んだ答え。矢印 case はフォールスルーせず 10"
-  explanation: "古い switch 文は break が無いので、MID に入ったあと HIGH の処理まで落ちて(フォールスルー)10 + 100 = 110。矢印 case の switch 式はフォールスルーしないので 10 です。"
+  explanation: "古い switch 文は `break` が無いので、`MID` に入ったあと `HIGH` の処理まで落ちて(フォールスルー)`10 + 100 = 110`。矢印 case の switch 式はフォールスルーしないので 10 です。"
   trace:
-    - "oldStyle: case MID から開始 → n = 10"
-    - "break が無いので case HIGH も実行 → n = 110"
-    - "newStyle: case MID -> 10 で終わり"
+    - "`oldStyle`: `case MID` から開始 → `n = 10`"
+    - "`break` が無いので `case HIGH` も実行 → `n = 110`"
+    - "`newStyle`: `case MID -> 10` で終わり"
     - "出力: `110 10`"
 - title: "コンパクトコンストラクタの検証"
   level: 2
@@ -147,16 +147,16 @@
   choices:
     - "positive 0 / ng: timeout"
     - "zero or negative / ng: timeout"
-    - "コンパイルエラー(default が無い)"
+    - "コンパイルエラー(`default` が無い)"
     - "実行時エラー"
   answer: 1
   why:
-    - "when の条件を見落とした答え。0 は条件を満たさない"
+    - "`when` の条件を見落とした答え。0 は条件を満たさない"
     - ""
-    - "default が要ると読んだ答え。sealed なら全種類を書けば要らない"
+    - "`default` が要ると読んだ答え。sealed なら全種類を書けば要らない"
     - "`Ok(0)` に合う case が無いと読んだ答え。`when` の無い `case Ok` が受け取る"
-  explanation: "Ok(0) は最初の case のガード(value > 0)を満たさないので次の case Ok に入り `zero or negative`。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので default は不要で、コンパイルも通ります。"
+  explanation: "`Ok(0)` は最初の case のガード(`value > 0`)を満たさないので次の `case Ok` に入り `zero or negative`。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので `default` は不要で、コンパイルも通ります。"
   trace:
-    - "12行目: r は Ok(0)。1つ目の case は when 0 > 0 が false → スキップ"
+    - "12行目: `r` は `Ok(0)`。1つ目の case は `0 > 0` が `false` → スキップ"
     - "2つ目の `case Ok ok` に一致 → `\"zero or negative\"`"
     - "13行目: r は `Ng` → 3つ目の case → `ng: timeout`"

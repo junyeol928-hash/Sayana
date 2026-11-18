@@ -24,7 +24,7 @@
     - "400"
   answer: 1
   why:
-    - "空の Optional でも `map` の `ok` が動くと読んだ答え"
+    - "空の `Optional` でも `map` の `ok` が動くと読んだ答え"
     - ""
     - "空の `Optional` で例外になると読んだ答え。`orElse` があるので例外にならず 404 が返る"
     - "存在しない ID を送る側の誤りの 400 と読んだ答え。このコードは `notFound()` で 404 を返す"
@@ -32,8 +32,8 @@
   trace:
     - "2,7行目: `GET /api/keys/{keyId}` に一致。`keyId = \"K999\"`"
     - "9行目: `keyService.find(\"K999\")` → 空の `Optional`"
-    - "10行目: 空なので map の ResponseEntity::ok は呼ばれない"
-    - "11行目: orElse → ResponseEntity.notFound().build() → 404"
+    - "10行目: 空なので `map` の `ResponseEntity::ok` は呼ばれない"
+    - "11行目: `orElse` → `ResponseEntity.notFound().build()` → 404"
 - title: "バリデーションと例外ハンドラ"
   level: 2
   code: |
@@ -72,8 +72,8 @@
     - "7〜8行目: POST /api/sessions に一致。JSON → HandshakeRequest に変換"
     - "3行目: `cardId = \"C001\"` → `@NotBlank` OK"
     - "4行目: `hostChallenge = \"abcd\"` → 小文字4桁で `@Pattern` NG"
-    - "8行目: @Valid 失敗 → MethodArgumentNotValidException。9行目は実行されない"
-    - "14〜16行目: ハンドラが受けて 400 + ErrorResponse(E400)"
+    - "8行目: `@Valid` 失敗 → `MethodArgumentNotValidException`。9行目は実行されない"
+    - "14〜16行目: ハンドラが受けて 400 + `ErrorResponse(\"E400\")`"
 - title: "例外の型と @ExceptionHandler の一致"
   level: 2
   code: |
@@ -107,9 +107,9 @@
     - "ハンドラが複数あると衝突すると読んだ答え。型が違えば並べてよく、近い型のほうが選ばれる"
   explanation: "@ExceptionHandler は例外の型に最も近い(具体的な)ハンドラを1つだけ選びます。CryptoUnavailableException(仕事では HsmUnavailableException)は GatewayException(仕事では TsmException)のサブクラスなので、Exception よりも GatewayException のハンドラが選ばれ、503 と本文 `gateway` です。"
   trace:
-    - "16行目: CryptoUnavailableException が投げられ、Controller を通り抜けて Advice に届く"
-    - "6行目: GatewayException.class → CryptoUnavailableException は GatewayException の子なので一致"
-    - "10行目: Exception.class も一致するが、より具体的な GatewayException のハンドラが優先"
+    - "16行目: `CryptoUnavailableException` が投げられ、Controller を通り抜けて Advice に届く"
+    - "6行目: `GatewayException.class` → `CryptoUnavailableException` は `GatewayException` の子なので一致"
+    - "10行目: `Exception.class` も一致するが、より具体的な `GatewayException` のハンドラが優先"
     - "8行目: 503 + 本文 `gateway`"
 - title: "Filter が Controller を止める"
   level: 3
@@ -144,10 +144,10 @@
     - "Filter が Controller の後で動くと読んだ答え。Filter はリクエストの入口で先に動く"
   explanation: "token が null なので if に入り、401 をセットして return します。chain.doFilter を呼んでいないので DispatcherServlet にも Controller にも届かず、ping() は一度も実行されません。Filter は Controller より手前で動くことを確認する問題です。"
   trace:
-    - "6行目: X-Api-Token ヘッダなし → token = null"
+    - "6行目: `X-Api-Token` ヘッダなし → `token = null`"
     - "7〜9行目: 条件成立 → ステータス 401 をセットして return"
     - "11行目: chain.doFilter は実行されない → 後続に進まない"
-    - "15〜16行目: ping() は呼ばれない。応答は 401、ボディなし"
+    - "15〜16行目: `ping()` は呼ばれない。応答は 401、ボディなし"
 - title: "受付サーバから業務サーバへの呼び出しをつなげて読む"
   level: 3
   code: |
@@ -170,7 +170,7 @@
     // ChallengeRequest は @Data @NoArgsConstructor @AllArgsConstructor のクラス(cardId フィールドを持つ)。受付サーバ側は cardId = "C001"
   question: "(予習:`restTemplate.postForObject(URL, 送るオブジェクト, 戻りの型)` は、別のサーバーへ JSON を POST し、返ってきた JSON を指定した型に変換する呼び出しです。受け取る側の `@RequestBody` は JSON のボディをオブジェクトにする注釈(第4章「REST API」))受付サーバの `requestChallenge(\"C001\")` の結果は?"
   choices:
-    - "業務サーバの `challenge()` が呼ばれ、`ChallengeResponse(\"0011223344556677\")` が返る"
+    - "`ChallengeResponse` が返る"
     - "業務サーバで 400 になり受付サーバで例外"
     - "パスが `/challenge` だけになり 404"
     - "受付サーバで JSON 変換に失敗"

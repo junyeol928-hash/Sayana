@@ -11,7 +11,7 @@ goals:
   - "@Controller / @Service / @Repository を付けたクラスを DI コンテナで組み立てられる"
 samples:
   - title: Service を Spring も DB も使わずにテストする
-    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックが ✔ か ✘ かを予想してから見よう(そのあと `toLowerCase()` を消したらどう変わるかも)。
+    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ ✔ と ✘ のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。
     code: |
       // Service を Spring も DB も使わずにテストする:Repository をメモリ実装に差し替えるだけ
       interface MemberRepository {
@@ -62,7 +62,7 @@ samples:
       check("大文字・空白違いでも重複として弾く", rejected);
       check("登録件数は1件のまま", repo.emails.size() == 1);
   - title: 3層を DI コンテナで組み立てる
-    description: "`@Controller` / `@Service` / `@Repository` を付けたクラスをコンテナに登録し、Controller から呼び出します。空白だけの名前を渡した 2 回目は、何と返る?`同じ Service?` が true か false かも、予想してから見よう。"
+    description: "`@Controller` / `@Service` / `@Repository` を付けたクラスをコンテナに登録し、Controller から呼び出します。空白だけの名前を渡した 2 回目は、何と返る?`同じ Service?` の行は `true` と `false` のどちらになる?"
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.AnnotationConfigApplicationContext;

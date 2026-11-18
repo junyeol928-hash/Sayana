@@ -1,12 +1,12 @@
 - after: application.yml:H2 はファイルモード
   question: |
     `url` だけを `jdbc:h2:mem:approval` に変えて再起動した。前回の起動までに入っていたデータは引き継がれる?
-  choices: ["引き継がれない", "引き継がれる(ddl-auto: update なので)", "引き継がれる(data/approval.mv.db に残る)"]
+  choices: ["引き継がれない", "引き継がれる(`ddl-auto: update` なので)", "引き継がれる(`data/approval.mv.db` に残る)"]
   answer: 0
   why:
     - ""
-    - "`update` がデータを守ると読んだ答え。`update` は表を作り足すだけで、データが残るかは url の mem / file で決まる"
-    - "前のファイルが読まれると考えた答え。`.mv.db` を使うのは file モードで、mem はメモリの中だけ"
+    - "`update` がデータを守ると読んだ答え。`update` は表を作り足すだけで、データが残るかは `url` の `mem` / `file` で決まる"
+    - "前のファイルが読まれると考えた答え。`.mv.db` を使うのは `file` モードで、`mem` はメモリの中だけ"
   explanation: |
     `mem` はメモリの中だけの DB で、アプリを止めると中身ごと消える。社員がまた入るのは、`data.sql` が起動のたびに流れるから。
 - after: Repository:画面ごとの検索を名前で宣言

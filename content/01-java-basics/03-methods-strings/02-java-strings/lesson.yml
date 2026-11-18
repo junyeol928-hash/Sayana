@@ -12,7 +12,8 @@ goals:
 samples:
   - title: 不変と equals、文字列プール
     description: |
-      `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わる? `==` と `equals` がそれぞれ何を返すかも、出力を予想してから見よう(JShell では、受け取らなかった戻り値も画面に表示されます)。
+      JShell では、受け取らなかった戻り値も画面に表示されます。`==` と `equals` は、それぞれ何を返すか。
+      `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わる?
     code: |
       // String は不変。そして中身の比較は equals
       // ここを変えてみよう:input を "GOLD" や null にする / b を d + "va" の形にしてみる
@@ -34,7 +35,7 @@ samples:
       System.out.println("equalsIgnoreCase : " + "GOLD".equalsIgnoreCase(input));
   - title: メールアドレスを整えて分解する
     description: |
-      strip / toLowerCase / indexOf / substring など、よく使うメソッドの組み合わせ。前後の全角スペースが `trim` と `strip` でそれぞれどうなるかに注目して、出力を予想してから見よう。
+      strip / toLowerCase / indexOf / substring など、よく使うメソッドの組み合わせ。前後の全角スペースに注目しよう。
       前の全角スペースは、`trim` で消える?
     code: |
       // よく使う String のメソッド(メールアドレスを整えて分解する)
@@ -58,7 +59,7 @@ samples:
       System.out.println("空白だけ? " + "   ".isBlank() + " / 空文字? " + "   ".isEmpty());
   - title: CSV の行を分解して集計する
     description: |
-      `split` で列に分け、`strip` してから `Integer.parseInt`。最後の 2 行の `split` が何個に分けるかも予想してから見よう。`strip()` を外したら何が起きるかも試してみよう。
+      `split` で列に分け、`strip` してから `Integer.parseInt`。`strip()` を外したら何が起きるかも試してみよう。
       `"a.b.c".split(".")` は、何個に分ける?
     code: |
       // CSV の1行を分解して集計する(split / strip / Integer.parseInt / String.join)

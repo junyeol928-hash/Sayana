@@ -66,9 +66,9 @@
   explanation: "max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
   trace:
     - "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む"
-    - "11行目: max-count → maxCount = 100"
-    - "12行目: idle-seconds → idleSeconds = 300(初期値 60 は上書き)"
-    - "13行目: retry-count は yml にない → 初期値 3 のまま"
+    - "11行目: `max-count` → `maxCount = 100`"
+    - "12行目: `idle-seconds` → `idleSeconds = 300`(初期値 60 は上書き)"
+    - "13行目: `retry-count` は yml にない → 初期値 3 のまま"
 - title: "@Profile と Bean の選択"
   level: 2
   code: |

@@ -37,7 +37,7 @@ samples:
       }
   - title: Java は値渡し(配列は「参照の値」が渡る)
     description: |
-      int を渡したメソッドの中で書き換えたら、呼び出し元の `x` は変わる? 配列の中身の書き換え(`clear`)と、仮引数への新しい配列の代入(`reset`)は、それぞれ呼び出し元から見えるか。出力を予想してから見よう。
+      int を渡したメソッドの中で書き換えたら、呼び出し元の `x` は変わる? 配列の中身の書き換え(`clear`)と、仮引数への新しい配列の代入(`reset`)は、それぞれ呼び出し元から見える?
     code: |
       import java.util.Arrays;
 
@@ -106,7 +106,7 @@ samples:
       }
   - title: 再帰で階乗
     description: |
-      `factorial(5)` と 1〜10 の階乗の並びを予想してから見よう。終了条件(`n <= 1`)を消したら何が起きるかも試してみよう(数秒かかることがあります)。
+      終了条件(`n <= 1`)を消したら何が起きるかも試してみよう(数秒かかることがあります)。
       `factorial(5)` は、いくつを返す?
     code: |
       // 再帰で階乗を計算する
@@ -179,11 +179,11 @@ quiz:
       Java は参照渡しではないことがよく分かる例です。
   - question: |
       同じクラスの中に次の2つのメソッドを **一緒に** 定義したとき、コンパイルエラーになるのはどれ?
-    choices: ["int calc(int a) と long calc(int a)", "int calc(int a) と int calc(long a)", "int calc(int a) と int calc(int a, int b)", "int calc(int a, String s) と int calc(String s, int a)"]
+    choices: ["`int calc(int a)` と `long calc(int a)`", "`int calc(int a)` と `int calc(long a)`", "`int calc(int a)` と `int calc(int a, int b)`", "`int calc(int a, String s)` と `int calc(String s, int a)`"]
     answer: 0
     why:
       - ""
-      - "int と long は同じ整数だから区別されないと読んだ答え。引数の型が違えば別のメソッド"
+      - "`int` と `long` は同じ整数だから区別されないと読んだ答え。引数の型が違えば別のメソッド"
       - "名前が同じならエラーと読んだ答え。引数の数が違えば正しいオーバーロード"
       - "型の組み合わせが同じなら同じと読んだ答え。並びが違えば別のシグネチャ"
     explanation: |
@@ -214,10 +214,10 @@ quiz:
     choices: ["A", "B", "C", "D"]
     answer: 2
     why:
-      - "x <= 0 の経路を見落とした答え。そのとき何も返さないので missing return statement"
-      - "条件で全部の場合を尽くせば通ると読んだ答え。コンパイラは条件の中身を解析せず、else が無いとエラー"
+      - "`x <= 0` の経路を見落とした答え。そのとき何も返さないので `missing return statement`"
+      - "条件で全部の場合を尽くせば通ると読んだ答え。コンパイラは条件の中身を解析せず、`else` が無いとエラー"
       - ""
-      - "void でも値を返せると読んだ答え。void のメソッドで return x はエラー"
+      - "void でも値を返せると読んだ答え。void のメソッドで `return x` はエラー"
     explanation: |
       C は `x > 0` なら 1、そうでなければ if を抜けて `return 0;` に来るので、すべての経路で値を返します。
       A は `x <= 0` の経路で何も返さないので `missing return statement`。紛らわしいのは B で、人間には「`x > 0` か `x <= 0` のどちらかは必ず成り立つ」と分かりますが、**コンパイラは条件式の中身を論理的に解析しません**。最後が `else` で終わっていないので「どちらも false で抜ける経路がある」とみなされ、同じく `missing return statement` です。

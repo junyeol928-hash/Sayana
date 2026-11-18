@@ -12,7 +12,7 @@ goals:
 samples:
   - title: raw 型の事故とジェネリクス
     description: |
-      raw 型のリストに `42` を入れたとき、問題が出るのは `add` の行か、取り出してキャストする行だろうか。出力を予想してから見よう(JShell が unchecked の警告を出すのも確認しよう)。ジェネリクス版では、同じミスがどこで見つかるかも比べよう。
+      raw 型のリストに `42` を入れると、JShell は unchecked の警告を出す。ジェネリクス版では、同じミスがどこで見つかるかも比べよう。raw 型で問題が出るのは、`add` の行か、取り出してキャストする行か?
     code: |
       // raw 型(型引数なし)のリスト。何でも入ってしまう
       List raw = new ArrayList();
@@ -99,7 +99,7 @@ samples:
       // ここを変えてみよう:sum の引数を List<Number> に変えると、sum(ints) はどうなる?
   - title: 型消去と Integer の比較
     description: |
-      `List<String>` と `List<Integer>` の `getClass()` は同じだろうか。`Integer` の 1000 同士を `==` と `equals` で比べた結果も、予想してから見よう。
+      `List<String>` と `List<Integer>` の `getClass()` は同じだろうか。`Integer` の 1000 同士を `==` と `equals` で比べると、それぞれ何が出る?
     code: |
       List<String> a = new ArrayList<>();
       List<Integer> b = new ArrayList<>();
@@ -115,15 +115,15 @@ quiz:
   - question: |
       次のうち、**コンパイルエラーになる** 行はどれ?
     choices:
-      - "List<Integer> a = new ArrayList<>();"
-      - "List<Number> b = new ArrayList<Integer>();"
-      - "List<? extends Number> c = new ArrayList<Integer>();"
-      - "List<? super Integer> d = new ArrayList<Number>();"
+      - "`List<Integer> a = new ArrayList<>();`"
+      - "`List<Number> b = new ArrayList<Integer>();`"
+      - "`List<? extends Number> c = new ArrayList<Integer>();`"
+      - "`List<? super Integer> d = new ArrayList<Number>();`"
     answer: 1
     why:
-      - "ダイヤモンド `<>` では型が決まらないと読んだ答え。左辺の型から Integer と推論される"
+      - "ダイヤモンド `<>` では型が決まらないと読んだ答え。左辺の型から `Integer` と推論される"
       - ""
-      - "ワイルドカードにも Integer のリストは入らないと読んだ答え。`? extends Number` は Number の子のリストを受け入れる"
+      - "ワイルドカードにも `Integer` のリストは入らないと読んだ答え。`? extends Number` は `Number` の子のリストを受け入れる"
       - "`? super` の向きを逆に読んだ答え。`? super Integer` は親の型のリストを受け入れる"
     explanation: |
       `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で Integer のリストに Double が混ざってしまうからです。
@@ -141,7 +141,7 @@ quiz:
     why:
       - "`List<Integer>` を `? extends Number` に入れられないと読んだ答え。Number の子のリストなので代入できる"
       - "ワイルドカードのリストからは読めないと読んだ答え。少なくとも Number なので Number として読める"
-      - "add は全部だめと読んだ答え。null だけはどんな参照型のリストにも入れられる"
+      - "`add` は全部だめと読んだ答え。`null` だけはどんな参照型のリストにも入れられる"
       - ""
     explanation: |
       `? extends Number` のリストは「Number の **何かの** 子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
@@ -157,7 +157,7 @@ quiz:
     answer: 0
     why:
       - ""
-      - "型引数が実行時まで残ると読んだ答え。型消去でどちらもただの ArrayList になる"
+      - "型引数が実行時まで残ると読んだ答え。型消去でどちらもただの `ArrayList` になる"
       - "型の違うリストのクラスは比べられないと読んだ答え。`getClass()` どうしの比較は合法"
       - "比べるときにキャストが起きると読んだ答え。キャストしていないので例外は出ない"
     explanation: |
@@ -174,7 +174,7 @@ quiz:
     answer: 2
     why:
       - "`==` が値を比べると読んだ答え。実際は同じオブジェクトかを比べる"
-      - "Integer はいつも別オブジェクトと読んだ答え。小さい値はキャッシュが効く"
+      - "`Integer` はいつも別オブジェクトと読んだ答え。小さい値はキャッシュが効く"
       - ""
       - "キャッシュの範囲を逆に読んだ答え。同じになるのは小さいほう"
     explanation: |
@@ -189,12 +189,12 @@ quiz:
       - "`max(List.of(2.5, 1.0))`"
     answer: 1
     why:
-      - "整数は Comparable ではないと読んだ答え。Integer は Comparable を実装していて通る"
+      - "整数は `Comparable` ではないと読んだ答え。`Integer` は `Comparable` を実装していて通る"
       - ""
-      - "文字列は比べられないと読んだ答え。String は Comparable を実装していて通る"
-      - "小数は比べられないと読んだ答え。Double も Comparable を実装していて通る"
+      - "文字列は比べられないと読んだ答え。`String` は `Comparable` を実装していて通る"
+      - "小数は比べられないと読んだ答え。`Double` も `Comparable` を実装していて通る"
     explanation: |
-      `T extends Comparable<T>` は「T は自分自身と比較できる型」という **境界** です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で T=Object に決まった時点で境界を満たさずコンパイルエラーになります。
+      `T extends Comparable<T>` は「T は自分自身と比較できる型」という **境界** です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で `T = Object` に決まった時点で境界を満たさずコンパイルエラーになります。
       境界がなければ `compareTo` を呼べない代わりに何でも渡せますが、境界を付けることで「比較できない型を渡すミス」を実行前に見つけられます。
 columns:
   - type: trivia

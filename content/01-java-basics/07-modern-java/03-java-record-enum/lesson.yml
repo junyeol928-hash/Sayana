@@ -12,7 +12,7 @@ goals:
 samples:
   - title: record の自動生成とコンパクトコンストラクタ
     description: |
-      1行の宣言だけの record で、`toString` は何を出し、`equals` と `==` はそれぞれどうなるだろうか。`add` のあとの `a` の中身と、金額 -500 の行で何が起きるかも、出力を予想してから見よう(JShell では record が public 扱いになるため、コンストラクタにも `public` を付けている)。
+      JShell では record が public 扱いになるため、コンストラクタにも `public` を付けている。1行の宣言だけの record で、`toString` は何を出し、`equals` と `==` はそれぞれどうなるだろうか。`add` のあとの `a` の中身はどうなり、金額 -500 の行では何が起きる?
     code: |
       // 金額と通貨を表す record。コンパクトコンストラクタで検証する
       // ここを変えてみよう:b の金額を 101 に / 最後の new Money の金額を 0 に
@@ -42,7 +42,7 @@ samples:
       }
   - title: フィールドを持つ enum と switch 式
     description: |
-      税率を持たせた enum。`values()` はどの順で回り、1000 円の税額はそれぞれいくらになるだろうか。出力を予想してから見よう。`case EXEMPT` の行を消すと何が起きるかも試してみよう。
+      税率を持たせた enum。あとで `case EXEMPT` の行を消すと何が起きるかも試してみよう。`values()` はどの順で回り、1000 円の税額はそれぞれいくらになるだろうか。
     code: |
       // 税率を持つ enum
       // ここを変えてみよう:price を 99 に / case EXEMPT の行を消してみる
@@ -71,7 +71,7 @@ samples:
       // System.out.println(TaxCategory.valueOf("reduced"));
   - title: EnumMap でステータス別に集計する
     description: |
-      enum をキーにするなら EnumMap。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。出力を予想してから見よう。
+      enum をキーにするなら EnumMap。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。
     code: |
       // 注文一覧をステータス別に数える
       // ここを変えてみよう:orders に注文を足す / EnumMap を HashMap に変えて並び順を比べる
@@ -108,16 +108,16 @@ quiz:
       System.out.println(a);
       ```
     choices:
-      - "true / true / Point@1b6d3586 のような文字列"
-      - "false / false / Point[x=1, y=2]"
-      - "false / true / Point[x=1, y=2]"
-      - "false / true / Point@1b6d3586 のような文字列"
+      - "`true` / `true` / `Point@1b6d3586` のような文字列"
+      - "`false` / `false` / `Point[x=1, y=2]`"
+      - "`false` / `true` / `Point[x=1, y=2]`"
+      - "`false` / `true` / `Point@1b6d3586` のような文字列"
     answer: 2
     why:
-      - "`==` が値を比べ、toString も自動では作られないと読んだ答え。どちらも逆"
-      - "equals も参照の比較と読んだ答え。record では値の比較になる"
+      - "`==` が値を比べ、`toString` も自動では作られないと読んだ答え。どちらも逆"
+      - "`equals` も参照の比較と読んだ答え。record では値の比較になる"
       - ""
-      - "toString は自動で作られないと読んだ答え。その形は普通のクラスの出力"
+      - "`toString` は自動で作られないと読んだ答え。その形は普通のクラスの出力"
     explanation: |
       `==` は参照型では「同じオブジェクトか」を比べるので、`new` を2回した `a` と `b` は `false`。record は **全コンポーネントの値で比べる equals** を自動生成するので `equals` は `true`。toString も自動生成され、`Point[x=1, y=2]` の形式になります。
   - question: |
@@ -135,7 +135,7 @@ quiz:
       - "record はインターフェースも実装できないと読んだ答え。implements は書ける"
     explanation: |
       record のフィールドは暗黙に `private final` なので、メソッド内で再代入すると `cannot assign a value to final variable x` になります。値を変えたいなら、新しい record を作って返すのが流儀です。
-      record で禁止されているのは **インスタンスフィールドの追加**(`field declaration must be static`)と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。
+      record で禁止されているのは **インスタンスフィールドの追加** と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。インスタンスフィールドを足すと次のメッセージが出ます: `field declaration must be static`
   - question: |
       注文ステータスを `ordinal()` の値で DB に保存していました。
       ```java
@@ -153,9 +153,9 @@ quiz:
       - "コンパイル時に警告が出るので、リリース前に気づける"
     answer: 1
     why:
-      - "保存値が定数名を覚えていると読んだ答え。保存したのは ordinal の 1 で、今の 1 は PAID"
+      - "保存値が定数名を覚えていると読んだ答え。保存したのは `ordinal` の 1 で、今の 1 は `PAID`"
       - ""
-      - "保存値が配列の外に出ると読んだ答え。値は 1 で範囲内なので、例外なく PAID に化ける"
+      - "保存値が配列の外に出ると読んだ答え。値は 1 で範囲内なので、例外なく `PAID` に化ける"
       - "コンパイラがずれに気づくと読んだ答え。DB の中身はコンパイラに見えない"
     explanation: |
       保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。**黙ってデータが壊れる** のが ordinal 永続化の怖さです。
@@ -176,7 +176,7 @@ quiz:
     why:
       - "`valueOf` が大文字に直して探すと読んだ答え。実際は書いたとおりに探す"
       - "入力の文字列がそのまま定数になると読んだ答え。一致する定数が無く、例外になる"
-      - "見つからないと null が返ると読んだ答え。`valueOf` は `IllegalArgumentException` を投げる"
+      - "見つからないと `null` が返ると読んだ答え。`valueOf` は `IllegalArgumentException` を投げる"
       - ""
     explanation: |
       `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。
@@ -197,16 +197,16 @@ quiz:
       - "コンパイルは通り、`price(Size.L)` を呼ぶと 0 が返る"
       - "`L` を網羅していないので、コンパイルエラーになる"
       - "コンパイルは通り、`price(Size.L)` を呼ぶと例外が発生する"
-      - "enum の switch 式には必ず default が必要なので、コンパイルエラーになる"
+      - "enum の switch 式には必ず `default` が必要なので、コンパイルエラーになる"
     answer: 1
     why:
-      - "書いていない定数は 0 になると読んだ答え。switch 式は全定数か default が要り、コンパイルエラー"
+      - "書いていない定数は 0 になると読んだ答え。switch 式は全定数か `default` が要り、コンパイルエラー"
       - ""
       - "漏れが実行時に分かると読んだ答え。switch 式の網羅はコンパイル時に確かめられる"
-      - "enum の switch 式に default が必須と読んだ答え。全定数を書けば default なしで通る"
+      - "enum の switch 式に `default` が必須と読んだ答え。全定数を書けば `default` なしで通る"
     explanation: |
       switch 式は必ず値を返す必要があるので、enum の **全定数** を case に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
-      全定数を書いて default を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で default を書かない理由です。
+      全定数を書いて `default` を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で `default` を書かない理由です。
 columns:
   - type: genba
     title: JPA の @Enumerated はデフォルトが ORDINAL

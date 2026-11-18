@@ -22,8 +22,8 @@
   answer: 0
   why:
     - ""
-    - "前のフェーズに clean も入ると読んだ答え。clean は別のライフサイクルなので、package では走らない"
-    - "install なら全部走ると読んだ答え。install も既定のライフサイクルの中だけで、clean は含まない"
+    - "前のフェーズに `clean` も入ると読んだ答え。`clean` は別のライフサイクルなので、`package` では走らない"
+    - "`install` なら全部走ると読んだ答え。`install` も既定のライフサイクルの中だけで、`clean` は含まない"
   explanation: |
     フェーズを指定すると前のフェーズが全部走るが、`clean` は別のライフサイクル。`target/` を消すなら、`clean package` のように並べて指定する。
 - after: よくあるトラブル

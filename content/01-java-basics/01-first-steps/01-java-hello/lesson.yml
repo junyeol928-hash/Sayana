@@ -23,7 +23,7 @@ samples:
 
   - title: print と println の違い
     description: |
-      `print` と `println` が混ざると、どこで改行される? 引数なしの `println()` の行で何が出るかにも注目して、出力を予想してから見よう。
+      `print` と `println` が混ざると、どこで改行される? 引数なしの `println()` の行では何が出る?
     code: |
       System.out.print("ラーメン");
       System.out.print("と");
@@ -107,9 +107,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "クラス名とファイル名の組み合わせを疑った答え。Hello.java に public class Hello で合っている"
-      - "main の書き方を疑った答え。public static void main(String[] args) で正しい"
-      - "文字列の中の日本語がエラーになると読んだ答え。リテラル内の日本語は問題なく、誤りは printIn"
+      - "クラス名とファイル名の組み合わせを疑った答え。`Hello.java` に `public class Hello` で合っている"
+      - "`main` の書き方を疑った答え。`public static void main(String[] args)` で正しい"
+      - "文字列の中の日本語がエラーになると読んだ答え。リテラル内の日本語は問題なく、誤りは `printIn`"
     explanation: |
       3行目は `println`(エル)ではなく `printIn`(大文字のアイ)になっています。`PrintStream` に `printIn` というメソッドはないので
       「シンボルを見つけられません」というコンパイルエラーになります。
@@ -133,7 +133,7 @@ quiz:
     why:
       - "クラスファイルの名前がソースのファイル名で決まると読んだ答え"
       - "ファイル名とクラス名の不一致を見落とした答え"
-      - "javac は通り、実行の段階で止まると読んだ答え"
+      - "`javac` は通り、実行の段階で止まると読んだ答え"
       - ""
     explanation: |
       `public` なクラスは、クラス名と同じ名前のファイルに書く必要があります。`public class Hello` は `Hello.java` に書かなければならず、
@@ -149,10 +149,10 @@ quiz:
       - "バイトコードは Windows 用・Mac 用など OS ごとに別々に作る必要がある"
     answer: 1
     why:
-      - "java Hello.java の手軽さから、JVM がソースを直接読むと取り違えた答え"
+      - "`java Hello.java` の手軽さから、JVM がソースを直接読むと取り違えた答え"
       - ""
-      - "JRE と JDK を取り違えた答え。JRE は JVM と標準ライブラリだけで、javac は JDK にある"
-      - "バイトコードを OS 向けの機械語と取り違えた答え。1 つの .class が各 OS の JVM で動く"
+      - "JRE と JDK を取り違えた答え。JRE は JVM と標準ライブラリだけで、`javac` は JDK にある"
+      - "バイトコードを OS 向けの機械語と取り違えた答え。1 つの `.class` が各 OS の JVM で動く"
     explanation: |
       `javac` は JDK の開発ツールで、`.java` を JVM 向けの命令列であるバイトコード(`.class`)に変換します。
       JVM が実行するのはバイトコードで、`.java` を直接ではありません(`java Hello.java` もメモリ上でコンパイルしてから実行しています)。

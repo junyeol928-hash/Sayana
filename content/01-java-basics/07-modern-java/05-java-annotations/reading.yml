@@ -13,20 +13,20 @@
     System.out.println(b.name());
   question: "どうなる?"
   choices:
-    - "child と表示"
-    - "base と表示"
+    - "child と表示される"
+    - "base と表示される"
     - "コンパイルエラー"
-    - "実行時エラー"
+    - "実行時エラーになる"
   answer: 2
   why:
     - "`Name()` が `name()` を上書きすると読んだ答え。大文字の `Name` は別のメソッドで、`@Override` がエラーにする"
-    - "@Override が無いときの結果と取り違えた答え。上書き対象が無いので、@Override がコンパイルで止める"
+    - "`@Override` が無いときの結果と取り違えた答え。上書き対象が無いので、`@Override` がコンパイルで止める"
     - ""
-    - "上書きの失敗が実行時に分かると読んだ答え。@Override がコンパイル時に見つける"
+    - "上書きの失敗が実行時に分かると読んだ答え。`@Override` がコンパイル時に見つける"
   explanation: "Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、`base` と表示されるバグが隠れたままになります。"
   trace:
-    - "6行目: Name() は name() と別名 → 新しいメソッドの定義"
-    - "5行目: @Override は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
+    - "6行目: `Name()` は `name()` と別名 → 新しいメソッドの定義"
+    - "5行目: `@Override` は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
     - "実行には至らない"
 - title: "@Retention を書かないとき"
   level: 2
@@ -115,7 +115,7 @@
   question: "何が起きる?"
   choices:
     - "`revoked` がログに出て正常終了"
-    - "`AccessDeniedException` が投げられ、`revoked` は出ない"
+    - "`AccessDeniedException` が投げられる"
     - "`@RequiresAdmin` は何もしないので普通に実行される"
     - "コンパイルエラー"
   answer: 1
@@ -126,10 +126,10 @@
     - "権限がコンパイル時に確かめられると読んだ答え。コンパイルは通り、実行時に Aspect が例外で止める"
   explanation: "別の Bean からの呼び出しはプロキシを通るので、Aspect の guard が先に動きます。管理者でないので例外を投げ、proceed() に到達しません。よって revokeAll の本体は実行されず `revoked` も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。"
   trace:
-    - "呼び出し: keyService はプロキシ → guard() が横取り"
-    - "5行目: 一般ユーザーなので条件が true"
-    - "6行目: AccessDeniedException を投げる → 8行目には行かない"
-    - "revokeAll() の本体は一度も実行されない"
+    - "呼び出し: `keyService` はプロキシ → `guard()` が横取り"
+    - "5行目: 一般ユーザーなので条件が `true`"
+    - "6行目: `AccessDeniedException` を投げる → 8行目には行かない"
+    - "`revokeAll()` の本体は一度も実行されない"
 - title: "Jackson と @JsonProperty"
   level: 2
   code: |

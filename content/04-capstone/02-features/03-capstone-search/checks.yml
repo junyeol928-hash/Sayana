@@ -23,11 +23,11 @@
 - after: STS での実装
   question: |
     `search` の引数から `BindingResult binding` を消した。`/requests/search?status=FOO` が来ると?
-  choices: ["400 Bad Request になる", "status は指定なしとして検索される", "status が FOO の申請(0 件)が返る"]
+  choices: ["400 Bad Request になる", "status は指定なしとして検索される", "status が `FOO` の申請(0 件)が返る"]
   answer: 0
   why:
     - ""
     - "`BindingResult` があるときの動きと取り違えた答え。無ければ、変換の失敗がそのまま例外になる"
-    - "FOO がそのまま検索に使われると読んだ答え。status は enum なので、FOO は変換の段階で失敗する"
+    - "`FOO` がそのまま検索に使われると読んだ答え。status は enum なので、`FOO` は変換の段階で失敗する"
   explanation: |
     `BindingResult` が無いと、`FOO` を enum に変換できない失敗を Spring MVC が `MethodArgumentNotValidException` にして、400 を返す。

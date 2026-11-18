@@ -13,7 +13,7 @@ samples:
   - title: PageRequest と Page の数字を確かめる
     description: |
       45件の結果を20件ずつに分けたとき、`Pageable`(要求)と `Page`(結果)がそれぞれ何を持っているかを見ます。DB の代わりに `subList` で切り出しています。
-      page=1 のとき OFFSET はいくつで、中身は何件目から? 最後に負の page を `PageRequest.of` に渡したらどうなるかも、予想してから実行結果を見よう。
+      page=1 のとき OFFSET はいくつで、中身は何件目から? 最後に負の page を `PageRequest.of` に渡したらどうなる?
     libraries: [spring, jpa]
     code: |
       import org.springframework.data.domain.*;
@@ -89,7 +89,7 @@ samples:
       }
   - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
     description: |
-      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。指定なし(null)の `type` はリンクに入る? 日本語と空白がどう書かれるかも、予想してから実行結果を見よう。
+      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。指定なし(null)の `type` はリンクに入る? 日本語と空白はどう書かれる?
       Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
     libraries: [spring]
     code: |
@@ -140,7 +140,7 @@ quiz:
       - "OFFSET 40 を「40件目から」と数えた答え。41件目からで、45件より先は返らない"
       - "page を開始位置と読んだ答え。page は何ページ目かを表す"
     explanation: |
-      page は **0 始まり** です。page=2 は「3ページ目」なので OFFSET は 2 × 20 = 40、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
+      page は **0 始まり** です。`page = 2` は「3ページ目」なので OFFSET は `2 × 20 = 40`、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
       page を 1 始まりと思い込むと、画面の「2ページ目」リンクで3ページ目が出る、というズレが起きます。
   - question: |
       次の検索で、Specification が作る WHERE 句に含まれる条件はどれ?
@@ -220,7 +220,7 @@ quiz:
       - ""
       - "申請も1件ずつ取ると読んだ答え。申請20件は1回の SELECT でまとめて取る"
     explanation: |
-      申請20件を取る SELECT が1回、`Page` の総件数を数える count の SELECT が1回、そして LAZY の `applicant` を画面で触るたびに1回ずつで20回。合計 1 + 1 + 20 = 22回です(N+1 問題に count が1回加わった形)。
+      申請20件を取る SELECT が1回、`Page` の総件数を数える count の SELECT が1回、そして LAZY の `applicant` を画面で触るたびに1回ずつで20回。合計 `1 + 1 + 20 = 22` 回です(N+1 問題に count が1回加わった形)。
       `@EntityGraph(attributePaths = "applicant")` を付けると申請者を JOIN して一緒に取るので、2回(本体+count)になります。なお、最後のページなどで「取得件数 < size」のときは総件数が計算で分かるので、count は省略されます。
 columns:
   - type: trivia

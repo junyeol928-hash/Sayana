@@ -35,8 +35,8 @@
   answer: 0
   why:
     - ""
-    - "空の箱から取ると null が出ると読んだ答え。`get()` は null を返さず、例外を投げる"
-    - "空の Optional の中身を null と読んだ答え。投げられるのは `NoSuchElementException`"
+    - "空の箱から取ると `null` が出ると読んだ答え。`get()` は `null` を返さず、例外を投げる"
+    - "空の Optional の中身を `null` と読んだ答え。投げられるのは `NoSuchElementException`"
   explanation: |
     空の Optional に `get()` を呼ぶと `NoSuchElementException: No value present`。NPE が別の例外に変わっただけなので、取り出すなら `orElse` 系や `ifPresent` を使う。
 - before: "java.lang.NullPointerException: Cannot invoke"
@@ -51,6 +51,6 @@
   why:
     - ""
     - "null を空文字と同じと読んだ答え。null はどの文字列も指しておらず、`length()` を呼べない"
-    - "null が返ることをコンパイラが見抜くと読んだ答え。戻り値の型は String なので通る"
+    - "null が返ることをコンパイラが見抜くと読んだ答え。戻り値の型は `String` なので通る"
   explanation: |
     null はどのオブジェクトも指していないので、`.length()` を呼んだ所で NullPointerException になる。戻り値の型が `String` なので、null が返るかどうかはコンパイラにも読む人にも分からない。

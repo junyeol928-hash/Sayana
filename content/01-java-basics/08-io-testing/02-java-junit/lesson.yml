@@ -59,7 +59,7 @@ samples:
   - title: 境界値の表をまとめて流す
     description: |
       `@ParameterizedTest` + `@CsvSource` は「入力と期待値の表を1行ずつテストする」仕組み。ここでは配列とループで同じことをしてみる。
-      コメントの手順でバグを入れ、表から境界値の行を消したとき、バグに気づけるだろうか。予想してから試そう。
+      コメントの手順でバグを入れ、表から境界値の行を消したとき、バグに気づけるだろうか。
     code: |
       // 境界値の表をまとめて流す(@ParameterizedTest + @CsvSource の気持ち)
       // ここを変えてみよう:①fee の 30 を 31 に変えてバグを入れる
@@ -144,7 +144,7 @@ quiz:
       int actual = Shipping.fee(5000);
       assertEquals(actual, 0);
       ```
-    choices: ["expected: <0> but was: <500>", "expected: <500> but was: <0>", "テストは成功する", "コンパイルエラーになる"]
+    choices: ["`expected: <0> but was: <500>`", "`expected: <500> but was: <0>`", "テストは成功する", "コンパイルエラーになる"]
     answer: 1
     why:
       - "書いた順に関係なく `0` が期待値として報告される、と読んだ答え"
@@ -174,9 +174,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "count がテストをまたいで増えると読んだ答え。テストごとに新しいインスタンスで、count は 0 から"
-      - "static のときの結果と取り違えた答え。インスタンスのフィールドはテストごとに作り直される"
-      - "@BeforeEach が効かないと読んだ答え。各テストの前に動き、count は 1 になる"
+      - "`count` がテストをまたいで増えると読んだ答え。テストごとに新しいインスタンスで、`count` は 0 から"
+      - "`static` のときの結果と取り違えた答え。インスタンスのフィールドはテストごとに作り直される"
+      - "`@BeforeEach` が効かないと読んだ答え。各テストの前に動き、`count` は 1 になる"
     explanation: |
       JUnit 5 は既定で **テストメソッドごとにテストクラスの新しいインスタンスを作ります**。`a` 用のインスタンスでも `b` 用のインスタンスでも `count` は 0 から始まり、`@BeforeEach` で 1 になってからテストが動くので、どちらも成功します。
       テスト同士が状態を共有しないための設計です。ただし `static` なフィールドはインスタンスをまたいで共有されるので、`static int count` にすると後に動いた方が失敗します(実行順は保証されないので、どちらが失敗するかも決められません)。
@@ -206,8 +206,8 @@ quiz:
     why:
       - "型の完全一致が要ると読んだ答え。`NumberFormatException` は `IllegalArgumentException` の子で成功する"
       - ""
-      - "例外を投げる処理はラムダで渡せないと読んだ答え。投げる処理をラムダで渡すのが assertThrows の使い方"
-      - "投げられた例外がテストの外に出ると読んだ答え。assertThrows が受け止める"
+      - "例外を投げる処理はラムダで渡せないと読んだ答え。投げる処理をラムダで渡すのが `assertThrows` の使い方"
+      - "投げられた例外がテストの外に出ると読んだ答え。`assertThrows` が受け止める"
     explanation: |
       `Integer.parseInt("abc")` は `NumberFormatException` を投げますが、これは `IllegalArgumentException` の **サブクラス** です。`assertThrows` は「指定した型、またはそのサブクラスの例外」が投げられれば成功とみなすので、このテストは成功します。
       投げられた例外は `assertThrows` が受け止めるので、テストの外には漏れません。型をぴったり一致させたいときは `assertThrowsExactly` を使います。

@@ -14,8 +14,8 @@
   answer: 0
   why:
     - ""
-    - "return で finally が飛ばされると読んだ答え。finally は return で戻る前に必ず動く"
-    - "戻ってから finally が動くと読んだ答え。F は戻る前に出て、T は呼び出し側があとで出す"
+    - "`return` で `finally` が飛ばされると読んだ答え。`finally` は戻る前に必ず動く"
+    - "戻ってから `finally` が動くと読んだ答え。F は戻る前に出て、T は呼び出し側があとで出す"
   explanation: |
     `return "T"` で戻る前に `finally` が必ず実行され、先に F が出る。そのあと戻ってきた `"T"` を呼び出し側が出す。
 - after: スタックトレースの読み方
@@ -53,7 +53,7 @@
   answer: 0
   why:
     - ""
-    - "独自例外ならどれも throws が要ると読んだ答え。`RuntimeException` の子は非検査例外で要らない"
+    - "独自例外ならどれも `throws` が要ると読んだ答え。`RuntimeException` の子は非検査例外で要らない"
     - "呼ぶ側には対処が強制されると読んだ答え。非検査例外は、呼ぶ側にも catch を強制しない"
   explanation: |
     `RuntimeException` の子は非検査例外なので、`throws` を書かなくても投げられる。その代わり、呼ぶ側が対処を忘れてもコンパイラは何も言わない。必ず対処させたい業務エラーなら `Exception` を継承して検査例外にする。

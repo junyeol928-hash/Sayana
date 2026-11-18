@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Controller は「見つからなければ例外を投げる」だけ。存在しない ID 99 を GET します。ハンドラがあるとき、ステータスと Content-Type は何になる?
-      `@RestControllerAdvice` が無いとき例外はどこまで届くか、あるときステータスと Content-Type は何になるかを予想してから見よう。
+      `@RestControllerAdvice` が無いとき、例外はどこまで届くだろうか。
     code: |
       // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
       // ここを変えてみよう:HttpStatus や setTitle の文言を変える / ID を 1 にする
@@ -98,7 +98,7 @@ samples:
     libraries: [spring]
     description: |
       `@ExceptionHandler(Exception.class)` だけの Advice と、`ResponseEntityExceptionHandler` を継承した Advice に、未対応のメソッド・Content-Type なし・壊れた JSON の 3 つを送ります。`CatchAllAdvice` では、壊れた JSON は何番になる?
-      本来は何番が返るべきか、それぞれの Advice では何番になるかを予想してから見よう。
+      本来は何番が返るべきか。それぞれの Advice では何番になる?
     code: |
       // 「とりあえず Exception を全部 500 に」の落とし穴と、ResponseEntityExceptionHandler
       // ここを変えてみよう:tryAll に渡す Advice を入れ替える / リクエストを足す
@@ -274,7 +274,7 @@ quiz:
       - "親クラスのハンドラが優先されると読んだ答え。どちらとも決められず、起動時に失敗する"
       - "ハンドラの重複をコンパイラが見つけると読んだ答え。文法は正しく、失敗するのは起動時"
     explanation: |
-      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `IllegalStateException`(`Ambiguous @ExceptionHandler method mapped for ...`)で失敗します。
+      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `IllegalStateException` で失敗します。メッセージは次のとおりです: `Ambiguous @ExceptionHandler method mapped for ...`
       継承している場合は、`@ExceptionHandler` を書かずに `handleMethodArgumentNotValid(...)` を `@Override` するのが正解です。Java の文法としては正しいのでコンパイルは通ります。
   - question: |
       Thymeleaf を使った画面アプリで、**404 のときだけ** 独自のエラー画面を出したい。Spring Boot が自動で使ってくれるファイルの置き場所は?

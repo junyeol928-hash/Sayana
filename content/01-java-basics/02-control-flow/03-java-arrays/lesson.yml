@@ -33,7 +33,7 @@ samples:
       System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
-      `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` の結果も、予想してから見よう。
+      `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` は、それぞれ何を返すか。
       `b[0] = 99` のあと、`a` の中身はどうなる?
     code: |
       import java.util.Arrays;

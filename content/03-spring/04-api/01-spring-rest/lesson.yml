@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       Web サーバーは起動せず、Spring MVC の仕組みだけを動かして REST API を呼び出します。
-      POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。Content-Type を付け忘れた POST は、何番が返る?それぞれのステータスの番号と、Location ヘッダが付くのはどれかを予想してから見よう。
+      POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。Content-Type を付け忘れた POST は、何番が返る?Location ヘッダが付くのは、どのリクエストだろうか。
     code: |
       // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
       // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
@@ -86,8 +86,8 @@ samples:
   - title: Jackson で record ⇔ JSON(日時の扱い)
     libraries: [spring]
     description: |
-      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。② の `dueDate` は、文字列・数値・配列のどれで出る?
-      `dueDate` がそれぞれどんな形で出るか(そもそも変換できるか)を予想してから見よう。③が Spring Boot の既定と同じ設定です。
+      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。③が Spring Boot の既定と同じ設定です。② の `dueDate` は、文字列・数値・配列のどれで出る?
+      ① と ③ では、`dueDate` はどう出るだろうか。そもそも変換できるだろうか。
     code: |
       // Jackson で record ⇔ JSON。LocalDate の扱いに注目
       // ここを変えてみよう:日付や title を変える / ④の JSON に "x":1 を足してみる
@@ -141,10 +141,10 @@ quiz:
       - "302 Found で `/api/tasks/7` にリダイレクト"
     answer: 1
     why:
-      - "作成でも 200 が返ると読んだ答え。`created(uri)` はステータスを 201 にして Location を付ける"
+      - "作成でも 200 が返ると読んだ答え。`created(uri)` はステータスを 201 にして `Location` を付ける"
       - ""
       - "`created` は本文なしと読んだ答え。続く `.body(t)` で JSON も入り、本文なしは `.build()` のとき"
-      - "Location ヘッダをリダイレクトと読んだ答え。作ったものの場所を知らせるだけで、ステータスは 201"
+      - "`Location` ヘッダをリダイレクトと読んだ答え。作ったものの場所を知らせるだけで、ステータスは 201"
     explanation: |
       `ResponseEntity.created(uri)` はステータスを **201 Created** にし、`Location` ヘッダに URI を入れます。続く `.body(t)` で本文に JSON も入ります。
       `.body(...)` の代わりに `.build()` なら本文なしになります。302 はブラウザを別の URL に移動させるリダイレクトで、画面アプリの PRG パターンで使うもの。API の作成結果には使いません。
@@ -189,7 +189,7 @@ quiz:
     answer: 3
     why:
       - "操作を URL の動詞で表すと読んだ答え。操作は DELETE メソッドで表し、URL は名詞にする"
-      - "削除を GET で受けてよいと読んだ答え。GET は状態を変えない約束で、リンクを踏まれただけで消える"
+      - "削除を `GET` で受けてよいと読んだ答え。`GET` は状態を変えない約束で、リンクを踏まれただけで消える"
       - "単数形でもよいと読んだ答え。動きは正しいが、一覧・作成の `/api/tasks` と形が揃わない"
       - ""
     explanation: |

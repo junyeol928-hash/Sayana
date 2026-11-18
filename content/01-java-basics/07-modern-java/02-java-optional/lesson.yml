@@ -52,7 +52,7 @@ samples:
       }
   - title: orElse と orElseGet の評価タイミング
     description: |
-      値があるとき、`orElse` と `orElseGet` に渡した `loadDefault()` は動くだろうか。「読み込み中…」が何回出るかを予想してから見よう。
+      値があるとき、`orElse` と `orElseGet` に渡した `loadDefault()` は動くだろうか。「読み込み中…」は何回出る?
     code: |
       import java.util.*;
 
@@ -73,7 +73,7 @@ samples:
       System.out.println("結果: " + b);
   - title: ネストした null チェックを map チェーンに
     description: |
-      社員 → 部署 → 部署名 と辿る処理。部署が null の社員、部署名が null の社員、社員そのものが null のとき、Optional 版は何を返すだろうか。if 版と見比べながら、出力を予想してから見よう。
+      社員 → 部署 → 部署名 と辿る処理。if 版と見比べよう。部署が null の社員、部署名が null の社員、社員そのものが null のとき、Optional 版は何を返すだろうか。
     code: |
       import java.util.*;
 
@@ -133,7 +133,7 @@ samples:
       }
   - title: findFirst と設定値の既定値
     description: |
-      Stream の `findFirst()` は Optional を返す。前後に空白のある `" 30 "` と、無いキー `app.mode` は、それぞれ何になるだろうか。出力を予想してから見よう。
+      Stream の `findFirst()` は Optional を返す。前後に空白のある `" 30 "` と、無いキー `app.mode` は、それぞれ何になるだろうか。
     code: |
       import java.util.*;
 
@@ -182,9 +182,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "strip 後の空文字がそのまま出ると読んだ答え。filter を見落としている"
-      - "Optional.of の値がそのまま出ると読んだ答え。strip と filter を見落としている"
-      - "filter の条件に合わないと例外になる、と読んだ答え"
+      - "`strip` 後の空文字がそのまま出ると読んだ答え。`filter` を見落としている"
+      - "`Optional.of` の値がそのまま出ると読んだ答え。`strip` と `filter` を見落としている"
+      - "`filter` の条件に合わないと例外になる、と読んだ答え"
     explanation: |
       `strip()` で空白が取り除かれて `""` になり、`filter` の条件 `!s.isEmpty()` を満たさないので **空の Optional** になります。空なので `orElse` の既定値 `"未入力"` が返ります。
       例外になるのは、空の Optional に `get()` や引数なしの `orElseThrow()` を呼んだときです。
@@ -203,10 +203,10 @@ quiz:
     choices: ["AB", "DAB", "DADB", "DDAB"]
     answer: 1
     why:
-      - "値があれば orElse の引数は評価されないと読んだ答え。引数の `def()` は呼ぶ前に必ず評価される"
+      - "値があれば `orElse` の引数は評価されないと読んだ答え。引数の `def()` は呼ぶ前に必ず評価される"
       - ""
-      - "orElseGet のラムダも動き、出力が混ざると読んだ答え。a + b は最後にまとめて出し、ラムダは動かない"
-      - "orElseGet のラムダも動くと読んだ答え。値があるのでラムダは実行されない"
+      - "`orElseGet` のラムダも動き、出力が混ざると読んだ答え。`a + b` は最後にまとめて出し、ラムダは動かない"
+      - "`orElseGet` のラムダも動くと読んだ答え。値があるのでラムダは実行されない"
     explanation: |
       `orElse(def())` では、Java の規則どおり **メソッドを呼ぶ前に引数 `def()` が評価される** ので、値があっても `D` が出力されます(結果は使われず捨てられます)。
       `orElseGet(() -> def())` はラムダを渡すだけで、値があるので実行されません。よって `D` のあとに `AB` で `DAB` です。重い処理や副作用のある処理を既定値にするなら `orElseGet` を使います。
@@ -215,10 +215,10 @@ quiz:
     choices: ["`Optional.ofNullable(null)`", "`Optional.empty().orElse(\"x\")`", "`Optional.of(null)`", "`Optional.empty().ifPresent(v -> System.out.println(v))`"]
     answer: 2
     why:
-      - "ofNullable も null で落ちると読んだ答え。null なら空の Optional になるだけ"
-      - "空の Optional から値を取ると例外と読んだ答え。orElse は既定値の x を返す"
+      - "`ofNullable` も `null` で落ちると読んだ答え。`null` なら空の Optional になるだけ"
+      - "空の Optional から値を取ると例外と読んだ答え。`orElse` は既定値の x を返す"
       - ""
-      - "空の Optional に ifPresent を呼ぶと例外と読んだ答え。値が無ければ何もしない"
+      - "空の Optional に `ifPresent` を呼ぶと例外と読んだ答え。値が無ければ何もしない"
     explanation: |
       `Optional.of` は「必ず値がある」ことを表すので、`null` を渡すとその場で `NullPointerException` になります。null かもしれない値は `ofNullable` で包みます。
   - question: |
@@ -241,10 +241,10 @@ quiz:
     choices: ["`Optional<Dept>`", "`Optional<Optional<Dept>>`", "`Dept`", "コンパイルエラーになる(`map` には渡せない)"]
     answer: 1
     why:
-      - "map が包みを 1 枚にならすと読んだ答え。それは flatMap で、map は戻り値をさらに包む"
+      - "`map` が包みを 1 枚にならすと読んだ答え。それは `flatMap` で、`map` は戻り値をさらに包む"
       - ""
-      - "map が中身を取り出すと読んだ答え。map の結果は Optional に包まれたまま"
-      - "Optional を返す関数は map に渡せないと読んだ答え。渡せて、二重に包まれた型になる"
+      - "`map` が中身を取り出すと読んだ答え。`map` の結果は Optional に包まれたまま"
+      - "Optional を返す関数は `map` に渡せないと読んだ答え。渡せて、二重に包まれた型になる"
     explanation: |
       `map` は関数の戻り値をそのまま Optional で包むので、関数が `Optional<Dept>` を返すと `Optional<Optional<Dept>>` と **二重に包まれます**。コンパイルエラーにはなりませんが扱いにくい型です。
       関数自体が Optional を返すときは `flatMap` を使うと、包みが1枚にならされて `Optional<Dept>` になります。

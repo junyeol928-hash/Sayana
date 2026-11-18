@@ -65,7 +65,7 @@
     - "全部が AdultFee の 1200 と読んだ答え"
     - "同じ AdultFee は 1 回だけ数えると読んだ答え"
     - "抽象クラスの型ではリストを作れないと読んだ答え"
-  explanation: "リストの型は `List<Fee>` ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので 1200 + 500 + 1200 = 2900 です。"
+  explanation: "リストの型は `List<Fee>` ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので `1200 + 500 + 1200` で 2900 です。"
   trace:
     - "11行目: Fee 型のリストに、子クラスの実体を3つ入れる(アップキャスト)"
     - "13〜14行目 1周目: f は AdultFee → 1200"

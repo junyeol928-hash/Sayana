@@ -13,7 +13,7 @@ samples:
   - title: ロールバックされる例外・されない例外・効かない呼び出し
     description: |
       DB の代わりに「開始・コミット・ロールバック」を表示するトランザクションマネージャを登録して、`@Transactional` の動きを観察します。
-      `Bean のクラス` には `OrderService` の名前がそのまま出るだろうか。② の RuntimeException と ③ の検査例外ではコミットとロールバックのどちらになるか、④ の同じクラスの中からの呼び出しで `[TX]` の行は出るか、予想してから見よう。そのあとコメントの「ここを変えてみよう」を試してください。
+      `Bean のクラス` には `OrderService` の名前がそのまま出るだろうか。② の RuntimeException と ③ の検査例外では、コミットとロールバックのどちらになる?④ の同じクラスの中からの呼び出しでも、`[TX]` の行は出るだろうか。そのあとコメントの「ここを変えてみよう」を試してください。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;

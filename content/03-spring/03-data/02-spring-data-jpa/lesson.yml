@@ -65,10 +65,10 @@ quiz:
       - "部署名が `name` の部署を3件、社員の年齢順に"
     answer: 2
     why:
-      - "`DepartmentName` を社員の name と読んだ答え。関連先 department の name をたどる条件"
+      - "`DepartmentName` を社員の `name` と読んだ答え。関連先 `department` の `name` をたどる条件"
       - "`Desc` を若い順と読んだ答え。`Desc` は降順なので年齢の高い順"
       - ""
-      - "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは Employee"
+      - "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは `Employee`"
     explanation: |
       `find` + `Top3`(先頭3件)+ `By` + `DepartmentName`(`department.name` をたどる条件)+ `OrderByAgeDesc`(年齢の降順)と読みます。返すのは戻り値どおり `Employee` です。
       `Desc` は降順(大きい順)なので「若い順」ではありません。`DepartmentName` は社員自身の `name` ではなく、関連先 `department` の `name` です。
@@ -89,7 +89,7 @@ quiz:
       - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
       - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
-      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException`(`No property 'nmae' found for type 'Employee'`)になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
+      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。Did you mean 'name' と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
   - question: |
       社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
@@ -107,7 +107,7 @@ quiz:
       - "社員一覧を取る1回を数え落とした答え。`findAll` の1回と部署の10回で 11"
       - ""
     explanation: |
-      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが **N+1 問題** です。
+      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 `1 + 10 = 11` 回です。これが **N+1 問題** です。
       同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は `join fetch` で一度に取ることです。
   - question: |
       `@Query` の JPQL として正しいものはどれ?(エンティティは `Employee`、テーブル名は `employees`、フィールドは `age`、列名も `age`)

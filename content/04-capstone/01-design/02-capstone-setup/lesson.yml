@@ -12,7 +12,7 @@ samples:
   - title: ORDINAL で保存していたら何が起きるか
     description: |
       `@Enumerated` を付けないと、enum は宣言順の番号(`ordinal()`)で保存されます。後から定数を途中に足したとき、DB に残っている番号がどう読まれるかを再現します。
-      保存した3つの値を番号(`ordinal()`)で読み直すと、それぞれ何になる? 名前(`name()`)で読んだ場合も、予想してから実行結果を見よう。
+      保存した3つの値を番号(`ordinal()`)で読み直すと、それぞれ何になる? 名前(`name()`)で読んだ場合は?
     code: |
       // ORDINAL(宣言順の番号)で保存していたら……を再現する
       // 「保存したとき」の enum
@@ -38,8 +38,8 @@ samples:
       }
   - title: 承認くんの派生クエリを PartTree で読む
     description: |
-      Spring Data は起動時に、Repository のメソッド名を `PartTree` で解析して SQL の条件と並び順に変換します。承認くんで使う名前を直接解析してみましょう。
-      4つ目の `findByApplicantName…` は、どのプロパティの条件になる? つづりを間違えた5つ目がどうなるかも、予想してから実行結果を見よう。DB には接続しません。
+      Spring Data は起動時に、Repository のメソッド名を `PartTree` で解析して SQL の条件と並び順に変換します。承認くんで使う名前を、DB に接続せずに直接解析してみましょう。
+      4つ目の `findByApplicantName…` は、どのプロパティの条件になる? つづりを間違えた5つ目はどうなる?
     libraries: [spring, jpa]
     code: |
       import java.time.LocalDateTime;
@@ -114,22 +114,22 @@ quiz:
           defer-datasource-initialization: true
       ```
     choices:
-      - "data.sql が流れず、社員が見つからずに起動に失敗する"
+      - "`data.sql` が流れず、社員が見つからずに起動に失敗する"
       - "正常に起動し、社員3人が登録される"
       - '`Table "EMPLOYEE" not found` で起動に失敗する'
-      - "data.sql が2回流れて社員が6人になる"
+      - "`data.sql` が2回流れて社員が6人になる"
     answer: 0
     why:
       - ""
-      - "ファイルモードでも data.sql が流れると読んだ答え。既定では file の DB は対象外"
+      - "ファイルモードでも `data.sql` が流れると読んだ答え。既定では file の DB は対象外"
       - "テーブルが無いと読んだ答え。それは `defer-datasource-initialization` を書き忘れたときのエラー"
-      - "data.sql が2回流れると読んだ答え。このファイルモードの設定では1回も流れない"
+      - "`data.sql` が2回流れると読んだ答え。このファイルモードの設定では1回も流れない"
     explanation: |
-      Spring Boot は既定(`spring.sql.init.mode: embedded`)では、**メモリモードの組み込み DB にしか** `data.sql` を流しません。`jdbc:h2:file:` は対象外なので、`data.sql` は黙って無視されます。
+      Spring Boot は既定(`spring.sql.init.mode` が `embedded`)では、**メモリモードの組み込み DB にしか** `data.sql` を流しません。`jdbc:h2:file:` は対象外なので、`data.sql` は黙って無視されます。
       テーブル自体は `ddl-auto: update` で作られるので「テーブルがない」エラーにはならず、社員0人のまま `orElseThrow()` が `NoSuchElementException` を投げます。`sql.init.mode: always` を足せば流れます。
   - question: |
       `ApprovalRequest` のフィールドは `title`・`status`・`applicant`(Employee)・`createdAt`・`submittedAt` です。次の Repository メソッドのうち、**アプリの起動時にエラーになる** のはどれ?
-    choices: ["List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);", "long countByStatus(RequestStatus status);", "List<ApprovalRequest> findByApplicantNameAndStatus(String name, RequestStatus status);", "List<ApprovalRequest> findByStatusOrderBySubmitedAtAsc(RequestStatus status);"]
+    choices: ["`List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);`", "`long countByStatus(RequestStatus status);`", "`List<ApprovalRequest> findByApplicantNameAndStatus(String name, RequestStatus status);`", "`List<ApprovalRequest> findByStatusOrderBySubmitedAtAsc(RequestStatus status);`"]
     answer: 3
     why:
       - "関連の Employee で絞る形を誤りと読んだ答え。`applicant` も `createdAt` もある正しい派生クエリ"
@@ -165,8 +165,8 @@ quiz:
     choices: ["何も起きない(同じ行は自動で無視される)", "ハルが2人になる", "主キー違反で起動に失敗する", "テーブルが作り直されてデータが消える"]
     answer: 2
     why:
-      - "同じ行は自動で無視されると読んだ答え。INSERT はすでにある id = 1 の行にぶつかる"
-      - "id を指定した INSERT でも行が増えると読んだ答え。同じ id = 1 は主キー違反になる"
+      - "同じ行は自動で無視されると読んだ答え。INSERT はすでにある `id = 1` の行にぶつかる"
+      - "id を指定した INSERT でも行が増えると読んだ答え。同じ `id = 1` は主キー違反になる"
       - ""
       - "起動のたびにテーブルが作り直されると読んだ答え。`ddl-auto: update` は作り直さない"
     explanation: |

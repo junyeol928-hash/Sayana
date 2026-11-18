@@ -55,7 +55,7 @@
   question: "Spring が起動し、`issue(\"C001\")` を呼ぶと?"
   choices:
     - "`\"OK\"` が返る"
-    - "起動時に例外で失敗する"
+    - "起動時に、`cryptoClient` の注入に失敗して例外"
     - "8行目で `NullPointerException`"
     - "コンパイルエラー"
   answer: 2
@@ -69,7 +69,7 @@
     - "2行目: 生成されるコンストラクタは KeyIssueService(KeyRepository keyRepository) のみ"
     - "5行目: final がないため引数に含まれず、注入もされない → null"
     - "起動時: KeyRepository の Bean は存在するので、起動は正常に完了する"
-    - "8行目: cryptoClient が null → generateKey() を呼んだ瞬間に NullPointerException"
+    - "8行目: `cryptoClient` が `null` → `generateKey()` を呼んだ瞬間に `NullPointerException`"
 - title: "@Bean メソッドの引数と戻り値"
   level: 2
   code: |
@@ -92,7 +92,7 @@
   question: "起動時に何が起きる?"
   choices:
     - "`BackendClient` が Bean にならず起動失敗"
-    - "`restTemplate` が先に作られ、`backendClient` に渡され、`SessionService` に注入される"
+    - "`restTemplate` が先に作られ、起動する"
     - "`backendClient` が2個作られる"
     - "`@Bean` メソッドの順序が逆なのでエラー"
   answer: 1
@@ -105,8 +105,8 @@
   trace:
     - "1行目: @Configuration なので、中の @Bean メソッドが Bean 定義として登録される"
     - "4行目: backendClient は RestTemplate に依存すると分かる"
-    - "8行目: 依存のない restTemplate() が先に呼ばれ、RestTemplate の Bean ができる"
-    - "4〜5行目: その RestTemplate を引数に backendClient() が呼ばれ、BackendClient の Bean ができる"
+    - "8行目: 依存のない `restTemplate()` が先に呼ばれ、`RestTemplate` の Bean ができる"
+    - "4〜5行目: その `RestTemplate` を引数に `backendClient()` が呼ばれ、`BackendClient` の Bean ができる"
     - "15行目: SessionService のコンストラクタに BackendClient の Bean が渡される"
 - title: "スキャン範囲の外にあるクラス"
   level: 3
@@ -127,7 +127,7 @@
   question: "アプリを起動すると?"
   choices:
     - "正常に起動する"
-    - "`HexUtil` が見つからず起動時に例外"
+    - "起動時に例外"
     - "`KeyIssueService` が Bean にならない"
     - "コンパイルエラー"
   answer: 1

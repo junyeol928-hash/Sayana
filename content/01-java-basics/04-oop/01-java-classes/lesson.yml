@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 社員クラスを作ってインスタンスを2つ作る
     description: |
-      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラス。`a` だけ `raise` したとき、`b` の給料はどうなる? 出力を予想してから見よう。
+      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラス。`a` だけ `raise` したとき、`b` の給料はどうなる?
     code: |
       class Employee {
           String name;
@@ -43,7 +43,7 @@ samples:
       // toString メソッドを消すと Employee@xxxx のような表示になる(JShell では前に REPL.$JShell$.. が付く)
   - title: コンストラクタのオーバーロードと static
     description: |
-      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数える。消しゴムの税込価格と、最後の `Item.count` がいくつになるかを予想してから見よう。
+      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数える。消しゴムの税込価格は、いくらになるか。
       最後の `Item.count` は、いくつになる?
     code: |
       class Item {
@@ -77,7 +77,7 @@ samples:
       System.out.println("作った数: " + Item.count);
   - title: 参照の代入と null
     description: |
-      `b = a` のあと `b` を書き換えたら、`a.value` はどうなる? 作った直後のオブジェクトの配列の `list[0]` には何が入っているか。出力を予想してから見よう。
+      `b = a` のあと `b` を書き換えたら、`a.value` はどうなるか。作った直後のオブジェクトの配列の `list[0]` には、何が入っている?
     code: |
       class Counter {
           int value;
@@ -115,8 +115,8 @@ quiz:
     answer: 0
     why:
       - ""
-      - "y = x で別のインスタンスができると読んだ答え"
-      - "y.size = 7 の行を見落とした答え"
+      - "`y = x` で別のインスタンスができると読んだ答え"
+      - "`y.size = 7` の行を見落とした答え"
       - "代入で中身が y へ移り、x は空になると読んだ答え"
     explanation: |
       `Box y = x;` でコピーされるのはインスタンスではなく **参照** です。`x` と `y` は同じインスタンスを指すエイリアスなので、`y.size = 7` は `x.size` も 7 にします。
@@ -135,7 +135,7 @@ quiz:
     answer: 2
     why:
       - "コンストラクタの書き方を疑った答え。クラス名と同じ名前で戻り値の型なしの正しい形"
-      - "this.name = name を疑った答え。引数の name をフィールドに入れる正しい書き方"
+      - "`this.name = name` を疑った答え。引数の `name` をフィールドに入れる正しい書き方"
       - ""
       - "引数なしのコンストラクタが自動で作られると読んだ答え"
     explanation: |
@@ -156,10 +156,10 @@ quiz:
     choices: ["ハル", "name", "null", "空文字(何も表示されない)"]
     answer: 2
     why:
-      - "name = name でフィールドに入ると読んだ答え"
+      - "`name = name` でフィールドに入ると読んだ答え"
       - "変数の名前が、値として入ると読んだ答え"
       - ""
-      - "String フィールドの既定値を空文字と読んだ答え。参照型の既定値は null"
+      - "`String` フィールドの既定値を空文字と読んだ答え。参照型の既定値は `null`"
     explanation: |
       コンストラクタの中で単に `name` と書くと、それは **引数の name** を指します(引数がフィールドを隠している)。`name = name;` は引数に引数を代入しているだけで、フィールドには何も入りません。フィールドは既定値の `null` のままなので `null` と出力されます。
       フィールドに入れるには `this.name = name;` と書きます。コンパイルエラーにはならないので気づきにくいミスです。
@@ -179,9 +179,9 @@ quiz:
     choices: ["a", "b", "c", "d"]
     answer: 3
     why:
-      - "インスタンスメソッドからフィールドを使えないと読んだ答え。インスタンスメソッドは自分の sales を使える"
-      - "インスタンスメソッドから static フィールドは使えないと読んだ答え。共有の 1 つを触るだけで問題ない"
-      - "static メソッドから static フィールドを疑った答え。どちらもクラスに属するので使える"
+      - "インスタンスメソッドからフィールドを使えないと読んだ答え。インスタンスメソッドは自分の `sales` を使える"
+      - "インスタンスメソッドから `static` フィールドは使えないと読んだ答え。共有の 1 つを触るだけで問題ない"
+      - "`static` メソッドから `static` フィールドを疑った答え。どちらもクラスに属するので使える"
       - ""
     explanation: |
       `static` メソッドはインスタンスではなくクラスに属するので、`this`(どのインスタンスか)がありません。そのため インスタンスのフィールド `sales` は直接使えず、`non-static variable sales cannot be referenced from a static context` になります。
@@ -195,13 +195,13 @@ quiz:
       System.out.println(tasks.length);
       System.out.println(tasks[0].title);
       ```
-    choices: ["`2` と `null` が出力される", "`2` のあと `NullPointerException` が発生", "`0` と `null` が出力される", "コンパイルエラー(null かもしれない要素を読んでいる)"]
+    choices: ["`2` と `null` が出力される", "`2` のあと `NullPointerException` が発生", "`0` と `null` が出力される", "コンパイルエラー(`null` かもしれない要素を読んでいる)"]
     answer: 1
     why:
-      - "`new Task[2]` で `Task` のインスタンスもできると読んだ答え。要素は null で、`.title` で NPE になる"
+      - "`new Task[2]` で `Task` のインスタンスもできると読んだ答え。要素は `null` で、`.title` で NPE になる"
       - ""
-      - "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、`tasks[0]` は null"
-      - "null の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる"
+      - "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、`tasks[0]` は `null`"
+      - "`null` の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる"
     explanation: |
       `new Task[2]` で作られるのは **Task を入れる枠が2つある配列** だけで、Task のインスタンスは作られません。要素は参照型の既定値 `null` です。`tasks.length` は 2 ですが、`tasks[0].title` は null のフィールドを読もうとして `NullPointerException` になります。
       `tasks[0]` を println するだけなら `null` と表示されますが、`null` に `.` を付けた時点で NPE です。各要素に `tasks[i] = new Task();` が必要です。

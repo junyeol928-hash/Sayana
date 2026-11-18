@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       承認済の申請の承認、DB が落ちた想定の想定外の例外、enum に変換できない値、対応していない HTTP メソッドを順に送ります。
-      4つの応答のステータスは、それぞれいくつになる? 想定外の例外のとき本文とログ(ここでは `[ログ]` の行)に何が出るかも、予想してから実行結果を見よう。
+      4つの応答のステータスは、それぞれいくつになる? 想定外の例外のとき、本文とログ(ここでは `[ログ]` の行)には何が出る?
       そのあと `extends ResponseEntityExceptionHandler` を消して実行し直すと、どの応答が変わるかも試しましょう。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
     code: |
       // API のエラーを @RestControllerAdvice で1か所にまとめる

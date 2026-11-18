@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 標準アノテーションは実行時まで残る?
     description: |
-      `@Override`・`@Deprecated`・`@FunctionalInterface` のうち、実行時のリフレクションで読めるのはどれだろうか。それぞれ true か false かを予想してから見よう。
+      `@Override`・`@Deprecated`・`@FunctionalInterface` のうち、実行時のリフレクションで読めるのはどれだろうか。それぞれ true と false のどちらが出る?
     code: |
       // 標準アノテーションのうち、実行時まで残るのはどれ?
       // ここを変えてみよう:Override.class を Deprecated.class に / 12800 を別の金額に
@@ -43,7 +43,7 @@ samples:
       System.out.println(f.format(12800));
   - title: "@Audited を自作して読む"
     description: |
-      要素の値は `a.value()` のようにメソッド呼び出しの形で取り出す。`category` を省略した `issue` と、目印の無い `count` では何が出るだろうか。出力を予想してから見よう。`RUNTIME` を `SOURCE` に変えたらどうなるかも試してみよう。
+      要素の値は `a.value()` のようにメソッド呼び出しの形で取り出す。あとで `RUNTIME` を `SOURCE` に変えたらどうなるかも試してみよう。`category` を省略した `issue` と、目印の無い `count` では何が出るだろうか。
     code: |
       // @Audited を自作して、リフレクションで読む
       // ここを変えてみよう:revoke の category を消す / RUNTIME を SOURCE に変える
@@ -81,7 +81,7 @@ samples:
       System.out.println("普通に呼ぶ : " + new KeyService().issue("haru") + "(目印だけでは何も起きない)");
   - title: 目印を見て前後に処理を挟む
     description: |
-      `call` が「読む側」。`@Audited` が付いた `issue` と、付いていない `hello` を `call` で呼ぶと、出力はどう違うだろうか。予想してから見よう。Spring の `@Transactional` も、発想はこれと同じ。
+      `call` が「読む側」。Spring の `@Transactional` も、発想はこれと同じ。`@Audited` が付いた `issue` と、付いていない `hello` を `call` で呼ぶと、出力はどう違うだろうか。
     code: |
       // @Audited が付いたメソッドだけ、前後にログを挟んで呼ぶ(フレームワークの縮小版)
       // ここを変えてみよう:hello にも @Audited("HELLO") を付ける
@@ -200,9 +200,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "ソースに付いていれば実行時も読めると読んだ答え。SOURCE の @Draft はコンパイルで消える"
-      - "SOURCE と RUNTIME の残り方を逆に読んだ答え。実行時まで残るのは RUNTIME の @Stable"
-      - "アノテーションは実行時に読めないと読んだ答え。RUNTIME の @Stable は getAnnotation で取れる"
+      - "ソースに付いていれば実行時も読めると読んだ答え。`SOURCE` の `@Draft` はコンパイルで消える"
+      - "`SOURCE` と `RUNTIME` の残り方を逆に読んだ答え。実行時まで残るのは `RUNTIME` の `@Stable`"
+      - "アノテーションは実行時に読めないと読んだ答え。`RUNTIME` の `@Stable` は `getAnnotation` で取れる"
     explanation: |
       `@Draft` は `SOURCE` なので、コンパイルした時点で消えて class ファイルに残りません。実行時に `getAnnotation` すると `null` になり、`false` です。`@Stable` は `RUNTIME` なので実行時まで残り、`true` です。
       ソース上は両方付いていても、実行時に読めるのは `RUNTIME` だけ。Spring や JUnit が読むアノテーションがすべて `RUNTIME` なのはこのためです。
@@ -211,10 +211,10 @@ quiz:
     choices: ["`String name();`", "`String text();`", "`String value();`", "要素の名前は何でもよい"]
     answer: 2
     why:
-      - "name なら名前を省けると読んだ答え。省けるのは value だけで、name は `name =` が要る"
-      - "text でも名前を省けると読んだ答え。省けるのは value だけで、text は `text =` が要る"
+      - "`name` なら名前を省けると読んだ答え。省けるのは `value` だけで、`name` は `name =` が要る"
+      - "`text` でも名前を省けると読んだ答え。省けるのは `value` だけで、`text` は `text =` が要る"
       - ""
-      - "要素が 1 つなら名前は何でもよいと読んだ答え。省けるのは value という名前のときだけ"
+      - "要素が 1 つなら名前は何でもよいと読んだ答え。省けるのは `value` という名前のときだけ"
     explanation: |
       **`value` という名前の要素だけ** は、それ1つしか指定しないとき `value =` を省略できます。Spring の `@GetMapping("/users")` や `@Qualifier("main")` が名前なしで書けるのも同じ理由です。
   - question: |
@@ -241,12 +241,12 @@ quiz:
     choices: ["5 0", "null", "コンパイルエラー", "3 0"]
     answer: 3
     why:
-      - "`call()` に付けた値を読んだ答え。取り出しているのは `ping()` のアノテーションで、`times` は default の 3"
-      - "要素なしの @Retry は取れないと読んだ答え。RUNTIME なので取れて、要素は default の値になる"
-      - "要素を書かない @Retry は書けないと読んだ答え。全要素に default があるので書ける"
+      - "`call()` に付けた値を読んだ答え。取り出しているのは `ping()` のアノテーションで、`times` は `default` の 3"
+      - "要素なしの `@Retry` は取れないと読んだ答え。`RUNTIME` なので取れて、要素は `default` の値になる"
+      - "要素を書かない `@Retry` は書けないと読んだ答え。全要素に `default` があるので書ける"
       - ""
     explanation: |
-      取り出しているのは `ping()` のアノテーションです。`ping()` には `@Retry` が要素なしで付いているので、どちらの要素も `default` の値(`times` = 3、`waitMillis` = 0)になり、`3 0` と出ます。
+      取り出しているのは `ping()` のアノテーションです。`ping()` には `@Retry` が要素なしで付いているので、どちらの要素も `default` の値(`times` は 3、`waitMillis` は 0)になり、`3 0` と出ます。
   - question: |
       プロジェクトの中で、見慣れない自作アノテーション `@RequiresRole("ADMIN")` を見つけました。「このアノテーションが何をしているか」を知る一番確実な方法は?
     choices:

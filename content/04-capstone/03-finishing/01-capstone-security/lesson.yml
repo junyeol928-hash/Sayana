@@ -46,7 +46,7 @@ samples:
   - title: URL ルールは上から順に、最初に一致したもので決まる
     description: |
       承認くんの URL ルールを簡略化した表で、未ログイン・申請者・承認者がどの URL に入れるかを一覧にします。
-      まず今のルールで、申請者は `/requests/search` に入れる? 予想してから実行結果を見よう。そのあと広いルール(`/requests` 以下はログインしていれば OK)を先頭に足すと、どの行が変わるかも予想して試しましょう。
+      まず今のルールで、申請者は `/requests/search` に入れる? そのあと広いルール(`/requests` 以下はログインしていれば OK)を先頭に足すと、どの行が変わる?
     code: |
       // 承認くんの URL ルール(上から順に見て、最初に一致したもので決まる)
       // prefix で簡略化しています。本物は Spring Security の requestMatchers
@@ -180,14 +180,14 @@ quiz:
       ```
     choices:
       - "`th:action` を使っていないので CSRF トークンが送られていない"
-      - "action の URL が相対パスではないから"
+      - "`action` の URL が相対パスではないから"
       - '`button` に `type="submit"` が無いから'
       - "承認は PUT で送る決まりだから"
     answer: 0
     why:
       - ""
       - "絶対パスが原因と読んだ答え。`/requests/...` で書いても POST は届く"
-      - "`type` の省略が原因と読んだ答え。form の中の button は省略すると submit になる"
+      - "`type` の省略が原因と読んだ答え。`form` の中の `button` は省略すると `submit` になる"
       - "承認は PUT で送ると読んだ答え。承認くんでは状態を変える操作は POST"
     explanation: |
       Spring Security は CSRF 対策が既定で有効で、POST にはサーバーが発行したトークン(`_csrf`)が必要です。`th:action` で書くと Thymeleaf が hidden の `_csrf` を自動で入れますが、ただの `action` だと入らないので 403 になります。

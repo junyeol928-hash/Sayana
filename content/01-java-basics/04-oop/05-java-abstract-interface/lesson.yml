@@ -101,7 +101,7 @@ samples:
       new Checkout(new SaleDiscount(20)).pay(2980);
   - title: Comparable を実装して並べ替える
     description: |
-      `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。3 つの `Item` は、どの順に並ぶ? 予想してから見よう。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも、予想してから試してみよう。
+      `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも試してみよう。3 つの `Item` は、どの順に並ぶ?
     code: |
       // Comparable を実装して Arrays.sort で並べ替える
       // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)
@@ -149,7 +149,7 @@ quiz:
     why:
       - "抽象クラスは変数の型にも使えないと読んだ答え。型としては使え、子のインスタンスを入れられる"
       - ""
-      - "`new Dog()` を疑った答え。`Dog` は `voice()` を実装した普通のクラスなので new できる"
+      - "`new Dog()` を疑った答え。`Dog` は `voice()` を実装した普通のクラスなので `new` できる"
       - "抽象メソッドは呼べないと読んだ答え。`Animal` に宣言があるので呼べ、`Dog` の `voice()` が動く"
     explanation: |
       抽象クラスは **`new` できない** ので、(B) が `Animal is abstract; cannot be instantiated` になります。
@@ -177,7 +177,7 @@ quiz:
       - "`run()` が子の `work()` だけを動かすと読んだ答え"
       - "親の `run()` から子の `work()` は呼ばれないと読んだ答え"
       - ""
-      - "final の `run()` は子から呼べないと読んだ答え"
+      - "`final` の `run()` は子から呼べないと読んだ答え"
     explanation: |
       典型的な **テンプレートメソッド** です。`run()` は親 `Job` から継承されているので `Backup` でも呼べます。`run()` の中の `work()` は、実行時のオブジェクト(`Backup`)の実装が呼ばれるので「開始 バックアップ 終了」になります。
       `run()` が `final` なのは「流れを子に書き換えさせない」ためで、呼び出すことは問題なくできます。
@@ -214,7 +214,7 @@ quiz:
     answer: 0
     why:
       - ""
-      - "implements に先に書いた方が勝つと読んだ答え。書いた順は関係なく、決められずにコンパイルエラー"
+      - "`implements` に先に書いた方が勝つと読んだ答え。書いた順は関係なく、決められずにコンパイルエラー"
       - "後に書いた方が上書きすると読んだ答え。順は関係なく、どちらか決められずにコンパイルエラー"
       - "実行時にぶつかって落ちると読んだ答え。同じ default メソッドの衝突はコンパイルで止まる"
     explanation: |

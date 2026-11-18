@@ -12,7 +12,7 @@ goals:
 samples:
   - title: スレッドを2本動かして join で待つ
     description: |
-      配列の前半と後半を別々のスレッドで合計する。`start()` で動き出し、`join()` で終わるまで待つ。2 本のスレッドはそれぞれ **自分専用の枠** に書く。合計は 1 本で 1〜1000 を足したときと同じになるだろうか。予想してから見よう。
+      配列の前半と後半を別々のスレッドで合計する。`start()` で動き出し、`join()` で終わるまで待つ。2 本のスレッドはそれぞれ **自分専用の枠** に書く。合計は 1 本で 1〜1000 を足したときと同じになるだろうか。
     code: |
       int[] numbers = new int[1000];
       for (int i = 0; i < numbers.length; i++) {
@@ -38,7 +38,7 @@ samples:
       System.out.println("合計 = " + (partial[0] + partial[1]));
   - title: count++ の割り込みを手で再現する
     description: |
-      `count++` は「読む → 1を足す → 書き戻す」の3ステップ。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現する。2回 `count++` したはずの `count` はいくつになるだろうか。予想してから見よう。
+      `count++` は「読む → 1を足す → 書き戻す」の3ステップ。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現する。2回 `count++` したはずの `count` はいくつになるだろうか。
     code: |
       int count = 0;
 
@@ -55,7 +55,7 @@ samples:
       // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから B が読む順に並べ替えると?
   - title: AtomicInteger と synchronized なら必ず合う
     description: |
-      4本のスレッドが1万回ずつ数える。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。予想してから見よう。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。
+      4本のスレッドが1万回ずつ数える。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。
     code: |
       import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,7 +89,7 @@ samples:
       System.out.println("synchronized  : " + sync.get() + "(期待値と一致: " + (sync.get() == expected) + ")");
   - title: ExecutorService と Future(タイムアウト付き)
     description: |
-      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取る。どの仕事が先に終わるかは決まっていないが、結果はどの順で表示されるだろうか。後半の、5 秒かかる仕事を `get` で 100 ミリ秒だけ待つとどうなるかも、予想してから見よう。
+      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取る。どの仕事が先に終わるかは決まっていないが、結果はどの順で表示されるだろうか。後半の、5 秒かかる仕事を `get` で 100 ミリ秒だけ待つとどうなる?
     code: |
       import java.util.*;
       import java.util.concurrent.*;
@@ -214,7 +214,7 @@ quiz:
     why:
       - "Bean がリクエストごとに作られると読んだ答え。既定では 1 個を使い回す"
       - ""
-      - "速さの問題と読んだ答え。問題は全スレッドが同じ HashMap に同時に書くこと"
+      - "速さの問題と読んだ答え。問題は全スレッドが同じ `HashMap` に同時に書くこと"
       - "final が無いとコンパイルが通らないと読んだ答え。通るので、かえって気づきにくい"
     explanation: |
       Spring の Bean は既定で **シングルトン**(アプリ全体で1個)です。全リクエスト=全スレッドが同じ `ItemService` の同じ `HashMap` を触るので、同時に書き込むと中のデータ構造が壊れることがあります。`ConcurrentHashMap` に変えるか、そもそも状態を Bean に持たない設計にします。
@@ -237,7 +237,7 @@ quiz:
     choices: ["done", "timeout", "何も出力されない", "コンパイルエラー"]
     answer: 1
     why:
-      - "get が処理の終わりまで待つと読んだ答え。時間を渡した get は 1 秒で待つのをやめる"
+      - "`get` が処理の終わりまで待つと読んだ答え。時間を渡した `get` は 1 秒で待つのをやめる"
       - ""
       - "タイムアウトで黙って終わると読んだ答え。`TimeoutException` を catch して `timeout` と出す"
       - "Thread.sleep の例外を扱っていないと読んだ答え。値を返すラムダは Callable で、例外を投げてよい"

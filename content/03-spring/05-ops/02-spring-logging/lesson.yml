@@ -13,7 +13,7 @@ samples:
   - title: "文字列連結と {} の違いを数えてみる"
     description: |
       SLF4J の「レベル判定」と「`{}` の遅延評価」をまねた小さなロガーで、`toString()` が何回呼ばれるかを数えます(本物の SLF4J も同じ考え方です)。
-      設定は INFO なので DEBUG のログは出ません。連結版と `{}` 版で、`toString()` はそれぞれ何回呼ばれる?予想してから見よう。
+      設定は INFO なので DEBUG のログは出ません。連結版と `{}` 版で、`toString()` はそれぞれ何回呼ばれる?
     code: |
       // SLF4J の「レベル判定」と「{} の遅延評価」をまねた、ごく小さなロガー
       enum Level { TRACE, DEBUG, INFO, WARN, ERROR }

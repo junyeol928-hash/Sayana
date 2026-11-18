@@ -24,12 +24,12 @@
     - "`getOrDefault` も null を返し、上書きも件数に入ると読んだ答え"
   explanation: "`\"pen\"` は 3 → 8 に上書き。`\"ink\"` は無いので get は null、getOrDefault は -1。キーは pen と cup の2つなので size は 2。"
   trace:
-    - "2〜3行目: pen = 3 のあと同じキーで put → pen = 8 に上書き"
-    - "4行目: cup = 0 を登録。ペアは 2 組"
+    - "2〜3行目: `pen = 3` のあと同じキーで `put` → `pen = 8` に上書き"
+    - "4行目: `cup = 0` を登録。ペアは 2 組"
     - "5行目: `get(\"pen\")` → 8"
     - "6行目: `get(\"ink\")` → 無いので null"
     - "7行目: `getOrDefault(\"ink\", -1)` → -1"
-    - "8行目: size() → 2"
+    - "8行目: `size()` → 2"
 - title: "Set に入れると何個になる?"
   level: 1
   code: |
@@ -76,15 +76,15 @@
     - "`2` と `2` が表示される"
   answer: 1
   why:
-    - "`List.of` のリストに add できると読んだ答え。実際は不変で、add で落ちる"
+    - "`List.of` のリストに `add` できると読んだ答え。実際は不変で、`add` で落ちる"
     - ""
     - "不変なリストは型も別だと読んだ答え。コンパイラは気づかない"
     - "最初の `size()` より先に `add` が効くと読んだ答え。上から順に 1 を出し、その後の `add` で落ちる"
   explanation: "defaultRoles() が返すのは List.of で作った不変 List です。型は List なので add はコンパイルできますが、実行すると UnsupportedOperationException。7行目の 1 は表示された後に落ちます。戻り値の型だけでは不変かどうか分からない例です。"
   trace:
     - "6行目: `List.of(\"USER\")` を受け取る。型は List だが中身は不変"
-    - "7行目: size() は読み取りなので OK → 1"
-    - "8行目: add は変更操作 → UnsupportedOperationException で停止"
+    - "7行目: `size()` は読み取りなので OK → 1"
+    - "8行目: `add` は変更操作 → `UnsupportedOperationException` で停止"
     - "9行目: 実行されない"
 - title: "ループ中の削除"
   level: 2
@@ -110,10 +110,10 @@
     - "ループ中の remove が元のリストに効かないと読んだ答え。`nums` 自体が変わり、次の `next()` で例外になる"
   explanation: "拡張 for の途中で nums.remove を呼んでいるので、次に next() が呼ばれた瞬間に ConcurrentModificationException が投げられます。なお n は Integer なので remove(Object) が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら nums.removeIf(n -> n % 2 == 0) です。"
   trace:
-    - "2行目: Iterator が nums を回し始める"
-    - "n = 1: 奇数なので何もしない"
-    - "n = 2: 偶数 → nums.remove(2) で List の構造が変わる"
-    - "次の next(): 変更を検知 → ConcurrentModificationException"
+    - "2行目: `Iterator` が `nums` を回し始める"
+    - "`n = 1`: 奇数なので何もしない"
+    - "`n = 2`: 偶数 → `nums.remove(2)` で `List` の構造が変わる"
+    - "次の `next()`: 変更を検知 → `ConcurrentModificationException`"
 - title: "自作クラスをキーにしたら"
   level: 3
   code: |
@@ -133,7 +133,7 @@
     - "A / true"
     - "null / false"
     - "A / false"
-    - "コンパイルエラー"
+    - "コンパイルエラー(自作クラスはキーにできない)"
   answer: 1
   why:
     - "中身が同じ Point は同じキーと読んだ答え。比べ方を上書きしていない"
@@ -143,6 +143,6 @@
   explanation: "Point は equals と hashCode を上書きしていないため、Object のもの(参照が同じかどうか)が使われます。put したときの Point と get で作った Point は別インスタンスなので「別のキー」とみなされ、get は null、containsKey は false。equals と hashCode を x, y で比べるように上書きすると(後で習う record なら自動で付きます)A / true になります。"
   trace:
     - "8行目: 1つ目の Point インスタンス(#P1)をキーに `\"A\"` を登録"
-    - "9行目: 新しい Point(#P2)で get。hashCode が違う(または equals が false)→ 見つからず null"
+    - "9行目: 新しい `Point`(#P2)で `get`。`hashCode` が違う(または `equals` が `false`)→ 見つからず `null`"
     - "10行目: 同じ理由で false"
     - "対策: equals / hashCode を x, y に基づいて上書きする"

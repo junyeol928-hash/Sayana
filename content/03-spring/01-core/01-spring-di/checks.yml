@@ -1,6 +1,6 @@
 - after: 依存性注入(DI):まずは素の Java で
   question: |
-    `OrderService` は `MailSender`(`send(String body)` だけのインターフェース)をコンストラクタで受け取り、`placeOrder` で「ご注文ありがとうございます: 品名」を送る。Spring は使っていない。何が起きる?
+    `OrderService` は `MailSender`、つまり `send(String body)` だけのインターフェースをコンストラクタで受け取り、`placeOrder` で「ご注文ありがとうございます: 品名」を送る。Spring は使っていない。何が起きる?
     ```java
     var s = new OrderService(
         body -> System.out.println("[偽] " + body));

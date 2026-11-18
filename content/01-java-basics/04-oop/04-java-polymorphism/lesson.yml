@@ -12,7 +12,7 @@ goals:
 samples:
   - title: 動物たちの鳴き声(動的ディスパッチ)
     description: |
-      `Animal` 型の配列に Dog と Cat を混ぜて入れた。ループの `x.sound()` は、それぞれ何を返す? 予想してから見よう。
+      `Animal` 型の配列に Dog と Cat を混ぜて入れた。ループの `x.sound()` は、それぞれ何を返す?
     code: |
       class Animal {
           String sound() { return "……"; }
@@ -62,7 +62,7 @@ samples:
       }
   - title: ダウンキャストと instanceof パターンマッチング
     description: |
-      `instanceof` で確かめてから使う書き方。`a` を Cat にしたら if のどちらに進むか、確かめずに `(Dog) a` とキャストしたら何が起きるか。予想してから試してみよう。
+      `instanceof` で確かめてから使う書き方。`a` を Cat にしたら if のどちらに進むか、確かめずに `(Dog) a` とキャストしたら何が起きるかも試してみよう。
       このまま(`a` が Dog)実行すると、if のどちらに進む?
     code: |
       class Animal { }
@@ -87,7 +87,7 @@ samples:
       System.out.println("終了");
   - title: フィールドと static メソッドは変数の型で決まる
     description: |
-      `Parent` 型の変数に `Child` を入れて、同名のフィールド・インスタンスメソッド・static メソッドを呼ぶ。3 行それぞれ、親と子のどちらの値が出るか予想してから見よう。
+      `Parent` 型の変数に `Child` を入れて、同名のフィールド・インスタンスメソッド・static メソッドを呼ぶ。3 行それぞれ、親と子のどちらの値が出るか。
       `p.name` は、親と子のどちらのフィールドを出す?
     code: |
       class Parent {
@@ -160,10 +160,10 @@ quiz:
     choices: ["`OK` と出力される", "実行時に `ClassCastException` が発生する", "コンパイルエラーになる(`Cat` は `Dog` に変換できない)", "`d` に `null` が入り、`OK` と出力される"]
     answer: 1
     why:
-      - "Animal ならどの子クラスにもキャストできると読んだ答え"
+      - "`Animal` ならどの子クラスにもキャストできると読んだ答え"
       - ""
-      - "Cat を Dog にするキャストを、コンパイラが止めると読んだ答え"
-      - "キャストに失敗すると null が入ると読んだ答え"
+      - "`Cat` を `Dog` にするキャストを、コンパイラが止めると読んだ答え"
+      - "キャストに失敗すると `null` が入ると読んだ答え"
     explanation: |
       `Animal` 型の変数の中身は Dog かもしれないので、コンパイラはダウンキャストを通します。しかし実行時に JVM が実体を検査し、Cat を Dog にはできないので `ClassCastException: class Cat cannot be cast to class Dog` が発生します。
       安全にやるなら `if (a instanceof Dog d) { ... }` で確かめてから使います。

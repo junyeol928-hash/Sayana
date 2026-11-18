@@ -90,7 +90,7 @@ samples:
     libraries: [spring]
     description: |
       `record` を `ResponseEntity` で包んで返す API と、`@Controller` で `"redirect:..."` を返す画面用のメソッドを呼びます。
-      `GET /api/items/1`・`GET /api/items/99`・`POST /orders` は、それぞれどのステータスコードになり、本文やヘッダーに何が出るだろうか。出力を予想してから見よう。
+      `GET /api/items/1`・`GET /api/items/99`・`POST /orders` は、それぞれどのステータスコードになり、本文やヘッダーに何が出るだろうか。
     code: |
       // 戻り値で変わるレスポンス:JSON・ResponseEntity・redirect:
       // ここを変えてみよう:存在しない ID(99)を GET する / quantity を変える
@@ -190,10 +190,10 @@ quiz:
     why:
       - "パラメータが無ければ `null` が入ると読んだ答え。`@RequestParam` は既定で必須なので 400 になる"
       - ""
-      - "クエリが無いとパスに一致しないと読んだ答え。パス `/hello` は一致し、name が無くて 400"
+      - "クエリが無いとパスに一致しないと読んだ答え。パス `/hello` は一致し、`name` が無くて 400"
       - "パラメータ不足をサーバー側の例外と読んだ答え。送る側の誤りとして 400 が返る"
     explanation: |
-      `@RequestParam` は **デフォルトで required = true** です。`name` が無いと `MissingServletRequestParameterException` になり、Spring が **400** を返します。メソッド自体は呼ばれません。
+      `@RequestParam` は **デフォルトで `required = true`** です。`name` が無いと `MissingServletRequestParameterException` になり、Spring が **400** を返します。メソッド自体は呼ばれません。
       `Hi null` にしたいなら `@RequestParam(required = false)`、既定値を入れたいなら `defaultValue = "..."` を付けます。パス `/hello` 自体は対応表にあるので 404 ではなく、例外はクライアント側の誤りとして処理されるので 500 でもありません。
   - question: |
       次の Controller があるとき、**405 Method Not Allowed** になるリクエストはどれ?
@@ -237,7 +237,7 @@ quiz:
       - "戻り値が JSON に変換されると読んだ答え。それは `@ResponseBody` が付いたときで、`@Controller` ではビュー名"
       - ""
     explanation: |
-      `@Controller` の String の戻り値は **ビュー名** です。ViewResolver がテンプレート(Thymeleaf なら `templates/hello.html`)を探して HTML を作ります。テンプレートが無ければ `Error resolving template [hello]`(Thymeleaf がなければ `Circular view path [hello]`)のエラーになります。
+      `@Controller` の String の戻り値は **ビュー名** です。ViewResolver がテンプレート(Thymeleaf なら `templates/hello.html`)を探して HTML を作ります。テンプレートが無ければ、次のエラーになります: `Error resolving template [hello]` Thymeleaf が入っていないときは、次のエラーです: `Circular view path [hello]`
       文字列をそのまま返したいなら `@RestController`(= `@Controller` + `@ResponseBody`)を使います。
   - question: |
       別々のクラスに、次の2つのメソッドを書いてしまいました。何が起きる?

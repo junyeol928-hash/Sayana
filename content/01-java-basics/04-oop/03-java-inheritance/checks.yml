@@ -13,10 +13,10 @@
   answer: 0
   why:
     - ""
-    - "private も子から直接読めると読んだ答え"
+    - "`private` も子から直接読めると読んだ答え"
     - "子の name には値が入らず、null になると読んだ答え"
   explanation: |
-    `private` のフィールドは、子のオブジェクトの中に存在はするが、子のコードからは直接触れない(`name has private access in Employee`)。親に getter を用意して、それ経由で読む。
+    `private` のフィールドは、子のオブジェクトの中に存在はするが、子のコードからは直接触れない。親に getter を用意して、それ経由で読む。直接読むと次のエラーになる: `name has private access in Employee`
 - after: オーバーライドと @Override
   question: |
     親の `salary()` は 200000 を返す。`new Manager("佐藤").salary()` を呼ぶと?

@@ -16,7 +16,7 @@
   answer: 0
   why:
     - ""
-    - "`javac` と同じくファイル名を渡した答え。`java` は「Hello.class という名前のクラス」を探して失敗する"
+    - "`javac` と同じくファイル名を渡した答え。`java` は「`Hello.class` という名前のクラス」を探して失敗する"
     - "`javac` と `java` の役割を取り違えた答え。`javac` はコンパイルするだけで、実行するのは `java`"
   explanation: |
     `java` に渡すのはクラス名(`.class` は付けない)。ファイル名を渡すのは `javac` の方。

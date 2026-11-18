@@ -37,7 +37,7 @@
     timeout=60
     >>>>>>> 4f2a9c1
     ```
-  choices: ["timeout=30", "timeout=60", "この印だけでは、どちらが自分の値か分からない"]
+  choices: ["`timeout=30`", "`timeout=60`", "この印だけでは、どちらが自分の値か分からない"]
   answer: 0
   why:
     - ""

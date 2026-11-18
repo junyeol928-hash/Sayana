@@ -55,7 +55,7 @@ samples:
       check(new MemberForm("   ", "taro", 17));
       check(new MemberForm("あ".repeat(21), "", null));
   - title: "@ModelAttribute の裏側:バインド → 検証 → BindingResult"
-    description: Controller の引数で Spring がやっていることを DataBinder で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。BindingResult には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値も予想してから見よう。
+    description: Controller の引数で Spring がやっていることを DataBinder で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。BindingResult には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値はどうなる?
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -125,7 +125,7 @@ samples:
       }
       System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
   - title: MockMvc で PRG の流れを見る
-    description: フォームの POST を MockMvc で送ります。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。出力を予想してから見よう(数秒かかります)。
+    description: フォームの POST を MockMvc で送ります(実行に数秒かかります)。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;

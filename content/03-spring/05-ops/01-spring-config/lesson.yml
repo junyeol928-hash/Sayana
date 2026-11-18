@@ -14,7 +14,7 @@ samples:
     libraries: [spring]
     description: |
       `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。1 行目の税率は、8% と 10% のどちらで出る?
-      1 行目に出る店名と税率、`server.port` の行に出る値を予想してから見よう。そのあと `shop.name` の行を消したら何が出るかも予想して試そう。
+      1 行目の店名と、`server.port` の行に出る値は何だろうか。そのあと `shop.name` の行を消したら、何が出る?
     code: |
       import org.springframework.beans.factory.annotation.Value;
       import org.springframework.context.annotation.*;
@@ -51,7 +51,7 @@ samples:
     libraries: [spring]
     description: |
       `setActiveProfiles` は Spring Boot の `spring.profiles.active` に当たります。**`register` より前** に呼ぶのがポイントです。
-      `"dev"` のときに登録されるのは、`smtp` と `console` のどちら?予想してから見よう。そのあと `"prod"` や `{ }`(プロファイルなし)に変えたらどうなるかも予想して試そう。
+      `"dev"` のときに登録されるのは、`smtp` と `console` のどちら?そのあと `"prod"` や `{ }`(プロファイルなし)に変えたら、どうなるだろうか。
     code: |
       import org.springframework.context.annotation.*;
 
@@ -116,9 +116,9 @@ quiz:
       - "起動エラー(同じキーが2か所にあるので)"
     answer: 1
     why:
-      - "dev のファイルが共通の値を上書きしないと読んだ答え"
+      - "`dev` のファイルが共通の値を上書きしないと読んだ答え"
       - ""
-      - "dev 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
+      - "`dev` 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
       - "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ"
     explanation: |
       プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
@@ -152,7 +152,7 @@ quiz:
       - "プロファイル用のファイルが一番強いと読んだ答え。環境変数やコマンドライン引数のほうが強い"
       - "`:500` を常に使う値と読んだ答え。既定値はどこにもキーが無いときだけ使われる"
     explanation: |
-      優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > application-{profile}.yml > application.yml」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
+      優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > `application-{profile}.yml` > `application.yml`」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
       500 は `@Value` の既定値で、どこにもキーが無いときにだけ使われます。コマンドライン引数を外せば環境変数の 800 になります。
   - question: |
       `application.yml` にこう書いたところ、サーバは 8080 のまま起動し、エラーも出ませんでした。原因は?

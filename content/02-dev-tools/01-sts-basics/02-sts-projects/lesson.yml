@@ -25,8 +25,8 @@ quiz:
       Web server failed to start. Port 8080 was already in use.
       ```
     choices:
-      - "pom.xml から spring-boot-starter-web を削除する"
-      - "demo 側で server.port=8081 にして起動し直す"
+      - "`pom.xml` から `spring-boot-starter-web` を削除する"
+      - "demo 側で `server.port=8081` にして起動し直す"
       - "Project > Clean... を実行してから起動し直す"
       - "Maven > Update Project... を実行してから起動し直す"
     answer: 1
@@ -34,7 +34,7 @@ quiz:
       - "エラーを消せば直ると読んだ答え。starter-web を消すと Web サーバごと無くなり、Web アプリとして動かない"
       - ""
       - "ビルドの問題と読んだ答え。Clean はコンパイルのやり直しで、ポートの取り合いは解けない"
-      - "設定の問題と読んだ答え。Update Project は pom.xml の読み直しで、ポートの取り合いは解けない"
+      - "設定の問題と読んだ答え。Update Project は `pom.xml` の読み直しで、ポートの取り合いは解けない"
     explanation: |
       ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo の `application.properties` に `server.port=8081` と書いて番号を変えるか、
       道場アプリを止めれば起動できます。
@@ -52,7 +52,7 @@ quiz:
     why:
       - "JDK の未登録が原因と読んだ答え。それなら取り込んだ後のビルドエラーとして出る"
       - "ネット接続が原因と読んだ答え。依存の取得は取り込んだ後の話で、見つからないのは `.project` が無いから"
-      - "pom.xml が壊れていると読んだ答え。この取り込み方は `.project` を探していて、pom.xml を見ていない"
+      - "`pom.xml` が壊れていると読んだ答え。この取り込み方は `.project` を探していて、`pom.xml` を見ていない"
       - ""
     explanation: |
       **Existing Projects into Workspace** は、Eclipse の `.project` ファイルを探して取り込む機能です。`.project` は Git に入れないのが普通なので、
@@ -91,9 +91,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "`.classpath` を共有すべき設定と読んだ答え。m2e が pom.xml から作り直す IDE 用のファイル"
+      - "`.classpath` を共有すべき設定と読んだ答え。m2e が `pom.xml` から作り直す IDE 用のファイル"
       - "ビルド結果の jar もコミットすると読んだ答え。`target/` はビルドのたびに作り直すのでコミットしない"
-      - "`.settings/` を共有すべき設定と読んだ答え。m2e が pom.xml から作り直す IDE 用のファイル"
+      - "`.settings/` を共有すべき設定と読んだ答え。m2e が `pom.xml` から作り直す IDE 用のファイル"
     explanation: |
       `mvnw` と `.mvn/wrapper/` は **Maven Wrapper** で、Maven を入れていない人や CI でも同じ版の Maven でビルドできるようにするものです。コミットします。
       `.classpath` と `.settings/` は STS(m2e)が `pom.xml` から生成する IDE 用のファイル、`target/` はビルド結果なので、どれもコミットしません。

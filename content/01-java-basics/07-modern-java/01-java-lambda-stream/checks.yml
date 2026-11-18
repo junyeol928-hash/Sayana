@@ -25,14 +25,14 @@
         .sorted()
         .toList();
     ```
-  choices: ["Integer", "Order", "List<Integer>"]
+  choices: ["`Integer`", "`Order`", "`List<Integer>`"]
   answer: 0
   why:
     - ""
-    - "filter のあとも Order のままと読んだ答え。map で金額に変わり、Integer が流れる"
+    - "`filter` のあとも `Order` のままと読んだ答え。`map` で金額に変わり、`Integer` が流れる"
     - "`sorted` で `List` に集まると読んだ答え。`List` になるのは終端操作の `toList()` のあと"
   explanation: |
-    `filter` までは Order のまま流れ、`map` で金額に変わる。`map` が返すのは `Stream<Integer>`(int は自動で Integer に包まれる)。
+    `filter` までは `Order` のまま流れ、`map` で金額に変わる。`map` が返すのは `Stream<Integer>`(`int` は自動で `Integer` に包まれる)。
 - after: collect と数値の集計
   question: |
     `List<Integer> nums = List.of(1, 2, 3);` のとき、次の行は?

@@ -21,12 +21,12 @@
   why:
     - ""
     - "数値を文字列として 2 つ並べると読んだ答え。`get()` は `Integer` で、`int` として掛け算され 20"
-    - "Integer に `* 2` はできないと読んだ答え。アンボクシングで int になり計算できる"
-    - "取り出しでキャストに失敗すると読んだ答え。T = Integer なので型は合っていて、キャストも要らない"
-  explanation: "`Holder<Integer>` なので get() の戻り値は Integer。Integer は自動で int に変換される(アンボクシング)ので * 2 が計算でき、20 になります。T = Integer と当てはめて読めば、キャストなしで数値として扱えることが分かります。"
+    - "`Integer` に `* 2` はできないと読んだ答え。アンボクシングで `int` になり計算できる"
+    - "取り出しでキャストに失敗すると読んだ答え。`T = Integer` なので型は合っていて、キャストも要らない"
+  explanation: "`Holder<Integer>` なので `get()` の戻り値は `Integer`。`Integer` は自動で `int` に変換される(アンボクシング)ので `* 2` が計算でき、20 になります。`T = Integer` と当てはめて読めば、キャストなしで数値として扱えることが分かります。"
   trace:
-    - "7行目: T = Integer が決まる。item に 10 が入る"
-    - "8行目: get() は Integer の 10 を返す → int に自動変換 → 10 * 2 = 20"
+    - "7行目: `T = Integer` が決まる。`item` に 10 が入る"
+    - "8行目: `get()` は `Integer` の 10 を返す → `int` に自動変換 → `10 * 2 = 20`"
     - "9行目: 20"
 - title: "ジェネリックメソッドの推論"
   level: 2
@@ -46,15 +46,15 @@
     - "コンパイルエラー"
   answer: 1
   why:
-    - "2 と 7 を文字列としてつなぐと読んだ答え。左の 2 つは int どうし"
+    - "2 と 7 を文字列としてつなぐと読んだ答え。左の 2 つは `int` どうし"
     - ""
     - "足す順を取り違えた答え。hi は最後につながる"
     - "1 つのメソッドを違う型で呼べないと読んだ答え。T は呼ぶたびに決まる"
-  explanation: "`twice(\"hi\")` では T = String、`twice(7)` では T = Integer と推論されます。最後の行は左から評価:a.size() は 2、b.get(0) は 7、2 + 7 = 9(int どうしの足し算)。そこに a.get(1) の `\"hi\"` が連結されて `9hi`。ジェネリクスと文字列連結の順序を同時に読む問題です。"
+  explanation: "`twice(\"hi\")` では `T = String`、`twice(7)` では `T = Integer` と推論されます。最後の行は左から評価:`a.size()` は 2、`b.get(0)` は 7、`2 + 7 = 9`(`int` どうしの足し算)。そこに `a.get(1)` の `\"hi\"` が連結されて `9hi`。ジェネリクスと文字列連結の順序を同時に読む問題です。"
   trace:
-    - "5行目: T = String。a は `[\"hi\", \"hi\"]`"
-    - "6行目: T = Integer。b は `[7, 7]`"
-    - "7行目: `2 + 7` = 9(まだ数値)→ `9 + \"hi\"` → `9hi`"
+    - "5行目: `T = String`。`a` は `[\"hi\", \"hi\"]`"
+    - "6行目: `T = Integer`。`b` は `[7, 7]`"
+    - "7行目: `2 + 7 = 9`(まだ数値)→ `9 + \"hi\"` → `9hi`"
 - title: "境界を越える型"
   level: 2
   code: |
@@ -70,7 +70,7 @@
     - "8 / pear / (何かのアドレス) と表示"
     - "8 / apple / 実行時エラー"
     - "7行目でコンパイルエラー"
-    - "1行目でコンパイルエラー"
+    - "1行目(メソッドの宣言)でコンパイルエラー"
   answer: 2
   why:
     - "Object も大小を比べられると読んだ答え。実際はコンパイルで止まる"
@@ -79,10 +79,10 @@
     - "メソッドの宣言そのものが誤りと読んだ答え。宣言は正しく、境界を満たさない呼び出しの行がエラー"
   explanation: "`<T extends Comparable<T>>` は「T は自分自身と比較できる型に限る」という境界です。Integer と String は Comparable を実装しているので OK。Object は Comparable ではないので、7行目は境界を満たさずコンパイルエラーになります。実行前に止まるのが境界の役目です。"
   trace:
-    - "1行目: 境界付きジェネリックメソッド。Comparable の compareTo が使える"
-    - "5行目: T = Integer。3 と 8 を `compareTo` で比べると負 → 8"
-    - "6行目: T = String。`\"pear\".compareTo(\"apple\")` は正 → `pear`"
-    - "7行目: Object は Comparable ではない → コンパイルエラー"
+    - "1行目: 境界付きジェネリックメソッド。`Comparable` の `compareTo` が使える"
+    - "5行目: `T = Integer`。3 と 8 を `compareTo` で比べると負 → 8"
+    - "6行目: `T = String`。`\"pear\".compareTo(\"apple\")` は正 → `pear`"
+    - "7行目: `Object` は `Comparable` ではない → コンパイルエラー"
 - title: "入れ子の Map を読む"
   level: 2
   code: |
@@ -138,10 +138,10 @@
     - ""
     - "実体のクラス名が空と読んだ答え。List.of の実装クラスにも名前がある"
     - "T に `List<Integer>` は入らないと読んだ答え。T には型引数付きの型も入り、for で回せる"
-    - "`total += n` で最後の値だけが残ると読んだ答え。足し込むので 10 + 20 + 30 = 60"
+    - "`total += n` で最後の値だけが残ると読んだ答え。足し込むので `10 + 20 + 30 = 60`"
   explanation: "ok(List.of(10, 20, 30)) で T = `List<Integer>` と推論され、res.getData() は `List<Integer>` を返します。拡張 for で合計 60。getClass().getSimpleName() は実行時のクラス名(ListN など実装クラスの名前)で、空ではないので isEmpty() は false。ポイントは「T に何が入ったか」を当てはめると getData() の型が分かり、for で回せると読めることです。"
   trace:
     - "8行目: `static <T>` の T = `List<Integer>`。res は `ApiResponse<List<Integer>>`"
-    - "10行目: getData() は `List<Integer>` → Integer を1つずつ取り出せる"
-    - "11行目: 10 + 20 + 30 = 60"
+    - "10行目: `getData()` は `List<Integer>` → `Integer` を1つずつ取り出せる"
+    - "11行目: `10 + 20 + 30 = 60`"
     - "13行目: 実行時のクラス名は空文字ではない → `false`。出力 `60 false`"

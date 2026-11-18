@@ -22,10 +22,10 @@
   explanation: "基準が WARN のとき、WARN と ERROR は出力され、DEBUG と INFO は出力されません。「基準以上を出す、基準未満は無視する」というフィルタの考え方です。"
   trace:
     - "基準: WARN"
-    - "step1(DEBUG): WARN未満 → 出ない"
-    - "step2(INFO): WARN未満 → 出ない"
-    - "step3(WARN): 基準と同じ → 出る"
-    - "step4(ERROR): 基準より上 → 出る"
+    - "`step1`(DEBUG): WARN 未満 → 出ない"
+    - "`step2`(INFO): WARN 未満 → 出ない"
+    - "`step3`(WARN): 基準と同じ → 出る"
+    - "`step4`(ERROR): 基準より上 → 出る"
 - title: "try-catch とログ、例外の再スロー"
   level: 2
   code: |
@@ -41,18 +41,18 @@
   question: "出力は?(ログの内容は考えず、System.out の出力のみ答える)"
   choices:
     - "0"
-    - "5"
+    - "Infinity"
     - "`ArithmeticException` が発生してプログラムが止まる"
     - "コンパイルエラー"
   answer: 0
   why:
     - ""
-    - "割り算の結果が返ると読んだ答え。`b` は 0 で例外になり、`catch` で 0 を返す"
-    - "例外が呼び出し元まで伝わると読んだ答え。catch で捕まえて 0 を返し、投げ直していない"
+    - "`double` の割り算と取り違えた答え。`int` どうしの `10 / 0` は例外になり、`catch` で 0 を返す"
+    - "例外が呼び出し元まで伝わると読んだ答え。`catch` で捕まえて 0 を返し、投げ直していない"
     - "ログの引数の数が `{}` と合わないと読んだ答え。最後の例外は別扱いで、コンパイルは通る"
   explanation: "b が 0 のとき a / b は ArithmeticException を投げますが、catch で捕まえられ、ログを出したあと 0 を返しています。例外は再スローされていないので、呼び出し元には伝わらず 0 が表示されます。"
   trace:
-    - "3行目: 10 / 0 で ArithmeticException"
+    - "3行目: `10 / 0` で `ArithmeticException`"
     - "4行目: catch で捕まえる"
     - "5行目: WARN ログを出す(第3引数の e でスタックトレースも記録)"
     - "6行目: 0 を返す(例外は外に伝わらない)"
@@ -88,7 +88,7 @@
   trace:
     - "3行目: userRepository はモック(本物のDBには繋がらない)"
     - "9行目: when を設定していないので、findById は既定の空 Optional を返す"
-    - "10行目: isEmpty() は true → assertTrue は成功"
+    - "10行目: `isEmpty()` は `true` → `assertTrue` は成功"
 - title: "verify で呼び出し回数を確認する"
   level: 3
   code: |

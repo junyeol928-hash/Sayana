@@ -21,8 +21,8 @@
   question: "呼ばれるメソッドの順と、最終的な応答は?"
   choices:
     - "`issue` → `existsByCardIdAndStatus(true)` → 例外 → 409"
-    - "`issue` → `existsByCardIdAndStatus(false)` → `save` → 201 + `KeyIssueResponse`"
-    - "`issue` → `save` → `existsByCardIdAndStatus` → 200"
+    - "`issue` → `existsByCardIdAndStatus(false)` → `save` → 201"
+    - "`issue` → `save` → `existsByCardIdAndStatus` → 200 + `KeyIssueResponse`"
     - "バリデーションで弾かれて 400"
   answer: 1
   why:
@@ -98,7 +98,7 @@
   question: "keyIssueService.issue(...) は呼ばれる?"
   choices:
     - "呼ばれ、201が返る"
-    - "呼ばれない。`@Valid` の時点で弾かれ、`issue` メソッドの中身は実行されない"
+    - "呼ばれない"
     - "呼ばれるが、`cardId` が `null` に置き換わって処理される"
     - "呼ばれるが、例外がその場でもみ消される"
   answer: 1
@@ -128,7 +128,7 @@
   question: "`findById` は KeyRepository のどこで定義されている?"
   choices:
     - "`KeyRepository` インターフェースの2行目"
-    - "`KeyRepository` インターフェースには書かれておらず、継承元の `JpaRepository` から来ている"
+    - "継承元の `JpaRepository`"
     - "Service クラスの中で定義されている"
     - "存在しないのでコンパイルエラーになる"
   answer: 1
@@ -137,12 +137,12 @@
     - ""
     - "呼んでいる Service に定義があると読んだ答え"
     - "見当たらないので無いと読んだ答え。コンパイルは通る"
-  explanation: "KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元の JpaRepository が持つ基本 CRUD の1つで、extends の先まで確認しないと見つかりません。"
+  explanation: "KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元が持つ基本 CRUD の1つで、JpaRepository のさらに親の CrudRepository が宣言しています。extends の先までたどらないと見つかりません。"
   trace:
-    - "1行目: KeyRepository は JpaRepository<KeyEntity, Long> を継承している"
+    - "1行目: `KeyRepository` は `JpaRepository<KeyEntity, Long>` を継承している"
     - "2行目: このインターフェース自身が宣言しているのは existsByCardIdAndStatus だけ"
     - "7行目: findById が呼ばれているが、KeyRepository 自身には定義がない"
-    - "継承元の JpaRepository まで確認すると、findById(ID) が Optional<Entity> を返すメソッドとして定義されている"
+    - "継承元の `JpaRepository` をたどると、その親の `CrudRepository` に `findById(ID)` が `Optional<T>` を返すメソッドとして宣言されている"
 - title: "@Transactional の範囲を追う"
   level: 3
   code: |
@@ -159,7 +159,7 @@
   question: "@Transactional の範囲に含まれる処理は?"
   choices:
     - "`issue` メソッドと `notifyAsync` メソッドの両方"
-    - "`issue` メソッドの中身だけ(`notifyAsync` は別スレッドなので範囲外)"
+    - "`issue` メソッドの中身だけ"
     - "アプリ全体のすべての処理"
     - "`save` のみ"
   answer: 1

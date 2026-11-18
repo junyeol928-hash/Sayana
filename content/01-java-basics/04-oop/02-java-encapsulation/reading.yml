@@ -16,7 +16,7 @@
   choices:
     - "abc12 と表示"
     - "コンパイルエラー(List と ArrayList が見つからない)"
-    - "コンパイルエラー(String が見つからない)"
+    - "コンパイルエラー(String は import しないと見つからない)"
     - "実行時エラー"
   answer: 1
   why:
@@ -125,7 +125,7 @@
     - "後の行の完全修飾名に、短い Date も引きずられると読んだ答え"
   explanation: "import しているのは java.util.Date だけなので、短い名前 Date は java.util.Date を指します。java.sql.Date は完全修飾名で書いているので衝突しません。getClass().getName() は完全修飾名を返すため、それぞれのパッケージ付きで表示されます。"
   trace:
-    - "1行目: 短い名前 Date = java.util.Date と決まる"
+    - "1行目: 短い名前 `Date` は `java.util.Date` と決まる"
     - "5行目: d1 は java.util.Date のインスタンス"
     - "6行目: 完全修飾名で java.sql.Date を指定 → import 不要、衝突もしない"
     - "7〜8行目: `getName()` は完全修飾名を返す → `java.util.Date`、`java.sql.Date`"
@@ -248,7 +248,7 @@
     System.out.println(req);
   question: "`@Builder` は `CommandRequest.builder().項目名(値)….build()` の形で組み立てる Builder(「ネストクラス」のレッスンで扱う)を自動で作る Lombok の注釈、`@ToString` は toString を作る注釈です。出力される timeoutMillis の値は?"
   choices:
-    - "0(セットされなかったので既定値)"
+    - "0"
     - "コンパイルエラー"
     - "実行時例外"
     - "null"
@@ -261,9 +261,9 @@
   explanation: "Builder では timeoutMillis() が呼ばれていないため、int の既定値である 0 のまま build() が実行され、CommandRequest(仕事では ApduRequest)が完成します。"
   trace:
     - "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない"
-    - "12行目: build() が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる"
+    - "12行目: `build()` が呼ばれ、セットされていないフィールドは既定値のまま組み立てられる"
     - "int の既定値は 0 なので timeoutMillis は 0"
-    - "結果: toString() の出力に timeoutMillis=0 が含まれる"
+    - "結果: `toString()` の出力に `timeoutMillis=0` が含まれる"
 - title: "@SneakyThrows で隠れる検査例外"
   level: 3
   code: |
@@ -280,7 +280,7 @@
   question: "`Files.readString` はファイルを読むメソッドで、読めないと IOException(catch か throws の宣言が必須の「検査例外」。第5章)を投げます。`@SneakyThrows` は、その throws 宣言を書かずに済ませる Lombok の注釈です。存在しないファイルを渡して load を呼ぶと?"
   choices:
     - "コンパイルエラー(`IOException` を catch していない)"
-    - "実行時に例外(`IOException` 系)が発生し、呼び出し元は catch していないので処理が止まる"
+    - "実行時に `IOException` 系の例外が発生し、処理が止まる"
     - "`null` が返る"
     - "空文字が返る"
   answer: 1
@@ -291,7 +291,7 @@
     - "読めないファイルは空として扱われると読んだ答え"
   explanation: "@SneakyThrows は throws 宣言をコンパイラから隠すだけで、IOException の発生自体は防ぎません。呼び出し元は検査例外だと気づけず catch していないため、例外はそのまま伝播し、catch されなければ処理が止まります。"
   trace:
-    - "4行目: ファイルが存在しないため Files.readString が IOException 相当の例外を投げる"
+    - "4行目: ファイルが存在しないため `Files.readString` が `IOException` 相当の例外を投げる"
     - "2行目: @SneakyThrows によりメソッドの宣言に throws がなく、コンパイラは検査例外の存在に気づかない"
     - "10行目: 呼び出し元は try-catch していない(コンパイラが要求しないため)"
     - "結果: 例外はそのまま呼び出し元に伝わり、catch がなければ処理が止まる"

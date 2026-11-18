@@ -25,9 +25,9 @@
     - "extends も実現と読んだ答え。クラスを extends する関係は継承"
   explanation: "extends で継いでいる Animal との関係は「継承」、implements で実装している Flyable(インターフェース)との関係は「実現」です。キーワードを見れば関係の種類がそのまま分かります。"
   trace:
-    - "7行目: class Bird extends Animal → Animal とは継承関係(白抜き三角+実線)"
-    - "7行目: implements Flyable → Flyable とは実現関係(白抜き三角+点線)"
-    - "8行目: fly() を具体的に実装しているのが「実現」の意味そのもの"
+    - "7行目: `class Bird extends Animal` → Animal とは継承関係(白抜き三角+実線)"
+    - "7行目: `implements Flyable` → Flyable とは実現関係(白抜き三角+点線)"
+    - "8行目: `fly()` を具体的に実装しているのが「実現」の意味そのもの"
 - title: "集約かコンポジションか、コンストラクタで見分ける"
   level: 2
   code: |
@@ -60,7 +60,7 @@
     - "フィールドに持つだけなら集約と読んだ答え。(A) は自分で new し、一緒に生まれ消えるのでコンポジション"
   explanation: "(A) は Library が自分のコンストラクタで new Book(...) して部品を作り、そのまま持ち続けているのでコンポジションです(Library と一緒に生まれ、一緒に消える)。(B) は外で作られた Book をコンストラクタで受け取っているだけなので集約です(同じ Book をほかのクラスも持てる)。"
   trace:
-    - "(A) 4〜6行目: Library のコンストラクタの中で new Book(...) している → 部品を作るのも持ち続けるのも Library → コンポジション"
+    - "(A) 4〜6行目: Library のコンストラクタの中で `new Book(...)` している → 部品を作るのも持ち続けるのも Library → コンポジション"
     - "(B) 12〜14行目: favorite はコンストラクタの引数として外から渡される → ReadingClub は生成に関与しない → 集約"
 - title: "シーケンス図のメッセージ順とメソッド呼び出しの対応"
   level: 2
@@ -115,7 +115,7 @@
   question: "この if-else をシーケンス図で表すとき使う複合フラグメントと、最後の呼び出しの結果は?"
   choices:
     - "opt を使う。`saved` が返る"
-    - "alt を使う。`IllegalArgumentException` が発生する"
+    - "alt を使う。例外が発生する"
     - "loop を使う。処理が3回くり返される"
     - "複合フラグメントは使わない。`saved` が返る"
   answer: 1
@@ -129,4 +129,4 @@
     - "2行目: `request.getAmount()` は -100 なので条件は false"
     - "5行目の else に入る"
     - "6行目: `IllegalArgumentException` を throw する"
-    - "この if-else 全体が、シーケンス図では alt [amount > 0] / [else] の2区画として描かれる"
+    - "この if-else 全体が、シーケンス図では alt の `[amount > 0]` / `[else]` の2区画として描かれる"

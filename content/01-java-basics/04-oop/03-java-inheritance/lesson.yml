@@ -49,7 +49,7 @@ samples:
       System.out.println(m.getName() + ": " + m.salary() + "円");
   - title: コンストラクタが呼ばれる順番
     description: |
-      `C` のコンストラクタには `super()` を書いていない。`new C()` で、A・B・C のコンストラクタの出力はどの順に並ぶ? 予想してから見よう。
+      `C` のコンストラクタには `super()` を書いていない。`new C()` で、A・B・C のコンストラクタの出力はどの順に並ぶ?
     code: |
       class A {
           A() { System.out.println("A のコンストラクタ"); }
@@ -69,7 +69,7 @@ samples:
       new C();
   - title: toString と equals をオーバーライドする
     description: |
-      何もオーバーライドしない `RawPoint` と、`toString`・`equals` を上書きした `Point`。`RawPoint` と `Point` で、表示はどう違う? 同じ座標どうしを `equals` で比べると、それぞれどうなる? 出力を予想してから見よう。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。
+      何もオーバーライドしない `RawPoint` と、`toString`・`equals` を上書きした `Point`。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。`RawPoint` と `Point` で、表示はどう違う? 同じ座標どうしを `equals` で比べると、それぞれどうなる?
     code: |
       class RawPoint {             // 何もオーバーライドしない
           final int x, y;
@@ -144,9 +144,9 @@ quiz:
     answer: 2
     why:
       - "自動で入る `super()` を見落とした答え"
-      - "private フィールドがあると継承できないと読んだ答え。継承はでき、子から直接触れないだけ"
+      - "`private` フィールドがあると継承できないと読んだ答え。継承はでき、子から直接触れないだけ"
       - ""
-      - "final フィールドが原因と読んだ答え。r はコンストラクタで初期化しているので問題ない"
+      - "`final` フィールドが原因と読んだ答え。r はコンストラクタで初期化しているので問題ない"
     explanation: |
       `Circle(double r)` には `super(...)` がないので、コンパイラが `super()` を自動挿入します。ところが `Shape` には `Shape(String)` しかなく、引数なしのコンストラクタがないため `constructor Shape in class Shape cannot be applied to given types` になります。`super("円");` を先頭に書けば直ります。
   - question: |

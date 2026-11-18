@@ -11,7 +11,7 @@ goals:
   - "同じ型の Bean が複数あるときに @Primary / @Qualifier で選べ、Bean が singleton であることの注意点を説明できる"
 samples:
   - title: 手動 DI とコンテナ DI を見比べる
-    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。② のコンテナ版でも、コンストラクタは呼ばれるだろうか。2 回目の `getBean` は同じものを返すだろうか。出力を予想してから見よう。
+    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。② のコンテナ版でも、コンストラクタは呼ばれるだろうか。2 回目の `getBean` は同じものを返すだろうか。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -59,7 +59,7 @@ samples:
               + (s == ctx.getBean(OrderService.class)));
       ctx.close();
   - title: "@Configuration + @Bean と、@Primary / @Qualifier"
-    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの Notifier が入るだろうか。最後の行に出る Bean 名も予想してから見よう。
+    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの Notifier が入るだろうか。最後の行には、どの Bean 名が出るだろうか。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.annotation.*;
@@ -123,7 +123,7 @@ samples:
               + ctx.getBeansOfType(Notifier.class).keySet());
       ctx.close();
   - title: singleton の Bean に状態を持たせると事故る
-    description: フィールドに合計金額を持つ `BadCartService` を、ハルとモカが別々に `getBean` して使います。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。出力を予想してから見よう。そのあと `@Scope("prototype")` を付けて、出力がどう変わるか確かめよう。
+    description: フィールドに合計金額を持つ `BadCartService` を、ハルとモカが別々に `getBean` して使います。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。そのあと `@Scope("prototype")` を付けて、出力がどう変わるか確かめよう。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -275,7 +275,7 @@ quiz:
       - "自分のクラスと同じく `@Component` を付ければよいと読んだ答え。ソースを変えられないので付けられない"
       - "`@Autowired` が Bean を作ってくれると読んだ答え。登録済みの Bean を入れるだけで、無ければ例外"
       - ""
-      - "使う側で作れば Bean になると読んだ答え。`new` しても Bean にはならず、new だらけの形に戻る"
+      - "使う側で作れば Bean になると読んだ答え。`new` しても Bean にはならず、`new` だらけの形に戻る"
     explanation: |
       ソースを変更できないクラスにはアノテーションを付けられません。`@Configuration` クラスの `@Bean` メソッドで `new` して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。
       `@Autowired` は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(起動時に `UnsatisfiedDependencyException` で止まり、原因に `NoSuchBeanDefinitionException` と出ます)。使う側で `new` するのは、まさに DI をやめて元の「new だらけ」に戻る書き方です。

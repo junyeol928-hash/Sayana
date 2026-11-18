@@ -12,7 +12,7 @@ goals:
 samples:
   - title: try / catch / finally の流れ
     description: |
-      入力ごとに、try のどの行まで進み、どの catch に飛ぶだろうか。`"12a"` と `"0"` の違いと、`(チェック終了)` が何回出るかに注目して、出力を予想してから見よう。
+      入力ごとに、try のどの行まで進み、どの catch に飛ぶだろうか。`"12a"` と `"0"` では何が違い、`(チェック終了)` は何回出る?
     code: |
       // try / catch / finally の流れを確かめる
       // ここを変えてみよう:inputs に "-5" や " 7" や null を足す / finally の行を消してみる
@@ -74,7 +74,7 @@ samples:
       }
   - title: try-with-resources とクローズ順
     description: |
-      `AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられる。2 つのリソースの open と close は、どんな順で出るだろうか。出力を予想してから見よう。`fail` を true にしたら、close と catch のどちらが先に出るかも予想してみよう。
+      `AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられる。2 つのリソースの open と close は、どんな順で出るだろうか。`fail` を true にしたら、close と catch のどちらが先に出る?
     code: |
       // try-with-resources:AutoCloseable を実装すると自動で close される
       // ここを変えてみよう:fail を true にする / リソースを3つに増やして close の順番を見る
@@ -105,7 +105,7 @@ samples:
       }
   - title: ラップして再スロー(cause を渡す)
     description: |
-      下位の例外を、自分の層の例外に包み直して投げる。`getCause()` は何を返すだろうか。「Caused by」の行に何が出るかを予想してから見よう。
+      下位の例外を、自分の層の例外に包み直して投げる。`getCause()` は何を返し、「Caused by」の行には何が出るだろうか。
     code: |
       // ラップして再スロー:cause を渡すと「本当の原因」が残る
       // ここを変えてみよう:text を "8080" にする / new ConfigException の第2引数 e を消してみる

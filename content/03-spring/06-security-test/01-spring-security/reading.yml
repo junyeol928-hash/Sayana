@@ -20,10 +20,10 @@
     - "ルールが重なると起動で止まると読んだ答え。重なっても起動し、先に一致したほうが使われる"
   explanation: "requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの `hasRole(\"ADMIN\")` は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
   trace:
-    - "1〜2行目: /api/admin/** に permitAll() を設定"
+    - "1〜2行目: `/api/admin/**` に `permitAll()` を設定"
     - "3行目: `/api/admin/danger` にも `hasRole(\"ADMIN\")` を設定しているが、2行目より後ろにある"
     - "リクエスト時: /api/admin/danger は2行目の /api/admin/** に先にマッチする"
-    - "結果: 最初にマッチした permitAll() が適用され、認証すら不要で 200 が返る"
+    - "結果: 最初にマッチした `permitAll()` が適用され、認証すら不要で 200 が返る"
 - title: "ROLE_ 接頭辞の付け忘れ"
   level: 1
   code: |
@@ -88,7 +88,7 @@
   explanation: "@PreAuthorize は AOP のプロキシが外からの呼び出しを横取りして動きます。deactivateUser から this.deleteUser(...) を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも deleteUser の中身が実行されてしまいます。"
   trace:
     - "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
-    - "5行目: deactivateUser の中で this.deleteUser(userId) を呼ぶ(内部呼び出し)"
+    - "5行目: `deactivateUser` の中で `this.deleteUser(userId)` を呼ぶ(内部呼び出し)"
     - "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない"
     - "10行目: 権限チェックなしで `deleteUser` の本体が実行され、`deleted: u001` が出力される"
 - title: "CSRF を無効化していないままの POST"
@@ -111,7 +111,7 @@
   choices:
     - "200 で正常に処理される"
     - "401(認証情報がない)"
-    - "403(CSRF トークンがない)"
+    - "403 で拒否される"
     - "500(サーバエラー)"
   answer: 2
   why:
@@ -121,7 +121,7 @@
     - "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する"
   explanation: "csrf() を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。httpBasic で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では csrf(csrf -> csrf.disable()) にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(/error)を permitAll にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
   trace:
-    - "5〜6行目: authorizeHttpRequests と httpBasic は設定しているが csrf() の呼び出しがない"
+    - "5〜6行目: `authorizeHttpRequests` と `httpBasic` は設定しているが `csrf()` の呼び出しがない"
     - "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る"
     - "POST リクエストが CSRF フィルタに到達し、トークンチェックで失敗する"
     - "結果: Controller に届く前に 403 で止まる"
@@ -148,7 +148,7 @@
   question: "有効な API キー付きで GET /api/ping を呼ぶと、Controller の authentication は?"
   choices:
     - "キーの持ち主の情報が入る"
-    - "`null`、または未認証として扱われる"
+    - "未認証として扱われる"
     - "コンパイルエラー"
     - "常に `ADMIN` 権限になる"
   answer: 1

@@ -14,7 +14,7 @@
     - "one / two / three / four"
     - "two / three"
     - "two / three / four"
-    - "コンパイルエラー"
+    - "コンパイルエラー(コメントの中の println)"
   answer: 1
   why:
     - "// を付けた所も実行されると読んだ答え。// から行末まではコメントで、one も four も出ない"
@@ -101,7 +101,7 @@
     - "hello と表示される"
     - "Greeting.class ができて正常に終わる"
     - "コンパイルエラー"
-    - "実行時エラー"
+    - "実行時エラー(ファイル名の不一致)"
   answer: 2
   why:
     - "javac が実行までしてくれると読んだ答え。javac はコンパイルだけで、このファイルはそこで止まる"
@@ -126,7 +126,7 @@
     - "run と表示される"
     - "何も表示されず正常終了"
     - "コンパイルエラー"
-    - "実行時エラー(main が static ではない)"
+    - "実行時エラー"
   answer: 3
   why:
     - "JDK 25 からの決まりで読んだ答え。問いは JDK 21 での動き"
@@ -135,7 +135,7 @@
     - ""
   explanation: "static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として認めるのは `public static void main(String[] args)` だけ。main はあっても static ではないので、起動時に「static ではありません」というエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。"
   trace:
-    - "javac: 文法エラーは無いので App.class ができる"
-    - "java App: JVM が public static void main(String[]) を探す"
+    - "`javac`: 文法エラーは無いので `App.class` ができる"
+    - "`java App`: JVM が `public static void main(String[])` を探す"
     - "2行目の main には static が無いので条件に合わない"
     - "結果: 「main メソッドが static ではありません」という趣旨のエラーで停止"

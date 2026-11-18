@@ -39,7 +39,7 @@
   answer: 0
   why:
     - ""
-    - "Arrays.asList を List.of と同じ不変と読んだ答え。サイズ固定なだけで、set は使える"
+    - "`Arrays.asList` を `List.of` と同じ不変と読んだ答え。サイズ固定なだけで、`set` は使える"
     - "サイズ固定のリストは型が別だと読んだ答え。型はただの List なので、コンパイルは通る"
   explanation: |
     `Arrays.asList` のリストはサイズが固定なだけで、`set` での置き換えはできる。例外になるのは `add` / `remove`。
