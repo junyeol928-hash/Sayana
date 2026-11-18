@@ -131,9 +131,10 @@ class CurriculumTest {
             SampleOutputs.Entry saved = OUTPUTS.entries().get(SampleOutputs.key(sample));
             if (saved != null && !saved.varies()) {
                 assertThat(saved.output()).as(name + " の控えの出力(違ったら ./mvnw -q compile exec:java で作り直す)")
-                        .isEqualTo(r.output());
-                assertThat(saved.values()).as(name + " の控えの式の値").isEqualTo(r.values());
-                assertThat(saved.exception()).as(name + " の控えの例外").isEqualTo(r.exception());
+                        .isEqualTo(SampleOutputs.lf(r.output()));
+                assertThat(saved.values()).as(name + " の控えの式の値")
+                        .isEqualTo(r.values().stream().map(SampleOutputs::lf).toList());
+                assertThat(saved.exception()).as(name + " の控えの例外").isEqualTo(SampleOutputs.lf(r.exception()));
             }
         }
     }

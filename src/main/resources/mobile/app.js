@@ -138,7 +138,8 @@ function reviewAnswer(ref, correct) {
   item.last = Date.now();
   // 今日の復習の数と正解(復習の画面の上と、終わったときに見せる)
   const log = S.reviewLog = S.reviewLog || {};
-  log[t] = { n: (log[t]?.n || 0) + 1, ok: (log[t]?.ok || 0) + (correct ? 1 : 0) };
+  // 同じ問題を 1 日に 2 回解いたら 1 問と数える(PC版の ReviewService#todayTally と同じ)。最後の答えの正誤で数える
+  log[t] = { refs: Object.assign({}, log[t]?.refs, { [ref]: correct }) };
   for (const d of Object.keys(log)) if (d < addDays(t, -60)) delete log[d];
   if (!correct) {
     Object.assign(item, { stage: 0, due: addDays(t, INTERVALS[0]), graduated: false, lapses: item.lapses + 1 });
@@ -193,7 +194,10 @@ function choiceOrder(n, seed) {
   return order;
 }
 
-const todayReviewed = () => S.reviewLog?.[today()] || { n: 0, ok: 0 };
+const todayReviewed = () => {
+  const refs = Object.values(S.reviewLog?.[today()]?.refs || {});
+  return { n: refs.length, ok: refs.filter(Boolean).length };
+};
 
 // ------------------------------------------------------------ データ
 
@@ -1424,7 +1428,7 @@ async function renderGlossary() {
 
 // ------------------------------------------------------------ 復習
 
-let reviewBreakAt = -1;
+let reviewBreakAt = "";
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
@@ -1437,12 +1441,12 @@ async function renderReview() {
     return;
   }
   // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)
-  if (done.n > 0 && done.n % 10 === 0 && reviewBreakAt !== done.n) {
+  if (done.n > 0 && done.n % 10 === 0 && reviewBreakAt !== `${today()}#${done.n}`) {
     view().innerHTML = `<h1 class="page-title">復習</h1>
       <div class="card empty-state review-break"><div class="talk talk-sensei"><div class="talk-avatar"><span class="talk-icon">モカ</span><span class="talk-name">モカ先輩</span></div>
       <div class="talk-bubble"><p>今日は ${done.n} 問を思い出して、${done.ok} 問正解。ここで区切っても大丈夫。残り ${due.length} 問は、明日の分と一緒に出すよ。</p></div></div>
       <div class="review-next"><button class="btn primary" id="go-on">続ける(残り ${due.length} 問)</button><a class="btn" href="#/">今日はここまで</a></div></div>`;
-    $("#go-on").onclick = () => { reviewBreakAt = done.n; renderReview(); };
+    $("#go-on").onclick = () => { reviewBreakAt = `${today()}#${done.n}`; renderReview(); };
     return;
   }
   const [ref, item] = nextDue(due);

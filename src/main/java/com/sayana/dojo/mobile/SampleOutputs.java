@@ -47,15 +47,31 @@ public final class SampleOutputs {
     public record Entry(String status, String output, List<String> values, String exception, boolean varies) {
 
         static Entry of(RunResult r, boolean varies) {
-            return new Entry(r.status().name(), r.output(), r.values(), r.exception(), varies);
+            return new Entry(r.status().name(), lf(r.output()), lfAll(r.values()), lf(r.exception()), varies);
         }
 
-        /** 実行のたびに同じになるはずの部分(経過時間は含めない)。 */
-        boolean sameAs(RunResult r) {
-            return status.equals(r.status().name()) && output.equals(r.output()) && values.equals(r.values())
-                    && Objects.equals(exception, r.exception());
+        /** 実行のたびに同じになるはずの部分(経過時間は含めない。改行は OS によらず LF で比べる)。 */
+        public boolean sameAs(RunResult r) {
+            return status.equals(r.status().name()) && lf(output).equals(lf(r.output()))
+                    && lfAll(values).equals(lfAll(r.values())) && Objects.equals(lf(exception), lf(r.exception()));
+        }
+
+        Entry normalized() {
+            return new Entry(status, lf(output), lfAll(values), lf(exception), varies);
         }
     }
+
+    /** Windows で作っても控えの改行を LF にそろえる(.gitattributes の LF 固定と同じ。ほかの OS でテストが落ちないように)。 */
+    public static String lf(String s) {
+        return s == null ? null : s.replace("\r\n", "\n");
+    }
+
+    static List<String> lfAll(List<String> list) {
+        return list.stream().map(SampleOutputs::lf).toList();
+    }
+
+    /** スレッドの順番で出力が変わりうるコード(2 回の実行で偶然そろっても、比べない)。 */
+    private static final Pattern THREADED = Pattern.compile("\\bThread\\b|Executor|parallel|CompletableFuture|ofVirtual");
 
     /** 控えを作った JDK のメジャー番号と、キー → 結果。 */
     public record Data(int jdk, Map<String, Entry> entries) {
@@ -115,7 +131,9 @@ public final class SampleOutputs {
                 ran++;
                 System.out.println("  実行: " + s.title() + (e.varies() ? "(実行のたびに変わる)" : ""));
             }
-            if (!e.varies() && IDENTITY_HASH.matcher(e.output() + String.join("\n", e.values())).find()) {
+            e = e.normalized();
+            if (!e.varies() && (IDENTITY_HASH.matcher(e.output() + String.join("\n", e.values())).find()
+                    || THREADED.matcher(s.code()).find())) {
                 // 「C@31221be2」の @ の後ろ(ハッシュコード)は、同じ JDK でも版や環境で変わりうる
                 e = new Entry(e.status(), e.output(), e.values(), e.exception(), true);
             }

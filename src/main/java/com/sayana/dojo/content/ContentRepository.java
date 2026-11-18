@@ -250,15 +250,20 @@ public class ContentRepository {
                 sections.get(sections.size() - 1)[1] = m.start();
             }
             sections.add(new int[] {m.start(), html.length()});
-            titles.add(m.group(1).replaceAll("<[^>]+>", "").strip());
+            // 見出しの HTML(<code> や &amp; など)を、checks.yml に書く素の文字に戻して比べる
+            titles.add(headingKey(org.springframework.web.util.HtmlUtils.htmlUnescape(m.group(1).replaceAll("<[^>]+>", ""))));
         }
         // 後ろから差し込む(前の位置がずれないように)。同じ節に 2 問あれば書いた順に並べる
         java.util.TreeMap<Integer, StringBuilder> inserts = new java.util.TreeMap<>();
         for (int i = 0; i < checks.size(); i++) {
             Lesson.Check c = checks.get(i);
-            int at = titles.indexOf(c.after() == null ? "" : c.after().strip());
+            String key = headingKey(c.after() == null ? "" : c.after());
+            int at = titles.indexOf(key);
             if (at < 0) {
                 throw new IllegalStateException(lessonId + ": checks.yml の after に合う ## 見出しがありません: " + c.after());
+            }
+            if (titles.lastIndexOf(key) != at) {
+                throw new IllegalStateException(lessonId + ": 同じ ## 見出しが 2 つあり、checks.yml の after でどちらか決められません: " + c.after());
             }
             inserts.computeIfAbsent(sections.get(at)[1], k -> new StringBuilder()).append(checkHtml(lessonId, i, c));
         }
@@ -267,6 +272,11 @@ public class ContentRepository {
             out.insert(e.getKey(), e.getValue());
         }
         return out.toString();
+    }
+
+    /** 見出しの比べ方: Markdown の記号(` と **)を外し、前後の空白を落とす。 */
+    private static String headingKey(String s) {
+        return s.replace("`", "").replace("**", "").strip();
     }
 
     private static String checkHtml(String lessonId, int index, Lesson.Check c) {
