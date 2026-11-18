@@ -20,7 +20,9 @@
             </div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
                 <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="(${dueCount > 10} ? 'まず 10 問 ' : '') + '約 ' + ${dueMinutes} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
-                <span th:if="${dueCount == 0}" class="zero" th:text="'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
+                <span th:if="${dueCount == 0}" class="zero" th:text="${doneToday > 0}
+                    ? '済み ' + ${doneToday} + ' 問' + (${bastedToday > 0} ? '(仮縫い ' + ${bastedToday} + ')' : '') + (${tomorrowDue > 0} ? ' · 明日 ' + ${tomorrowDue} + ' 問' : '')
+                    : 'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
             <p class="talk-line" th:if="${streak == 0}">モカ先輩「まずは1レッスン、15分だけやってみよう」</p>
             <p class="talk-line" th:if="${streak > 0 and !studiedToday}" th:text="'モカ先輩「連続 ' + ${streak} + ' 日。今日もちょっとだけやって記録をつなごう」'"></p>
             <p class="talk-line" th:if="${streak > 0 and studiedToday}" th:text="'モカ先輩「今日もやったね。連続 ' + ${streak} + ' 日目」'"></p>
@@ -62,7 +64,7 @@
                 <div class="cloth-row"><span class="cloth-label">この 7 日</span>
                     <div class="unshin" style="--steps: 7" role="img" th:attr="aria-label=|この 7 日のうち ${weekDays} 日稽古した|"><i th:each="d : ${days.subList(days.size() - 7, days.size())}" th:class="${d.actions() > 0} ? 'sewn' : null"></i></div>
                     <span class="cloth-num"><th:block th:text="${weekDays}">0</th:block><small>日</small></span></div>
-                <a class="cloth-row" th:href="@{/review}"><span class="cloth-label">次の復習</span><span></span><span class="cloth-num" th:text="${nextReview}">なし</span></a>
+                <a class="cloth-row" th:if="${nextReview != null}" th:href="@{/review}"><span class="cloth-label">次の復習</span><span></span><span class="cloth-num" th:text="${nextReview}">なし</span></a>
                 <div class="cloth-row"><span class="cloth-label">復習で卒業</span>
                     <span class="grad-cells" aria-hidden="true"><span th:each="c : ${graduatedCells}" class="dye dye-4"></span><small th:if="${graduated == 0}">まだ</small><small th:if="${graduated > 24}">…</small></span>
                     <span class="cloth-num"><th:block th:text="${graduated}">0</th:block><small>問</small></span></div>

@@ -31,9 +31,11 @@ public class ReviewController {
     private final ExerciseCatalog catalog;
     private final ExerciseViews views;
     private final LearningService learning;
+    private final java.time.Clock clock;
 
     public ReviewController(ReviewService review, ReviewItemRepository items, ContentRepository content,
-                            ExerciseCatalog catalog, ExerciseViews views, LearningService learning) {
+                            ExerciseCatalog catalog, ExerciseViews views, LearningService learning, java.time.Clock clock) {
+        this.clock = clock;
         this.review = review;
         this.items = items;
         this.content = content;
@@ -42,14 +44,44 @@ public class ReviewController {
         this.learning = learning;
     }
 
+    /**
+     * 解き直しの状態(今日の分だけ。セッションに持つ)。refs はこの回に解き直す問、done はこの回に答えた数、
+     * results はどの回も通した問ごとの正誤(終わりの運針の仮縫いと、行の「仮縫いできた / まだ」)、pass は何回目の解き直しか。
+     * URL にだけ持つと、終わりの画面の「読み直す」で本文へ行って戻ると跡が消えた(24 回目の審査)
+     */
+    static final class RetryState implements java.io.Serializable {
+        final LocalDate day;
+        final List<Long> refs;
+        final Map<Long, Boolean> results;
+        final int pass;
+        int done;
+
+        RetryState(LocalDate day, List<Long> refs, Map<Long, Boolean> results, int pass) {
+            this.day = day;
+            this.refs = List.copyOf(refs);
+            this.results = new java.util.HashMap<>(results);
+            this.pass = pass;
+        }
+
+        boolean finished() {
+            return done >= refs.size();
+        }
+    }
+
+    static final String RETRY_KEY = "dojo.review.retry";
+
     @GetMapping("/review")
     public String queue(@RequestParam(name = "go", defaultValue = "-1") int goOnAt,
                         @RequestParam(name = "retry", defaultValue = "-1") int retryAt,
-                        @RequestParam(name = "r", defaultValue = "") String retryResults, Model model) {
+                        @RequestParam(name = "still", defaultValue = "0") int stillFrom,
+                        @RequestParam(name = "r", required = false) String retryResults,
+                        jakarta.servlet.http.HttpSession session, Model model) {
         List<ReviewItem> due = review.due().stream().filter(this::stillExists).toList();
         model.addAttribute("due", due);
         List<ReviewItem> upcoming = review.upcoming().stream().filter(this::stillExists).limit(30).toList();
         model.addAttribute("upcomingItems", upcoming);
+        LocalDate tomorrow = LocalDate.now(clock).plusDays(1);
+        model.addAttribute("tomorrowDue", review.upcoming().stream().filter(it -> tomorrow.equals(it.getDueDate())).filter(this::stillExists).count());
         model.addAttribute("graduated", review.graduatedCount());
         Map<String, String> titles = LessonTitles.of(content);
         model.addAttribute("lessonTitles", titles);
@@ -74,12 +106,38 @@ public class ReviewController {
             // ?r=101 は解き直した問ごとの正誤(終わりの運針で、正しく解けた × に仮縫いの破線を重ね、行に「仮縫いできた / まだ」)
             List<ReviewItem> again = today.stream().filter(it -> !Boolean.TRUE.equals(it.getLastCorrect()))
                     .filter(it -> it.getItemType() == ReviewItem.Type.QUIZ).filter(this::stillExists).toList();
-            String r = retryResults.replaceAll("[^01]", "");
-            r = r.substring(0, Math.min(r.length(), again.size()));
-            Map<Long, Boolean> retried = new java.util.HashMap<>();
-            for (int i = 0; i < r.length(); i++) {
-                retried.put(again.get(i).getId(), r.charAt(i) == '1');
+            LocalDate day = LocalDate.now(clock);
+            RetryState state = session.getAttribute(RETRY_KEY) instanceof RetryState s && s.day.equals(day) ? s : null;
+            if (state != null && !again.stream().map(ReviewItem::getId).collect(java.util.stream.Collectors.toSet()).containsAll(state.refs)) {
+                // 解き直す問が消えた(教材の差し替えなど)。消えた問を開くと落ちるので、今日の解き直しは始めから
+                session.removeAttribute(RETRY_KEY);
+                state = null;
             }
+            if (retryResults != null) {
+                // 問ごとの正誤を URL で渡したとき(撮影とテスト用): 1 回目の解き直しを終えた状態にする
+                String r = retryResults.replaceAll("[^01]", "");
+                r = r.substring(0, Math.min(r.length(), again.size()));
+                Map<Long, Boolean> given = new java.util.HashMap<>();
+                for (int i = 0; i < r.length(); i++) {
+                    given.put(again.get(i).getId(), r.charAt(i) == '1');
+                }
+                state = new RetryState(day, again.stream().map(ReviewItem::getId).toList(), given, 1);
+                state.done = state.refs.size();
+            } else if (stillFrom > 0 && state != null && state.finished() && state.pass == stillFrom) {
+                // まだの問題を、もう一度(何回目かを 1 つ進める)。押した画面の回(?still=何回目)と今の回が同じときだけ進め、
+                // 戻る・再読み込みで同じ URL を開いても、次の回へ勝手に進まない
+                RetryState prev = state;
+                List<Long> stillIds = prev.refs.stream().filter(id -> Boolean.FALSE.equals(prev.results.get(id))).toList();
+                if (!stillIds.isEmpty()) {
+                    state = new RetryState(day, stillIds, prev.results, prev.pass + 1);
+                }
+            } else if (retryAt >= 0 && state == null && !again.isEmpty()) {
+                state = new RetryState(day, again.stream().map(ReviewItem::getId).toList(), Map.of(), 1);
+            }
+            if (state != null) {
+                session.setAttribute(RETRY_KEY, state);
+            }
+            Map<Long, Boolean> retried = state == null ? Map.of() : state.results;
             // 今日の終わり: 区切りと同じ部品で、今日答えた全問を運針に(10 目で 1 行)、間違えた問題と読み直す所
             List<String> marks = today.stream().map(it -> Boolean.TRUE.equals(it.getLastCorrect()) ? "sewn"
                     : Boolean.TRUE.equals(retried.get(it.getId())) ? "miss basted" : "miss").toList();
@@ -89,18 +147,26 @@ public class ReviewController {
             }
             model.addAttribute("doneRows", rows);
             model.addAttribute("missed", missed(today, retried));
-            model.addAttribute("retryCount", again.size());
-            model.addAttribute("retryDone", retryAt >= again.size() && retryAt > 0);
-            model.addAttribute("retryOk", r.chars().filter(ch -> ch == '1').count());
-            model.addAttribute("retryResults", r);
-            if (retryAt >= 0 && retryAt < again.size()) {
-                ReviewItem item = again.get(retryAt);
+            model.addAttribute("againCount", again.size());
+            model.addAttribute("retryStarted", state != null);
+            if (state != null) {
+                RetryState st = state;
+                model.addAttribute("retryCount", st.refs.size());
+                model.addAttribute("retryPass", st.pass);
+                model.addAttribute("retryDone", st.finished());
+                model.addAttribute("retryResume", Math.min(st.done, st.refs.size() - 1)); // 「解き直しの続きへ」は答えた次の問から
+                model.addAttribute("retryOk", st.refs.stream().filter(id -> Boolean.TRUE.equals(st.results.get(id))).count());
+                model.addAttribute("bastedToday", again.stream().filter(it -> Boolean.TRUE.equals(st.results.get(it.getId()))).count());
+                model.addAttribute("retryStill", st.refs.stream().filter(id -> Boolean.FALSE.equals(st.results.get(id))).count());
+            }
+            if (state != null && retryAt >= 0 && retryAt < state.refs.size()) {
+                ReviewItem item = items.findById(state.refs.get(retryAt)).orElseThrow();
                 Lesson.QuizQuestion q = content.lesson(item.getLessonId()).orElseThrow().quiz().get(item.quizIndex());
                 model.addAttribute("item", item);
                 model.addAttribute("retryAt", retryAt);
                 model.addAttribute("question", q);
                 // 数分前と別の並び(正解の位置も変える)。位置の記憶で当てないように
-                model.addAttribute("choiceOrder", review.retryOrder(item, q.choicesHtml().size(), q.answer()));
+                model.addAttribute("choiceOrder", review.retryOrder(item, q.choicesHtml().size(), q.answer(), state.pass));
                 return "review";
             }
         }
@@ -122,7 +188,7 @@ public class ReviewController {
     @PostMapping("/review/{id}/quiz")
     public String answerQuiz(@PathVariable long id, @RequestParam(defaultValue = "-1") int choice,
                              @RequestParam(defaultValue = "-1") int retry, @RequestParam(defaultValue = "0") int total,
-                             @RequestParam(name = "r", defaultValue = "") String resultsSoFar, Model model) {
+                             jakarta.servlet.http.HttpSession session, Model model) {
         ReviewItem item = items.findById(id).orElseThrow();
         Lesson lesson = content.lesson(item.getLessonId()).orElseThrow();
         if (retry >= 0) {
@@ -135,7 +201,12 @@ public class ReviewController {
             model.addAttribute("quizIndex", item.quizIndex());
             model.addAttribute("lesson", lesson);
             model.addAttribute("retryNext", retry + 1);
-            model.addAttribute("retryResultsNext", resultsSoFar.replaceAll("[^01]", "") + (ok ? "1" : "0"));
+            if (session.getAttribute(RETRY_KEY) instanceof RetryState st && st.day.equals(LocalDate.now(clock))
+                    && st.refs.contains(item.getId())) {
+                st.results.put(item.getId(), ok);
+                st.done = Math.max(st.done, retry + 1);
+                session.setAttribute(RETRY_KEY, st);
+            }
             model.addAttribute("retryLast", retry + 1 >= total);
             model.addAttribute("reviewLabel", "明日の復習で、もう一度");
             return "fragments/review-parts :: quizAnswer";

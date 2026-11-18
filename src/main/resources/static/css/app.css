@@ -317,7 +317,10 @@ button { font: inherit; letter-spacing: inherit; }
 .dye-here { display: inline-block; flex: none; }
 @media (min-width: 1024px) { .dye-cell { width: 22px; height: 22px; } .dye-ch { gap: 4px; } } /* PC は左の列の第 2 の主役として大きく */
 .dye-legend .dye-name-sm { display: block; font-size: .75rem; color: var(--ink-muted); line-height: 1.6; }
-ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
+/* ふりがなが漢字より長いとき、漢字の間を空けず(「甕 覗 き」と読めなかった)、ふりがなを前後の字の上へはみ出させる
+   (1 字の「縹」は前後が空いて浮いていた) */
+ruby { ruby-align: center; }
+ruby rt { font-size: max(10px, .58em); font-weight: 400; letter-spacing: 0; margin-inline: -.5em; }
 .dye-legend .dye-meaning { white-space: nowrap; }
 .dye-legend .dye-count { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin-left: 2px; }
 .dye-legend li:last-child { grid-column: span 2; } /* 「復習をすべて卒業」は長いので 2 列分 */
@@ -429,15 +432,15 @@ ruby rt { font-size: .58em; font-weight: 400; letter-spacing: 0; }
    この 7 日は 7 目の運針、復習で卒業は褐のマスを数だけ、読解の正解は糸の長さ(地には針目の破線) */
 .home-cloth { display: grid; gap: 4px; margin: 24px 0 0; padding-top: 14px;
   background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 1px no-repeat; }
-.cloth-row { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 5.5em; align-items: center; gap: 14px; min-height: 40px; color: var(--ink); text-decoration: none; }
+.cloth-row { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 5.5em; align-items: center; gap: 14px; min-height: 44px; color: var(--ink); text-decoration: none; }
 .cloth-label { font-size: .875rem; color: var(--ink-muted); }
 .cloth-num { justify-self: end; font: 700 1.0625rem/1.3 var(--head); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cloth-num small { margin-left: 2px; font: 400 .8125rem var(--font); color: var(--ink-muted); }
 a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: var(--accent-ink); text-decoration: underline; }
 .cloth-row .unshin { max-width: 200px; }
 .grad-cells { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; min-height: 10px; }
-.grad-cells .dye { width: 10px; height: 10px; border-radius: 2px; }
-.grad-cells .dye-4::after { content: none; }
+.grad-cells .dye { width: 12px; height: 12px; border-radius: 2px; }
+.grad-cells .dye-4::after { inset: 25%; border-width: 1.5px; border-style: solid; }
 .grad-cells small { font-size: .8125rem; color: var(--ink-muted); }
 .cloth-thread { height: 3px; max-width: 200px; border-radius: 2px;
   background: linear-gradient(90deg, currentColor 0 var(--p, 0%), transparent var(--p, 0%)),
@@ -743,6 +746,8 @@ pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 14px; }
 .reading-filter button { border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; min-height: 44px; cursor: pointer; font-size: .875rem; }
 .reading-filter button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
 .reading-from { font-size: .8125rem; margin: 2px 0 0; }
+/* 読解の札の出どころは、押せる高さを 44px に(文字だけの 17px の高さだった) */
+.reading-from a { display: inline-flex; align-items: center; min-height: 44px; }
 .reading-filter select { font: inherit; font-size: 16px; min-height: 44px; padding: 6px 10px; border-radius: var(--r-m); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
 .more { display: flex; justify-content: center; margin: 24px 0; }
 
@@ -906,6 +911,27 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   .sample .sample-result .status-exception pre.console, .sample .sample-result pre.exception { border-left-color: var(--shu); }
 }
 code.nb { white-space: nowrap; }
+/* 括弧に接するチップは、括弧の側の内側の余白を詰める(「構文( case 2 -> )」と空いていた)。外へ詰めると、
+   括弧の字面の空きは括弧の外側にあるので、チップの地が括弧の線にかぶさる(BIZ UDPGothic では全角の括弧も幅が半分) */
+code.after-open, code.after-paren { padding-inline-start: .14em; }
+code.before-close, code.before-paren { padding-inline-end: .14em; }
+/* 横に送る表(4 列から)は、続きがある側の端に影を出す(地の色の覆いは中身と一緒に動き、影は枠に残る。端まで送ると影が消える) */
+.md table:not(.stack) {
+  background: linear-gradient(to right, var(--bg) 40%, transparent) left / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--bg) 40%, transparent) right / 28px 100% no-repeat local,
+    linear-gradient(to right, oklch(.24 .05 255 / .16), transparent) left / 12px 100% no-repeat scroll,
+    linear-gradient(to left, oklch(.24 .05 255 / .16), transparent) right / 12px 100% no-repeat scroll; }
+/* 本文の 3 列までの表は、狭い画面で行ごとの積みに(28 字未満の語を割らないので、左の列が細くなれず右が切れていた) */
+@media (max-width: 760px) {
+  .md table.stack { display: block; overflow: visible; border: 0; }
+  .md table.stack thead { display: none; }
+  .md table.stack tbody { display: block; }
+  .md table.stack tr { display: block; padding: 10px 0;
+    background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) bottom / 100% 1px no-repeat; }
+  .md table.stack td { display: block; padding: 2px 0; border: 0; background: none; }
+  .md table.stack td:first-child { font-weight: 700; }
+  .md table.stack td + td::before { content: attr(data-th); display: block; font-size: .75rem; font-weight: 400; color: var(--ink-muted); }
+}
 .solution { margin: 4px 0; }
 .solution summary { cursor: pointer; color: var(--accent-ink); font-size: .9375rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
 .generated-list { padding-left: 1.2em; }
@@ -1127,11 +1153,12 @@ p.review-source { display: block; min-height: 0; border: 0; }
 /* :not(.sewn) は、未縫いの点(.unshin i:not(.sewn):not(.now))に負けないため */
 .unshin.baste i:not(.sewn) { height: 2px; border-radius: 0; background: repeating-linear-gradient(90deg, var(--baste) 0 9px, transparent 9px 15px); }
 .unshin.baste i.sewn { height: 3px; background: repeating-linear-gradient(90deg, currentColor 0 9px, transparent 9px 15px); }
-/* 終わりの運針で、解き直せた ×: × を上に小さく、下に問いの画面の「仮縫いした」と同じ濃さの破線の糸を目の幅いっぱいに */
-.break-unshin i.miss.basted { height: 16px; background:
-  linear-gradient(45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 8px 8px no-repeat,
-  linear-gradient(-45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 8px 8px no-repeat,
-  repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px) 0 100% / 100% 3px no-repeat; }
+/* 終わりの運針で、解き直せた ×: 糸はほかの目と同じ高さ(行の中心)に破線で、× はその上に小さく。
+   問いの画面の「仮縫いした」と同じ濃さ(以前は箱の下端に描いて、糸が線より 7px 下に落ち、点線の下線に見えた) */
+.break-unshin i.miss.basted { height: 20px; background:
+  linear-gradient(45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 7px 7px no-repeat,
+  linear-gradient(-45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 7px 7px no-repeat,
+  repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px) 0 50% / 100% 3px no-repeat; }
 .retry-done { margin: 0 0 16px; font-size: .9375rem; }
 .retry-tag { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px dashed var(--baste); border-radius: var(--r-s); color: var(--accent-ink); font-size: .75rem; font-weight: 700; line-height: 1.6; vertical-align: 1px; }
 .break-rows { display: grid; gap: 12px; }
@@ -1149,6 +1176,8 @@ p.review-source { display: block; min-height: 0; border: 0; }
 /* 選んだ誤答の why の 1 文目の前の小さな札 */
 .missed-why { display: inline-block; margin-right: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: var(--r-s); color: var(--shu); font-size: .75rem; font-weight: 700; line-height: 1.5; vertical-align: 1px; }
 /* 解き直しの結果(レッスン名の右): 正しく解けたら仮縫いの破線の枠、まだなら朱 */
+.missed-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent-ink); font-size: .875rem; }
+.missed-more > .missed-list { margin-top: 0; }
 .missed-basted, .missed-again { padding: 0 5px; border-radius: var(--r-s); font-size: .75rem; font-weight: 700; line-height: 1.5; }
 .missed-basted { border: 1px dashed var(--baste); color: var(--accent-ink); }
 .missed-again { border: 1px solid var(--shu); color: var(--shu); }
@@ -1158,7 +1187,7 @@ p.review-source { display: block; min-height: 0; border: 0; }
 .table .due-day th { padding-top: 14px; text-align: left; font-size: .8125rem; color: var(--ink-muted); font-weight: 700; border-bottom: 1px solid var(--line); }
 .mini-unshins { display: inline-flex; flex-wrap: wrap; gap: 6px 16px; vertical-align: middle; }
 /* 「読み直す」で問いそのものへ来たとき、1.2 秒だけ藍の枠で示す */
-.spot-flash { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--r-m); }
+.spot-flash { outline: 2px solid var(--accent); outline-offset: 10px; border-radius: var(--r-m); } /* 4px では「問 2」と選択肢の枠が線に接していた */
 .mini-stage { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
 .mini-unshin i.now::after { width: 8px; height: 8px; left: calc(50% - 4px); top: -2.5px; }

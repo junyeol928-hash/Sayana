@@ -215,6 +215,22 @@ function mermaidTheme() {
   };
 }
 
+// 英語の文らしいか: Java の予約語でない英単語が 3 つ続くか、先頭が 2 語(「Cannot invoke」「cannot find」「Square is」)。
+// 型と引数名(`String pattern`)は語の後ろに「,」「)」が付くので数えない
+const JAVA_WORDS = new Set(("public private protected static final abstract void int long double float boolean byte char short var new "
+  + "return if else for while do switch case default try catch finally throw throws class interface record enum extends implements "
+  + "super this null true false instanceof import package").split(" "));
+function proseLike(t) {
+  const words = t.trim().split(/\s+/);
+  const plain = (w) => /^[A-Za-z][a-z]+(?:-[a-z]+)*$/.test(w) && !JAVA_WORDS.has(w);
+  let run = 0;
+  for (const w of words) {
+    run = plain(w) ? run + 1 : 0;
+    if (run >= 3) return true;
+  }
+  return plain(words[0]) && plain(words[1] || "");
+}
+
 function highlight(root) {
   if (!window.hljs) return;
   // 読むためのコードは折り返す(スマホ版と同じ範囲)
@@ -238,7 +254,39 @@ function highlight(root) {
   // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
   root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
     const t = c.textContent;
-    if (t.length >= 24 && /\s/.test(t.trim())) c.classList.add("code-msg");
+    // コードの式・宣言・呼び出し(; { } = や「名前(」、&& || ->)はチップのまま(段落にすると、文が 3 つに割れた。24 回目の審査)。
+    // ただし英語の文らしいもの(`Cannot invoke "String.hashCode()"`・`method calc(int) is already defined`)は、
+    // 呼び出しの括弧があってもメッセージ
+    if (t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t))) c.classList.add("code-msg");
+  });
+  // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
+  // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
+  root.querySelectorAll(":not(pre) > code:not(.code-msg)").forEach((c) => {
+    const prev = c.previousSibling;
+    const next = c.nextSibling;
+    if (prev?.nodeType === 3 && /[(（「『【\[]$/.test(prev.data) && !prev.data.endsWith("\u2060")) {
+      prev.data += "\u2060";
+      if (/[（「『【]\u2060$/.test(prev.data)) c.classList.add("after-open");
+      else if (/\(\u2060$/.test(prev.data)) c.classList.add("after-paren");
+    }
+    if (next?.nodeType === 3 && /^[、。，．,.)）」』】\]:;!?]/.test(next.data)) {
+      if (/^[）」』】]/.test(next.data)) c.classList.add("before-close");
+      else if (/^\)/.test(next.data)) c.classList.add("before-paren");
+      next.data = "\u2060" + next.data;
+    }
+    if (next?.nodeType === 3 && /^[(（「『【]/.test(next.data)) c.after(document.createElement("wbr"));
+  });
+  // 選択肢の中身が 1 つのコードだけなら、チップの地を外してコードの書体だけに(地のある・無いの 2 通りが復習で続けて出た)
+  root.querySelectorAll(".choice > span").forEach((sp) => {
+    const only = sp.children.length === 1 && sp.firstElementChild.tagName === "CODE" ? sp.firstElementChild : null;
+    if (only && sp.textContent.trim() === only.textContent.trim()) { sp.textContent = only.textContent; sp.classList.add("code-choice"); }
+  });
+  // 本文の表: 3 列までは、狭い画面で行ごとの積みにする(左の列が行の見出し、ほかの列は見出しを添えて全幅で)。横に送る表は 4 列から
+  root.querySelectorAll(".md table").forEach((table) => {
+    const heads = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+    if (!heads.length || heads.length > 3) return;
+    table.classList.add("stack");
+    table.querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => { if (heads[i]) td.dataset.th = heads[i]; }));
   });
 
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {

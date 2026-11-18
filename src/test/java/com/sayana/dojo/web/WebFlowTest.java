@@ -219,8 +219,8 @@ class WebFlowTest {
             int todayBefore = Integer.parseInt(mvc.perform(get("/review")).andReturn().getResponse().getContentAsString()
                     .replaceAll("(?s).*今日 (\\d+) 問のうち.*", "$1"));
             mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(q.answer()))
-                            .param("retry", "0").param("total", "1").param("r", ""))
-                    .andExpect(status().isOk()).andExpect(content().string(containsString("r=1")))
+                            .param("retry", "0").param("total", "1"))
+                    .andExpect(status().isOk())
                     .andExpect(content().string(containsString("/lessons/java-hello#quiz-q0")))
                     .andExpect(content().string(containsString("おわりの画面へ")))
                     .andExpect(content().string(not(containsString("hx-swap-oob"))));
@@ -231,12 +231,36 @@ class WebFlowTest {
             mvc.perform(get("/review")).andExpect(content().string(containsString("今日 " + todayBefore + " 問のうち")));
             // 終わりの画面で、正しく解き直せた数を言い、その × に仮縫いの破線を重ね、行に「仮縫いできた」
             mvc.perform(get("/review").param("retry", "99").param("r", "1"))
-                    .andExpect(content().string(containsString("正しく解けた")))
+                    .andExpect(content().string(containsString("仮縫いできた。本縫いは明日の復習で")))
                     .andExpect(content().string(containsString("miss basted")))
                     .andExpect(content().string(containsString("仮縫いできた")));
             // 1 問も解けなかったときは、仮縫いの札を付けずに「まだ」と言う
-            mvc.perform(get("/review").param("retry", "99"))
+            mvc.perform(get("/review").param("retry", "99").param("r", "0"))
                     .andExpect(content().string(containsString("は、まだ。明日の復習で、もう一度")));
+            // 解き直しの状態はセッションに残る(本文へ行って戻っても、仮縫いの跡が消えない)。まだの問題は、もう一度回せる
+            var session = new org.springframework.mock.web.MockHttpSession();
+            mvc.perform(get("/review").param("retry", "0").session(session)).andExpect(content().string(containsString("解き直し <b>1</b>")));
+            int total = Integer.parseInt(mvc.perform(get("/review").param("retry", "0").session(session)).andReturn().getResponse()
+                    .getContentAsString().replaceAll("(?s).*解き直し <b>1</b> / (\\d+).*", "$1"));
+            for (int k = 0; k < total; k++) {
+                String page = mvc.perform(get("/review").param("retry", String.valueOf(k)).session(session)).andReturn().getResponse().getContentAsString();
+                String id = page.replaceAll("(?s).*hx-post=\"/review/(\\d+)/quiz.*", "$1");
+                mvc.perform(post("/review/" + id + "/quiz").param("choice", "-1").param("retry", String.valueOf(k))
+                        .param("total", String.valueOf(total)).session(session)).andExpect(status().isOk());
+            }
+            mvc.perform(get("/review").session(session))
+                    .andExpect(content().string(containsString("は、まだ。明日の復習で、もう一度")))
+                    .andExpect(content().string(containsString("を、もう一度")))
+                    .andExpect(content().string(containsString("missed-again")))
+                    // 「もう一度」は押した画面の回を持つ(戻る・再読み込みで、次の回へ勝手に進まない)
+                    .andExpect(content().string(containsString("still=1")));
+            mvc.perform(get("/review").param("retry", "0").param("still", "1").session(session))
+                    .andExpect(content().string(containsString("解き直し <b>1</b>")));
+            // 2 回目の途中で同じ URL をもう一度開いても、3 回目にはならない(2 回目の続きのまま)
+            mvc.perform(get("/review").param("retry", "0").param("still", "1").session(session))
+                    .andExpect(content().string(containsString("解き直し <b>1</b>")));
+            mvc.perform(get("/review").session(session))
+                    .andExpect(content().string(containsString("解き直しの続きへ")));
         } finally {
             var all = reviewItems.findAll();
             all.forEach(it -> { if (saved.containsKey(it.getId())) it.setDueDate(saved.get(it.getId())); });

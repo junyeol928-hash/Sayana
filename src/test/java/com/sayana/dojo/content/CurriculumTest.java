@@ -110,12 +110,12 @@ class CurriculumTest {
         for (Lesson l : CONTENT.readyLessons()) {
             for (int i = 0; i < l.quiz().size(); i++) {
                 var q = l.quiz().get(i);
-                proseProblems(l.id() + " quiz " + i, q.questionHtml(), q.choicesHtml(), q.whyHtml(), q.explanationHtml(), problems);
+                proseProblems(l.id() + " quiz " + i, q.questionHtml(), q.choicesHtml(), q.whyHtml(), q.explanationHtml(), List.of(), problems);
             }
             int readingLongest = 0;
             for (int i = 0; i < l.reading().size(); i++) {
                 var r = l.reading().get(i);
-                proseProblems(l.id() + " reading " + i, r.questionHtml(), r.choicesHtml(), r.whyHtml(), r.explanationHtml(), problems);
+                proseProblems(l.id() + " reading " + i, r.questionHtml(), r.choicesHtml(), r.whyHtml(), r.explanationHtml(), r.traceHtml(), problems);
                 for (String t : r.traceHtml()) {
                     String p = plain(t, true);
                     java.util.regex.Matcher m = ASCII_QUOTED.matcher(p);
@@ -158,15 +158,37 @@ class CurriculumTest {
             }
             for (int i = 0; i < l.checks().size(); i++) {
                 var c = l.checks().get(i);
-                proseProblems(l.id() + " check " + i, c.questionHtml(), c.choicesHtml(), c.whyHtml(), c.explanationHtml(), problems);
+                proseProblems(l.id() + " check " + i, c.questionHtml(), c.choicesHtml(), c.whyHtml(), c.explanationHtml(), List.of(), problems);
             }
             for (Lesson.Sample s : l.samples()) {
                 // スマホ版の predictLine と同じ拾い方(? / だろうか / でしょうか で終わる文)
-                String text = plain(s.descriptionHtml(), false).replaceAll("\\s+", " ").strip();
+                // コードの中の ?(`? extends Number`)は文の終わりではない(スマホ版の predictLine と同じ)
+                String text = plain(java.util.regex.Pattern.compile("(?s)<code>(.*?)</code>").matcher(s.descriptionHtml())
+                        .replaceAll(mr -> java.util.regex.Matcher.quoteReplacement("<code>" + mr.group(1).replace("?", "\uE000") + "</code>")), false)
+                        .replaceAll("\\s+", " ").strip();
                 boolean predict = java.util.Arrays.stream(text.split("(?<=[。?？])")).map(String::strip)
                         .anyMatch(x -> x.matches(".*([?？]|だろうか。?|でしょうか。?)$"));
                 if (!predict) {
                     problems.add(l.id() + " サンプル「" + s.title() + "」の説明に、予想の問い(? で終わる文)が無い");
+                }
+                // 予想の問いは説明の最後の文に(スマホは最後の問いを「予想: 〜」に出し、説明の最後の文なら説明から外す。
+                // 問いの後ろに文が続くと、同じ問いが 2 回出た)
+                List<String> sentences = java.util.Arrays.stream(text.split("(?<=[。?？])")).map(String::strip).filter(x -> !x.isEmpty()).toList();
+                if (predict && !sentences.isEmpty() && !sentences.getLast().matches(".*([?？]|だろうか。?|でしょうか。?)$")) {
+                    problems.add(l.id() + " サンプル「" + s.title() + "」: 予想の問いを説明の最後の文に(後ろに「" + sentences.getLast() + "」)");
+                }
+                java.util.Set<String> sampleCode = new java.util.HashSet<>();
+                java.util.regex.Matcher sc = INLINE_CODE.matcher(s.descriptionHtml());
+                while (sc.find()) {
+                    sampleCode.add(org.springframework.web.util.HtmlUtils.htmlUnescape(sc.group(1)).strip());
+                }
+                java.util.regex.Matcher sw = ASCII_WORD.matcher(plain(s.descriptionHtml(), true));
+                while (sw.find()) {
+                    String word = sw.group().replaceAll("[.\\-]+$", "");
+                    if (word.length() >= 2 && sampleCode.contains(word)) {
+                        problems.add(l.id() + " サンプル「" + s.title() + "」: 「" + word + "」は同じ説明でコード書式なので、地の文でもコード書式に");
+                        break;
+                    }
                 }
                 // 「予想してから見よう」は、閉じた欄の見出し「予想したら、実行結果を見る」が言う(説明で重ねない)
                 java.util.Arrays.stream(text.split("(?<=[。?？])")).map(String::strip)
@@ -182,7 +204,8 @@ class CurriculumTest {
             problems.add("読解: 正解がいちばん短い選択肢の問が " + readingBias[3] + " / " + readingBias[2] + "(15% 以上)");
         }
         for (Term t : CONTENT.glossary()) {
-            String code = bareCode(plain(t.defHtml(), true));
+            java.util.regex.Matcher g = GLOSSARY_CODE.matcher(plain(t.defHtml(), true));
+            String code = g.find() ? g.group() : bareCode(plain(t.defHtml(), true));
             if (code != null) {
                 problems.add("用語集「" + t.term() + "」: コードの字句「" + code + "」がコード書式の外にある");
             }
@@ -213,11 +236,14 @@ class CurriculumTest {
             // メニューの道筋(Maven > Update Project)は比較ではない
             "(?<![A-Za-z0-9_])(?![A-Z][a-z]+ > [A-Z])[A-Za-z0-9_]+ ?(?:<=|>=|<|>|=) ?[A-Za-z0-9_]+(?![A-Za-z0-9_])");
     private static final java.util.regex.Pattern INLINE_CODE = java.util.regex.Pattern.compile("<code>([^<]{2,40})</code>");
+    /** 用語集の説明で、コードにする語(完全修飾名 java.util.ArrayList と、リテラル true / false / null) */
+    private static final java.util.regex.Pattern GLOSSARY_CODE = java.util.regex.Pattern.compile(
+            "(?<![A-Za-z0-9_.])[a-z]\\w*(?:\\.[a-z]\\w*)+\\.[A-Z]\\w*|(?<![A-Za-z0-9_])(?:true|false|null)(?![A-Za-z0-9_])");
     private static final java.util.regex.Pattern ASCII_WORD = java.util.regex.Pattern.compile(
             "(?<![A-Za-z0-9_@.])[A-Za-z_@][A-Za-z0-9_.@\\-]*");
 
     private static void proseProblems(String where, String question, List<String> choices, List<String> why, String explanation,
-                                      List<String> problems) {
+                                      List<String> trace, List<String> problems) {
         List<String> texts = new java.util.ArrayList<>(List.of(question, explanation));
         texts.addAll(choices);
         texts.addAll(why);
@@ -257,6 +283,7 @@ class CurriculumTest {
         List<String> all = new java.util.ArrayList<>(List.of(question, explanation));
         all.addAll(choices);
         all.addAll(why);
+        all.addAll(trace);
         for (String t : all) {
             java.util.regex.Matcher c = INLINE_CODE.matcher(t == null ? "" : t);
             while (c.find()) {
@@ -271,6 +298,16 @@ class CurriculumTest {
                     problems.add(where + " why" + j + ": 「" + word + "」は同じ問いでコード書式なので、why でもコード書式に");
                     break;
                 }
+            }
+        }
+        // 逆向きも: 問い・選択肢・why・追跡・解説のどこかでコード書式にした語は、解説の地の文でもコード書式に
+        // (答えた直後の 1 つの箱で、同じ switch がチップと地の文の 2 通りに出ていた。24 回目の審査)
+        java.util.regex.Matcher ew = ASCII_WORD.matcher(plain(explanation, true));
+        while (ew.find()) {
+            String word = ew.group().replaceAll("[.\\-]+$", "");
+            if (word.length() >= 2 && codeWords.contains(word)) {
+                problems.add(where + " 解説: 「" + word + "」は同じ問いでコード書式なので、解説でもコード書式に");
+                break;
             }
         }
         String ex = plain(explanation, true).replaceAll("\\s+", "");

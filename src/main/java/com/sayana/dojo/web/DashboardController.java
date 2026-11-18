@@ -30,9 +30,11 @@ public class DashboardController {
     private final SubmissionRepository submissions;
     private final ContentRepository content;
     private final AiService ai;
+    private final java.time.Clock clock;
 
     public DashboardController(ProgressService progress, ActivityService activity, ReviewService review,
-                               SubmissionRepository submissions, ContentRepository content, AiService ai) {
+                               SubmissionRepository submissions, ContentRepository content, AiService ai, java.time.Clock clock) {
+        this.clock = clock;
         this.progress = progress;
         this.activity = activity;
         this.review = review;
@@ -42,7 +44,7 @@ public class DashboardController {
     }
 
     @GetMapping("/")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, jakarta.servlet.http.HttpSession session) {
         var parts = progress.overview();
         model.addAttribute("parts", parts);
         model.addAttribute("nextLesson", progress.nextLesson().orElse(null));
@@ -83,8 +85,15 @@ public class DashboardController {
         model.addAttribute("deepCount", dyeCounts[2] + dyeCounts[3] + dyeCounts[4]);
         // 数字の欄はスマホ版とそろえる(次の復習・読解の正解はブラウザ側で数える・この 7 日の稽古)
         var upcomingItems = review.upcoming();
-        model.addAttribute("nextReview", !review.due().isEmpty() ? "今日"
+        // 今日の復習がある日は、上の「今日の復習」の行と重なるので「次の復習」は出さない(スマホ版と同じ)
+        model.addAttribute("nextReview", !review.due().isEmpty() ? null
                 : upcomingItems.isEmpty() ? "なし" : upcomingItems.getFirst().getDueDate().format(DateTimeFormatter.ofPattern("M/d")));
+        // 今日の復習を終えた日は、今日の稽古を言う(「済み 5 問(仮縫い 2)· 明日 7 問」)
+        java.time.LocalDate tomorrow = java.time.LocalDate.now(clock).plusDays(1);
+        model.addAttribute("doneToday", review.todayTally()[0]);
+        model.addAttribute("tomorrowDue", upcomingItems.stream().filter(it -> tomorrow.equals(it.getDueDate())).count());
+        model.addAttribute("bastedToday", session.getAttribute(ReviewController.RETRY_KEY) instanceof ReviewController.RetryState st
+                && st.day.equals(java.time.LocalDate.now(clock)) ? st.results.values().stream().filter(Boolean.TRUE::equals).count() : 0L);
         model.addAttribute("weekDays", activity.recentDays(7).stream().filter(d -> d.actions() > 0).count());
         model.addAttribute("readingTotal", content.readyLessons().stream().mapToInt(l -> l.reading().size()).sum());
         progress.nextLesson().ifPresent(next -> {

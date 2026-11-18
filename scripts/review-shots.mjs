@@ -97,6 +97,11 @@ await js(`document.querySelector(".dye-key").open = true;`);
 await scrollTo(".dye-map", 120);
 await shot("m-home-dark-lower");
 await view(PHONE);
+// 本文の表は 390px で横にはみ出さない(3 列までは行ごとの積み)。spring-boot-startup の合成アノテーションの表を撮り、はみ出す数を出す
+await open(mobileArg + "#/lesson/spring-boot-startup");
+console.log("390px ではみ出す本文の表:", await js(`return [...document.querySelectorAll(".md table")].filter((t) => t.scrollWidth > t.clientWidth + 1).length + " / " + document.querySelectorAll(".md table").length;`));
+await scrollTo(".md table", 160);
+await shot("m-table");
 await open(mobileArg + "#/lesson/spring-di");
 await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 500)); document.querySelector(".step-menu").open = true;`);
 await shot("m-lesson-top");
@@ -135,13 +140,13 @@ await shot("m-review-chosen");
 await js(`document.querySelectorAll("#rq input").forEach((i) => { i.checked = false; });`);
 // わざと間違える(ほどける運針・上の数の更新・選んだ誤答への送りを見るため)。出ている問いの正解を教材のデータから探す
 await js(`const f = document.querySelector("#rq"); if (f) {
-    const head = document.querySelector(".review-quiz > .md").textContent.replace(/\\s+/g, "").slice(0, 24);
+    const head = document.querySelector(".review-quiz > .md").textContent.replace(/[\\s\\u2060]+/g, "").slice(0, 24);
     let answer = -1;
     for (const id of ["java-if", "java-arrays", "java-strings", "java-encapsulation", "spring-di"]) {
       const L = await (await fetch("data/lessons/" + id + ".json")).json();
-      [...L.quiz, ...(L.checks || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/\\s+/g, "").startsWith(head)) answer = q.answer; });
+      [...L.quiz, ...(L.checks || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/[\\s\\u2060]+/g, "").startsWith(head)) answer = q.answer; });
     }
-    [...f.querySelectorAll("input")].find((x) => Number(x.value) !== answer).checked = true;
+    [...f.querySelectorAll("input")].find((x) => Number(x.value) !== answer).click();
     f.querySelector("button[type=submit]").click(); }
   await new Promise((r) => setTimeout(r, 1200));`);
 await shot("m-review-answer");
@@ -195,15 +200,15 @@ await shot("m-review-retry");
 await js(`for (let k = 0; k < 6; k++) {
     const f = document.querySelector("#rq") || document.querySelector("form[data-action=reading]");
     if (!f) break;
-    const head = (f.closest(".review-quiz, .reading-q")?.querySelector(".md, .reading-question")?.textContent || "").replace(/\\s+/g, "").slice(0, 24);
+    const head = (f.closest(".review-quiz, .reading-q")?.querySelector(".md, .reading-question")?.textContent || "").replace(/[\\s\\u2060]+/g, "").slice(0, 24);
     let answer = -1;
     const s = JSON.parse(localStorage.getItem("javadojo-m-v1") || "{}");
     for (const id of new Set(Object.values(s.review || {}).map((it) => it.lessonId))) {
       const L = await (await fetch("data/lessons/" + id + ".json")).json();
-      [...L.quiz, ...(L.checks || []), ...(L.reading || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/\\s+/g, "").startsWith(head)) answer = q.answer; });
+      [...L.quiz, ...(L.checks || []), ...(L.reading || [])].forEach((q) => { const d = document.createElement("div"); d.innerHTML = q.questionHtml; if (d.textContent.replace(/[\\s\\u2060]+/g, "").startsWith(head)) answer = q.answer; });
     }
     const inputs = [...f.querySelectorAll("input[type=radio]")];
-    (inputs.find((x) => (k === 0) === (Number(x.value) === answer)) || inputs[0]).checked = true;
+    (inputs.find((x) => (k === 0) === (Number(x.value) === answer)) || inputs[0]).click();
     f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 700));
     if (k === 0) { window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300)); window.__first = true; }
     document.querySelector("#next")?.click(); await new Promise((r) => setTimeout(r, 1000));

@@ -223,10 +223,13 @@ function reviewSpot(it, ref) {
  * 間違えた問題の行: レッスン名と、どう読み違えたか(選んだ誤答の why の 1 文目)・読み直す(3 件まで。ほかは数だけ)。
  * why の無い型(演習)と、選んだ答えの記録が無い日の分は、問いの書き出し
  */
-async function missedList(refs) {
+// shown 件まで行に出し、超える分は「ほか n 問」の畳みの中に同じ行で(今日の終わりは 5 件。区切りは 3 件)。
+// 畳みの見出しに「まだ」の数も添える(「まだの 2 問を、もう一度」のボタンと、見える「まだ」の数が合わなかった)
+async function missedList(refs, shown = 3) {
   const rows = [];
   const chosen = S.reviewLog?.[today()]?.choices || {};
-  for (const ref of refs.slice(0, 3)) {
+  const stillFlags = []; // 行と同じ順の「まだ」か(L の無い問は行にならないので、refs の添字では数えない)
+  for (const ref of refs) {
     const it = S.review[ref];
     const L = it && (await lesson(it.lessonId).catch(() => null));
     if (!L) continue;
@@ -245,11 +248,14 @@ async function missedList(refs) {
     }
     const r = retry?.day === today() ? retry.results?.[ref] : undefined;
     const tag = r === true ? `<span class="missed-basted">仮縫いできた</span>` : r === false ? `<span class="missed-again">まだ</span>` : "";
+    stillFlags.push(r === false);
     rows.push(`<li><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b>${esc(L.title)}${tag}</b><span class="missed-read">${why ? `<span class="missed-why">あなたの読み</span>` : ""}${body}</span></span><a class="missed-link" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}">読み直す</a></li>`);
   }
   if (!rows.length) return "";
-  const more = refs.length - rows.length;
-  return `<ul class="missed-list" aria-label="間違えた問題">${rows.join("")}</ul>${more > 0 ? `<p class="muted small">ほか ${more} 問</p>` : ""}`;
+  const more = rows.slice(shown);
+  const stillHidden = stillFlags.slice(shown).filter(Boolean).length;
+  return `<ul class="missed-list" aria-label="間違えた問題">${rows.slice(0, shown).join("")}</ul>${more.length ? `<details class="missed-more"><summary>ほか ${more.length} 問${stillHidden ? `(まだ ${stillHidden})` : ""}</summary>
+    <ul class="missed-list" aria-label="間違えた問題の続き">${more.join("")}</ul></details>` : ""}`;
 }
 
 /**
@@ -974,10 +980,26 @@ function phraseLines(text) {
 function predictLine(html) {
   const d = document.createElement("div");
   d.innerHTML = html || "";
+  // コードの中の ?(`? extends Number`)は文の終わりではない(「予想: extends Number、…」と崩れていた)
+  d.querySelectorAll("code").forEach((c) => { c.textContent = c.textContent.replace(/[?？]/g, "\uE000"); });
   const text = d.textContent.replace(/\s+/g, " ").trim();
   // 最後の問いを取る(説明の最後の文なら説明から外せる。問いが 2 つある説明で、最初の問いを出すと 2 つ目と重なって外せなかった)
   const q = text.split(/(?<=[。?？])/).map((x) => x.trim()).filter((x) => /([?？]|だろうか。?|でしょうか。?)$/.test(x)).pop();
-  return q ? q.replace(/。$/, "") : "";
+  return q ? q.replace(/。$/, "").replace(/\uE000/g, "?") : "";
+}
+
+/** 予想の問いの文を、説明の中でコードにした語はコードの書体のまま出す(「予想: 2 回目の getBean は…」と地の文に落ちていた) */
+function predictHtml(q, descriptionHtml) {
+  const d = document.createElement("div");
+  d.innerHTML = descriptionHtml || "";
+  // 2 字以上のコードを、長いものから、語の途中でない所だけ置き換える(1 字の `s` が地の文の s まで拾わないように)
+  const codes = [...new Set([...d.querySelectorAll("code")].map((c) => c.textContent.trim()).filter((t) => t.length >= 2))].sort((a, b) => b.length - a.length);
+  let out = esc(q);
+  codes.forEach((c, i) => {
+    const pat = esc(c).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(new RegExp(`(?<![A-Za-z0-9_])${pat}(?![A-Za-z0-9_])`, "g"), `\u0000${i}\u0000`);
+  });
+  return out.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(codes[Number(i)])}</code>`);
 }
 
 /**
@@ -1028,7 +1050,7 @@ function sampleResult(r, descriptionHtml) {
     ${r.exception ? `<pre class="exception">${esc(r.exception)}</pre>` : ""}
     ${!r.output && !r.values?.length && !r.exception ? `<p class="muted small">(出力はありません)</p>` : ""}
     ${r.varies ? `<p class="muted small">スレッドの順番や、@ の後ろの番号(ハッシュコード)などは、実行のたびに変わることがあります。</p>` : ""}`;
-  return `<details class="sample-result"><summary><span>${q ? `<span class="predict">予想: ${esc(q)}</span>` : ""}<span>予想したら、実行結果を見る</span></span></summary>
+  return `<details class="sample-result"><summary><span>${q ? `<span class="predict">予想: ${predictHtml(q, descriptionHtml)}</span>` : ""}<span>予想したら、実行結果を見る</span></span></summary>
     <div class="run-result ${failed ? "status-exception" : "status-ok"}"><div class="run-meta"><span class="run-status">${failed ? "× 実行時例外で止まる" : "実行結果"}</span></div>${body}</div></details>`;
 }
 
@@ -1659,17 +1681,22 @@ let reviewBreakAt = "";
 // 解き直し: 今日の終わりに、間違えた問題をその日のうちにもう一度(答えは記録せず、予定は変えない)。
 // 直後に正しい答えで思い出し直すと、翌日の復習まで間違えたまま寝かせるより定着する(演習は書き直しが重いので入れない)
 // 状態は今日の記録(S.reviewLog[今日].retry)に保存する。通勤の途中で閉じて夜に開いても、仮縫いの跡と札が残るように
-let retry = null; // { day, refs, i, ok, results: { ref: 正しく解けたか } }
+let retry = null; // { day, refs, i, ok, results: { ref: 正しく解けたか }, pass: 何回目の解き直しか }
 const saveRetry = () => {
   const log = S.reviewLog = S.reviewLog || {};
   const t = today();
-  log[t] = Object.assign({}, log[t], { retry: { refs: retry.refs, i: retry.i, ok: retry.ok, results: retry.results } });
+  log[t] = Object.assign({}, log[t], { retry: { refs: retry.refs, i: retry.i, ok: retry.ok, results: retry.results, pass: retry.pass || 1 } });
   save();
 };
-/** 解き直しの終わりの 1 行。1 問も解けなかったときは仮縫いの札を付けず、「まだ」と言う */
-const retryDoneLine = (r) => r.ok === 0
-  ? `<p class="retry-done">解き直した ${r.refs.length} 問は、まだ。明日の復習で、もう一度</p>`
-  : `<p class="retry-done"><span class="retry-tag">仮縫い</span>解き直した ${r.refs.length} 問${r.ok === r.refs.length ? "を、全部" : `のうち ${r.ok} 問を、`}正しく解けた(本縫いは明日の復習で)</p>`;
+/**
+ * 解き直しの終わりの 1 行。何回目の解き直しかによらず、今日の全部で言う(運針の仮縫いの目と札の数が合うように)。
+ * 1 問も仮縫いできていなければ札を付けず「まだ」。括弧は使わない(「解け / た(本縫い…」と動詞の途中で折れた)
+ */
+const retryDoneLine = (r, missed) => {
+  const basted = missed.filter((ref) => r.results?.[ref] === true).length;
+  if (basted === 0) return `<p class="retry-done">解き直した ${r.refs.length} 問は、まだ。明日の復習で、もう一度</p>`;
+  return `<p class="retry-done"><span class="retry-tag">仮縫い</span>今日間違えた ${missed.length} 問${basted === missed.length ? "を、全部" : `のうち ${basted} 問を、`}仮縫いできた。本縫いは明日の復習で</p>`;
+};
 async function renderReview() {
   const due = dueItems();
   const upcoming = Object.entries(S.review).filter(([, it]) => !it.graduated && it.due > today()).length;
@@ -1678,6 +1705,8 @@ async function renderReview() {
   if (!retry || retry.day !== today()) {
     const saved = S.reviewLog?.[today()]?.retry;
     retry = saved ? { day: today(), ...saved, results: { ...saved.results } } : null;
+    // 解き直す問が記録から消えていたら(教材の差し替えなど)、今日の解き直しは始めから(消えた問を開くと画面が空になった)
+    if (retry && !retry.refs.every((r) => S.review[r])) retry = null;
   }
   const inRetry = !!retry && retry.i < retry.refs.length;
   // 今日の終わり: 区切りと同じ部品で、今日答えた全問を運針に並べ、間違えた問題と読み直す所を出す
@@ -1691,8 +1720,8 @@ async function renderReview() {
       ${stitchRows(done.results, done.entries.map(([r]) => retry?.results?.[r] === true))}
       <h2 class="review-break-title" id="break-title">今日 ${done.n} 問のうち ${done.ok} 問${done.ok === done.n ? "。全部縫えた" : ""}</h2>
       <p class="review-break-note">${done.n - done.ok ? `間違えた ${done.n - done.ok} 問は、明日もう一度出ます。` : ""}${tomorrow ? `明日の復習は ${tomorrow} 問。` : ""}${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で出ます。` : ""}</p>
-      ${await missedList(done.missed)}
-      ${retry ? retryDoneLine(retry) : ""}
+      ${await missedList(done.missed, 5)}
+      ${retry ? retryDoneLine(retry, again) : ""}
       <div class="review-next">${!retry && again.length ? `<button class="btn primary" id="again">間違えた ${again.length} 問を、いま解き直す</button><a class="btn" href="#/">ホームへ</a>`
         : `<a class="btn primary" href="#/">ホームへ</a>${still.length ? `<button class="btn" id="again-still">まだの ${still.length} 問を、もう一度</button>` : ""}`}</div></section>` : `
       <section class="review-break review-done"><p class="review-break-note">今日の復習はありません。${upcoming ? `この先 ${upcoming} 問が、1・3・7・14 日の間隔で出ます。` : "レッスンでクイズや読解を解くと、ここに出てきます。"}</p>
@@ -1700,7 +1729,7 @@ async function renderReview() {
     const go = $("#again");
     if (go) go.onclick = () => { retry = { day: today(), refs: again, i: 0, ok: 0, results: {} }; saveRetry(); scrollTo({ top: 0 }); renderReview(); };
     const goStill = $("#again-still");
-    if (goStill) goStill.onclick = () => { retry = { day: today(), refs: still, i: 0, ok: 0, results: retry.results }; saveRetry(); scrollTo({ top: 0 }); renderReview(); };
+    if (goStill) goStill.onclick = () => { retry = { day: today(), refs: still, i: 0, ok: 0, results: retry.results, pass: (retry.pass || 1) + 1 }; saveRetry(); scrollTo({ top: 0 }); renderReview(); };
     return;
   }
   // 10 問ごとに区切りを出す(残りが多い日でも、ここで止めてよいと分かるように)。いまの 10 問を運針で並べ、間違えた問題を出す
@@ -1721,14 +1750,18 @@ async function renderReview() {
   const [ref, item] = inRetry ? [retry.refs[retry.i], S.review[retry.refs[retry.i]]] : nextDue(due);
   const L = await lesson(item.lessonId);
   // 解き直しは、数分前に「✓ 正解」を見たのと別の並びにする(位置で当てないように。正解の位置も必ず変える)
+  // 2 回目からの解き直しは、朝とそれまでの解き直しで見せたどの位置とも違う所に正解を置く(位置を覚えて当てないように)
   const order = (n, answer) => {
     const first = choiceOrder(n, ref + "|" + today());
     if (!inRetry) return first;
-    for (let k = 1; k <= 6; k++) {
-      const o = choiceOrder(n, `${ref}|${today()}|retry${k}`);
-      if (o.indexOf(answer) !== first.indexOf(answer)) return o;
+    const used = [first.indexOf(answer)];
+    let pick = first;
+    for (let pass = 1; pass <= (retry.pass || 1); pass++) {
+      const tries = Array.from({ length: 12 }, (_, k) => choiceOrder(n, `${ref}|${today()}|retry${pass > 1 ? `${pass}-` : ""}${k + 1}`));
+      pick = tries.find((o) => !used.includes(o.indexOf(answer))) || tries.find((o) => o.indexOf(answer) !== used.at(-1)) || pick.slice().reverse();
+      used.push(pick.indexOf(answer));
     }
-    return first.slice().reverse();
+    return pick;
   };
   // 答える前は出どころのレッスン名を見せない(どの知識を使う問題かを、自分で見分けるところに混ぜる効き目がある)
   // 問いの画面の見出しは 1 行に詰める(毎問、上の 3 割を同じ前置きが占めていた)。説明はその日(解き直し)の最初の 1 問だけ
@@ -1744,6 +1777,24 @@ async function renderReview() {
       ${whyHtml || ""}${explanationHtml ? `<div class="explanation md">${explanationHtml}</div>` : ""}</div>
     <a class="review-source" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}"><span>出どころ: <b>${esc(L.title)}</b></span><span class="review-source-go">読み直す</span></a>
     <div class="review-next"><p class="review-note">${inRetry ? "明日の復習で、もう一度" : nextLabel(it)}</p><button class="btn primary" id="next">${inRetry ? (retry.i + 1 < retry.refs.length ? "次の解き直しへ" : "おわりの画面へ") : "次の復習へ"}</button></div>`;
+  // 「答え合わせ」は最初から下に出しておき、選ぶまでは押せない形に(選んだ瞬間に出すと、押した選択肢の上にかぶさった)
+  const armSubmit = (form) => {
+    const b = form.querySelector("button[type=submit]");
+    const bar = document.createElement("div");
+    bar.className = "submit-bar";
+    b.before(bar);
+    bar.append(b);
+    b.disabled = true;
+    b.textContent = "選んでから答え合わせ";
+    form.addEventListener("change", (ev) => {
+      b.disabled = false;
+      b.textContent = "答え合わせ";
+      // 選んだ選択肢が帯の下に入っていたら、帯の上まで送る(選んだ答えを目で確かめてから押せるように)
+      const label = ev.target.closest("label");
+      const gap = label ? label.getBoundingClientRect().bottom - (bar.getBoundingClientRect().top - 12) : 0;
+      if (gap > 0) scrollBy({ top: gap, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    });
+  };
   const finish = (it, ok, out, explanationHtml, chosen, whyHtml) => {
     recordDay();
     out.innerHTML = after(it, ok, explanationHtml, whyHtml);
@@ -1776,6 +1827,7 @@ async function renderReview() {
     view().innerHTML = head + `<div class="card review-quiz">${stitchOf(item)}${item.type === "check" ? `<p class="review-kind">手を止めて(本文の途中の問い)</p>` : ""}<div class="md">${q.questionHtml}</div>
       <form id="rq">${order(q.choicesHtml.length, q.answer).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${q.choicesHtml[j]}</span></label>`).join("")}
       <button class="btn primary" type="submit">答え合わせ</button></form><div id="ra"></div></div>`;
+    armSubmit($("#rq"));
     $("#rq").onsubmit = (ev) => {
       ev.preventDefault();
       const choice = Number(new FormData(ev.target).get("c"));
@@ -1797,6 +1849,7 @@ async function renderReview() {
     const form = view().querySelector("form[data-action=reading]");
     form.querySelector(".small.muted")?.remove(); // 「前回: 正解」は、いま答えた判定と食い違うので出さない
     form.querySelector("button[type=submit]").classList.add("primary");
+    armSubmit(form);
     form.onsubmit = (ev) => {
       ev.preventDefault();
       const choice = Number(new FormData(form).get("c"));
@@ -2200,6 +2253,22 @@ function fitFigures(nodes) {
   });
 }
 
+// 英語の文らしいか: Java の予約語でない英単語が 3 つ続くか、先頭が 2 語(「Cannot invoke」「cannot find」「Square is」)。
+// 型と引数名(`String pattern`)は語の後ろに「,」「)」が付くので数えない
+const JAVA_WORDS = new Set(("public private protected static final abstract void int long double float boolean byte char short var new "
+  + "return if else for while do switch case default try catch finally throw throws class interface record enum extends implements "
+  + "super this null true false instanceof import package").split(" "));
+function proseLike(t) {
+  const words = t.trim().split(/\s+/);
+  const plain = (w) => /^[A-Za-z][a-z]+(?:-[a-z]+)*$/.test(w) && !JAVA_WORDS.has(w);
+  let run = 0;
+  for (const w of words) {
+    run = plain(w) ? run + 1 : 0;
+    if (run >= 3) return true;
+  }
+  return plain(words[0]) && plain(words[1] || "");
+}
+
 async function decorate(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
   blocks.forEach((code) => {
@@ -2241,7 +2310,39 @@ async function decorate(root) {
   // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
   root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
     const t = c.textContent;
-    if (t.length >= 24 && /\s/.test(t.trim())) c.classList.add("code-msg");
+    // コードの式・宣言・呼び出し(; { } = や「名前(」、&& || ->)はチップのまま(段落にすると、文が 3 つに割れた。24 回目の審査)。
+    // ただし英語の文らしいもの(`Cannot invoke "String.hashCode()"`・`method calc(int) is already defined`)は、
+    // 呼び出しの括弧があってもメッセージ
+    if (t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t))) c.classList.add("code-msg");
+  });
+  // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
+  // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
+  root.querySelectorAll(":not(pre) > code:not(.code-msg)").forEach((c) => {
+    const prev = c.previousSibling;
+    const next = c.nextSibling;
+    if (prev?.nodeType === 3 && /[(（「『【\[]$/.test(prev.data) && !prev.data.endsWith("\u2060")) {
+      prev.data += "\u2060";
+      if (/[（「『【]\u2060$/.test(prev.data)) c.classList.add("after-open");
+      else if (/\(\u2060$/.test(prev.data)) c.classList.add("after-paren");
+    }
+    if (next?.nodeType === 3 && /^[、。，．,.)）」』】\]:;!?]/.test(next.data)) {
+      if (/^[）」』】]/.test(next.data)) c.classList.add("before-close");
+      else if (/^\)/.test(next.data)) c.classList.add("before-paren");
+      next.data = "\u2060" + next.data;
+    }
+    if (next?.nodeType === 3 && /^[(（「『【]/.test(next.data)) c.after(document.createElement("wbr"));
+  });
+  // 選択肢の中身が 1 つのコードだけなら、チップの地を外してコードの書体だけに(地のある・無いの 2 通りが復習で続けて出た)
+  root.querySelectorAll(".choice > span").forEach((sp) => {
+    const only = sp.children.length === 1 && sp.firstElementChild.tagName === "CODE" ? sp.firstElementChild : null;
+    if (only && sp.textContent.trim() === only.textContent.trim()) { sp.textContent = only.textContent; sp.classList.add("code-choice"); }
+  });
+  // 本文の表: 3 列までは、狭い画面で行ごとの積みにする(左の列が行の見出し、ほかの列は見出しを添えて全幅で)。横に送る表は 4 列から
+  root.querySelectorAll(".md table").forEach((table) => {
+    const heads = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+    if (!heads.length || heads.length > 3) return;
+    table.classList.add("stack");
+    table.querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => { if (heads[i]) td.dataset.th = heads[i]; }));
   });
   root.querySelectorAll(".choice span, :not(pre) > code").forEach(softBreaks);
   if (window.hljs) {
@@ -2292,10 +2393,11 @@ function numberLines(code) {
 function softBreaks(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
-  for (let n = walker.nextNode(); n; n = walker.nextNode()) if (/[@A-Za-z0-9_.(,]{20,}/.test(n.data)) nodes.push(n);
+  const LONG = /[@A-Za-z0-9_.(,]{20,}|[A-Za-z_]\w*(?:\.\w+){2,}/g;
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) if (new RegExp(LONG.source).test(n.data)) nodes.push(n);
   for (const n of nodes) {
     const span = document.createElement("span");
-    span.innerHTML = esc(n.data).replace(/[@A-Za-z0-9_.(,]{20,}/g, (w) =>
+    span.innerHTML = esc(n.data).replace(LONG, (w) =>
       w.replace(/[^.(,]{28,}/g, (seg) => seg.replace(/([a-z])([A-Z])/g, "$1<wbr>$2")).replace(/([.(,])(?=.)/g, "$1<wbr>"));
     n.replaceWith(...span.childNodes);
   }

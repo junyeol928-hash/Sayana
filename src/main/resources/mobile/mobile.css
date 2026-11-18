@@ -43,10 +43,13 @@ body.sheet-open { overflow: hidden; }
 .mobile-app .tutor-close { display: inline-grid; place-items: center; background: none; border: none; color: var(--kon-ink); width: 44px; height: 44px; margin: -10px -10px -10px 0; cursor: pointer; }
 .mobile-app .tutor-fab { display: inline-flex; }
 .mobile-app .tutor-head .link-button { margin-left: auto; }
-/* 復習の「答え合わせ」: 幅いっぱい 52px。選んだら下のメニュー(56px)のすぐ上に留める
-   (12 行のコードの問いでは、いつも折り目の下にあり、選ぶたびに探してスクロールしていた) */
-.mobile-app #rq > button[type="submit"], .mobile-app .review-reading form button[type="submit"] { width: 100%; min-height: 52px; }
-.mobile-app #rq:has(input:checked) > button[type="submit"],
-.mobile-app .review-reading form:has(input:checked) button[type="submit"] {
-  position: sticky; bottom: calc(68px + env(safe-area-inset-bottom)); z-index: 30;
-  box-shadow: 0 0 0 8px var(--bg), 0 -10px 24px 4px var(--bg); }
+/* 復習の「答え合わせ」: 下のメニュー(56px)のすぐ上の帯に、最初から出しておく。選ぶまでは押せない枠だけの形。
+   帯は地の色の本物の面で、上の境目は刺し子の破線(ぼかしの影は、選んだばかりの選択肢を薄くした。24 回目の審査)。
+   選んだ選択肢が帯の下に入るときは、帯の上まで送る(app.js の armSubmit) */
+.mobile-app .submit-bar { position: sticky; bottom: calc(56px + env(safe-area-inset-bottom)); z-index: 30; margin-top: 8px; padding: 12px 0;
+  background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat var(--bg); }
+.mobile-app .submit-bar:has(> button[hidden]) { display: none; }
+.mobile-app .submit-bar > button { width: 100%; min-height: 52px; margin: 0; }
+.mobile-app .submit-bar > button:disabled { background: var(--surface); color: var(--ink-muted); border: 1px solid var(--line-strong); cursor: default; }
+/* スマホでは小さいボタンも押せる高さを 44px に(演習の「雛形に戻す」「AIヒント」が 36px だった) */
+.mobile-app .btn.small { min-height: 44px; }

@@ -154,18 +154,28 @@ public class ReviewService {
 
     /**
      * 解き直しの並び。数分前に「✓ 正解」を見たのと別の並びにし、正解の位置も必ず変える(位置で当てないように。スマホ版と同じ)。
+     * 2 回目からの解き直し(pass)は、朝とそれまでの解き直しで見せたどの位置とも違う所に正解を置く(空きが無ければ直前と違う所)。
      */
-    public List<Integer> retryOrder(ReviewItem item, int size, int answer) {
-        List<Integer> first = choiceOrder(item, size);
-        for (int k = 1; k <= 6; k++) {
-            List<Integer> o = shuffled(item.getItemRef() + "|" + LocalDate.now(clock) + "|retry" + k, size);
-            if (o.indexOf(answer) != first.indexOf(answer)) {
-                return o;
+    public List<Integer> retryOrder(ReviewItem item, int size, int answer, int pass) {
+        List<Integer> pick = choiceOrder(item, size);
+        List<Integer> used = new ArrayList<>(List.of(pick.indexOf(answer)));
+        for (int p = 1; p <= Math.max(1, pass); p++) {
+            List<List<Integer>> tries = new ArrayList<>();
+            for (int k = 1; k <= 12; k++) {
+                tries.add(shuffled(item.getItemRef() + "|" + LocalDate.now(clock) + "|retry" + (p > 1 ? p + "-" : "") + k, size));
             }
+            int last = used.getLast();
+            List<Integer> before = pick;
+            pick = tries.stream().filter(o -> !used.contains(o.indexOf(answer))).findFirst()
+                    .or(() -> tries.stream().filter(o -> o.indexOf(answer) != last).findFirst())
+                    .orElseGet(() -> {
+                        List<Integer> reversed = new ArrayList<>(before);
+                        Collections.reverse(reversed);
+                        return reversed;
+                    });
+            used.add(pick.indexOf(answer));
         }
-        List<Integer> reversed = new ArrayList<>(first);
-        Collections.reverse(reversed);
-        return reversed;
+        return pick;
     }
 
     private static List<Integer> shuffled(String key, int size) {
