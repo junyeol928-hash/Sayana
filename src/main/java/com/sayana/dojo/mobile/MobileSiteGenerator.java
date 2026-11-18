@@ -202,6 +202,9 @@ public final class MobileSiteGenerator {
             x.put("explanationHtml", q.explanationHtml());
             return x;
         }).toList());
+        // 手を止めて(本文の HTML には描画済み。復習で出すために中身も持つ)
+        m.put("checks", l.checks().stream().map(c -> ordered("questionHtml", c.questionHtml(), "choicesHtml", c.choicesHtml(),
+                "answer", c.answer(), "explanationHtml", c.explanationHtml())).toList());
         m.put("columns", l.columns().stream().map(c -> {
             Map<String, Object> x = new LinkedHashMap<>();
             x.put("type", c.type());

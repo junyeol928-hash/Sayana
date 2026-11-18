@@ -1,0 +1,33 @@
+- after: if / else if / else の基本
+  question: |
+    `x` が `-1` のとき、何が出る?
+    ```java
+    if (x > 0)
+        if (x > 10)
+            System.out.println("A");
+    else
+        System.out.println("B");
+    ```
+  choices: ["B", "何も出ない", "A"]
+  answer: 1
+  explanation: |
+    `else` は一番近い `if (x > 10)` に結びつく(ぶら下がり else)。外側の `x > 0` が false なので、内側の if も else も実行されず、何も出ない。「B」はインデントのとおりに読んだ答え。
+- after: 従来の switch 文とフォールスルーの罠
+  question: |
+    `n` が `1` のとき、出力は?
+    ```java
+    switch (n) {
+        case 1:
+        case 2:
+            System.out.print("X");
+        case 3:
+            System.out.print("Y");
+            break;
+        default:
+            System.out.print("Z");
+    }
+    ```
+  choices: ["XY", "X", "XYZ"]
+  answer: 0
+  explanation: |
+    `case 1` に飛び、`break` が無いので `case 2` の処理(X)へ落ち、さらに `case 3`(Y)へ落ちて、`break` で抜ける。`default` の Z までは落ちない。

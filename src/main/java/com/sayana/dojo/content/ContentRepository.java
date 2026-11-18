@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -160,7 +162,7 @@ public class ContentRepository {
         if (!"ready".equals(status)) {
             return new Lesson(id, partId, chapterId, str(y, "title"), status, intVal(y, "minutes", 0),
                     str(y, "summary"), strList(y, "goals"), "", "", List.of(), List.of(), List.of(), null,
-                    List.of(), List.of(), List.of(), List.of());
+                    List.of(), List.of(), List.of(), List.of(), List.of());
         }
         String body = read(dir.resolve("lesson.md"));
 
@@ -204,9 +206,83 @@ public class ContentRepository {
                 exercises.add(loadExercise(e, id));
             }
         }
+        List<Lesson.Check> checks = loadChecks(dir, id);
         return new Lesson(id, partId, chapterId, str(y, "title"), status, readingMinutes(body),
-                str(y, "summary"), strList(y, "goals"), body, markdown.render(body), samples, List.copyOf(quiz),
-                columns, sts, checklist, List.copyOf(exercises), loadReading(dir, id), loadAtWork(dir));
+                str(y, "summary"), strList(y, "goals"), body, insertChecks(id, markdown.render(body), checks), samples,
+                List.copyOf(quiz), columns, sts, checklist, List.copyOf(exercises), loadReading(dir, id),
+                loadAtWork(dir), checks);
+    }
+
+    /** checks.yml(本文の途中に置く「手を止めて」の問い)。無ければ空。 */
+    private List<Lesson.Check> loadChecks(Path dir, String lessonId) {
+        Path file = dir.resolve("checks.yml");
+        if (!Files.exists(file)) {
+            return List.of();
+        }
+        List<Lesson.Check> list = new ArrayList<>();
+        for (Map<String, Object> c : yamlList(file)) {
+            List<String> choices = strList(c, "choices");
+            int answer = intVal(c, "answer", -1);
+            if (choices.size() < 2 || answer < 0 || answer >= choices.size()) {
+                throw new IllegalStateException(lessonId + ": checks.yml の選択肢か answer がおかしい: " + str(c, "question"));
+            }
+            list.add(new Lesson.Check(str(c, "after"), markdown.render(str(c, "question")),
+                    choices.stream().map(markdown::renderInline).toList(), answer, markdown.render(str(c, "explanation"))));
+        }
+        return List.copyOf(list);
+    }
+
+    private static final Pattern H2 = Pattern.compile("<h2[^>]*>(.*?)</h2>", Pattern.DOTALL);
+
+    /**
+     * 「手を止めて」を、見出し(after)の節の終わり(次の ## の前)に差し込む。PC 版とスマホ版で同じ HTML を使う。
+     * 選択肢は問いごとに決まった並びに入れ替える(書いた順のままだと正解の位置が偏るため)。値は元の番号。
+     */
+    static String insertChecks(String lessonId, String html, List<Lesson.Check> checks) {
+        if (checks.isEmpty()) {
+            return html;
+        }
+        List<int[]> sections = new ArrayList<>(); // [見出しの始まり, 節の終わり]
+        List<String> titles = new ArrayList<>();
+        Matcher m = H2.matcher(html);
+        while (m.find()) {
+            if (!sections.isEmpty()) {
+                sections.get(sections.size() - 1)[1] = m.start();
+            }
+            sections.add(new int[] {m.start(), html.length()});
+            titles.add(m.group(1).replaceAll("<[^>]+>", "").strip());
+        }
+        // 後ろから差し込む(前の位置がずれないように)。同じ節に 2 問あれば書いた順に並べる
+        java.util.TreeMap<Integer, StringBuilder> inserts = new java.util.TreeMap<>();
+        for (int i = 0; i < checks.size(); i++) {
+            Lesson.Check c = checks.get(i);
+            int at = titles.indexOf(c.after() == null ? "" : c.after().strip());
+            if (at < 0) {
+                throw new IllegalStateException(lessonId + ": checks.yml の after に合う ## 見出しがありません: " + c.after());
+            }
+            inserts.computeIfAbsent(sections.get(at)[1], k -> new StringBuilder()).append(checkHtml(lessonId, i, c));
+        }
+        StringBuilder out = new StringBuilder(html);
+        for (var e : inserts.descendingMap().entrySet()) {
+            out.insert(e.getKey(), e.getValue());
+        }
+        return out.toString();
+    }
+
+    private static String checkHtml(String lessonId, int index, Lesson.Check c) {
+        List<Integer> order = new ArrayList<>(java.util.stream.IntStream.range(0, c.choicesHtml().size()).boxed().toList());
+        Collections.shuffle(order, new java.util.Random((lessonId + "!" + index).hashCode()));
+        StringBuilder b = new StringBuilder();
+        b.append("<aside class=\"check\" data-check=\"").append(index).append("\" data-answer=\"").append(c.answer())
+                .append("\" aria-labelledby=\"check-").append(index).append("\">\n<p class=\"check-label\" id=\"check-")
+                .append(index).append("\">手を止めて</p>\n<div class=\"check-q\">").append(c.questionHtml())
+                .append("</div>\n<div class=\"check-choices\" role=\"group\" aria-label=\"選択肢\">");
+        for (int j : order) {
+            b.append("<button type=\"button\" class=\"choice\" data-c=\"").append(j).append("\"><span>")
+                    .append(c.choicesHtml().get(j)).append("</span></button>");
+        }
+        b.append("</div>\n<div class=\"check-explain\" hidden>").append(c.explanationHtml()).append("</div>\n</aside>\n");
+        return b.toString();
     }
 
     /**

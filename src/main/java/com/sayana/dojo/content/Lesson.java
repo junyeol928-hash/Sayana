@@ -25,7 +25,8 @@ public record Lesson(
         List<ChecklistItem> checklist,
         List<ExerciseDef> exercises,
         List<ReadingQuestion> reading,
-        List<AtWork> atWork) {
+        List<AtWork> atWork,
+        List<Check> checks) {
 
     public boolean ready() {
         return "ready".equals(status);
@@ -104,5 +105,12 @@ public record Lesson(
      */
     public record AtWork(String title, String introHtml, String code, Map<Integer, String> notesHtml,
                          List<String> pointsHtml) {
+    }
+
+    /**
+     * 「手を止めて」(checks.yml)。本文の節の終わりに置く 1 問(読みながら思い出す練習)。
+     * after はその節の見出し(lesson.md の ## の文字)。本文の HTML には描画済みのものが入っている。
+     */
+    public record Check(String after, String questionHtml, List<String> choicesHtml, int answer, String explanationHtml) {
     }
 }
