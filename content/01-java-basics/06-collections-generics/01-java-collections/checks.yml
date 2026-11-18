@@ -1,0 +1,33 @@
+- after: List:ArrayList が主役
+  question: |
+    出力は?
+    ```java
+    List<String> names = new ArrayList<>();
+    names.add("A");
+    names.add("B");
+    names.add(0, "C");
+    System.out.println(names.get(1));
+    ```
+  choices: ["A", "C", "B"]
+  answer: 0
+  explanation: |
+    `add(0, "C")` は先頭に差し込み、A と B を後ろへずらすので `[C, A, B]`。添字は 0 始まりなので `get(1)` は A。「C」は添字を 1 から数えた答え、「B」は `add(0, …)` を置き換えと読んだ答え。
+- after: Set と Map
+  question: |
+    タグの一覧から重複を消したい。ただし、最初に出てきた順は保ちたい。使う Set は?
+  choices: ["LinkedHashSet", "TreeSet", "HashSet"]
+  answer: 0
+  explanation: |
+    `LinkedHashSet` は追加した順を覚えている。`TreeSet` は辞書順に並べ替えてしまい、`HashSet` は順番をまったく保証しない。
+- after: 不変コレクションとループ中の削除
+  question: |
+    出力は?
+    ```java
+    List<String> a = Arrays.asList("A", "B");
+    a.set(0, "Z");
+    System.out.println(a);
+    ```
+  choices: ["[Z, B]", "UnsupportedOperationException", "コンパイルエラー"]
+  answer: 0
+  explanation: |
+    `Arrays.asList` のリストはサイズが固定なだけで、`set` での置き換えはできる。例外になるのは `add` / `remove`。`List.of` で作ったリストなら `set` も `UnsupportedOperationException` になる。

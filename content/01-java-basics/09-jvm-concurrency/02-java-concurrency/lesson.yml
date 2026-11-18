@@ -12,7 +12,7 @@ goals:
 samples:
   - title: スレッドを2本動かして join で待つ
     description: |
-      配列の前半と後半を別々のスレッドで合計します。`start()` で動き出し、`join()` で終わるまで待ちます。各スレッドは **自分専用の枠** に書くので、取り合いは起きません。
+      配列の前半と後半を別々のスレッドで合計する。`start()` で動き出し、`join()` で終わるまで待つ。2 本のスレッドはそれぞれ **自分専用の枠** に書く。合計は 1 本で 1〜1000 を足したときと同じになるだろうか。予想してから見よう。
     code: |
       int[] numbers = new int[1000];
       for (int i = 0; i < numbers.length; i++) {
@@ -38,7 +38,7 @@ samples:
       System.out.println("合計 = " + (partial[0] + partial[1]));
   - title: count++ の割り込みを手で再現する
     description: |
-      `count++` は「読む → 1を足す → 書き戻す」の3ステップです。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現すると、加算が1回分消えるのが分かります。
+      `count++` は「読む → 1を足す → 書き戻す」の3ステップ。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現する。2回 `count++` したはずの `count` はいくつになるだろうか。予想してから見よう。
     code: |
       int count = 0;
 
@@ -55,7 +55,7 @@ samples:
       // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから B が読む順に並べ替えると?
   - title: AtomicInteger と synchronized なら必ず合う
     description: |
-      4本のスレッドが1万回ずつ数えます。`AtomicInteger` と `synchronized` のどちらでも、毎回ぴったり 40000 になります。素の `int` の `count++` で同じことをすると、**実行するたびに 40000 より小さい値になり得る**(毎回違う)ので、このサンプルには入れていません。
+      4本のスレッドが1万回ずつ数える。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。予想してから見よう。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。
     code: |
       import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,7 +89,7 @@ samples:
       System.out.println("synchronized  : " + sync.get() + "(期待値と一致: " + (sync.get() == expected) + ")");
   - title: ExecutorService と Future(タイムアウト付き)
     description: |
-      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取ります。結果は **投げた順** に取り出すので、どれが先に終わっても表示の順番は変わりません。後半は、時間のかかる仕事を `get(タイムアウト)` で諦める例です。
+      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取る。どの仕事が先に終わるかは決まっていないが、結果はどの順で表示されるだろうか。後半の、5 秒かかる仕事を `get` で 100 ミリ秒だけ待つとどうなるかも、予想してから見よう。
     code: |
       import java.util.*;
       import java.util.concurrent.*;

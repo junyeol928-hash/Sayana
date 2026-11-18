@@ -1,0 +1,29 @@
+- after: なぜジェネリクスか:raw 型時代の昔話
+  question: |
+    どうなる?
+    ```java
+    List list = new ArrayList();
+    list.add(42);
+    String s = (String) list.get(0);
+    ```
+  choices: ["3 行目で ClassCastException", "2 行目でコンパイルエラー", "2 行目で実行時エラー"]
+  answer: 0
+  explanation: |
+    raw 型のリストには何でも入るので、`add(42)` は警告が出るだけで通る。落ちるのは、取り出してキャストする 3 行目。`List<String>` にしていれば、2 行目の時点でコンパイルエラーになる。
+- after: ワイルドカードと PECS
+  question: |
+    Integer を **入れる** だけのメソッドに、`List<Number>` も `List<Object>` も渡せるようにしたい。`???` に入る型は?
+    ```java
+    static void fill(List<???> dest) { dest.add(1); }
+    ```
+  choices: ["? super Integer", "? extends Integer", "Integer"]
+  answer: 0
+  explanation: |
+    値を入れる引数は `super`。`? super Integer` は Integer かその親のリストを受け取り、Integer を安全に入れられる。`? extends Integer` は中身の型が分からないので `add` できず、`List<Integer>` は `List<Number>` を受け取れない(ジェネリクスは不変)。
+- after: 入れ子の型は外側から「〜の」で読む
+  question: |
+    `interface OrderRepository extends JpaRepository<Order, Long>`。親の `Optional<T> findById(ID id)` は、どんな形で使える?
+  choices: ["引数 Long、戻り値 Optional<Order>", "引数 Order、戻り値 Optional<Long>", "引数 Long、戻り値 Order"]
+  answer: 0
+  explanation: |
+    `JpaRepository<T, ID>` は、T が扱う型、ID が主キーの型。T に Order、ID に Long が入るので `Optional<Order> findById(Long id)` になる。戻り値は Optional のままで、Order がそのまま返るわけではない。

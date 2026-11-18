@@ -1,0 +1,32 @@
+- after: Date / Calendar はなぜ嫌われたか
+  question: |
+    `cal.clear();` のあとに次の行を実行した。何月何日になる?
+    ```java
+    cal.set(2024, 11, 25);
+    ```
+  choices: ["12月25日", "11月25日"]
+  answer: 0
+  explanation: |
+    Calendar の月は 0 始まりなので、`11` は 12 月。年と日はそのままなので 2024年12月25日。java.time の `LocalDate.of(2024, 11, 25)` なら月は 1 始まりで 11 月になる。
+- after: クラスの使い分け
+  question: |
+    タイムゾーンが UTC のサーバーで、日本時間 2024-04-01 08:00 に次の行を実行した。結果は?
+    ```java
+    LocalDate today = LocalDate.now();
+    ```
+  choices: ["2024-03-31", "2024-04-01"]
+  answer: 0
+  explanation: |
+    引数なしの `now()` は、サーバーのタイムゾーンで「今」を読む。日本時間 8:00 は UTC ではまだ前日の 23:00 なので 3/31。日本の「今日」が欲しいなら `LocalDate.now(ZoneId.of("Asia/Tokyo"))` と書く。
+- after: 期間:Period と Duration
+  question: |
+    出力は?
+    ```java
+    Duration d = Duration.between(
+        LocalTime.of(8, 45), LocalTime.of(17, 15));
+    System.out.println(d.toHours());
+    ```
+  choices: ["8", "8.5", "510"]
+  answer: 0
+  explanation: |
+    差は 8 時間 30 分(`PT8H30M`)。`toHours()` は何時間分かを整数で返し、端数の 30 分は切り捨てて 8。510 は分に直した `toMinutes()` の値で、残りの 30 分だけなら `toMinutesPart()` で取る。

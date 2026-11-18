@@ -1,0 +1,40 @@
+- after: スタック:メソッド1回分の「フレーム」
+  question: |
+    `createUser` が `return` してフレームが消えたあと、その中で `new` した User の実体はどうなる?
+    ```java
+    static User createUser(String name) {
+        User u = new User();
+        u.name = name;
+        return u;
+    }
+    User u = createUser("太郎");   // main の中
+    ```
+  choices: ["ヒープに残り、main の u から使える", "フレームと一緒に消える"]
+  answer: 0
+  explanation: |
+    フレームに入っていたのは矢印(参照)だけで、実体はヒープにある。返した矢印を `main` の `u` が受け取っているので、実体は残る。消えるのは、フレームの中の引数とローカル変数。
+- after: ガベージコレクション:辿れなくなったら回収
+  question: |
+    ただ1つの参照を外した。User の実体はいつ消える?
+    ```java
+    User u = new User();
+    u = null;
+    ```
+  choices: ["回収できる状態になるだけで、いつ消えるかは JVM が決める", "この行を実行した瞬間に消える"]
+  answer: 0
+  explanation: |
+    辿れなくなったのは「回収される資格ができた」だけ。GC は JVM が必要だと判断したときに動くので、その瞬間に消えるわけではなく、いつ回収されるかはプログラムから決められない。
+- after: OutOfMemoryError と StackOverflowError
+  question: |
+    終了条件のない再帰を `catch (Exception e)` で囲んだ。どうなる?
+    ```java
+    try {
+        countDown(5);
+    } catch (Exception e) {
+        System.out.println("捕まえた");
+    }
+    ```
+  choices: ["「捕まえた」は出ず、StackOverflowError で止まる", "「捕まえた」と出て、処理が続く"]
+  answer: 0
+  explanation: |
+    `StackOverflowError` は `Exception` ではなく `Error` の仲間なので、`catch (Exception e)` では捕まらない。そもそも Error は catch して続行するものではなく、再帰をループに直すなど原因を直す。

@@ -53,8 +53,8 @@ samples:
       }
   - title: ログから ERROR 行を数える(Files.lines と BufferedReader)
     description: |
-      `Files.lines` は裏でファイルを開いているので try-with-resources で閉じます。
-      `"[ERROR]"` を `"ERROR"` に変えると、WARN 行まで数えてしまうのを確かめてみましょう。
+      `Files.lines` は裏でファイルを開いているので、try-with-resources で閉じる。
+      `"[ERROR]"` を `"ERROR"` に変えると、件数はどう変わるだろうか。ログの4行をよく見て予想してから試そう。
     code: |
       // ログファイルから ERROR 行を数える
       // ここを変えてみよう:"[ERROR]" を "ERROR" にすると件数は?
@@ -150,8 +150,8 @@ samples:
       }
   - title: 文字コードが食い違うと何が起きるか
     description: |
-      Excel が保存する CSV と同じ MS932 で書いたファイルを、UTF-8 で読むと `MalformedInputException`、MS932 で読むと正しく読めます。
-      コメントのとおり `①` を入れて `Shift_JIS` に変えると、書き込みの時点で `UnmappableCharacterException`(その文字コードでは表せない文字)になります。
+      Excel が保存する CSV と同じ MS932 で書いたファイルを、UTF-8 と MS932 で読み分ける。それぞれどうなるだろうか。出力を予想してから見よう。
+      コメントのとおり `①` を入れて `Shift_JIS` に変えると、どこで何が起きるかも試してみよう。
     code: |
       // Excel が保存した CSV(MS932)を UTF-8 / MS932 で読む
       // ここを変えてみよう:"渋谷" を "①渋谷" にして、

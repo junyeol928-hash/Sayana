@@ -1,0 +1,37 @@
+- after: 匿名クラスからラムダ式へ
+  question: |
+    次のインターフェースに `Calc c = x -> x * 2;` と書いた。コンパイルできる?
+    ```java
+    interface Calc {
+        int apply(int x);
+        int reset();
+    }
+    ```
+  choices: ["コンパイルエラー", "できる(apply の実装になる)"]
+  answer: 0
+  explanation: |
+    抽象メソッドが 2 つあるので関数型インターフェースではなく、ラムダがどちらの実装か決まらない。ラムダを書けるのは、抽象メソッドがちょうど 1 つの型だけ。`@FunctionalInterface` を付けておけば、定義の側で先にエラーになる。
+- after: Stream の3段階
+  question: |
+    `getAmount()` は `int` を返す。`sorted()` の時点で流れている要素の型は?
+    ```java
+    orders.stream()
+        .filter(o -> o.getAmount() >= 5000)
+        .map(o -> o.getAmount())
+        .sorted()
+        .toList();
+    ```
+  choices: ["Integer", "Order", "List<Integer>"]
+  answer: 0
+  explanation: |
+    `filter` までは Order のまま流れ、`map` で金額に変わる。`map` が返すのは `Stream<Integer>`(int は自動で Integer に包まれる)。`List<Integer>` になるのは、終端操作の `toList()` のあと。
+- after: collect と数値の集計
+  question: |
+    `List<Integer> nums = List.of(1, 2, 3);` のとき、次の行は?
+    ```java
+    int total = nums.stream().sum();
+    ```
+  choices: ["コンパイルエラー", "6", "実行時エラー"]
+  answer: 0
+  explanation: |
+    `Stream<Integer>` には `sum()` が無いので、コンパイルの時点で止まる。`nums.stream().mapToInt(n -> n).sum()` のように `IntStream` に変えてから合計する。「6」は、中身が数なら Stream のまま足せると考えた答え。

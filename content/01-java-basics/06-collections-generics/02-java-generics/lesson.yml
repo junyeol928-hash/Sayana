@@ -12,7 +12,7 @@ goals:
 samples:
   - title: raw 型の事故とジェネリクス
     description: |
-      raw 型のリストには何でも入り、取り出してキャストした瞬間に落ちます(JShell が unchecked の警告を出すのも確認しましょう)。ジェネリクス版では、同じミスがコンパイルエラーになります。
+      raw 型のリストに `42` を入れたとき、問題が出るのは `add` の行か、取り出してキャストする行か。出力を予想してから見よう(JShell が unchecked の警告を出すのも確認しよう)。ジェネリクス版では、同じミスがどこで見つかるかも比べよう。
     code: |
       // raw 型(型引数なし)のリスト。何でも入ってしまう
       List raw = new ArrayList();
@@ -99,7 +99,7 @@ samples:
       // ここを変えてみよう:sum の引数を List<Number> に変えると、sum(ints) はどうなる?
   - title: 型消去と Integer の比較
     description: |
-      実行時には `List<String>` も `List<Integer>` も同じクラスです。また、ラッパー型を `==` で比べると、値によって結果が変わってしまいます。
+      `List<String>` と `List<Integer>` の `getClass()` は同じだろうか。`Integer` の 1000 同士を `==` と `equals` で比べた結果も、予想してから見よう。
     code: |
       List<String> a = new ArrayList<>();
       List<Integer> b = new ArrayList<>();

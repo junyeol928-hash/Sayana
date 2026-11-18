@@ -11,7 +11,7 @@ goals:
   - 遅延評価・Stream の再利用不可・実質 final という3つの罠を説明できる
 samples:
   - title: 匿名クラス → ラムダ式 → メソッド参照
-    description: 同じ「並べ替えのルール」を3通りで渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。
+    description: 並べ替えのルールを、匿名クラス・ラムダ式・メソッド参照の3通りの書き方で渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。
     code: |
       import java.util.*;
       import java.util.function.*;
@@ -177,7 +177,8 @@ samples:
           }
       }
   - title: 3つの罠(遅延評価・再利用・実質 final)
-    description: 終端操作を呼ぶまで中間操作は動かないこと、Stream は使い切りであることを、出力の順番で確かめます。
+    description: |
+      「まだ何も起きていない」と `map: a` は、どちらが先に出るだろうか。`limit(2)` のとき `filter` が何回動くか、使い終わった `s` をもう一度使うと何が起きるかも、出力を予想してから見よう。
     code: |
       import java.util.*;
       import java.util.stream.*;

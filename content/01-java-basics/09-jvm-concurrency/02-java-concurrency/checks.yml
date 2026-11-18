@@ -1,0 +1,32 @@
+- after: スレッドとは:同時に動く「実行の流れ」
+  question: |
+    `start()` ではなく `run()` と書いた。出力は?
+    ```java
+    Thread t = new Thread(() ->
+        System.out.println(Thread.currentThread().getName()));
+    t.run();
+    ```
+  choices: ["main", "Thread-0"]
+  answer: 0
+  explanation: |
+    `run()` はただのメソッド呼び出しなので、新しいスレッドは作られず、今の main スレッドで動く。`start()` なら新しいスレッドで動き、`Thread-0` のような名前が出る。
+- after: ExecutorService と Future:スレッドは使い回す
+  question: |
+    4 人のプールで、1 件 0.3 秒かかる外部 API を 3 件、次のように呼んだ。かかる時間は?
+    ```java
+    for (String id : ids) {
+        Future<String> f = executor.submit(() -> call(id));
+        results.add(f.get(3, TimeUnit.SECONDS));
+    }
+    ```
+  choices: ["約 0.9 秒(1 件ずつ待つ)", "約 0.3 秒(3 件が同時に動く)"]
+  answer: 0
+  explanation: |
+    投げるたびに `get` で待つので、次の仕事は前の結果が来るまで投げられない。並列にしたいなら、先に全部 `submit` して Future をリストにため、そのあと順番に `get` する。
+- after: シングルトン Bean に「状態」を持たせない
+  question: |
+    `CartService` の `private int sum;` のせいで、同時アクセスで合計が狂う。直し方として、遅くもならないのは?
+  choices: ["sum をメソッドの中のローカル変数にする", "total メソッドに synchronized を付ける"]
+  answer: 0
+  explanation: |
+    ローカル変数はスレッドごとのスタックにあるので、何人が同時に呼んでも混ざらない。`synchronized` でも合計は合うが、全リクエストが 1 列に並ぶので遅くなる。

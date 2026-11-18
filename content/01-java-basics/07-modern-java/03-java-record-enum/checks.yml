@@ -1,0 +1,42 @@
+- after: コンパクトコンストラクタで検証する
+  question: |
+    出力は?
+    ```java
+    record Cart(List<String> items) {}
+    List<String> list = new ArrayList<>(List.of("A"));
+    Cart c = new Cart(list);
+    list.add("B");
+    System.out.println(c.items());
+    ```
+  choices: ["[A, B]", "[A]", "UnsupportedOperationException"]
+  answer: 0
+  explanation: |
+    record の不変は浅い。フィールド `items` は付け替えられないが、外の `list` と同じ List を指しているので、外で足した B が見える。コンパクトコンストラクタで `items = List.copyOf(items);` としておけば `[A]` のまま。
+- after: フィールド・メソッドを持つ enum
+  question: |
+    次の呼び出しはどうなる?
+    ```java
+    enum OrderStatus {
+        ORDERED("01"), DELIVERED("03");
+        // fromCode(c):コード値が c の定数を返す。無ければ例外
+    }
+    OrderStatus.fromCode("DELIVERED");
+    ```
+  choices: ["IllegalArgumentException(不明なコード)", "DELIVERED が返る"]
+  answer: 0
+  explanation: |
+    `fromCode` はコード値("03" など)で探すので、定数名の "DELIVERED" は見つからず例外になる。定数名で引くのは `valueOf("DELIVERED")`。名前で引くかコード値で引くかで、使うメソッドが違う。
+- after: switch 式と EnumMap
+  question: |
+    `Card` の case をこの順で書いた。どうなる?
+    ```java
+    return switch (payment) {
+        case Card c -> "カード払い";
+        case Card c when c.amount() >= 10000 -> "高額のカード払い";
+        case Cash c -> "現金";
+    };
+    ```
+  choices: ["コンパイルエラー", "動くが、高額でも「カード払い」になる", "高額のときだけ「高額のカード払い」になる"]
+  answer: 0
+  explanation: |
+    条件なしの `case Card c` がすべての Card を先に受け止めるので、下の `when` 付きの case には絶対に届かない。javac はこれを `dominated` のコンパイルエラーにする。`when` 付きを上に書けば通る。「動くが…」は、if 文の並びのように読んだ答え。

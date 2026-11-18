@@ -1,0 +1,30 @@
+- after: Optional の作り方
+  question: |
+    出力は?
+    ```java
+    static Optional<String> findName(int id) {
+        return id == 1 ? Optional.of("Sato") : Optional.empty();
+    }
+    System.out.println(findName(2) == null);
+    ```
+  choices: ["false", "true"]
+  answer: 0
+  explanation: |
+    見つからないときも `Optional.empty()` という空の箱が返る。箱そのものは null ではないので、呼ぶ側はそのまま `orElse` などを呼べる。「true」は、空の Optional を null と同じものだと考えた答え。
+- after: 値の取り出し方
+  question: |
+    既定値を作る `loadDefault()` は DB を読む重い処理。値があるときは呼びたくない。どちらを書く?
+  choices: ["findName(id).orElseGet(() -> loadDefault())", "findName(id).orElse(loadDefault())"]
+  answer: 0
+  explanation: |
+    `orElse(式)` の式は、メソッドを呼ぶ前に必ず評価されるので、値があっても DB を読んでしまう。`orElseGet` はラムダ(処理)を渡すだけなので、空のときしか実行されない。
+- after: アンチパターンと、使う場所・使わない場所
+  question: |
+    `findName(2)` は空の Optional を返す。次の行は?
+    ```java
+    String n = findName(2).get();
+    ```
+  choices: ["NoSuchElementException", "n に null が入る", "NullPointerException"]
+  answer: 0
+  explanation: |
+    空の Optional に `get()` を呼ぶと `NoSuchElementException: No value present`。null が返ることはなく、NPE が別の例外に変わっただけ。取り出すなら `orElse` 系や `ifPresent` を使う。

@@ -11,7 +11,8 @@ goals:
   - enum をキーにした集計に EnumMap を使える
 samples:
   - title: record の自動生成とコンパクトコンストラクタ
-    description: 1行の宣言だけで equals や toString が使えます。コンパクトコンストラクタで不正な金額をはじきます(JShell では record が public 扱いになるため、コンストラクタにも `public` を付けています)。
+    description: |
+      1行の宣言だけの record で、`toString` は何を出し、`equals` と `==` はそれぞれどうなるだろうか。`add` のあとの `a` の中身と、金額 -500 の行で何が起きるかも、出力を予想してから見よう(JShell では record が public 扱いになるため、コンストラクタにも `public` を付けている)。
     code: |
       // 金額と通貨を表す record。コンパクトコンストラクタで検証する
       // ここを変えてみよう:b の金額を 101 に / 最後の new Money の金額を 0 に
@@ -40,7 +41,8 @@ samples:
           System.out.println("作れない : " + e.getMessage());
       }
   - title: フィールドを持つ enum と switch 式
-    description: 税率を持たせた enum です。switch 式は全定数を case に書けば `default` が不要。`case EXEMPT` の行を消すとコンパイルエラーになるのを確かめてみましょう。
+    description: |
+      税率を持たせた enum。`values()` はどの順で回り、1000 円の税額はそれぞれいくらになるだろうか。出力を予想してから見よう。`case EXEMPT` の行を消すと何が起きるかも試してみよう。
     code: |
       // 税率を持つ enum
       // ここを変えてみよう:price を 99 に / case EXEMPT の行を消してみる
@@ -68,7 +70,8 @@ samples:
       // 次の行の // を外すと IllegalArgumentException(大文字小文字も区別)
       // System.out.println(TaxCategory.valueOf("reduced"));
   - title: EnumMap でステータス別に集計する
-    description: enum をキーにするなら EnumMap。中身は ordinal を添字にした配列で、表示も宣言順に並びます。
+    description: |
+      enum をキーにするなら EnumMap。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。出力を予想してから見よう。
     code: |
       // 注文一覧をステータス別に数える
       // ここを変えてみよう:orders に注文を足す / EnumMap を HashMap に変えて並び順を比べる

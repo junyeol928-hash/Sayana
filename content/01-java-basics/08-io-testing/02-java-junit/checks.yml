@@ -1,0 +1,28 @@
+- after: JUnit 5 の基本
+  question: |
+    `cart.fee()` も `cart.size()` も、期待と違う値を返す。失敗として報告されるのは?
+    ```java
+    @Test
+    void cart() {
+        assertEquals(500, cart.fee());
+        assertEquals(2, cart.size());
+    }
+    ```
+  choices: ["最初の assertEquals だけ", "両方"]
+  answer: 0
+  explanation: |
+    通常の assert は、失敗した時点でそのテストを打ち切る。後ろの `assertEquals(2, cart.size())` は実行されない。両方の失敗をまとめて見たいなら、`assertAll` にラムダを並べて渡す。
+- after: 境界値と同値分割
+  question: |
+    「0円以下はエラー」を `amount < 0` と書き間違えた。代表値の -100・2000・8000 だけでテストすると?
+  choices: ["全部成功して、バグを見逃す", "-100 のテストが失敗する"]
+  answer: 0
+  explanation: |
+    -100 は `< 0` でもエラーになるので、代表値ではバグが表に出ない。正しい式と結果が違うのは境目の 0 だけ。境界値の 0 をケースに入れて初めて見つかる。
+- after: "@ParameterizedTest で表のように書く"
+  question: |
+    `@CsvSource` の 4 行のうち、`"0, -1"` の行だけが期待と違った。結果は?
+  choices: ["その 1 行だけ失敗し、残りの 3 行は成功として並ぶ", "失敗した行で止まり、残りの行は実行されない"]
+  answer: 0
+  explanation: |
+    `@CsvSource` の 1 行が 1 回分のテストなので、行ごとに成否が出る。1 行の失敗で残りの行が止まることはない。打ち切られるのは、1 回分のテストの中で、失敗した assert より後ろの行。

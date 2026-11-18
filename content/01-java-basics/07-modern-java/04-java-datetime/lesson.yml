@@ -11,7 +11,8 @@ goals:
   - 曜日・月末を API で求め、now() を直接呼ばずに日付を引数や Clock で受け取る設計にできる
 samples:
   - title: 作る・足す・不変の罠
-    description: "`plusDays` は新しい日付を返すだけで、元の変数は変わりません。月の加算で存在しない日は月末に丸められます。"
+    description: |
+      `start.plusDays(7)` の戻り値を捨てたあと、`start` は変わっているだろうか。1月31日の1か月後が何日になるか、2023年2月29日を作ると何が起きるかも、出力を予想してから見よう。
     code: |
       // 日付を作って足す。java.time は不変なので戻り値を受け取る
       // ここを変えてみよう:start を 2024-03-31 に / plusMonths(1) を plusMonths(12) に
@@ -35,7 +36,8 @@ samples:
           System.out.println("例外      : " + e.getMessage());
       }
   - title: Period と Duration と ChronoUnit
-    description: "`Period.getDays()` は「日」の部分だけ。総日数は `ChronoUnit.DAYS.between` です。時間の長さは `Duration` で扱います。"
+    description: |
+      1/15 から 3/10 までの `Period` の `getDays()` と `ChronoUnit.DAYS.between` は、同じ数になるだろうか。休憩 60 分を引いた実働が何時間何分になるかも、出力を予想してから見よう。
     code: |
       // 期間の求め方3通り
       // ここを変えてみよう:to を 2024-12-25 に / 退勤を 22:15 に
@@ -57,7 +59,8 @@ samples:
       System.out.println("表示         : " + work.toHours() + "時間"
               + work.toMinutesPart() + "分");
   - title: フォーマットと曜日・月末
-    description: "`YYYY` は週基準の年なので、年末だけ翌年になります。曜日は enum の `DayOfWeek`、月末は `TemporalAdjusters` で求めます。"
+    description: |
+      2024年12月30日を `yyyy` と `YYYY`、9時7分を `mm` と `MM` で書式にすると、それぞれ何が出るだろうか。出力を予想してから見よう。曜日は enum の `DayOfWeek`、月末は `TemporalAdjusters` で求める。
     code: |
       // パターン文字の大文字小文字の罠と、曜日・月末
       // ここを変えてみよう:d を 2024-12-27 や 2025-02-10 に
@@ -84,7 +87,8 @@ samples:
       LocalDate last = d.with(TemporalAdjusters.lastDayOfMonth());
       System.out.println("月末       : " + last);
   - title: Clock を固定してテストできるようにする
-    description: "`now()` に `Clock` を渡すと「今」を差し替えられます。UTC では 3/31 でも、東京では 4/1 になっていることも確かめられます。"
+    description: |
+      `now()` に `Clock` を渡すと「今」を差し替えられる。UTC で 3/31 15:00 の瞬間は、東京では何日の何時だろうか。2 つの期限の判定結果も、予想してから見よう。
     code: |
       // 「今」を固定した Clock で、期限切れ判定をテストする
       // ここを変えてみよう:Instant の時刻を 14:59:59Z に / ZoneId を "UTC" に

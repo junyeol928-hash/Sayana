@@ -29,7 +29,7 @@ samples:
       System.out.println("田中はいる? " + members.contains("田中"));
   - title: Set の3兄弟と Map の集計
     description: |
-      同じデータを HashSet / LinkedHashSet / TreeSet に入れて並び順を比べ、HashMap で出現回数を数えます。
+      同じデータを HashSet / LinkedHashSet / TreeSet に入れて並び順を比べ、TreeMap で出現回数を数えます。
       HashSet の並びは保証されていない(実装やデータ次第で変わる)点に注意。
     code: |
       // ここを変えてみよう:tags に要素を足す / 重複を増やす
@@ -50,7 +50,8 @@ samples:
       }
       System.out.println("kotlin は? " + count.getOrDefault("kotlin", 0) + "回");
   - title: ループ中の削除と不変コレクション
-    description: 拡張 for の中で remove すると ConcurrentModificationException。`removeIf` なら安全です。`List.of` で作ったリストは変更できません。
+    description: |
+      拡張 for の中での `remove`、`removeIf`、`List.of` のリストへの `add`。例外になるのはどれで、最後にリストには何が残るだろうか。出力を予想してから見よう。
     code: |
       // ここを変えてみよう:削除対象を "B" や "C" にしてみる(最後から2番目の C だと例外が出ない!? コラム参照)
       List<String> list = new ArrayList<>(List.of("A", "B", "C", "D"));

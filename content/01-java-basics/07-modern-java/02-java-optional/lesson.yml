@@ -51,7 +51,8 @@ samples:
           System.out.println("④ get() で例外 → " + e.getMessage());
       }
   - title: orElse と orElseGet の評価タイミング
-    description: 値があるときでも、`orElse` の引数は評価されます。出力の「読み込み中…」が何回出るか数えてみましょう。
+    description: |
+      値があるとき、`orElse` と `orElseGet` に渡した `loadDefault()` は動くだろうか。「読み込み中…」が何回出るかを予想してから見よう。
     code: |
       import java.util.*;
 
@@ -71,7 +72,8 @@ samples:
       String b = found.orElseGet(() -> loadDefault());
       System.out.println("結果: " + b);
   - title: ネストした null チェックを map チェーンに
-    description: 社員 → 部署 → 部署名 と辿る処理。どこで null が出ても `orElse` の既定値に落ちます。
+    description: |
+      社員 → 部署 → 部署名 と辿る処理。部署が null の社員、部署名が null の社員、社員そのものが null のとき、Optional 版は何を返すだろうか。if 版と見比べながら、出力を予想してから見よう。
     code: |
       import java.util.*;
 
@@ -130,7 +132,8 @@ samples:
           }
       }
   - title: findFirst と設定値の既定値
-    description: Stream の `findFirst()` は Optional を返します。設定値の読み込みでは「キーがない」「空白だけ」を既定値に寄せます。
+    description: |
+      Stream の `findFirst()` は Optional を返す。前後に空白のある `" 30 "` と、無いキー `app.mode` は、それぞれ何になるだろうか。出力を予想してから見よう。
     code: |
       import java.util.*;
 
