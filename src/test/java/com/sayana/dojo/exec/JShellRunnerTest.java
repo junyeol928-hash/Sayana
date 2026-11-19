@@ -83,6 +83,31 @@ class JShellRunnerTest {
     }
 
     @Test
+    void コメントの真下の代入文で落ちても行番号はその文の行() {
+        // 代入・複合代入・++ の文は、JShell がコメントを除いた式の頭から行を数える(コメントの行を指していた。30 回目の審査)
+        RunResult a = runner.run("""
+                int[] sales = new int[5];
+                // ここを sales[5] にすると?
+                sales[5] = 31000;
+                """);
+        assertThat(a.exception()).as(a.exception()).contains("at (3行目)");
+        RunResult b = runner.run("""
+                int x = 1, y = 0;
+                // 2 行の
+                // コメント
+                x += 1 / y;
+                """);
+        assertThat(b.exception()).as(b.exception()).contains("at (4行目)");
+        RunResult c = runner.run("""
+                int[] a = new int[1];
+                /* ブロックの
+                   コメント */
+                a[5]++;
+                """);
+        assertThat(c.exception()).as(c.exception()).contains("at (4行目)");
+    }
+
+    @Test
     void 自分で作った例外のクラス名と自動で呼んだmainの中の行も編集欄に合わせる() {
         RunResult r = runner.run("""
                 class Boom extends RuntimeException {

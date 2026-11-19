@@ -189,7 +189,7 @@ public class JShellRunner {
             boolean executedStatement = false;
             List<String> mainCandidates = new ArrayList<>();
             while (!remaining.isBlank()) {
-                int offset = code.length() - remaining.length() + leadingWhitespace(remaining);
+                int start = code.length() - remaining.length() + leadingWhitespace(remaining);
                 SourceCodeAnalysis.CompletionInfo info = sca.analyzeCompletion(remaining);
                 String whole;
                 if (info.completeness().isComplete()) {
@@ -203,8 +203,16 @@ public class JShellRunner {
                     remaining = "";
                 }
                 // 頭に改行が残ったまま渡すと、JShell のスタックトレースの行番号が狂う(本文の 4 行目で落ちても 1 になる)。
-                // 頭の空白を除けば、スニペットの 1 行目は offset の行(lineOf(offset))になる
-                String source = whole.stripLeading();
+                // 頭のコメントも、代入・++ の文ではコメントを除いた式の頭から数えられ、宣言や呼び出しでは数えられる
+                // (コメントの真下の代入文で落ちると、コメントの行を指した。30 回目の審査)。頭の空白とコメントを除いて渡し、
+                // 除いた分だけ offset を進めれば、どの種類のスニペットも 1 行目はコードの行(lineOf(offset))になる
+                String stripped = whole.stripLeading();
+                int skip = leadingComments(stripped);
+                if (skip >= stripped.length()) {
+                    continue; // コメントだけの塊(評価するものが無い)
+                }
+                String source = stripped.substring(skip);
+                int offset = start + skip;
                 for (SnippetEvent ev : js.eval(source)) {
                     if (ev.causeSnippet() != null) {
                         continue;
@@ -377,6 +385,29 @@ public class JShellRunner {
             n++;
         }
         return n;
+    }
+
+    /** 頭の空白と、続く行コメント・ブロックコメントの長さ(コードの始まりの位置) */
+    static int leadingComments(String s) {
+        int i = leadingWhitespace(s);
+        while (i < s.length()) {
+            if (s.startsWith("//", i)) {
+                int nl = s.indexOf('\n', i);
+                i = nl < 0 ? s.length() : nl;
+            } else if (s.startsWith("/*", i)) {
+                int end = s.indexOf("*/", i + 2);
+                if (end < 0) {
+                    return i; // 閉じていないコメントはそのまま渡してコンパイルエラーにさせる
+                }
+                i = end + 2;
+            } else {
+                break;
+            }
+            while (i < s.length() && Character.isWhitespace(s.charAt(i))) {
+                i++;
+            }
+        }
+        return i;
     }
 
     private static int leadingWhitespace(String s) {
