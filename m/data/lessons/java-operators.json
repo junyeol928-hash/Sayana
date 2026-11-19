@@ -47,7 +47,7 @@
   }, {
     "title" : "割り勘とBMIを計算する(Math クラス)",
     "descriptionHtml" : "<p>演習の予習。<code>10.0</code> を <code>10</code> に変えると何が起きるかも試してみよう。\n10000 円を 3 人で割ると、1 人あたりと端数はいくら?</p>\n",
-    "code" : "// 割り勘と BMI を Math クラスで計算してみる。数値を変えてみよう\nint bill = 10000;\nint people = 3;\nSystem.out.println(\"1人あたり: \" + (bill / people) + \"円, 端数: \" + (bill % people) + \"円\");\n\ndouble heightCm = 170;\ndouble weightKg = 65;\ndouble heightM = heightCm / 100;\ndouble bmi = weightKg / (heightM * heightM);\nSystem.out.println(\"BMI(そのまま): \" + bmi);\nSystem.out.println(\"BMI(小数第1位): \" + Math.round(bmi * 10) / 10.0);\n// ↑ 10.0 を 10 にすると? 整数除算になって小数が消える\n\nSystem.out.println(Math.pow(2, 10));   // double で返る\nSystem.out.println(Math.max(3, 7) + \", \" + Math.min(3, 7) + \", \" + Math.abs(-5));\n// -2.5 は -2 になる\nSystem.out.println(Math.round(2.5) + \", \" + Math.round(-2.5));\n",
+    "code" : "// 割り勘と BMI を Math クラスで計算してみる。数値を変えてみよう\nint bill = 10000;\nint people = 3;\nSystem.out.println(\"1人あたり: \" + (bill / people) + \"円, 端数: \" + (bill % people) + \"円\");\n\ndouble heightCm = 170;\ndouble weightKg = 65;\ndouble heightM = heightCm / 100;\ndouble bmi = weightKg / (heightM * heightM);\nSystem.out.println(\"BMI(そのまま): \" + bmi);\nSystem.out.println(\"BMI(小数第1位): \" + Math.round(bmi * 10) / 10.0);\n// ↑ 10.0 を 10 にすると? 整数除算になって小数が消える\n\n// double で返る\nSystem.out.println(Math.pow(2, 10));\nSystem.out.println(Math.max(3, 7) + \", \" + Math.min(3, 7) + \", \" + Math.abs(-5));\n// -2.5 は -2 になる\nSystem.out.println(Math.round(2.5) + \", \" + Math.round(-2.5));\n",
     "result" : {
       "status" : "OK",
       "output" : "1人あたり: 3333円, 端数: 1円\nBMI(そのまま): 22.49134948096886\nBMI(小数第1位): 22.5\n1024.0\n7, 3, 5\n3, -2\n",

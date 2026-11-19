@@ -8,13 +8,6 @@
       "exception" : null,
       "varies" : false
     },
-    "0684ef59bfc7e1005a70bed4" : {
-      "status" : "OK",
-      "output" : "--- 入力: \"12\"\n数量: 12\n1個あたり: 100円\n(チェック終了)\n--- 入力: \"12a\"\n数値ではありません → For input string: \"12a\"\n(チェック終了)\n--- 入力: \"\"\n数値ではありません → For input string: \"\"\n(チェック終了)\n--- 入力: \"0\"\n数量: 0\n0 では割れません → / by zero\n(チェック終了)\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "06f7fa88035577413759eb39" : {
       "status" : "OK",
       "output" : "<p>&lt;b&gt;本日&lt;/b&gt;セール中</p>\n<p><b>本日</b>セール中</p>\n<p>10月11日(日)</p>\n<ul>\n  <li class=\"odd\">\n    <span>1. ボールペン</span>\n    <span>120円</span>\n    \n    <span>残り12個</span>\n  </li>\n  <li>\n    <span>2. &lt;特価&gt;ノート</span>\n    <span>1,500円</span>\n    <b>売り切れ</b>\n    \n  </li>\n  <li class=\"odd\">\n    <span>3. 万年筆</span>\n    <span>32,000円</span>\n    \n    <span>残り1個</span>\n  </li>\n</ul>\n\n",
@@ -50,16 +43,16 @@
       "exception" : null,
       "varies" : false
     },
-    "0a8fb792b83a043b6b763788" : {
+    "12691cb38f7a7d263e9ad4a1" : {
       "status" : "OK",
-      "output" : "1500\n1300\n199.0\n0\n10\n",
+      "output" : "GET /api/items/1 → 200\n  application/json\n  {\"id\":1,\"name\":\"ボールペン\",\"price\":120}\nGET /api/items/99 → 404\n  (注文を登録: 商品1 × 3)\nPOST /orders → 302\n  Location: /orders/100\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "12691cb38f7a7d263e9ad4a1" : {
+    "1432353c14f614730f8f696b" : {
       "status" : "OK",
-      "output" : "GET /api/items/1 → 200\n  application/json\n  {\"id\":1,\"name\":\"ボールペン\",\"price\":120}\nGET /api/items/99 → 404\n  (注文を登録: 商品1 × 3)\nPOST /orders → 302\n  Location: /orders/100\n",
+      "output" : "[age は 150 以下にしてください, email は必須です]\n[]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -78,23 +71,9 @@
       "exception" : null,
       "varies" : false
     },
-    "18b1d167235bd4d5c26aa378" : {
-      "status" : "OK",
-      "output" : "  addTen の中: n = 15\naddTen の後: x = 5\nclear の後: [0, 200]\n  reset の中: [9, 9]\nreset の後: [0, 200]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "192ffc52668bb5ade7ea7774" : {
       "status" : "OK",
       "output" : "--- ① 手動で組み立て(素の Java の DI)---\nOrderService を new した(部品: LogMailSender)\n[LOG] haru@example.com へ送信: コーヒー豆 のご注文を承りました\n--- ② IoC コンテナに組み立てを任せる ---\nOrderService を new した(部品: LogMailSender)\n[LOG] moka@example.com へ送信: ドリップバッグ のご注文を承りました\nもう一度 getBean しても同じもの? true\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "19db03490160aab1ea283a51" : {
-      "status" : "OK",
-      "output" : "toString に @Override は?   false\noldTitle に @Deprecated は? true\n  since=2.0 forRemoval=true\nFormatter に @FunctionalInterface は? true\n12,800円\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -127,6 +106,13 @@
       "exception" : null,
       "varies" : false
     },
+    "1ef94f53d64643978becb21d" : {
+      "status" : "OK",
+      "output" : "✔ 1件目は登録できる\n  例外メッセージ: 登録済みのメールです: taro@example.com\n✔ 大文字・空白違いでも重複として弾く\n✔ 登録件数は1件のまま\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "21238a2847d0d50d1e2d56a0" : {
       "status" : "OK",
       "output" : "一覧: [高橋, 佐藤, 鈴木]\n1番目: 佐藤\n鈴木を削除できた? true\n一覧: [高橋, 田中] 件数: 2\n田中はいる? true\n",
@@ -141,16 +127,9 @@
       "exception" : null,
       "varies" : false
     },
-    "2416a9b47eb9765f0f49127b" : {
+    "22a4e8f27927dcc79c1ac6d9" : {
       "status" : "OK",
-      "output" : "[age は 150 以下にしてください, email は必須です]\n[]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "273ec5402f4d2ff782d38b9d" : {
-      "status" : "OK",
-      "output" : "太郎: 承認してコミット(version=1)\n部長: 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)\n最終状態: APPROVED / 履歴: [APPROVE by 太郎]\n",
+      "output" : "  addTen の中: n = 15\naddTen の後: x = 5\nclear の後: [0, 200]\n  reset の中: [9, 9]\nreset の後: [0, 200]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -180,6 +159,13 @@
       "status" : "OK",
       "output" : "5! = 120\n1 2 6 24 120 720 5040 40320 362880 3628800 \n",
       "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "2cf874ceb9df0535a76aed0e" : {
+      "status" : "OK",
+      "output" : "捨てた場合  : java\n代入した場合: JAVA\na == b      : true\na == c      : false\na.equals(c) : true\nequals           : false\nequalsIgnoreCase : true\n",
+      "values" : [ "\"JAVA\"", "\"JAVA\"" ],
       "exception" : null,
       "varies" : false
     },
@@ -225,13 +211,6 @@
       "exception" : null,
       "varies" : false
     },
-    "35e1c0a487daeeefb4e7b09f" : {
-      "status" : "OK",
-      "output" : "main のフレームから呼び出す\n  → total(500, 3) のフレームを積む\n    → tax(1500) のフレームを積む\n    ← tax が 150 を返して、フレームが消える\n  ← total が 1650 を返して、フレームが消える\nmain に戻った: 1650\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "379084433f666dfffdb83124" : {
       "status" : "OK",
       "output" : "/admin/users → ルール /admin/ (ROLE_ADMIN) → 403 拒否\n",
@@ -259,6 +238,13 @@
       "values" : [ ],
       "exception" : null,
       "varies" : true
+    },
+    "3ecb37c5d7e0ab8a73df948f" : {
+      "status" : "OK",
+      "output" : "1500\n1300\n199.0\n0\n10\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
     },
     "409729d75c58c43f920dacbc" : {
       "status" : "OK",
@@ -337,6 +323,13 @@
       "exception" : null,
       "varies" : false
     },
+    "4ef777c2281c39a04b368d1e" : {
+      "status" : "OK",
+      "output" : "addPoints 後: ハル 150\nreplace 後:   ハル 150\naddOne 後:    10\ncart == alias ? true\ncart == other ? false(中身が同じでも別の実体)\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "503b3ee9c45814d25f3c6316" : {
       "status" : "OK",
       "output" : "件数: 1\nE001 はいる? true\n",
@@ -379,6 +372,20 @@
       "exception" : null,
       "varies" : false
     },
+    "598002816242b64a5f55aba4" : {
+      "status" : "OK",
+      "output" : "toString に @Override は?   false\noldTitle に @Deprecated は? true\n  since=2.0 forRemoval=true\nFormatter に @FunctionalInterface は? true\n12,800円\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "59b92a4c7373da992e09712a" : {
+      "status" : "OK",
+      "output" : "ペン:200円\nノート:300円\n消しゴム:400円\nタイムアウトしたので諦めました\nプールは止まった? true\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : true
+    },
     "5bcaebdba97fd424ff20e316" : {
       "status" : "OK",
       "output" : "--- ソルトなし ---\nharu : 8d969eef6ecad3c2...\nmocha: 8d969eef6ecad3c2...\n--- ソルトあり(ユーザーごとに違う値を混ぜる)---\nharu : b5654ebc58ad792e...\nmocha: 9f285ec9cf22f77a...\n",
@@ -400,9 +407,9 @@
       "exception" : null,
       "varies" : false
     },
-    "60822ea74995e3cc6908c0b5" : {
+    "5fa67a8164a0556a18657591" : {
       "status" : "OK",
-      "output" : "✔ 1件目は登録できる\n  例外メッセージ: 登録済みのメールです: taro@example.com\n✔ 大文字・空白違いでも重複として弾く\n✔ 登録件数は1件のまま\n",
+      "output" : "燃料計(社用車A): 残り 28L\n燃料計(社用車B): 残り 15L\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -435,12 +442,12 @@
       "exception" : null,
       "varies" : false
     },
-    "6d5ec223ee01110a19235358" : {
+    "6e243c4959f300c813147bb6" : {
       "status" : "OK",
-      "output" : "ペン:200円\nノート:300円\n消しゴム:400円\nタイムアウトしたので諦めました\nプールは止まった? true\n",
-      "values" : [ ],
+      "output" : "捨てた後  : 2024-01-31\n7日後     : 2024-02-07\n1か月後   : 2024-02-29\n比較      : true\n日時      : 2024-04-01T09:30\n例外      : Invalid date 'February 29' as '2023' is not a leap year\n",
+      "values" : [ "2024-02-07" ],
       "exception" : null,
-      "varies" : true
+      "varies" : false
     },
     "6e59e3a1614d9827e0295203" : {
       "status" : "OK",
@@ -449,10 +456,10 @@
       "exception" : null,
       "varies" : false
     },
-    "7347d779cac081a7c22af2ce" : {
+    "6f89be3111efa1de5c0ab2b5" : {
       "status" : "OK",
-      "output" : "捨てた場合  : java\n代入した場合: JAVA\na == b      : true\na == c      : false\na.equals(c) : true\nequals           : false\nequalsIgnoreCase : true\n",
-      "values" : [ "\"JAVA\"", "\"JAVA\"" ],
+      "output" : "1人あたり: 3333円, 端数: 1円\nBMI(そのまま): 22.49134948096886\nBMI(小数第1位): 22.5\n1024.0\n7, 3, 5\n3, -2\n",
+      "values" : [ ],
       "exception" : null,
       "varies" : false
     },
@@ -494,13 +501,6 @@
     "7b02e85abdc9dc5ce1d738ce" : {
       "status" : "OK",
       "output" : "田中: 200000円\n鈴木: 96000円\n佐藤: 250000円\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "7b633f26db4712cc88a414c0" : {
-      "status" : "OK",
-      "output" : "ルール違反: 100,000円以上の申請は管理者しか承認できません(状態は SUBMITTED のまま)\n部長が承認しました → APPROVED\n履歴 1 件: [History[action=APPROVE, actor=部長]]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -582,13 +582,6 @@
       "exception" : null,
       "varies" : false
     },
-    "9434f5188439ff038441df68" : {
-      "status" : "OK",
-      "output" : "sales の長さ: 5\n既定値: [0, 0, 0, 0, 0] [null, null, null] [false, false]\n代入後: [12000, 0, 0, 0, 31000]\nprimes: [2, 3, 5, 7] 長さ 4\nprintln に直接渡すと: [I@3d646c37\n",
-      "values" : [ "12000", "31000" ],
-      "exception" : null,
-      "varies" : true
-    },
     "94b5f65c0bc870579f7e45a4" : {
       "status" : "OK",
       "output" : "申請者ID=1 / 金額=120000\nハル  APPLICANT ボタン表示:なし サーバー判定:× 承認者ではない\nモカ  APPROVER  ボタン表示:あり サーバー判定:× 高額は管理者だけ\n部長  ADMIN     ボタン表示:あり サーバー判定:○ 承認できる\n",
@@ -624,12 +617,12 @@
       "exception" : null,
       "varies" : false
     },
-    "a066ef1953ea33a6820b35ec" : {
+    "9eb14dd9a8b1d3f5c87f2ff5" : {
       "status" : "OK",
-      "output" : "a = [99, 2, 3]\nb = [99, 2, 3]\nc = [1, 2, 3]\na == b : true\na == c : false\nArrays.equals(a, c) : true\nlonger = [99, 2, 3, 0, 0]\n",
-      "values" : [ "99", "99" ],
+      "output" : "前半 = 125250\n後半 = 375250\n合計 = 500500\n",
+      "values" : [ ],
       "exception" : null,
-      "varies" : false
+      "varies" : true
     },
     "a3125d77f9769b20ea2499f8" : {
       "status" : "OK",
@@ -652,9 +645,9 @@
       "exception" : null,
       "varies" : false
     },
-    "a434f29efa4e2c6b72c66a2f" : {
+    "a605a70b57dc5a6f49fa306e" : {
       "status" : "OK",
-      "output" : "燃料計(社用車A): 残り 28L\n燃料計(社用車B): 残り 15L\n",
+      "output" : "ルール違反: 100,000円以上の申請は管理者しか承認できません(状態は SUBMITTED のまま)\n部長が承認しました → APPROVED\n履歴 1 件: [History[action=APPROVE, actor=部長]]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -722,23 +715,9 @@
       "exception" : null,
       "varies" : false
     },
-    "b13f0f549e3a55de7b0cbdc3" : {
-      "status" : "OK",
-      "output" : "1人あたり: 3333円, 端数: 1円\nBMI(そのまま): 22.49134948096886\nBMI(小数第1位): 22.5\n1024.0\n7, 3, 5\n3, -2\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "b2404923b20c6e011d970317" : {
       "status" : "OK",
       "output" : "AtomicInteger : 40000(期待値と一致: true)\nsynchronized  : 40000(期待値と一致: true)\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : true
-    },
-    "b28f0bb5e7eeb55c6b725b7a" : {
-      "status" : "OK",
-      "output" : "前半 = 125250\n後半 = 375250\n合計 = 500500\n",
       "values" : [ ],
       "exception" : null,
       "varies" : true
@@ -795,6 +774,13 @@
     "badf3e1f16c043006d419ad8" : {
       "status" : "OK",
       "output" : "要求: Page request [number: 1, size 20, sort: createdAt: DESC,id: DESC]\nOFFSET(読み飛ばす件数) = 20\n中身: [申請25, 申請24, 申請23, 申請22, 申請21, 申請20, 申請19, 申請18, 申請17, 申請16, 申請15, 申請14, 申請13, 申請12, 申請11, 申請10, 申請9, 申請8, 申請7, 申請6]\n総件数 45 / 総ページ 3 / 今 2 ページ目(画面表示は +1)\n前へ? true 次へ? true\nPageRequest.of(-1, 20) → Page index must not be less than zero\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "bdcd79c0d94f2b6c56017042" : {
+      "status" : "OK",
+      "output" : "--- 入力: \"12\"\n数量: 12\n1個あたり: 100円\n(チェック終了)\n--- 入力: \"12a\"\n数値ではありません → For input string: \"12a\"\n(チェック終了)\n--- 入力: \"\"\n数値ではありません → For input string: \"\"\n(チェック終了)\n--- 入力: \"0\"\n数量: 0\n0 では割れません → / by zero\n(チェック終了)\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -890,13 +876,6 @@
       "exception" : null,
       "varies" : false
     },
-    "d6a11b002e9b39450055b5bf" : {
-      "status" : "OK",
-      "output" : "addPoints 後: ハル 150\nreplace 後:   ハル 150\naddOne 後:    10\ncart == alias ? true\ncart == other ? false(中身が同じでも別の実体)\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "da4f97ae4fea25eb478bef06" : {
       "status" : "OK",
       "output" : "trim  : [　 Yamada.Taro@Example.co.jp]\nstrip : [yamada.taro@example.co.jp]\nlength=25 at=11\nユーザー部: yamada.taro / ドメイン: example.co.jp\n社内ドメイン? true\n名前だけ  : yamada taro\n先頭の文字: y\n区切り線  : --------------------\n空白だけ? true / 空文字? false\n",
@@ -936,13 +915,6 @@
       "status" : "OK",
       "output" : "--- 山田太郎 / taro@example.com / 30\nOK!\n---     / taro / 17\nage: 18歳以上が対象です\nemail: メールの形式が正しくありません\nname: 名前を入力してください\n--- あああああああああああああああああああああ /  / null\nage: 年齢を入力してください\nemail: メールを入力してください\nname: 名前は20文字以内です\n",
       "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "e0b9cc99e5ac6f17b9cb9f60" : {
-      "status" : "OK",
-      "output" : "捨てた後  : 2024-01-31\n7日後     : 2024-02-07\n1か月後   : 2024-02-29\n比較      : true\n日時      : 2024-04-01T09:30\n例外      : Invalid date 'February 29' as '2023' is not a leap year\n",
-      "values" : [ "2024-02-07" ],
       "exception" : null,
       "varies" : false
     },
@@ -1009,12 +981,40 @@
       "exception" : null,
       "varies" : false
     },
+    "f06b9de9973d4ce151b713c2" : {
+      "status" : "OK",
+      "output" : "main のフレームから呼び出す\n  → total(500, 3) のフレームを積む\n    → tax(1500) のフレームを積む\n    ← tax が 150 を返して、フレームが消える\n  ← total が 1650 を返して、フレームが消える\nmain に戻った: 1650\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "f0a00194356d9e19001281d2" : {
       "status" : "OK",
       "output" : "次へ: /requests/search?status=SUBMITTED&keyword=%E5%87%BA%E5%BC%B5%20%E5%A4%A7%E9%98%AA&page=1\n  status = SUBMITTED\n  keyword = 出張 大阪\n  page = 1\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
+    },
+    "f235edf2dee45efa2cc80d04" : {
+      "status" : "OK",
+      "output" : "a = [99, 2, 3]\nb = [99, 2, 3]\nc = [1, 2, 3]\na == b : true\na == c : false\nArrays.equals(a, c) : true\nlonger = [99, 2, 3, 0, 0]\n",
+      "values" : [ "99", "99" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "f2cb0dddaab3698d9f68e1a9" : {
+      "status" : "OK",
+      "output" : "太郎: 承認してコミット(version=1)\n部長: 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)\n最終状態: APPROVED / 履歴: [APPROVE by 太郎]\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "f443f7815bcf735dc36ba512" : {
+      "status" : "OK",
+      "output" : "sales の長さ: 5\n既定値: [0, 0, 0, 0, 0] [null, null, null] [false, false]\n代入後: [12000, 0, 0, 0, 31000]\nprimes: [2, 3, 5, 7] 長さ 4\nprintln に直接渡すと: [I@3d646c37\n",
+      "values" : [ "12000", "31000" ],
+      "exception" : null,
+      "varies" : true
     },
     "f5086f7af71daa149163e21a" : {
       "status" : "OK",
