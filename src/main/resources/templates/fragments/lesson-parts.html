@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="readDone" class="read-done done" th:attr="data-dye=${status != null ? status.dyeLevel() : null}, data-dye-label=${status != null ? status.dyeLabel() : null}"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了。次は下のサンプルを動かしてみよう</div>
+<div th:fragment="readDone" class="read-done done" th:attr="data-dye=${status != null ? status.dyeLevel() : null}, data-dye-label=${status != null ? status.dyeLabel() : null}"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><th:block th:text="${afterRead}">読了。次は下のサンプルを動かしてみよう</th:block></div>
 
 <li th:fragment="checklistItem" class="check-item" th:classappend="${checked} ? 'checked'">
     <form th:attr="hx-post=@{/lessons/{id}/checklist(id=${lesson.id})}" hx-target="closest li" hx-swap="outerHTML">

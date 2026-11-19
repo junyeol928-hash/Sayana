@@ -466,6 +466,13 @@ function phraseWrap(el) {
 
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 
+/** 「読んだ」を押したあとの 1 行。本文のすぐ下の段を指す(PC の Lesson.afterReadHint と同じ。スマホのサンプルは動かさず予想して開く) */
+function afterRead(L) {
+  if (L.atWork?.length) return "読了。次は下の仕事のコードを読んでみよう";
+  if (L.samples?.length) return "読了。次は下のサンプルの結果を予想してみよう";
+  return "読了。次は下のクイズで縹へ";
+}
+
 // ------------------------------------------------------------ 画面
 
 const view = () => $("#view");
@@ -1527,7 +1534,7 @@ function bindLesson(L, meta) {
       S.read[L.id] = true;
       recordDay();
       const dyed = refreshDye(meta);
-      el.outerHTML = `<div class="done">${icon("check")}読了。次はクイズで縹へ</div>${dyedLine(dyed)}`;
+      el.outerHTML = `<div class="done">${icon("check")}${afterRead(L)}</div>${dyedLine(dyed)}`;
       markStep("read");
     } else if (action === "check") {
       const list = new Set(S.checklist[L.id] || []);
@@ -1552,7 +1559,7 @@ function bindLesson(L, meta) {
       el.closest(".self-check").querySelector(".dyed-line")?.remove();
       if (dyed) el.closest(".self-check").insertAdjacentHTML("beforeend", dyedLine(dyed));
       stepCount("write", L.exercises.filter((e) => S.exercise[e.key]?.selfPass).length, L.exercises.length);
-      toast(ok ? "記録しました。1日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
+      toast(ok ? "記録しました。1 日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
     } else if (action === "ai-review" || action === "ai-hint") {
       const card = el.closest("article");
       const code = card.querySelector("textarea").value;
@@ -1633,7 +1640,7 @@ function bindLesson(L, meta) {
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
       ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai">${dyeSwatch(3)}演習ができたら藍に</p>` : ""}
-      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
+      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
   };

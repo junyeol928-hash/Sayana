@@ -60,6 +60,20 @@ public record Lesson(
         return goals.stream().map(g -> org.springframework.web.util.HtmlUtils.htmlEscape(g).replaceAll("`([^`]+)`", "<code>$1</code>")).toList();
     }
 
+    /**
+     * 「読んだ」を押したあとの 1 行。本文のすぐ下の段を指す(いつも「次は下のサンプルを動かしてみよう」で、55 本のうち 33 本は
+     * 次が仕事のコード、3 本はサンプルが無かった。30 回目の審査)。スマホ版 app.js の afterRead と同じ文(スマホのサンプルは「結果を予想してみよう」)
+     */
+    public String afterReadHint() {
+        if (!atWork.isEmpty()) {
+            return "読了。次は下の仕事のコードを読んでみよう";
+        }
+        if (!samples.isEmpty()) {
+            return "読了。次は下のサンプルを動かしてみよう";
+        }
+        return "読了。次は下のクイズで縹へ";
+    }
+
     /** レッスンにある段(読む → 仕事のコード → サンプル → クイズ → 演習 → 読解 → STSで試す)。レッスン画面の段の並びと同じ。 */
     public List<String> stepKeys() {
         List<String> keys = new ArrayList<>(List.of("read"));

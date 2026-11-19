@@ -70,6 +70,7 @@ public class LessonController {
         model.addAttribute("lessonId", id);
         // 冒頭の色見本を浅葱に書き換えるため(app.js が data-dye を読む。演習・クイズの採点結果と同じ)
         model.addAttribute("status", progress.status(lesson));
+        model.addAttribute("afterRead", lesson.afterReadHint());
         return "fragments/lesson-parts :: readDone";
     }
 
