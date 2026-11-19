@@ -6,7 +6,7 @@
 <main id="main" class="container narrow">
     <h1 class="page-title">復習</h1>
     <details class="review-about"><summary>いろいろなレッスンの問題を混ぜて出します。選択肢の並びは日ごとに変わります</summary>
-        <p class="muted small">クイズと演習は、解いた日から 1日後 → 3日後 → 7日後 → 14日後 に出題されます。正解すると間隔が伸び、14日後にも正解できたら卒業。間違えたら1日後からやり直し。答える前はどのレッスンの問題かを見せません(どの知識を使う問題かを、自分で見分ける練習になるので)。</p></details>
+        <p class="muted small">クイズと演習は、解いた日から 1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。正解すると間隔が伸び、14 日後にも正解できたら卒業。間違えたら 1 日後からやり直し。答える前はどのレッスンの問題かを見せません(どの知識を使う問題かを、自分で見分ける練習になるので)。</p></details>
 
     <section th:if="${breakHere != null}" class="review-break" aria-labelledby="break-title"
              th:with="n=${breakBlock.size()}, ok=${breakBlock.size() - breakMiss}">

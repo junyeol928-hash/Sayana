@@ -8,7 +8,8 @@
         <a th:href="@{/}">ホーム</a> ›
         <a th:if="${lesson}" th:href="@{/lessons/{id}(id=${lesson.id})} + '#more'" th:text="${lesson.title}"></a> › 類題
     </nav>
-    <p class="muted small">AIが作った類題です(模範解答が採点テストに合格することは確認済み)。</p>
+    <p class="muted small">AIが作った類題です(模範解答が採点テストに合格することは確認済み)。
+        <span id="editor-keys-practice" data-editor-help>編集欄の中の <kbd>Tab</kbd> は字下げ。外へ出るときは <kbd>Esc</kbd> のあと <kbd>Tab</kbd>。</span></p>
     <article th:replace="~{fragments/exercise :: card(${view})}"></article>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

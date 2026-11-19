@@ -48,6 +48,13 @@
   --code-ink: oklch(.93 .015 240);
   --code-muted: oklch(.72 .03 245);
   --inline-code-bg: oklch(.945 .018 245);
+  /* コードの色付け(藍の夜): 予約語=縹、文字列=刈安、注釈=青竹、数=朱、型=藍白。地はどちらのテーマも暗いので 1 組だけ。
+     読むコード(highlight.js)と編集欄(CodeMirror)で同じ値を使う */
+  --syn-key: oklch(.8 .1 236);
+  --syn-str: oklch(.86 .09 85);
+  --syn-meta: oklch(.82 .1 165);
+  --syn-num: oklch(.8 .1 40);
+  --syn-type: oklch(.94 .03 230);
   /* 教材の SVG 図が使う名前(ローカル版から移した図と互換) */
   --ink-faint: var(--ink-muted);
   /* 刺し子(ランニングステッチ)の線 */
@@ -195,15 +202,25 @@ button { font: inherit; letter-spacing: inherit; }
 .stitch { height: 2px; border: 0; margin: 0; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
 
 /* highlight.js の色(藍の夜): 文字列=刈安、注釈=青竹、予約語=縹、数=朱 */
-.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: oklch(.8 .1 236); }
-.hljs-string, .hljs-regexp { color: oklch(.86 .09 85); }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: var(--syn-key); }
+.hljs-string, .hljs-regexp { color: var(--syn-str); }
 .hljs-comment, .hljs-quote { color: var(--code-muted); font-style: normal; }
-.hljs-meta, .hljs-meta .hljs-keyword { color: oklch(.82 .1 165); }
-.hljs-number, .hljs-symbol { color: oklch(.8 .1 40); }
-.hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in { color: oklch(.94 .03 230); font-weight: 600; }
+.hljs-meta, .hljs-meta .hljs-keyword { color: var(--syn-meta); }
+.hljs-number, .hljs-symbol { color: var(--syn-num); }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in { color: var(--syn-type); font-weight: 600; }
 .hljs-params, .hljs-variable, .hljs-attr { color: var(--code-ink); }
-.hljs-addition { color: oklch(.82 .1 165); }
-.hljs-deletion { color: oklch(.8 .1 40); }
+.hljs-addition { color: var(--syn-meta); }
+.hljs-deletion { color: var(--syn-num); }
+/* 編集欄(CodeMirror)の色付け。app.js が @lezer/highlight の classHighlighter で tok-* を付ける */
+.cm-editor .tok-keyword, .cm-editor .tok-atom, .cm-editor .tok-bool, .cm-editor .tok-literal { color: var(--syn-key); }
+.cm-editor .tok-string, .cm-editor .tok-string2 { color: var(--syn-str); }
+.cm-editor .tok-comment { color: var(--code-muted); }
+.cm-editor .tok-meta { color: var(--syn-meta); }
+.cm-editor .tok-number { color: var(--syn-num); }
+.cm-editor .tok-typeName, .cm-editor .tok-className, .cm-editor .tok-namespace { color: var(--syn-type); font-weight: 600; }
+.cm-editor .tok-invalid { color: var(--syn-num); text-decoration: underline wavy; }
+/* 読むコードが色を付けない語(引数名の to、this・var)は地の文字に戻す(app.js の .tok-plain。外側でも内側でも効くように) */
+.cm-editor .tok-plain, .cm-editor .tok-plain [class*="tok-"] { color: var(--code-ink); font-weight: 400; }
 
 /* ================================================================ 線のアイコン(inline SVG、線 1.75px) */
 .icon { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
@@ -514,10 +531,24 @@ a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: 
 .progress .bar { height: 100%; background: var(--dye-3); border-radius: 999px; }
 
 /* ================================================================ レッスン */
-.lesson-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 48px; max-width: 1320px; margin: 0 auto; padding: 24px 28px; }
+/* --measure: 本文の行の長さ。17px で 1 行 約 42 字(860px・約 51 字では、行の頭へ戻る目の移動が長かった。27 回目の審査)
+   --rail-w・--rail-gap: 本文の軸の幅と、軸から本文までの空き。--bleed: 軸がある間、コードと図だけ右へ張り出す幅(下の「本文の軸」) */
+.lesson-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 48px; max-width: 1320px; margin: 0 auto; padding: 24px 28px;
+  --measure: 46rem; --rail-w: 48px; --rail-gap: 40px; --bleed: clamp(124px, calc((100vw - 1280px) / 2 + 124px), 200px); }
 .lesson-main { min-width: 0; max-width: 760px; }
 .lesson-layout.no-tutor { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
 .lesson-layout.no-tutor .lesson-main { max-width: 860px; margin: 0 auto; width: 100%; }
+@media (min-width: 1024px) { .lesson-layout.no-tutor .lesson-main { max-width: var(--measure); } }
+/* PC の冒頭の要約は行の長さをそろえる(pretty でも 1024px 以上で 9 本の最後の行に「で。」だけが落ちた。28 回目の審査)。
+   そろえると「仕組 / み」と語の途中で折れたので、語の切れ目で折る(29 回目の審査)。スマホ版は .lesson-layout を使わない */
+@media (min-width: 1024px) { .lesson-layout .lesson-hero .summary { text-wrap: balance; word-break: auto-phrase; } }
+/* 軸の出ない 1024〜1279px の 1 列も、コード・図・編集欄・演習だけ左右へ同じだけ張り出す(本文の行は 42 字のまま。
+   ここだけ 736px のままで、サンプルの編集欄の 3 本に 2 本が横に送られ、左右には 144〜232px の空きが残った。29 回目の審査) */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .lesson-layout.no-tutor { --bleed-x: clamp(0px, calc((100vw - 736px) / 2 - 72px), 100px); }
+  .lesson-layout.no-tutor :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-inline: calc(var(--bleed-x) * -1); }
+  .lesson-layout.no-tutor #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
+}
 .ai-off-line { font-size: .8125rem; color: var(--ink-muted); }
 /* レッスンの冒頭もホームと同じ「大きな札」: 左に藍の軸(部と章を縦書き)、題は札の文字のように */
 .lesson-hero { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0 24px; padding: 8px 0 4px; }
@@ -612,6 +643,75 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 .step[aria-current="true"]::after { content: ""; position: absolute; left: 8px; right: 12px; bottom: 2px; height: 2px; border-radius: 1px; background: var(--accent); }
 .step small { color: var(--ink-muted); font-weight: 400; }
 @media (min-width: 1024px) { .step { font-size: 1rem; } }
+
+/* 本文の軸(PC の 1280px 以上・AI の欄が無い 1 列): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと段ごとの縦の運針を載せる。
+   済んだ段は糸、読んでいる段は朱の玉結びが読み進めた分だけ下りて刺し子の目を出し、まだの段は針穴。段の名前は軸の左に下げる。
+   段の帯(.stepper)と同じ段・同じ済み・同じ「いまの段」を写すので、軸がある間は帯を隠す(上と左に同じ並びを 2 つ出さない)。
+   軸は app.js の buildRail が作り、作れたときだけ .has-rail を付ける(JS が動かなければ、帯のまま) */
+.lesson-rail { display: none; }
+@media (min-width: 1280px) {
+  .lesson-layout.no-tutor.has-rail .lesson-main { position: relative; max-width: calc(var(--rail-w) + var(--rail-gap) + var(--measure)); padding-left: calc(var(--rail-w) + var(--rail-gap)); }
+  /* 冒頭は軸の幅だけ左へ出し、題の頭を本文の頭にそろえる。冒頭の軸は、上から下まで続く本文の軸が兼ねる */
+  .has-rail .lesson-hero { margin-left: calc((var(--rail-w) + var(--rail-gap)) * -1); grid-template-columns: var(--rail-w) minmax(0, 1fr); column-gap: var(--rail-gap); }
+  .has-rail .lesson-hero .lesson-axis { visibility: hidden; }
+  .has-rail .stepper-wrap { display: none; }
+  .has-rail .goals { margin-top: 28px; }
+  /* overflow-anchor: none … 軸の中は玉結びと目が絶えず動くので、ブラウザがスクロールの支点に選ぶと、図が描けて上の段が伸びた
+     ときに読む所が流された(「読み直す」で問いに着かない。28 回目の審査)。支点は本文の段落に任せる */
+  .has-rail .lesson-rail {
+    display: block; position: absolute; left: 0; top: 0; bottom: 0; width: var(--rail-w); z-index: 1; overflow-anchor: none;
+    background-color: var(--kon); color: var(--kon-ink);
+    background-image: repeating-linear-gradient(180deg, var(--kon-muted) 0 7px, transparent 7px 13px); background-size: 1.5px 100%; background-repeat: no-repeat; background-position: 100% 0;
+  }
+  /* 本文の段落の 1 行は 42 字に詰めたまま、コード・図・サンプルの編集欄と出力・演習だけを右へ張り出す(736px では
+     サンプルの編集欄の 3 本に 2 本が横に送られた。28 回目の審査)。1280px で 124px、広い画面ほど広げて 1432px 以上で 200px。
+     どの幅でも画面の右端から 100px 前後あく(1440px でサンプルの編集欄の横送りは 149 本中 20 本) */
+  .has-rail :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-right: calc(var(--bleed) * -1); }
+  /* 演習のカードは編集欄のために張り出すが、問題文は本文と同じ 42 字のまま(カードごと広げると 1 行 55 字前後に戻った。29 回目の審査) */
+  .has-rail #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
+  /* 布は本文の終わりまで続き、部の名前と運針だけがヘッダーの下に留まる(88px = ヘッダー 64px + 上の余白 24px。開いた直後も下が切れない) */
+  .rail-inner { position: sticky; top: 64px; height: calc(100vh - 88px); max-height: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+  .rail-part { margin: 0; flex: none; writing-mode: vertical-rl; font: 700 .875rem/1 var(--head); letter-spacing: .24em; }
+  .rail-steps { align-self: stretch; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; margin-top: 28px; --label: 168px; }
+  /* 1 段 = 段の名前(軸の左)+ 運針の 1 目(軸の中)。押せる範囲は名前から目まで(44px 以上) */
+  /* 名前と目は行の頭にそろえ、目は名前の 1 行目の高さから下ろす(行の中ほどに名前、上の端に玉結びでは、玉が名前から浮いた)。
+     いまの段は行を長く取り、玉結びが読んだ分だけはっきり下りる(短い行では長い段を読んでも 1〜2 目しか進まなかった) */
+  .rail-step { flex: 1 1 0; min-height: 44px; max-height: 72px; margin-left: calc((var(--label) + 16px) * -1); display: grid; grid-template-columns: var(--label) var(--rail-w); column-gap: 16px; align-items: start; text-decoration: none; border-radius: var(--r-s); }
+  /* 玉結びは行の下端の 14px 手前で止め、次の段との間も 14px に広げる(行の下端まで下りると、次の段の名前の横に来て
+     次の段の印に見えた。29 回目の審査) */
+  .rail-step[aria-current="true"] { flex-grow: 3; max-height: 144px; margin-bottom: 8px; }
+  .rail-step[aria-current="true"] .rail-stitch { margin-bottom: 14px; }
+  .rail-label { justify-self: end; text-align: right; white-space: nowrap; font-size: .875rem; font-weight: 700; line-height: 1.4; color: var(--ink-muted); transition: color .16s var(--ease); }
+  .rail-label small { margin-left: 4px; font-weight: 400; color: var(--ink-muted); }
+  .rail-step.sewn .rail-label { color: var(--ink); }
+  .rail-step[aria-current="true"] .rail-label { color: var(--accent-ink); }
+  .rail-step:hover .rail-label { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
+  /* 運針の目: 済みは糸(藍白)、まだは針穴(ホームの運針と同じ 1 段 1 目)。読んでいる段は、玉結びが段の中を読んだ割合だけ下り、
+     通ったところに刺し子の目(9px・間 6px)が現れる。目は伸び縮みさせず、見える範囲を目の切れ目で広げる(段の帯の縫い線と同じ。--k は app.js) */
+  .rail-stitch { position: relative; align-self: stretch; margin-top: 10px; color: var(--kon-ink); border-radius: var(--r-s); }
+  .rail-stitch::before { content: ""; position: absolute; left: calc(50% - 1.5px); top: 0; width: 3px; height: 0; border-radius: 2px; transform-origin: top center; transition: height .16s var(--ease); }
+  .rail-step[aria-current="true"] .rail-stitch::before { height: var(--k, 0px); background: repeating-linear-gradient(180deg, currentColor 0 9px, transparent 9px 15px); }
+  /* 通ったが済んでいない段は、通った所まで弱い色の目で残す(ほかの段へ移ると目が消えて針穴に戻った。28 回目の審査) */
+  .rail-step.passed:not(.sewn) .rail-stitch::before { height: var(--r, 0px); background: repeating-linear-gradient(180deg, var(--kon-muted) 0 9px, transparent 9px 15px); opacity: .7; }
+  .rail-step.sewn .rail-stitch::before { height: 100%; background: currentColor; opacity: 1; }
+  /* まだの段の針穴は、名前の 1 行目の高さに 1 つ */
+  .rail-step:not(.sewn):not(.passed):not([aria-current="true"]) .rail-stitch::after { content: ""; position: absolute; left: calc(50% - 2.5px); top: -2.5px; width: 5px; height: 5px; border-radius: 50%; background: var(--kon-muted); }
+  .rail-step:focus-visible { outline-offset: 0; }
+  .rail-step:focus-visible .rail-stitch { box-shadow: 0 0 0 2px var(--kon-ink); } /* 藍の布の上では藍の輪が見えないので、軸の中の目も藍白で囲む */
+  /* 「読む」を最後まで通ったのに「読んだ」を押していないときだけ、済ませ方を名前の下に 1 行 */
+  .rail-step.read-pending .rail-label::after { content: "「読んだ」で済み"; display: block; font-size: .8125rem; font-weight: 400; color: var(--ink-muted); }
+  /* 済んだ段の数(ホームの運針と同じ言い方)。軸の 48px には入らないので、段の名前と同じく左に下げる */
+  .rail-cap { flex: none; margin: 8px 0 0 calc((var(--label) + 16px) * -1); width: var(--label); text-align: right; font-size: .8125rem; line-height: 1.5; color: var(--ink-muted); }
+  .rail-cap b { color: var(--ink); }
+  /* 玉結びの朱は、藍の布の上では暗い表示の朱(明るい表示の朱は布との差が 2.8:1。こちらは 6.1:1) */
+  .rail-step[aria-current="true"] .rail-stitch::after { content: ""; position: absolute; left: calc(50% - 5.5px); top: -5.5px; width: 11px; height: 11px; border-radius: 50%;
+    background: oklch(.72 .14 40); transform: translateY(var(--k, 0px)); transition: transform .16s var(--ease); }
+  /* 段が済んだ瞬間だけ、その目を上から縫う(「縫う」240ms。動きの種類は増やさない) */
+  .rail-step.just .rail-stitch::before { animation: sew-down .24s var(--ease) both; }
+  .rail-back { position: absolute; top: 8px; right: calc(100% + 16px); }
+}
+@keyframes sew-down { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .rail-stitch::before, .rail-stitch::after, .rail-label { transition: none !important; } .rail-step.just .rail-stitch::before { animation: none; } }
 
 .lesson-section { margin: 64px 0; }
 .section-title { display: flex; gap: 12px; align-items: baseline; font-size: 1.5rem; margin: 0 0 16px; padding: 0; border: 0; }
@@ -871,29 +971,49 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); tab-size: 4;
 }
 .code-input { min-height: 220px; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
-.code-form .cm-editor { border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); max-height: 520px; }
+/* PC の編集欄も、ほかのコードの面と同じ褐の地と色付け(白地に紫・緑の既定の配色だと、ここだけ別のサイトに見えた。27 回目の審査)。
+   読み込めずに素の textarea で動くときも同じ地に。スマホ版の .code-input は白地のまま(上の組) */
+.code-form textarea.code-editor, .code-form .plain-editor { background: var(--code-bg); color: var(--code-ink); border-color: var(--code-bg); caret-color: var(--code-ink); }
+.code-form .cm-editor { border: 1px solid var(--code-bg); border-radius: var(--r-m); background: var(--code-bg); color: var(--code-ink); max-height: 520px; }
 .code-form .cm-editor.cm-focused { outline: 3px solid var(--accent); outline-offset: 1px; }
 .code-form .cm-scroller { font-family: var(--mono); min-height: 120px; }
+.code-form .cm-editor .cm-content { caret-color: var(--code-ink); }
+.code-form .cm-editor .cm-cursor, .code-form .cm-editor .cm-dropCursor { border-left-color: var(--code-ink); }
+.code-form .cm-editor .cm-gutters { background: var(--code-bg); color: var(--code-muted); border-right: 1px solid oklch(1 0 0 / .08); }
+.code-form .cm-editor .cm-activeLine { background: oklch(1 0 0 / .045); }
+.code-form .cm-editor .cm-activeLineGutter { background: oklch(1 0 0 / .07); color: var(--code-ink); }
+/* 選択は縹を薄く(既定の灰色は褐の地で見分けにくい)。CodeMirror の基本の組より強い指定にする */
+.code-form .cm-editor .cm-selectionLayer .cm-selectionBackground, .code-form .cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground { background: oklch(.6 .11 240 / .42); }
+.code-form .cm-editor .cm-matchingBracket, .code-form .cm-editor.cm-focused .cm-matchingBracket { background: oklch(1 0 0 / .14); color: inherit; }
+.code-form .cm-editor .cm-nonmatchingBracket, .code-form .cm-editor.cm-focused .cm-nonmatchingBracket { background: none; color: var(--syn-num); }
+.code-form .cm-editor .cm-foldPlaceholder { background: oklch(1 0 0 / .1); border: 0; color: var(--code-ink); }
+.code-form .cm-editor .cm-selectionMatch { background: oklch(1 0 0 / .1); }
 .code-editor.tall + .cm-editor, .code-form textarea.tall { min-height: 360px; }
 .actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-.run-result, .grade-result { border-radius: var(--r-m); padding: 12px 16px; margin: 10px 0; background: var(--surface-2); border: 0; }
-.run-result.status-ok { background: var(--ok-soft); }
-.run-result:not(.status-ok) { background: var(--ng-soft); }
+/* 実行・採点の結果は面を塗らず、左の 3px の線で成否を示す(藍は通った、朱は止まった)。緑や朱の全面の塗りが、帯・軸の藍より
+   強く見えた(28 回目の審査)。スマホのサンプルの結果(.sample-result)は、この下の決めごとが上書きする */
+.run-result, .grade-result { border-radius: 0 var(--r-m) var(--r-m) 0; padding: 12px 16px; margin: 10px 0; background: var(--surface-2); border: 0; border-left: 3px solid var(--accent); }
+.run-result:not(.status-ok) { border-left-color: var(--shu); }
 .run-meta { display: flex; justify-content: space-between; font-size: .8125rem; color: var(--ink-muted); }
 .console { background: var(--code-bg); color: var(--code-ink); margin: 8px 0; max-height: 360px; }
 .exception { background: var(--ng-soft); color: var(--ink); }
+/* PC の実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す。1 行目(例外の名前と理由)だけ朱の文字(サーモン色の塗りの箱で、
+   理由の「… is null」が右で切れていた。29 回目の審査)。スマホのサンプルの結果(.sample-result)は使わない入れ物なので変わらない */
+.sample-out pre.exception, #playground-out pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sample-out pre.exception::first-line, #playground-out pre.exception::first-line { color: var(--syn-num); }
 .values .arrow { color: var(--accent-ink); font-weight: 700; }
 .diagnostics { padding-left: 1.2em; color: var(--ink); }
 .code-line { margin: 4px 0; padding: 6px 10px; background: var(--surface); border-radius: var(--r-s); font-size: 13px; color: var(--ink); }
 .grade-banner { font-size: 1.1rem; font-weight: 700; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
 .grade-banner > * { white-space: nowrap; }
-.grade-result.status-passed { background: var(--ok-soft); }
-.grade-result:not(.status-passed) { background: var(--ng-soft); }
+.grade-result:not(.status-passed) { border-left-color: var(--shu); }
+.grade-result.status-passed .grade-icon { color: var(--accent-ink); }
+.grade-result:not(.status-passed) .grade-icon { color: var(--ng); }
 .grade-message { margin: 4px 0; }
 .tests { list-style: none; padding: 0; margin: 8px 0; }
 .tests li { padding: 3px 0; }
 .tests .mark { display: inline-block; width: 1.6em; font-weight: 700; }
-.tests .pass .mark { color: var(--ok); }
+.tests .pass .mark { color: var(--accent-ink); }
 .tests .fail .mark { color: var(--shu); }
 .test-message { margin: 4px 0 8px 1.6em; background: var(--surface); color: var(--ink); font-size: 13px; white-space: pre-wrap; }
 .review-note { margin: 0; font-size: .875rem; color: var(--ink-muted); } /* 押せない文字。塗りの札にするとボタンに見えた(19 回目の審査) */
@@ -1345,7 +1465,7 @@ p.review-source { display: block; min-height: 0; border: 0; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 @media print {
-  .site-header, .bottom-nav, .tutor, .tutor-fab, .stepper, .site-footer { display: none !important; }
+  .site-header, .bottom-nav, .tutor, .tutor-fab, .stepper, .lesson-rail, .site-footer { display: none !important; }
 }
 
 /* 読むためのコードがカードや解説の箱の中にあるとき: 行番号の列が左端、箱の余白から外へ出さない */

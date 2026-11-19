@@ -216,6 +216,7 @@ public class ReviewService {
         if (item.isGraduated()) {
             return "卒業(もう復習しなくてOK)";
         }
-        return INTERVAL_DAYS[Math.min(item.getStage(), INTERVAL_DAYS.length - 1)] + "日後に復習";
+        // 「1 日後の復習」(採点結果では「1 日後の復習に入りました」。復習の画面の「3 日後の復習」と同じ言い方。29 回目の審査)
+        return INTERVAL_DAYS[Math.min(item.getStage(), INTERVAL_DAYS.length - 1)] + " 日後の復習";
     }
 }

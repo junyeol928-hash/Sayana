@@ -24,10 +24,11 @@
             <pre class="code-line" th:if="${!#strings.isEmpty(d.codeLine)}" th:text="${d.codeLine}"></pre>
         </li>
     </ul>
-    <pre class="exception" th:if="${result.exception != null}" th:text="${result.exception}"></pre>
+    <pre class="exception" th:if="${result.exception != null}" th:text="${result.displayException()}"></pre>
     <p class="muted small" th:if="${result.ok() and #strings.isEmpty(result.output) and result.values.isEmpty()}">(出力はありませんでした)</p>
 
-    <form th:if="${!result.ok() and result.status.name() != 'BUSY'}" class="explain-form"
+    <!--/* AI が未設定なら押せないボタンを出さない(採点結果と同じ) */-->
+    <form th:if="${aiAvailable and !result.ok() and result.status.name() != 'BUSY'}" class="explain-form"
           hx-post="/ai/explain-run" hx-target="next .ai-slot" hx-swap="innerHTML" hx-disabled-elt="find button">
         <input type="hidden" name="lessonId" th:value="${lessonId}">
         <textarea name="code" hidden th:text="${code}"></textarea>

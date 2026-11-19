@@ -2,15 +2,30 @@
 // CodeMirror / Mermaid / highlight.js は CDN から読む。読めなくても textarea のまま動く。
 
 // 依存パッケージを全部固定して、@codemirror/state などが1つのインスタンスに揃うようにする
-const CM_DEPS = "?deps=" + [
-  "@codemirror/state@6.7.6", "@codemirror/view@6.43.14", "@codemirror/language@6.13.1",
-  "@codemirror/commands@6.11.1", "@codemirror/lint@6.9.7", "@codemirror/autocomplete@6.20.3",
-  "@codemirror/search@6.7.2", "@lezer/common@1.5.3", "@lezer/highlight@1.2.5", "@lezer/lr@1.4.11",
-  "@lezer/java@1.1.5",
-].join(",");
+const CM_V = {
+  state: "@codemirror/state@6.7.6", view: "@codemirror/view@6.43.14", language: "@codemirror/language@6.13.1",
+  commands: "@codemirror/commands@6.11.1", lint: "@codemirror/lint@6.9.7", autocomplete: "@codemirror/autocomplete@6.20.3",
+  search: "@codemirror/search@6.7.2", common: "@lezer/common@1.5.3", highlight: "@lezer/highlight@1.2.5", lr: "@lezer/lr@1.4.11",
+  java: "@lezer/java@1.1.5",
+};
+const CM_DEPS = "?deps=" + Object.values(CM_V).join(",");
+// esm.sh は ?deps= に並べた依存の組ごとに別のファイル(= 別のインスタンス)を配る。basicSetup の中で使われているものと同じに
+// なるよう、view・language などには自分の依存だけを渡す(全部を渡すと別物になり、keymap の Ctrl+Enter や色付けの指定が
+// 黙って無視されていた)
+const cmUrl = (pkg, ...deps) => `https://esm.sh/${pkg}?deps=${deps.map((d) => CM_V[d]).join(",")}`;
 
 let cm = null;            // CodeMirror のモジュール群(読み込めたら入る)
 let activeView = null;    // 最後に触ったエディタ
+// 図(Mermaid)とコードの色付けと書体がそろったら解ける。着地(前回の続き・読み直す・用語集の語)は、そのあとにもう一度やり直す。
+// 図はエディタの読み込みのあとに描かれ、上の段が最大 1,000px ほど伸びるので、先に着いた所から流されていた(28 回目の審査)
+let pageSettled = Promise.resolve();
+let userMoved = false;
+let resumeLanding = false; // 前回の続きの位置へ戻しているとき(段の頭へのハッシュの着地で上書きしない)
+for (const t of ["wheel", "touchstart", "keydown", "mousedown"]) addEventListener(t, () => { userMoved = true; }, { once: true, passive: true });
+/** 落ち着いたあとに着地をやり直す。その間に読む人が自分で動かしていたら、何もしない */
+function afterSettle(fn) {
+  pageSettled.then(() => requestAnimationFrame(() => { if (!userMoved) fn(); }));
+}
 let mermaidModule = null;
 
 // スマホ・タブレット(指で操作する端末か、狭い画面)
@@ -25,14 +40,44 @@ const SYMBOL_KEYS = [
 
 async function loadCodeMirror() {
   try {
-    const [core, view, commands, javaLang] = await Promise.all([
+    const [core, view, commands, javaLang, language, lezerHighlight] = await Promise.all([
       import("https://esm.sh/codemirror@6.0.2" + CM_DEPS),
-      import("https://esm.sh/@codemirror/view@6.43.14" + CM_DEPS),
-      import("https://esm.sh/@codemirror/commands@6.11.1" + CM_DEPS),
-      import("https://esm.sh/@codemirror/lang-java@6.0.2" + CM_DEPS),
+      import(cmUrl(CM_V.view, "state")),
+      import(cmUrl(CM_V.commands, "language", "state", "view", "common", "highlight", "lr")),
+      import(cmUrl("@codemirror/lang-java@6.0.2", "language", "state", "view", "common", "highlight", "java", "lr")),
+      import(cmUrl(CM_V.language, "state", "view", "common", "highlight", "lr")),
+      import(cmUrl(CM_V.highlight, "common")),
     ]);
+    // 注釈(@Component など)は読むコードと同じ青竹に。lezer の Java は注釈の名前に色の印を付けないので、ここで .tok-meta を
+    // 付ける(文字列・コメントの中の @ は除く)
+    // あわせて、lezer の Java が予約語の色を付ける文脈キーワード(module 宣言の外の to・with など)と this・var は、読むコード
+    // (highlight.js)と同じく地の文字の色に戻す(.tok-plain。引数名の to まで縹に塗られていた。28 回目の審査)
+    const { MatchDecorator, Decoration, ViewPlugin } = view;
+    const metaMark = Decoration.mark({ class: "tok-meta" });
+    const plainMark = Decoration.mark({ class: "tok-plain" });
+    const CONTEXTUAL = /^(to|with|open|opens|module|requires|exports|uses|provides|transitive)$/;
+    const metaMatcher = new MatchDecorator({
+      regexp: /@[A-Za-z_][\w.]*|\b(?:to|with|open|opens|module|requires|exports|uses|provides|transitive|this|var)\b/g,
+      decorate: (add, from, to, m, v) => {
+        const node = language.syntaxTree(v.state).resolveInner(from, 1);
+        if (/String|Comment|TextBlock/.test(node.name)) return;
+        if (m[0].startsWith("@")) { add(from, to, metaMark); return; }
+        // module 宣言の中の文脈キーワードだけは予約語のまま
+        if (CONTEXTUAL.test(m[0])) for (let n = node; n; n = n.parent) if (/^Module/.test(n.name)) return;
+        add(from, to, plainMark);
+      },
+    });
+    const annotations = ViewPlugin.fromClass(class {
+      constructor(v) { this.decorations = metaMatcher.createDeco(v); }
+      // 構文木は少しずつ組まれるので、木が育ったら付け直す(開いた直後は木が無く、コメントの中の @Autowired まで色が付いた)
+      update(u) {
+        this.decorations = language.syntaxTree(u.startState) !== language.syntaxTree(u.state)
+          ? metaMatcher.createDeco(u.view) : metaMatcher.updateDeco(u, this.decorations);
+      }
+    }, { decorations: (p) => p.decorations });
     cm = { basicSetup: core.basicSetup, EditorView: core.EditorView, keymap: view.keymap,
-           indentWithTab: commands.indentWithTab, java: javaLang.java };
+           indentWithTab: commands.indentWithTab, java: javaLang.java, annotations,
+           syntaxHighlighting: language.syntaxHighlighting, classHighlighter: lezerHighlight.classHighlighter };
   } catch (e) {
     console.warn("CodeMirror を読み込めなかったので、普通のテキストエリアで動かします", e);
   }
@@ -67,22 +112,29 @@ function initEditor(ta) {
     });
     return;
   }
-  const { EditorView, basicSetup, keymap, indentWithTab, java } = cm;
+  const { EditorView, basicSetup, keymap, indentWithTab, java, syntaxHighlighting, classHighlighter, annotations } = cm;
   const view = new EditorView({
     doc: ta.value,
     extensions: [
-      basicSetup,
-      java(),
+      // basicSetup より前に置く(同じ強さでは前のものが勝つ。後ろだと basicSetup の Mod-Enter = 空行を入れる、が勝った)
       keymap.of([
         { key: "Mod-Enter", run: () => { submitForm(ta.form); return true; } },
         indentWithTab,
       ]),
+      basicSetup,
+      java(),
+      // 色付けはほかのコードの面と同じ(予約語は縹・文字列は刈安・注釈は青竹)。色は app.css の .tok-* と --syn-* で決める。
+      // 地は両テーマとも暗いので、CodeMirror の暗い基本の組(補完の吹き出し・検索の欄)を使う
+      syntaxHighlighting(classHighlighter),
+      annotations,
+      EditorView.darkTheme.of(true),
       EditorView.updateListener.of((u) => {
         if (u.docChanged) ta.value = u.state.doc.toString();
         if (u.focusChanged && u.view.hasFocus) activeView = { text: () => u.state.doc.toString(), view: u.view };
       }),
-      // スマホの自動大文字化・自動修正で public が Public にならないように
-      EditorView.contentAttributes.of({ autocapitalize: "off", autocorrect: "off", spellcheck: "false" }),
+      // スマホの自動大文字化・自動修正で public が Public にならないように。読み上げには何の欄かと、Tab で外へ出る方法を伝える
+      // (中の Tab は字下げなので、Esc のあと Tab で出る。案内の文は各ページの [data-editor-help]。28 回目の審査)
+      EditorView.contentAttributes.of({ autocapitalize: "off", autocorrect: "off", spellcheck: "false", ...editorA11y(ta) }),
       ...(isTouch() ? [EditorView.lineWrapping] : []),
     ],
   });
@@ -93,6 +145,16 @@ function initEditor(ta) {
     view.dispatch(view.state.replaceSelection(text));
     view.focus();
   });
+}
+
+/** 編集欄の読み上げの名前(サンプル・演習の題)と、Tab で外へ出る方法の案内(近くの [data-editor-help])を指す属性 */
+function editorA11y(ta) {
+  const title = ta.getAttribute("aria-label")
+    // 演習は題だけ(先頭の札「演習」「類題」は名前に入れない。サンプルと同じ「「題」のコード」の形。29 回目の審査)
+    || (ta.closest(".exercise")?.querySelector("h3 span:not(.ex-label)")?.textContent.replace(/\s+/g, " ").trim() || "").replace(/^(.+)$/, "「$1」のコード")
+    || "コード";
+  const help = (ta.closest(".lesson-section") || document).querySelector("[data-editor-help]")?.id;
+  return { "aria-label": title, ...(help ? { "aria-describedby": help } : {}) };
 }
 
 // エディタの上に記号キーの列を出す(スマホのときだけ CSS で表示)
@@ -679,6 +741,44 @@ fitAxis(document.querySelector(".lesson-axis"));
 })();
 addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 
+/**
+ * 本文の軸(PC の 1280px 以上・AI の欄が無い 1 列で、CSS が見せる): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと
+ * 段ごとの縦の運針を載せる。段・済み・いまの段は段の帯(.stepper)をそのまま写し(帯は軸がある間 CSS で隠す)、
+ * 帯の済みが変われば(サンプルを 3 秒読んだ・クイズに合格・読解を全問・読んだ)軸も描き直して、その目を縫う。
+ * 玉結びの位置(--k)は trackLesson の update() が決める
+ */
+function buildRail(stepper, steps, backLink) {
+  const main = stepper.closest(".lesson-layout.no-tutor")?.querySelector(".lesson-main");
+  if (!main) return null;
+  const part = document.querySelector(".lesson-axis span")?.textContent.trim() || "";
+  const rail = document.createElement("div");
+  rail.className = "lesson-rail";
+  rail.innerHTML = `<div class="rail-inner">${backLink || ""}<p class="rail-part" aria-hidden="true">${escHtml(part)}</p>
+    <nav class="rail-steps" aria-label="このレッスンの段">${steps.map((a) =>
+      `<a class="rail-step" href="${a.getAttribute("href")}"><span class="rail-label"></span><i class="rail-stitch" aria-hidden="true"></i></a>`).join("")}
+    <p class="rail-cap" aria-hidden="true"></p></nav></div>`;
+  stepper.closest(".stepper-wrap").before(rail); // 読み上げとキーボードの順は、帯と同じく冒頭のすぐ後ろ
+  const items = [...rail.querySelectorAll(".rail-step")];
+  const cap = rail.querySelector(".rail-cap");
+  const sync = () => {
+    steps.forEach((a, i) => {
+      const item = items[i];
+      const done = a.classList.contains("done");
+      // 見ている間に済んだ段だけ縫う(開いたときに済んでいた段は縫わずに糸で出す)
+      if (done && item.dataset.sewn === "0") item.classList.add("just");
+      item.dataset.sewn = done ? "1" : "0";
+      item.classList.toggle("sewn", done);
+      item.querySelector(".rail-label").innerHTML = a.innerHTML.trim() + (done ? '<span class="visually-hidden">(済み)</span>' : "");
+    });
+    // ホームの運針と同じ言葉で、済んだ段の数を 1 行(読み上げは各段の「(済み)」で足りるので隠す)
+    cap.innerHTML = `${items.length} 段のうち <b>${items.filter((it) => it.classList.contains("sewn")).length} 段</b>済み`;
+  };
+  sync();
+  new MutationObserver(sync).observe(stepper, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  main.closest(".lesson-layout").classList.add("has-rail");
+  return rail;
+}
+
 /** 読んでいる段を段の並びに示し、縫い線を進める */
 function trackLesson() {
   const stepper = document.querySelector(".stepper");
@@ -694,11 +794,12 @@ function trackLesson() {
   // 復習・読解・用語集から開いた(?from=)ときは「のぞき見」: 前回の続き(ホームの主役)を書き換えず、戻り先を段の帯の右に出す
   // (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わった。25 回目の審査)
   const back = { review: ["/review", "復習へ戻る"], reading: ["/reading", "読解へ戻る"], terms: ["/glossary", "用語集へ戻る"] }[new URLSearchParams(location.search).get("from")];
-  if (back) {
-    // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
-    // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
-    stepper.insertAdjacentHTML("afterend", `<a class="peek-back" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>`);
-  }
+  // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
+  // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
+  const backLink = (cls) => back ? `<a class="${cls}" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>` : "";
+  if (back) stepper.insertAdjacentHTML("afterend", backLink("peek-back"));
+  const rail = buildRail(stepper, steps, backLink("peek-back rail-back"));
+  const railItems = rail ? [...rail.querySelectorAll(".rail-step")] : [];
   const seen = pcStore(SECTIONS_KEY);
   const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
   (seen[lessonId] || []).forEach(markDone);
@@ -706,7 +807,12 @@ function trackLesson() {
     sessionStorage.removeItem(RESUME_KEY);
     const last = pcStore(LAST_KEY);
     const sec = last.id === lessonId && document.getElementById(last.section);
-    if (sec && last.off > 0) requestAnimationFrame(() => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" }));
+    if (sec && last.off > 0) {
+      resumeLanding = true;
+      const land = () => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" });
+      requestAnimationFrame(land);
+      afterSettle(land); // 図が描けて上の段が伸びたら、もう一度(1 画面上のサンプルに着いていた。28 回目の審査)
+    }
   }
   let saveTimer = null;
   const shownSince = {};
@@ -752,13 +858,43 @@ function trackLesson() {
     const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
     // 縫い目(9px の目 + 6px の間)の切れ目で止める(目の途中で切れた半端な欠片を出さない)
     if (sew) sew.style.setProperty("--p", `${p >= 1 ? sew.clientWidth : Math.floor((p * sew.clientWidth) / 15) * 15 + (p > 0 ? 9 : 0)}px`);
+    // 本文の軸: いまの段に朱の玉結び。段の頭が読む線を越えてから、段の終わりが画面の下端に来るまでの割合だけ玉結びを下ろし、
+    // 通ったところに刺し子の目を出す(画面より短い段は、いまの段になった時点で下まで)。止めるのは目の切れ目(上の縫い線と同じ)
+    if (rail?.offsetWidth) {
+      const r = document.getElementById(current).getBoundingClientRect();
+      const span = r.height - (innerHeight - pick);
+      const ratio = span < 1 ? 1 : Math.max(0, Math.min(1, (pick - r.top) / span));
+      const stitchTo = (item, q) => {
+        const h = item.querySelector(".rail-stitch").clientHeight;
+        return `${q >= 1 ? h : Math.min(h, Math.floor((q * h) / 15) * 15 + (q > 0 ? 9 : 0))}px`;
+      };
+      railItems.forEach((item) => {
+        const now = item.getAttribute("href") === "#" + current;
+        if (!now) item.removeAttribute("aria-current");
+        else {
+          item.setAttribute("aria-current", "true");
+          item.dataset.reach = Math.max(Number(item.dataset.reach || 0), ratio);
+          item.style.setProperty("--k", stitchTo(item, ratio));
+        }
+        // 通った所は覚えておき、ほかの段へ移っても弱い色の目で残す(「読んだ」を押さずに次の段へ進むと、縫った目が消えて
+        // 針穴に戻っていた。28 回目の審査)。「読む」を最後まで通って押していなければ、名前の下に「『読んだ』で済み」
+        const reach = Number(item.dataset.reach || 0);
+        item.classList.toggle("passed", !now && reach > 0);
+        if (!now && reach > 0) item.style.setProperty("--r", stitchTo(item, reach));
+        item.classList.toggle("read-pending", !now && reach >= 1 && item.getAttribute("href") === "#read" && !item.classList.contains("sewn"));
+      });
+    }
   };
   let ticking = false;
-  addEventListener("scroll", () => {
+  const onFrame = () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => { ticking = false; update(); });
-  }, { passive: true });
+  };
+  addEventListener("scroll", onFrame, { passive: true });
+  addEventListener("resize", onFrame); // 幅が 1280px をまたぐと軸が出たり消えたりするので、玉結びの位置も測り直す
+  // 図(Mermaid)やコードの色付けで段の高さが変わったときも、いまの段と玉結びを測り直す(スクロールが起きないと古いままだった)
+  if (window.ResizeObserver) new ResizeObserver(onFrame).observe(stepper.closest(".lesson-main") || document.body);
   update();
 }
 
@@ -843,8 +979,9 @@ function initRoot(root) {
   bindChecks(root);
   root.querySelectorAll("textarea.code-editor").forEach(initEditor);
   fitSvgFigures(root);
-  renderMermaid(root).then(() => highlight(root));
+  const drawn = renderMermaid(root).then(() => highlight(root));
   root.querySelectorAll(".chat-log").forEach((log) => { log.scrollTop = log.scrollHeight; });
+  return drawn; // 図と色付けが済んだら解ける(着地のやり直しが待つ)
 }
 
 // 「雛形に戻す」「元に戻す」
@@ -891,6 +1028,56 @@ document.addEventListener("htmx:afterSwap", (e) => {
   if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) document.querySelector('.stepper .step[href="#quiz"]')?.classList.add("done");
   highlight(form);
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
+});
+// 「読んだ」を押したら、段の並び(と本文の軸)の「読む」も済みに(開き直すまでレ点が付かなかった)
+document.addEventListener("htmx:afterSwap", (e) => {
+  if (document.querySelector("#read .read-done")) document.querySelector('.stepper .step[href="#read"]')?.classList.add("done");
+  // 押したボタンごと差し替わってフォーカスが消え、「読了。次は…」が読み上げられなかった(29 回目の審査)。新しい 1 行へ移す
+  if (e.target.matches?.("#read .read-done")) { e.target.tabIndex = -1; e.target.focus({ preventScroll: true }); }
+});
+// 演習の採点結果は判定の行へフォーカスを移す(採点のあとも「提出して採点」に残り、合格・不合格も「藍に染まった」も
+// 読み上げられなかった。29 回目の審査)。手を止めて・復習の判定と同じ形
+document.addEventListener("htmx:afterSwap", (e) => {
+  const banner = e.target.querySelector?.(".grade-result .grade-banner");
+  if (!banner) return;
+  banner.tabIndex = -1;
+  banner.focus({ preventScroll: true });
+  if (banner.getBoundingClientRect().bottom > innerHeight) banner.scrollIntoView({ block: "center", behavior: reduceMotion() ? "auto" : "smooth" });
+});
+// 演習の採点・クイズの採点のあとは、段の帯(と本文の軸)の「演習 n/全部」と、冒頭の色見本をその場で書き換える
+// (演習に合格して藍に染まっても、開き直すまで帯も冒頭も前のままだった。28 回目の審査)。値は採点結果の data-* から
+// (「読んだ」はボタンごと outerHTML で差し替わるので、イベントの起きた新しい要素(e.target)そのものも見る)
+document.addEventListener("htmx:afterSwap", (e) => {
+  const sel = ":is(.read-done, .grade-result, .quiz-result)[data-dye]"; // ホームの行の data-dye とは別もの
+  const res = e.target.closest?.(sel) || e.target.querySelector?.(sel);
+  if (!res) return;
+  const ex = res.dataset.exTotal && document.querySelector('.stepper .step[href="#write"]');
+  if (ex) {
+    const passed = Number(res.dataset.exPassed);
+    const total = Number(res.dataset.exTotal);
+    ex.querySelector("small")?.remove();
+    ex.classList.toggle("done", passed >= total);
+    if (passed > 0 && passed < total) ex.insertAdjacentHTML("beforeend", `<small>${passed}/${total}</small>`);
+  }
+  const sw = document.querySelector(".lesson-hero .lesson-swatch");
+  const label = res.dataset.dyeLabel;
+  if (!sw || !label) return;
+  sw.className = sw.className.replace(/\bdye-\d+\b/, `dye-${res.dataset.dye}`);
+  sw.setAttribute("aria-label", label);
+  const [name, what] = label.split("・");
+  const b = sw.closest(".lesson-dye")?.querySelector("b");
+  if (b) b.textContent = `${name}(${what ?? ""})`;
+});
+// STS のチェック: 全部付いたら段の帯の「STSで試す」も済みに、見出しの「n / 全部」も数え直す(開き直すまで古いままだった)
+// (outerHTML の差し替えなので、detail.target は外れた古い行。イベントは新しい行(e.target)で起きる)
+document.addEventListener("htmx:afterSwap", (e) => {
+  const list = e.target.closest?.("#sts .checklist");
+  if (!list) return;
+  const items = list.querySelectorAll(".check-item");
+  const done = list.querySelectorAll(".check-item.checked").length;
+  const count = list.querySelector(".checklist-title .muted");
+  if (count) count.textContent = `${done} / ${items.length}`;
+  document.querySelector('.stepper .step[href="#sts"]')?.classList.toggle("done", items.length > 0 && done === items.length);
 });
 // 復習: 選んだら「答え合わせ」を押せるように(選ぶ前から押せる小さなボタンで、スマホ・読解と言い方が違った。26 回目の審査)
 document.addEventListener("change", (e) => {
@@ -1200,7 +1387,7 @@ window.dojo = {
 window.addEventListener("load", () => highlight(document));
 
 await loadCodeMirror();
-initRoot(document);
+pageSettled = Promise.all([initRoot(document), document.fonts?.ready]).catch((e) => console.warn("図か書体の準備に失敗しました", e));
 shuffleChoices(document);
 trackLesson();
 dashboardResume();
@@ -1255,6 +1442,7 @@ function landTerm(term) {
     hit.classList.add("spot-flash");
     setTimeout(() => hit.classList.remove("spot-flash"), 1200);
   });
+  afterSettle(() => hit.scrollIntoView({ block: "center" }));
 }
 
 // 復習の「読み直す」で問いそのもの(#quiz-q2)へ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す(スマホ版と同じ)。
@@ -1267,6 +1455,15 @@ const spotQuiz = () => {
     landTerm(term);
     return;
   }
+  // 段の頭へのハッシュ(ホームの「演習へ進む」の /lessons/〇〇#write など)も、軸ができて編集欄が替わったあとに着地し直す。
+  // ブラウザは先に段の頭へ着くが、そのあと軸の組み立てで上の段の高さが変わり、1440px で 3 本に 1 本は見出しが隠れた(29 回目の審査)。
+  // 前回の続き(段の中の位置)へ戻すときは、trackLesson の着地に任せる
+  const sec = /^#[a-z][\w-]*$/.test(location.hash) && !resumeLanding && document.querySelector(`.lesson-section${location.hash}`);
+  if (sec) {
+    sec.scrollIntoView({ block: "start" });
+    afterSettle(() => sec.scrollIntoView({ block: "start" }));
+    return;
+  }
   if (!/^#quiz-q\d+$/.test(location.hash)) return;
   const q = document.getElementById(location.hash.slice(1));
   if (!q) return;
@@ -1275,6 +1472,7 @@ const spotQuiz = () => {
   q.focus({ preventScroll: true });
   q.classList.add("spot-flash");
   setTimeout(() => q.classList.remove("spot-flash"), 1200);
+  afterSettle(() => q.scrollIntoView({ block: "start" }));
 };
 if (document.readyState === "complete") spotQuiz();
 else addEventListener("load", spotQuiz);

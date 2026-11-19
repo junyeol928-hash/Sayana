@@ -65,9 +65,11 @@ public class LessonController {
     /** 「読んだ!」ボタン。 */
     @PostMapping("/lessons/{id}/read")
     public String read(@PathVariable String id, Model model) {
-        find(id);
+        Lesson lesson = find(id);
         learning.markRead(id);
         model.addAttribute("lessonId", id);
+        // 冒頭の色見本を浅葱に書き換えるため(app.js が data-dye を読む。演習・クイズの採点結果と同じ)
+        model.addAttribute("status", progress.status(lesson));
         return "fragments/lesson-parts :: readDone";
     }
 
