@@ -4,7 +4,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 
 ## 現状
 - 公開中(`main`)は、教材の総点検と学びやすさの作り直し([PR #11](https://github.com/junyeol928-hash/Sayana/pull/11)、2026-11-19 に `main` へマージ。マージコミット 98ad483)。スマホ版は GitHub Pages の https://junyeol928-hash.github.io/Sayana/m/ (Pages は `main` の直下から配信。`main` に入れば公開される)
-- PC の本文の画面に藍の軸と運針を通す作り直しは、ブランチ `claude/lesson-axis`(PR #11 の最後のコミット 42fb32b から切ったもの)。PR は `main` 向け。マージ(= Pages への公開)はユーザーの判断待ち。中身は下の「変更内容(ブランチ claude/lesson-axis)」
+- PC の本文の画面に藍の軸と運針を通す作り直しは、ブランチ `claude/lesson-axis`(PR #11 の最後のコミット 42fb32b から切ったもの)。PR は `main` 向け。マージ(= Pages への公開)はユーザーの判断待ち。中身は下の「変更内容(ブランチ claude/lesson-axis)」。審査は 28 回目 8.55 / 8.50、29 回目 8.65 / 8.50(2 人とも合格の線を越えた)で、ユーザーの判断でここで仕上げ(30 回目の審査はしない。29 回目のあとの直しは撮影の台本 `screenshots/round30/` とテストで確かめた)
 - 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で 2026-11-19 に確認)、`./mvnw test`(489 件、2026-11-19 に `claude/lesson-axis` で全部通過)
 - 相互レビュー: 18 回目から目標を Awwwards の Site of the Day にした(物差しは [review-rubric.md](review-rubric.md) の「18 回目から」。合格の線は加重平均 8.5・どの軸も 8.0・学びやすさ 8.5)。点数の移り変わりと直したことは [design-review.md](design-review.md) の末尾、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は 18〜21 回目のどれも利用上限で審査できていない(次に使えるのは 2026-11-20 00:51)。代わりに独立の Claude 2 人(2 人目は学びやすさに厳しい審査員)で採点している
@@ -56,6 +56,8 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - 用語集の語は、どれもその lesson の本文・仕事のコード・サンプルに出る(`CurriculumTest#glossaryTermsLand`)。語を足すときは、本文での言い方を括弧に足すか、扱うレッスンに付ける
 - PC の読む画面に軸と運針を続ける案と、PC のサンプルの編集欄(CodeMirror)の配色をコードの面にそろえる案は、ブランチ `claude/lesson-axis` で作った(28 回目)。AI の欄があるとき(2 列)と 1279px 以下は、今までの段の帯のまま。2 列と 1024〜1279px にも軸を出す案(28 回目の 1 人目の 4 の 3)は見送り(欄の幅と本文の幅の決め直しになるので、別の作業として)
 - 復習・読解・用語集からレッスンを開くと「のぞき見」(前回の続きを書き換えない。冒頭に「〇〇へ戻る」)。PC はリンクの `?from=` で見分ける。新しい入口を足すときは `data-peek`(スマホ)か `?from=`(PC)を付け、戻り先の位置(スマホは `data-resume`)も渡す
+- 撮影の台本の演習の合格は、縹で演習の残るレッスンを選ぶが、藍は STS のチェックも全部そろわないと染まらない(`dyeLevel`)。藍に染まる瞬間を撮りたいときは、STS の無いか済んだレッスンを選ぶように直す(30 回目の撮影では spring-di を選び、縹のまま写った)
+- 次の候補(29 回目の見送り): 演習の雛形とサンプルのコメントを 72 列までに折る(1440px で TODO の切れる行 28)、サンプルの実行時例外の行番号(JShell の文ごとの「1行目付近」。スマホ版の控えの文まで変わる)、AI の欄がある 2 列と 1024〜1279px の軸
 - `claude/lesson-axis` の PR(`main` 向け)のマージはユーザーの判断待ち。マージすると Pages に出る。マージの前に `./mvnw test`(5 分ほど)と `node scripts/offline-check.mjs . <出力フォルダ>` を通す(どちらも 2026-11-19 にこのブランチで通過)
 - 相互レビューを続けるなら、2026-11-20 00:51 以降に Codex にも審査を頼む(そのときの HEAD を `git worktree add --detach ../Sayana-r22 HEAD` で凍結し、`docs/screenshots/` の最新の回の撮影と `docs/review-rubric.md` を渡す)
 - 教材や画面を変えたら、`./mvnw -q compile exec:java` で `m/` を作り直し(サンプルを変えたら JShell の控えも作り直る)、`./mvnw test` を通してから PR にする
