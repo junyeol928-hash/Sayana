@@ -377,12 +377,22 @@ for (const [name, size] of [["pc-run-exception", DESK], ["pc-run-exception-dark"
   await view(size);
   await open(pcArg + "playground");
   const npe = ["String input = null;", 'System.out.println("比べる前");', 'System.out.println(input.equals("GOLD"));'].join("\n");
-  await js(`const ta = document.querySelector("textarea[name=code]"); ta.value = ${JSON.stringify(npe)}; document.querySelector(".run-form button[type=submit]").click();
+  // 編集欄(CodeMirror)の中身も入れ替える(textarea だけ替えると、写る編集欄と例外の行番号が食い違った)
+  await js(`const ta = document.querySelector("textarea[name=code]"); ta.value = ${JSON.stringify(npe)}; const v = ta._cmView; if (v) v.dispatch({ changes: { from: 0, to: v.state.doc.length, insert: ta.value } }); document.querySelector(".run-form button[type=submit]").click();
     for (let i = 0; i < 60 && !document.querySelector("#playground-out .run-result"); i++) await new Promise((r) => setTimeout(r, 250));`);
-  console.log("実行時例外の文:", await js(`const e = document.querySelector("#playground-out .exception"); return e ? e.textContent.split(String.fromCharCode(10))[0] + " / 横のはみ出し " + (e.scrollWidth > e.clientWidth + 1) : "なし";`));
+  console.log("実行時例外の文:", await js(`const e = document.querySelector("#playground-out .exception"); return e ? e.textContent.split(String.fromCharCode(10)).map((x) => x.trim()).join(" / ") + " / 横のはみ出し " + (e.scrollWidth > e.clientWidth + 1) : "なし";`));
   await scrollTo("#playground-out", 200);
   await shot(name);
 }
+// サンプルそのままで止まる実行時例外(30 回目の前: JShell の文ごとの「1行目付近」をやめ、編集欄の行番号「at (14行目)」に)
+await view(DESK);
+await open(pcArg + "lessons/java-variables");
+console.log("サンプルの実行時例外:", await js(`const s = [...document.querySelectorAll(".sample")].find((x) => (x.querySelector("textarea[name=code]")?.value || "").includes("memo.length()"));
+  if (!s) return "サンプルが見つからない"; s.querySelector(".run-form button[type=submit]").click();
+  for (let i = 0; i < 60 && !s.querySelector(".exception"); i++) await new Promise((r) => setTimeout(r, 250));
+  s.querySelector(".exception")?.scrollIntoView({ block: "center" }); await new Promise((r) => setTimeout(r, 500));
+  return (s.querySelector(".exception")?.textContent || "なし").split(String.fromCharCode(10)).map((x) => x.trim()).join(" / ");`));
+await shot("pc-sample-exception");
 await view(DESK);
 // 全レッスンを 1280px で開き、軸が出ない・段の数が帯と違う・段の名前が画面の左へ出る・横にはみ出す数(目標はどれも 0)と、
 // 横に送られる編集欄の数(28 回目: 736px の幅で 149 本のうち 96 本。コードだけ右へ張り出して、目標は 30 本以下)
