@@ -777,7 +777,7 @@ async function renderLesson(id) {
       <div class="lesson-hero-body">
       <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a><span class="visually-hidden"><span class="crumb-part"> / ${esc(L.part)}</span> / ${esc(L.chapter)}</span></nav>
       <h1 class="${titleSize(L.title)}">${esc(L.title)}</h1>
-      <p class="summary">${esc(L.summary).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/([A-Za-z0-9_.)\]」』）]|<\/code>)( ?)(?=[ぁ-ゖ])/g, (_, head, space) => head + (space ? "&nbsp;" : "⁠"))}</p>
+      <p class="summary">${esc(L.summary).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/([A-Za-z0-9_.)\]」』）]|<\/code>)( ?)(?=[ぁ-ゖ])/g, (_, head, space) => head + (space ? "&nbsp;" : "\u2060"))}</p>
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}(${DYE[level].meaning})</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
       </div>

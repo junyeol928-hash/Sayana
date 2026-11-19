@@ -52,7 +52,7 @@ public record Lesson(
      */
     static String joinParticles(String html) {
         return BEFORE_PARTICLE.matcher(html).replaceAll(m -> java.util.regex.Matcher.quoteReplacement(
-                m.group(1) + (m.group(2).isEmpty() ? "⁠" : "&nbsp;")));
+                m.group(1) + (m.group(2).isEmpty() ? "\u2060" : "&nbsp;")));
     }
 
     /** ゴールの文(地の文はエスケープし、`…` だけコードの書体に。コードの語を本文と同じ書体で出す) */
