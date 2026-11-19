@@ -36,6 +36,11 @@ public record Lesson(
         return sts != null;
     }
 
+    /** レッスンの説明文(ゴールと同じく `…` だけコードの書体に) */
+    public String summaryHtml() {
+        return summary == null ? "" : org.springframework.web.util.HtmlUtils.htmlEscape(summary).replaceAll("`([^`]+)`", "<code>$1</code>");
+    }
+
     /** ゴールの文(地の文はエスケープし、`…` だけコードの書体に。コードの語を本文と同じ書体で出す) */
     public List<String> goalsHtml() {
         return goals.stream().map(g -> org.springframework.web.util.HtmlUtils.htmlEscape(g).replaceAll("`([^`]+)`", "<code>$1</code>")).toList();

@@ -364,18 +364,13 @@ function homeCloth({ weekDays, graduated, readingOk, readingTotal, nextReview })
   </div>`;
 }
 // 前回の続きのボタン: 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。PC 版 app.js と同じ
-// 前回いた段が済んでいれば、段の並びで次のまだの段を返す(仕事のコード・サンプル・STS は「済み」を問わずそのまま)
+// 前回いた段が済んでいれば、段の並びで次のまだの段を返す。運針・「次は」と同じ表(stepStates)を見る
+// (仕事のコード・サンプルを読み終えても「サンプルの続きから」を指し、今日の復習が主役から落ちていた。26 回目の審査)
 function nextSectionFor(l, from) {
-  const order = ["read", "atwork", "run", "quiz", "write", "reading", "sts"];
-  const done = {
-    read: !!S.read[l.id],
-    quiz: !!(S.quiz[l.id] && quizPassed(l)),
-    write: Array.from({ length: l.exercises || 0 }, (_, i) => S.exercise[`${l.id}/ex${i + 1}`]?.selfPass).every(Boolean),
-    reading: Array.from({ length: l.reading || 0 }, (_, i) => S.reading[`${l.id}@${i}`]?.ok).every(Boolean),
-  };
-  const has = { write: (l.exercises || 0) > 0, reading: (l.reading || 0) > 0 };
-  if (!(from in done) || !done[from]) return from;
-  return order.slice(order.indexOf(from) + 1).find((k) => k in done && has[k] !== false && !done[k]) || from;
+  const st = stepStates(l);
+  const i = st.findIndex((s) => s.key === from);
+  if (i < 0 || !st[i].done) return from;
+  return st.slice(i + 1).find((s) => !s.done)?.key || from;
 }
 const resumeLabel = (section) => !section ? "続きから" : section === "読む" ? "続きを読む" : `${section}の続きから`;
 // 採点の結果を問の順に刺し子の目で: 縫えた目(正解)は藍、空き(間違い)は弱い色。何問目を落としたかが並びで分かる
@@ -458,7 +453,10 @@ function phraseWrap(el) {
   if (!el || el.dataset.phrased || el.children.length || !("Segmenter" in Intl)) return; // 中に要素がある見出しは崩さない
   const words = [];
   for (const { segment, isWordLike } of new Intl.Segmenter("ja", { granularity: "word" }).segment(el.textContent)) {
-    if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,2}$/.test(segment) || /[(「『]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
+    // @ は名前の頭なので、開き括弧と同じく次の語へつなぐ(「と、@ / Primary」と @ だけが行末に残った。26 回目の審査)
+    if (segment === "@") { words.push(segment); continue; }
+    // 助詞は 3 字まで前の語へ(「MockMvc / による」と行頭に残った)
+    if (words.length && (!isWordLike || /^[\u3041-\u309f]{1,3}$/.test(segment) || /[(「『@]$/.test(words[words.length - 1]))) words[words.length - 1] += segment;
     else words.push(segment);
   }
   const latin = (c) => /[\x21-\x7e]/.test(c || "");
@@ -649,12 +647,20 @@ let pendingSection = null;
 // 復習・読解・用語集からレッスンを開くのは「のぞき見」。前回の続き(ホームの主役)を書き換えず、戻り先を段の帯に出す
 // (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わり、いま習っている章へ戻れなかった。25 回目の審査)
 let pendingPeek = null;
+// 読解・用語集からのぞき見したときの元の位置(戻ったら一覧の先頭からではなく、押したカード・語の所へ。26 回目の審査)
+let peekReturn = null;
+let returning = null;
+addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 const PEEK_BACK = { review: ["#/review", "復習へ戻る"], reading: ["#/reading", "読解へ戻る"], terms: ["#/terms", "用語集へ戻る"] };
 document.addEventListener("click", (ev) => {
   const a = ev.target.closest?.("[data-resume]");
   if (a && a.dataset.resume) pendingSection = a.dataset.resume;
   const link = ev.target.closest?.("a[href^='#/']");
   if (link) pendingPeek = PEEK_BACK[link.dataset.peek] ? link.dataset.peek : null;
+  if (link && (link.dataset.peek === "reading" || link.dataset.peek === "terms")) {
+    peekReturn = { tab: link.dataset.peek, at: link.closest(".reading-q, li.term")?.id || null, y: scrollY, q: document.getElementById("q")?.value || "" };
+  }
+  returning = link?.classList.contains("peek-back") ? peekReturn : null;
 }, true);
 // 図の部品の URL を数えるので、読み込みの記録を多めに残す
 performance.setResourceTimingBufferSize?.(1000);
@@ -736,7 +742,7 @@ async function renderLesson(id) {
       <div class="lesson-hero-body">
       <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a><span class="visually-hidden"> / ${esc(L.part)} / ${esc(L.chapter)}</span></nav>
       <h1 class="${titleSize(L.title)}">${esc(L.title)}</h1>
-      <p class="summary">${esc(L.summary)}</p>
+      <p class="summary">${esc(L.summary).replace(/`([^`]+)`/g, "<code>$1</code>")}</p>
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}(${DYE[level].meaning})</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
       </div>
@@ -823,12 +829,44 @@ async function renderLesson(id) {
   bindLesson(L, meta);
   decorate(view());
   trackLesson(id, steps.map(([key]) => key), !!peek);
+  fitAxis($(".lesson-axis"));
+  document.fonts?.ready.then(() => fitAxis($(".lesson-axis")));
 }
 
 const seenSection = (id, key) => !!S.sections?.[id]?.includes(key);
 
 /** 読んでいる段を段の並びに示し、縫い線を進め、「前回の続き」を覚える */
 let lessonTracker = null;
+/**
+ * レッスンの冒頭の縦書きの軸に、部と章が入りきるようにする。入らなければ章を軸から外して現在地の行に出し、
+ * まだ入らなければ字間を詰め、それでも入らなければ冒頭の高さを軸の字の長さまで伸ばす
+ * (軸の高さは本文に合わせているので、本文の短いレッスンでは字が 2 列目へ折れ、「礎」だけが左に残った。26 回目の審査)
+ */
+function fitAxis(ax) {
+  if (!ax) return;
+  const hero = ax.closest(".lesson-hero");
+  ax.classList.remove("part-only", "tight");
+  if (hero) hero.style.minHeight = "";
+  // 縦書きの字は軸の幅の中で 2 列目に回る(はみ出しにはならない)ので、部と章の字の列の数で見分ける
+  const cols = (el) => {
+    if (!el || getComputedStyle(el).display === "none") return 1;
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    return new Set([...r.getClientRects()].map((q) => Math.round(q.left))).size;
+  };
+  const over = () => cols(ax.querySelector("span")) > 1 || cols(ax.querySelector("small")) > 1;
+  if (!over()) return;
+  ax.classList.add("part-only");
+  if (!over()) return;
+  ax.classList.add("tight");
+  if (!over() || !hero) return;
+  const span = ax.querySelector("span");
+  span.style.whiteSpace = "nowrap";
+  const need = span.getBoundingClientRect().height + 40; // 軸の上下の余白 20px ずつ
+  span.style.whiteSpace = "";
+  hero.style.minHeight = `${Math.ceil(need)}px`;
+}
+
 function trackLesson(id, keys, peek = false) {
   lessonTracker?.disconnect();
   const sections = keys.map((k) => document.getElementById(k)).filter(Boolean);
@@ -949,6 +987,18 @@ function trackLesson(id, keys, peek = false) {
   addEventListener("scroll", onScroll, { passive: true });
   lessonTracker = { disconnect: () => { removeEventListener("scroll", onScroll); flush(); } };
   update();
+  if (pendingSection?.startsWith("term:")) {
+    const word = pendingSection.slice(5).replace(/[((].*$/, "").trim().toLowerCase();
+    const blocks = [...document.querySelectorAll("#read .md p, #read .md li")];
+    const hit = [...document.querySelectorAll("#read .md strong")].find((b) => b.textContent.trim().toLowerCase() === word)?.closest("p, li")
+      || blocks.find((b) => b.textContent.toLowerCase().includes(word));
+    pendingSection = hit ? "" : "read";
+    if (hit) requestAnimationFrame(() => {
+      hit.scrollIntoView({ block: "center" });
+      hit.classList.add("spot-flash");
+      setTimeout(() => hit.classList.remove("spot-flash"), 1200);
+    });
+  }
   if (pendingSection) {
     const target = document.getElementById(pendingSection);
     requestAnimationFrame(() => {
@@ -1247,10 +1297,11 @@ function termCard(g, titles) {
   // 英語が見出しと同じ綴りなら繰り返さない(「final(クラス・メソッド)」の括弧の前とも比べる)
   const base = t.term.replace(/[((].*$/, "").trim().toLowerCase();
   const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase() && e.toLowerCase() !== base);
+  const tid = `term-${[...base].map((c) => c.codePointAt(0).toString(36)).join("")}`;
   const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
   // どの語も「〇〇 で」(レッスン名)を説明の前に置く
-  if (g.length === 1) return `<li class="term">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}" data-peek="terms">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
-  return `<li class="term">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}" data-peek="terms">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : ""}
+  if (g.length === 1) return `<li class="term" id="${tid}">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}" data-peek="terms" data-resume="term:${esc(t.term)}">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
+  return `<li class="term" id="${tid}">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}" data-peek="terms" data-resume="term:${esc(x.term)}">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : ""}
     <p class="term-def">${x.defHtml}</p></li>`).join("")}</ul></li>`;
 }
 
@@ -1605,7 +1656,7 @@ async function renderReadingPage() {
   const showMore = () => {
     const chunk = shown.slice(count, count + PAGE);
     const tmp = document.createElement("ol");
-    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}" data-peek="reading">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
+    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}" data-peek="reading" data-resume="rq-${esc(r.ref.replace("@", "-"))}">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
     bindReading(tmp, (ref) => byRef[ref]);
     decorate(tmp);
     list.append(...tmp.children);
@@ -1614,6 +1665,17 @@ async function renderReadingPage() {
     more.textContent = `もっと見る(残り ${shown.length - count} 問)`;
   };
   if (list) { more.onclick = showMore; showMore(); }
+  if (returning?.tab === "reading" && returning.at) {
+    const at = returning.at;
+    returning = null;
+    while (list && !document.getElementById(at) && !more.hidden) showMore();
+    const card = document.getElementById(at);
+    if (card) requestAnimationFrame(() => {
+      card.scrollIntoView({ block: "center" });
+      card.classList.add("spot-flash");
+      setTimeout(() => card.classList.remove("spot-flash"), 1200);
+    });
+  }
 }
 
 // ------------------------------------------------------------ 用語集
@@ -1676,6 +1738,19 @@ async function renderGlossary() {
     $("#q").focus({ preventScroll: true });
   };
   show("");
+  if (returning?.tab === "terms") {
+    const back = returning;
+    returning = null;
+    if (back.q) { $("#q").value = back.q; show(back.q); }
+    const card = back.at && document.getElementById(back.at);
+    requestAnimationFrame(() => {
+      if (card) {
+        card.scrollIntoView({ block: "center" });
+        card.classList.add("spot-flash");
+        setTimeout(() => card.classList.remove("spot-flash"), 1200);
+      } else scrollTo({ top: back.y });
+    });
+  }
   // いま読んでいる行を索引で強調し、索引の見える位置に送る
   const index$ = $("#kana-index");
   watchOverflow(index$);
@@ -1822,6 +1897,9 @@ async function renderReview() {
   };
   const finish = (it, ok, out, explanationHtml, chosen, whyHtml) => {
     recordDay();
+    // 解き直しも答えた時に記録する(「次の解き直しへ」を押したときだけだと、「読み直す」→「復習へ戻る」で答えが消え、
+    // 同じ問いが同じ並びで出直して、見た位置を押すだけで仮縫いになった。26 回目の審査。PC・いつもの復習と同じ)
+    if (inRetry) { retry.ok += ok ? 1 : 0; retry.results[ref] = ok; retry.i++; saveRetry(); }
     out.innerHTML = after(it, ok, explanationHtml, whyHtml);
     out.hidden = false;
     if (inRetry) {
@@ -1836,10 +1914,7 @@ async function renderReview() {
       $("#review-progress").innerHTML = reviewProgress(dueItems().length, now.n, true);
     }
     decorate(out);
-    $("#next").onclick = () => {
-      if (inRetry) { retry.ok += ok ? 1 : 0; retry.results[ref] = ok; retry.i++; saveRetry(); }
-      renderReview();
-    };
+    $("#next").onclick = () => renderReview();
     // 判定へフォーカスを移し、選んだ答えが画面の上の方に来るまで送る(解説が長くても「× あなたの答え」を見失わない)
     const verdict = out.querySelector(".q-explain");
     verdict.focus({ preventScroll: true });
@@ -2286,6 +2361,12 @@ const JAVA_WORDS = new Set(("public private protected static final abstract void
 // 1 行のブロックにするメッセージらしいもの: 24 字以上で空白を含み、文や宣言の記号(; { } = && || ->)が無い。
 // 呼び出しの括弧があるものは、英語の文らしいときだけ
 const msgLike = (t) => t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t));
+// 本文で 1 行のブロックにするもの: 英語の文らしいもの・大文字だけの文(APPLICATION FAILED TO START)・エラーの 1 行
+// (`…Exception: …`・Caused by・Resolved)。宣言・総称型・キャスト(extends・implements・permits・<T・先頭の「(」)は除く
+const ERROR_LINE = /\b[A-Z]\w*(?:Exception|Error)\b:|^(?:Caused by|Resolved|WARN|ERROR|Exception in thread)\b/;
+const DECLARATION = /\s=\s|;\s*$|\b(?:extends|implements|instanceof|permits)\b|\bnew [A-Z]\w*[(<\[]|<[A-Z?]|^\(|^(?:(?:public|private|protected|static|final|abstract|sealed)\s+)*(?:class|interface|record|enum)\b/;
+const bodyMsg = (t) => t.length >= 24 && /\s/.test(t.trim()) && !DECLARATION.test(t)
+  && (proseLike(t) || /^[A-Z]{2,}(?: [A-Z]{2,}){2,}$/.test(t.trim()) || ERROR_LINE.test(t));
 function proseLike(t) {
   const words = t.trim().split(/\s+/);
   const plain = (w) => /^[A-Za-z][a-z]+(?:-[a-z]+)*$/.test(w) && !JAVA_WORDS.has(w);
@@ -2344,14 +2425,18 @@ async function decorate(root) {
     // 呼び出しの括弧があってもメッセージ
     if (msgLike(t)) c.classList.add("code-msg");
   });
-  // 本文の段落・箇条書きの長いメッセージ(起動に失敗したときの文など)も同じく 1 行のブロックに(チップのまま 3〜5 本の帯に割れていた。
-  // 25 回目の審査)。括弧の中の補足はチップのまま(ブロックにすると「(」が行末に残る)。表の中もチップのまま
-  root.querySelectorAll(".md p > code:not(.code-msg), .md li > code:not(.code-msg)").forEach((c) => {
-    if (!msgLike(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice")) return;
+  // 本文の段落・箇条書き(STS の手順・コラム・演習の問題も)の長いメッセージも 1 行のブロックに(チップのまま 3〜6 本の帯に割れていた。
+  // 25・26 回目の審査)。ただし本文では、英語の文らしいものとエラーの 1 行だけ(宣言・総称型・キャスト・式はチップのまま。
+  // ブロックにすると文が 3 つに割れた)。括弧の中の補足・直後が「。、」・表の中はチップのまま(「(」が行末に、「。」が行頭に残る)
+  root.querySelectorAll("p > code:not(.code-msg), li > code:not(.code-msg)").forEach((c) => {
+    if (!bodyMsg(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice, td, th, h1, h2, h3, .missed-list")) return;
+    if (/^[\u2060]?[、。，．]/.test(c.nextSibling?.textContent || "")) return;
     let before = "";
     for (let n = c.previousSibling; n; n = n.previousSibling) before = n.textContent + before;
     const open = (before.match(/[(（]/g) || []).length - (before.match(/[)）]/g) || []).length;
-    if (open <= 0) c.classList.add("code-msg");
+    // 組んだあとで、チップのままだと 2 行以上に割れるものだけブロックに(1 行に収まる短いものまでブロックにすると、
+    // 前後の文が細切れになった。26 回目の審査)
+    if (open <= 0) requestAnimationFrame(() => { if (c.getClientRects().length >= 2) c.classList.add("code-msg"); });
   });
   // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
   // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
@@ -2455,9 +2540,37 @@ function softBreaks(root) {
  *  初めから境目に候補を入れると、収まる名前まで境目で割れた(23 回目)ので、割れたものだけ */
 function mendSplitChips(root) {
   requestAnimationFrame(() => root.querySelectorAll(":not(pre) > code:not(.code-msg)").forEach((c) => {
-    if (c.querySelector("wbr") || /\s/.test(c.textContent) || !/[a-z][A-Z]/.test(c.textContent) || c.getClientRects().length < 2) return;
-    c.innerHTML = esc(c.textContent).replace(/([a-z])([A-Z])/g, "$1<wbr>$2");
+    if (/\s/.test(c.textContent) || !/[a-z][A-Z]/.test(c.textContent) || c.getClientRects().length < 2 || !splitInsideWord(c)) return;
+    // 候補(<wbr>)は残したまま、文字の所だけ境目を足す(`IllegalArgumentException("…")` は「(」の候補があっても、前の 24 字が割れた)
+    const walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+    const texts = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) if (/[a-z][A-Z]/.test(n.data)) texts.push(n);
+    for (const n of texts) {
+      const span = document.createElement("span");
+      span.innerHTML = esc(n.data).replace(/([a-z])([A-Z])/g, "$1<wbr>$2");
+      n.replaceWith(...span.childNodes);
+    }
   }));
+}
+
+/** チップが語の途中(英数字と英数字の間)で次の行へ割れているか */
+function splitInsideWord(c) {
+  const walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+  const r = document.createRange();
+  let prevTop = null;
+  let prevCh = "";
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    for (let i = 0; i < n.data.length; i++) {
+      r.setStart(n, i);
+      r.setEnd(n, i + 1);
+      const rect = r.getClientRects()[0];
+      if (!rect) continue;
+      if (prevTop !== null && rect.top > prevTop + 2 && /\w/.test(prevCh) && /\w/.test(n.data[i])) return true;
+      prevTop = rect.top;
+      prevCh = n.data[i];
+    }
+  }
+  return false;
 }
 
 /** 仕事のコードの説明を、その行の直後に挟む(下の説明まで往復しないように)。「説明をたたむ」でコードだけ通して読める */

@@ -102,6 +102,19 @@ await open(mobileArg + "#/lesson/spring-boot-startup");
 console.log("390px ではみ出す本文の表:", await js(`return [...document.querySelectorAll(".md table")].filter((t) => t.scrollWidth > t.clientWidth + 1).length + " / " + document.querySelectorAll(".md table").length;`));
 await scrollTo(".md table", 160);
 await shot("m-table");
+// 縦書きの軸が 2 列目へ折れていないか(26 回目: 本文の短いレッスンで 55 本中 33 本が折れていた)。全レッスンを数え、本文の短い java-hello を撮る
+const ids = await js(`const c = await (await fetch("data/curriculum.json")).json(); return c.parts.flatMap((p) => p.chapters.flatMap((ch) => ch.lessons.map((l) => l.id)));`);
+let folded = 0;
+for (const id of ids) {
+  await send("Page.navigate", { url: mobileArg + "#/lesson/" + id });
+  await sleep(900);
+  if (await js(`const cols = (el) => { if (!el || getComputedStyle(el).display === "none") return 1; const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map((q) => Math.round(q.left))).size; };
+    const ax = document.querySelector(".lesson-axis"); return !!ax && (cols(ax.querySelector("span")) > 1 || cols(ax.querySelector("small")) > 1);`)) folded++;
+}
+console.log("2 列目へ折れる軸:", folded, "/", ids.length);
+await open(mobileArg + "#/lesson/java-hello");
+await js(`window.scrollTo(0, 0);`);
+await shot("m-lesson-axis-short");
 await open(mobileArg + "#/lesson/spring-di");
 await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 500)); document.querySelector(".step-menu").open = true;`);
 await shot("m-lesson-top");
@@ -264,14 +277,14 @@ await open(pcArg + "review");
 await js(`window.scrollTo(0, 0);`);
 await shot("pc-review");
 // 答えたあと(この作業ツリーの data/ の記録が 1 問進む)
-await js(`const f = document.querySelector(".review-quiz form"); if (f) { f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); }
+await js(`const f = document.querySelector(".review-quiz form"); if (f) { f.querySelector("input").click(); f.querySelector("button[type=submit]").click(); }
   await new Promise((r) => setTimeout(r, 1500));`);
 await shot("pc-review-answer");
 // 今日の残りを答えて終わりの画面へ(1 つ目の選択肢を選ぶ)。解き直しの結果(1 問目は正しく、2 問目はまだ)を渡した終わりを撮る
 for (let k = 0; k < 12; k++) {
   await open(pcArg + "review");
   const more = await js(`const f = document.querySelector(".review-quiz form"); if (!f) return false;
-    f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 1200)); return true;`);
+    f.querySelector("input").click(); f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 1200)); return true;`);
   if (!more) break;
 }
 await open(pcArg + "review?retry=99&r=100");

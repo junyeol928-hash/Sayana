@@ -60,7 +60,8 @@
                     <input type="radio" name="choice" th:value="${i}" required>
                     <span th:utext="${question.choicesHtml.get(i)}"></span>
                 </label>
-                <button class="btn primary" type="submit">答え合わせ</button>
+                <!--/* 選ぶまでは押せない「選んでから答え合わせ」、選んだら藍の「答え合わせ」(スマホの帯・読解のカードと同じ言葉) */-->
+                <button class="btn primary arm-submit" type="submit" disabled>選んでから答え合わせ</button>
             </form>
             <div id="review-answer"></div>
         </div>

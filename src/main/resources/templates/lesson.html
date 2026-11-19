@@ -27,7 +27,7 @@
         <div class="lesson-hero-body">
         <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></span></nav>
         <h1 th:text="${lesson.title}" th:classappend="${titleSize}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
-        <p class="summary" th:text="${lesson.summary}"></p>
+        <p class="summary" th:utext="${lesson.summaryHtml()}"></p>
         <p class="meta">
             <span class="lesson-dye"><span class="dye lesson-swatch" th:classappend="'dye-' + ${status.dyeLevel()}" role="img"
                   th:attr="aria-label=${status.dyeLabel()}"></span> <b th:text="${#strings.substringBefore(status.dyeLabel(), '・') + '(' + #strings.substringAfter(status.dyeLabel(), '・') + ')'}">生成り(まだ)</b></span>

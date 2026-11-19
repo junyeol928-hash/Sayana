@@ -22,12 +22,12 @@
             <p class="term-name"><span th:text="${c.first.term}"></span><small th:if="${c.first.read != null}" th:text="${c.first.read}"></small><small lang="en" th:if="${c.en != null}" th:text="${c.en}"></small>
                 <span class="term-count" th:if="${c.terms.size() > 1}" th:text="${c.terms.size()} + ' レッスン'"></span></p>
             <th:block th:if="${c.terms.size() == 1}">
-                <p class="term-from-line" th:if="${c.first.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${c.first.lessonId},from='terms')}" th:text="${lessonTitles.get(c.first.lessonId)}"></a><span class="term-de">で</span></p>
+                <p class="term-from-line" th:if="${c.first.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${c.first.lessonId},from='terms',term=${c.first.term})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a><span class="term-de">で</span></p>
                 <p class="term-def" th:utext="${c.first.defHtml}"></p>
             </th:block>
             <ul class="term-defs" th:if="${c.terms.size() > 1}">
                 <li th:each="t : ${c.terms}">
-                    <p class="term-from-line" th:if="${t.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${t.lessonId},from='terms')}" th:text="${lessonTitles.get(t.lessonId)}"></a><span class="term-de">で</span></p>
+                    <p class="term-from-line" th:if="${t.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${t.lessonId},from='terms',term=${t.term})}" th:text="${lessonTitles.get(t.lessonId)}"></a><span class="term-de">で</span></p>
                     <p class="term-def" th:utext="${t.defHtml}"></p>
                 </li>
             </ul>

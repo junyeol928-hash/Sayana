@@ -144,6 +144,21 @@ class CurriculumTest {
                     }
                 }
             }
+            // 読解の追跡で、そのコードに出る名前(変数・メソッド・出力の文字)は地の文に書かない(「region は」→「`region` は」)
+            for (int i = 0; i < l.reading().size(); i++) {
+                var r = l.reading().get(i);
+                java.util.Set<String> ids = codeIdentifiers(r.code());
+                for (String t : r.traceHtml()) {
+                    java.util.regex.Matcher m = IDENT.matcher(plain(t, true));
+                    while (m.find()) {
+                        // 大文字 1 つの役割の言葉(Bean・Base64)は地の文のまま(仕事のコードの説明と同じ)
+                        if (ids.contains(m.group()) && !ENGLISH_WORDS.contains(m.group()) && !m.group().matches("[A-Z][a-z0-9]+")) {
+                            problems.add(l.id() + " reading " + i + " trace: コードの名前「" + m.group() + "」がコード書式の外にある");
+                            break;
+                        }
+                    }
+                }
+            }
             if (readingLongest >= 3) {
                 problems.add(l.id() + ": 読解で正解がいちばん長い選択肢の問が " + readingLongest + " 問(レッスンごとに 2 問まで)");
             }
@@ -181,6 +196,16 @@ class CurriculumTest {
                 }
             }
             l.samples().forEach(s -> lessonIds.addAll(codeIdentifiers(s.code())));
+            // レッスンの説明文(冒頭の 1〜2 文)もゴールと同じ
+            String summaryWord = bareIdentifier(l.summary() == null ? "" : l.summary().replaceAll("`[^`]*`", "〓"), lessonIds);
+            if (summaryWord != null) {
+                problems.add(l.id() + " 説明文: 識別子「" + summaryWord + "」がコード書式の外にある");
+            }
+            // 本文の地の文の true・false・null(図の文字は除く)
+            java.util.regex.Matcher bodyLit = BARE_LITERAL.matcher(plain((l.bodyHtml() == null ? "" : l.bodyHtml()).replaceAll("(?s)<figure\\b.*?</figure>", "〓"), true));
+            if (bodyLit.find()) {
+                problems.add(l.id() + " 本文: リテラル「" + bodyLit.group() + "」がコード書式の外にある");
+            }
             for (String g : l.goals()) {
                 String w = bareIdentifier(g.replaceAll("`[^`]*`", "〓"), lessonIds);
                 if (w != null) {
@@ -270,14 +295,24 @@ class CurriculumTest {
             "(?<![A-Za-z0-9_@.])[A-Za-z_@][A-Za-z0-9_.@\\-]*");
 
     private static final java.util.regex.Pattern BARE_LITERAL = java.util.regex.Pattern.compile("(?<![A-Za-z0-9_])(?:true|false|null)(?![A-Za-z0-9_])");
+    private static final java.util.regex.Pattern BARE_JAVA_WORD = java.util.regex.Pattern.compile(
+            "(?<![A-Za-z0-9_@.\\-])(?:true|false|null|case|switch|default|static|final|new|return|extends|implements|break|continue|void"
+            + "|int|long|double|float|boolean|char|byte|short|this|super)(?![A-Za-z0-9_\\-])");
     private static final java.util.regex.Pattern IDENT = java.util.regex.Pattern.compile(
             "(?<![A-Za-z0-9_@.])@?[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*");
     private static final java.util.Set<String> CODE_KEYWORDS = java.util.Set.of("final", "static", "null", "true", "false");
+    /** 追跡の地の文に英語として書いてよい小文字の語(コードの名前と同じ綴りでも) */
+    private static final java.util.Set<String> ENGLISH_WORDS = java.util.Set.of("of", "to", "in", "is", "and", "or", "the", "a", "an", "at", "on", "by",
+            "class", "yml", "yaml", "xml", "json"); // 「class ファイル」「yml にない」はファイルの用語
 
-    /** コードに出る名前(ドットでつないだ名前は、つないだままと 1 つずつの両方) */
+    /**
+     * コードに出る名前(ドットでつないだ名前は、つないだままと 1 つずつの両方)。文字列とコメントの中の語は名前に数えない
+     * (サンプルの出力の文字「IoC コンテナ」まで、説明文でコードにすることになった)
+     */
     static java.util.Set<String> codeIdentifiers(String code) {
+        String src = (code == null ? "" : code).replaceAll("(?s)/\\*.*?\\*/", " ").replaceAll("//[^\n]*", " ").replaceAll("\"(?:\\\\.|[^\"\\\\])*\"", "\"\"");
         java.util.Set<String> ids = new java.util.HashSet<>();
-        java.util.regex.Matcher m = IDENT.matcher(code == null ? "" : code);
+        java.util.regex.Matcher m = IDENT.matcher(src);
         while (m.find()) {
             ids.add(m.group());
             ids.addAll(List.of(m.group().replace("@", "").split("\\.")));
@@ -309,13 +344,20 @@ class CurriculumTest {
         List<String> texts = new java.util.ArrayList<>(List.of(question, explanation));
         texts.addAll(choices);
         texts.addAll(why);
-        // true・false・null はどこでもコード書式に(問いをまたいで 1 画面に並ぶと、書体が揺れて見えた)
+        // true・false・null と Java の予約語・基本型(case・static・int…)はどこでもコード書式に
+        // (問いをまたいで 1 画面に並ぶと、書体が揺れて見えた。「`switch` 文」「`default` メソッド」も)
         List<String> withTrace = new java.util.ArrayList<>(texts);
         withTrace.addAll(trace);
         for (String t : withTrace) {
-            java.util.regex.Matcher lit = BARE_LITERAL.matcher(plain(t, true));
-            if (lit.find()) {
-                problems.add(where + ": リテラル「" + lit.group() + "」がコード書式の外にある");
+            String p = plain(t, true);
+            java.util.regex.Matcher lit = BARE_JAVA_WORD.matcher(p);
+            while (lit.find()) {
+                // 英語の句の中の語(STS のメニュー「Check out new branch」)は地の文のまま
+                boolean inEnglish = p.substring(0, lit.start()).matches("(?s).*[A-Za-z]{2,} $") && p.substring(lit.end()).matches("(?s)^ [A-Za-z]{2,}.*");
+                if (!inEnglish) {
+                    problems.add(where + ": コードの語「" + lit.group() + "」がコード書式の外にある");
+                    break;
+                }
             }
         }
         // why と選択肢は 1 文。行頭の「+ 」「- 」で Markdown の箇条書きや見出しに化けると、記号が消えて文の意味が変わる
