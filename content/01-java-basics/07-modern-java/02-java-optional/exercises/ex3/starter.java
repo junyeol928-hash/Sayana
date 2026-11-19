@@ -46,15 +46,21 @@ public class AppConfig {
                 "db.port", "5432",
                 "db.timeout", "abc",
                 "db.user", "  "));
-        System.out.println(conf.get("app.name"));           // Optional[Java道場]
-        System.out.println(conf.get("db.user"));            // Optional.empty
-        System.out.println(conf.getInt("db.port", 3306));   // 5432
-        System.out.println(conf.getInt("db.timeout", 30));  // 30
-        System.out.println(conf.getInt("db.pool", 10));     // 10
+        // 出力: Optional[Java道場]
+        System.out.println(conf.get("app.name"));
+        // 出力: Optional.empty
+        System.out.println(conf.get("db.user"));
+        // 出力: 5432
+        System.out.println(conf.getInt("db.port", 3306));
+        // 出力: 30
+        System.out.println(conf.getInt("db.timeout", 30));
+        // 出力: 10
+        System.out.println(conf.getInt("db.pool", 10));
         try {
             conf.require("db.host");
         } catch (IllegalStateException e) {
-            System.out.println(e.getMessage());             // 必須の設定がありません: db.host
+            // 出力: 必須の設定がありません: db.host
+            System.out.println(e.getMessage());
         }
     }
 }

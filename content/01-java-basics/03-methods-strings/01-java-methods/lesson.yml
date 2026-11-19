@@ -50,11 +50,13 @@ samples:
           }
 
           static void clear(int[] prices) {
-              prices[0] = 0;                  // 同じ配列の中身を変更 → 呼び出し元にも見える
+              // 同じ配列の中身を変更 → 呼び出し元にも見える
+              prices[0] = 0;
           }
 
           static void reset(int[] prices) {
-              prices = new int[]{9, 9};       // 仮引数の向き先を変えただけ → 呼び出し元は無関係
+              // 仮引数の向き先を変えただけ → 呼び出し元は無関係
+              prices = new int[]{9, 9};
               System.out.println("  reset の中: " + Arrays.toString(prices));
           }
 
@@ -85,7 +87,8 @@ samples:
               return price * qty - off;
           }
 
-          static double total(double price, int qty) {   // 引数の型が違えば別のメソッド
+          // 引数の型が違えば別のメソッド
+          static double total(double price, int qty) {
               return price * qty;
           }
 

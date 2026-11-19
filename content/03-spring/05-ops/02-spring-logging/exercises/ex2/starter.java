@@ -23,10 +23,14 @@ public class LogLevelResolver {
                 "root", Level.WARN,
                 "com.sayana.dojo", Level.DEBUG,
                 "com.sayana.dojo.ai", Level.INFO);
-        System.out.println(resolve(config, "com.sayana.dojo.ai.AiService"));   // INFO
-        System.out.println(resolve(config, "com.sayana.dojo.exec.Grader"));    // DEBUG
-        System.out.println(resolve(config, "com.sayana.dojox.Foo"));           // WARN
-        System.out.println(isEnabled(config, "org.hibernate.SQL", Level.INFO)); // false
+        // 出力: INFO
+        System.out.println(resolve(config, "com.sayana.dojo.ai.AiService"));
+        // 出力: DEBUG
+        System.out.println(resolve(config, "com.sayana.dojo.exec.Grader"));
+        // 出力: WARN
+        System.out.println(resolve(config, "com.sayana.dojox.Foo"));
+        // 出力: false
+        System.out.println(isEnabled(config, "org.hibernate.SQL", Level.INFO));
     }
 }
 

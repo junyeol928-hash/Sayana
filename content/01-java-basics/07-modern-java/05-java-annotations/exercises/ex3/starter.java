@@ -31,9 +31,12 @@ public class MiniRouter {
     }
 
     public static void main(String[] args) {
-        System.out.println(routes(ShopController.class));                 // {/hello=hello, /items=items}
-        System.out.println(dispatch(new ShopController(), "/hello"));     // いらっしゃいませ
-        System.out.println(dispatch(new ShopController(), "/secret"));    // 404 Not Found
+        // 出力: {/hello=hello, /items=items}
+        System.out.println(routes(ShopController.class));
+        // 出力: いらっしゃいませ
+        System.out.println(dispatch(new ShopController(), "/hello"));
+        // 出力: 404 Not Found
+        System.out.println(dispatch(new ShopController(), "/secret"));
     }
 }
 

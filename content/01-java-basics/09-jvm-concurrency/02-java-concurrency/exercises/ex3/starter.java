@@ -21,6 +21,7 @@ public class PriceFetcher {
 
     public static void main(String[] args) {
         Map<String, Integer> api = Map.of("A001", 120, "B002", 250, "C003", 80);
-        System.out.println(fetchAll(List.of("B002", "A001", "C003"), api::get)); // [250, 120, 80]
+        // 出力: [250, 120, 80]
+        System.out.println(fetchAll(List.of("B002", "A001", "C003"), api::get));
     }
 }

@@ -40,7 +40,8 @@ samples:
       System.out.println("Formatter に @FunctionalInterface は? "
               + Formatter.class.isAnnotationPresent(FunctionalInterface.class));
 
-      Formatter f = yen -> String.format("%,d円", yen);   // 抽象メソッド1つなのでラムダで書ける
+      // 抽象メソッド1つなのでラムダで書ける
+      Formatter f = yen -> String.format("%,d円", yen);
       System.out.println(f.format(12800));
   - title: "@Audited を自作して読む"
     description: |
@@ -71,7 +72,8 @@ samples:
       }
 
       Method[] methods = KeyService.class.getDeclaredMethods();
-      Arrays.sort(methods, Comparator.comparing(Method::getName)); // 並び順は保証されないので名前順に
+      // 並び順は保証されないので名前順に
+      Arrays.sort(methods, Comparator.comparing(Method::getName));
       for (Method m : methods) {
           Audited a = m.getAnnotation(Audited.class);   // 付いていなければ null
           if (a == null) {
@@ -152,7 +154,8 @@ samples:
           Field[] fields = form.getClass().getDeclaredFields();
           Arrays.sort(fields, Comparator.comparing(Field::getName));
           for (Field f : fields) {
-              f.setAccessible(true);            // private フィールドも読めるようにする
+              // private フィールドも読めるようにする
+              f.setAccessible(true);
               Object v = f.get(form);
               if (f.isAnnotationPresent(NotBlank.class) && (v == null || v.toString().isBlank())) {
                   errors.add(f.getName() + " は必須です");

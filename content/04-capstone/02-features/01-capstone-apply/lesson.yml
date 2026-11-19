@@ -83,7 +83,8 @@ samples:
           new ApprovalRequest(2, "モニター購入", 32000, RequestStatus.SUBMITTED, 2),
           new ApprovalRequest(3, "夏季休暇", null, RequestStatus.APPROVED, 1));
 
-      final long CURRENT_EMPLOYEE_ID = 1;   // ログインの代わり(capstone-security で置き換え)
+      // ログインの代わり(capstone-security で置き換え)
+      final long CURRENT_EMPLOYEE_ID = 1;
 
       List<ApprovalRequest> mine = all.stream()
               .filter(r -> r.applicantId() == CURRENT_EMPLOYEE_ID)

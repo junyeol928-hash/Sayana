@@ -34,6 +34,7 @@ public class TicketQueue {
             new Ticket("T-002", 1, 630),
             new Ticket("T-003", 2, 540),
         };
-        System.out.println(Arrays.toString(order(ts)));  // [T-002, T-003, T-001]
+        // 出力: [T-002, T-003, T-001]
+        System.out.println(Arrays.toString(order(ts)));
     }
 }

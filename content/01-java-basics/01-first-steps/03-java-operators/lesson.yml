@@ -101,7 +101,8 @@ samples:
 
       System.out.println(Math.pow(2, 10));   // double で返る
       System.out.println(Math.max(3, 7) + ", " + Math.min(3, 7) + ", " + Math.abs(-5));
-      System.out.println(Math.round(2.5) + ", " + Math.round(-2.5));  // -2.5 は -2 になる
+      // -2.5 は -2 になる
+      System.out.println(Math.round(2.5) + ", " + Math.round(-2.5));
 quiz:
   - question: |
       次のコードの出力は?

@@ -23,8 +23,11 @@ public class ContractDates {
 
     public static void main(String[] args) {
         LocalDate end = endDate(LocalDate.of(2024, 4, 1), 12);
-        System.out.println(end);                                     // 2025-03-31
-        System.out.println(noticeDate(end));                         // 2025-02-28
-        System.out.println(daysLeft(LocalDate.of(2025, 3, 1), end)); // 30
+        // 出力: 2025-03-31
+        System.out.println(end);
+        // 出力: 2025-02-28
+        System.out.println(noticeDate(end));
+        // 出力: 30
+        System.out.println(daysLeft(LocalDate.of(2025, 3, 1), end));
     }
 }

@@ -13,9 +13,9 @@ public class ApplicationFlow {
     }
 
     public static void main(String[] args) {
-        System.out.println(Status.DRAFT.canMoveTo(Status.SUBMITTED));    // true
-        System.out.println(Status.DRAFT.canMoveTo(Status.APPROVED));     // false
-        System.out.println(Status.APPROVED.canMoveTo(Status.DRAFT));     // false
+        System.out.println(Status.DRAFT.canMoveTo(Status.SUBMITTED));  // true
+        System.out.println(Status.DRAFT.canMoveTo(Status.APPROVED));   // false
+        System.out.println(Status.APPROVED.canMoveTo(Status.DRAFT));   // false
         System.out.println(countByStatus(List.of(Status.DRAFT, Status.SUBMITTED, Status.DRAFT)));
         // {DRAFT=2, SUBMITTED=1, APPROVED=0, REJECTED=0}
     }

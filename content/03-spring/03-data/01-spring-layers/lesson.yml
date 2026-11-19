@@ -33,7 +33,8 @@ samples:
           MemberService(MemberRepository repository) { this.repository = repository; }
 
           void register(String email) {
-              String normalized = email.strip().toLowerCase(); // ここを変えてみよう:toLowerCase() を消す
+              // ここを変えてみよう:toLowerCase() を消す
+              String normalized = email.strip().toLowerCase();
               if (repository.existsByEmail(normalized)) {
                   throw new IllegalStateException("登録済みのメールです: " + normalized);
               }
@@ -47,7 +48,8 @@ samples:
       }
 
       InMemoryMemberRepository repo = new InMemoryMemberRepository();
-      MemberService service = new MemberService(repo);   // new するだけ。Spring もDBも不要
+      // new するだけ。Spring もDBも不要
+      MemberService service = new MemberService(repo);
 
       service.register("taro@example.com");
       check("1件目は登録できる", repo.emails.contains("taro@example.com"));

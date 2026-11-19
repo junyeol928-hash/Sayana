@@ -72,7 +72,8 @@ samples:
           System.out.println("ルール違反: " + e.getMessage() + "(状態は " + r.status + " のまま)");
       }
       try {
-          approve(r, bucho);                     // 2回目(1回目が成功していれば状態のルールで失敗)
+          // 2回目(1回目が成功していれば状態のルールで失敗)
+          approve(r, bucho);
           System.out.println("部長が承認しました → " + r.status);
       } catch (BusinessRuleException e) {
           System.out.println("ルール違反: " + e.getMessage());
@@ -92,7 +93,8 @@ samples:
           String status = "SUBMITTED";
           long version = 0;
       }
-      record Snapshot(String status, long version) {}   // 各トランザクションが読んだ値
+      // 各トランザクションが読んだ値
+      record Snapshot(String status, long version) {}
 
       Row row = new Row();
       List<String> histories = new ArrayList<>();

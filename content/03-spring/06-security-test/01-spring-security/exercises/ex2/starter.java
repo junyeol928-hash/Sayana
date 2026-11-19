@@ -47,7 +47,8 @@ public class PasswordHasher {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e); // SHA-256 はどの JDK にも必ずある
+            // SHA-256 はどの JDK にも必ずある
+            throw new IllegalStateException(e);
         }
         // TODO: md.update(salt) でソルトを先に入れ、
         //       md.digest(パスワードの UTF-8 バイト列) で
@@ -80,8 +81,11 @@ public class PasswordHasher {
         String b = hasher.encode("haru-pass");
         System.out.println(a);
         System.out.println(b);
-        System.out.println(a.equals(b));                      // false(ソルトが違う)
-        System.out.println(hasher.matches("haru-pass", a));   // true
-        System.out.println(hasher.matches("HARU-pass", a));   // false
+        // 出力: false(ソルトが違う)
+        System.out.println(a.equals(b));
+        // 出力: true
+        System.out.println(hasher.matches("haru-pass", a));
+        // 出力: false
+        System.out.println(hasher.matches("HARU-pass", a));
     }
 }

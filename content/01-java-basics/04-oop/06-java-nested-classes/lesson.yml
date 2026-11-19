@@ -76,7 +76,8 @@ samples:
               }
           }
 
-          Gauge gauge() { return new Gauge(); }   // この Car に結び付いた Gauge を作る
+          // この Car に結び付いた Gauge を作る
+          Gauge gauge() { return new Gauge(); }
       }
 
       Car car1 = new Car("社用車A", 40);

@@ -25,8 +25,10 @@ samples:
       System.out.println("代入した場合: " + s);
 
       String a = "Java";
-      String b = "Ja" + "va";          // 定数同士の連結 → コンパイル時に "Java"(プールの1つ)
-      String c = new String("Java");   // new は必ず別のオブジェクト
+      // 定数同士の連結 → コンパイル時に "Java"(プールの1つ)
+      String b = "Ja" + "va";
+      // new は必ず別のオブジェクト
+      String c = new String("Java");
       System.out.println("a == b      : " + (a == b));
       System.out.println("a == c      : " + (a == c));
       System.out.println("a.equals(c) : " + a.equals(c));
@@ -78,7 +80,8 @@ samples:
       for (int i = 0; i < lines.length; i++) {
           String[] cols = lines[i].split(",");
           String name = cols[1].strip();
-          int price = Integer.parseInt(cols[2].strip());   // strip しないと NumberFormatException
+          // strip しないと NumberFormatException
+          int price = Integer.parseInt(cols[2].strip());
           int qty = Integer.parseInt(cols[3].strip());
           names[i] = name;
           total += price * qty;

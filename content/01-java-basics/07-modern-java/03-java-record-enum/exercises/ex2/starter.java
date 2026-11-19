@@ -11,9 +11,12 @@ public class MoneyCalc {
     public static void main(String[] args) {
         Money a = new Money(500, "JPY");
         Money b = new Money(300, "JPY");
-        System.out.println(a.add(b));                     // Money[amount=800, currency=JPY]
-        System.out.println(total(List.of(a, b), "JPY"));  // Money[amount=800, currency=JPY]
-        System.out.println(total(List.of(), "USD"));      // Money[amount=0, currency=USD]
+        // 出力: Money[amount=800, currency=JPY]
+        System.out.println(a.add(b));
+        // 出力: Money[amount=800, currency=JPY]
+        System.out.println(total(List.of(a, b), "JPY"));
+        // 出力: Money[amount=0, currency=USD]
+        System.out.println(total(List.of(), "USD"));
     }
 }
 

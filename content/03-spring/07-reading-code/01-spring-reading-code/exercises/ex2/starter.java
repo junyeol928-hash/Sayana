@@ -21,10 +21,13 @@ public class KeyRotationService {
     //       失効させた今の鍵が元に戻るように直す
     @Transactional
     public String rotate(String cardId) {
-        store.revokeActive(cardId);                          // 1. 今の ACTIVE な鍵を REVOKED にする
+        // 1. 今の ACTIVE な鍵を REVOKED にする
+        store.revokeActive(cardId);
         try {
-            String newKeyId = crypto.generateKey(cardId);       // 2. 暗号装置に新しい鍵を作ってもらう
-            store.saveActive(cardId, newKeyId);              // 3. 新しい鍵を ACTIVE で保存する
+            // 2. 暗号装置に新しい鍵を作ってもらう
+            String newKeyId = crypto.generateKey(cardId);
+            // 3. 新しい鍵を ACTIVE で保存する
+            store.saveActive(cardId, newKeyId);
             return newKeyId;
         } catch (CryptoException e) {
             // 暗号装置が落ちていたら、呼び出し元には null を返す

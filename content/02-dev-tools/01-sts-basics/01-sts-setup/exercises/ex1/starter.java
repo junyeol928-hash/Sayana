@@ -30,7 +30,9 @@ public class EncodingDoctor {
     public static void main(String[] args) {
         byte[] utf8 = "勤怠,出勤".getBytes(StandardCharsets.UTF_8);
         byte[] sjis = "勤怠,出勤".getBytes(Charset.forName("MS932"));
-        System.out.println(isUtf8(utf8) + " " + decode(utf8)); // true 勤怠,出勤
-        System.out.println(isUtf8(sjis) + " " + decode(sjis)); // false 勤怠,出勤
+        // 出力: true 勤怠,出勤
+        System.out.println(isUtf8(utf8) + " " + decode(utf8));
+        // 出力: false 勤怠,出勤
+        System.out.println(isUtf8(sjis) + " " + decode(sjis));
     }
 }

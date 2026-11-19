@@ -86,13 +86,16 @@ samples:
       // ここを変えてみよう:input を null にしてみる
       // (input.equals は NPE、"GOLD".equals は false になる)
       String part = "GOL";
-      String input = part + "D";      // 実行時に組み立てた "GOLD"(ユーザー入力のつもり)
+      // 実行時に組み立てた "GOLD"(ユーザー入力のつもり)
+      String input = part + "D";
 
       System.out.println("input == \"GOLD\"      → " + (input == "GOLD"));
       System.out.println("input.equals(\"GOLD\") → " + input.equals("GOLD"));
-      System.out.println("\"GOLD\".equals(input) → " + "GOLD".equals(input));   // null でも安全
+      // null でも安全
+      System.out.println("\"GOLD\".equals(input) → " + "GOLD".equals(input));
 
-      String label = (input == null) ? "未入力" : switch (input) {   // null を switch に渡すと NPE なので先にはじく
+      // null を switch に渡すと NPE なので先にはじく
+      String label = (input == null) ? "未入力" : switch (input) {
           case "GOLD" -> "ゴールド会員";
           case "SILVER" -> "シルバー会員";
           default -> "一般会員";

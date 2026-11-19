@@ -108,8 +108,10 @@ samples:
       SignupForm form = new SignupForm();
       DataBinder binder = new DataBinder(form, "signupForm");
       binder.setValidator(validator);
-      binder.bind(new MutablePropertyValues(params)); // 名前が同じプロパティに setter で詰める
-      binder.validate();                              // @Validated の正体
+      // 名前が同じプロパティに setter で詰める
+      binder.bind(new MutablePropertyValues(params));
+      // @Validated の正体
+      binder.validate();
       BindingResult result = binder.getBindingResult();
 
       // DB を見ないと分からないチェックは、自分でエラーを足す

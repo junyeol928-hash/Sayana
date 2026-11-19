@@ -30,7 +30,8 @@ samples:
           } catch (ArithmeticException e) {
               System.out.println("0 では割れません → " + e.getMessage());
           } finally {
-              System.out.println("(チェック終了)");   // 例外の有無にかかわらず必ず実行
+              // 例外の有無にかかわらず必ず実行
+              System.out.println("(チェック終了)");
           }
       }
   - title: 独自例外を throw して catch する
@@ -38,7 +39,8 @@ samples:
     code: |
       // 独自例外を throw して、呼び出し側で catch する
       // ここを変えてみよう:order の数量を 3 / 10 / 0 に変える
-      class StockShortageException extends Exception {     // Exception を継承 = 検査例外
+      // Exception を継承 = 検査例外
+      class StockShortageException extends Exception {
           StockShortageException(String message) {
               super(message);
           }

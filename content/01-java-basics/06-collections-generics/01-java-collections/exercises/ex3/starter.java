@@ -28,7 +28,8 @@ public class DeptRoster {
                 new Employee("E02", "鈴木", "開発"),
                 new Employee("E03", "高橋", "営業"),
                 new Employee("E01", "佐藤", "営業"));
-        System.out.println(groupByDept(list)); // {営業=[佐藤, 高橋], 開発=[鈴木]}
+        // 出力: {営業=[佐藤, 高橋], 開発=[鈴木]}
+        System.out.println(groupByDept(list));
     }
 }
 

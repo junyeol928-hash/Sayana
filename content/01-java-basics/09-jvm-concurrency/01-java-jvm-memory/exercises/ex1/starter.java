@@ -9,7 +9,8 @@ public class ScoreBook {
 
     static int[] withBonus(int[] scores, int bonus) {
         // TODO: 新しい配列を作り、各要素に bonus を足した値を入れて返す
-        int[] result = scores;   // ← コピーではなく「同じ配列を指す矢印」が増えただけ
+        // ↓ コピーではなく「同じ配列を指す矢印」が増えただけ
+        int[] result = scores;
         for (int i = 0; i < result.length; i++) {
             result[i] += bonus;
         }
@@ -24,8 +25,11 @@ public class ScoreBook {
     public static void main(String[] args) {
         int[] t = {60, 75, 90};
         int[] u = withBonus(t, 5);
-        System.out.println(java.util.Arrays.toString(t)); // [60, 75, 90] になるはず
-        System.out.println(java.util.Arrays.toString(u)); // [65, 80, 95]
-        System.out.println(sameScores(new int[]{1, 2}, new int[]{1, 2})); // true
+        // [60, 75, 90] になるはず
+        System.out.println(java.util.Arrays.toString(t));
+        // 出力: [65, 80, 95]
+        System.out.println(java.util.Arrays.toString(u));
+        // 出力: true
+        System.out.println(sameScores(new int[]{1, 2}, new int[]{1, 2}));
     }
 }

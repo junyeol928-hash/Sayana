@@ -21,7 +21,8 @@ public class LogMasker {
 
     public static String toLog(Object obj) {
         Field[] fields = obj.getClass().getDeclaredFields();
-        Arrays.sort(fields, Comparator.comparing(Field::getName)); // 名前順に並べておく
+        // 名前順に並べておく
+        Arrays.sort(fields, Comparator.comparing(Field::getName));
         List<String> parts = new ArrayList<>();
         // TODO: 各フィールドを setAccessible(true) して
         //       f.get(obj) で値を読む

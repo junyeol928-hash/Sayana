@@ -27,9 +27,12 @@ samples:
           for (int i = 500; i < 1000; i++) partial[1] += numbers[i];
       });
 
-      front.start();   // ここで別スレッドが動き出す(run() と書くと今のスレッドで実行されるだけ)
+      // ここで別スレッドが動き出す
+      // (run() と書くと今のスレッドで実行されるだけ)
+      front.start();
       back.start();
-      front.join();    // 終わるまで待つ。消すと、まだ足し終わっていない値を読むことがある
+      // 終わるまで待つ。消すと、まだ足し終わっていない値を読むことがある
+      front.join();
       back.join();
 
       // ここを変えてみよう:配列の大きさや分け方を変える
@@ -115,7 +118,8 @@ samples:
           try {
               System.out.println(slow.get(100, TimeUnit.MILLISECONDS));
           } catch (TimeoutException e) {
-              slow.cancel(true);                    // 待つのをやめ、処理にも中断を伝える
+              // 待つのをやめ、処理にも中断を伝える
+              slow.cancel(true);
               System.out.println("タイムアウトしたので諦めました");
           }
       } finally {

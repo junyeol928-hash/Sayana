@@ -25,8 +25,11 @@ public class OrderValidator {
     }
 
     public static void main(String[] args) {
-        System.out.println(tryOrder("A-100", 3));    // 受付: A-100 × 3
-        System.out.println(tryOrder("  ", 3));       // エラー: 商品コードが空です
-        System.out.println(tryOrder("A-100", 100));  // エラー: 数量は1〜99で指定してください: 100
+        // 出力: 受付: A-100 × 3
+        System.out.println(tryOrder("A-100", 3));
+        // 出力: エラー: 商品コードが空です
+        System.out.println(tryOrder("  ", 3));
+        // 出力: エラー: 数量は1〜99で指定してください: 100
+        System.out.println(tryOrder("A-100", 100));
     }
 }

@@ -35,7 +35,8 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> create(CreateTaskRequest req) { // TODO: 引数に @RequestBody を付ける
+    // TODO: 引数に @RequestBody を付ける
+    public ResponseEntity<Task> create(CreateTaskRequest req) {
         // TODO: title が null または空白だけなら
         //       400(ResponseEntity.badRequest().build())
 

@@ -26,7 +26,8 @@ public class StockController {
     // TODO: GET /stocks/{code} に対応付ける(@GetMapping)
     public ResponseEntity<Stock> find(@PathVariable("code") String code) {
         // TODO: 見つかれば 200 + Stock(JSON になる)、無ければ 404
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // ← ダミー
+        // ↓ ダミー
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
     // TODO: POST /stocks/{code}/ship に対応付ける(@PostMapping)
@@ -39,7 +40,8 @@ public class StockController {
         //       409(HttpStatus.CONFLICT)+「在庫不足です(残り 12)」
         // TODO: それ以外は在庫を減らした新しい Stock を put し、
         //       200 +「出荷しました(残り 9)」
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // ← ダミー
+        // ↓ ダミー
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
 

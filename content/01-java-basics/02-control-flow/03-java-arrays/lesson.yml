@@ -25,12 +25,14 @@ samples:
       System.out.println("既定値: " + Arrays.toString(sales) + " " + Arrays.toString(names) + " " + Arrays.toString(done));
 
       sales[0] = 12000;
-      sales[4] = 31000;                  // ここを sales[5] にすると? 例外メッセージを読んでみよう
+      // ここを sales[5] にすると? 例外メッセージを読んでみよう
+      sales[4] = 31000;
       System.out.println("代入後: " + Arrays.toString(sales));
 
       int[] primes = {2, 3, 5, 7};       // 要素を足すと length も変わる
       System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
-      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
+      // 謎の文字列になる(中身とは無関係な値)
+      System.out.println("println に直接渡すと: " + primes);
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
       `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` は、それぞれ何を返すか。
@@ -39,8 +41,10 @@ samples:
       import java.util.Arrays;
 
       int[] a = {1, 2, 3};
-      int[] b = a;                       // 同じ配列を指す
-      int[] c = Arrays.copyOf(a, a.length);  // 新しい配列(ここを a.clone() に変えても同じ)
+      // 同じ配列を指す
+      int[] b = a;
+      // 新しい配列(ここを a.clone() に変えても同じ)
+      int[] c = Arrays.copyOf(a, a.length);
 
       b[0] = 99;                         // b 経由で書き換えると……
       System.out.println("a = " + Arrays.toString(a));

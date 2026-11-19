@@ -32,7 +32,8 @@ public class SalesReport {
         Path out = dir.resolve("report").resolve("summary.csv");
         summarize(in, out);
         if (Files.exists(out)) {
-            System.out.print(Files.readString(out)); // 店舗,合計 / 新宿,800 / 渋谷,1700
+            // 出力: 店舗,合計 / 新宿,800 / 渋谷,1700
+            System.out.print(Files.readString(out));
         } else {
             System.out.println("出力ファイルがありません");
         }

@@ -20,7 +20,8 @@ samples:
 
       static int tax(int price, int depth) {
           System.out.println(indent(depth) + "→ tax(" + price + ") のフレームを積む");
-          int result = price * 10 / 100;    // result は tax のフレームにあるローカル変数
+          // result は tax のフレームにあるローカル変数
+          int result = price * 10 / 100;
           System.out.println(indent(depth) + "← tax が " + result + " を返して、フレームが消える");
           return result;
       }
@@ -55,11 +56,13 @@ samples:
       }
 
       static void addPoints(Cart c, int p) {
-          c.points += p;              // 矢印の先(同じ実体)を書き換える → 呼び出し元から見える
+          // 矢印の先(同じ実体)を書き換える → 呼び出し元から見える
+          c.points += p;
       }
 
       static void replace(Cart c) {
-          c = new Cart("別人", 0);    // 引数 c の矢印を付け替えただけ → 呼び出し元は変わらない
+          // 引数 c の矢印を付け替えただけ → 呼び出し元は変わらない
+          c = new Cart("別人", 0);
           c.points = 9999;
       }
 

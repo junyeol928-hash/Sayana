@@ -45,7 +45,9 @@ public class ReorderService {
         Order previous = new Order("佐藤", items);
         Order next = reorder(previous, "佐藤");
         next.addItem("ボールペン");
-        System.out.println("前回: " + previous.getItems()); // 期待: [コピー用紙, トナー]
-        System.out.println("今回: " + next.getItems());     // 期待: [コピー用紙, トナー, ボールペン]
+        // 期待: [コピー用紙, トナー]
+        System.out.println("前回: " + previous.getItems());
+        // 期待: [コピー用紙, トナー, ボールペン]
+        System.out.println("今回: " + next.getItems());
     }
 }

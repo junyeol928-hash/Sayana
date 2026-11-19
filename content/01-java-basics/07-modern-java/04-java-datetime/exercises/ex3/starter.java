@@ -28,8 +28,11 @@ public class BusinessDays {
     public static void main(String[] args) {
         Set<LocalDate> gw = Set.of(LocalDate.of(2024, 4, 29),
                 LocalDate.of(2024, 5, 3), LocalDate.of(2024, 5, 6));
-        System.out.println(count(LocalDate.of(2024, 6, 3), LocalDate.of(2024, 6, 9), Set.of())); // 5
-        System.out.println(count(LocalDate.of(2024, 4, 29), LocalDate.of(2024, 5, 6), gw));      // 3
-        System.out.println(addBusinessDays(LocalDate.of(2024, 5, 2), 1, gw));                    // 2024-05-07
+        // 出力: 5
+        System.out.println(count(LocalDate.of(2024, 6, 3), LocalDate.of(2024, 6, 9), Set.of()));
+        // 出力: 3
+        System.out.println(count(LocalDate.of(2024, 4, 29), LocalDate.of(2024, 5, 6), gw));
+        // 出力: 2024-05-07
+        System.out.println(addBusinessDays(LocalDate.of(2024, 5, 2), 1, gw));
     }
 }

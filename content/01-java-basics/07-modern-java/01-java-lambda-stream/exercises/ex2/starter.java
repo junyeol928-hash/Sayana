@@ -46,8 +46,11 @@ public class DeptReport {
                 new Employee("E01", "佐藤", "開発", 42),
                 new Employee("E02", "鈴木", "営業", 38),
                 new Employee("E03", "田中", "開発", 51));
-        System.out.println(headcount(emps));   // {開発=2, 営業=1}(順不同)
-        System.out.println(salaryTotal(emps)); // {開発=93, 営業=38}(順不同)
-        System.out.println(nameById(emps));    // {E01=佐藤, E02=鈴木, E03=田中}(順不同)
+        // 出力: {開発=2, 営業=1}(順不同)
+        System.out.println(headcount(emps));
+        // 出力: {開発=93, 営業=38}(順不同)
+        System.out.println(salaryTotal(emps));
+        // 出力: {E01=佐藤, E02=鈴木, E03=田中}(順不同)
+        System.out.println(nameById(emps));
     }
 }

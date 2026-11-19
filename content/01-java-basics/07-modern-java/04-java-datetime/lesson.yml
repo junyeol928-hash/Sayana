@@ -25,7 +25,8 @@ samples:
 
       LocalDate due = start.plusDays(7);             // ○ 受け取る
       System.out.println("7日後     : " + due);
-      System.out.println("1か月後   : " + start.plusMonths(1));  // 2/31 はないので月末
+      // 2/31 はないので月末
+      System.out.println("1か月後   : " + start.plusMonths(1));
       System.out.println("比較      : " + start.isBefore(due));
 
       LocalDateTime dt = LocalDate.parse("2024-04-01").atTime(9, 30);

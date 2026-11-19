@@ -13,7 +13,8 @@ public class OwnerReport {
     public static List<String> owners(Class<?> type) {
         List<String> result = new ArrayList<>();
         Method[] methods = type.getDeclaredMethods();
-        Arrays.sort(methods, Comparator.comparing(Method::getName)); // 名前順に並べておく
+        // 名前順に並べておく
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         // TODO: 各メソッドの @Owner を getAnnotation で取り出す
         //       (付いていなければ null)
         // TODO: 付いていれば "メソッド名: 担当者(チーム)" を
@@ -29,8 +30,10 @@ public class OwnerReport {
     }
 
     public static void main(String[] args) {
-        System.out.println(owners(PaymentService.class));   // [charge: 佐藤(未所属), refund: 鈴木(経理)]
-        System.out.println(unowned(PaymentService.class));  // [ping]
+        // 出力: [charge: 佐藤(未所属), refund: 鈴木(経理)]
+        System.out.println(owners(PaymentService.class));
+        // 出力: [ping]
+        System.out.println(unowned(PaymentService.class));
     }
 }
 

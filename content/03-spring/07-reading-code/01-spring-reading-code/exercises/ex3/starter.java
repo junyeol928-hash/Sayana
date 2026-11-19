@@ -46,7 +46,9 @@ class KeyIssueService {
     private final List<KeyIssueResponse> issued = new ArrayList<>();
 
     KeyIssueResponse issue(KeyIssueRequest request) {
-        int version = request.keyVersion();   // ← 本番ログの「at ...KeyIssueService.issue(KeyIssueService.java:31)」はこの行
+        // ↓ 本番ログの次の 1 行は、この下の行を指す
+        //   「at ...KeyIssueService.issue(KeyIssueService.java:31)」
+        int version = request.keyVersion();
         KeyIssueResponse res = new KeyIssueResponse(
                 String.format("K-%04d", issued.size() + 1), request.cardId(), version);
         issued.add(res);
