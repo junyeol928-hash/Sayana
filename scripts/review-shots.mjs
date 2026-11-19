@@ -490,8 +490,12 @@ for (let k = 0; k < 12; k++) {
   if (!more) break;
 }
 await open(pcArg + "review?retry=99&r=100");
-await scrollTo(".review-done, .review-break", 90);
-await shot("pc-review-retry-end");
+// 今日の記録に間違えた問が無いと、解き直しの終わりは作れない(上書きの ?r= で「解き直した 0 問は、まだ」と「ホームへ」2 つの
+// 画面になった。30 回目)。そのときは知らせて撮らない(pc-review-answer と同じ)
+if (await js(`return !!document.querySelector(".retry-done");`)) {
+  await scrollTo(".review-done, .review-break", 90);
+  await shot("pc-review-retry-end");
+} else console.log("PC の復習: 今日の記録に間違えた問が無いので、解き直しの終わりは撮りません(data/ を消すと撮れる)");
 // 「読み直す」で問いそのものへ着いたとき(1.2 秒の藍の枠とフォーカス)。枠が消える前に撮る
 await send("Page.navigate", { url: pcArg + "lessons/java-if?from=review#quiz-q1" });
 let landed = "";
