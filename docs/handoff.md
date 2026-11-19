@@ -4,7 +4,8 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 
 ## 現状
 - 公開中(`main`)は 2026-11-02 の作り直し([PR #7](https://github.com/junyeol928-hash/Sayana/pull/7))。スマホ版は GitHub Pages の https://junyeol928-hash.github.io/Sayana/m/ (Pages は `main` の直下から配信。`main` に入れば公開される)
-- ブランチ `claude/upgrade-learning`(未 push・未マージ。2026-11-19)で、教材の正確さの総点検と、学びやすさの作り直しをした。中身は下の「変更内容」。push・PR・Pages への反映はユーザーの確認待ち
+- ブランチ `claude/upgrade-learning`(push 済み・[PR #11](https://github.com/junyeol928-hash/Sayana/pull/11)・未マージ。2026-11-19)で、教材の正確さの総点検と、学びやすさの作り直しをした。中身は下の「変更内容」。マージ(= Pages への公開)はユーザーの判断待ち
+- PC の本文の画面に藍の軸と運針を通す作り直しは、別のブランチ(`claude/upgrade-learning` から切ったもの)で進行中。PR は #11 に重ねる形(base が `claude/upgrade-learning`)
 - 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で 2026-11-19 に確認)、`./mvnw test`(488 件、2026-11-19 に全部通過)
 - 相互レビュー: 18 回目から目標を Awwwards の Site of the Day にした(物差しは [review-rubric.md](review-rubric.md) の「18 回目から」。合格の線は加重平均 8.5・どの軸も 8.0・学びやすさ 8.5)。点数の移り変わりと直したことは [design-review.md](design-review.md) の末尾、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は 18〜21 回目のどれも利用上限で審査できていない(次に使えるのは 2026-11-20 00:51)。代わりに独立の Claude 2 人(2 人目は学びやすさに厳しい審査員)で採点している
@@ -33,7 +34,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - 用語集の語は、どれもその lesson の本文・仕事のコード・サンプルに出る(`CurriculumTest#glossaryTermsLand`)。語を足すときは、本文での言い方を括弧に足すか、扱うレッスンに付ける
 - PC の読む画面に軸と運針を続ける案と、PC のサンプルの編集欄(CodeMirror)の配色をコードの面にそろえる案は見送り(27 回目の 1 人目の 4 の 2。別の作業として)
 - 復習・読解・用語集からレッスンを開くと「のぞき見」(前回の続きを書き換えない。冒頭に「〇〇へ戻る」)。PC はリンクの `?from=` で見分ける。新しい入口を足すときは `data-peek`(スマホ)か `?from=`(PC)を付け、戻り先の位置(スマホは `data-resume`)も渡す
-- push と PR はユーザーの確認待ち。マージすると Pages に出る。マージの前に `./mvnw test`(5 分ほど)と `node scripts/offline-check.mjs . <出力フォルダ>` を通す
+- PR #11 のマージはユーザーの判断待ち。マージすると Pages に出る。マージの前に `./mvnw test`(5 分ほど)と `node scripts/offline-check.mjs . <出力フォルダ>` を通す
 - 相互レビューを続けるなら、2026-11-20 00:51 以降に Codex にも審査を頼む(そのときの HEAD を `git worktree add --detach ../Sayana-r22 HEAD` で凍結し、`docs/screenshots/` の最新の回の撮影と `docs/review-rubric.md` を渡す)
 - 教材や画面を変えたら、`./mvnw -q compile exec:java` で `m/` を作り直し(サンプルを変えたら JShell の控えも作り直る)、`./mvnw test` を通してから PR にする
 - Spring Boot の移行: いまは 3.5.16。3.5 の OSS サポートは 2026-06 に終了済み(商用は 2032-06)。2026-11-06 時点で 4.2.0 は RC2
