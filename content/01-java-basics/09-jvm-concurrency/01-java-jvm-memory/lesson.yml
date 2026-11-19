@@ -33,11 +33,13 @@ samples:
           return sum;
       }
 
-      // ここを変えてみよう:total の中で tax を2回呼ぶと、積まれ方はどう変わる?
+      // ここを変えてみよう:total の中で tax を2回呼ぶと、
+      // 積まれ方はどう変わる?
       System.out.println("main のフレームから呼び出す");
       int answer = total(500, 3, 1);
       System.out.println("main に戻った: " + answer);
-      // ここで subtotal や result を使おうとするとエラー(フレームごと消えている)
+      // ここで subtotal や result を使おうとするとエラー
+      // (フレームごと消えている)
   - title: 中身を書き換える / 矢印を付け替える
     description: |
       引数には「矢印(参照)のコピー」が渡る。中身を書き換える `addPoints`、矢印を付け替える `replace`、`int` を受け取る `addOne` のあとで、呼び出し元の値はそれぞれどうなっているだろうか。2 つの `==` はそれぞれ何を返す?
@@ -75,7 +77,8 @@ samples:
       addOne(count);
       System.out.println("addOne 後:    " + count);
 
-      // ここを変えてみよう:other を new せずに cart を代入すると == はどうなる?
+      // ここを変えてみよう:other を new せずに cart を代入すると
+      // == はどうなる?
       Cart alias = cart;
       Cart other = new Cart("ハル", 150);
       System.out.println("cart == alias ? " + (cart == alias));
@@ -97,14 +100,16 @@ samples:
       }
 
       class ReportCache {
-          // static はクラスが使われている間ずっと生きている = ここから辿れる実体も生き続ける
+          // static はクラスが使われている間ずっと生きている
+          // = ここから辿れる実体も生き続ける
           static final List<Report> ALL = new ArrayList<>();
       }
 
       static void handleRequest(int no) {
           Report r = new Report("report-" + no);
           ReportCache.ALL.add(r);   // 「あとで使うかも」と取っておく
-          // r(ローカル変数)はメソッドを出ると消えるが、ALL から辿れるので実体は GC されない
+          // r(ローカル変数)はメソッドを出ると消えるが、
+          // ALL から辿れるので実体は GC されない
       }
 
       // ここを変えてみよう:1000 を 10 倍にすると、溜まる量も 10 倍になる
@@ -141,13 +146,16 @@ samples:
       try {
           Deep.dive();
       } catch (StackOverflowError e) {
-          // 確かめるために捕まえているだけ。本番のコードで Error を catch して続行してはいけない
+          // 確かめるために捕まえているだけ。
+          // 本番のコードで Error を catch して続行してはいけない
           System.out.println("StackOverflowError を捕まえた");
           System.out.println("1000 段より深く潜れていた? " + (Deep.depth > 1000));
-          // 実際の段数は JVM の設定や実行のたびに変わるので、ここでは表示しない
+          // 実際の段数は JVM の設定や実行のたびに変わるので、
+          // ここでは表示しない
       }
 
-      // ここを変えてみよう:1_000_000 を 10_000_000 にしても、ループならあふれない
+      // ここを変えてみよう:1_000_000 を 10_000_000 にしても、
+      // ループならあふれない
       System.out.println("ループで 1〜100万を合計: " + Deep.sumLoop(1_000_000));
 quiz:
   - question: |

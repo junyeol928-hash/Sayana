@@ -52,7 +52,8 @@ samples:
 
       System.out.println("2回 count++ したのに count = " + count);
 
-      // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから B が読む順に並べ替えると?
+      // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから
+      // B が読む順に並べ替えると?
   - title: AtomicInteger と synchronized なら必ず合う
     description: |
       4本のスレッドが1万回ずつ数える。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。

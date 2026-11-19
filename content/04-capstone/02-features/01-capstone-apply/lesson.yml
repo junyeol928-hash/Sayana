@@ -17,7 +17,8 @@ samples:
       経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? それぞれどの項目のエラー?
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
-      // ここを変えてみよう:type を LEAVE に / amount を null や 0 に / title を "" や 51文字に
+      // ここを変えてみよう:type を LEAVE に / amount を null や 0 に /
+      // title を "" や 51文字に
       import jakarta.validation.*;
       import jakarta.validation.constraints.*;
 

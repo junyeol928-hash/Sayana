@@ -36,7 +36,8 @@ class FullTimeEmployee extends Employee {
         this.overtimeHours = overtimeHours;
     }
 
-    // TODO: monthlyPay() をオーバーライドし、基本給 + 残業時間 × OVERTIME_RATE を返す
+    // TODO: monthlyPay() をオーバーライドし、
+    //       基本給 + 残業時間 × OVERTIME_RATE を返す
 }
 
 class PartTimeEmployee extends Employee {
@@ -51,16 +52,19 @@ class PartTimeEmployee extends Employee {
     }
 
     // TODO: monthlyPay() をオーバーライドする
-    //       160 時間までは 時給 × 時間、超えた分は 時給 × 125 / 100 × 超過時間
+    //       160 時間までは 時給 × 時間、
+    //       超えた分は 時給 × 125 / 100 × 超過時間
 }
 
 class Manager extends FullTimeEmployee {
     static final int ALLOWANCE = 50000;
 
     Manager(String name, int baseSalary) {
-        // TODO: 残業時間 0 として親(FullTimeEmployee)のコンストラクタに渡す
+        // TODO: 残業時間 0 として親(FullTimeEmployee)の
+        //       コンストラクタに渡す
         super(name, 0, 0);
     }
 
-    // TODO: monthlyPay() をオーバーライドし、super.monthlyPay() + ALLOWANCE を返す
+    // TODO: monthlyPay() をオーバーライドし、
+    //       super.monthlyPay() + ALLOWANCE を返す
 }

@@ -8,14 +8,19 @@ class InvalidOrderException extends Exception {
 public class OrderValidator {
 
     static void validate(String itemCode, int quantity) throws InvalidOrderException {
-        // TODO: itemCode が null または空白だけなら "商品コードが空です" で例外を投げる
+        // TODO: itemCode が null または空白だけなら
+        //       "商品コードが空です" で例外を投げる
 
-        // TODO: quantity が 1〜99 の範囲外なら "数量は1〜99で指定してください: " + quantity で例外を投げる
+        // TODO: quantity が 1〜99 の範囲外なら、
+        //       "数量は1〜99で指定してください: " + quantity
+        //       というメッセージで例外を投げる
     }
 
     static String tryOrder(String itemCode, int quantity) {
-        // TODO: validate を呼び、問題なければ "受付: " + itemCode + " × " + quantity を返す
-        // TODO: InvalidOrderException を catch したら "エラー: " + メッセージ を返す
+        // TODO: validate を呼び、問題なければ
+        //       "受付: " + itemCode + " × " + quantity を返す
+        // TODO: InvalidOrderException を catch したら
+        //       "エラー: " + メッセージ を返す
         return "";
     }
 

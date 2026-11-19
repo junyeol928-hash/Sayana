@@ -52,13 +52,18 @@ class MemberController {
 @RestControllerAdvice
 public class ValidationErrorHandler {
 
-    // TODO: @ExceptionHandler(MethodArgumentNotValidException.class) を付ける
+    // TODO: この注釈を付ける:
+    //       @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
         // TODO: ex.getBindingResult().getFieldErrors() を回して、
-        //       項目名(getField())→ メッセージ(getDefaultMessage())の Map を作る(putIfAbsent)
+        //       項目名(getField())→ メッセージ(getDefaultMessage())の
+        //       Map を作る(putIfAbsent)
 
-        // TODO: ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "入力内容を確認してください") で作り、
-        //       setTitle("入力エラー")、setProperty("errors", map) して返す
+        // TODO: ProblemDetail.forStatusAndDetail で作る。
+        //       ステータスは HttpStatus.BAD_REQUEST、
+        //       詳細は "入力内容を確認してください"。
+        //       setTitle("入力エラー")、
+        //       setProperty("errors", map) して返す
         return null; // ← ダミー
     }
 }

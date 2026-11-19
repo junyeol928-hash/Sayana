@@ -65,7 +65,8 @@ samples:
           new Req(5, "モニター購入", "SUBMITTED", "PURCHASE"));
 
       // 検索条件(null = 指定なし)
-      // ここを変えてみよう:null にしたり、"EXPENSE" や "休暇" にしたりして再実行
+      // ここを変えてみよう:null にしたり、
+      // "EXPENSE" や "休暇" にしたりして再実行
       String status = "SUBMITTED";
       String type = null;
       String keyword = "出張";
@@ -83,7 +84,8 @@ samples:
       System.out.println("使った条件: " + conds.size() + " 個");
       data.stream().filter(where).forEach(System.out::println);
 
-      // 派生クエリで同じことをすると、条件の有無の組み合わせだけメソッドが要る
+      // 派生クエリで同じことをすると、
+      // 条件の有無の組み合わせだけメソッドが要る
       for (int n = 1; n <= 6; n++) {
           System.out.println("任意条件 " + n + " 個 → 派生クエリ " + (1 << n) + " 本");
       }
@@ -97,7 +99,8 @@ samples:
       import org.springframework.util.MultiValueMap;
 
       // 今の検索条件(null = 指定なし)
-      // ここを変えてみよう:keyword を "50% & 割引" にする / type に "EXPENSE" を入れる
+      // ここを変えてみよう:keyword を "50% & 割引" にする /
+      // type に "EXPENSE" を入れる
       String status = "SUBMITTED";
       String type = null;
       String keyword = "出張 大阪";

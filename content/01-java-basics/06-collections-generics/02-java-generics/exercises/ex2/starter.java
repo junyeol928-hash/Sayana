@@ -6,7 +6,8 @@ public class ExpenseReport {
     public static double total(List<? extends Number> amounts) {
         // TODO: amounts が null なら 0.0 を返す
 
-        // TODO: 拡張 for で Number として1件ずつ取り出し、null でなければ doubleValue() を足す
+        // TODO: 拡張 for で Number として1件ずつ取り出し、
+        //       null でなければ doubleValue() を足す
 
         return -1; // ← ダミー。書き換えてください
     }
@@ -15,7 +16,8 @@ public class ExpenseReport {
                                    List<? super Double> dest) {
         // TODO: src が null なら 0 を返す
 
-        // TODO: null でない要素のうち、doubleValue() が threshold 以上のものを dest に add し、件数を数える
+        // TODO: null でない要素のうち、doubleValue() が
+        //       threshold 以上のものを dest に add し、件数を数える
 
         return -1; // ← ダミー。書き換えてください
     }

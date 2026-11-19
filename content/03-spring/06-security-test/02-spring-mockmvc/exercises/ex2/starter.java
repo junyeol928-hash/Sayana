@@ -16,24 +16,37 @@ import org.springframework.web.bind.annotation.RestController;
 /** テストの「準備」をまとめたクラス */
 public class OrderTestSupport {
 
-    /** 渡された Service(スタブ)を差し込んだ OrderController の MockMvc を組み立てる */
+    /**
+     * 渡された Service(スタブ)を差し込んだ OrderController の
+     * MockMvc を組み立てる
+     */
     static MockMvc mockMvc(OrderService service) {
-        // TODO: MockMvcBuilders.standaloneSetup(new OrderController(service)) で組み立てる
-        // TODO: 日本語が文字化けしないように、StringHttpMessageConverter(UTF-8) と
-        //       MappingJackson2HttpMessageConverter を setMessageConverters で渡し、
-        //       defaultResponseCharacterEncoding(UTF-8) も指定して build() する
+        // TODO: MockMvcBuilders.standaloneSetup(
+        //           new OrderController(service)) で組み立てる
+        // TODO: 日本語が文字化けしないように、
+        //       StringHttpMessageConverter(UTF-8) と
+        //       MappingJackson2HttpMessageConverter を
+        //       setMessageConverters で渡し、
+        //       defaultResponseCharacterEncoding(UTF-8) も指定して
+        //       build() する
         return null; // ← ダミー。書き換えてください
     }
 }
 
-/** テスト用の手書きスタブ。Mockito の when/thenReturn と verify を手で書いたもの */
+/**
+ * テスト用の手書きスタブ。Mockito の when/thenReturn と
+ * verify を手で書いたもの
+ */
 class StubOrderService implements OrderService {
 
     private final Map<String, List<Order>> data = new HashMap<>();
     /** findByCustomer が呼ばれたときの引数を、呼ばれた順に記録する */
     final List<String> calledWith = new ArrayList<>();
 
-    /** customerId で呼ばれたら orders を返すように仕込む(when(...).thenReturn(...) に相当) */
+    /**
+     * customerId で呼ばれたら orders を返すように仕込む
+     * (when(...).thenReturn(...) に相当)
+     */
     StubOrderService willReturn(String customerId, Order... orders) {
         // TODO: data に customerId → List.of(orders) を登録する
         return this;
@@ -42,7 +55,8 @@ class StubOrderService implements OrderService {
     @Override
     public List<Order> findByCustomer(String customerId) {
         // TODO: 呼ばれた引数を calledWith に記録する(verify の代わり)
-        // TODO: 仕込んだ注文を返す。仕込んでいない顧客は空リスト(null は NG)
+        // TODO: 仕込んだ注文を返す。仕込んでいない顧客は空リスト
+        //       (null は NG)
         return null; // ← ダミー。書き換えてください
     }
 }

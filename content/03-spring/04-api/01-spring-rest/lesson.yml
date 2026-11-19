@@ -17,7 +17,8 @@ samples:
       POST、GET の一覧と個別取得、存在しない ID の GET、Content-Type を付け忘れた POST を順に送ります。Content-Type を付け忘れた POST は、何番が返る?Location ヘッダが付くのは、どのリクエストだろうか。
     code: |
       // タスク API を MockMvc で叩いてみる(Web サーバーは起動しない)
-      // ここを変えてみよう:title を変える / POST を増やす / 存在しない ID を GET する
+      // ここを変えてみよう:title を変える / POST を増やす /
+      // 存在しない ID を GET する
       import static java.nio.charset.StandardCharsets.UTF_8;
       import java.util.concurrent.atomic.AtomicLong;
       import org.springframework.http.*;
@@ -90,7 +91,8 @@ samples:
       ① と ③ では、`dueDate` はどう出るだろうか。そもそも変換できるだろうか。
     code: |
       // Jackson で record ⇔ JSON。LocalDate の扱いに注目
-      // ここを変えてみよう:日付や title を変える / ④の JSON に "x":1 を足してみる
+      // ここを変えてみよう:日付や title を変える /
+      // ④の JSON に "x":1 を足してみる
       import com.fasterxml.jackson.databind.ObjectMapper;
       import com.fasterxml.jackson.databind.SerializationFeature;
       import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -111,14 +113,17 @@ samples:
       ObjectMapper m2 = new ObjectMapper().registerModule(new JavaTimeModule());
       System.out.println("② " + m2.writeValueAsString(task));
 
-      // ③ さらに日時を「数値」で書く設定を切る → ISO-8601 の文字列(Spring Boot の既定)
+      // ③ さらに日時を「数値」で書く設定を切る → ISO-8601 の文字列
+      //   (Spring Boot の既定)
       ObjectMapper m3 = new ObjectMapper().registerModule(new JavaTimeModule())
           .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
       System.out.println("③ " + m3.writeValueAsString(task));
 
       // ④ 逆向き:JSON → record(正準コンストラクタで作られる)
-      // 知らない項目 "x":1 を足すと、素の ObjectMapper は UnrecognizedPropertyException
-      // (Spring が作る ObjectMapper は、知らない項目を無視する設定になっている)
+      // 知らない項目 "x":1 を足すと、素の ObjectMapper は
+      // UnrecognizedPropertyException
+      // (Spring が作る ObjectMapper は、
+      // 知らない項目を無視する設定になっている)
       String json = "{\"id\":2,\"title\":\"請求書を送る\",\"dueDate\":\"2026-11-05\"}";
       TaskResponse back = m3.readValue(json, TaskResponse.class);
       System.out.println("④ " + back);

@@ -56,15 +56,20 @@ public class UrlAccessTable {
 
     static boolean matches(String pattern, String path) {
         // TODO: segments() で区切り、1つずつ比べる
-        //       "*" はちょうど1セグメント、末尾の "**" は残り0個以上に一致
+        //       "*" はちょうど1セグメント、
+        //       末尾の "**" は残り0個以上に一致
         return false;
     }
 
     public Result decide(String path, Role role) {
-        // TODO: 登録順に rules を見て、最初に matches したルールで決める
-        //       PERMIT_ALL → ALLOW / 未ログイン → LOGIN_REQUIRED / AUTHENTICATED → ALLOW
-        //       HAS_ANY_ROLE → roles に role があれば ALLOW、なければ FORBIDDEN
-        // TODO: どのルールにも一致しなければ、未ログインは LOGIN_REQUIRED、ログイン済みは FORBIDDEN
+        // TODO: 登録順に rules を見て、
+        //       最初に matches したルールで決める
+        //       PERMIT_ALL → ALLOW /
+        //       未ログイン → LOGIN_REQUIRED / AUTHENTICATED → ALLOW
+        //       HAS_ANY_ROLE → roles に role があれば ALLOW、
+        //       なければ FORBIDDEN
+        // TODO: どのルールにも一致しなければ、
+        //       未ログインは LOGIN_REQUIRED、ログイン済みは FORBIDDEN
         return Result.ALLOW;
     }
 }

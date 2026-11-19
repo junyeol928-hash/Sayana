@@ -18,13 +18,15 @@ class Product {
 public class SalesRanking {
 
     public static String topSellers(List<Product> products, int n) {
-        // TODO: n が 0 以下なら "" を返す(limit に負の数を渡すと例外になるため)
+        // TODO: n が 0 以下なら "" を返す
+        //       (limit に負の数を渡すと例外になるため)
 
         // TODO: products.stream() から
         //       ① 販売数 0 の商品を除く(filter)
         //       ② 販売数の多い順、同数なら名前順に並べる(sorted)
         //       ③ 先頭 n 件に絞る(limit)
-        //       ④ 商品名に変換して(map)、", " でつなぐ(collect + joining)
+        //       ④ 商品名に変換して(map)、", " でつなぐ
+        //         (collect + joining)
         return null;
     }
 

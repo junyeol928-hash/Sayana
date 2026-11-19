@@ -17,7 +17,8 @@ samples:
       2 行を書いたファイルは、何バイトになるだろうか。
     code: |
       // 一時ファイルに書いて、読み戻す(最後に削除する)
-      // ここを変えてみよう:書く文字列を変える / APPEND を外して上書きにしてみる
+      // ここを変えてみよう:書く文字列を変える /
+      // APPEND を外して上書きにしてみる
       import java.io.IOException;
       import java.nio.charset.StandardCharsets;
       import java.nio.file.*;   // Path, Files, StandardOpenOption

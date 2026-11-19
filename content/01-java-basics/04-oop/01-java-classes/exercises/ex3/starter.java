@@ -6,17 +6,20 @@ public class Payroll {
     }
 
     static int totalByDept(Employee[] staff, String dept) {
-        // TODO: null を飛ばし、部署が dept と等しい(equals)社員の salary を合計して返す
+        // TODO: null を飛ばし、部署が dept と等しい(equals)社員の
+        //       salary を合計して返す
         return 0; // ← ダミー。書き換えてください
     }
 
     static Employee topEarner(Employee[] staff) {
-        // TODO: 月給が一番高い社員を返す(同額なら先の社員。1人もいなければ null)
+        // TODO: 月給が一番高い社員を返す
+        //       (同額なら先の社員。1人もいなければ null)
         return null; // ← ダミー。書き換えてください
     }
 
     static void raiseAll(Employee[] staff, int percent) {
-        // TODO: null を飛ばし、各社員の salary に salary * percent / 100 を足す
+        // TODO: null を飛ばし、
+        //       各社員の salary に salary * percent / 100 を足す
     }
 
     public static void main(String[] args) {

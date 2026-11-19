@@ -17,7 +17,8 @@ samples:
       `@RestControllerAdvice` が無いとき、例外はどこまで届くだろうか。
     code: |
       // 例外ハンドラが「ない」とき・「ある」ときで、レスポンスがどう変わるか
-      // ここを変えてみよう:HttpStatus や setTitle の文言を変える / ID を 1 にする
+      // ここを変えてみよう:HttpStatus や setTitle の文言を変える /
+      // ID を 1 にする
       import static java.nio.charset.StandardCharsets.UTF_8;
       import org.springframework.http.*;
       import org.springframework.http.converter.*;
@@ -100,8 +101,10 @@ samples:
       `@ExceptionHandler(Exception.class)` だけの Advice と、`ResponseEntityExceptionHandler` を継承した Advice に、未対応のメソッド・Content-Type なし・壊れた JSON の 3 つを送ります。`CatchAllAdvice` では、壊れた JSON は何番になる?
       本来は何番が返るべきか。それぞれの Advice では何番になる?
     code: |
-      // 「とりあえず Exception を全部 500 に」の落とし穴と、ResponseEntityExceptionHandler
-      // ここを変えてみよう:tryAll に渡す Advice を入れ替える / リクエストを足す
+      // 「とりあえず Exception を全部 500 に」の落とし穴と、
+      // ResponseEntityExceptionHandler
+      // ここを変えてみよう:tryAll に渡す Advice を入れ替える /
+      // リクエストを足す
       import static java.nio.charset.StandardCharsets.UTF_8;
       import org.springframework.http.*;
       import org.springframework.http.converter.*;

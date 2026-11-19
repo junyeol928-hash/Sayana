@@ -26,7 +26,8 @@ samples:
           String sound() { return "ニャー"; }
       }
 
-      // ここを変えてみよう:new Animal() を足す / Bird クラスを作って配列に入れる
+      // ここを変えてみよう:new Animal() を足す /
+      // Bird クラスを作って配列に入れる
       Animal[] zoo = { new Dog(), new Cat(), new Dog() };
       for (Animal x : zoo) {
           // 変数の型は Animal でも、動くのは実体(Dog / Cat)の sound()

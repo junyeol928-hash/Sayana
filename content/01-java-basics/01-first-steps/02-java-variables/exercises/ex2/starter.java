@@ -12,7 +12,8 @@ public class TimeFormatter {
         int minutes = 0;
         int seconds = 0;
 
-        // ここは書き換えなくてOK(%02d は「2桁になるよう左を0で埋める」という指定)
+        // ここは書き換えなくてOK
+        // (%02d は「2桁になるよう左を0で埋める」という指定)
         return String.format("%d:%02d:%02d", hours, minutes, seconds);
     }
 }

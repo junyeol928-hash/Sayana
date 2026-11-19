@@ -10,7 +10,10 @@ enum Operation { VIEW, SUBMIT, WITHDRAW, APPROVE, RETURN }
 /** ログイン中の社員(LoginUser の縮小版) */
 record Actor(long employeeId, Role role) {}
 
-/** 判定に必要な申請の情報(ApprovalRequest の縮小版)。amount は休暇なら null */
+/**
+ * 判定に必要な申請の情報(ApprovalRequest の縮小版)。
+ * amount は休暇なら null
+ */
 record RequestInfo(long applicantId, RequestStatus status, Integer amount) {}
 
 /** 判定結果。許可なら reason は空文字 */
@@ -39,11 +42,16 @@ public class AccessPolicy {
 
     public Decision check(Actor actor, Operation op, RequestInfo req) {
         // TODO: 0. 未ログイン(actor が null)→ LOGIN_REQUIRED
-        // TODO: 1. VIEW は「本人」か「APPROVER / ADMIN」なら許可、それ以外は NO_VIEW
+        // TODO: 1. VIEW は「本人」か「APPROVER / ADMIN」なら許可、
+        //          それ以外は NO_VIEW
         // TODO: 2. SUBMIT・WITHDRAW は本人だけ(NOT_OWNER)
-        //          APPROVE・RETURN は APPROVER / ADMIN だけ(NOT_APPROVER)、APPROVE は自分の申請不可(OWN_REQUEST)
-        // TODO: 3. APPROVED・WITHDRAWN は FINAL_STATUS、遷移できない状態は BAD_STATUS
-        // TODO: 4. APPROVE で 100,000 円以上なら ADMIN だけ(HIGH_AMOUNT)。amount が null なら対象外
+        //          APPROVE・RETURN は APPROVER / ADMIN だけ
+        //          (NOT_APPROVER)。APPROVE は自分の申請不可
+        //          (OWN_REQUEST)
+        // TODO: 3. APPROVED・WITHDRAWN は FINAL_STATUS、
+        //          遷移できない状態は BAD_STATUS
+        // TODO: 4. APPROVE で 100,000 円以上なら
+        //          ADMIN だけ(HIGH_AMOUNT)。amount が null なら対象外
         return Decision.allow();
     }
 }

@@ -4,10 +4,14 @@ record Product(String name, int price, int stock) {
 
 public class ProductListPage {
 
-    // TODO: ダミーデータ入りの HTML に th: 属性を足して、products を表示するテンプレートにする
-    //   - <tr class="item"> を th:each で繰り返す(No. はステータス変数の count)
-    //   - 商品名は th:text、価格は #numbers.formatInteger(…, 1, 'COMMA') + '円'
-    //   - 在庫 0 は「売り切れ」、それ以外は「残り○個」(th:if / th:unless)
+    // TODO: ダミーデータ入りの HTML に th: 属性を足して、
+    //       products を表示するテンプレートにする
+    //   - <tr class="item"> を th:each で繰り返す
+    //     (No. はステータス変数の count)
+    //   - 商品名は th:text、
+    //     価格は #numbers.formatInteger(…, 1, 'COMMA') + '円'
+    //   - 在庫 0 は「売り切れ」、それ以外は「残り○個」
+    //     (th:if / th:unless)
     //   - products が空なら表を出さず「商品がありません」だけを出す
     public static final String TEMPLATE = """
             <table>

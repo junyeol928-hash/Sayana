@@ -74,7 +74,8 @@ samples:
       enum をキーにするなら `EnumMap`。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。
     code: |
       // 注文一覧をステータス別に数える
-      // ここを変えてみよう:orders に注文を足す / EnumMap を HashMap に変えて並び順を比べる
+      // ここを変えてみよう:orders に注文を足す /
+      // EnumMap を HashMap に変えて並び順を比べる
       import java.util.*;
 
       enum OrderStatus { ORDERED, SHIPPED, DELIVERED, CANCELLED }

@@ -96,20 +96,25 @@ public class ApiExceptionHandler {
 
     // TODO: @ExceptionHandler(OrderNotFoundException.class) を付ける
     public ResponseEntity<ErrorResponse> handleNotFound(OrderNotFoundException ex) {
-        // TODO: 404 + new ErrorResponse("ORDER_NOT_FOUND", ex.getMessage()) を返す
+        // TODO: 404 + new ErrorResponse("ORDER_NOT_FOUND",
+        //       ex.getMessage()) を返す
         return null; // ← ダミー
     }
 
     // TODO: @ExceptionHandler(OrderStateException.class) を付ける
     public ResponseEntity<ErrorResponse> handleConflict(OrderStateException ex) {
-        // TODO: 409 + new ErrorResponse("ORDER_STATE_CONFLICT", ex.getMessage()) を返す
+        // TODO: 409 + new ErrorResponse("ORDER_STATE_CONFLICT",
+        //       ex.getMessage()) を返す
         return null; // ← ダミー
     }
 
-    // TODO: @ExceptionHandler(Exception.class) を付ける(上の2つに当てはまらない例外の受け皿)
+    // TODO: @ExceptionHandler(Exception.class) を付ける
+    //       (上の2つに当てはまらない例外の受け皿)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        // TODO: 500 + new ErrorResponse("INTERNAL_ERROR", "システムエラーが発生しました") を返す
-        //       ex.getMessage() は利用者に見せない(本物のアプリではログに出す)
+        // TODO: 500 + new ErrorResponse("INTERNAL_ERROR",
+        //       "システムエラーが発生しました") を返す
+        //       ex.getMessage() は利用者に見せない
+        //       (本物のアプリではログに出す)
         return null; // ← ダミー
     }
 }

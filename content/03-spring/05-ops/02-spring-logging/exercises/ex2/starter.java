@@ -4,7 +4,8 @@ public class LogLevelResolver {
 
     /** loggerName に効くレベルを返す(一番長い一致 → root → INFO) */
     public static Level resolve(Map<String, Level> config, String loggerName) {
-        // TODO: config のキーのうち、loggerName と完全一致するか、loggerName が「キー + "."」で始まるものを探す
+        // TODO: config のキーのうち、loggerName と完全一致するか、
+        //       loggerName が「キー + "."」で始まるものを探す
         // TODO: 複数あれば一番長いキーの値を返す
         // TODO: 無ければ "root" の値、それも無ければ Level.INFO
         return null; // ← ダミー。書き換えてください
@@ -12,7 +13,8 @@ public class LogLevelResolver {
 
     /** loggerName のロガーで level のログが出力されるなら true */
     public static boolean isEnabled(Map<String, Level> config, String loggerName, Level level) {
-        // TODO: level が resolve(...) の結果「以上」なら true(compareTo を使う)
+        // TODO: level が resolve(...) の結果「以上」なら true
+        //       (compareTo を使う)
         return false; // ← ダミー。書き換えてください
     }
 
@@ -28,7 +30,9 @@ public class LogLevelResolver {
     }
 }
 
-/** ログレベル(弱い順に宣言しているので、compareTo で大小を比べられる) */
+/**
+ * ログレベル(弱い順に宣言しているので、compareTo で大小を比べられる)
+ */
 enum Level {
     TRACE, DEBUG, INFO, WARN, ERROR
 }

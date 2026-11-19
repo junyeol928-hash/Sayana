@@ -11,15 +11,21 @@ public class MiniRouter {
 
     public static Map<String, String> routes(Class<?> type) {
         Map<String, String> table = new TreeMap<>();
-        // TODO: getDeclaredMethods() で全メソッドを見て、@Get が付いていれば「パス → メソッド名」を table に入れる
-        // TODO: 同じパスがすでに table にあれば IllegalStateException(メッセージにパスを含める)
+        // TODO: getDeclaredMethods() で全メソッドを見て、
+        //       @Get が付いていれば、
+        //       「パス → メソッド名」を table に入れる
+        // TODO: 同じパスがすでに table にあれば
+        //       IllegalStateException(メッセージにパスを含める)
         return table;
     }
 
     public static String dispatch(Object controller, String path) {
-        // TODO: controller.getClass() のメソッドから、@Get の value が path と一致するものを探す
-        // TODO: 見つかったら m.invoke(controller) で呼び、戻り値を String にして返す
-        //       (IllegalAccessException / InvocationTargetException は IllegalStateException に包む)
+        // TODO: controller.getClass() のメソッドから、
+        //       @Get の value が path と一致するものを探す
+        // TODO: 見つかったら m.invoke(controller) で呼び、
+        //       戻り値を String にして返す
+        //       (IllegalAccessException / InvocationTargetException は
+        //       IllegalStateException に包む)
         // TODO: 見つからなければ "404 Not Found"
         return null; // ← ダミー。書き換えてください
     }

@@ -14,7 +14,8 @@ samples:
     description: 購入金額と会員ランクで送料を決めます。条件は上から順に評価され、最初に当てはまった1つだけが実行されます。2980 円のシルバー会員の送料はいくら?
     code: |
       // 購入金額と会員ランクで送料を決める
-      // ここを変えてみよう:amount を 2999 / 3000 / 5000 に、rank を "GOLD" や "NORMAL" に
+      // ここを変えてみよう:amount を 2999 / 3000 / 5000 に、
+      // rank を "GOLD" や "NORMAL" に
       int amount = 2980;
       String rank = "SILVER";
 
@@ -35,7 +36,8 @@ samples:
     description: アロー構文・複数ラベル・yield の使い方。`default` を消すと網羅性チェックでコンパイルエラーになるのを確かめてみましょう。`day` が 6 のとき、何と表示される?
     code: |
       // 曜日番号(1=月 … 7=日)を switch 式で分類する
-      // ここを変えてみよう:day を 1〜7 や 0、8 にしてみる。default の行を消すとどうなる?
+      // ここを変えてみよう:day を 1〜7 や 0、8 にしてみる。
+      // default の行を消すとどうなる?
       int day = 6;
 
       String type = switch (day) {
@@ -81,7 +83,8 @@ samples:
     description: "`==` は同じオブジェクトかどうかを比べるだけ。`input` を `null` にすると `input.equals(...)` の行で NullPointerException が出ます。`input == \"GOLD\"` の行は何を表示する?"
     code: |
       // 文字列の比較は equals。== は「同じオブジェクトか」を見るだけ
-      // ここを変えてみよう:input を null にしてみる(input.equals は NPE、"GOLD".equals は false になる)
+      // ここを変えてみよう:input を null にしてみる
+      // (input.equals は NPE、"GOLD".equals は false になる)
       String part = "GOL";
       String input = part + "D";      // 実行時に組み立てた "GOLD"(ユーザー入力のつもり)
 

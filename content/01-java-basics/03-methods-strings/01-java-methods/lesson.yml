@@ -74,7 +74,8 @@ samples:
     description: 同じ名前でも引数の型・数が違えば別のメソッド。可変長引数は0個でも呼べます。引数なしの `sum()` は何を返す?
     code: |
       // オーバーロードと可変長引数
-      // ここを変えてみよう:total(500, 3, 200) の 200 を消す / sum の引数を増やす・空にする
+      // ここを変えてみよう:total(500, 3, 200) の 200 を消す /
+      // sum の引数を増やす・空にする
       public class Overload {
           static int total(int price, int qty) {
               return total(price, qty, 0);    // 少ない版が多い版を呼ぶ
@@ -110,7 +111,8 @@ samples:
       `factorial(5)` は、いくつを返す?
     code: |
       // 再帰で階乗を計算する
-      // ここを変えてみよう:n を 20 や 21 にする(long の範囲を超えるとどうなる?)
+      // ここを変えてみよう:n を 20 や 21 にする
+      // (long の範囲を超えるとどうなる?)
       // if の終了条件を消すと StackOverflowError になる
       public class Factorial {
           static long factorial(int n) {

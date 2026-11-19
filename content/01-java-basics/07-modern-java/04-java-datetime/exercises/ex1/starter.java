@@ -5,7 +5,8 @@ public class ContractDates {
 
     public static LocalDate endDate(LocalDate start, int months) {
         // TODO: months が 1 未満なら IllegalArgumentException を投げる
-        // TODO: start の months か月後の「前日」を返す(plusMonths と minusDays)
+        // TODO: start の months か月後の「前日」を返す
+        //       (plusMonths と minusDays)
         return start; // ← ダミー。書き換えてください
     }
 
@@ -15,7 +16,8 @@ public class ContractDates {
     }
 
     public static long daysLeft(LocalDate today, LocalDate end) {
-        // TODO: ChronoUnit.DAYS.between で today から end までの日数を返す
+        // TODO: ChronoUnit.DAYS.between で today から
+        //       end までの日数を返す
         return 0; // ← ダミー。書き換えてください
     }
 

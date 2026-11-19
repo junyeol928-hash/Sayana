@@ -15,7 +15,8 @@ samples:
       `@Override`・`@Deprecated`・`@FunctionalInterface` のうち、実行時のリフレクションで読めるのはどれだろうか。それぞれ true と false のどちらが出る?
     code: |
       // 標準アノテーションのうち、実行時まで残るのはどれ?
-      // ここを変えてみよう:Override.class を Deprecated.class に / 12800 を別の金額に
+      // ここを変えてみよう:Override.class を Deprecated.class に /
+      // 12800 を別の金額に
       import java.lang.reflect.Method;
 
       @FunctionalInterface interface Formatter {   // 抽象メソッドは1つだけ
@@ -46,7 +47,8 @@ samples:
       要素の値は `a.value()` のようにメソッド呼び出しの形で取り出す。あとで `RUNTIME` を `SOURCE` に変えたらどうなるかも試してみよう。`category` を省略した `issue` と、目印の無い `count` では何が出るだろうか。
     code: |
       // @Audited を自作して、リフレクションで読む
-      // ここを変えてみよう:revoke の category を消す / RUNTIME を SOURCE に変える
+      // ここを変えてみよう:revoke の category を消す /
+      // RUNTIME を SOURCE に変える
       import java.lang.annotation.*;
       import java.lang.reflect.Method;
       import java.util.*;
@@ -83,7 +85,8 @@ samples:
     description: |
       `call` が「読む側」。Spring の `@Transactional` も、発想はこれと同じ。`@Audited` が付いた `issue` と、付いていない `hello` を `call` で呼ぶと、出力はどう違うだろうか。
     code: |
-      // @Audited が付いたメソッドだけ、前後にログを挟んで呼ぶ(フレームワークの縮小版)
+      // @Audited が付いたメソッドだけ、前後にログを挟んで呼ぶ
+      // (フレームワークの縮小版)
       // ここを変えてみよう:hello にも @Audited("HELLO") を付ける
       import java.lang.annotation.*;
       import java.lang.reflect.Method;

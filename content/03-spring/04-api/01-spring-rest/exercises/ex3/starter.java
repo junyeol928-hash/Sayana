@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 保存用のクラス(本物のアプリなら @Entity)。外に見せたくない項目も持っている */
+/**
+ * 保存用のクラス(本物のアプリなら @Entity)。
+ * 外に見せたくない項目も持っている
+ */
 class TaskEntity {
     Long id;
     String title;
@@ -36,7 +39,8 @@ class TaskEntity {
 /** API が返す形(DTO)。見せてよい項目だけ */
 record TaskResponse(long id, String title, boolean done, LocalDate dueDate) {
     static TaskResponse from(TaskEntity e) {
-        // TODO: id / title / done / dueDate を詰め替えて返す(internalMemo は入れない)
+        // TODO: id / title / done / dueDate を詰め替えて返す
+        //       (internalMemo は入れない)
         return null; // ← ダミー
     }
 }
@@ -63,10 +67,14 @@ public class TaskApi {
 
     @PatchMapping("/{id}")
     public ResponseEntity<TaskResponse> patch(@PathVariable long id, @RequestBody UpdateTaskRequest req) {
-        // TODO: store から取り出し、無ければ 404(ResponseEntity.notFound().build())
+        // TODO: store から取り出し、無ければ
+        //       404(ResponseEntity.notFound().build())
 
-        // TODO: req の項目のうち null でないものだけを TaskEntity に反映する
-        //       (title / done / dueDate。フィールドは同じファイル内なので e.title = ... のように書ける)
+        // TODO: req の項目のうち null でないものだけを
+        //       TaskEntity に反映する
+        //       (title / done / dueDate。
+        //       フィールドは同じファイル内なので、
+        //       e.title = ... のように書ける)
 
         // TODO: 200 + 更新後の TaskResponse を返す
         return ResponseEntity.ok().build(); // ← ダミー

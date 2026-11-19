@@ -60,7 +60,8 @@ samples:
               throw new IllegalStateException("在庫不足");
           }
 
-          // ここを変えてみよう:@Transactional(rollbackFor = NotifyException.class) にすると?
+          // ここを変えてみよう:
+          // @Transactional(rollbackFor = NotifyException.class) にすると?
           @Transactional
           public void checkedFail() throws NotifyException {
               System.out.println("  注文を保存");

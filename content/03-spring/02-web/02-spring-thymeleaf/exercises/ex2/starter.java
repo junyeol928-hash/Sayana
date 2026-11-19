@@ -3,7 +3,10 @@ import java.time.LocalDateTime;
 /** 注文。status は "ORDERED"(受付済)・"SHIPPED"(出荷済)など */
 record Order(long id, String customer, LocalDateTime orderedAt, int total, String status) {
 
-    /** 出荷前ならキャンセルできる(テンプレートから *{cancellable()} で呼べる) */
+    /**
+     * 出荷前ならキャンセルできる
+     * (テンプレートから *{cancellable()} で呼べる)
+     */
     public boolean cancellable() {
         return "ORDERED".equals(status);
     }
@@ -19,11 +22,14 @@ public class OrderPage {
             </header>
             """;
 
-    // TODO: ダミーの HTML を、order と page を表示するテンプレートにする
-    //   - ヘッダーは th:replace="~{layout :: header('注文詳細')}" で LAYOUT のフラグメントを使う
+    // TODO: ダミーの HTML を、
+    //       order と page を表示するテンプレートにする
+    //   - ヘッダーは th:replace="~{layout :: header('注文詳細')}" で
+    //     LAYOUT のフラグメントを使う
     //   - <section> に th:object="${order}"、中は *{…} で値を出す
     //   - 日時は #temporals.format、合計は #numbers.formatInteger
-    //   - キャンセルリンクは *{cancellable()} が true のときだけ。URL は @{/orders/{id}/cancel(id=…)}
+    //   - キャンセルリンクは *{cancellable()} が true のときだけ。
+    //     URL は @{/orders/{id}/cancel(id=…)}
     //   - 戻るリンクは @{/orders(page=${page})}
     public static final String DETAIL = """
             <header class="site">

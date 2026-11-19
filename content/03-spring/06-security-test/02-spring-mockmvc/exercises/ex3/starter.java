@@ -12,9 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** 送料 API の仕様を確かめる「テスト」を書く */
 public class ShipApiCheck {
 
-    /** mvc の先にある送料 API が仕様どおりなら何も起きず、違えば AssertionError を投げる */
+    /**
+     * mvc の先にある送料 API が仕様どおりなら何も起きず、
+     * 違えば AssertionError を投げる
+     */
     public static void check(MockMvc mvc) throws Exception {
-        // 例:1つ目の検証はこう書く(一般会員・4999 円 → 200 で fee は 500)
+        // 例:1つ目の検証はこう書く
+        // (一般会員・4999 円 → 200 で fee は 500)
         // mvc.perform(get("/shipping-fee").param("amount", "4999"))
         //         .andExpect(status().isOk())
         //         .andExpect(jsonPath("$.fee").value(500));

@@ -15,8 +15,11 @@ samples:
       Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を、Service が原因付きの例外に包み直します。一番下の Caused by(根本原因)は、どの例外になる?
       自分のクラスの行だけを抜き出したスタックトレースでは、Controller・Service・Repository の行はどの順に並ぶだろうか。
     code: |
-      // Controller → Service → Repository の呼び出しと、例外が戻る道のりを観察する
-      // ここを変えてみよう:post("C100") を post("C200") に / Service の new KeyIssueFailedException(..., e) の e を null にすると Caused by はどうなる?
+      // Controller → Service → Repository の呼び出しと、
+      // 例外が戻る道のりを観察する
+      // ここを変えてみよう:post("C100") を post("C200") に /
+      // Service の new KeyIssueFailedException(..., e) の e を null にすると
+      // Caused by はどうなる?
       class RepositoryException extends RuntimeException {
           RepositoryException(String message) { super(message); }
       }
@@ -99,8 +102,10 @@ samples:
       解説の鍵発行 API を、`MockMvc`(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー**の3通りで、どこまで処理が進んだかが分かります。入力エラーのとき、どの層の名乗りまで出る?
       3 通りそれぞれで、最後のステータスは何番になるだろうか。
     code: |
-      // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
-      // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に / Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
+      // 1本の API を、Controller → Service →
+      // Repository → 例外ハンドラの順に通しで動かす
+      // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に /
+      // Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
       import java.nio.charset.StandardCharsets;
       import org.springframework.http.*;
       import org.springframework.http.converter.StringHttpMessageConverter;
@@ -198,14 +203,18 @@ samples:
       `@Transactional` の付いた Service は、Spring が作ったプロキシ(`$$SpringCGLIB$$`)に包まれています。例外のスタックトレースを、自分のコードの行・Spring の行・プロキシの行に分けて表示します。
       **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。`[TX]` の行には、コミットとロールバックのどちらが出る?それは例外の表示より前だろうか、後だろうか。
     code: |
-      // @Transactional の Service は、Spring が作った「プロキシ」に包まれている。スタックトレースでそれを見る
-      // ここを変えてみよう:rotate の @Transactional を消すと、Bean のクラス名とスタックトレースはどう変わる?
+      // @Transactional の Service は、
+      // Spring が作った「プロキシ」に包まれている。
+      // スタックトレースでそれを見る
+      // ここを変えてみよう:rotate の @Transactional を消すと、
+      // Bean のクラス名とスタックトレースはどう変わる?
       import org.springframework.context.annotation.*;
       import org.springframework.transaction.TransactionDefinition;
       import org.springframework.transaction.annotation.*;
       import org.springframework.transaction.support.*;
 
-      // DB の代わりに「開始・コミット・ロールバック」を表示するだけのトランザクションマネージャ(読み飛ばしてOK)
+      // DB の代わりに「開始・コミット・ロールバック」を表示するだけの
+      // トランザクションマネージャ(読み飛ばしてOK)
       class LogTxManager extends AbstractPlatformTransactionManager {
           protected Object doGetTransaction() { return TransactionSynchronizationManager.isActualTransactionActive(); }
           protected boolean isExistingTransaction(Object tx) { return (Boolean) tx; }
@@ -237,7 +246,8 @@ samples:
       } catch (IllegalStateException e) {
           System.out.println();
           System.out.println(e);
-          // 自分のクラスの行はそのまま、Spring の行は「どの部品を通ったか」だけを表示する
+          // 自分のクラスの行はそのまま、
+          // Spring の行は「どの部品を通ったか」だけを表示する
           String lastSpring = "";
           for (StackTraceElement f : e.getStackTrace()) {
               String c = f.getClassName();

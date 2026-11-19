@@ -10,7 +10,8 @@ public class InventoryApp {
 
     /** 3層を登録した DI コンテナを作って返す */
     public static AnnotationConfigApplicationContext createContext() {
-        // TODO: InventoryController・InventoryService・InMemoryStockRepository を登録したコンテナを返す
+        // TODO: InventoryController・InventoryService・
+        //       InMemoryStockRepository を登録したコンテナを返す
         return new AnnotationConfigApplicationContext();
     }
 }
@@ -18,7 +19,8 @@ public class InventoryApp {
 // TODO: Controller 層の注釈を付ける
 class InventoryController {
 
-    // TODO: final にして、コンストラクタで受け取る(コンストラクタインジェクション)
+    // TODO: final にして、コンストラクタで受け取る
+    //       (コンストラクタインジェクション)
     private InventoryService service;
 
     String receive(String sku, int quantity) {
@@ -41,15 +43,18 @@ class InventoryController {
 // TODO: Service 層の注釈を付ける
 class InventoryService {
 
-    // TODO: StockRepository(インターフェース)型の final フィールドを作り、コンストラクタで受け取る
+    // TODO: StockRepository(インターフェース)型の
+    //       final フィールドを作り、コンストラクタで受け取る
 
     int receive(String sku, int quantity) {
-        // TODO: 数量チェック → 今の在庫 + quantity を保存 → 入荷後の在庫数を返す
+        // TODO: 数量チェック → 今の在庫 + quantity を保存
+        //       → 入荷後の在庫数を返す
         return 0;
     }
 
     int ship(String sku, int quantity) {
-        // TODO: 数量チェック → 在庫不足なら IllegalStateException → 減らして保存 → 出荷後の在庫数を返す
+        // TODO: 数量チェック → 在庫不足なら IllegalStateException
+        //       → 減らして保存 → 出荷後の在庫数を返す
         return 0;
     }
 }

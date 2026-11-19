@@ -54,7 +54,8 @@ samples:
     description: |
       拡張 for の中での `remove`、`removeIf`、`List.of` のリストへの `add`。例外になるのはどれで、最後にリストには何が残るだろうか。
     code: |
-      // ここを変えてみよう:削除対象を "B" や "C" にしてみる(最後から2番目の C だと例外が出ない!? コラム参照)
+      // ここを変えてみよう:削除対象を "B" や "C" にしてみる
+      // (最後から2番目の C だと例外が出ない!? コラム参照)
       List<String> list = new ArrayList<>(List.of("A", "B", "C", "D"));
       try {
           for (String s : list) {

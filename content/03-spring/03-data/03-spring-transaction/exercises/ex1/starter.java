@@ -14,7 +14,8 @@ public class TransferService {
     // TODO: トランザクションの中で実行されるようにする
     public void transfer(String from, String to, int amount) {
         // TODO: amount が 0 以下なら IllegalArgumentException を投げる
-        // TODO: from から amount を引き出し(withdraw)、to に入金(deposit)する
+        // TODO: from から amount を引き出し(withdraw)、
+        //       to に入金(deposit)する
     }
 
     // TODO: 参照だけのトランザクション(readOnly)にする

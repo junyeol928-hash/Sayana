@@ -78,7 +78,8 @@ samples:
           Notifier console() { return new ConsoleNotifier(); }
       }
 
-      // ここを変えてみよう:"dev" を "prod" に。{ } にする(プロファイルなし)とどうなる?
+      // ここを変えてみよう:"dev" を "prod" に。
+      // { } にする(プロファイルなし)とどうなる?
       String[] active = { "dev" };
 
       var ctx = new AnnotationConfigApplicationContext();

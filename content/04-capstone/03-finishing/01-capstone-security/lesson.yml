@@ -18,7 +18,7 @@ samples:
       enum Role { APPLICANT, APPROVER, ADMIN }
       record Emp(long id, String name, Role role) {}
       record Req(long applicantId, int amount) {}
-      
+
       // 業務ルール1〜3だけの簡易版(演習1で状態も含めた完全版を作る)
       String canApprove(Emp e, Req r) {
           if (e.role() == Role.APPLICANT) return "× 承認者ではない";
@@ -26,15 +26,16 @@ samples:
           if (r.amount() >= 100_000 && e.role() != Role.ADMIN) return "× 高額は管理者だけ";
           return "○ 承認できる";
       }
-      
+
       List<Emp> people = List.of(
           new Emp(1, "ハル", Role.APPLICANT),
           new Emp(2, "モカ", Role.APPROVER),
           new Emp(3, "部長", Role.ADMIN));
-      
-      // ここを変えてみよう:金額を 99_999 や 100_000 に、申請者を 2(モカ)や 3(部長)に
+
+      // ここを変えてみよう:金額を 99_999 や 100_000 に、
+      // 申請者を 2(モカ)や 3(部長)に
       Req req = new Req(1, 120_000);
-      
+
       System.out.println("申請者ID=" + req.applicantId() + " / 金額=" + req.amount());
       for (Emp e : people) {
           // 画面の sec:authorize はロールしか見ない
@@ -50,16 +51,17 @@ samples:
       // 承認くんの URL ルール(上から順に見て、最初に一致したもので決まる)
       // prefix で簡略化しています。本物は Spring Security の requestMatchers
       record Rule(String prefix, String need) {}
-      
+
       List<Rule> rules = new ArrayList<>(List.of(
           new Rule("/login", "permitAll"),
           new Rule("/approvals", "APPROVER/ADMIN"),
           new Rule("/requests/search", "APPROVER/ADMIN"),
           new Rule("/", "authenticated")));
-      
-      // ここを変えてみよう:下の行のコメントを外し、広いルールを先頭に入れて再実行
+
+      // ここを変えてみよう:下の行のコメントを外し、
+      // 広いルールを先頭に入れて再実行
       // rules.add(0, new Rule("/requests", "authenticated"));
-      
+
       String judge(String path, String role) {
           for (Rule r : rules) {
               if (!path.startsWith(r.prefix())) continue;
@@ -70,7 +72,7 @@ samples:
           }
           return role == null ? "→ /login" : "403";
       }
-      
+
       String[] paths = {"/login", "/requests", "/requests/search", "/approvals"};
       String[] roles = {null, "APPLICANT", "APPROVER"};
       for (String p : paths) {

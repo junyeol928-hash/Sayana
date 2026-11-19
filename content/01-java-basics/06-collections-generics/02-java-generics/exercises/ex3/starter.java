@@ -9,17 +9,20 @@ public class TypedCache<K, V> {
     private int misses;
 
     public TypedCache(int capacity) {
-        // TODO: capacity が 1 未満なら IllegalArgumentException を投げる
+        // TODO: capacity が 1 未満なら
+        //       IllegalArgumentException を投げる
         this.capacity = capacity;
     }
 
     public void put(K key, V value) {
         // TODO: Map に保存する
-        // TODO: 件数が capacity を超えたら、いちばん古いキーを1件削除する
+        // TODO: 件数が capacity を超えたら、
+        //       いちばん古いキーを1件削除する
     }
 
     public V get(K key) {
-        // TODO: キーがあればヒットを数えて値を返す。なければミスを数えて null を返す
+        // TODO: キーがあればヒットを数えて値を返す。
+        //       なければミスを数えて null を返す
         return null;
     }
 

@@ -6,21 +6,25 @@ import jakarta.validation.constraints.Size;
 
 public class RequestForm {
 
-    // TODO: 必須(空白だけも不可)・50文字以内の注釈を付ける(メッセージは問題文の表のとおり)
+    // TODO: 必須(空白だけも不可)・50文字以内の注釈を付ける
+    //       (メッセージは問題文の表のとおり)
     private String title;
 
     // TODO: 必須の注釈を付ける
     private RequestType type;
 
-    // TODO: 1以上の注釈を付ける(必須かどうかは種類で変わるので、ここには付けない)
+    // TODO: 1以上の注釈を付ける
+    //       (必須かどうかは種類で変わるので、ここには付けない)
     private Integer amount;
 
     // TODO: 必須(空白だけも不可)の注釈を付ける
     private String reason;
 
-    // TODO: @AssertTrue(message = "経費精算・備品購入は金額が必須です") を付ける
+    // TODO: 次の注釈を付ける:
+    //       @AssertTrue(message = "経費精算・備品購入は金額が必須です")
     public boolean isAmountEntered() {
-        // TODO: 経費精算・備品購入で amount が null なら false。休暇・種類未選択なら true
+        // TODO: 経費精算・備品購入で amount が null なら false。
+        //       休暇・種類未選択なら true
         return true;
     }
 

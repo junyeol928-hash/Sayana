@@ -13,7 +13,9 @@ public class LogMasker {
     public static String mask(String value, int keep) {
         // TODO: value が null なら "null"
         // TODO: keep が 0 なら "***"
-        // TODO: 長さが keep 以下なら全部を *、それ以外は末尾 keep 文字を残して前を * にする("*".repeat(n) が便利)
+        // TODO: 長さが keep 以下なら全部を *、
+        //       それ以外は末尾 keep 文字を残して前を * にする
+        //       ("*".repeat(n) が便利)
         return value; // ← ダミー。書き換えてください
     }
 
@@ -21,16 +23,21 @@ public class LogMasker {
         Field[] fields = obj.getClass().getDeclaredFields();
         Arrays.sort(fields, Comparator.comparing(Field::getName)); // 名前順に並べておく
         List<String> parts = new ArrayList<>();
-        // TODO: 各フィールドを setAccessible(true) して f.get(obj) で値を読む
-        //       (IllegalAccessException は IllegalStateException に包んで投げ直す)
-        // TODO: @Mask が付いていれば mask(値, keep) を、付いていなければ値をそのまま "名前=値" にして parts に追加
+        // TODO: 各フィールドを setAccessible(true) して
+        //       f.get(obj) で値を読む
+        //       (IllegalAccessException は
+        //       IllegalStateException に包んで投げ直す)
+        // TODO: @Mask が付いていれば mask(値, keep) を、
+        //       付いていなければ値をそのまま "名前=値" にして
+        //       parts に追加
         return obj.getClass().getSimpleName() + "{" + String.join(", ", parts) + "}";
     }
 
     public static void main(String[] args) {
         System.out.println(mask("4111222233334444", 4)); // ************4444
         System.out.println(toLog(new LoginForm()));
-        // LoginForm{cardNo=************4444, password=***, retry=2, userId=haru}
+        // LoginForm{cardNo=************4444, password=***,
+        //           retry=2, userId=haru}
     }
 }
 

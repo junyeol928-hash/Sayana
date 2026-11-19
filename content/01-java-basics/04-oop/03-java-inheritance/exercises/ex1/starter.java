@@ -33,7 +33,8 @@ class Rectangle extends Shape {
         this.height = height;
     }
 
-    // TODO: @Override を付けて area() をオーバーライドし、幅 × 高さ を返す
+    // TODO: @Override を付けて area() をオーバーライドし、
+    //       幅 × 高さ を返す
 }
 
 class Triangle extends Shape {
@@ -46,5 +47,6 @@ class Triangle extends Shape {
         this.height = height;
     }
 
-    // TODO: @Override を付けて area() をオーバーライドし、底辺 × 高さ ÷ 2 を返す
+    // TODO: @Override を付けて area() をオーバーライドし、
+    //       底辺 × 高さ ÷ 2 を返す
 }

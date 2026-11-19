@@ -3,7 +3,8 @@ import java.util.List;
 public class MoneyCalc {
 
     public static Money total(List<Money> items, String currency) {
-        // TODO: new Money(0, currency) から始めて、items を順に add していく
+        // TODO: new Money(0, currency) から始めて、
+        //       items を順に add していく
         return null; // ← ダミー。書き換えてください
     }
 
@@ -20,7 +21,8 @@ record Money(long amount, String currency) {
 
     Money {
         // TODO: amount が負なら IllegalArgumentException を投げる
-        // TODO: currency が null または空白だけなら IllegalArgumentException を投げる
+        // TODO: currency が null または空白だけなら
+        //       IllegalArgumentException を投げる
     }
 
     Money add(Money other) {

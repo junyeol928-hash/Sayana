@@ -22,7 +22,8 @@ public class EmployeeFinder {
     }
 
     public static String nameOf(List<Employee> emps, String id) {
-        // TODO: findById の結果を map で氏名に変換し、なければ "(不明)" を返す
+        // TODO: findById の結果を map で氏名に変換し、
+        //       なければ "(不明)" を返す
         return "";
     }
 

@@ -29,12 +29,12 @@ samples:
       import org.springframework.test.web.servlet.setup.*;
       import static org.springframework.test.web.servlet
               .request.MockMvcRequestBuilders.*;
-      
+
       enum RequestStatus { SUBMITTED, APPROVED }
       class BusinessRuleException extends RuntimeException {
           BusinessRuleException(String m) { super(m); }
       }
-      
+
       @RestController
       @RequestMapping("/api/requests")
       class RequestApiController {
@@ -43,7 +43,7 @@ samples:
                   required = false) RequestStatus status) {
               return List.of("一覧(" + status + ")");
           }
-      
+
           @PostMapping("/{id}/approve")
           String approve(@PathVariable("id") long id) {
               if (id == 3) {
@@ -56,11 +56,11 @@ samples:
                       + " password=s3cret");
           }
       }
-      
+
       @RestControllerAdvice
       class ApiExceptionHandler
               extends ResponseEntityExceptionHandler {
-      
+
           @ExceptionHandler(BusinessRuleException.class)
           ProblemDetail onRule(BusinessRuleException e) {
               ProblemDetail pd = ProblemDetail.forStatusAndDetail(
@@ -68,7 +68,7 @@ samples:
               pd.setTitle("業務ルール違反");
               return pd;
           }
-      
+
           @ExceptionHandler(Exception.class)
           ProblemDetail onUnexpected(Exception e) {
               String errorId = UUID.randomUUID().toString()
@@ -84,7 +84,7 @@ samples:
               return pd;
           }
       }
-      
+
       MockMvc mvc = MockMvcBuilders
           .standaloneSetup(new RequestApiController())
           .setControllerAdvice(new ApiExceptionHandler())
@@ -93,14 +93,14 @@ samples:
               new MappingJackson2HttpMessageConverter())
           .defaultResponseCharacterEncoding(UTF_8)
           .build();
-      
+
       void show(String label, RequestBuilder req)
               throws Exception {
           var res = mvc.perform(req).andReturn().getResponse();
           System.out.println(label + " → " + res.getStatus());
           System.out.println("  " + res.getContentAsString());
       }
-      
+
       show("POST 3/approve", post("/api/requests/3/approve"));
       show("POST 1/approve", post("/api/requests/1/approve"));
       show("GET ?status=submitted",

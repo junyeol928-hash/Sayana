@@ -11,8 +11,10 @@ public class PriceFetcher {
 
     static List<Integer> fetchAll(List<String> ids, Function<String, Integer> lookup) {
         // TODO: 空なら空のリストを返す
-        // TODO: newFixedThreadPool(ids.size()) を作り、全部の id を submit して Future をリストにためる
-        // TODO: Future を順番に get(1, TimeUnit.SECONDS) して結果に入れる。失敗したら IllegalStateException
+        // TODO: newFixedThreadPool(ids.size()) を作り、
+        //       全部の id を submit して Future をリストにためる
+        // TODO: Future を順番に get(1, TimeUnit.SECONDS) して、
+        //       結果に入れる。失敗したら IllegalStateException
         // TODO: finally で shutdownNow() する
         return new ArrayList<>(); // ← ダミー。書き換えてください
     }

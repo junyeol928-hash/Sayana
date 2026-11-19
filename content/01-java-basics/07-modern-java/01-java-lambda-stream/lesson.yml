@@ -70,7 +70,8 @@ samples:
 
       public class Main {
           public static void main(String[] args) {
-              // ここを変えてみよう:5000 や limit(3) を変える / distinct() を消す
+              // ここを変えてみよう:5000 や limit(3) を変える /
+              // distinct() を消す
               List<Order> orders = List.of(
                   new Order("Sato", 7200),
                   new Order("Tanaka", 3000),
@@ -135,7 +136,8 @@ samples:
 
       public class Main {
           public static void main(String[] args) {
-              // ここを変えてみよう:社員を足す / 部署名を "開発" 以外にしてみる
+              // ここを変えてみよう:社員を足す /
+              // 部署名を "開発" 以外にしてみる
               List<Employee> emps = List.of(
                   new Employee("E01", "佐藤", "開発", 420),
                   new Employee("E02", "鈴木", "営業", 380),
@@ -214,7 +216,8 @@ samples:
 
               // ④ ラムダから外のローカル変数は書き換えられない
               int base = 100;          // 実質 final(この後代入しない)
-              // base = 200;           // ← コメントを外すと下の行がコンパイルエラー
+              // base = 200;           // ← コメントを外すと
+              //                            下の行がコンパイルエラー
               List<Integer> plus = Stream.of(1, 2, 3)
                   .map(n -> n + base)
                   .toList();

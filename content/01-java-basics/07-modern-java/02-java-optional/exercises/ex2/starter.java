@@ -29,14 +29,17 @@ class Customer {
 public class ShippingLabel {
 
     public static String zipOf(Customer c) {
-        // TODO: Optional.ofNullable(c) から map で 住所 → 郵便番号 と辿り、
-        //       strip で前後の空白を除き、空文字なら filter で落として、
+        // TODO: Optional.ofNullable(c) から
+        //       map で 住所 → 郵便番号 と辿り、
+        //       strip で前後の空白を除き、
+        //       空文字なら filter で落として、
         //       取れなければ "未登録" を返す
         return "";
     }
 
     public static Optional<String> cityOf(Customer c) {
-        // TODO: zipOf と同じ要領で市区町村を取り出す(orElse は付けずに Optional のまま返す)
+        // TODO: zipOf と同じ要領で市区町村を取り出す
+        //       (orElse は付けずに Optional のまま返す)
         return Optional.empty();
     }
 

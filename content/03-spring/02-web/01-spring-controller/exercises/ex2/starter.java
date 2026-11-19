@@ -27,7 +27,8 @@ public class StockApiController {
     }
 
     // TODO: POST /api/stocks/{code}/ship?qty=… に対応させる
-    // 404(商品なし) → 400(qty が 0 以下) → 409(在庫不足) → 200(出荷後の在庫)の順にチェック
+    // 404(商品なし) → 400(qty が 0 以下) → 409(在庫不足) →
+    // 200(出荷後の在庫)の順にチェック
     public ResponseEntity<Stock> ship(String code, int qty) {
         return null; // ← ダミー
     }

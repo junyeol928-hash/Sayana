@@ -7,7 +7,8 @@ public class ApplicationFlow {
     public static Map<Status, Integer> countByStatus(List<Status> statuses) {
         Map<Status, Integer> counts = new EnumMap<>(Status.class);
         // TODO: Status.values() で全ステータスを 0 件で入れておく
-        // TODO: statuses を数える(counts.merge(s, 1, Integer::sum) が便利)
+        // TODO: statuses を数える
+        //       (counts.merge(s, 1, Integer::sum) が便利)
         return counts;
     }
 
@@ -25,7 +26,8 @@ enum Status {
 
     boolean canMoveTo(Status next) {
         // TODO: next が null なら false
-        // TODO: switch (this) の switch 式で、遷移できる先なら true を返す
+        // TODO: switch (this) の switch 式で、
+        //       遷移できる先なら true を返す
         //       例: case DRAFT -> next == SUBMITTED;
         return false; // ← ダミー。書き換えてください
     }

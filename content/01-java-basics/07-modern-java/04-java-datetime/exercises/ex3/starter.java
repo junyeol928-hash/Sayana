@@ -5,20 +5,23 @@ import java.util.Set;
 public class BusinessDays {
 
     public static boolean isBusinessDay(LocalDate date, Set<LocalDate> holidays) {
-        // TODO: 土曜・日曜なら false(date.getDayOfWeek() と DayOfWeek.SATURDAY などを比べる)
+        // TODO: 土曜・日曜なら false(date.getDayOfWeek() と
+        //       DayOfWeek.SATURDAY などを比べる)
         // TODO: holidays に含まれていれば false
         return false; // ← ダミー。書き換えてください
     }
 
     public static int count(LocalDate from, LocalDate to, Set<LocalDate> holidays) {
-        // TODO: from から to まで(両端を含む)1日ずつ進めて、営業日を数える
+        // TODO: from から to まで(両端を含む)1日ずつ進めて、
+        //       営業日を数える
         //       from が to より後なら 0
         return -1; // ← ダミー。書き換えてください
     }
 
     public static LocalDate addBusinessDays(LocalDate start, int n, Set<LocalDate> holidays) {
         // TODO: n がマイナスなら IllegalArgumentException
-        // TODO: start の翌日から進めて、営業日を n 個数えた日を返す(n が 0 なら start)
+        // TODO: start の翌日から進めて、営業日を n 個数えた日を返す
+        //       (n が 0 なら start)
         return null; // ← ダミー。書き換えてください
     }
 

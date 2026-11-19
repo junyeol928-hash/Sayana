@@ -51,7 +51,8 @@ public class KeyIssueService {
         this.keyRepository = keyRepository;
     }
 
-    // TODO: 問題文の「処理詳細」と1行ずつ突き合わせて、食い違っている所を直す(2か所)
+    // TODO: 問題文の「処理詳細」と1行ずつ突き合わせて、
+    //       食い違っている所を直す(2か所)
     public KeyIssueResponse issue(KeyIssueRequest request) {
         KeyEntity saved = keyRepository.save(
                 new KeyEntity(null, request.cardId(), request.keyVersion(), "ACTIVE"));

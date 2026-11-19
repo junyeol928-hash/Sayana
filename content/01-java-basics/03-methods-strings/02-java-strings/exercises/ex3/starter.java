@@ -16,7 +16,8 @@ public class ReportLine {
         return ""; // ← ダミー。書き換えてください
     }
 
-    // 帳票の1行:商品名(左寄せ12) + 数量(右寄せ5) + 金額(カンマ区切り・右寄せ11)
+    // 帳票の1行:商品名(左寄せ12) + 数量(右寄せ5)
+    //          + 金額(カンマ区切り・右寄せ11)
     public static String formatLine(String name, int qty, int amount) {
         // TODO: padRight と padLeft を呼び出して組み立てる
         // TODO: 金額は String.format("%,d", amount) で 3桁区切りに

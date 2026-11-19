@@ -17,7 +17,10 @@ enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
 record Employee(Long id, String name, String email) {
 }
 
-/** STS では JPA のエンティティ(class + getter)。採点用に record で簡略化している */
+/**
+ * STS では JPA のエンティティ(class + getter)。
+ * 採点用に record で簡略化している
+ */
 record ApprovalRequest(Long id, String title, RequestType type, Integer amount,
         String reason, RequestStatus status, Employee applicant, Employee approver,
         String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
@@ -37,7 +40,8 @@ record RequestSummary(Long id, String title, RequestType type, Integer amount,
         RequestStatus status, String applicantName, LocalDateTime submittedAt) {
 
     static RequestSummary from(ApprovalRequest r) {
-        // TODO: r から一覧用の項目だけを詰め替える(applicantName は申請者の名前)
+        // TODO: r から一覧用の項目だけを詰め替える
+        //       (applicantName は申請者の名前)
         return null;
     }
 }
@@ -48,7 +52,8 @@ record RequestDetail(Long id, String title, RequestType type, Integer amount,
         LocalDateTime decidedAt) {
 
     static RequestDetail from(ApprovalRequest r) {
-        // TODO: r から詳細用の項目を詰め替える(approver が null なら approverName も null)
+        // TODO: r から詳細用の項目を詰め替える
+        //       (approver が null なら approverName も null)
         return null;
     }
 }
@@ -64,7 +69,8 @@ public class RequestApiController {
         this.service = service;
     }
 
-    // TODO: GET /api/requests?status=SUBMITTED に対応させる(status は省略可)
+    // TODO: GET /api/requests?status=SUBMITTED に対応させる
+    //       (status は省略可)
     public List<RequestSummary> list(RequestStatus status) {
         return List.of();
     }

@@ -5,8 +5,10 @@ public class HourlyRate {
 
         int base = 0;
         // TODO: 祝日なら 1500。そうでなければ switch 式で
-        //       平日(1〜5) 1200 / 土曜(6) 1300 / 日曜(7) 1500 を base に入れる
-        //       例: base = switch (dayOfWeek) { case 1, 2, 3, 4, 5 -> 1200; ... };
+        //       平日(1〜5) 1200 / 土曜(6) 1300 / 日曜(7) 1500 を
+        //       base に入れる
+        //       例: base = switch (dayOfWeek) {
+        //               case 1, 2, 3, 4, 5 -> 1200; ... };
 
         // TODO: 夜勤なら base に 250 を足す
 

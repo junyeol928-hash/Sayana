@@ -15,7 +15,8 @@ public class OrderService {
         this.payment = payment;
     }
 
-    // TODO: 決済に失敗(PaymentException)したときも在庫の引き当てを取り消したい
+    // TODO: 決済に失敗(PaymentException)したときも、
+    //       在庫の引き当てを取り消したい
     @Transactional
     public void placeOrder(String item, int qty) throws PaymentException {
         stock.reduce(item, qty);
@@ -23,7 +24,8 @@ public class OrderService {
     }
 
     // TODO: 複数行の注文を「全部成功か、全部取り消し」にしたい
-    //       (placeOrder には @Transactional が付いているのに、なぜ効かない?)
+    //       placeOrder には @Transactional が付いているのに、
+    //       なぜ効かない?
     public void placeAll(List<OrderLine> lines) throws PaymentException {
         for (OrderLine line : lines) {
             placeOrder(line.item(), line.qty());
@@ -42,7 +44,8 @@ class PaymentException extends Exception {
     }
 }
 
-// 外部の決済サービスの代わり(完成済み)。1回の決済が 10000 円を超えると失敗する
+// 外部の決済サービスの代わり(完成済み)。
+// 1回の決済が 10000 円を超えると失敗する
 class PaymentGateway {
     final List<Integer> charged = new ArrayList<>();   // 決済できた金額の記録
 

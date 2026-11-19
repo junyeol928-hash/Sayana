@@ -9,7 +9,10 @@ public class AppConfig {
         this.values = values;
     }
 
-    /** 文字列を int に変換する。変換できなければ空の Optional(用意済み・変更不要) */
+    /**
+     * 文字列を int に変換する。
+     * 変換できなければ空の Optional(用意済み・変更不要)
+     */
     static Optional<Integer> tryParseInt(String s) {
         try {
             return Optional.of(Integer.parseInt(s));
@@ -25,7 +28,8 @@ public class AppConfig {
     }
 
     public int getInt(String key, int defaultValue) {
-        // TODO: get(key) の結果を flatMap(AppConfig::tryParseInt) で数値にし、
+        // TODO: get(key) の結果を
+        //       flatMap(AppConfig::tryParseInt) で数値にし、
         //       取れなければ defaultValue を返す
         return 0;
     }

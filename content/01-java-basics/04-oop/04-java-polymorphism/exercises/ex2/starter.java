@@ -1,12 +1,14 @@
 public class Checkout {
 
     static int total(Payment p, int amount) {
-        // TODO: 金額 + 手数料 を返す(p.fee(amount) を使う。種類の判定はしない)
+        // TODO: 金額 + 手数料 を返す
+        //       (p.fee(amount) を使う。種類の判定はしない)
         return 0;
     }
 
     static String receipt(Payment p, int amount) {
-        // TODO: "カード払い: 5000円 + 手数料150円 = 5150円" の形式で返す
+        // TODO: "カード払い: 5000円 + 手数料150円 = 5150円"
+        //       の形式で返す
         return "";
     }
 
@@ -41,11 +43,13 @@ class CardPayment extends Payment {
 
     // TODO: label() をオーバーライドして "カード" を返す
 
-    // TODO: fee(int amount) をオーバーライドして、金額の 3%(切り捨て)を返す。ただし最低 MIN_FEE 円
+    // TODO: fee(int amount) をオーバーライドして、
+    //       金額の 3%(切り捨て)を返す。ただし最低 MIN_FEE 円
 }
 
 class PointPayment extends Payment {
     // TODO: label() をオーバーライドして "ポイント" を返す
 
-    // TODO: fee(int amount) をオーバーライドして、1000 円未満なら 50、以上なら 0 を返す
+    // TODO: fee(int amount) をオーバーライドして、1000 円未満なら 50、
+    //       以上なら 0 を返す
 }

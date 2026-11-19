@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** 承認・差戻しの業務ルール(1〜3・6)を守るサービス。STS では @Service @Transactional */
+/**
+ * 承認・差戻しの業務ルール(1〜3・6)を守るサービス。
+ * STS では @Service @Transactional
+ */
 public class ApprovalService {
 
     private final ApprovalRequestRepository requests;
@@ -22,20 +25,24 @@ public class ApprovalService {
 
     /** 申請・再申請(ルール1:申請者本人だけ) */
     public ApprovalRequest submit(Long requestId, Long actorId) {
-        // TODO: 申請と社員を探す → 申請者本人か確かめる → r.submit(now) → 履歴(SUBMIT)を1件保存
+        // TODO: 申請と社員を探す → 申請者本人か確かめる →
+        //       r.submit(now) → 履歴(SUBMIT)を1件保存
         return null;
     }
 
     /** 承認(ルール2・3) */
     public ApprovalRequest approve(Long requestId, Long actorId, String comment) {
-        // TODO: APPROVER / ADMIN か → 自分の申請でないか → 10万円以上なら ADMIN か
-        //       → r.approve(actor, comment, now) → 履歴(APPROVE)を1件保存
+        // TODO: APPROVER / ADMIN か → 自分の申請でないか →
+        //       10万円以上なら ADMIN か
+        //       → r.approve(actor, comment, now)
+        //       → 履歴(APPROVE)を1件保存
         return null;
     }
 
     /** 差戻し(ルール2。コメント必須のルール4はエンティティが守る) */
     public ApprovalRequest returnBack(Long requestId, Long actorId, String comment) {
-        // TODO: APPROVER / ADMIN か → r.returnBack(actor, comment, now) → 履歴(RETURN)を1件保存
+        // TODO: APPROVER / ADMIN か → r.returnBack(actor, comment, now)
+        //       → 履歴(RETURN)を1件保存
         return null;
     }
 
@@ -45,8 +52,10 @@ public class ApprovalService {
         return null;
     }
 
-    // ヒント:申請・社員が見つからないときは BusinessRuleException("申請が見つかりません") などを投げる
-    //         requests.findById(id).orElseThrow(() -> new BusinessRuleException("申請が見つかりません"))
+    // ヒント:申請・社員が見つからないときは
+    //        BusinessRuleException("申請が見つかりません") などを投げる
+    //         requests.findById(id).orElseThrow(() ->
+    //             new BusinessRuleException("申請が見つかりません"))
 }
 
 /** 申請(前の問題の答え。完成済み) */
@@ -170,7 +179,10 @@ enum Action {
 class ApprovalFlow {
     static final int ADMIN_LIMIT = 100_000;
 
-    /** current に action をした後の状態。できなければ BusinessRuleException(業務ルール5) */
+    /**
+     * current に action をした後の状態。
+     * できなければ BusinessRuleException(業務ルール5)
+     */
     static RequestStatus next(RequestStatus current, Action action) {
         if (current.isFinal()) {
             throw new BusinessRuleException(current.label() + "の申請は変更できません");
@@ -188,10 +200,16 @@ class ApprovalFlow {
     }
 }
 
-/** 承認履歴(エンティティの縮小版。STS では request・actor は ApprovalRequest・Employee への参照。完成済み) */
+/**
+ * 承認履歴(エンティティの縮小版。完成済み)
+ * STS では request・actor は ApprovalRequest・Employee への参照
+ */
 record ApprovalHistory(Long requestId, Long actorId, Action action, String comment, LocalDateTime at) {}
 
-/** 申請の Repository(STS では JpaRepository を継承するインターフェース。完成済み) */
+/**
+ * 申請の Repository(完成済み)
+ * STS では JpaRepository を継承するインターフェース
+ */
 interface ApprovalRequestRepository {
     Optional<ApprovalRequest> findById(Long id);
 

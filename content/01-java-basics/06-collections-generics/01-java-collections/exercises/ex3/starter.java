@@ -10,10 +10,12 @@ import java.util.Set;
 public class DeptRoster {
 
     public static Map<String, List<String>> groupByDept(List<Employee> employees) {
-        // TODO: 結果用の LinkedHashMap と、処理済みの社員を覚える HashSet を用意する
+        // TODO: 結果用の LinkedHashMap と、
+        //       処理済みの社員を覚える HashSet を用意する
 
         // TODO: 1人ずつ処理する
-        //   - Set への add が false なら(すでに処理済みの社員なら)読み飛ばす
+        //   - Set への add が false なら
+        //     (すでに処理済みの社員なら)読み飛ばす
         //   - 部署のリストがなければ新しい ArrayList を作って put する
         //   - そのリストに氏名を add する
 
@@ -53,7 +55,8 @@ class Employee {
         return dept;
     }
 
-    // TODO: id が同じなら true を返す equals(Object o) をオーバーライドする
+    // TODO: id が同じなら true を返す
+    //       equals(Object o) をオーバーライドする
 
     // TODO: id から計算する hashCode() をオーバーライドする
 

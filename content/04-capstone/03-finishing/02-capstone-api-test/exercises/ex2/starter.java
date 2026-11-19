@@ -18,7 +18,10 @@ enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
 record Employee(Long id, String name, String email) {
 }
 
-/** STS では JPA のエンティティ(class + getter)。採点用に record で簡略化している */
+/**
+ * STS では JPA のエンティティ(class + getter)。
+ * 採点用に record で簡略化している
+ */
 record ApprovalRequest(Long id, String title, RequestType type, Integer amount,
         String reason, RequestStatus status, Employee applicant, Employee approver,
         String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
@@ -44,7 +47,10 @@ interface RequestService {
     /** なければ RequestNotFoundException */
     ApprovalRequest get(Long id);
 
-    /** loginId の人が承認する。なければ RequestNotFoundException、ルール違反は BusinessRuleException */
+    /**
+     * loginId の人が承認する。なければ RequestNotFoundException、
+     * ルール違反は BusinessRuleException
+     */
     ApprovalRequest approve(Long id, String loginId);
 }
 
@@ -79,17 +85,22 @@ public class RequestApiController {
     }
 
     // TODO: POST /api/requests/{id}/approve に対応させる。
-    //       principal.getName()(ログインID)を service.approve に渡し、結果を RequestDetail にして返す
+    //       principal.getName()(ログインID)を service.approve に渡し、
+    //       結果を RequestDetail にして返す
     public RequestDetail approve(Long id, Principal principal) {
         return null;
     }
 
-    // TODO: @ExceptionHandler を付け、409 Conflict・title「業務ルール違反」・detail に例外メッセージの ProblemDetail を返す
+    // TODO: @ExceptionHandler を付け、
+    //       409 Conflict・title「業務ルール違反」・
+    //       detail に例外メッセージの ProblemDetail を返す
     public ProblemDetail onRule(BusinessRuleException e) {
         return null;
     }
 
-    // TODO: @ExceptionHandler を付け、404 Not Found・title「申請が見つかりません」・detail に例外メッセージの ProblemDetail を返す
+    // TODO: @ExceptionHandler を付け、
+    //       404 Not Found・title「申請が見つかりません」・
+    //       detail に例外メッセージの ProblemDetail を返す
     public ProblemDetail onNotFound(RequestNotFoundException e) {
         return null;
     }

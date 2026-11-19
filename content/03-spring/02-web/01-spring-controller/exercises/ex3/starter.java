@@ -18,7 +18,8 @@ public class ContactController {
         return null; // ← ダミー
     }
 
-    // TODO: POST /contact → name と message を受け取って inquiries に追加し、
+    // TODO: POST /contact → name と message を受け取って
+    //       inquiries に追加し、
     //       "redirect:/contact/thanks" を返す
     public String submit(String name, String message) {
         return null; // ← ダミー

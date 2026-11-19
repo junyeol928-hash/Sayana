@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 record Task(long id, String title, boolean done) {
 }
 
-/** POST で受け取る JSON の形。id や done はクライアントに決めさせない */
+/**
+ * POST で受け取る JSON の形。id や done はクライアントに決めさせない
+ */
 record CreateTaskRequest(String title) {
 }
 
@@ -34,12 +36,16 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<Task> create(CreateTaskRequest req) { // TODO: 引数に @RequestBody を付ける
-        // TODO: title が null または空白だけなら 400(ResponseEntity.badRequest().build())
+        // TODO: title が null または空白だけなら
+        //       400(ResponseEntity.badRequest().build())
 
-        // TODO: seq.incrementAndGet() で ID を採番し、done = false の Task を store に保存する
+        // TODO: seq.incrementAndGet() で ID を採番し、
+        //       done = false の Task を store に保存する
 
         // TODO: 201 Created + Location: /api/tasks/{id} + 本文に Task
-        //       ヒント: ResponseEntity.created(URI.create("/api/tasks/" + id)).body(task)
+        //       ヒント: ResponseEntity
+        //           .created(URI.create("/api/tasks/" + id))
+        //           .body(task)
         return ResponseEntity.ok().build(); // ← ダミー
     }
 }

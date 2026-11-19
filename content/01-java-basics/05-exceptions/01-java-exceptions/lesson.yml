@@ -15,7 +15,8 @@ samples:
       入力ごとに、try のどの行まで進み、どの catch に飛ぶだろうか。`"12a"` と `"0"` では何が違い、`(チェック終了)` は何回出る?
     code: |
       // try / catch / finally の流れを確かめる
-      // ここを変えてみよう:inputs に "-5" や " 7" や null を足す / finally の行を消してみる
+      // ここを変えてみよう:inputs に "-5" や " 7" や null を足す /
+      // finally の行を消してみる
       String[] inputs = {"12", "12a", "", "0"};
 
       for (String input : inputs) {
@@ -46,7 +47,8 @@ samples:
       class Inventory {
           private int stock = 5;
 
-          // 検査例外を投げるメソッドは throws で宣言する(消すとコンパイルエラー)
+          // 検査例外を投げるメソッドは throws で宣言する
+          // (消すとコンパイルエラー)
           void ship(String item, int qty) throws StockShortageException {
               if (qty < 1) {
                   // 前提違反は非検査例外で
@@ -77,7 +79,8 @@ samples:
       `AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられる。2 つのリソースの open と close は、どんな順で出るだろうか。`fail` を true にしたら、close と catch のどちらが先に出る?
     code: |
       // try-with-resources:AutoCloseable を実装すると自動で close される
-      // ここを変えてみよう:fail を true にする / リソースを3つに増やして close の順番を見る
+      // ここを変えてみよう:fail を true にする /
+      // リソースを3つに増やして close の順番を見る
       class Res implements AutoCloseable {
           private final String name;
           Res(String name) {
@@ -108,7 +111,8 @@ samples:
       下位の例外を、自分の層の例外に包み直して投げる。`getCause()` は何を返し、「Caused by」の行には何が出るだろうか。
     code: |
       // ラップして再スロー:cause を渡すと「本当の原因」が残る
-      // ここを変えてみよう:text を "8080" にする / new ConfigException の第2引数 e を消してみる
+      // ここを変えてみよう:text を "8080" にする /
+      // new ConfigException の第2引数 e を消してみる
       class ConfigException extends RuntimeException {
           ConfigException(String message, Throwable cause) {
               super(message, cause);

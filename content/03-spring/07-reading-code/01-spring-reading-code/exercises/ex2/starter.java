@@ -14,8 +14,11 @@ public class KeyRotationService {
         this.crypto = crypto;
     }
 
-    /** 鍵の更新。今の鍵を失効させ、暗号装置で作った新しい鍵を有効にする */
-    // TODO: 暗号装置が失敗したとき、失効させた今の鍵が元に戻るように直す
+    /**
+     * 鍵の更新。今の鍵を失効させ、暗号装置で作った新しい鍵を有効にする
+     */
+    // TODO: 暗号装置が失敗したとき、
+    //       失効させた今の鍵が元に戻るように直す
     @Transactional
     public String rotate(String cardId) {
         store.revokeActive(cardId);                          // 1. 今の ACTIVE な鍵を REVOKED にする
@@ -31,14 +34,20 @@ public class KeyRotationService {
 }
 
 // ===== 例外(用意済み) =====
-/** 暗号装置(鍵を作る専用の装置。仕事では HSM)との通信に失敗した。検査例外 */
+/**
+ * 暗号装置(鍵を作る専用の装置。仕事では HSM)との通信に失敗した。
+ * 検査例外
+ */
 class CryptoException extends Exception {
     CryptoException(String message) {
         super(message);
     }
 }
 
-/** 鍵の更新に失敗した。RuntimeException なので @Transactional の既定でロールバックされる */
+/**
+ * 鍵の更新に失敗した。RuntimeException なので
+ * @Transactional の既定でロールバックされる
+ */
 class KeyRotationFailedException extends RuntimeException {
     KeyRotationFailedException(String cardId, Throwable cause) {
         super("カード " + cardId + " の鍵の更新に失敗しました", cause);

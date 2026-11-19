@@ -2,7 +2,8 @@ public class ScoreBook {
 
     static void addBonusInPlace(int[] scores, int bonus) {
         // TODO: scores の各要素に bonus を足す
-        // 下の書き方だと、引数 scores が新しい配列を指すだけで、呼び出し元の配列は変わらない
+        // 下の書き方だと、引数 scores が新しい配列を指すだけで、
+        // 呼び出し元の配列は変わらない
         scores = new int[scores.length];
     }
 

@@ -80,7 +80,8 @@ samples:
       var name = "Haru";            // String と推論される
       var total = 10_000_000_000L;  // long と推論される
       System.out.println(name + " " + count + " " + total);
-      // count = "ten";  // ← 先頭の // を消すとコンパイルエラー。var でも count は int のまま
+      // count = "ten";  // ← 先頭の // を消すとコンパイルエラー
+      //                      var でも count は int のまま
 
       Integer boxed = count;        // int → Integer(オートボクシング)
       int raw = boxed;              // Integer → int(アンボクシング)

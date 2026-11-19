@@ -6,7 +6,8 @@ public class UrlAuthorizer {
 
     private final List<Rule> rules = new ArrayList<>();
 
-    // ---- ルールの登録(Spring Security の authorizeHttpRequests の縮小版。ここは完成済み) ----
+    // ---- ルールの登録(ここは完成済み) ----
+    // Spring Security の authorizeHttpRequests の縮小版
 
     public UrlAuthorizer permitAll(String... patterns) {
         for (String p : patterns) {
@@ -29,24 +30,34 @@ public class UrlAuthorizer {
 
     // ---- ここから下を実装する ----
 
-    /** pattern が path に一致するか。"/xxx/**" は "/xxx" とその配下すべて、それ以外は完全一致 */
+    /**
+     * pattern が path に一致するか。
+     * "/xxx/**" は "/xxx" とその配下すべて、それ以外は完全一致
+     */
     static boolean matches(String pattern, String path) {
-        // TODO: pattern が "/**" で終わるなら、末尾の "/**" を取り除いた部分を base として
-        //       path が base と等しい、または base + "/" で始まるなら true
-        //       ("/admin/**" は "/admin" と "/admin/users" に一致し、"/administrator" には一致しない)
+        // TODO: pattern が "/**" で終わるなら、
+        //       末尾の "/**" を取り除いた部分を base として
+        //       path が base と等しい、
+        //       または base + "/" で始まるなら true
+        //       ("/admin/**" は "/admin" と "/admin/users" に一致し、
+        //       "/administrator" には一致しない)
         // TODO: それ以外は完全一致(equals)で判定する
         return false; // ← ダミー。書き換えてください
     }
 
     /** user が null なら未ログイン */
     public Decision check(String path, LoginUser user) {
-        // TODO: rules を先頭から順に見て、matches で最初に一致したルールだけで判定する
+        // TODO: rules を先頭から順に見て、
+        //       matches で最初に一致したルールだけで判定する
         //   - PERMIT_ALL    → ALLOW(未ログインでも)
         //   - user が null  → LOGIN_REQUIRED
         //   - AUTHENTICATED → ALLOW
-        //   - HAS_ROLE      → user.authorities() に "ROLE_" + role が含まれれば ALLOW、なければ FORBIDDEN
+        //   - HAS_ROLE      → user.authorities() に
+        //                     "ROLE_" + role が含まれれば ALLOW、
+        //                     なければ FORBIDDEN
         // TODO: どのルールにも一致しなければ拒否
-        //       (未ログインなら LOGIN_REQUIRED、ログイン済みなら FORBIDDEN)
+        //       (未ログインなら LOGIN_REQUIRED、
+        //       ログイン済みなら FORBIDDEN)
         return null; // ← ダミー。書き換えてください
     }
 
@@ -73,5 +84,8 @@ enum Access { PERMIT_ALL, AUTHENTICATED, HAS_ROLE }
 /** URL パターンと必要な権限の組。role は HAS_ROLE のときだけ使う */
 record Rule(String pattern, Access access, String role) { }
 
-/** ログイン中のユーザー。authorities は "ROLE_USER" のように ROLE_ 付きで持つ */
+/**
+ * ログイン中のユーザー。
+ * authorities は "ROLE_USER" のように ROLE_ 付きで持つ
+ */
 record LoginUser(String name, Set<String> authorities) { }

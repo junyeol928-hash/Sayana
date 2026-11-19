@@ -5,14 +5,16 @@ import java.util.Optional;
 /** 業務ロジック(Service 層) */
 public class OrderService {
 
-    // TODO: OrderRepository 型の final フィールドを用意し、コンストラクタで受け取る
+    // TODO: OrderRepository 型の final フィールドを用意し、
+    //       コンストラクタで受け取る
     public OrderService(OrderRepository repository) {
     }
 
     public Order placeOrder(String customer, int unitPrice, int quantity) {
         // TODO: 顧客名・数量のチェック(IllegalArgumentException)
         // TODO: 小計・送料(5000円以上は0円、未満は500円)・合計を計算
-        // TODO: new Order(0, ...) を repository.save して、その戻り値を返す
+        // TODO: new Order(0, ...) を repository.save して、
+        //       その戻り値を返す
         return null;
     }
 }
@@ -39,7 +41,8 @@ class InMemoryOrderRepository implements OrderRepository {
 
     @Override
     public Order save(Order order) {
-        // TODO: id が 0 なら nextId を振って(withId)、リストに追加して返す
+        // TODO: id が 0 なら nextId を振って(withId)、
+        //       リストに追加して返す
         return order;
     }
 
@@ -70,8 +73,11 @@ class OrderController {
     }
 
     String order(String customer, int unitPrice, int quantity) {
-        // TODO: 下の処理を OrderService / InMemoryOrderRepository に移し、ここでは service.placeOrder を呼ぶだけにする
-        //       (IllegalArgumentException は catch して "エラー:" + メッセージ を返す)
+        // TODO: 下の処理を
+        //       OrderService / InMemoryOrderRepository に移し、
+        //       ここでは service.placeOrder を呼ぶだけにする
+        //       (IllegalArgumentException は catch して
+        //       "エラー:" + メッセージ を返す)
         if (customer == null || customer.isBlank()) {
             return "エラー:顧客名が空です";
         }

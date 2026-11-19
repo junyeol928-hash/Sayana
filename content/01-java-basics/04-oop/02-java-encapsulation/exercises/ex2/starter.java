@@ -5,7 +5,8 @@ public final class Money {
 
     Money(int amount, String currency) {
         // TODO: amount が 0 未満なら IllegalArgumentException
-        // TODO: currency が null または "" なら IllegalArgumentException
+        // TODO: currency が null または "" なら
+        //       IllegalArgumentException
         // TODO: フィールドに代入する
     }
 
@@ -18,7 +19,8 @@ public final class Money {
     }
 
     Money plus(Money other) {
-        // TODO: other が null、または通貨が違うなら IllegalArgumentException
+        // TODO: other が null、または通貨が違うなら
+        //       IllegalArgumentException
         // TODO: 合計を持つ新しい Money を返す(自分は書き換えない)
         return null; // ← ダミー。書き換えてください
     }

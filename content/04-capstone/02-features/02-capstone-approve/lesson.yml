@@ -16,7 +16,8 @@ samples:
       承認者の太郎が10万円ちょうどの申請を承認し、続けて部長が承認します。太郎と部長の承認は、それぞれ通る? 止まるならどのルールで、履歴は最後に何件残る?
     code: |
       // 承認の業務ルール(2・3・6)を Service でチェックする流れ
-      // ここを変えてみよう:amount を 99_999 / 100_000 に、actor を taro / bucho / hanako に
+      // ここを変えてみよう:amount を 99_999 / 100_000 に、
+      // actor を taro / bucho / hanako に
       class BusinessRuleException extends RuntimeException {
           BusinessRuleException(String message) { super(message); }
       }
@@ -83,7 +84,8 @@ samples:
       後から来た部長の承認はどうなり、履歴は何件残る?
     code: |
       // 楽観ロック(@Version)の仕組みをメモリ上で再現する
-      // ここを変えてみよう:checkVersion を false にすると、二重承認が通ってしまう
+      // ここを変えてみよう:checkVersion を false にすると、
+      // 二重承認が通ってしまう
       boolean checkVersion = true;
 
       class Row {                 // DB の1行のつもり

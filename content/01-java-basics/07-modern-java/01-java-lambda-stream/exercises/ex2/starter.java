@@ -24,12 +24,14 @@ class Employee {
 public class DeptReport {
 
     public static Map<String, Long> headcount(List<Employee> emps) {
-        // TODO: groupingBy で部署ごとに分けて、counting() で人数を数える
+        // TODO: groupingBy で部署ごとに分けて、
+        //       counting() で人数を数える
         return Map.of();
     }
 
     public static Map<String, Integer> salaryTotal(List<Employee> emps) {
-        // TODO: groupingBy の第2引数に summingInt を渡して、部署ごとの月給の合計を出す
+        // TODO: groupingBy の第2引数に summingInt を渡して、
+        //       部署ごとの月給の合計を出す
         return Map.of();
     }
 

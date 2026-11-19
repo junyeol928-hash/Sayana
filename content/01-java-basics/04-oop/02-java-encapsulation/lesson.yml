@@ -70,7 +70,8 @@ samples:
           }
       }
 
-      // ここを変えてみよう:金額を変える / price.plus(tax) の結果を受け取らないとどうなる?
+      // ここを変えてみよう:金額を変える /
+      // price.plus(tax) の結果を受け取らないとどうなる?
       Money price = new Money(1000);
       Money tax = new Money(100);
       Money total = price.plus(tax);

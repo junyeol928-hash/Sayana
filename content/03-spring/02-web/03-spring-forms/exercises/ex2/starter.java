@@ -26,15 +26,18 @@ public class MemberController {
 
     @GetMapping("/new")
     public String form(Model model) {
-        // TODO: 空の MemberForm を "memberForm" という名前で Model に入れる
+        // TODO: 空の MemberForm を "memberForm" という名前で
+        //       Model に入れる
         return "members/form";
     }
 
-    // TODO: 引数を「@Validated @ModelAttribute MemberForm form, BindingResult result, RedirectAttributes ra」にする
+    // TODO: 引数を「@Validated @ModelAttribute MemberForm form,
+    //       BindingResult result, RedirectAttributes ra」にする
     @PostMapping
     public String register(@ModelAttribute MemberForm form) {
         // TODO: result.hasErrors() なら登録せずに "members/form" を返す
-        // TODO: エラーが無ければ store.add(...) で登録し、フラッシュ属性 "message" に "登録しました" を入れる
+        // TODO: エラーが無ければ store.add(...) で登録し、
+        //       フラッシュ属性 "message" に "登録しました" を入れる
         return "redirect:/members/done";
     }
 }

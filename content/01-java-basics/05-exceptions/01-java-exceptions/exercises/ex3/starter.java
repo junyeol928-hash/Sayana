@@ -26,16 +26,20 @@ public class BatchJob {
 
     static String run(boolean fail) {
         StringBuilder log = new StringBuilder();
-        // TODO: try-with-resources で "DB" → "FILE" の順に TrackedResource を開く
-        // TODO: ブロック内で "work;" を記録し、fail なら IllegalStateException("書き込み失敗") を投げる
-        // TODO: IllegalStateException を catch したら "catch:" + メッセージ + ";" を記録
+        // TODO: try-with-resources で
+        //       "DB" → "FILE" の順に TrackedResource を開く
+        // TODO: ブロック内で "work;" を記録し、fail なら
+        //       IllegalStateException("書き込み失敗") を投げる
+        // TODO: IllegalStateException を catch したら
+        //       "catch:" + メッセージ + ";" を記録
         // TODO: finally で "finally;" を記録
         return log.toString();
     }
 
     static int readLimit(String text) {
         // TODO: Integer.parseInt(text) を返す
-        // TODO: NumberFormatException は cause を渡して BatchConfigException にラップする
+        // TODO: NumberFormatException は cause を渡して
+        //       BatchConfigException にラップする
         return 0;
     }
 

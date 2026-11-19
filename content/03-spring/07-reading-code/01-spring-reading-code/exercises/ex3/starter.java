@@ -31,7 +31,8 @@ public class KeyIssueController {
 }
 
 // ===== dto(リクエストの形と制約) =====
-// TODO: スタックトレースから原因をたどり、仕様の入力チェックが抜けている所を直す
+// TODO: スタックトレースから原因をたどり、
+//       仕様の入力チェックが抜けている所を直す
 record KeyIssueRequest(
         @NotBlank String cardId,
         Integer keyVersion) {

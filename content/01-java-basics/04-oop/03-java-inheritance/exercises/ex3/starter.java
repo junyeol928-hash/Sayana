@@ -52,9 +52,11 @@ class DiscountProduct extends Product {
     }
 
     int salePrice() {
-        // TODO: price × (100 - rate) / 100 を返す(price は getPrice() で取得)
+        // TODO: price × (100 - rate) / 100 を返す
+        //       (price は getPrice() で取得)
         return 0;
     }
 
-    // TODO: toString() をオーバーライドし、super.toString() + " → 20%OFF 240円" の形式で返す
+    // TODO: toString() をオーバーライドし、
+    //       super.toString() + " → 20%OFF 240円" の形式で返す
 }

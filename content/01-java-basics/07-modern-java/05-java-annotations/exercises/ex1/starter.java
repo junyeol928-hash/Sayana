@@ -14,14 +14,17 @@ public class OwnerReport {
         List<String> result = new ArrayList<>();
         Method[] methods = type.getDeclaredMethods();
         Arrays.sort(methods, Comparator.comparing(Method::getName)); // 名前順に並べておく
-        // TODO: 各メソッドの @Owner を getAnnotation で取り出す(付いていなければ null)
-        // TODO: 付いていれば "メソッド名: 担当者(チーム)" を result に追加する
+        // TODO: 各メソッドの @Owner を getAnnotation で取り出す
+        //       (付いていなければ null)
+        // TODO: 付いていれば "メソッド名: 担当者(チーム)" を
+        //       result に追加する
         return result;
     }
 
     public static List<String> unowned(Class<?> type) {
         List<String> result = new ArrayList<>();
-        // TODO: @Owner が付いていないメソッドの名前を、名前の昇順で result に追加する
+        // TODO: @Owner が付いていないメソッドの名前を、
+        //       名前の昇順で result に追加する
         return result;
     }
 
@@ -31,7 +34,8 @@ public class OwnerReport {
     }
 }
 
-// TODO: SOURCE のままだとコンパイル後に消えて、実行時には読めない。RUNTIME に直す
+// TODO: SOURCE のままだとコンパイル後に消えて、実行時には読めない。
+//       RUNTIME に直す
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 @interface Owner {

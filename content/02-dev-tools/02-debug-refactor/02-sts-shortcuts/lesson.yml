@@ -14,7 +14,8 @@ samples:
     description: レッスン本文のメソッド抽出の例です。`totalBefore` が抽出前、`totalAfter` が抽出後。空の配列 `{}` のような端の入力でも、前と後は同じ値になるだろうか。
     code: |
       // メソッド抽出の前(totalBefore)と後(totalAfter)を比べる
-      // ここを変えてみよう:inputs に配列を足す / subtotal の中身をわざと壊して「違う!」を出す
+      // ここを変えてみよう:inputs に配列を足す /
+      // subtotal の中身をわざと壊して「違う!」を出す
       static int totalBefore(int[] prices) {
           int sum = 0;
           for (int p : prices) {

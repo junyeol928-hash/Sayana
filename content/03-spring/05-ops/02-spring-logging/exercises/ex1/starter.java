@@ -17,7 +17,9 @@ public class LogMasker {
 
     /** ログイン試行のログメッセージを組み立てる */
     public static String loginMessage(String userId, String email, String password) {
-        // TODO: "ログイン試行 user=<userId> email=<マスクしたメール> password=[MASKED]"
+        // TODO: 次の形の文字列を返す
+        //       "ログイン試行 user=<userId> email=<マスクしたメール>
+        //        password=[MASKED]"
         return "ログイン試行 user=" + userId + " email=" + email + " password=" + password; // ← 危険なダミー
     }
 
