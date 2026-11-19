@@ -679,6 +679,38 @@ fitAxis(document.querySelector(".lesson-axis"));
 })();
 addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 
+/**
+ * 本文の軸(PC の 1280px 以上・AI の欄が無い 1 列で、CSS が見せる): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと
+ * 段ごとの縦の運針を載せる。段・済み・いまの段は段の帯(.stepper)をそのまま写し(帯は軸がある間 CSS で隠す)、
+ * 帯の済みが変われば(サンプルを 3 秒読んだ・クイズに合格・読解を全問・読んだ)軸も描き直して、その目を縫う。
+ * 玉結びの位置(--k)は trackLesson の update() が決める
+ */
+function buildRail(stepper, steps, backLink) {
+  const main = stepper.closest(".lesson-layout.no-tutor")?.querySelector(".lesson-main");
+  if (!main) return null;
+  const part = document.querySelector(".lesson-axis span")?.textContent.trim() || "";
+  const rail = document.createElement("div");
+  rail.className = "lesson-rail";
+  rail.innerHTML = `<div class="rail-inner">${backLink || ""}<p class="rail-part" aria-hidden="true">${escHtml(part)}</p>
+    <nav class="rail-steps" aria-label="このレッスンの段">${steps.map((a) =>
+      `<a class="rail-step" href="${a.getAttribute("href")}"><span class="rail-label"></span><i class="rail-stitch" aria-hidden="true"></i></a>`).join("")}</nav></div>`;
+  stepper.closest(".stepper-wrap").before(rail); // 読み上げとキーボードの順は、帯と同じく冒頭のすぐ後ろ
+  const items = [...rail.querySelectorAll(".rail-step")];
+  const sync = () => steps.forEach((a, i) => {
+    const item = items[i];
+    const done = a.classList.contains("done");
+    // 見ている間に済んだ段だけ縫う(開いたときに済んでいた段は縫わずに糸で出す)
+    if (done && item.dataset.sewn === "0") item.classList.add("just");
+    item.dataset.sewn = done ? "1" : "0";
+    item.classList.toggle("sewn", done);
+    item.querySelector(".rail-label").innerHTML = a.innerHTML.trim() + (done ? '<span class="visually-hidden">(済み)</span>' : "");
+  });
+  sync();
+  new MutationObserver(sync).observe(stepper, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  main.closest(".lesson-layout").classList.add("has-rail");
+  return rail;
+}
+
 /** 読んでいる段を段の並びに示し、縫い線を進める */
 function trackLesson() {
   const stepper = document.querySelector(".stepper");
@@ -694,11 +726,12 @@ function trackLesson() {
   // 復習・読解・用語集から開いた(?from=)ときは「のぞき見」: 前回の続き(ホームの主役)を書き換えず、戻り先を段の帯の右に出す
   // (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わった。25 回目の審査)
   const back = { review: ["/review", "復習へ戻る"], reading: ["/reading", "読解へ戻る"], terms: ["/glossary", "用語集へ戻る"] }[new URLSearchParams(location.search).get("from")];
-  if (back) {
-    // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
-    // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
-    stepper.insertAdjacentHTML("afterend", `<a class="peek-back" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>`);
-  }
+  // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
+  // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
+  const backLink = (cls) => back ? `<a class="${cls}" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>` : "";
+  if (back) stepper.insertAdjacentHTML("afterend", backLink("peek-back"));
+  const rail = buildRail(stepper, steps, backLink("peek-back rail-back"));
+  const railItems = rail ? [...rail.querySelectorAll(".rail-step")] : [];
   const seen = pcStore(SECTIONS_KEY);
   const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
   (seen[lessonId] || []).forEach(markDone);
@@ -752,13 +785,28 @@ function trackLesson() {
     const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
     // 縫い目(9px の目 + 6px の間)の切れ目で止める(目の途中で切れた半端な欠片を出さない)
     if (sew) sew.style.setProperty("--p", `${p >= 1 ? sew.clientWidth : Math.floor((p * sew.clientWidth) / 15) * 15 + (p > 0 ? 9 : 0)}px`);
+    // 本文の軸: いまの段に朱の玉結び。段の頭が読む線を越えてから、段の終わりが画面の下端に来るまでの割合だけ玉結びを下ろし、
+    // 通ったところに刺し子の目を出す(画面より短い段は、いまの段になった時点で下まで)。止めるのは目の切れ目(上の縫い線と同じ)
+    if (rail?.offsetWidth) {
+      const r = document.getElementById(current).getBoundingClientRect();
+      const span = r.height - (innerHeight - pick);
+      const ratio = span < 1 ? 1 : Math.max(0, Math.min(1, (pick - r.top) / span));
+      railItems.forEach((item) => {
+        if (item.getAttribute("href") !== "#" + current) { item.removeAttribute("aria-current"); return; }
+        item.setAttribute("aria-current", "true");
+        const h = item.querySelector(".rail-stitch").clientHeight;
+        item.style.setProperty("--k", `${ratio >= 1 ? h : Math.min(h, Math.floor((ratio * h) / 15) * 15 + (ratio > 0 ? 9 : 0))}px`);
+      });
+    }
   };
   let ticking = false;
-  addEventListener("scroll", () => {
+  const onFrame = () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => { ticking = false; update(); });
-  }, { passive: true });
+  };
+  addEventListener("scroll", onFrame, { passive: true });
+  addEventListener("resize", onFrame); // 幅が 1280px をまたぐと軸が出たり消えたりするので、玉結びの位置も測り直す
   update();
 }
 
@@ -891,6 +939,10 @@ document.addEventListener("htmx:afterSwap", (e) => {
   if (out.querySelector(".quiz-next .btn.primary") || out.textContent.includes("満点")) document.querySelector('.stepper .step[href="#quiz"]')?.classList.add("done");
   highlight(form);
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
+});
+// 「読んだ」を押したら、段の並び(と本文の軸)の「読む」も済みに(開き直すまでレ点が付かなかった)
+document.addEventListener("htmx:afterSwap", () => {
+  if (document.querySelector("#read .read-done")) document.querySelector('.stepper .step[href="#read"]')?.classList.add("done");
 });
 // 復習: 選んだら「答え合わせ」を押せるように(選ぶ前から押せる小さなボタンで、スマホ・読解と言い方が違った。26 回目の審査)
 document.addEventListener("change", (e) => {
