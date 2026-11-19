@@ -16,9 +16,11 @@ samples:
     code: |
       int[] numbers = new int[1000];
       for (int i = 0; i < numbers.length; i++) {
-          numbers[i] = i + 1;          // 1〜1000
+          // 1〜1000
+          numbers[i] = i + 1;
       }
-      long[] partial = new long[2];    // スレッドごとの書き込み先(別々の枠)
+      // スレッドごとの書き込み先(別々の枠)
+      long[] partial = new long[2];
 
       Thread front = new Thread(() -> {
           for (int i = 0; i < 500; i++) partial[0] += numbers[i];
@@ -103,16 +105,19 @@ samples:
           List<Future<String>> futures = new ArrayList<>();
           for (String item : List.of("ペン", "ノート", "消しゴム")) {
               futures.add(pool.submit(() -> {
-                  Thread.sleep(50);                 // 外部APIの呼び出しのつもり
+                  // 外部APIの呼び出しのつもり
+                  Thread.sleep(50);
                   return item + ":" + item.length() * 100 + "円";
               }));
           }
           for (Future<String> f : futures) {
-              System.out.println(f.get(1, TimeUnit.SECONDS));   // 投げた順に受け取る
+              // 投げた順に受け取る
+              System.out.println(f.get(1, TimeUnit.SECONDS));
           }
 
           Future<String> slow = pool.submit(() -> {
-              Thread.sleep(5_000);                  // 5秒かかる重い処理
+              // 5秒かかる重い処理
+              Thread.sleep(5_000);
               return "done";
           });
           try {
@@ -123,7 +128,8 @@ samples:
               System.out.println("タイムアウトしたので諦めました");
           }
       } finally {
-          pool.shutdown();                          // 忘れるとスレッドが残り続ける
+          // 忘れるとスレッドが残り続ける
+          pool.shutdown();
           pool.awaitTermination(1, TimeUnit.SECONDS);
       }
       System.out.println("プールは止まった? " + pool.isTerminated());

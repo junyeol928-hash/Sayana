@@ -56,7 +56,8 @@ samples:
 
       boolean rejected;
       try {
-          service.register(" TARO@example.com ");   // 大文字・空白違いの同じアドレス
+          // 大文字・空白違いの同じアドレス
+          service.register(" TARO@example.com ");
           rejected = false;
       } catch (IllegalStateException e) {
           rejected = true;

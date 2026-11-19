@@ -99,7 +99,8 @@ samples:
       System.out.println("BMI(小数第1位): " + Math.round(bmi * 10) / 10.0);
       // ↑ 10.0 を 10 にすると? 整数除算になって小数が消える
 
-      System.out.println(Math.pow(2, 10));   // double で返る
+      // double で返る
+      System.out.println(Math.pow(2, 10));
       System.out.println(Math.max(3, 7) + ", " + Math.min(3, 7) + ", " + Math.abs(-5));
       // -2.5 は -2 になる
       System.out.println(Math.round(2.5) + ", " + Math.round(-2.5));

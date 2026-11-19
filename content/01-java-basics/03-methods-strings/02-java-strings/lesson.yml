@@ -17,11 +17,13 @@ samples:
     code: |
       // String は不変。そして中身の比較は equals
       // ここを変えてみよう:input を "GOLD" や null にする /
-      // b を d + "va" の形にしてみる
+      // String d = "Ja"; を足して、b を d + "va" の形にしてみる
       String s = "java";
-      s.toUpperCase();                 // 戻り値を捨てている(s は変わらない)
+      // 戻り値を捨てている(s は変わらない)
+      s.toUpperCase();
       System.out.println("捨てた場合  : " + s);
-      s = s.toUpperCase();             // 受け取って代入する
+      // 受け取って代入する
+      s = s.toUpperCase();
       System.out.println("代入した場合: " + s);
 
       String a = "Java";
@@ -33,7 +35,8 @@ samples:
       System.out.println("a == c      : " + (a == c));
       System.out.println("a.equals(c) : " + a.equals(c));
 
-      String input = "Gold";           // 画面から来た値のつもり
+      // 画面から来た値のつもり
+      String input = "Gold";
       System.out.println("equals           : " + "GOLD".equals(input));
       System.out.println("equalsIgnoreCase : " + "GOLD".equalsIgnoreCase(input));
   - title: メールアドレスを整えて分解する

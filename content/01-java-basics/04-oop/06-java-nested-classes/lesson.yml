@@ -68,7 +68,8 @@ samples:
           }
           void drive(int liters) { fuel -= liters; }
 
-          class Gauge {                       // static なし = 内部クラス
+          // static なし = 内部クラス
+          class Gauge {
               private final String name = "燃料計";
               String read() {
                   // this.name は Gauge 自身、Car.this.name は外側の Car
@@ -85,8 +86,10 @@ samples:
       Car.Gauge g1 = car1.gauge();
       Car.Gauge g2 = car2.gauge();
 
-      car1.drive(12);                 // car1 だけ走らせる
-      System.out.println(g1.read());  // 外側の最新の fuel を読みに行く
+      // car1 だけ走らせる
+      car1.drive(12);
+      // 外側の最新の fuel を読みに行く
+      System.out.println(g1.read());
       System.out.println(g2.read());
   - title: 匿名クラスの Comparator で並べ替える
     description: "`new Comparator<Order>() { ... }` が匿名クラスです。並べ方のルールをその場で書いて `Arrays.sort` に渡します。同じ配列を、ルールを替えて2通りに並べています。高い順に並べたとき、先頭に来るのは誰?"

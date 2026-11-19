@@ -45,7 +45,8 @@ samples:
       // ここを変えてみよう:reset の中で prices[1] = 777; も書いてみる
       public class PassByValue {
           static void addTen(int n) {
-              n = n + 10;                     // コピーを書き換えただけ
+              // コピーを書き換えただけ
+              n = n + 10;
               System.out.println("  addTen の中: n = " + n);
           }
 
@@ -80,7 +81,8 @@ samples:
       // sum の引数を増やす・空にする
       public class Overload {
           static int total(int price, int qty) {
-              return total(price, qty, 0);    // 少ない版が多い版を呼ぶ
+              // 少ない版が多い版を呼ぶ
+              return total(price, qty, 0);
           }
 
           static int total(int price, int qty, int off) {
@@ -92,7 +94,8 @@ samples:
               return price * qty;
           }
 
-          static int sum(int... nums) {       // nums の正体は int[]
+          // nums の正体は int[]
+          static int sum(int... nums) {
               int s = 0;
               for (int n : nums) {
                   s += n;
@@ -101,10 +104,14 @@ samples:
           }
 
           public static void main(String[] args) {
-              System.out.println(total(500, 3));        // total(int, int)
-              System.out.println(total(500, 3, 200));   // total(int, int, int)
-              System.out.println(total(99.5, 2));       // total(double, int)
-              System.out.println(sum());                // 0個でもOK
+              // total(int, int)
+              System.out.println(total(500, 3));
+              // total(int, int, int)
+              System.out.println(total(500, 3, 200));
+              // total(double, int)
+              System.out.println(total(99.5, 2));
+              // 0個でもOK
+              System.out.println(sum());
               System.out.println(sum(1, 2, 3, 4));
           }
       }

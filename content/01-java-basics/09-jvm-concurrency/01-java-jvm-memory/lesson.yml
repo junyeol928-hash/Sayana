@@ -28,7 +28,8 @@ samples:
 
       static int total(int price, int qty, int depth) {
           System.out.println(indent(depth) + "→ total(" + price + ", " + qty + ") のフレームを積む");
-          int subtotal = price * qty;       // subtotal は total のフレームにある
+          // subtotal は total のフレームにある
+          int subtotal = price * qty;
           int sum = subtotal + tax(subtotal, depth + 1);
           System.out.println(indent(depth) + "← total が " + sum + " を返して、フレームが消える");
           return sum;
@@ -67,7 +68,8 @@ samples:
       }
 
       static void addOne(int n) {
-          n++;                        // n は値のコピー。呼び出し元の int は変わらない
+          // n は値のコピー。呼び出し元の int は変わらない
+          n++;
       }
 
       Cart cart = new Cart("ハル", 100);

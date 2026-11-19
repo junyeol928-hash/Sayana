@@ -19,7 +19,8 @@ samples:
       // 12800 を別の金額に
       import java.lang.reflect.Method;
 
-      @FunctionalInterface interface Formatter {   // 抽象メソッドは1つだけ
+      // 抽象メソッドは1つだけ
+      @FunctionalInterface interface Formatter {
           String format(int yen);
       }
 
@@ -142,7 +143,8 @@ samples:
           @NotBlank private String name;
           @NotBlank private String email;
           @Max(150) private int age;
-          private String memo;                  // 目印なし → チェックしない
+          // 目印なし → チェックしない
+          private String memo;
 
           SignupForm(String name, String email, int age, String memo) {
               this.name = name; this.email = email; this.age = age; this.memo = memo;

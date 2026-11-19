@@ -22,7 +22,8 @@ samples:
       for (String input : inputs) {
           System.out.println("--- 入力: \"" + input + "\"");
           try {
-              int qty = Integer.parseInt(input);   // 失敗するとここで中断
+              // 失敗するとここで中断
+              int qty = Integer.parseInt(input);
               System.out.println("数量: " + qty);
               System.out.println("1個あたり: " + (1200 / qty) + "円");
           } catch (NumberFormatException e) {

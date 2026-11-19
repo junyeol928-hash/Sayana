@@ -19,11 +19,14 @@ samples:
       // plusMonths(1) を plusMonths(12) に
       import java.time.*;
 
-      LocalDate start = LocalDate.of(2024, 1, 31);   // 月は1始まり
-      start.plusDays(7);                             // × 戻り値を捨てている
+      // 月は1始まり
+      LocalDate start = LocalDate.of(2024, 1, 31);
+      // × 戻り値を捨てている
+      start.plusDays(7);
       System.out.println("捨てた後  : " + start);
 
-      LocalDate due = start.plusDays(7);             // ○ 受け取る
+      // ○ 受け取る
+      LocalDate due = start.plusDays(7);
       System.out.println("7日後     : " + due);
       // 2/31 はないので月末
       System.out.println("1か月後   : " + start.plusMonths(1));
@@ -33,7 +36,8 @@ samples:
       System.out.println("日時      : " + dt);
 
       try {
-          LocalDate.of(2023, 2, 29);                 // 存在しない日付
+          // 存在しない日付
+          LocalDate.of(2023, 2, 29);
       } catch (DateTimeException e) {
           System.out.println("例外      : " + e.getMessage());
       }
