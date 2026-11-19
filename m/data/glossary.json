@@ -53,23 +53,23 @@
   "defHtml" : "/** で始めるコメント。クラスやメソッドの説明書として IDE やドキュメントに表示される。",
   "lesson" : "java-hello"
 }, {
-  "term" : "AP サーバ",
+  "term" : "AP サーバ(アプリケーションサーバ)",
   "read" : "エーピーサーバ",
   "en" : "application server",
   "defHtml" : "Java のプログラムが動くサーバ。Web サーバから受けたリクエストを処理し、DB とやり取りする。",
-  "lesson" : "java-hello"
+  "lesson" : "spring-boot-startup"
 }, {
-  "term" : "フロントエンド / バックエンド",
+  "term" : "フロントエンド / バックエンド(画面側 / サーバー側)",
   "read" : null,
   "en" : "frontend / backend",
   "defHtml" : "ユーザーが直接触る画面側(HTML/CSS/JS)と、見えないサーバ側(Java)のこと。",
-  "lesson" : "java-hello"
+  "lesson" : "spring-thymeleaf"
 }, {
   "term" : "MVC",
   "read" : "エムブイシー",
   "en" : "Model-View-Controller",
   "defHtml" : "サーバ側のコードを、データと業務ルール(M)、見た目(V)、受付(C)の3役に分ける設計の型。",
-  "lesson" : "java-hello"
+  "lesson" : "spring-controller"
 }, {
   "term" : "変数",
   "read" : "へんすう",
@@ -185,7 +185,7 @@
   "defHtml" : "型の上限を超えて、値が壊れること。int で約 21 億を超えると負の数になる。例外は出ない。",
   "lesson" : "java-operators"
 }, {
-  "term" : "関係演算子",
+  "term" : "関係演算子(比較演算子)",
   "read" : "かんけいえんざんし",
   "en" : "relational operator",
   "defHtml" : "<code>==</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> のこと。2 つの値を比べて boolean を返す。",
@@ -227,7 +227,7 @@
   "defHtml" : "配列や <code>List</code> に入っている 1 つ 1 つの値。",
   "lesson" : "java-arrays"
 }, {
-  "term" : "添え字",
+  "term" : "添え字(インデックス)",
   "read" : "そえじ",
   "en" : "index",
   "defHtml" : "要素の位置を表す番号。0 から始まり、最後は「要素数 - 1」。",
@@ -251,7 +251,7 @@
   "defHtml" : "配列の範囲外の添え字を使ったときに起きる実行時例外。",
   "lesson" : "java-arrays"
 }, {
-  "term" : "多次元配列",
+  "term" : "多次元配列(二次元配列)",
   "read" : "たじげんはいれつ",
   "en" : "multidimensional array",
   "defHtml" : "配列の配列。int[][] で表のようなデータを持つ。外側が行、内側が列。",
@@ -315,7 +315,7 @@
   "read" : "たんらくひょうか",
   "en" : "short-circuit evaluation",
   "defHtml" : "<code>&amp;&amp;</code> や <code>||</code> で、左側の結果だけで全体が確定するとき右側を評価しない仕組み。",
-  "lesson" : "java-if"
+  "lesson" : null
 }, {
   "term" : "ガード節",
   "read" : "ガードせつ",
@@ -395,7 +395,7 @@
   "defHtml" : "その周の残りをスキップし、次の周の条件判定に戻る命令。",
   "lesson" : "java-loops"
 }, {
-  "term" : "二重ループ",
+  "term" : "二重ループ(多重ループ)",
   "read" : "にじゅうループ",
   "en" : "nested loop",
   "defHtml" : "for 文の中にさらに for 文がある、入れ子になったくり返し。",
@@ -405,7 +405,7 @@
   "read" : "かくちょうフォーぶん",
   "en" : "enhanced for / for-each",
   "defHtml" : "配列や <code>List</code> の要素を順番に取り出すだけの、簡潔なくり返し構文。",
-  "lesson" : "java-loops"
+  "lesson" : "java-arrays"
 }, {
   "term" : "ConcurrentModificationException",
   "read" : null,
@@ -501,7 +501,7 @@
   "read" : "アクセスしゅうしょくし",
   "en" : "access modifier",
   "defHtml" : "private / (なし) / protected / public。フィールドやメソッドに誰から触れるかを決める。",
-  "lesson" : "java-classes"
+  "lesson" : "java-encapsulation"
 }, {
   "term" : "カプセル化",
   "read" : "カプセルか",
@@ -539,11 +539,11 @@
   "defHtml" : "変数が使える範囲。宣言した { } の中だけ。フィールドはクラス全体。",
   "lesson" : "java-methods"
 }, {
-  "term" : "標準クラス(API)",
+  "term" : "標準クラス(API、標準ライブラリ)",
   "read" : "ひょうじゅんクラス",
   "en" : "standard API",
   "defHtml" : "Java が最初から用意しているクラス群。<code>String</code>、<code>Math</code>、<code>List</code> など。Javadoc で仕様を調べる。",
-  "lesson" : "java-classes"
+  "lesson" : "java-hello"
 }, {
   "term" : "コンストラクタ",
   "read" : null,
@@ -653,7 +653,7 @@
   "defHtml" : "同じ内容の文字列リテラルを複数回作らず使い回すための、JVM 内の共有領域。",
   "lesson" : "java-strings"
 }, {
-  "term" : "static 領域",
+  "term" : "static 領域(メソッド領域)",
   "read" : null,
   "en" : "method area",
   "defHtml" : "クラスの情報や static フィールドなど、クラスに1つだけ存在する情報が置かれる領域。",
@@ -783,25 +783,25 @@
   "read" : null,
   "en" : "upcast",
   "defHtml" : "子の実体を親(またはインターフェース)型の変数に入れること。自動で行われる。",
-  "lesson" : "java-abstract-interface"
+  "lesson" : "java-polymorphism"
 }, {
   "term" : "ダウンキャスト",
   "read" : null,
   "en" : "downcast",
   "defHtml" : "親型の変数を <code>(子型)</code> で子の型に戻すこと。実体が違うと <code>ClassCastException</code>。instanceof で確認してから行う。",
-  "lesson" : "java-abstract-interface"
+  "lesson" : "java-polymorphism"
 }, {
   "term" : "動的ディスパッチ",
   "read" : "どうてきディスパッチ",
   "en" : "dynamic dispatch",
   "defHtml" : "実行時に実体の型を見て、どのオーバーライド版を動かすか決める仕組み。",
-  "lesson" : "java-abstract-interface"
+  "lesson" : "java-polymorphism"
 }, {
   "term" : "instanceof",
   "read" : "インスタンスオブ",
   "en" : "instanceof",
   "defHtml" : "変数の実体がある型(またはその子)かどうかを <code>true</code> / <code>false</code> で返す演算子。Java 16+ では判定と同時に変数宣言できる。",
-  "lesson" : "java-abstract-interface"
+  "lesson" : "java-polymorphism"
 }, {
   "term" : "DI(依存性注入)",
   "read" : "ディーアイ",
@@ -833,7 +833,7 @@
   "defHtml" : "static を付けずに外側のクラスの直下に書くクラス。1つの外側インスタンスに結び付き、そのフィールドに直接アクセスできる。",
   "lesson" : "java-nested-classes"
 }, {
-  "term" : "Outer.this",
+  "term" : "Outer.this(外側クラス名.this)",
   "read" : "アウター・ディス",
   "en" : "Outer.this",
   "defHtml" : "内部クラスや匿名クラスの中から、結び付いている外側のインスタンス自身を指す書き方。",
@@ -851,7 +851,7 @@
   "defHtml" : "インターフェースや抽象クラスの実装を、名前を付けずに new と同時にその場で書く方法。",
   "lesson" : "java-nested-classes"
 }, {
-  "term" : "実質的final",
+  "term" : "実質的 final(effectively final)",
   "read" : "じっしつてきファイナル",
   "en" : "effectively final",
   "defHtml" : "final と書いていないが、一度代入した後に値を変えていない変数。匿名クラスやラムダから使える条件。",
@@ -863,7 +863,7 @@
   "defHtml" : "クラスの直下に <code>{ }</code> だけで書くコード。インスタンスが作られるたびに、コンストラクタの <code>super(...)</code> の後・本体の前に実行される。",
   "lesson" : "java-nested-classes"
 }, {
-  "term" : "static初期化ブロック",
+  "term" : "static 初期化ブロック",
   "read" : null,
   "en" : "static initializer block",
   "defHtml" : "static { } の形で書くコード。そのクラスが最初に読み込まれたときに1回だけ実行される。",
@@ -915,13 +915,13 @@
   "read" : null,
   "en" : "wildcard import",
   "defHtml" : "import java.util.*; のように、パッケージ直下の全クラスをまとめて import する書き方。サブパッケージは含まない。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "static import",
   "read" : "スタティック・インポート",
   "en" : "static import",
   "defHtml" : "クラスの static メソッドや定数を、クラス名なしで使えるようにする import。",
-  "lesson" : "java-encapsulation"
+  "lesson" : "spring-mockmvc"
 }, {
   "term" : "パッケージプライベート",
   "read" : null,
@@ -995,7 +995,7 @@
   "defHtml" : "<code>close()</code> メソッドを持つことを約束するインターフェース。これを実装したクラスが try-with-resources に使える。",
   "lesson" : "java-exceptions"
 }, {
-  "term" : "ユーザー定義例外",
+  "term" : "ユーザー定義例外(独自例外)",
   "read" : "ユーザーていぎれいがい",
   "en" : "custom exception",
   "defHtml" : "<code>Exception</code> や <code>RuntimeException</code> を継承して自分で作る例外クラス。業務の失敗を型で表す。",
@@ -1053,7 +1053,7 @@
   "read" : null,
   "en" : "wrapper class",
   "defHtml" : "<code>int</code> → <code>Integer</code> のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。",
-  "lesson" : "java-collections"
+  "lesson" : null
 }, {
   "term" : "オートボクシング",
   "read" : null,
@@ -1149,7 +1149,7 @@
   "read" : "じっこうしよう",
   "en" : "execution specification",
   "defHtml" : "ライフライン上で、そのオブジェクトが処理を実行している期間を表す細長い箱。",
-  "lesson" : "java-polymorphism"
+  "lesson" : null
 }, {
   "term" : "複合フラグメント",
   "read" : "ふくごうフラグメント",
@@ -1169,7 +1169,7 @@
   "defHtml" : "指定した行でプログラムの実行を一時停止させる目印。",
   "lesson" : "sts-debugger"
 }, {
-  "term" : "ステップオーバー",
+  "term" : "ステップオーバー(Step Over)",
   "read" : null,
   "en" : "step over",
   "defHtml" : "現在の行を実行して次の行へ進む操作。呼び出し先のメソッドの中には入らない。",
@@ -1181,13 +1181,13 @@
   "defHtml" : "呼び出しているメソッドの中へ実行位置を移動させる操作。",
   "lesson" : "sts-debugger"
 }, {
-  "term" : "ステップリターン",
+  "term" : "ステップリターン(Step Return)",
   "read" : null,
   "en" : "step return",
   "defHtml" : "今のメソッドの残りをすべて実行し、呼び出し元に戻る操作。",
   "lesson" : "sts-debugger"
 }, {
-  "term" : "変数ビュー",
+  "term" : "変数ビュー(Variables ビュー)",
   "read" : "へんすうビュー",
   "en" : "variables view",
   "defHtml" : "ブレークポイントで停止中に、変数の現在の値を確認できる IDE の画面。",
@@ -1223,7 +1223,7 @@
   "defHtml" : "作った後に中身を変更できない性質。<code>String</code> は不変で、操作のたびに新しい文字列が作られる。",
   "lesson" : "java-strings"
 }, {
-  "term" : "定数プール",
+  "term" : "定数プール(文字列プール)",
   "read" : "ていすうプール",
   "en" : "string pool",
   "defHtml" : "ここでは文字列の定数プール(文字列プール)のこと。同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組みで、リテラルどうしは同じオブジェクトになる。JVM 仕様でいう定数プール(クラスファイルの定数の表)とは別物。",
@@ -1275,7 +1275,7 @@
   "read" : "じゅうろくしんもじれつ",
   "en" : "hex string",
   "defHtml" : "バイト列を 0〜9 と a〜f で表した文字列。1バイト = 2文字。ハッシュ値の表示によく使う。",
-  "lesson" : "java-strings"
+  "lesson" : "java-datetime"
 }, {
   "term" : "正規表現",
   "read" : "せいきひょうげん",
@@ -1307,7 +1307,7 @@
   "defHtml" : "間違った型の値を入れるとコンパイル時にエラーになること。実行してから気づくバグを減らせる。",
   "lesson" : "java-generics"
 }, {
-  "term" : "ジェネリッククラス",
+  "term" : "ジェネリッククラス(型パラメータ付きクラス)",
   "read" : null,
   "en" : "generic class",
   "defHtml" : "<code>class Box&lt;T&gt;</code> のように型パラメータを持つクラス。<code>Box&lt;String&gt;</code> のように使う側が型を決める。",
@@ -1473,7 +1473,7 @@
   "read" : "フラットマップ",
   "en" : "flatMap",
   "defHtml" : "各要素を <code>Stream</code> に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。",
-  "lesson" : "java-lambda-stream"
+  "lesson" : null
 }, {
   "term" : "Collectors",
   "read" : "コレクターズ",
@@ -1497,7 +1497,7 @@
   "read" : "リデュース",
   "en" : "reduce",
   "defHtml" : "要素を先頭から順に1つの値へ畳み込む終端操作。<code>reduce(0, Integer::sum)</code> は合計。",
-  "lesson" : "java-lambda-stream"
+  "lesson" : null
 }, {
   "term" : "Optional",
   "read" : "オプショナル",
@@ -1623,7 +1623,7 @@
   "read" : null,
   "en" : "fall-through",
   "defHtml" : "古い switch 文で break を書かないと次の case まで実行される動き。バグの原因になる。",
-  "lesson" : "java-record-enum"
+  "lesson" : null
 }, {
   "term" : "java.time",
   "read" : null,
@@ -1683,7 +1683,7 @@
   "read" : "ビットえんざん",
   "en" : "bitwise operation",
   "defHtml" : "整数を 0/1 の並びとして扱う演算。<code>&amp;</code> <code>|</code> <code>^</code> <code>~</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code> <code>&gt;&gt;&gt;</code> がある。フラグ管理やバイト操作で使う。",
-  "lesson" : "java-datetime"
+  "lesson" : "java-operators"
 }, {
   "term" : "16進表記",
   "read" : "じゅうろくしんひょうき",
@@ -1695,7 +1695,7 @@
   "read" : "もじコード",
   "en" : "charset",
   "defHtml" : "文字と byte の対応表。UTF-8 と Shift_JIS が業務で混在し、取り違えると文字化けする。",
-  "lesson" : "java-datetime"
+  "lesson" : "java-file-io"
 }, {
   "term" : "ストリーム",
   "read" : null,
@@ -1733,7 +1733,7 @@
   "defHtml" : "<code>Path</code> を使ってファイルを読み書きするための静的メソッド集(<code>java.nio.file.Files</code>)。",
   "lesson" : "java-file-io"
 }, {
-  "term" : "EOF",
+  "term" : "EOF(終端)",
   "read" : "イーオーエフ",
   "en" : "end of file",
   "defHtml" : "ファイル(ストリーム)の終わり。byte 版の <code>read()</code> が <code>-1</code> を返すことで分かる。",
@@ -1755,13 +1755,13 @@
   "read" : "ちょくれつか",
   "en" : "serialization",
   "defHtml" : "オブジェクトを byte 列に変換して保存・送信できる形にすること。<code>ObjectOutputStream</code> で行う古い仕組み。",
-  "lesson" : "java-file-io"
+  "lesson" : null
 }, {
   "term" : "バッファリング",
   "read" : null,
   "en" : "buffering",
   "defHtml" : "小さい読み書きをまとめて処理することで速度を上げる仕組み。<code>BufferedReader</code> などが行う。",
-  "lesson" : "java-file-io"
+  "lesson" : null
 }, {
   "term" : "アノテーション",
   "read" : null,
@@ -1877,7 +1877,7 @@
   "defHtml" : "テストの中で「期待通りか」を確認する呼び出し。assertEquals や assertThrows など。",
   "lesson" : "java-junit"
 }, {
-  "term" : "モック",
+  "term" : "モック(偽物)",
   "read" : null,
   "en" : "mock",
   "defHtml" : "本物の代わりに使う、決められた通りにしか動かない偽物のオブジェクト。Mockito で作る。",
@@ -1991,13 +1991,13 @@
   "defHtml" : "起動時にパッケージ以下を走査して @Component 系のクラスを見つけ、Bean として登録すること。",
   "lesson" : "spring-di"
 }, {
-  "term" : "コンストラクタ注入",
+  "term" : "コンストラクタ注入(コンストラクタインジェクション)",
   "read" : null,
   "en" : "constructor injection",
   "defHtml" : "コンストラクタの引数で部品を受け取る注入方式。final にできるので推奨。",
   "lesson" : "spring-di"
 }, {
-  "term" : "フィールド注入",
+  "term" : "フィールド注入(フィールドインジェクション)",
   "read" : null,
   "en" : "field injection",
   "defHtml" : "フィールドに @Autowired を付けて直接入れてもらう方式。古いコードで見る。",
@@ -2061,7 +2061,7 @@
   "read" : null,
   "en" : null,
   "defHtml" : "設定値を書くファイル。src/main/resources にある。.properties 形式のこともある。",
-  "lesson" : "spring-boot-startup"
+  "lesson" : "spring-config"
 }, {
   "term" : "プロファイル",
   "read" : null,
@@ -2073,7 +2073,7 @@
   "read" : "バリュー",
   "en" : null,
   "defHtml" : "${キー} で設定値を1個ずつフィールドに入れる。${キー:既定値} で既定値も指定できる。",
-  "lesson" : "spring-boot-startup"
+  "lesson" : "spring-config"
 }, {
   "term" : "@ConfigurationProperties",
   "read" : null,
@@ -2085,9 +2085,9 @@
   "read" : "ポストコンストラクト",
   "en" : null,
   "defHtml" : "注入がすべて終わった直後に Spring が1回だけ呼ぶメソッドの印。初期化処理に使う。",
-  "lesson" : "spring-boot-startup"
+  "lesson" : null
 }, {
-  "term" : "組み込みサーバ",
+  "term" : "組み込みサーバ(組み込み Tomcat)",
   "read" : "くみこみサーバ",
   "en" : "embedded server",
   "defHtml" : "jar の中に Tomcat が入っていて、java -jar だけで Web サーバが立つ仕組み。",
@@ -2241,13 +2241,13 @@
   "read" : null,
   "en" : null,
   "defHtml" : "1リクエストにつき1回だけ実行される <code>Filter</code> の親クラス。自作フィルタでよく使う。",
-  "lesson" : "spring-security"
+  "lesson" : "spring-reading-code"
 }, {
   "term" : "AuthenticationEntryPoint / AccessDeniedHandler",
   "read" : null,
   "en" : null,
   "defHtml" : "前者は未認証(401)、後者は権限不足(403)のときに呼ばれる処理を差し替える仕組み。",
-  "lesson" : "spring-security"
+  "lesson" : null
 }, {
   "term" : "Repository",
   "read" : "リポジトリ",
@@ -2309,7 +2309,7 @@
   "defHtml" : "トランザクション内の変更をすべて取り消し、なかったことにすること。",
   "lesson" : "spring-data-jpa"
 }, {
-  "term" : "N+1問題",
+  "term" : "N+1 問題",
   "read" : "エヌプラスイチもんだい",
   "en" : "N+1 problem",
   "defHtml" : "一覧を取得した後、各行の関連データを1件ずつ追加で取得してしまい、SQL の回数が増えすぎる問題。",
@@ -2325,7 +2325,7 @@
   "read" : "デロンボック",
   "en" : "delombok",
   "defHtml" : "Lombok が展開した後の実際の Java コードを出力する機能。確認用。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "@Getter / @Setter",
   "read" : null,
@@ -2337,13 +2337,13 @@
   "read" : null,
   "en" : null,
   "defHtml" : "全フィールドの値を含む <code>toString()</code> メソッドを生成する。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "@EqualsAndHashCode",
   "read" : null,
   "en" : null,
   "defHtml" : "全フィールドを比較する <code>equals()</code> と <code>hashCode()</code> を生成する。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "@RequiredArgsConstructor",
   "read" : null,
@@ -2361,7 +2361,7 @@
   "read" : null,
   "en" : null,
   "defHtml" : "Lombok。@Data の不変版。全フィールドが private final になり setter は生成されない(Spring の @Value とは別物)。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "@Builder",
   "read" : null,
@@ -2379,7 +2379,7 @@
   "read" : null,
   "en" : null,
   "defHtml" : "検査例外を throws 宣言なしで投げられるようにする。呼び出し側から例外の存在が見えなくなる。",
-  "lesson" : "java-encapsulation"
+  "lesson" : null
 }, {
   "term" : "レイヤードアーキテクチャ",
   "read" : null,
@@ -2415,9 +2415,9 @@
   "read" : "ていぎへいどう",
   "en" : "Go to Definition",
   "defHtml" : "IDE の機能。クリックしたクラス・メソッドの宣言元(実体)にジャンプする。",
-  "lesson" : "spring-reading-code"
+  "lesson" : "sts-shortcuts"
 }, {
-  "term" : "相関ID",
+  "term" : "相関ID(リクエストID)",
   "read" : "そうかんアイディー",
   "en" : "correlation ID / request ID",
   "defHtml" : "1つのリクエストに紐づけて全ログに残す識別子。複数のログ行を1つの処理としてつなげて追える。",
