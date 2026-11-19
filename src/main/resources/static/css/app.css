@@ -996,11 +996,11 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .run-result:not(.status-ok) { border-left-color: var(--shu); }
 .run-meta { display: flex; justify-content: space-between; font-size: .8125rem; color: var(--ink-muted); }
 .console { background: var(--code-bg); color: var(--code-ink); margin: 8px 0; max-height: 360px; }
-.exception { background: var(--ng-soft); color: var(--ink); }
-/* PC の実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す。1 行目(例外の名前と理由)だけ朱の文字(サーモン色の塗りの箱で、
-   理由の「… is null」が右で切れていた。29 回目の審査)。スマホのサンプルの結果(.sample-result)は使わない入れ物なので変わらない */
-.sample-out pre.exception, #playground-out pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
-.sample-out pre.exception::first-line, #playground-out pre.exception::first-line { color: var(--syn-num); }
+/* 実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す(サーモン色の塗りの箱で、理由の「… is null」が右で切れていた。
+   PC は 29 回目、スマホのサンプルの結果は 30 回目の審査)。1 行目(例外の名前と理由)だけ朱の文字。文の 1 行目を .ex-head で包む
+   (::first-line は折り返した見た目の 1 行目にしか効かず、「is null」の手前で色が切れた。30 回目の審査) */
+pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.exception .ex-head { color: var(--syn-num); }
 .values .arrow { color: var(--accent-ink); font-weight: 700; }
 .diagnostics { padding-left: 1.2em; color: var(--ink); }
 .code-line { margin: 4px 0; padding: 6px 10px; background: var(--surface); border-radius: var(--r-s); font-size: 13px; color: var(--ink); }

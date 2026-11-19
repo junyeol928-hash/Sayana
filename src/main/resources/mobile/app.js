@@ -1188,6 +1188,14 @@ function descriptionWithoutPredict(html) {
   return d.innerHTML;
 }
 
+/** 実行時例外の文。1 行目(例外の名前と理由)だけ朱にする(PC の fragments/run.html と同じ。::first-line は折り返しの途中で切れた) */
+function exceptionPre(text) {
+  const nl = text.indexOf("\n");
+  const head = nl < 0 ? text : text.slice(0, nl);
+  const rest = nl < 0 ? "" : text.slice(nl);
+  return `<pre class="exception"><span class="ex-head">${esc(head)}</span>${esc(rest)}</pre>`;
+}
+
 /** サンプルの実行結果(PC で実行した控え)。予想してから開くように、最初は閉じておく */
 function sampleResult(r, descriptionHtml) {
   if (!r) return "";
@@ -1195,7 +1203,7 @@ function sampleResult(r, descriptionHtml) {
   const failed = r.status !== "OK";
   const body = `${r.output ? `<pre class="console">${phraseLines(r.output)}</pre>` : ""}
     ${r.values?.length ? `<div class="values">${r.values.map((v) => `<div class="value-line"><span class="arrow" aria-hidden="true">⇒</span> <code>${esc(v)}</code></div>`).join("")}</div>` : ""}
-    ${r.exception ? `<pre class="exception">${esc(r.exception)}</pre>` : ""}
+    ${r.exception ? exceptionPre(r.exception) : ""}
     ${!r.output && !r.values?.length && !r.exception ? `<p class="muted small">(出力はありません)</p>` : ""}
     ${r.varies ? `<p class="muted small">スレッドの順番や、@ の後ろの番号(ハッシュコード)などは、実行のたびに変わることがあります。</p>` : ""}`;
   return `<details class="sample-result"><summary><span>${q ? `<span class="predict">予想: ${predictHtml(q, descriptionHtml)}</span>` : ""}<span>予想したら、実行結果を見る</span></span></summary>

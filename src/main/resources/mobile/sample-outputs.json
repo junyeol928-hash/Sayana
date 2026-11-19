@@ -607,7 +607,7 @@
       "status" : "EXCEPTION",
       "output" : "Haru 10 10000000000\n20\nnull\n",
       "values" : [ ],
-      "exception" : "例外が発生しました: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"memo\" is null\n    at (14行目)",
+      "exception" : "例外が発生しました: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"memo\" is null\n    at 14行目",
       "varies" : false
     },
     "9756fc6e483b875304490ac1" : {

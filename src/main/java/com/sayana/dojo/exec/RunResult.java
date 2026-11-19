@@ -23,6 +23,27 @@ public record RunResult(Status status, String output, List<String> values, List<
         return status == Status.OK;
     }
 
+    /**
+     * 例外の文の 1 行目(例外の名前と理由)。画面はここだけ朱にする。CSS の {@code ::first-line} は折り返した見た目の
+     * 1 行目にしか効かず、理由の途中で色が切れた(30 回目の審査)。例外が無ければ空
+     */
+    public String exceptionHead() {
+        if (exception == null) {
+            return "";
+        }
+        int nl = exception.indexOf('\n');
+        return nl < 0 ? exception : exception.substring(0, nl);
+    }
+
+    /** 例外の文の 2 行目から(頭の改行を含む。スタックトレースの行)。無ければ空 */
+    public String exceptionRest() {
+        if (exception == null) {
+            return "";
+        }
+        int nl = exception.indexOf('\n');
+        return nl < 0 ? "" : exception.substring(nl);
+    }
+
     /** AI のエラー翻訳に渡すためのテキスト。 */
     public String errorText() {
         StringBuilder sb = new StringBuilder();
