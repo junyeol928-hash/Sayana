@@ -207,9 +207,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "one / two / three / four", "two / three", "two / three / four", "コンパイルエラー(コメントの中の println)" ],
     "answer" : 1,
-    "explanationHtml" : "<p>3行目は行全体がコメントなので実行されません。5行目は three を表示した後の // 以降がコメントなので four は出ません。</p>\n",
-    "traceHtml" : [ "3行目: 先頭が // なので行全体がコメント。何も起きない", "4行目: two を表示して改行", "5行目: three を表示。その後ろの // 以降は無視される", "結果: two、three の2行" ],
-    "whyHtml" : [ "// を付けた所も実行されると読んだ答え。// から行末まではコメントで、one も four も出ない", "", "行の途中から始まる // はコメントにならないと読んだ答え", "コメントの中に println があると文法エラーになると読んだ答え。コメントの中身は無視される" ]
+    "explanationHtml" : "<p>3行目は行全体がコメントなので実行されません。5行目は <code>three</code> を表示した後の <code>//</code> 以降がコメントなので <code>four</code> は出ません。</p>\n",
+    "traceHtml" : [ "3行目: 先頭が <code>//</code> なので行全体がコメント。何も起きない", "4行目: <code>two</code> を表示して改行", "5行目: <code>three</code> を表示。その後ろの <code>//</code> 以降は無視される", "結果: <code>two</code>、<code>three</code> の2行" ],
+    "whyHtml" : [ "<code>//</code> を付けた所も実行されると読んだ答え。<code>//</code> から行末まではコメントで、<code>one</code> も <code>four</code> も出ない", "", "行の途中から始まる <code>//</code> はコメントにならないと読んだ答え", "コメントの中に <code>println</code> があると文法エラーになると読んだ答え。コメントの中身は無視される" ]
   }, {
     "title" : "print と println の組み合わせ",
     "level" : 2,
@@ -217,9 +217,9 @@
     "questionHtml" : "出力は何行になる?",
     "choicesHtml" : [ "1行:Java 道場へようこそ", "2行:Java 道場 / へようこそ", "4行:Java / (空白) / 道場 / へようこそ", "3行:Java / 道場 / へようこそ" ],
     "answer" : 1,
-    "explanationHtml" : "<p>print は改行しないので、Java、空白、道場 が同じ行に並び、println で改行されます。6行目は + で文字列がつながって「へようこそ」が2行目に出ます。</p>\n",
-    "traceHtml" : [ "3行目: Java(改行なし)", "4行目: 空白(改行なし)→ ここまでで「Java 」", "5行目: 道場 を続けて表示して改行 →「Java 道場」", "6行目: <code>&quot;へ&quot; + &quot;ようこそ&quot;</code> → <code>へようこそ</code> を表示して改行" ],
-    "whyHtml" : [ "道場 を出す println の改行を見落とした答え。へようこそ は次の行に出る", "", "print も 1 回ごとに改行すると読んだ答え", "Java を出す print のあとで改行されると読んだ答え" ]
+    "explanationHtml" : "<p><code>print</code> は改行しないので、<code>Java</code>、空白、<code>道場</code> が同じ行に並び、<code>println</code> で改行されます。6行目は + で文字列がつながって「へようこそ」が2行目に出ます。</p>\n",
+    "traceHtml" : [ "3行目: <code>Java</code>(改行なし)", "4行目: 空白(改行なし)→ ここまでで「<code>Java</code> 」", "5行目: <code>道場</code> を続けて表示して改行 →「<code>Java 道場</code>」", "6行目: <code>&quot;へ&quot; + &quot;ようこそ&quot;</code> → <code>へようこそ</code> を表示して改行" ],
+    "whyHtml" : [ "<code>道場</code> を出す <code>println</code> の改行を見落とした答え。<code>へようこそ</code> は次の行に出る", "", "<code>print</code> も 1 回ごとに改行すると読んだ答え", "<code>Java</code> を出す <code>print</code> のあとで改行されると読んだ答え" ]
   }, {
     "title" : "複数行コメントの範囲",
     "level" : 2,
@@ -227,9 +227,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "start / a / b / end", "start / end", "start", "コンパイルエラー" ],
     "answer" : 1,
-    "explanationHtml" : "<p>4行目の /* から7行目の */ までがまとめてコメントです。中の2つの println はコードに見えますが実行されません。「使わなくなった処理をコメントアウトした」典型の形です。</p>\n",
-    "traceHtml" : [ "3行目: start を表示", "4〜7行目: /* 〜 */ の中なので a も b も実行されない", "8行目: end を表示", "結果: start、end の2行" ],
-    "whyHtml" : [ "/* と <em>/ に挟まれた println も実行されると読んだ答え。/</em> から */ までは何行でもコメント", "", "/* 以降がファイルの最後までコメントになると読んだ答え。*/ でコメントが閉じて end は出る", "コメントの中にコードを書くとエラーになると読んだ答え。コメントの中身は無視される" ]
+    "explanationHtml" : "<p>4行目の <code>/*</code> から7行目の <code>*/</code> までがまとめてコメントです。中の2つの <code>println</code> はコードに見えますが実行されません。「使わなくなった処理をコメントアウトした」典型の形です。</p>\n",
+    "traceHtml" : [ "3行目: <code>start</code> を表示", "4〜7行目: <code>/*</code> 〜 <code>*/</code> の中なので <code>a</code> も <code>b</code> も実行されない", "8行目: <code>end</code> を表示", "結果: <code>start</code>、<code>end</code> の2行" ],
+    "whyHtml" : [ "<code>/*</code> と <code>*/</code> に挟まれた <code>println</code> も実行されると読んだ答え。<code>/*</code> から <code>*/</code> までは何行でもコメント", "", "<code>/*</code> 以降がファイルの最後までコメントになると読んだ答え。<code>*/</code> でコメントが閉じて <code>end</code> は出る", "コメントの中にコードを書くとエラーになると読んだ答え。コメントの中身は無視される" ]
   }, {
     "title" : "ファイル名とクラス名",
     "level" : 2,
@@ -237,9 +237,9 @@
     "questionHtml" : "<code>javac Main.java</code> を実行すると?",
     "choicesHtml" : [ "hello と表示される", "Greeting.class ができて正常に終わる", "コンパイルエラー", "実行時エラー(ファイル名の不一致)" ],
     "answer" : 2,
-    "explanationHtml" : "<p>public なクラスの名前はファイル名と一致していなければなりません。Greeting は Main.java の中には置けないので、コンパイルの段階でエラーになります。IDE で「クラス名を変えたのにファイル名がそのまま」のときによく起きます。</p>\n",
-    "traceHtml" : [ "1行目: コメント。ファイル名が Main.java だと分かる", "2行目: public class Greeting → public なクラスは Greeting.java に置く必要がある", "<code>javac</code>: ファイル名とクラス名の不一致を検出してエラー。.class は作られない" ],
-    "whyHtml" : [ "<code>javac</code> が実行までしてくれると読んだ答え。<code>javac</code> はコンパイルだけで、このファイルはそこで止まる", "クラス名とファイル名が違ってもよいと読んだ答え。public クラスはクラス名と同じファイル名に置く", "", "<code>javac</code> は通って実行で問題が出ると読んだ答え。ファイル名の不一致はコンパイルの段階で見つかる" ]
+    "explanationHtml" : "<p><code>public</code> なクラスの名前はファイル名と一致していなければなりません。<code>Greeting</code> は <code>Main.java</code> の中には置けないので、コンパイルの段階でエラーになります。IDE で「クラス名を変えたのにファイル名がそのまま」のときによく起きます。</p>\n",
+    "traceHtml" : [ "1行目: コメント。ファイル名が <code>Main.java</code> だと分かる", "2行目: <code>public class Greeting</code> → <code>public</code> なクラスは <code>Greeting.java</code> に置く必要がある", "<code>javac</code>: ファイル名とクラス名の不一致を検出してエラー。.class は作られない" ],
+    "whyHtml" : [ "<code>javac</code> が実行までしてくれると読んだ答え。<code>javac</code> はコンパイルだけで、このファイルはそこで止まる", "クラス名とファイル名が違ってもよいと読んだ答え。<code>public</code> クラスはクラス名と同じファイル名に置く", "", "<code>javac</code> は通って実行で問題が出ると読んだ答え。ファイル名の不一致はコンパイルの段階で見つかる" ]
   }, {
     "title" : "static のない main",
     "level" : 3,
@@ -247,9 +247,9 @@
     "questionHtml" : "JDK 21(プレビュー機能なし)で、<code>javac App.java</code> は成功した。続けて <code>java App</code> を実行すると?",
     "choicesHtml" : [ "run と表示される", "何も表示されず正常終了", "コンパイルエラー", "実行時エラー" ],
     "answer" : 3,
-    "explanationHtml" : "<p>static のない main も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として認めるのは <code>public static void main(String[] args)</code> だけ。main はあっても static ではないので、起動時に「static ではありません」というエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは static のない main も入口として認められ、このコードは run と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。</p>\n",
-    "traceHtml" : [ "<code>javac</code>: 文法エラーは無いので <code>App.class</code> ができる", "<code>java App</code>: JVM が <code>public static void main(String[])</code> を探す", "2行目の main には static が無いので条件に合わない", "結果: 「main メソッドが static ではありません」という趣旨のエラーで停止" ],
-    "whyHtml" : [ "JDK 25 からの決まりで読んだ答え。問いは JDK 21 での動き", "入口が無いと黙って終わると読んだ答え。JVM は main が static でないとエラーを出して止まる", "main に static が無いのを文法の誤りと読んだ答え", "" ]
+    "explanationHtml" : "<p><code>static</code> のない <code>main</code> も「普通のメソッド」として文法的には正しいので、コンパイルは通ります。しかし JVM がスタート地点として認めるのは <code>public static void main(String[] args)</code> だけ。<code>main</code> はあっても <code>static</code> ではないので、起動時に「<code>static</code> ではありません」というエラーになります。「コンパイルは通るが動かない」例として、コンパイルエラーと実行時エラーの区別を体感できる問題です。なお JDK 25 からは <code>static</code> のない <code>main</code> も入口として認められ、このコードは <code>run</code> と表示します(レッスン本文の「JDK 25 で正式機能」)。現場の既存コードは従来の形なので、まずは JDK 21 までの決まりで読めるようにしておきましょう。</p>\n",
+    "traceHtml" : [ "<code>javac</code>: 文法エラーは無いので <code>App.class</code> ができる", "<code>java App</code>: JVM が <code>public static void main(String[])</code> を探す", "2行目の <code>main</code> には <code>static</code> が無いので条件に合わない", "結果: 「<code>main</code> メソッドが <code>static</code> ではありません」という趣旨のエラーで停止" ],
+    "whyHtml" : [ "JDK 25 からの決まりで読んだ答え。問いは JDK 21 での動き", "入口が無いと黙って終わると読んだ答え。JVM は <code>main</code> が <code>static</code> でないとエラーを出して止まる", "<code>main</code> に <code>static</code> が無いのを文法の誤りと読んだ答え", "" ]
   } ],
   "atWork" : [ {
     "title" : "Java とプログラムの全体像",

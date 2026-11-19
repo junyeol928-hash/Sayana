@@ -164,7 +164,7 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "-1", "60", "3", "例外が発生する" ],
     "answer" : 1,
-    "explanationHtml" : "<p>引数なしの <code>read()</code> は1バイトずつ、0〜255の範囲の int として返します。読めるものが無くなると -1 を返しループが終わります。<code>10 + 20 + 30 = 60</code> が合計です。</p>\n",
+    "explanationHtml" : "<p>引数なしの <code>read()</code> は1バイトずつ、0〜255の範囲の <code>int</code> として返します。読めるものが無くなると -1 を返しループが終わります。<code>10 + 20 + 30 = 60</code> が合計です。</p>\n",
     "traceHtml" : [ "1〜2行目: <code>byte[]</code> の <code>{10, 20, 30}</code> を読み込み元にする", "5行目: 1回目 <code>b = 10</code>、2回目 <code>b = 20</code>、3回目 <code>b = 30</code>(いずれも -1 ではないのでループ継続)", "4回目の <code>read()</code>: 読めるデータが無いので -1 が返り、ループ終了", "8行目: <code>total</code>(<code>10 + 20 + 30 = 60</code>)を表示" ],
     "whyHtml" : [ "最後に読んだ -1 が出ると読んだ答え。-1 は終わりの合図でループを抜け、合計の 60 が出る", "", "読んだ回数を数えると読んだ答え。<code>total</code> に足しているのは読んだ値で、<code>10 + 20 + 30 = 60</code>", "読み終わりで例外と読んだ答え。読むものが無くなると <code>read()</code> は -1 を返すだけ" ]
   }, {
@@ -175,7 +175,7 @@
     "choicesHtml" : [ "常に <code>true</code> になるので、このままで問題ない", "既定が UTF-8 以外だと文字化けし、<code>false</code> になりうる", "<code>getBytes()</code> は引数が要るので、コンパイルエラーになる", "文字コードを指定していないので、常に <code>false</code> になる" ],
     "answer" : 1,
     "explanationHtml" : "<p>2行目の <code>getBytes()</code> は引数なしなので既定の文字コードでエンコードされます。Java 18 以降の既定は OS に関係なく UTF-8 なのでふつうは <code>true</code> ですが、Java 17 以前や <code>-Dfile.encoding=COMPAT</code> で動かしている環境では、日本語 Windows なら MS932 になります。すると3行目の「UTF-8 で書かれているはず」という前提が崩れて文字化けし、<code>false</code> になります。エンコードとデコードで文字コードを揃えて明示するのが正解です。</p>\n",
-    "traceHtml" : [ "1行目: text は <code>&quot;日本語&quot;</code>(文字の並び)", "2行目: <code>getBytes()</code> が既定の文字コードで <code>byte[]</code> に変換。Java 18 以降は UTF-8 だが、古い JDK や COMPAT 指定の環境では OS の文字コードになる", "3行目: 常に UTF-8 だとみなして <code>byte[]</code> から文字列に戻す", "2行目と3行目で使った文字コードが食い違うと、<code>restored</code> の中身が壊れる(文字化け)", "4行目: 環境によっては <code>false</code> になる" ],
+    "traceHtml" : [ "1行目: <code>text</code> は <code>&quot;日本語&quot;</code>(文字の並び)", "2行目: <code>getBytes()</code> が既定の文字コードで <code>byte[]</code> に変換。Java 18 以降は UTF-8 だが、古い JDK や COMPAT 指定の環境では OS の文字コードになる", "3行目: 常に UTF-8 だとみなして <code>byte[]</code> から文字列に戻す", "2行目と3行目で使った文字コードが食い違うと、<code>restored</code> の中身が壊れる(文字化け)", "4行目: 環境によっては <code>false</code> になる" ],
     "whyHtml" : [ "既定の文字コードはいつも UTF-8 と読んだ答え。古い Java や設定しだいで変わる", "", "<code>getBytes()</code> には引数が要ると読んだ答え。引数なしの版もある", "文字コードを指定しないと必ず化けると読んだ答え。既定が UTF-8 の環境では <code>true</code> になる" ]
   }, {
     "title" : "try-with-resources の close 順",
@@ -184,9 +184,9 @@
     "questionHtml" : "出力は?",
     "choicesHtml" : [ "[本体]ABC", "[本体]CBA", "ABC[本体]", "CBA[本体]" ],
     "answer" : 1,
-    "explanationHtml" : "<p>try ブロックの本体が先に実行され [本体] が出ます。その後、close は宣言と逆順(c → b → a)で呼ばれるので、続けて C, B, A の順に表示されます。</p>\n",
-    "traceHtml" : [ "7〜8行目: try の本体を実行 → [本体] を表示", "ブロックを抜けるので close が呼ばれる。順番は宣言と逆(c, b, a)", "<code>c.close()</code> → <code>C</code> を表示", "<code>b.close()</code> → <code>B</code> を表示", "<code>a.close()</code> → <code>A</code> を表示", "結果: <code>[本体]CBA</code>" ],
-    "whyHtml" : [ "宣言した順に閉じると読んだ答え。close は逆順で、C、B、A の順に呼ばれる", "", "本体の前に宣言順で閉じると読んだ答え。本体が先に動き、抜けるときに逆順で閉じる", "本体の前に閉じると読んだ答え。本体が先に動き、ブロックを抜けるときに閉じる" ]
+    "explanationHtml" : "<p><code>try</code> ブロックの本体が先に実行され <code>[本体]</code> が出ます。その後、<code>close</code> は宣言と逆順(<code>c</code> → <code>b</code> → <code>a</code>)で呼ばれるので、続けて <code>C</code>, <code>B</code>, <code>A</code> の順に表示されます。</p>\n",
+    "traceHtml" : [ "7〜8行目: <code>try</code> の本体を実行 → <code>[本体]</code> を表示", "ブロックを抜けるので <code>close</code> が呼ばれる。順番は宣言と逆(<code>c</code>, <code>b</code>, <code>a</code>)", "<code>c.close()</code> → <code>C</code> を表示", "<code>b.close()</code> → <code>B</code> を表示", "<code>a.close()</code> → <code>A</code> を表示", "結果: <code>[本体]CBA</code>" ],
+    "whyHtml" : [ "宣言した順に閉じると読んだ答え。<code>close</code> は逆順で、<code>C</code>、<code>B</code>、<code>A</code> の順に呼ばれる", "", "本体の前に宣言順で閉じると読んだ答え。本体が先に動き、抜けるときに逆順で閉じる", "本体の前に閉じると読んだ答え。本体が先に動き、ブロックを抜けるときに閉じる" ]
   }, {
     "title" : "Files.readAllLines の戻り型",
     "level" : 1,
@@ -204,7 +204,7 @@
     "questionHtml" : "このコードの問題点は?",
     "choicesHtml" : [ "コンパイルエラーになる", "filter の結果が正しく計算されない", "開いたファイルが閉じられないまま残る", "必ず例外が発生して呼び出し元に伝わる" ],
     "answer" : 2,
-    "explanationHtml" : "<p><code>Files.lines(path)</code> は裏でファイルを開いたままの <code>Stream</code> を返します。この <code>Stream</code> は <code>collect()</code> で終端操作されるだけで <code>close()</code> されないため、ファイルハンドルが開きっぱなし(リソースリーク)になります。<code>try (Stream&lt;String&gt; lines = Files.lines(path)) { ... }</code> のように try-with-resources で囲む必要があります。文法上は正しいのでコンパイルは通り、実行結果(中身)自体は正しく計算されるのが厄介な点です。</p>\n",
+    "explanationHtml" : "<p><code>Files.lines(path)</code> は裏でファイルを開いたままの <code>Stream</code> を返します。この <code>Stream</code> は <code>collect()</code> で終端操作されるだけで <code>close()</code> されないため、ファイルハンドルが開きっぱなし(リソースリーク)になります。<code>try (Stream&lt;String&gt; lines = Files.lines(path)) { ... }</code> のように <code>try-with-resources</code> で囲む必要があります。文法上は正しいのでコンパイルは通り、実行結果(中身)自体は正しく計算されるのが厄介な点です。</p>\n",
     "traceHtml" : [ "2行目: <code>Files.lines</code> がファイルを開いたまま <code>Stream</code> を返す。<code>close</code> は呼ばれていない", "3行目: <code>filter</code> と <code>collect</code> で結果自体は正しく作られる", "しかしメソッドを抜けてもファイルは開いたまま(このメソッドを何度も呼ぶと開いているファイル数が増え続ける)", "対策: <code>try (Stream&lt;String&gt; lines = Files.lines(path)) { return lines.filter(...).collect(...); }</code>" ],
     "whyHtml" : [ "閉じ忘れがコンパイルで見つかると読んだ答え。コンパイラは気づかない", "閉じないと結果が狂うと読んだ答え。狂うのは結果ではない", "", "閉じ忘れで例外が出ると読んだ答え。例外は出ず、黙ってファイルを開いたままにする" ]
   } ],

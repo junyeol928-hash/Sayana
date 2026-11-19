@@ -38,7 +38,7 @@
   "term" : "main メソッド",
   "read" : "メイン",
   "en" : "main method",
-  "defHtml" : "プログラムのスタート地点。public static void main(String[] args) の形で書く。",
+  "defHtml" : "プログラムのスタート地点。<code>public static void main(String[] args)</code> の形で書く。",
   "lesson" : "java-hello"
 }, {
   "term" : "コメント",
@@ -80,7 +80,7 @@
   "term" : "型",
   "read" : "かた",
   "en" : "type",
-  "defHtml" : "変数に入れられる値の種類。int(整数)、String(文字列)など。",
+  "defHtml" : "変数に入れられる値の種類。<code>int</code>(整数)、<code>String</code>(文字列)など。",
   "lesson" : "java-variables"
 }, {
   "term" : "宣言",
@@ -110,7 +110,7 @@
   "term" : "参照型",
   "read" : "さんしょうがた",
   "en" : "reference type",
-  "defHtml" : "箱には値の置き場所(住所)が入る型。String、配列、自分で作ったクラスなど。",
+  "defHtml" : "箱には値の置き場所(住所)が入る型。<code>String</code>、配列、自分で作ったクラスなど。",
   "lesson" : "java-variables"
 }, {
   "term" : "キャスト",
@@ -140,7 +140,7 @@
   "term" : "ラッパークラス",
   "read" : null,
   "en" : "wrapper class",
-  "defHtml" : "基本データ型に対応する参照型。int→Integer、double→Double。変換メソッドを持つ。",
+  "defHtml" : "基本データ型に対応する参照型。<code>int</code>→<code>Integer</code>、<code>double</code>→<code>Double</code>。変換メソッドを持つ。",
   "lesson" : "java-variables"
 }, {
   "term" : "演算子",
@@ -224,7 +224,7 @@
   "term" : "要素",
   "read" : "ようそ",
   "en" : "element",
-  "defHtml" : "配列や List に入っている 1 つ 1 つの値。",
+  "defHtml" : "配列や <code>List</code> に入っている 1 つ 1 つの値。",
   "lesson" : "java-arrays"
 }, {
   "term" : "添え字",
@@ -236,7 +236,7 @@
   "term" : "length",
   "read" : "レングス",
   "en" : "length",
-  "defHtml" : "配列の要素数。<code>a.length</code> のように <code>()</code> を付けない。List は <code>size()</code>。",
+  "defHtml" : "配列の要素数。<code>a.length</code> のように <code>()</code> を付けない。<code>List</code> は <code>size()</code>。",
   "lesson" : "java-arrays"
 }, {
   "term" : "デフォルト値",
@@ -266,7 +266,7 @@
   "term" : "List",
   "read" : "リスト",
   "en" : "List",
-  "defHtml" : "「順番付きの集まり」として最低限できることを決めたインターフェース。ArrayList はその実物。変数の型は List で書く。",
+  "defHtml" : "「順番付きの集まり」として最低限できることを決めたインターフェース。<code>ArrayList</code> はその実物。変数の型は <code>List</code> で書く。",
   "lesson" : "java-arrays"
 }, {
   "term" : "ジェネリクス",
@@ -278,13 +278,13 @@
   "term" : "ラッパークラス",
   "read" : null,
   "en" : "wrapper class",
-  "defHtml" : "基本データ型に対応する参照型。int → Integer など。List には基本データ型を入れられないので使う。",
+  "defHtml" : "基本データ型に対応する参照型。<code>int</code> → <code>Integer</code> など。<code>List</code> には基本データ型を入れられないので使う。",
   "lesson" : null
 }, {
   "term" : "オートボクシング",
   "read" : null,
   "en" : "autoboxing",
-  "defHtml" : "int と Integer などを Java が自動で相互変換すること。Integer が <code>null</code> だと変換時に <code>NullPointerException</code>。",
+  "defHtml" : "<code>int</code> と <code>Integer</code> などを Java が自動で相互変換すること。<code>Integer</code> が <code>null</code> だと変換時に <code>NullPointerException</code>。",
   "lesson" : "java-variables"
 }, {
   "term" : "List.of",
@@ -338,7 +338,7 @@
   "term" : "equals",
   "read" : "イコールズ",
   "en" : "equals",
-  "defHtml" : "オブジェクトの中身が等しいかを比較するメソッド。String の比較では <code>==</code> の代わりに使う。",
+  "defHtml" : "オブジェクトの中身が等しいかを比較するメソッド。<code>String</code> の比較では <code>==</code> の代わりに使う。",
   "lesson" : "java-if"
 }, {
   "term" : "参照型の同一性",
@@ -404,13 +404,13 @@
   "term" : "拡張 for 文",
   "read" : "かくちょうフォーぶん",
   "en" : "enhanced for / for-each",
-  "defHtml" : "配列や List の要素を順番に取り出すだけの、簡潔なくり返し構文。",
+  "defHtml" : "配列や <code>List</code> の要素を順番に取り出すだけの、簡潔なくり返し構文。",
   "lesson" : "java-loops"
 }, {
   "term" : "ConcurrentModificationException",
   "read" : null,
   "en" : "ConcurrentModificationException",
-  "defHtml" : "拡張 for や Iterator でくり返し中のコレクションを直接変更すると発生する実行時例外。",
+  "defHtml" : "拡張 for や <code>Iterator</code> でくり返し中のコレクションを直接変更すると発生する実行時例外。",
   "lesson" : null
 }, {
   "term" : "メソッド",
@@ -470,7 +470,7 @@
   "term" : "static メソッド",
   "read" : "スタティックメソッド",
   "en" : "static method",
-  "defHtml" : "インスタンスを作らずに「クラス名.メソッド名()」で呼べるメソッド。Math.max など。",
+  "defHtml" : "インスタンスを作らずに「クラス名.メソッド名()」で呼べるメソッド。<code>Math.max</code> など。",
   "lesson" : "java-methods"
 }, {
   "term" : "クラス",
@@ -530,7 +530,7 @@
   "term" : "ユーティリティクラス",
   "read" : null,
   "en" : "utility class",
-  "defHtml" : "static メソッドだけを集めた道具箱クラス。Math や自作の XxxUtils。new しない。",
+  "defHtml" : "static メソッドだけを集めた道具箱クラス。<code>Math</code> や自作の <code>XxxUtils</code>。new しない。",
   "lesson" : "java-classes"
 }, {
   "term" : "スコープ",
@@ -542,7 +542,7 @@
   "term" : "標準クラス(API)",
   "read" : "ひょうじゅんクラス",
   "en" : "standard API",
-  "defHtml" : "Java が最初から用意しているクラス群。String、Math、List など。Javadoc で仕様を調べる。",
+  "defHtml" : "Java が最初から用意しているクラス群。<code>String</code>、<code>Math</code>、<code>List</code> など。Javadoc で仕様を調べる。",
   "lesson" : "java-classes"
 }, {
   "term" : "コンストラクタ",
@@ -812,7 +812,7 @@
   "term" : "実装クラス",
   "read" : "じっそうクラス",
   "en" : "implementation class",
-  "defHtml" : "インターフェースを implements したクラス。XxxServiceImpl の命名が多い。",
+  "defHtml" : "インターフェースを implements したクラス。<code>XxxServiceImpl</code> の命名が多い。",
   "lesson" : "java-abstract-interface"
 }, {
   "term" : "ネストしたクラス",
@@ -824,7 +824,7 @@
   "term" : "static ネストクラス",
   "read" : null,
   "en" : "static nested class",
-  "defHtml" : "static を付けて外側のクラスの直下に書くクラス。外側のインスタンスがなくても Outer.Inner の形でそのまま new できる。",
+  "defHtml" : "static を付けて外側のクラスの直下に書くクラス。外側のインスタンスがなくても <code>Outer.Inner</code> の形でそのまま new できる。",
   "lesson" : "java-nested-classes"
 }, {
   "term" : "内部クラス",
@@ -908,7 +908,7 @@
   "term" : "java.lang",
   "read" : "ジャバ・ラング",
   "en" : "java.lang",
-  "defHtml" : "String や Math など言語の基本クラスが入るパッケージ。自動で import される。",
+  "defHtml" : "<code>String</code> や <code>Math</code> など言語の基本クラスが入るパッケージ。自動で import される。",
   "lesson" : "java-encapsulation"
 }, {
   "term" : "ワイルドカード import",
@@ -1016,19 +1016,19 @@
   "term" : "コレクション",
   "read" : null,
   "en" : "collection",
-  "defHtml" : "要素をあとから追加・削除できる入れ物の総称。java.util にある。List / Set / Map が代表。",
+  "defHtml" : "要素をあとから追加・削除できる入れ物の総称。java.util にある。<code>List</code> / <code>Set</code> / <code>Map</code> が代表。",
   "lesson" : "java-collections"
 }, {
   "term" : "List",
   "read" : "リスト",
   "en" : "List",
-  "defHtml" : "順序を保ち、添字で取り出せ、重複を許すコレクション。実装は ArrayList が標準。",
+  "defHtml" : "順序を保ち、添字で取り出せ、重複を許すコレクション。実装は <code>ArrayList</code> が標準。",
   "lesson" : "java-collections"
 }, {
   "term" : "Set",
   "read" : "セット",
   "en" : "Set",
-  "defHtml" : "重複を許さないコレクション。HashSet は順序なし、LinkedHashSet は挿入順、TreeSet は整列。",
+  "defHtml" : "重複を許さないコレクション。<code>HashSet</code> は順序なし、<code>LinkedHashSet</code> は挿入順、<code>TreeSet</code> は整列。",
   "lesson" : "java-collections"
 }, {
   "term" : "Map",
@@ -1040,7 +1040,7 @@
   "term" : "実装クラス",
   "read" : "じっそうクラス",
   "en" : "implementation class",
-  "defHtml" : "インターフェースの約束を実際に動くコードにしたクラス。ArrayList、HashMap など。new するときに書く。",
+  "defHtml" : "インターフェースの約束を実際に動くコードにしたクラス。<code>ArrayList</code>、<code>HashMap</code> など。new するときに書く。",
   "lesson" : "java-collections"
 }, {
   "term" : "ジェネリクスの型引数",
@@ -1052,13 +1052,13 @@
   "term" : "ラッパークラス",
   "read" : null,
   "en" : "wrapper class",
-  "defHtml" : "int → Integer のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。",
+  "defHtml" : "<code>int</code> → <code>Integer</code> のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。",
   "lesson" : "java-collections"
 }, {
   "term" : "オートボクシング",
   "read" : null,
   "en" : "autoboxing",
-  "defHtml" : "int と Integer を自動で相互変換する仕組み。<code>null</code> を int にしようとすると <code>NullPointerException</code>。",
+  "defHtml" : "<code>int</code> と <code>Integer</code> を自動で相互変換する仕組み。<code>null</code> を <code>int</code> にしようとすると <code>NullPointerException</code>。",
   "lesson" : "java-collections"
 }, {
   "term" : "Iterator",
@@ -1070,7 +1070,7 @@
   "term" : "Entry",
   "read" : "エントリ",
   "en" : "Map.Entry",
-  "defHtml" : "Map のキーと値のペア1組。<code>getKey()</code> と <code>getValue()</code> を持つ。<code>entrySet()</code> のループで使う。",
+  "defHtml" : "<code>Map</code> のキーと値のペア1組。<code>getKey()</code> と <code>getValue()</code> を持つ。<code>entrySet()</code> のループで使う。",
   "lesson" : "java-collections"
 }, {
   "term" : "不変コレクション",
@@ -1082,7 +1082,7 @@
   "term" : "ConcurrentModificationException",
   "read" : null,
   "en" : "ConcurrentModificationException",
-  "defHtml" : "ループ中にそのコレクションを add / remove したときに起きる例外。Iterator.remove や removeIf で回避。",
+  "defHtml" : "ループ中にそのコレクションを add / remove したときに起きる例外。<code>Iterator.remove</code> や <code>removeIf</code> で回避。",
   "lesson" : "java-collections"
 }, {
   "term" : "UML",
@@ -1220,7 +1220,7 @@
   "term" : "不変",
   "read" : "ふへん",
   "en" : "immutable",
-  "defHtml" : "作った後に中身を変更できない性質。String は不変で、操作のたびに新しい文字列が作られる。",
+  "defHtml" : "作った後に中身を変更できない性質。<code>String</code> は不変で、操作のたびに新しい文字列が作られる。",
   "lesson" : "java-strings"
 }, {
   "term" : "定数プール",
@@ -1238,13 +1238,13 @@
   "term" : "StringBuilder",
   "read" : "ストリングビルダー",
   "en" : "StringBuilder",
-  "defHtml" : "変更できる文字列の箱。append で追記し、最後に toString で String にする。ループでの連結に使う。",
+  "defHtml" : "変更できる文字列の箱。<code>append</code> で追記し、最後に <code>toString</code> で <code>String</code> にする。ループでの連結に使う。",
   "lesson" : "java-strings"
 }, {
   "term" : "書式文字列",
   "read" : "しょしきもじれつ",
   "en" : "format string",
-  "defHtml" : "%s や %d などの穴に値を埋め込むテンプレート。String.format や formatted で使う。",
+  "defHtml" : "%s や %d などの穴に値を埋め込むテンプレート。<code>String.format</code> や <code>formatted</code> で使う。",
   "lesson" : "java-strings"
 }, {
   "term" : "テキストブロック",
@@ -1280,7 +1280,7 @@
   "term" : "正規表現",
   "read" : "せいきひょうげん",
   "en" : "regular expression",
-  "defHtml" : "文字列のパターンを表す記法。matches や Pattern で入力チェックに使う。",
+  "defHtml" : "文字列のパターンを表す記法。<code>matches</code> や <code>Pattern</code> で入力チェックに使う。",
   "lesson" : "java-strings"
 }, {
   "term" : "NumberFormatException",
@@ -1340,7 +1340,7 @@
   "term" : "ダイヤモンド演算子",
   "read" : null,
   "en" : "diamond operator",
-  "defHtml" : "new ArrayList&lt;&gt;() の空の &lt;&gt;。左辺の型から中身の型を推論してくれる。",
+  "defHtml" : "<code>new ArrayList&lt;&gt;()</code> の空の <code>&lt;&gt;</code>。左辺の型から中身の型を推論してくれる。",
   "lesson" : "java-generics"
 }, {
   "term" : "型推論",
@@ -1352,7 +1352,7 @@
   "term" : "Class<T>",
   "read" : "クラス",
   "en" : "Class object",
-  "defHtml" : "型そのものを表すオブジェクト。UserDto.class のように書き、型消去で失われた型情報を実行時に渡すために使う。",
+  "defHtml" : "型そのものを表すオブジェクト。<code>UserDto.class</code> のように書き、型消去で失われた型情報を実行時に渡すために使う。",
   "lesson" : "java-generics"
 }, {
   "term" : "ラムダ式",
@@ -1406,7 +1406,7 @@
   "term" : "Comparator",
   "read" : "コンパレータ",
   "en" : "Comparator<T>",
-  "defHtml" : "2つの T を比べて順序(負・0・正)を返すインターフェース。Comparator.comparing で組み立てる。",
+  "defHtml" : "2つの T を比べて順序(負・0・正)を返すインターフェース。<code>Comparator.comparing</code> で組み立てる。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "キャプチャ",
@@ -1436,19 +1436,19 @@
   "term" : "パイプライン",
   "read" : null,
   "en" : "pipeline",
-  "defHtml" : "生成 → 中間操作 → 終端操作 とつながった Stream の一連の処理。",
+  "defHtml" : "生成 → 中間操作 → 終端操作 とつながった <code>Stream</code> の一連の処理。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "中間操作",
   "read" : "ちゅうかんそうさ",
   "en" : "intermediate operation",
-  "defHtml" : "Stream を受け取って Stream を返す操作。filter、map、sorted など。何段でもつなげられる。",
+  "defHtml" : "<code>Stream</code> を受け取って <code>Stream</code> を返す操作。filter、map、sorted など。何段でもつなげられる。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "終端操作",
   "read" : "しゅうたんそうさ",
   "en" : "terminal operation",
-  "defHtml" : "Stream を結果(List、数値、boolean など)に変える最後の操作。これを呼ぶまで Stream は動かない。",
+  "defHtml" : "<code>Stream</code> を結果(<code>List</code>、数値、<code>boolean</code> など)に変える最後の操作。これを呼ぶまで <code>Stream</code> は動かない。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "遅延評価",
@@ -1466,13 +1466,13 @@
   "term" : "map",
   "read" : "マップ",
   "en" : "map",
-  "defHtml" : "各要素を別の値に置き換える中間操作。型が変わることが多い(User → String など)。",
+  "defHtml" : "各要素を別の値に置き換える中間操作。型が変わることが多い(<code>User</code> → <code>String</code> など)。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "flatMap",
   "read" : "フラットマップ",
   "en" : "flatMap",
-  "defHtml" : "各要素を Stream に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。",
+  "defHtml" : "各要素を <code>Stream</code> に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "Collectors",
@@ -1484,13 +1484,13 @@
   "term" : "groupingBy",
   "read" : "グルーピングバイ",
   "en" : "groupingBy",
-  "defHtml" : "キー関数の結果ごとに要素をグループ分けする Collector。結果は <code>Map&lt;K, List&lt;T&gt;&gt;</code>。SQL の GROUP BY に相当。",
+  "defHtml" : "キー関数の結果ごとに要素をグループ分けする <code>Collector</code>。結果は <code>Map&lt;K, List&lt;T&gt;&gt;</code>。SQL の GROUP BY に相当。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "副作用",
   "read" : "ふくさよう",
   "en" : "side effect",
-  "defHtml" : "処理の中で外側の変数や状態を書き換えること。Stream の forEach の中で行うと読みにくく、バグの元になる。",
+  "defHtml" : "処理の中で外側の変数や状態を書き換えること。<code>Stream</code> の <code>forEach</code> の中で行うと読みにくく、バグの元になる。",
   "lesson" : "java-lambda-stream"
 }, {
   "term" : "reduce",
@@ -1514,25 +1514,25 @@
   "term" : "orElseThrow",
   "read" : "オアエルスロー",
   "en" : "orElseThrow",
-  "defHtml" : "中身があればそれを返し、無ければ指定した例外(省略時は <code>NoSuchElementException</code>)を投げる Optional のメソッド。",
+  "defHtml" : "中身があればそれを返し、無ければ指定した例外(省略時は <code>NoSuchElementException</code>)を投げる <code>Optional</code> のメソッド。",
   "lesson" : "java-optional"
 }, {
   "term" : "orElseGet",
   "read" : "オアエルスゲット",
   "en" : "orElseGet",
-  "defHtml" : "中身が無いときだけラムダを実行して既定値を作る Optional のメソッド。orElse と違い無駄な計算をしない。",
+  "defHtml" : "中身が無いときだけラムダを実行して既定値を作る <code>Optional</code> のメソッド。orElse と違い無駄な計算をしない。",
   "lesson" : "java-optional"
 }, {
   "term" : "ifPresentOrElse",
   "read" : null,
   "en" : "ifPresentOrElse",
-  "defHtml" : "中身がある場合とない場合、それぞれの処理を1つの式で書ける Optional のメソッド(Java 9 以降)。",
+  "defHtml" : "中身がある場合とない場合、それぞれの処理を1つの式で書ける <code>Optional</code> のメソッド(Java 9 以降)。",
   "lesson" : "java-optional"
 }, {
   "term" : "flatMap(Optional)",
   "read" : "フラットマップ",
   "en" : "flatMap",
-  "defHtml" : "渡した関数が Optional を返すとき、二重になった Optional を1段ほどいて平らにする Optional のメソッド。",
+  "defHtml" : "渡した関数が <code>Optional</code> を返すとき、二重になった <code>Optional</code> を1段ほどいて平らにする <code>Optional</code> のメソッド。",
   "lesson" : "java-optional"
 }, {
   "term" : "Objects.requireNonNull",
@@ -1628,7 +1628,7 @@
   "term" : "java.time",
   "read" : null,
   "en" : "java.time",
-  "defHtml" : "Java 8 で導入された日付時刻 API。LocalDate、Instant などすべて不変でスレッドセーフ。",
+  "defHtml" : "Java 8 で導入された日付時刻 API。<code>LocalDate</code>、<code>Instant</code> などすべて不変でスレッドセーフ。",
   "lesson" : "java-datetime"
 }, {
   "term" : "LocalDateTime",
@@ -1700,37 +1700,37 @@
   "term" : "ストリーム",
   "read" : null,
   "en" : "stream",
-  "defHtml" : "データが順番に流れる通り道。java.util.stream の Stream とは別物。",
+  "defHtml" : "データが順番に流れる通り道。<code>java.util.stream</code> の <code>Stream</code> とは別物。",
   "lesson" : "java-file-io"
 }, {
   "term" : "バイトストリーム",
   "read" : null,
   "en" : "byte stream",
-  "defHtml" : "byte(8ビットの数)を単位に流れる InputStream / OutputStream 系のストリーム。",
+  "defHtml" : "byte(8ビットの数)を単位に流れる <code>InputStream</code> / <code>OutputStream</code> 系のストリーム。",
   "lesson" : "java-file-io"
 }, {
   "term" : "文字ストリーム",
   "read" : null,
   "en" : "character stream",
-  "defHtml" : "文字(char)を単位に流れる Reader / Writer 系のストリーム。",
+  "defHtml" : "文字(char)を単位に流れる <code>Reader</code> / <code>Writer</code> 系のストリーム。",
   "lesson" : "java-file-io"
 }, {
   "term" : "デコレータ",
   "read" : null,
   "en" : "decorator",
-  "defHtml" : "既存のオブジェクトを別のオブジェクトで包んで機能を足していく作り方。BufferedReader が InputStreamReader を包む形など。",
+  "defHtml" : "既存のオブジェクトを別のオブジェクトで包んで機能を足していく作り方。<code>BufferedReader</code> が <code>InputStreamReader</code> を包む形など。",
   "lesson" : "java-file-io"
 }, {
   "term" : "Path",
   "read" : "パス",
   "en" : "path",
-  "defHtml" : "ファイルやディレクトリの場所を表す java.nio.file のオブジェクト。Path.of で作る。",
+  "defHtml" : "ファイルやディレクトリの場所を表す java.nio.file のオブジェクト。<code>Path.of</code> で作る。",
   "lesson" : "java-file-io"
 }, {
   "term" : "Files",
   "read" : null,
   "en" : "Files",
-  "defHtml" : "Path を使ってファイルを読み書きするための静的メソッド集(<code>java.nio.file.Files</code>)。",
+  "defHtml" : "<code>Path</code> を使ってファイルを読み書きするための静的メソッド集(<code>java.nio.file.Files</code>)。",
   "lesson" : "java-file-io"
 }, {
   "term" : "EOF",
@@ -1754,13 +1754,13 @@
   "term" : "直列化",
   "read" : "ちょくれつか",
   "en" : "serialization",
-  "defHtml" : "オブジェクトを byte 列に変換して保存・送信できる形にすること。ObjectOutputStream で行う古い仕組み。",
+  "defHtml" : "オブジェクトを byte 列に変換して保存・送信できる形にすること。<code>ObjectOutputStream</code> で行う古い仕組み。",
   "lesson" : "java-file-io"
 }, {
   "term" : "バッファリング",
   "read" : null,
   "en" : "buffering",
-  "defHtml" : "小さい読み書きをまとめて処理することで速度を上げる仕組み。BufferedReader などが行う。",
+  "defHtml" : "小さい読み書きをまとめて処理することで速度を上げる仕組み。<code>BufferedReader</code> などが行う。",
   "lesson" : "java-file-io"
 }, {
   "term" : "アノテーション",
@@ -1934,7 +1934,7 @@
   "term" : "ExecutorService",
   "read" : "エグゼキューターサービス",
   "en" : "ExecutorService",
-  "defHtml" : "スレッドを使い回す作業員プール。<code>submit()</code> で処理を投げ、Future で結果を受け取る。",
+  "defHtml" : "スレッドを使い回す作業員プール。<code>submit()</code> で処理を投げ、<code>Future</code> で結果を受け取る。",
   "lesson" : "java-concurrency"
 }, {
   "term" : "Future",
@@ -1946,13 +1946,13 @@
   "term" : "CompletableFuture",
   "read" : "コンプリータブルフューチャー",
   "en" : "CompletableFuture",
-  "defHtml" : "非同期処理をthenApply/thenComposeなどでつなげて書ける、より柔軟なFuture。",
+  "defHtml" : "非同期処理をthenApply/thenComposeなどでつなげて書ける、より柔軟な <code>Future</code>。",
   "lesson" : "java-concurrency"
 }, {
   "term" : "ThreadLocal",
   "read" : "スレッドローカル",
   "en" : "ThreadLocal",
-  "defHtml" : "スレッドごとに別々の値を持てる仕組み。MDCやSecurityContextの実装に使われる。",
+  "defHtml" : "スレッドごとに別々の値を持てる仕組み。<code>MDC</code> や <code>SecurityContext</code> の実装に使われる。",
   "lesson" : "java-concurrency"
 }, {
   "term" : "デッドロック",
@@ -2156,7 +2156,7 @@
   "term" : "DTO",
   "read" : "ディーティーオー",
   "en" : "Data Transfer Object",
-  "defHtml" : "データを運ぶためだけのクラス。JSON の形に対応する。XxxRequest / XxxResponse。",
+  "defHtml" : "データを運ぶためだけのクラス。JSON の形に対応する。<code>XxxRequest</code> / <code>XxxResponse</code>。",
   "lesson" : "spring-controller"
 }, {
   "term" : "Jackson",
@@ -2204,7 +2204,7 @@
   "term" : "SecurityContextHolder",
   "read" : null,
   "en" : null,
-  "defHtml" : "今のリクエストの認証情報(SecurityContext)を保管している入れ物。",
+  "defHtml" : "今のリクエストの認証情報(<code>SecurityContext</code>)を保管している入れ物。",
   "lesson" : "spring-security"
 }, {
   "term" : "Authentication",
@@ -2228,7 +2228,7 @@
   "term" : "PasswordEncoder",
   "read" : null,
   "en" : null,
-  "defHtml" : "パスワードをハッシュ化・照合するための部品。実務ではほぼ BCryptPasswordEncoder を使う。",
+  "defHtml" : "パスワードをハッシュ化・照合するための部品。実務ではほぼ <code>BCryptPasswordEncoder</code> を使う。",
   "lesson" : "spring-security"
 }, {
   "term" : "@PreAuthorize",
@@ -2240,7 +2240,7 @@
   "term" : "OncePerRequestFilter",
   "read" : null,
   "en" : null,
-  "defHtml" : "1リクエストにつき1回だけ実行される Filter の親クラス。自作フィルタでよく使う。",
+  "defHtml" : "1リクエストにつき1回だけ実行される <code>Filter</code> の親クラス。自作フィルタでよく使う。",
   "lesson" : "spring-security"
 }, {
   "term" : "AuthenticationEntryPoint / AccessDeniedHandler",
@@ -2294,7 +2294,7 @@
   "term" : "RowMapper",
   "read" : "ロウマッパー",
   "en" : null,
-  "defHtml" : "SQL の実行結果(1行)を Java のオブジェクトに変換する処理。JdbcTemplate で使う。",
+  "defHtml" : "SQL の実行結果(1行)を Java のオブジェクトに変換する処理。<code>JdbcTemplate</code> で使う。",
   "lesson" : "java-nested-classes"
 }, {
   "term" : "トランザクション",
@@ -2372,7 +2372,7 @@
   "term" : "@Slf4j",
   "read" : null,
   "en" : null,
-  "defHtml" : "SLF4J の Logger を持つ log フィールドを生成する。",
+  "defHtml" : "SLF4J の <code>Logger</code> を持つ <code>log</code> フィールドを生成する。",
   "lesson" : "java-encapsulation"
 }, {
   "term" : "@SneakyThrows",

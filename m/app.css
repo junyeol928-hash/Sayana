@@ -532,6 +532,10 @@ a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: 
   .lesson-axis small { display: none; }
   .lesson-hero .breadcrumb .visually-hidden { position: static !important; width: auto; height: auto; margin: 0; clip: auto; clip-path: none; overflow: visible; white-space: normal; }
 }
+/* スマホでも、軸に章が入りきらないときは章を外して現在地の行に出す(fitAxis)。部も入らなければ字間を詰める */
+.lesson-axis.part-only small { display: none; }
+.lesson-hero:has(.part-only) .breadcrumb .visually-hidden { position: static !important; width: auto; height: auto; margin: 0; clip: auto; clip-path: none; overflow: visible; white-space: normal; }
+.lesson-axis.tight, .lesson-axis.tight small { letter-spacing: .1em; }
 .lesson-hero-body { min-width: 0; }
 .lesson-hero h1 { font-weight: 900; line-height: 1.12; letter-spacing: -.02em; margin: 4px 0 14px; }
 .lesson-hero h1.size-xl { font-size: 3.25rem; }
@@ -1154,6 +1158,7 @@ p.review-source { display: block; min-height: 0; border: 0; }
 .review-next-side { display: none; }
 /* 読解のカードの答え合わせ: 復習の帯と同じ形(幅いっぱい・52px、選ぶまでは押せない)。カードが多いので留めない */
 .reading-q .arm-submit { display: flex; width: 100%; min-height: 52px; margin-top: 10px; }
+.review-quiz form .arm-submit { display: flex; width: 100%; min-height: 48px; margin-top: 12px; } /* PC の復習も同じ箱(「次の復習へ」と同じ幅) */
 .reading-q .reading-last { display: block; margin-top: 6px; }
 /* 10 問の区切り: いまの 10 問を運針で並べる(正解は藍の糸、間違えた問は針穴に朱の ×。色だけでなく形でも分かる) */
 .review-break { margin: 12px 0 24px; }
