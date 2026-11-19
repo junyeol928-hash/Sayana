@@ -820,10 +820,10 @@ body:has(.kana-wrap) .site-header::after { display: none; }
    (格子だと説明の長い語に行の高さが引っ張られて短い語の下が空き、段組みだと読む順が画面の上下を往復する) */
 #terms.term-list { display: block; }
 @media (min-width: 1024px) {
-  #terms .term { display: grid; grid-template-columns: 280px minmax(0, 46em); gap: 0 40px; align-items: start; }
-  #terms .term > .term-name { grid-column: 1; grid-row: 1 / span 4; flex-direction: column; align-items: flex-start; gap: 2px; }
-  #terms .term > :not(.term-name) { grid-column: 2; }
-  #terms .term > .term-from-line:first-child + *, #terms .term > .term-name + .term-from-line { margin-top: 0; }
+  #terms.term-list .term { display: grid; grid-template-columns: 280px minmax(0, 46em); gap: 0 40px; align-items: start; }
+  #terms.term-list .term > .term-name { grid-column: 1; grid-row: 1 / span 4; flex-direction: column; align-items: flex-start; gap: 2px; }
+  #terms.term-list .term > :not(.term-name) { grid-column: 2; }
+  #terms.term-list .term > .term-from-line:first-child + *, #terms.term-list .term > .term-name + .term-from-line { margin-top: 0; }
 }
 .term-group h2 { margin: 0; font-size: 1rem; color: var(--accent-ink); display: flex; align-items: center; gap: 10px; }
 .term-group h2::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
