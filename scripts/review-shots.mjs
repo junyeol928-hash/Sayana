@@ -378,8 +378,9 @@ for (const id of ids) {
   addCount(cm1280, await js(cmCount));
   // 冒頭の要約の最後の行が 2 字以下(40px 以下)か(28 回目: 「…落とし穴ま / で。」が 3 / 55)
   if (await js(`const s = document.querySelector(".lesson-hero .summary"); if (!s) return false; const r = document.createRange(); r.selectNodeContents(s);
-    const rows = {}; for (const q of r.getClientRects()) { const k = Math.round(q.top); rows[k] = (rows[k] || 0) + q.width; }
-    const ws = Object.entries(rows).sort((a, b) => a[0] - b[0]).map((e) => e[1]); return ws.length > 1 && ws[ws.length - 1] <= 40;`)) summaryOrphan.push(id);
+    // コードのチップの矩形は上端が数 px ずれるので、上端の差が 8px 以内なら同じ行にまとめる
+    const rows = []; for (const q of [...r.getClientRects()].sort((a, b) => a.top - b.top)) { const row = rows.find((w) => Math.abs(w.top - q.top) < 8); if (row) row.w += q.width; else rows.push({ top: q.top, w: q.width }); }
+    return rows.length > 1 && rows[rows.length - 1].w <= 40;`)) summaryOrphan.push(id);
 }
 console.log("1280px で冒頭の要約の最後の行が 2 字以下:", summaryOrphan.length, "/", ids.length, summaryOrphan.join(" "));
 console.log("1280px の本文の軸の不具合:", railBad.length, "/", ids.length, railBad.join(" "));
