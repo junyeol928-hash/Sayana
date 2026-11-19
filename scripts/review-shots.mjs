@@ -115,6 +115,39 @@ console.log("2 列目へ折れる軸:", folded, "/", ids.length);
 await open(mobileArg + "#/lesson/java-hello");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-lesson-axis-short");
+// ホームの大きな題が札からはみ出さないか(27 回目: 「ポリモーフィズム」「トランザクション」が 56px のまま外へ出て、ホームの幅も広がった)。
+// 55 本をそれぞれ前回の続きにして数え、いちばん長いカタカナ 1 語の java-polymorphism を撮る
+let titleOver = 0;
+for (const id of ids) {
+  const S = seed(); S.last = { id, section: "read", off: 0 };
+  await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(S))});`);
+  await send("Page.navigate", { url: mobileArg + "#/?" + id });
+  await sleep(700);
+  if (await js(`const h = document.querySelector(".today-title"); return !h || [...h.querySelectorAll(".phrase")].some((p) => p.scrollWidth > p.clientWidth + 1 && !p.classList.contains("phrase-break")) || document.documentElement.scrollWidth > innerWidth + 1;`)) titleOver++;
+}
+console.log("ホームの題が札からはみ出す:", titleOver, "/", ids.length);
+{
+  const S = seed(); S.last = { id: "java-polymorphism", section: "read", off: 0 };
+  await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(S))});`);
+  await open(mobileArg + "#/");
+  await js(`window.scrollTo(0, 0);`);
+  await shot("m-home-long-title");
+  await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(seed()))});`);
+}
+// 手描きの SVG の図(27 回目: 34 のうち 33 が右の 3 割を手がかりなく切られていた)。はみ出す図のうち、フェードと「図の全体を見る」の無い数
+let figBare = 0, figOver = 0;
+for (const id of ids) {
+  await send("Page.navigate", { url: mobileArg + "#/lesson/" + id });
+  await sleep(700);
+  const r = await js(`const of = [...document.querySelectorAll(".fig-scroll")].filter((f) => f.scrollWidth > f.clientWidth + 1);
+    return [of.length, of.filter((f) => !(f.classList.contains("has-more") && f.nextElementSibling?.classList.contains("fig-fit") && getComputedStyle(f.nextElementSibling).display !== "none")).length];`);
+  figOver += r[0]; figBare += r[1];
+}
+console.log("390px ではみ出す手描きの図:", figOver, "/ うち手がかりの無いもの:", figBare);
+await open(mobileArg + "#/lesson/java-jvm-memory");
+await scrollTo(".fig-scroll", 140);
+await shot("m-figure-svg");
+await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(seed()))});`);
 await open(mobileArg + "#/lesson/spring-di");
 await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 500)); document.querySelector(".step-menu").open = true;`);
 await shot("m-lesson-top");
@@ -237,11 +270,14 @@ await js(`for (let k = 0; k < 6; k++) {
     const inputs = [...f.querySelectorAll("input[type=radio]")];
     (inputs.find((x) => (k === 0) === (Number(x.value) === answer)) || inputs[0]).click();
     f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 700));
+    // 答えたあとの「次へ」の言葉(27 回目: 最後から 2 問目で「おわりの画面へ」と出ていた)
+    (window.__labels = window.__labels || []).push((document.querySelector("#review-progress")?.textContent || "").replace(/\\s+/g, " ").trim() + " → " + (document.querySelector("#next")?.textContent || ""));
     if (k === 0) { window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300)); window.__first = true; }
     document.querySelector("#next")?.click(); await new Promise((r) => setTimeout(r, 1000));
   }
   window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300));`);
 await shot("m-review-retry-end");
+console.log("解き直しの「次へ」の言葉:", await js(`return (window.__labels || []).join(" / ");`));
 await open(mobileArg + "#/reading");
 await js(`window.scrollTo(0, 0);`);
 await shot("m-reading");

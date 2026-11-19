@@ -161,6 +161,29 @@ function fitFigures(nodes) {
   });
 }
 
+// 手描きの SVG の図(.figure)も、はみ出す分は横スクロールにし、続きがある側だけフェードと「図の全体を見る」を付ける
+// (Mermaid だけにしていたので、スマホで手描きの図 34 のうち 33 が右の 3 割を手がかりなく切られていた。27 回目の審査)。
+// 図だけを包みに入れ、説明文は包みの外に残す(横に送っても読めるように)。畳みの中の図は開いたときに測り直す(watchOverflow)
+function fitSvgFigures(root) {
+  root.querySelectorAll("figure.figure > svg").forEach((svg) => {
+    const wrap = document.createElement("div");
+    wrap.className = "fig-scroll";
+    svg.before(wrap);
+    wrap.append(svg);
+    watchOverflow(wrap);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "fig-fit";
+    btn.textContent = "図の全体を見る";
+    btn.addEventListener("click", () => {
+      const fit = wrap.classList.toggle("fit");
+      btn.textContent = fit ? "文字の大きさに戻す" : "図の全体を見る";
+      wrap.dispatchEvent(new Event("scroll"));
+    });
+    wrap.after(btn);
+  });
+}
+
 async function renderMermaid(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
   if (blocks.length === 0) return;
@@ -248,6 +271,8 @@ function highlight(root) {
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
   // 16 字までのチップは折らない(「javac App.java」が空白で 2 行に割れていた)
   root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 16) c.classList.add("nb"); });
+  // 8 字までの強調の語は語の途中で行をまたがせない(「ジャ / ンプ」「コンポー / ネントスキャン」と割れていた。27 回目の審査)
+  root.querySelectorAll(".md strong").forEach((b) => { if (b.textContent.trim().length <= 8) b.classList.add("nb"); });
   inlineNotes(root);
   // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
   // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
@@ -274,9 +299,14 @@ function highlight(root) {
   // ブロックにすると文が 3 つに割れた)。括弧の中の補足・直後が「。、」・表の中はチップのまま(「(」が行末に、「。」が行頭に残る)
   root.querySelectorAll("p > code:not(.code-msg), li > code:not(.code-msg)").forEach((c) => {
     if (!bodyMsg(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice, td, th, h1, h2, h3, .missed-list")) return;
-    if (/^[\u2060]?[、。，．]/.test(c.nextSibling?.textContent || "")) return;
+    const after = c.nextSibling?.textContent || "";
+    if (/^[\u2060]?[、。，．]/.test(after)) return;
+    // 後ろが「です。」「を読む。」だけで文が終わるもの、「・」の並びの中の 1 つもチップのまま
+    // (ブロックの下に述語だけの行が残り、並びの中の 1 つだけが行を占めた。27 回目の審査)
+    if (/^[\u2060]?\s*[^\s。、]{1,5}。/.test(after) || /^[\u2060]?\s*・/.test(after)) return;
     let before = "";
     for (let n = c.previousSibling; n; n = n.previousSibling) before = n.textContent + before;
+    if (/・\s*$/.test(before)) return;
     const open = (before.match(/[(（]/g) || []).length - (before.match(/[)）]/g) || []).length;
     // 組んだあとで、チップのままだと 2 行以上に割れるものだけブロックに(1 行に収まる短いものまでブロックにすると、
     // 前後の文が細切れになった。26 回目の審査)
@@ -299,6 +329,21 @@ function highlight(root) {
       next.data = "\u2060" + next.data;
     }
     if (next?.nodeType === 3 && /^[(（「『【]/.test(next.data)) c.after(document.createElement("wbr"));
+  });
+
+  // 本文の見出しでは、英字の名前・閉じ括弧・チップの直後の助詞(ひらがな)が行頭に来ないようにつなぐ
+  // (「SpringApplication.run / で何が起きるか」「「Javaを入れる」/ って」と、太い見出しの行が助詞で始まっていた。27 回目の審査)。
+  // 間の空白は改行しない空白に、空白が無ければ語をつなぐ印(U+2060)に
+  const joinParticle = (_, head, space) => head + (space ? "\u00a0" : "\u2060");
+  root.querySelectorAll(".md h2, .md h3").forEach((h) => {
+    const walker = document.createTreeWalker(h, NodeFilter.SHOW_TEXT);
+    const texts = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) if (!n.parentElement.closest("code")) texts.push(n);
+    for (const n of texts) {
+      const prev = n.previousSibling;
+      if (prev?.nodeName === "CODE") n.data = n.data.replace(/^[\u2060]?( ?)(?=[ぁ-ゖ])/, (_, space) => (space ? "\u00a0" : "\u2060"));
+      n.data = n.data.replace(/([A-Za-z0-9_.)\]」』）])( ?)(?=[ぁ-ゖ])/g, joinParticle);
+    }
   });
   // 選択肢の中身が 1 つのコードだけなら、チップの地を外してコードの書体だけに(地のある・無いの 2 通りが復習で続けて出た)
   root.querySelectorAll(".choice > span").forEach((sp) => {
@@ -400,6 +445,8 @@ const LAST_KEY = "javadojo-pc-last";
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 const RESUME_KEY = "javadojo-pc-resume";
 const SECTIONS_KEY = "javadojo-pc-sections";
+// 読解・用語集からレッスンをのぞき見したときの、押したリンクとその画面の上からの高さ(戻ったら一覧のその所へ)
+const PEEK_RETURN_KEY = "javadojo-pc-peek-return";
 function pcStore(key) {
   try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
 }
@@ -417,7 +464,7 @@ function stepStates(row) {
   const d = row.dataset;
   const id = d.lesson;
   const done = new Set((d.done || "").split(" ").filter(Boolean));
-  if ((pcStore(SECTIONS_KEY)[id] || []).includes("atwork")) done.add("atwork");
+  (pcStore(SECTIONS_KEY)[id] || []).forEach((k) => { if (k === "atwork" || k === "run") done.add(k); });
   const rec = readingRecord();
   const total = Number(d.reading || 0);
   if (total > 0 && Array.from({ length: total }, (_, i) => rec[`${id}@${i}`]?.ok).every(Boolean)) done.add("reading");
@@ -452,6 +499,30 @@ function unshin(steps, nowKey) {
 }
 // 大きな題は語の途中で折らない(「コンテ/ナ」にならないように)。語ごとに折り返さない箱に入れ、助詞・記号は前の語につなぐ。
 // word-break: auto-phrase が効かないブラウザでも同じに見えるように、Intl.Segmenter で分ける
+/**
+ * 大きな題が箱からはみ出さないようにする。大きさは字数の 3 段(titleSize)で決めるが、折らない 1 語(phraseWrap の .phrase)が
+ * 長いと、「ポリモーフィズム」「トランザクション」のように 56px のまま札の外へ出て、ホームの幅まで広がった(27 回目の審査)。
+ * 組んだあとで、はみ出す語があれば 1 段ずつ下げ、いちばん小さい段でも入らない語だけ折る(欠けるより折れる方がよい)
+ */
+function fitTitles() {
+  const TITLE_STEPS = ["size-xl", "size-l", "size-m"]; // 関数の中に(描画が定義の行より先に走っても使えるように)
+  document.querySelectorAll(".today-title, main h1:not(.today-title)").forEach((h) => {
+    const phrases = [...h.querySelectorAll(".phrase")];
+    if (!phrases.length) return;
+    if (!h.dataset.size0) h.dataset.size0 = TITLE_STEPS.find((c) => h.classList.contains(c)) || "";
+    let i = TITLE_STEPS.indexOf(h.dataset.size0);
+    if (i >= 0) h.classList.remove(...TITLE_STEPS), h.classList.add(TITLE_STEPS[i]);
+    phrases.forEach((p) => p.classList.remove("phrase-break"));
+    const over = (p) => p.scrollWidth > p.clientWidth + 1;
+    while (i >= 0 && i < TITLE_STEPS.length - 1 && phrases.some(over)) {
+      h.classList.replace(TITLE_STEPS[i], TITLE_STEPS[i + 1]);
+      i++;
+    }
+    phrases.forEach((p) => { if (over(p)) p.classList.add("phrase-break"); });
+  });
+}
+addEventListener("resize", fitTitles);
+
 function phraseWrap(el) {
   if (!el || el.dataset.phrased || el.children.length || !("Segmenter" in Intl)) return; // 中に要素がある見出しは崩さない
   const words = [];
@@ -493,12 +564,16 @@ function dashboardResume() {
     // 前回いた段がもう済んでいたら、主ボタンは次のまだの段へ(「次:」の行と同じ段を指す)。染めの段で済んだかを見る
     const rd = row.dataset;
     const dye = Number(rd.dye);
-    // 仕事のコードは「段の終わりが見えて 3 秒」で済み(このブラウザの記録)。済んでいれば次の段へ(26 回目の審査)
-    const doneBy = { read: dye >= 1, atwork: (pcStore(SECTIONS_KEY)[last.id] || []).includes("atwork"), quiz: dye >= 2, write: dye >= 3 };
-    const order = ["read", "atwork", "run", "quiz", "write", "reading", "sts"];
-    const has = { write: rd.exercises !== "0", reading: rd.reading !== "0" };
+    // 済んだかは運針と同じ表(stepStates: サーバーの記録 + このブラウザの仕事のコード・サンプル・読解)と染めの段で決める。
+    // 済んでいれば、次のまだの段へ(スマホ版の nextSectionFor と同じ形。26・27 回目の審査)
+    const states = stepStates(row);
+    const doneBy = Object.fromEntries(states.map((st) => [st.key, st.done]));
+    if (dye >= 1) doneBy.read = true;
+    if (dye >= 2) doneBy.quiz = true;
+    if (dye >= 3) doneBy.write = true;
+    const keys = states.map((st) => st.key).filter((k) => k !== "sts"); // STS で試すは PC で手を動かす段なので、主ボタンでは指さない
     const go = doneBy[last.section]
-      ? order.slice(order.indexOf(last.section) + 1).find((k) => ["quiz", "write", "reading"].includes(k) && has[k] !== false && !doneBy[k]) || last.section
+      ? keys.slice(keys.indexOf(last.section) + 1).find((k) => !doneBy[k]) || last.section
       : last.section;
     // 「クイズの続きから」(括弧書きのラベルは硬いので、言葉でつなぐ)。スマホ版 app.js の resumeLabel と同じ
     btn.textContent = go !== last.section ? `${SECTION_LABEL[go]}へ進む` : !label ? "続きから" : label === "読む" ? "続きを読む" : `${label}の続きから`;
@@ -620,14 +695,9 @@ function trackLesson() {
   // (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わった。25 回目の審査)
   const back = { review: ["/review", "復習へ戻る"], reading: ["/reading", "読解へ戻る"], terms: ["/glossary", "用語集へ戻る"] }[new URLSearchParams(location.search).get("from")];
   if (back) {
-    stepper.insertAdjacentHTML("afterend", `<a class="peek-back" href="${back[0]}">${back[1]}</a>`);
-    // 来た一覧へ戻るときは、ブラウザの「戻る」で(一覧の先頭からではなく、押した所の高さのまま。26 回目の審査)
-    stepper.nextElementSibling.addEventListener("click", (e) => {
-      try {
-        // 復習は今の状態を描き直したいので普通のリンクで(戻ると答える前の画面が出る)
-        if (back[0] !== "/review" && document.referrer && new URL(document.referrer).pathname === back[0]) { e.preventDefault(); history.back(); }
-      } catch { /* referrer が読めなければ普通のリンクで */ }
-    });
+    // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
+    // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
+    stepper.insertAdjacentHTML("afterend", `<a class="peek-back" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>`);
   }
   const seen = pcStore(SECTIONS_KEY);
   const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
@@ -639,18 +709,21 @@ function trackLesson() {
     if (sec && last.off > 0) requestAnimationFrame(() => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" }));
   }
   let saveTimer = null;
-  let atworkSince = null;
+  const shownSince = {};
   const update = () => {
     const line = 140;
-    // 仕事のコードは、段が画面に 3 秒以上あって、その終わりが画面の中に見えたら「済み」(飛び越しただけでは付けない。PC版の記録はこのブラウザの中)
-    const atwork = document.getElementById("atwork");
-    const ar = atwork?.getBoundingClientRect();
-    if (!(ar && ar.top < innerHeight && ar.bottom > 0)) atworkSince = null;
-    else if (atworkSince == null) { atworkSince = Date.now(); setTimeout(update, 3100); } // 止まって読んでいても 3 秒後に確かめ直す
-    if (atwork && lessonId && ar.bottom > 0 && ar.bottom < innerHeight && atworkSince && Date.now() - atworkSince >= 3000 && !(seen[lessonId] || []).includes("atwork")) {
-      seen[lessonId] = [...(seen[lessonId] || []), "atwork"];
-      pcSave(SECTIONS_KEY, seen);
-      markDone("atwork");
+    // 仕事のコード・サンプルは、段が画面に 3 秒以上あって、その終わりが画面の中に見えたら「済み」(飛び越しただけでは付けない。
+    // PC版の記録はこのブラウザの中。スマホ版と同じ。サンプルを済みにしないと、ホームが読み終えたサンプルを指した。27 回目の審査)
+    for (const key of ["atwork", "run"]) {
+      const sec = document.getElementById(key);
+      const r = sec?.getBoundingClientRect();
+      if (!(r && r.top < innerHeight && r.bottom > 0)) { delete shownSince[key]; continue; }
+      if (shownSince[key] == null) { shownSince[key] = Date.now(); setTimeout(update, 3100); } // 止まって読んでいても 3 秒後に確かめ直す
+      if (lessonId && r.bottom < innerHeight && Date.now() - shownSince[key] >= 3000 && !(seen[lessonId] || []).includes(key)) {
+        seen[lessonId] = [...(seen[lessonId] || []), key];
+        pcSave(SECTIONS_KEY, seen);
+        markDone(key);
+      }
     }
     // 前回の続き(ダッシュボードの主役にする)
     clearTimeout(saveTimer);
@@ -769,6 +842,7 @@ function bindChecks(root) {
 function initRoot(root) {
   bindChecks(root);
   root.querySelectorAll("textarea.code-editor").forEach(initEditor);
+  fitSvgFigures(root);
   renderMermaid(root).then(() => highlight(root));
   root.querySelectorAll(".chat-log").forEach((log) => { log.scrollTop = log.scrollHeight; });
 }
@@ -1014,6 +1088,36 @@ document.addEventListener("submit", (e) => {
   readingStep();
 });
 
+// 読解・用語集からのぞき見に出るときは、押したリンクと高さを控え、「〇〇へ戻る」(?ret=1)で戻ったらその所へ送る
+document.addEventListener("click", (e) => {
+  const a = e.target.closest?.("a[href*='from=reading'], a[href*='from=terms']");
+  if (!a || !document.body.matches(".page-reading, .page-glossary")) return;
+  try {
+    sessionStorage.setItem(PEEK_RETURN_KEY, JSON.stringify({ path: location.pathname, href: a.getAttribute("href"),
+      top: a.getBoundingClientRect().top, q: document.getElementById("glossary-q")?.value || "" }));
+  } catch { /* 控えられなければ一覧の先頭へ戻るだけ */ }
+}, true);
+if (new URLSearchParams(location.search).get("ret") === "1") {
+  history.replaceState(null, "", location.pathname + location.hash);
+  let back = null;
+  try { back = JSON.parse(sessionStorage.getItem(PEEK_RETURN_KEY)); sessionStorage.removeItem(PEEK_RETURN_KEY); } catch { back = null; }
+  if (back && back.path === location.pathname) {
+    const go = () => {
+      // 絞り込みの受け手はこの下で登録するので、絞り込みも送るのと同じ時に
+      const q = document.getElementById("glossary-q");
+      if (q && back.q) { q.value = back.q; q.dispatchEvent(new Event("input", { bubbles: true })); }
+      const link = [...document.querySelectorAll("a[href]")].find((x) => x.getAttribute("href") === back.href);
+      if (!link) return;
+      scrollTo({ top: link.getBoundingClientRect().top + scrollY - back.top, behavior: "auto" });
+      const spot = link.closest(".term, .lesson-section") || link;
+      spot.classList.add("spot-flash");
+      setTimeout(() => spot.classList.remove("spot-flash"), 1200);
+    };
+    // コードの色付けや書体で高さが変わってから合わせる
+    (document.fonts?.ready || Promise.resolve()).then(() => requestAnimationFrame(go));
+  }
+}
+
 // 用語集: 読み・英語・説明のどれでも絞り込む
 document.addEventListener("input", (e) => {
   if (!e.target.matches("#glossary-q")) return;
@@ -1101,6 +1205,8 @@ shuffleChoices(document);
 trackLesson();
 dashboardResume();
 document.querySelectorAll(".today-title a, main h1:not(.today-title)").forEach(phraseWrap);
+fitTitles();
+document.fonts?.ready.then(fitTitles);
 if (window.htmx) {
   window.htmx.onLoad((el) => initRoot(el));
 }
@@ -1113,6 +1219,44 @@ document.addEventListener("copy", (e) => {
   e.preventDefault();
 });
 
+// 用語集の「〇〇 で」の着地: 語の候補(「A / B」は両方、括弧の中の言い換えも)を、本文の太字 → 本文の段落・見出し・表 →
+// 仕事のコードの行の説明 → サンプルの説明の順に探す(本文の p・li だけを探していたので、3 語に 1 語はレッスンの頭に
+// 黙って着いた。27 回目の審査)。CurriculumTest#glossaryTermsLand が、どの語も本文・仕事のコード・サンプルに出ることを確かめる
+function termWords(term) {
+  const alt = [];
+  const base = term.replace(/[((](.*?)[))]/g, (_, x) => { alt.push(...x.split(/\s*[/／、,]\s*/)); return ""; }).trim();
+  return [...base.split(/\s*[/／]\s*/), ...alt].map((w) => w.replace(/\s+/g, " ").trim().toLowerCase()).filter(Boolean);
+}
+const plainText = (el) => el.textContent.replace(/[\u2060\u00ad]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+function findTerm(term) {
+  const words = termWords(term);
+  const visible = (el) => el.getClientRects().length > 0;
+  const bold = [...document.querySelectorAll("#read .md strong")].find((b) => words.includes(plainText(b)) && visible(b));
+  if (bold) return bold.closest("p, li, h2, h3, h4, td, th") || bold;
+  for (const sel of ["#read .md :is(p, li, h2, h3, h4, td, th, figcaption)", "#atwork :is(.ln-note, p, li)", "#run :is(h3, p, li)"]) {
+    const hit = [...document.querySelectorAll(sel)].find((el) => visible(el) && words.some((w) => plainText(el).includes(w)));
+    if (hit) return hit;
+  }
+  return null;
+}
+function landTerm(term) {
+  let hit = findTerm(term);
+  if (!hit) {
+    // 見つからなければ黙って頭に着かず、本文の頭に 1 行で知らせる
+    const md = document.querySelector("#read .md");
+    if (!md) return;
+    hit = document.createElement("p");
+    hit.className = "term-miss";
+    hit.textContent = `「${term}」は、このレッスンには同じ言い方では出てきません。用語集の説明と合わせて読んでください。`;
+    md.prepend(hit);
+  }
+  requestAnimationFrame(() => {
+    hit.scrollIntoView({ block: "center" });
+    hit.classList.add("spot-flash");
+    setTimeout(() => hit.classList.remove("spot-flash"), 1200);
+  });
+}
+
 // 復習の「読み直す」で問いそのもの(#quiz-q2)へ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す(スマホ版と同じ)。
 // このモジュールは上の await loadCodeMirror() を待つので、その間に load が済んでいることがある(load だけを待つと一度も走らなかった)。
 // 色付けとエディタで上の高さが変わったあとなので、もう一度その問いの頭まで送る
@@ -1120,14 +1264,7 @@ const spotQuiz = () => {
   // 用語集の「〇〇 で」から来たら、本文でその語を太字にした最初の所(無ければ語が最初に出る段落)へ
   const term = new URLSearchParams(location.search).get("term");
   if (term && !location.hash) {
-    const word = term.replace(/[((].*$/, "").trim().toLowerCase();
-    const hit = [...document.querySelectorAll("#read .md strong")].find((b) => b.textContent.trim().toLowerCase() === word)?.closest("p, li")
-      || [...document.querySelectorAll("#read .md p, #read .md li")].find((b) => b.textContent.toLowerCase().includes(word));
-    if (hit) {
-      hit.scrollIntoView({ block: "center" });
-      hit.classList.add("spot-flash");
-      setTimeout(() => hit.classList.remove("spot-flash"), 1200);
-    }
+    landTerm(term);
     return;
   }
   if (!/^#quiz-q\d+$/.test(location.hash)) return;

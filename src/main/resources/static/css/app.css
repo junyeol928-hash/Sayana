@@ -274,7 +274,8 @@ button { font: inherit; letter-spacing: inherit; }
 .btn.ghost:hover { background: var(--surface-2); }
 .btn.small { min-height: 36px; padding: 4px 12px; font-size: .875rem; }
 .btn.block { display: flex; width: 100%; }
-.btn:disabled { color: var(--ink-muted); border-color: var(--line); background: var(--surface-2); cursor: not-allowed; transform: none; }
+/* 押せないボタンは 1 通りの見た目に(スマホの復習の帯と同じ。読解のカード・PC と 3 通りに分かれていた。27 回目の審査) */
+.btn:disabled, .btn:disabled:hover { color: var(--ink-muted); border: 1px solid var(--line-strong); background: var(--surface); cursor: not-allowed; transform: none; box-shadow: none; }
 .htmx-indicator { display: none; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
 
@@ -362,6 +363,7 @@ ruby rt { font-size: max(10px, .58em); font-weight: 400; letter-spacing: 0; marg
 .today-title { font-weight: 900; line-height: 1.06; letter-spacing: -.03em; margin: 8px 0 24px; color: var(--ink); text-wrap: balance; }
 .today-title a { color: inherit; text-decoration: none; }
 .phrase { display: inline-block; max-width: 100%; white-space: nowrap; } /* phraseWrap: 語の途中で折らない。長音記号の負の余白で箱の幅が足りず、「ー」だけが箱の中で次の行へ落ちていた(「復習キュー」) */
+.phrase.phrase-break { white-space: normal; overflow-wrap: anywhere; } /* fitTitles: いちばん小さい段でも題の箱に入らない語だけ折る */
 .choon { margin-inline: -.15em; } /* 見出しの書体は palt がなく、長音記号の両側が空いて「コ ー ド」に見える */
 .phrase.gap { margin-inline-end: .22em; } /* 箱の切れ目では text-autospace が効かないので、和欧の空きを足す(後ろに付ければ、行末で折れても見えない) */
 .today-title a:hover { color: var(--accent-ink); }
@@ -536,6 +538,8 @@ a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: 
 .lesson-axis.part-only small { display: none; }
 .lesson-hero:has(.part-only) .breadcrumb .visually-hidden { position: static !important; width: auto; height: auto; margin: 0; clip: auto; clip-path: none; overflow: visible; white-space: normal; }
 .lesson-axis.tight, .lesson-axis.tight small { letter-spacing: .1em; }
+/* 部は軸に出ているので、現在地の行では読み上げだけに残す(軸と同じ部を算用数字でもう一度言っていた。27 回目の審査) */
+.lesson-hero .breadcrumb .crumb-part { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lesson-hero-body { min-width: 0; }
 .lesson-hero h1 { font-weight: 900; line-height: 1.12; letter-spacing: -.02em; margin: 4px 0 14px; }
 .lesson-hero h1.size-xl { font-size: 3.25rem; }
@@ -632,6 +636,7 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 .figure, .mermaid { margin: 24px 0; padding: 20px; background: var(--surface-2); border-radius: var(--r-l); overflow-x: auto; text-align: center; }
 .figure svg { display: block; margin: 0 auto; width: 100%; min-width: 480px; max-width: 680px; height: auto; font-family: var(--font); }
 .figure figcaption { font-size: .8125rem; color: var(--ink-muted); margin-top: 12px; text-align: left; }
+.fig-scroll { overflow-x: auto; }
 .mermaid svg { max-width: 100%; height: auto; }
 /* 図も画面と同じ言葉で: 箱は角丸 8px、判断の菱形は藍の薄い面(Mermaid の内部の CSS は id 付きで強いので !important) */
 .mermaid .node rect, .mermaid .node .label-container { rx: 8px; ry: 8px; }
@@ -640,11 +645,15 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 @media (max-width: 760px) {
   /* 図は縮めずに横スクロール。続きがある側だけフェードを付ける(左に何もないのに箱が硬く切れて見えないように) */
   .mermaid { text-align: left; }
-  .mermaid.has-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
-  .mermaid.has-prev { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px); mask-image: linear-gradient(90deg, transparent, #000 24px); }
-  .mermaid.has-prev.has-more { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
-  .mermaid svg { max-width: none; }
+  .mermaid.has-more, .fig-scroll.has-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+  .mermaid.has-prev, .fig-scroll.has-prev { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px); mask-image: linear-gradient(90deg, transparent, #000 24px); }
+  .mermaid.has-prev.has-more, .fig-scroll.has-prev.has-more { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+  .mermaid svg { max-width: none; display: block; margin-inline: auto; } /* 収まる図は面の中央に(はみ出す図は左端から。縦 1 列の図が左に寄って見えた。27 回目の審査) */
   .mermaid.fit svg { max-width: 100% !important; height: auto; }
+  .fig-scroll.fit svg { min-width: 0; }
+  /* 手描きの図は、はみ出していないとき(広げた画面・畳みの中で測る前)はボタンを出さない */
+  .fig-scroll:not(.has-more):not(.has-prev):not(.fit) + .fig-fit { display: none; }
+  .figure .fig-fit { margin: 8px 0 0; }
   .fig-fit { display: inline-flex; align-items: center; min-height: 44px; margin: -18px 0 12px; padding: 0 2px; border: 0; background: none; color: var(--accent-ink); font-size: .875rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 }
 .read-action { margin: 28px 0 0; display: flex; justify-content: flex-start; }
@@ -801,6 +810,7 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .kana-index .kana-search { color: var(--ink-muted); place-items: center start; min-width: 44px; padding-left: 0; } /* 虫めがねの左端を本文の左端にそろえる */
 .review-min { margin-left: 8px; font-size: .8125rem; font-weight: 400; opacity: .8; } /* 今日の復習にかかる目安(1 問 20 秒ほど) */
 .term-group, .term { scroll-margin-top: 140px; } /* 行へ飛んでも語の名前が索引の下に隠れないように */
+.reading-list > .reading-q { scroll-margin-top: 76px; } /* 読解へ戻ったとき、カードの題と出どころが上の帯の下に隠れないように */
 .search { position: relative; margin: 8px 0 16px; }
 .search input { width: 100%; font: inherit; font-size: 16px; min-height: 48px; padding: 10px 14px 10px 44px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); }
 .search .icon { position: absolute; left: 14px; top: 13px; color: var(--ink-muted); }
@@ -924,11 +934,14 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   .sample .sample-result pre.console, .sample .sample-result pre.exception { margin: 0 calc(var(--gutter) * -1) 8px; border-radius: 0; padding: 12px var(--gutter) 12px calc(var(--gutter) - 3px); border-left: 3px solid var(--accent); }
   .sample .sample-result .status-exception pre.console, .sample .sample-result pre.exception { border-left-color: var(--shu); }
 }
-code.nb { white-space: nowrap; }
+code.nb, strong.nb { white-space: nowrap; }
 /* 括弧に接するチップは、括弧の側の内側の余白を詰める(「構文( case 2 -> )」と空いていた)。外へ詰めると、
    括弧の字面の空きは括弧の外側にあるので、チップの地が括弧の線にかぶさる(BIZ UDPGothic では全角の括弧も幅が半分) */
 code.after-open, code.after-paren { padding-inline-start: .14em; }
 code.before-close, code.before-paren, code.before-punct { padding-inline-end: .14em; }
+/* 行の説明の中のチップも同じ(行の説明の余白の規則のほうが強く、「( `null`」と空いていた。27 回目の審査) */
+pre.code-lines .ln-note code:is(.after-open, .after-paren) { padding-inline-start: .14em; }
+pre.code-lines .ln-note code:is(.before-close, .before-paren, .before-punct) { padding-inline-end: .14em; }
 /* 横に送る表(4 列から)は、続きがある側の端に影を出す(地の色の覆いは中身と一緒に動き、影は枠に残る。端まで送ると影が消える) */
 .md table:not(.stack) {
   background: linear-gradient(to right, var(--bg) 40%, transparent) left / 28px 100% no-repeat local,
@@ -1038,7 +1051,7 @@ code.before-close, code.before-paren, code.before-punct { padding-inline-end: .1
 .check-skip { border: 0; background: none; padding: 0 4px; min-height: 44px; font: inherit; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 /* 選んだ誤答に向けた 1 文(checks.yml の why)。判定のすぐ下に、解説より先に */
 .check-why { margin: 0 0 8px; font-weight: 700; color: var(--ink); }
-.check .choice-text, .check-explain p, .check-why { text-wrap: pretty; } /* 最後の行に 1 字だけ残さない */
+.check .choice-text, .check-explain p, .check-why, .lesson-hero .summary, .sample-result .predict, .missed-read { text-wrap: pretty; } /* 最後の行に 1〜2 字だけ残さない(「避け方ま / で。」「出 / す?」。27 回目の審査) */
 @media (max-width: 760px) {
   /* スマホは札を枠の上辺に縫い付けた横書きのタブに(縦の札の分だけ問いのコードが細るので)。
      選択肢は枠の中の枠になるので、余白を詰めて文字はクイズと同じ 16px(1 行 15 字で 1 字の行が出ていた) */
@@ -1215,6 +1228,8 @@ p.review-source { display: block; min-height: 0; border: 0; }
 .mini-unshins { display: inline-flex; flex-wrap: wrap; gap: 6px 16px; vertical-align: middle; }
 /* 「読み直す」で問いそのものへ来たとき、1.2 秒だけ藍の枠で示す */
 .spot-flash { outline: 2px solid var(--accent); outline-offset: 10px; border-radius: var(--r-m); } /* 4px では「問 2」と選択肢の枠が線に接していた */
+/* 用語集の「〇〇 で」で、語が本文に同じ言い方で出てこないときの 1 行(黙って頭に着かないように) */
+.term-miss { margin: 0 0 20px; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 var(--r-m) var(--r-m) 0; font-size: .875rem; color: var(--ink-muted); }
 .mini-stage { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
 .mini-unshin i.now::after { width: 8px; height: 8px; left: calc(50% - 4px); top: -2.5px; }

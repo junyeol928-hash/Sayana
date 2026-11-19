@@ -25,7 +25,7 @@
         <!--/* 部と章は左の軸に縦書きで。現在地の読み上げには残す */-->
         <p class="lesson-axis" aria-hidden="true"><span th:text="${axisPart}">第三部 Spring</span><small th:text="${axisChapter}">第一章</small></p>
         <div class="lesson-hero-body">
-        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></span></nav>
+        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"><span class="crumb-part"> / <span th:text="${part.title}"></span></span> / <span th:text="${chapter.title}"></span></span></nav>
         <h1 th:text="${lesson.title}" th:classappend="${titleSize}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
         <p class="summary" th:utext="${lesson.summaryHtml()}"></p>
         <p class="meta">
