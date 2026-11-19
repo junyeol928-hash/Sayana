@@ -303,6 +303,41 @@ await js(`window.scrollTo(0, 0);`);
 await shot("pc-lesson-top");
 await scrollTo("#atwork .notes-toggle", 190);
 await shot("pc-lesson-atwork");
+// 本文の軸(28 回目): 1280px 以上・AI の欄が無い 1 列では、冒頭の藍の軸が本文の終わりまで続き、段ごとの縦の運針が縫い進む。
+// 読み進めた途中(読むの 45%)を 1440・1280px の明るい・暗い表示で撮る
+const PC1280 = { w: 1280, h: 800, dpr: 1, mobile: false };
+for (const [name, size] of [["pc-rail-1440", DESK], ["pc-rail-1440-dark", { ...DESK, dark: true }], ["pc-rail-1280", PC1280], ["pc-rail-1280-dark", { ...PC1280, dark: true }]]) {
+  await view(size);
+  await open(pcArg + "lessons/spring-di");
+  await js(`const s = document.getElementById("read"); window.scrollTo(0, s.offsetTop + s.offsetHeight * 0.45); await new Promise((r) => setTimeout(r, 600));`);
+  await shot(name);
+}
+await view(DESK);
+await open(pcArg + "lessons/spring-di");
+// 本文の 1 行の字数(27 回目: 860px で約 51 字。目安は 17px で約 42 字)。本文と同じ組みの段落に全角の字を並べて数える
+console.log("本文の 1 行の字数(1440px):", await js(`const p = document.createElement("p"); p.textContent = "あ".repeat(200); document.querySelector(".lesson-body").prepend(p);
+  const t = p.firstChild, r = document.createRange(); let lo = 1, hi = 200;
+  while (lo < hi) { const m = Math.ceil((lo + hi) / 2); r.setStart(t, 0); r.setEnd(t, m); if (new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size > 1) hi = m - 1; else lo = m; }
+  p.remove(); return lo + " 字(行の幅 " + Math.round(document.querySelector(".lesson-body").getBoundingClientRect().width) + "px)";`));
+// サンプルの編集欄(27 回目: ここだけ白地に紫・緑の既定の配色)。ほかのコードの面と同じ色付けか
+await scrollTo("#run .cm-editor", 160);
+console.log("編集欄の色付け:", await js(`const e = document.querySelector("#run .cm-editor"); return e ? getComputedStyle(e).backgroundColor + " / 注釈 " + e.querySelectorAll(".tok-meta").length + "・予約語 " + e.querySelectorAll(".tok-keyword").length + "・既定の配色の印 " + e.querySelectorAll(".cm-line span[class^='ͼ']").length : "CodeMirror なし";`));
+await shot("pc-sample-editor");
+// 全レッスンを 1280px で開き、軸が出ない・段の数が帯と違う・段の名前が画面の左へ出る・横にはみ出す数(目標はどれも 0)
+await view(PC1280);
+const railBad = [];
+for (const id of ids) {
+  await send("Page.navigate", { url: pcArg + "lessons/" + id });
+  await sleep(1200);
+  const bad = await js(`const rail = document.querySelector(".lesson-rail"); if (!rail || getComputedStyle(rail).display === "none") return "軸なし";
+    if (rail.querySelectorAll(".rail-step").length !== document.querySelectorAll(".stepper .step").length) return "段の数";
+    if (Math.min(...[...rail.querySelectorAll(".rail-label, .rail-back")].map((l) => l.getBoundingClientRect().left)) < 0) return "名前が画面の外";
+    if (document.documentElement.scrollWidth > innerWidth + 1) return "横にはみ出す"; return "";`);
+  if (bad) railBad.push(id + ":" + bad);
+}
+console.log("1280px の本文の軸の不具合:", railBad.length, "/", ids.length, railBad.join(" "));
+await view(DESK);
+await open(pcArg + "lessons/spring-di"); // 続くクイズの撮影は spring-di で
 await js(`const ans = [2, 1, 3, 1, 2]; document.querySelectorAll("form.quiz .quiz-q").forEach((q, i) => { q.querySelectorAll("input")[ans[i]].checked = true; });
   document.querySelector("form.quiz button[type=submit]").click(); await new Promise((r) => setTimeout(r, 2000));`);
 await scrollTo("form.quiz .quiz-q:nth-child(2) .choice", 160);
