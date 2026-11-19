@@ -38,7 +38,21 @@ public record Lesson(
 
     /** レッスンの説明文(ゴールと同じく `…` だけコードの書体に) */
     public String summaryHtml() {
-        return summary == null ? "" : org.springframework.web.util.HtmlUtils.htmlEscape(summary).replaceAll("`([^`]+)`", "<code>$1</code>");
+        return summary == null ? "" : joinParticles(
+                org.springframework.web.util.HtmlUtils.htmlEscape(summary).replaceAll("`([^`]+)`", "<code>$1</code>"));
+    }
+
+    private static final java.util.regex.Pattern BEFORE_PARTICLE =
+            java.util.regex.Pattern.compile("([A-Za-z0-9_.)\\]」』）]|</code>)( ?)(?=[ぁ-ゖ])");
+
+    /**
+     * 英字の名前・閉じ括弧・チップの直後の助詞(ひらがな)を行頭に出さない。間の空白は改行しない空白に、空白が無ければ語をつなぐ印
+     * (U+2060)にする。本文の見出し(app.js の joinParticle)と同じつなぎ。冒頭の要約は語の途中で折らない(auto-phrase)ぶん
+     * 英字の後ろの空白で折れ、「素の Java / で体験してから」と助詞で行が始まった(7 / 55。30 回目の審査)
+     */
+    static String joinParticles(String html) {
+        return BEFORE_PARTICLE.matcher(html).replaceAll(m -> java.util.regex.Matcher.quoteReplacement(
+                m.group(1) + (m.group(2).isEmpty() ? "⁠" : "&nbsp;")));
     }
 
     /** ゴールの文(地の文はエスケープし、`…` だけコードの書体に。コードの語を本文と同じ書体で出す) */
