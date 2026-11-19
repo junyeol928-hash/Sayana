@@ -22,6 +22,15 @@ public record RunResult(Status status, String output, List<String> values, List<
         return status == Status.OK;
     }
 
+    /**
+     * PC の実行結果に出す例外の文。JShell が包むクラスの名前(`"REPL.$JShell$12.input"`)を外し、`"input"` と書いた名前で出す
+     * (中の名前が読む人を迷わせ、肝心の「is null」が右へ押し出されていた。29 回目の審査)。
+     * スマホ版の控え(SampleOutputs)は {@link #exception()} をそのまま使うので変わらない。
+     */
+    public String displayException() {
+        return exception == null ? null : exception.replaceAll("REPL\\.\\$JShell\\$\\d+[A-Z]?\\.", "");
+    }
+
     /** AI のエラー翻訳に渡すためのテキスト。 */
     public String errorText() {
         StringBuilder sb = new StringBuilder();

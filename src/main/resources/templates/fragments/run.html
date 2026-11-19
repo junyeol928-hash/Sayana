@@ -24,7 +24,7 @@
             <pre class="code-line" th:if="${!#strings.isEmpty(d.codeLine)}" th:text="${d.codeLine}"></pre>
         </li>
     </ul>
-    <pre class="exception" th:if="${result.exception != null}" th:text="${result.exception}"></pre>
+    <pre class="exception" th:if="${result.exception != null}" th:text="${result.displayException()}"></pre>
     <p class="muted small" th:if="${result.ok() and #strings.isEmpty(result.output) and result.values.isEmpty()}">(出力はありませんでした)</p>
 
     <!--/* AI が未設定なら押せないボタンを出さない(採点結果と同じ) */-->

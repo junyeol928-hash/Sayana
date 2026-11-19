@@ -60,7 +60,7 @@
         <button class="btn" type="button" data-quiz-reset>もう一度解く</button>
     </div>
     <p class="quiz-ai" th:if="${a.score >= pass and status.dyeLevel() == 2 and !lesson.exercises.isEmpty()}"><span class="dye dye-3" aria-hidden="true"></span>演習ができたら藍に</p>
-    <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p>
+    <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。</p>
     <template class="q-explains">
         <div th:each="q, st : ${lesson.quiz}" th:with="chosen=${outcome.answers().get(st.index)}, ok=${outcome.correct().get(st.index)}"
              class="q-explain" th:classappend="${ok} ? 'correct' : 'wrong'" th:attr="data-q=${st.index}, data-chosen=${chosen}, data-answer=${q.answer}">

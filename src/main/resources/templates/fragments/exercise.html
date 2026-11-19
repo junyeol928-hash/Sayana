@@ -25,10 +25,11 @@
         <textarea class="starter-code" hidden th:text="${ex.starter}"></textarea>
         <div class="actions">
             <button type="submit" class="btn primary">提出して採点</button>
+            <!--/* AI が未設定なら押せないヒントも並べない(講評・翻訳のボタンと同じ。主ボタンの隣に押せない形が残っていた。29 回目の審査) */-->
             <button type="button" class="btn" hx-post="/exercises/hint" hx-swap="outerHTML"
-                    th:attr="hx-target='#hints-' + ${ex.domId()}" th:disabled="${!aiAvailable or !view.hintsLeft()}"
-                    th:title="${!aiAvailable ? 'ANTHROPIC_API_KEY を設定すると使えます' : (view.hintsLeft() ? '押すたびに 方向性 → 手がかり → ほぼ答え' : 'ヒントは3段階で全部です')}"
-                    th:unless="${view.reviewItemId != null}">ヒント<span class="hint-count" th:text="'(' + ${view.hints.size()} + '/3)'"></span></button>
+                    th:attr="hx-target='#hints-' + ${ex.domId()}" th:disabled="${!view.hintsLeft()}"
+                    th:title="${view.hintsLeft() ? '押すたびに 方向性 → 手がかり → ほぼ答え' : 'ヒントは3段階で全部です'}"
+                    th:if="${aiAvailable and view.reviewItemId == null}">ヒント<span class="hint-count" th:text="'(' + ${view.hints.size()} + '/3)'"></span></button>
             <button type="button" class="btn ghost" data-reset-starter>雛形に戻す</button>
             <span class="htmx-indicator muted small">採点中…(別のJVMでテストを実行しています)</span>
         </div>
@@ -61,7 +62,7 @@
      th:attr="data-ex-passed=${status != null ? status.exercisesPassed : null}, data-ex-total=${status != null ? status.exercisesTotal : null},
               data-dye=${status != null ? status.dyeLevel() : null}, data-dye-label=${status != null ? status.dyeLabel() : null}">
     <div class="grade-banner">
-        <span class="grade-icon" th:text="${result.passed() ? '✔' : '✘'}"></span>
+        <span class="grade-icon" aria-hidden="true" th:text="${result.passed() ? '✔' : '✘'}"></span>
         <b th:text="${result.statusLabel()}">合格</b>
         <span th:if="${result.totalCount() > 0}" th:text="'(' + ${result.passedCount()} + ' / ' + ${result.totalCount()} + ' テスト合格)'"></span>
         <!--/* テストの数だけの刺し子の目(通った目は藍、落ちた目は空き)。クイズの点の横の目と同じ部品 */-->
@@ -92,8 +93,8 @@
     </details>
 
     <p class="review-note" th:if="${reviewLabel != null}">
-        <span th:if="${fromReview}">復習の結果:</span><span th:unless="${fromReview}">復習に入りました:</span>
-        <b th:text="${reviewLabel}"></b>
+        <th:block th:if="${fromReview}">復習の結果: <b th:text="${reviewLabel}"></b></th:block>
+        <th:block th:unless="${fromReview}"><b th:text="${reviewLabel}"></b>に入りました</th:block>
     </p>
 
     <div class="ai-actions" th:if="${outcome != null and outcome.submission() != null}">

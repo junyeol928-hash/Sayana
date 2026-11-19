@@ -539,8 +539,16 @@ a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: 
 .lesson-layout.no-tutor { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
 .lesson-layout.no-tutor .lesson-main { max-width: 860px; margin: 0 auto; width: 100%; }
 @media (min-width: 1024px) { .lesson-layout.no-tutor .lesson-main { max-width: var(--measure); } }
-/* PC の冒頭の要約は行の長さをそろえる(pretty でも 1024px 以上で 9 本の最後の行に「で。」だけが落ちた。28 回目の審査)。スマホ版は .lesson-layout を使わない */
-@media (min-width: 1024px) { .lesson-layout .lesson-hero .summary { text-wrap: balance; } }
+/* PC の冒頭の要約は行の長さをそろえる(pretty でも 1024px 以上で 9 本の最後の行に「で。」だけが落ちた。28 回目の審査)。
+   そろえると「仕組 / み」と語の途中で折れたので、語の切れ目で折る(29 回目の審査)。スマホ版は .lesson-layout を使わない */
+@media (min-width: 1024px) { .lesson-layout .lesson-hero .summary { text-wrap: balance; word-break: auto-phrase; } }
+/* 軸の出ない 1024〜1279px の 1 列も、コード・図・編集欄・演習だけ左右へ同じだけ張り出す(本文の行は 42 字のまま。
+   ここだけ 736px のままで、サンプルの編集欄の 3 本に 2 本が横に送られ、左右には 144〜232px の空きが残った。29 回目の審査) */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .lesson-layout.no-tutor { --bleed-x: clamp(0px, calc((100vw - 736px) / 2 - 72px), 100px); }
+  .lesson-layout.no-tutor :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-inline: calc(var(--bleed-x) * -1); }
+  .lesson-layout.no-tutor #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
+}
 .ai-off-line { font-size: .8125rem; color: var(--ink-muted); }
 /* レッスンの冒頭もホームと同じ「大きな札」: 左に藍の軸(部と章を縦書き)、題は札の文字のように */
 .lesson-hero { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0 24px; padding: 8px 0 4px; }
@@ -659,6 +667,8 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
      サンプルの編集欄の 3 本に 2 本が横に送られた。28 回目の審査)。1280px で 124px、広い画面ほど広げて 1432px 以上で 200px。
      どの幅でも画面の右端から 100px 前後あく(1440px でサンプルの編集欄の横送りは 149 本中 20 本) */
   .has-rail :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-right: calc(var(--bleed) * -1); }
+  /* 演習のカードは編集欄のために張り出すが、問題文は本文と同じ 42 字のまま(カードごと広げると 1 行 55 字前後に戻った。29 回目の審査) */
+  .has-rail #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
   /* 布は本文の終わりまで続き、部の名前と運針だけがヘッダーの下に留まる(88px = ヘッダー 64px + 上の余白 24px。開いた直後も下が切れない) */
   .rail-inner { position: sticky; top: 64px; height: calc(100vh - 88px); max-height: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
   .rail-part { margin: 0; flex: none; writing-mode: vertical-rl; font: 700 .875rem/1 var(--head); letter-spacing: .24em; }
@@ -667,7 +677,10 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
   /* 名前と目は行の頭にそろえ、目は名前の 1 行目の高さから下ろす(行の中ほどに名前、上の端に玉結びでは、玉が名前から浮いた)。
      いまの段は行を長く取り、玉結びが読んだ分だけはっきり下りる(短い行では長い段を読んでも 1〜2 目しか進まなかった) */
   .rail-step { flex: 1 1 0; min-height: 44px; max-height: 72px; margin-left: calc((var(--label) + 16px) * -1); display: grid; grid-template-columns: var(--label) var(--rail-w); column-gap: 16px; align-items: start; text-decoration: none; border-radius: var(--r-s); }
-  .rail-step[aria-current="true"] { flex-grow: 3; max-height: 144px; }
+  /* 玉結びは行の下端の 14px 手前で止め、次の段との間も 14px に広げる(行の下端まで下りると、次の段の名前の横に来て
+     次の段の印に見えた。29 回目の審査) */
+  .rail-step[aria-current="true"] { flex-grow: 3; max-height: 144px; margin-bottom: 8px; }
+  .rail-step[aria-current="true"] .rail-stitch { margin-bottom: 14px; }
   .rail-label { justify-self: end; text-align: right; white-space: nowrap; font-size: .875rem; font-weight: 700; line-height: 1.4; color: var(--ink-muted); transition: color .16s var(--ease); }
   .rail-label small { margin-left: 4px; font-weight: 400; color: var(--ink-muted); }
   .rail-step.sewn .rail-label { color: var(--ink); }
@@ -984,6 +997,10 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .run-meta { display: flex; justify-content: space-between; font-size: .8125rem; color: var(--ink-muted); }
 .console { background: var(--code-bg); color: var(--code-ink); margin: 8px 0; max-height: 360px; }
 .exception { background: var(--ng-soft); color: var(--ink); }
+/* PC の実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す。1 行目(例外の名前と理由)だけ朱の文字(サーモン色の塗りの箱で、
+   理由の「… is null」が右で切れていた。29 回目の審査)。スマホのサンプルの結果(.sample-result)は使わない入れ物なので変わらない */
+.sample-out pre.exception, #playground-out pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sample-out pre.exception::first-line, #playground-out pre.exception::first-line { color: var(--syn-num); }
 .values .arrow { color: var(--accent-ink); font-weight: 700; }
 .diagnostics { padding-left: 1.2em; color: var(--ink); }
 .code-line { margin: 4px 0; padding: 6px 10px; background: var(--surface); border-radius: var(--r-s); font-size: 13px; color: var(--ink); }

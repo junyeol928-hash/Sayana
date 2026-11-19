@@ -20,6 +20,7 @@ let activeView = null;    // 最後に触ったエディタ
 // 図はエディタの読み込みのあとに描かれ、上の段が最大 1,000px ほど伸びるので、先に着いた所から流されていた(28 回目の審査)
 let pageSettled = Promise.resolve();
 let userMoved = false;
+let resumeLanding = false; // 前回の続きの位置へ戻しているとき(段の頭へのハッシュの着地で上書きしない)
 for (const t of ["wheel", "touchstart", "keydown", "mousedown"]) addEventListener(t, () => { userMoved = true; }, { once: true, passive: true });
 /** 落ち着いたあとに着地をやり直す。その間に読む人が自分で動かしていたら、何もしない */
 function afterSettle(fn) {
@@ -149,7 +150,8 @@ function initEditor(ta) {
 /** 編集欄の読み上げの名前(サンプル・演習の題)と、Tab で外へ出る方法の案内(近くの [data-editor-help])を指す属性 */
 function editorA11y(ta) {
   const title = ta.getAttribute("aria-label")
-    || (ta.closest(".exercise")?.querySelector("h3")?.textContent.replace(/\s+/g, " ").trim() || "").replace(/^(.+)$/, "「$1」のコード")
+    // 演習は題だけ(先頭の札「演習」「類題」は名前に入れない。サンプルと同じ「「題」のコード」の形。29 回目の審査)
+    || (ta.closest(".exercise")?.querySelector("h3 span:not(.ex-label)")?.textContent.replace(/\s+/g, " ").trim() || "").replace(/^(.+)$/, "「$1」のコード")
     || "コード";
   const help = (ta.closest(".lesson-section") || document).querySelector("[data-editor-help]")?.id;
   return { "aria-label": title, ...(help ? { "aria-describedby": help } : {}) };
@@ -806,6 +808,7 @@ function trackLesson() {
     const last = pcStore(LAST_KEY);
     const sec = last.id === lessonId && document.getElementById(last.section);
     if (sec && last.off > 0) {
+      resumeLanding = true;
       const land = () => scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + last.off, behavior: "auto" });
       requestAnimationFrame(land);
       afterSettle(land); // 図が描けて上の段が伸びたら、もう一度(1 画面上のサンプルに着いていた。28 回目の審査)
@@ -1027,8 +1030,19 @@ document.addEventListener("htmx:afterSwap", (e) => {
   out.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
 });
 // 「読んだ」を押したら、段の並び(と本文の軸)の「読む」も済みに(開き直すまでレ点が付かなかった)
-document.addEventListener("htmx:afterSwap", () => {
+document.addEventListener("htmx:afterSwap", (e) => {
   if (document.querySelector("#read .read-done")) document.querySelector('.stepper .step[href="#read"]')?.classList.add("done");
+  // 押したボタンごと差し替わってフォーカスが消え、「読了。次は…」が読み上げられなかった(29 回目の審査)。新しい 1 行へ移す
+  if (e.target.matches?.("#read .read-done")) { e.target.tabIndex = -1; e.target.focus({ preventScroll: true }); }
+});
+// 演習の採点結果は判定の行へフォーカスを移す(採点のあとも「提出して採点」に残り、合格・不合格も「藍に染まった」も
+// 読み上げられなかった。29 回目の審査)。手を止めて・復習の判定と同じ形
+document.addEventListener("htmx:afterSwap", (e) => {
+  const banner = e.target.querySelector?.(".grade-result .grade-banner");
+  if (!banner) return;
+  banner.tabIndex = -1;
+  banner.focus({ preventScroll: true });
+  if (banner.getBoundingClientRect().bottom > innerHeight) banner.scrollIntoView({ block: "center", behavior: reduceMotion() ? "auto" : "smooth" });
 });
 // 演習の採点・クイズの採点のあとは、段の帯(と本文の軸)の「演習 n/全部」と、冒頭の色見本をその場で書き換える
 // (演習に合格して藍に染まっても、開き直すまで帯も冒頭も前のままだった。28 回目の審査)。値は採点結果の data-* から
@@ -1439,6 +1453,15 @@ const spotQuiz = () => {
   const term = new URLSearchParams(location.search).get("term");
   if (term && !location.hash) {
     landTerm(term);
+    return;
+  }
+  // 段の頭へのハッシュ(ホームの「演習へ進む」の /lessons/〇〇#write など)も、軸ができて編集欄が替わったあとに着地し直す。
+  // ブラウザは先に段の頭へ着くが、そのあと軸の組み立てで上の段の高さが変わり、1440px で 3 本に 1 本は見出しが隠れた(29 回目の審査)。
+  // 前回の続き(段の中の位置)へ戻すときは、trackLesson の着地に任せる
+  const sec = /^#[a-z][\w-]*$/.test(location.hash) && !resumeLanding && document.querySelector(`.lesson-section${location.hash}`);
+  if (sec) {
+    sec.scrollIntoView({ block: "start" });
+    afterSettle(() => sec.scrollIntoView({ block: "start" }));
     return;
   }
   if (!/^#quiz-q\d+$/.test(location.hash)) return;
