@@ -48,6 +48,13 @@
   --code-ink: oklch(.93 .015 240);
   --code-muted: oklch(.72 .03 245);
   --inline-code-bg: oklch(.945 .018 245);
+  /* コードの色付け(藍の夜): 予約語=縹、文字列=刈安、注釈=青竹、数=朱、型=藍白。地はどちらのテーマも暗いので 1 組だけ。
+     読むコード(highlight.js)と編集欄(CodeMirror)で同じ値を使う */
+  --syn-key: oklch(.8 .1 236);
+  --syn-str: oklch(.86 .09 85);
+  --syn-meta: oklch(.82 .1 165);
+  --syn-num: oklch(.8 .1 40);
+  --syn-type: oklch(.94 .03 230);
   /* 教材の SVG 図が使う名前(ローカル版から移した図と互換) */
   --ink-faint: var(--ink-muted);
   /* 刺し子(ランニングステッチ)の線 */
@@ -195,15 +202,23 @@ button { font: inherit; letter-spacing: inherit; }
 .stitch { height: 2px; border: 0; margin: 0; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }
 
 /* highlight.js の色(藍の夜): 文字列=刈安、注釈=青竹、予約語=縹、数=朱 */
-.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: oklch(.8 .1 236); }
-.hljs-string, .hljs-regexp { color: oklch(.86 .09 85); }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: var(--syn-key); }
+.hljs-string, .hljs-regexp { color: var(--syn-str); }
 .hljs-comment, .hljs-quote { color: var(--code-muted); font-style: normal; }
-.hljs-meta, .hljs-meta .hljs-keyword { color: oklch(.82 .1 165); }
-.hljs-number, .hljs-symbol { color: oklch(.8 .1 40); }
-.hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in { color: oklch(.94 .03 230); font-weight: 600; }
+.hljs-meta, .hljs-meta .hljs-keyword { color: var(--syn-meta); }
+.hljs-number, .hljs-symbol { color: var(--syn-num); }
+.hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in { color: var(--syn-type); font-weight: 600; }
 .hljs-params, .hljs-variable, .hljs-attr { color: var(--code-ink); }
-.hljs-addition { color: oklch(.82 .1 165); }
-.hljs-deletion { color: oklch(.8 .1 40); }
+.hljs-addition { color: var(--syn-meta); }
+.hljs-deletion { color: var(--syn-num); }
+/* 編集欄(CodeMirror)の色付け。app.js が @lezer/highlight の classHighlighter で tok-* を付ける */
+.cm-editor .tok-keyword, .cm-editor .tok-atom, .cm-editor .tok-bool, .cm-editor .tok-literal { color: var(--syn-key); }
+.cm-editor .tok-string, .cm-editor .tok-string2 { color: var(--syn-str); }
+.cm-editor .tok-comment { color: var(--code-muted); }
+.cm-editor .tok-meta { color: var(--syn-meta); }
+.cm-editor .tok-number { color: var(--syn-num); }
+.cm-editor .tok-typeName, .cm-editor .tok-className, .cm-editor .tok-namespace { color: var(--syn-type); font-weight: 600; }
+.cm-editor .tok-invalid { color: var(--syn-num); text-decoration: underline wavy; }
 
 /* ================================================================ 線のアイコン(inline SVG、線 1.75px) */
 .icon { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
@@ -921,9 +936,23 @@ body:has(.kana-wrap) .site-header::after { display: none; }
   border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); color: var(--ink); tab-size: 4;
 }
 .code-input { min-height: 220px; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
-.code-form .cm-editor { border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--surface); max-height: 520px; }
+/* PC の編集欄も、ほかのコードの面と同じ褐の地と色付け(白地に紫・緑の既定の配色だと、ここだけ別のサイトに見えた。27 回目の審査)。
+   読み込めずに素の textarea で動くときも同じ地に。スマホ版の .code-input は白地のまま(上の組) */
+.code-form textarea.code-editor, .code-form .plain-editor { background: var(--code-bg); color: var(--code-ink); border-color: var(--code-bg); caret-color: var(--code-ink); }
+.code-form .cm-editor { border: 1px solid var(--code-bg); border-radius: var(--r-m); background: var(--code-bg); color: var(--code-ink); max-height: 520px; }
 .code-form .cm-editor.cm-focused { outline: 3px solid var(--accent); outline-offset: 1px; }
 .code-form .cm-scroller { font-family: var(--mono); min-height: 120px; }
+.code-form .cm-editor .cm-content { caret-color: var(--code-ink); }
+.code-form .cm-editor .cm-cursor, .code-form .cm-editor .cm-dropCursor { border-left-color: var(--code-ink); }
+.code-form .cm-editor .cm-gutters { background: var(--code-bg); color: var(--code-muted); border-right: 1px solid oklch(1 0 0 / .08); }
+.code-form .cm-editor .cm-activeLine { background: oklch(1 0 0 / .045); }
+.code-form .cm-editor .cm-activeLineGutter { background: oklch(1 0 0 / .07); color: var(--code-ink); }
+/* 選択は縹を薄く(既定の灰色は褐の地で見分けにくい)。CodeMirror の基本の組より強い指定にする */
+.code-form .cm-editor .cm-selectionLayer .cm-selectionBackground, .code-form .cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground { background: oklch(.6 .11 240 / .42); }
+.code-form .cm-editor .cm-matchingBracket, .code-form .cm-editor.cm-focused .cm-matchingBracket { background: oklch(1 0 0 / .14); color: inherit; }
+.code-form .cm-editor .cm-nonmatchingBracket, .code-form .cm-editor.cm-focused .cm-nonmatchingBracket { background: none; color: var(--syn-num); }
+.code-form .cm-editor .cm-foldPlaceholder { background: oklch(1 0 0 / .1); border: 0; color: var(--code-ink); }
+.code-form .cm-editor .cm-selectionMatch { background: oklch(1 0 0 / .1); }
 .code-editor.tall + .cm-editor, .code-form textarea.tall { min-height: 360px; }
 .actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
 .run-result, .grade-result { border-radius: var(--r-m); padding: 12px 16px; margin: 10px 0; background: var(--surface-2); border: 0; }

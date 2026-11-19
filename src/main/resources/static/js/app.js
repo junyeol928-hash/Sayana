@@ -2,12 +2,17 @@
 // CodeMirror / Mermaid / highlight.js は CDN から読む。読めなくても textarea のまま動く。
 
 // 依存パッケージを全部固定して、@codemirror/state などが1つのインスタンスに揃うようにする
-const CM_DEPS = "?deps=" + [
-  "@codemirror/state@6.7.6", "@codemirror/view@6.43.14", "@codemirror/language@6.13.1",
-  "@codemirror/commands@6.11.1", "@codemirror/lint@6.9.7", "@codemirror/autocomplete@6.20.3",
-  "@codemirror/search@6.7.2", "@lezer/common@1.5.3", "@lezer/highlight@1.2.5", "@lezer/lr@1.4.11",
-  "@lezer/java@1.1.5",
-].join(",");
+const CM_V = {
+  state: "@codemirror/state@6.7.6", view: "@codemirror/view@6.43.14", language: "@codemirror/language@6.13.1",
+  commands: "@codemirror/commands@6.11.1", lint: "@codemirror/lint@6.9.7", autocomplete: "@codemirror/autocomplete@6.20.3",
+  search: "@codemirror/search@6.7.2", common: "@lezer/common@1.5.3", highlight: "@lezer/highlight@1.2.5", lr: "@lezer/lr@1.4.11",
+  java: "@lezer/java@1.1.5",
+};
+const CM_DEPS = "?deps=" + Object.values(CM_V).join(",");
+// esm.sh は ?deps= に並べた依存の組ごとに別のファイル(= 別のインスタンス)を配る。basicSetup の中で使われているものと同じに
+// なるよう、view・language などには自分の依存だけを渡す(全部を渡すと別物になり、keymap の Ctrl+Enter や色付けの指定が
+// 黙って無視されていた)
+const cmUrl = (pkg, ...deps) => `https://esm.sh/${pkg}?deps=${deps.map((d) => CM_V[d]).join(",")}`;
 
 let cm = null;            // CodeMirror のモジュール群(読み込めたら入る)
 let activeView = null;    // 最後に触ったエディタ
@@ -25,14 +30,35 @@ const SYMBOL_KEYS = [
 
 async function loadCodeMirror() {
   try {
-    const [core, view, commands, javaLang] = await Promise.all([
+    const [core, view, commands, javaLang, language, lezerHighlight] = await Promise.all([
       import("https://esm.sh/codemirror@6.0.2" + CM_DEPS),
-      import("https://esm.sh/@codemirror/view@6.43.14" + CM_DEPS),
-      import("https://esm.sh/@codemirror/commands@6.11.1" + CM_DEPS),
-      import("https://esm.sh/@codemirror/lang-java@6.0.2" + CM_DEPS),
+      import(cmUrl(CM_V.view, "state")),
+      import(cmUrl(CM_V.commands, "language", "state", "view", "common", "highlight", "lr")),
+      import(cmUrl("@codemirror/lang-java@6.0.2", "language", "state", "view", "common", "highlight", "java", "lr")),
+      import(cmUrl(CM_V.language, "state", "view", "common", "highlight", "lr")),
+      import(cmUrl(CM_V.highlight, "common")),
     ]);
+    // 注釈(@Component など)は読むコードと同じ青竹に。lezer の Java は注釈の名前に色の印を付けないので、ここで .tok-meta を
+    // 付ける(文字列・コメントの中の @ は除く)
+    const { MatchDecorator, Decoration, ViewPlugin } = view;
+    const metaMark = Decoration.mark({ class: "tok-meta" });
+    const metaMatcher = new MatchDecorator({
+      regexp: /@[A-Za-z_][\w.]*/g,
+      decorate: (add, from, to, _m, v) => {
+        if (!/String|Comment|TextBlock/.test(language.syntaxTree(v.state).resolveInner(from, 1).name)) add(from, to, metaMark);
+      },
+    });
+    const annotations = ViewPlugin.fromClass(class {
+      constructor(v) { this.decorations = metaMatcher.createDeco(v); }
+      // 構文木は少しずつ組まれるので、木が育ったら付け直す(開いた直後は木が無く、コメントの中の @Autowired まで色が付いた)
+      update(u) {
+        this.decorations = language.syntaxTree(u.startState) !== language.syntaxTree(u.state)
+          ? metaMatcher.createDeco(u.view) : metaMatcher.updateDeco(u, this.decorations);
+      }
+    }, { decorations: (p) => p.decorations });
     cm = { basicSetup: core.basicSetup, EditorView: core.EditorView, keymap: view.keymap,
-           indentWithTab: commands.indentWithTab, java: javaLang.java };
+           indentWithTab: commands.indentWithTab, java: javaLang.java, annotations,
+           syntaxHighlighting: language.syntaxHighlighting, classHighlighter: lezerHighlight.classHighlighter };
   } catch (e) {
     console.warn("CodeMirror を読み込めなかったので、普通のテキストエリアで動かします", e);
   }
@@ -67,16 +93,22 @@ function initEditor(ta) {
     });
     return;
   }
-  const { EditorView, basicSetup, keymap, indentWithTab, java } = cm;
+  const { EditorView, basicSetup, keymap, indentWithTab, java, syntaxHighlighting, classHighlighter, annotations } = cm;
   const view = new EditorView({
     doc: ta.value,
     extensions: [
-      basicSetup,
-      java(),
+      // basicSetup より前に置く(同じ強さでは前のものが勝つ。後ろだと basicSetup の Mod-Enter = 空行を入れる、が勝った)
       keymap.of([
         { key: "Mod-Enter", run: () => { submitForm(ta.form); return true; } },
         indentWithTab,
       ]),
+      basicSetup,
+      java(),
+      // 色付けはほかのコードの面と同じ(予約語は縹・文字列は刈安・注釈は青竹)。色は app.css の .tok-* と --syn-* で決める。
+      // 地は両テーマとも暗いので、CodeMirror の暗い基本の組(補完の吹き出し・検索の欄)を使う
+      syntaxHighlighting(classHighlighter),
+      annotations,
+      EditorView.darkTheme.of(true),
       EditorView.updateListener.of((u) => {
         if (u.docChanged) ta.value = u.state.doc.toString();
         if (u.focusChanged && u.view.hasFocus) activeView = { text: () => u.state.doc.toString(), view: u.view };
