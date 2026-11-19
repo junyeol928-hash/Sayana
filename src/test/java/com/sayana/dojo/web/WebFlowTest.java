@@ -211,7 +211,7 @@ class WebFlowTest {
                     .andExpect(content().string(containsString("いま解き直す")))
                     .andExpect(content().string(containsString("あなたの読み")))
                     .andExpect(content().string(containsString(whyHead)))
-                    .andExpect(content().string(containsString("/lessons/java-hello#quiz-q0")));
+                    .andExpect(content().string(containsString("/lessons/java-hello?from=review#quiz-q0")));
             mvc.perform(get("/review").param("retry", "0")).andExpect(status().isOk())
                     .andExpect(content().string(containsString("解き直し <b>1</b>")))
                     .andExpect(content().string(containsString("unshin baste")));
@@ -221,7 +221,7 @@ class WebFlowTest {
             mvc.perform(post("/review/" + item.getId() + "/quiz").param("choice", String.valueOf(q.answer()))
                             .param("retry", "0").param("total", "1"))
                     .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("/lessons/java-hello#quiz-q0")))
+                    .andExpect(content().string(containsString("/lessons/java-hello?from=review#quiz-q0")))
                     .andExpect(content().string(containsString("おわりの画面へ")))
                     .andExpect(content().string(not(containsString("hx-swap-oob"))));
             ReviewItem unchanged = reviewItems.findById(item.getId()).orElseThrow();

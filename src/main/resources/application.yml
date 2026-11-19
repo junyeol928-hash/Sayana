@@ -6,6 +6,9 @@ server:
     encoding:
       charset: UTF-8
       force: true
+    # 解き直しの跡(仮縫い)はセッションに持つ。既定の 30 分だと、本文を読んで戻ると消えていた(その日のうちは残す)
+    session:
+      timeout: 12h
 
 spring:
   application:

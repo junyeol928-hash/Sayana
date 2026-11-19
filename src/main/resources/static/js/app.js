@@ -220,6 +220,9 @@ function mermaidTheme() {
 const JAVA_WORDS = new Set(("public private protected static final abstract void int long double float boolean byte char short var new "
   + "return if else for while do switch case default try catch finally throw throws class interface record enum extends implements "
   + "super this null true false instanceof import package").split(" "));
+// 1 行のブロックにするメッセージらしいもの: 24 字以上で空白を含み、文や宣言の記号(; { } = && || ->)が無い。
+// 呼び出しの括弧があるものは、英語の文らしいときだけ
+const msgLike = (t) => t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t));
 function proseLike(t) {
   const words = t.trim().split(/\s+/);
   const plain = (w) => /^[A-Za-z][a-z]+(?:-[a-z]+)*$/.test(w) && !JAVA_WORDS.has(w);
@@ -237,7 +240,8 @@ function highlight(root) {
   root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .quiz-review pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre, .check pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
-  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 12) c.classList.add("nb"); });
+  // 16 字までのチップは折らない(「javac App.java」が空白で 2 行に割れていた)
+  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 16) c.classList.add("nb"); });
   inlineNotes(root);
   // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
   // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
@@ -257,7 +261,16 @@ function highlight(root) {
     // コードの式・宣言・呼び出し(; { } = や「名前(」、&& || ->)はチップのまま(段落にすると、文が 3 つに割れた。24 回目の審査)。
     // ただし英語の文らしいもの(`Cannot invoke "String.hashCode()"`・`method calc(int) is already defined`)は、
     // 呼び出しの括弧があってもメッセージ
-    if (t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t))) c.classList.add("code-msg");
+    if (msgLike(t)) c.classList.add("code-msg");
+  });
+  // 本文の段落・箇条書きの長いメッセージ(起動に失敗したときの文など)も同じく 1 行のブロックに(チップのまま 3〜5 本の帯に割れていた。
+  // 25 回目の審査)。括弧の中の補足はチップのまま(ブロックにすると「(」が行末に残る)。表の中もチップのまま
+  root.querySelectorAll(".md p > code:not(.code-msg), .md li > code:not(.code-msg)").forEach((c) => {
+    if (!msgLike(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice")) return;
+    let before = "";
+    for (let n = c.previousSibling; n; n = n.previousSibling) before = n.textContent + before;
+    const open = (before.match(/[(（]/g) || []).length - (before.match(/[)）]/g) || []).length;
+    if (open <= 0) c.classList.add("code-msg");
   });
   // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
   // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
@@ -272,6 +285,7 @@ function highlight(root) {
     if (next?.nodeType === 3 && /^[、。，．,.)）」』】\]:;!?]/.test(next.data)) {
       if (/^[）」』】]/.test(next.data)) c.classList.add("before-close");
       else if (/^\)/.test(next.data)) c.classList.add("before-paren");
+      else if (/^[、。，．]/.test(next.data)) c.classList.add("before-punct"); // 「`true` 。」と句点の前が 1 字近く空いていた
       next.data = "\u2060" + next.data;
     }
     if (next?.nodeType === 3 && /^[(（「『【]/.test(next.data)) c.after(document.createElement("wbr"));
@@ -290,6 +304,8 @@ function highlight(root) {
   });
 
   root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
+    // 仕事のコードの行の説明(コードの中に差し込んだ文)のチップは色付けしない(塊になり、説明が全幅の切れ端に割れた。25 回目の審査)
+    if (el.closest(".ln-note")) return;
     if (!el.className.includes("language-")) el.classList.add("language-java");
     if (el.classList.contains("language-text")) return;
     window.hljs.highlightElement(el);
@@ -542,6 +558,10 @@ function trackLesson() {
   let current = null;
   const h1 = document.querySelector("h1[data-lesson-id]");
   const lessonId = h1?.dataset.lessonId;
+  // 復習・読解・用語集から開いた(?from=)ときは「のぞき見」: 前回の続き(ホームの主役)を書き換えず、戻り先を段の帯の右に出す
+  // (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わった。25 回目の審査)
+  const back = { review: ["/review", "復習へ戻る"], reading: ["/reading", "読解へ戻る"], terms: ["/glossary", "用語集へ戻る"] }[new URLSearchParams(location.search).get("from")];
+  if (back) stepper.insertAdjacentHTML("afterend", `<a class="peek-back" href="${back[0]}">${back[1]}</a>`);
   const seen = pcStore(SECTIONS_KEY);
   const markDone = (key) => stepper.querySelector(`.step[href="#${key}"]`)?.classList.add("done");
   (seen[lessonId] || []).forEach(markDone);
@@ -568,13 +588,16 @@ function trackLesson() {
     // 前回の続き(ダッシュボードの主役にする)
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      if (!lessonId) return;
+      if (!lessonId || (back && pcStore(LAST_KEY).id !== lessonId)) return;
       const end = document.querySelector(".lesson-nav")?.getBoundingClientRect().top < innerHeight;
       const top = document.getElementById(current)?.getBoundingClientRect().top ?? line;
       pcSave(LAST_KEY, { id: lessonId, title: h1.textContent.trim(), section: current, off: Math.round(line - top), end });
     }, 400);
+    // 今の段は、上端が画面の上から 1/3 の線を越えた最後の段(「読み直す」でクイズの 1 問目に着くと、節の見出しが 140px の線より
+    // 下に残り、段の印が前の「サンプル」のままだった。25 回目の審査)
+    const pick = Math.max(line, innerHeight / 3);
     let key = sections[0].id;
-    for (const sec of sections) if (sec.getBoundingClientRect().top <= line) key = sec.id;
+    for (const sec of sections) if (sec.getBoundingClientRect().top <= pick) key = sec.id;
     if (key !== current) {
       current = key;
       steps.forEach((a) => {
@@ -734,6 +757,10 @@ document.addEventListener("htmx:afterSwap", (e) => {
   // 上の行の差し替え(hx-swap-oob)でも afterSwap が来るので、1 回の答えにつき 1 回だけ印を付ける
   if (!v || v.dataset.marked) return;
   v.dataset.marked = "1";
+  // 2 列の画面では、右の列の選択肢の下にも「次へ」(左の判定と解説が長いと、次へが画面の外に落ちた。25 回目の審査)
+  const nextLink = v.querySelector(".review-next .btn.primary");
+  const form = v.closest(".review-quiz")?.querySelector("form");
+  if (nextLink && form && !form.querySelector(".review-next-side")) form.insertAdjacentHTML("beforeend", `<div class="review-next-side">${nextLink.outerHTML}</div>`);
   const answer = Number(v.dataset.answer);
   const chosen = Number(v.dataset.chosen);
   v.closest(".review-quiz")?.querySelectorAll("label.choice").forEach((label) => {
@@ -769,7 +796,8 @@ document.addEventListener("htmx:afterSwap", (e) => {
   verdict?.focus({ preventScroll: true });
   const card = v.closest(".review-quiz");
   const chosenLabel = card?.querySelector("label.is-wrong, label.is-answer");
-  const next = v.querySelector(".review-next .btn");
+  // 2 列のときは右の列の写しの「次へ」(左の方は隠れている)
+  const next = card?.querySelector(".review-next-side .btn") || v.querySelector(".review-next .btn");
   if (matchMedia("(min-width: 1200px)").matches && card && getComputedStyle(card).display === "grid") {
     // 2 列の PC: 選択肢は右上にあるので、「次へ」まで画面に収まるなら送らない(運針の縫う・ほどけるを隠さない)。
     // はみ出すときも、カードの上端(運針)がヘッダーのすぐ下に来る所まで

@@ -36,6 +36,11 @@ public record Lesson(
         return sts != null;
     }
 
+    /** ゴールの文(地の文はエスケープし、`…` だけコードの書体に。コードの語を本文と同じ書体で出す) */
+    public List<String> goalsHtml() {
+        return goals.stream().map(g -> org.springframework.web.util.HtmlUtils.htmlEscape(g).replaceAll("`([^`]+)`", "<code>$1</code>")).toList();
+    }
+
     /** レッスンにある段(読む → 仕事のコード → サンプル → クイズ → 演習 → 読解 → STSで試す)。レッスン画面の段の並びと同じ。 */
     public List<String> stepKeys() {
         List<String> keys = new ArrayList<>(List.of("read"));

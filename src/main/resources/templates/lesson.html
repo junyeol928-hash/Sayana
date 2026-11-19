@@ -55,7 +55,7 @@
     </div>
     <details class="goals" th:if="${!lesson.goals.isEmpty()}" th:open="${!status.read}">
         <summary class="goals-title" th:text="'このレッスンのゴール(' + ${lesson.goals.size()} + ')'">このレッスンのゴール</summary>
-        <ul><li th:each="g : ${lesson.goals}" th:text="${g}"></li></ul>
+        <ul><li th:each="g : ${lesson.goalsHtml()}" th:utext="${g}"></li></ul>
     </details>
 
     <section id="read" class="lesson-section" aria-labelledby="read-title">

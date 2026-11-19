@@ -159,6 +159,33 @@ class CurriculumTest {
             for (int i = 0; i < l.checks().size(); i++) {
                 var c = l.checks().get(i);
                 proseProblems(l.id() + " check " + i, c.questionHtml(), c.choicesHtml(), c.whyHtml(), c.explanationHtml(), List.of(), problems);
+                // 2 択は、間違えた直後の解き直しが消去法で必ず当たる(仮縫いが思い出せた印にならない)
+                if (c.choicesHtml().size() < 3) {
+                    problems.add(l.id() + " check " + i + ": 2 択(もっともらしい 3 つ目の誤答と why を足す)");
+                }
+            }
+            // 仕事のコードの導入・行の説明・要点と、レッスンのゴールでは、コードの語をコード書式に(すぐ上のコードと同じ語が本文の書体で出ていた)
+            java.util.Set<String> lessonIds = new java.util.HashSet<>();
+            for (Lesson.AtWork aw : l.atWork()) {
+                java.util.Set<String> ids = codeIdentifiers(aw.code());
+                lessonIds.addAll(ids);
+                List<String> notes = new java.util.ArrayList<>();
+                notes.add(aw.introHtml());
+                notes.addAll(aw.notesHtml().values());
+                notes.addAll(aw.pointsHtml());
+                for (String t : notes) {
+                    String w = bareIdentifier(plain(t, true), ids);
+                    if (w != null) {
+                        problems.add(l.id() + " 仕事のコード「" + aw.title() + "」: 識別子「" + w + "」がコード書式の外にある");
+                    }
+                }
+            }
+            l.samples().forEach(s -> lessonIds.addAll(codeIdentifiers(s.code())));
+            for (String g : l.goals()) {
+                String w = bareIdentifier(g.replaceAll("`[^`]*`", "〓"), lessonIds);
+                if (w != null) {
+                    problems.add(l.id() + " ゴール: 識別子「" + w + "」がコード書式の外にある(「" + g + "」)");
+                }
             }
             for (Lesson.Sample s : l.samples()) {
                 // スマホ版の predictLine と同じ拾い方(? / だろうか / でしょうか で終わる文)
@@ -242,11 +269,63 @@ class CurriculumTest {
     private static final java.util.regex.Pattern ASCII_WORD = java.util.regex.Pattern.compile(
             "(?<![A-Za-z0-9_@.])[A-Za-z_@][A-Za-z0-9_.@\\-]*");
 
+    private static final java.util.regex.Pattern BARE_LITERAL = java.util.regex.Pattern.compile("(?<![A-Za-z0-9_])(?:true|false|null)(?![A-Za-z0-9_])");
+    private static final java.util.regex.Pattern IDENT = java.util.regex.Pattern.compile(
+            "(?<![A-Za-z0-9_@.])@?[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*");
+    private static final java.util.Set<String> CODE_KEYWORDS = java.util.Set.of("final", "static", "null", "true", "false");
+
+    /** コードに出る名前(ドットでつないだ名前は、つないだままと 1 つずつの両方) */
+    static java.util.Set<String> codeIdentifiers(String code) {
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        java.util.regex.Matcher m = IDENT.matcher(code == null ? "" : code);
+        while (m.find()) {
+            ids.add(m.group());
+            ids.addAll(List.of(m.group().replace("@", "").split("\\.")));
+        }
+        return ids;
+    }
+
+    /**
+     * 地の文に残ったコードの語: 注釈(@Component)・完全修飾名(java.time.Clock)・final / static / null / true / false と、
+     * コードに出る名前のうち、ドットでつないだもの・大文字を 2 つ以上持つもの(RestTemplate)・途中に大文字のあるもの(findById)・定数(MAX_SIZE)。
+     * 大文字 1 つの語(List・Service・Bean)は、役割の言葉として地の文に書くこともあるので拾わない
+     */
+    static String bareIdentifier(String text, java.util.Set<String> ids) {
+        java.util.regex.Matcher m = IDENT.matcher(text == null ? "" : text);
+        while (m.find()) {
+            String t = m.group();
+            boolean shaped = t.contains(".") || t.matches("[A-Z][a-z0-9]+(?:[A-Z][A-Za-z0-9]*)+") || t.matches("[a-z][a-z0-9]*[A-Z]\\w*")
+                    || t.matches("[A-Z][A-Z0-9]*_[A-Z0-9_]+");
+            if ((t.startsWith("@") && t.length() > 1) || t.matches("[a-z]\\w*(?:\\.[a-z]\\w*)+\\.[A-Z]\\w*") || CODE_KEYWORDS.contains(t)
+                    || (shaped && ids.contains(t))) {
+                return t;
+            }
+        }
+        return null;
+    }
+
     private static void proseProblems(String where, String question, List<String> choices, List<String> why, String explanation,
                                       List<String> trace, List<String> problems) {
         List<String> texts = new java.util.ArrayList<>(List.of(question, explanation));
         texts.addAll(choices);
         texts.addAll(why);
+        // true・false・null はどこでもコード書式に(問いをまたいで 1 画面に並ぶと、書体が揺れて見えた)
+        List<String> withTrace = new java.util.ArrayList<>(texts);
+        withTrace.addAll(trace);
+        for (String t : withTrace) {
+            java.util.regex.Matcher lit = BARE_LITERAL.matcher(plain(t, true));
+            if (lit.find()) {
+                problems.add(where + ": リテラル「" + lit.group() + "」がコード書式の外にある");
+            }
+        }
+        // why と選択肢は 1 文。行頭の「+ 」「- 」で Markdown の箇条書きや見出しに化けると、記号が消えて文の意味が変わる
+        List<String> oneLine = new java.util.ArrayList<>(choices);
+        oneLine.addAll(why);
+        for (String t : oneLine) {
+            if (t != null && java.util.regex.Pattern.compile("<(?:ul|ol|li|h[1-6]|blockquote)\\b").matcher(t).find()) {
+                problems.add(where + ": 選択肢か why が箇条書き・見出しに化けている(行頭の記号はコード書式に): " + plain(t, true));
+            }
+        }
         for (String t : texts) {
             java.util.regex.Matcher m = ASCII_QUOTED.matcher(plain(t, true));
             if (m.find()) {

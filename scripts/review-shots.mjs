@@ -109,6 +109,12 @@ await js(`document.querySelector(".step-menu").open = false;`);
 await scrollTo("#atwork .code-notes", 160);
 await sleep(3500); // 3 秒読んだら「済み」になるのを確かめる
 await shot("m-lesson-atwork");
+// 仕事のコードの行の説明の中のチップ(25 回目: 色付けの塊になって、説明が全幅の切れ端に割れていた)
+await open(mobileArg + "#/lesson/java-arrays");
+console.log("行の説明の中の色付けの塊:", await js(`return document.querySelectorAll(".ln-note code.hljs").length + " / " + document.querySelectorAll(".ln-note code").length;`));
+await scrollTo(".ln-note code", 260);
+await shot("m-lnnote-chip");
+await open(mobileArg + "#/lesson/spring-di");
 await js(`const L = await (await fetch("data/lessons/spring-di.json")).json(); const f = document.querySelector("form[data-action=quiz]");
   L.quiz.forEach((q, i) => { f.querySelector('input[name=q' + i + '][value="' + (i === 1 ? (q.answer + 1) % q.choicesHtml.length : q.answer) + '"]').checked = true; });
   f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 1500));`);
@@ -152,6 +158,14 @@ await js(`const f = document.querySelector("#rq"); if (f) {
 await shot("m-review-answer");
 await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 300));`);
 await shot("m-review-answer-top");
+// 「読み直す」はのぞき見: レッスンの段の帯に「復習へ戻る」、ホームの前回の続きは変わらない(25 回目: 古いレッスンに替わっていた)
+const heroBefore = await js(`return JSON.parse(localStorage.getItem("javadojo-m-v1")).last?.id || "";`);
+await js(`document.querySelector(".review-source")?.click(); await new Promise((r) => setTimeout(r, 2500));`);
+await shot("m-reread-landing");
+await open(mobileArg + "#/");
+console.log("読み直したあとの前回の続き:", heroBefore, "→", await js(`return JSON.parse(localStorage.getItem("javadojo-m-v1")).last?.id || "";`));
+await shot("m-home-after-reread");
+await open(mobileArg + "#/review");
 // 10 問の区切り(今日 10 問答えた形にして開き直す)
 await js(`const s = JSON.parse(localStorage.getItem("javadojo-m-v1")); const d = new Date(); const t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const keys = Object.keys(s.review).filter((k) => !s.review[k].graduated); // 本物の問題で(間違えた問題の行に名前が出るように)
@@ -260,11 +274,11 @@ for (let k = 0; k < 12; k++) {
     f.querySelector("input").checked = true; f.querySelector("button[type=submit]").click(); await new Promise((r) => setTimeout(r, 1200)); return true;`);
   if (!more) break;
 }
-await open(pcArg + "review?retry=99&r=10");
+await open(pcArg + "review?retry=99&r=100");
 await scrollTo(".review-done, .review-break", 90);
 await shot("pc-review-retry-end");
 // 「読み直す」で問いそのものへ着いたとき(1.2 秒の藍の枠とフォーカス)。枠が消える前に撮る
-await send("Page.navigate", { url: pcArg + "lessons/java-if#quiz-q1" });
+await send("Page.navigate", { url: pcArg + "lessons/java-if?from=review#quiz-q1" });
 let landed = "";
 for (let k = 0; k < 40 && !landed.includes("枠 true"); k++) {
   await sleep(100);

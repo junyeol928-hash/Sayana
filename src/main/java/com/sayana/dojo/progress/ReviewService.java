@@ -164,15 +164,15 @@ public class ReviewService {
             for (int k = 1; k <= 12; k++) {
                 tries.add(shuffled(item.getItemRef() + "|" + LocalDate.now(clock) + "|retry" + (p > 1 ? p + "-" : "") + k, size));
             }
-            int last = used.getLast();
-            List<Integer> before = pick;
-            pick = tries.stream().filter(o -> !used.contains(o.indexOf(answer))).findFirst()
-                    .or(() -> tries.stream().filter(o -> o.indexOf(answer) != last).findFirst())
-                    .orElseGet(() -> {
-                        List<Integer> reversed = new ArrayList<>(before);
-                        Collections.reverse(reversed);
-                        return reversed;
-                    });
+            // 12 の候補に使っていない位置が無いときは、並びを回して正解を使っていない位置へ(無ければ前の回と違う位置へ)。
+            // 近い種の乱数は最初の値が偏り、まだ見せていない位置があるのに 1 回目の位置に戻ることがあった(25 回目の審査)
+            List<Integer> unused = IntStream.range(0, size).filter(i -> !used.contains(i)).boxed().toList();
+            int target = unused.isEmpty() ? (used.getLast() + 1) % size : unused.getFirst();
+            pick = tries.stream().filter(o -> !used.contains(o.indexOf(answer))).findFirst().orElseGet(() -> {
+                List<Integer> rotated = new ArrayList<>(tries.getFirst());
+                Collections.rotate(rotated, target - rotated.indexOf(answer));
+                return rotated;
+            });
             used.add(pick.indexOf(answer));
         }
         return pick;

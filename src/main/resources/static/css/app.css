@@ -237,6 +237,10 @@ button { font: inherit; letter-spacing: inherit; }
 .net-badge.saved::before { background: var(--accent); }
 .net-badge.saving { display: inline-flex; }
 .net-badge.saving::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--accent); } /* 保存中は輪(塗りきった点が「保存済み」) */
+/* のぞき見(復習・読解・用語集から開いた)ときの戻り先。段の帯の「質問」の左に、文字のリンクで */
+.peek-back { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; margin-left: auto; color: var(--accent-ink); font-size: .875rem; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.peek-back + .ask { margin-left: 0; }
+.stepper-wrap > .peek-back { position: absolute; right: 0; top: 2px; background: var(--bg); } /* PC: 段の並びの右端に重ねる */
 .is-offline .ask { color: var(--ink-muted); } /* 電波がない間は AI に聞けないので弱く(押すと理由を出す) */ /* 有彩色は藍と朱だけ。朱は地図の主役の印と復習の数にとっておく */
 .ai-badge.on { color: var(--ok); }
 .site-footer { max-width: 1320px; margin: 72px auto 24px; padding: 20px 28px 0; display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: .8125rem; flex-wrap: wrap;
@@ -568,7 +572,7 @@ details.goals[open] > summary { margin-bottom: 0; }
 .step .no { display: none; }
 .step::before { content: ""; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: var(--dye-empty); flex: none; }
 .step.done::before { background: none; border-radius: 0; outline: none; width: 10px; height: 6px; margin: 0 1px 3px; border-radius: 0; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
-.step .pc-only, .step-menu .pc-only { font-size: .6875rem; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; line-height: 1.5; }
+.step .pc-only, .step-menu .pc-only { font-size: .75rem; font-weight: 700; color: var(--ink-muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; line-height: 1.5; }
 .stepper-row { display: flex; align-items: center; --tail: 128px; }
 .stepper-row .stepper { flex: 1; min-width: 0; }
 .ask { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; margin: 0 0 2px 4px; padding: 0 12px;
@@ -682,7 +686,10 @@ pre.code-lines .ln::before { content: attr(data-n); position: absolute; left: 0;
 pre.code-lines .ln.note { margin-right: -14px; padding-right: 14px; } /* 説明のある行の帯は右端まで */
 pre.code-lines .ln-note { display: block; margin: 2px 0 8px 44px; padding: 8px 12px; border-left: 2px solid var(--dye-2); border-radius: 0 var(--r-s) var(--r-s) 0;
   background: oklch(1 0 0 / .06); color: var(--code-ink, #e8eef5); font: 400 .875rem/1.7 var(--font); white-space: normal; letter-spacing: .02em; }
-pre.code-lines .ln-note code { color: inherit; background: oklch(1 0 0 / .1); }
+/* 行の説明のチップは文の中の語(コードの面の上なので地は白の 10%)。色付けの塊(hljs の display: block)にさせない */
+pre.code-lines .ln-note code, pre.code-lines .ln-note code.hljs { display: inline; padding: .08em .38em; border-radius: var(--r-s); font-size: .9em;
+  white-space: normal; overflow-wrap: break-word; color: inherit; background: oklch(1 0 0 / .1);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .line-notes.has-inline { display: none; }
 .notes-toggle { display: inline-flex; align-items: center; min-height: 44px; margin: 6px 0 -6px; padding: 0 2px; border: 0; background: none; color: var(--accent-ink); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .atwork.notes-folded pre.code-lines .ln-note { display: none; }
@@ -835,6 +842,9 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .check-item { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; }
 .check-item form { display: flex; gap: 12px; align-items: center; }
 .check-button { width: 28px; height: 28px; flex: none; border-radius: 6px; border: 1.5px solid var(--line-strong); background: var(--surface); cursor: pointer; padding: 0; display: grid; place-items: center; color: transparent; font-size: 0; margin: 8px; box-sizing: content-box; width: 26px; height: 26px; }
+/* 押せる範囲は 44px(見た目の四角は 26px のまま) */
+.check-button { position: relative; }
+.check-button::before { content: ""; position: absolute; inset: -9px; }
 .check-button::after { content: ""; width: 12px; height: 7px; border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(-45deg); }
 .check-item.checked .check-button { background: var(--dye-3); border-color: var(--dye-3); color: var(--on-accent); }
 .check-item.checked span { color: var(--ink-muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
@@ -914,7 +924,7 @@ code.nb { white-space: nowrap; }
 /* 括弧に接するチップは、括弧の側の内側の余白を詰める(「構文( case 2 -> )」と空いていた)。外へ詰めると、
    括弧の字面の空きは括弧の外側にあるので、チップの地が括弧の線にかぶさる(BIZ UDPGothic では全角の括弧も幅が半分) */
 code.after-open, code.after-paren { padding-inline-start: .14em; }
-code.before-close, code.before-paren { padding-inline-end: .14em; }
+code.before-close, code.before-paren, code.before-punct { padding-inline-end: .14em; }
 /* 横に送る表(4 列から)は、続きがある側の端に影を出す(地の色の覆いは中身と一緒に動き、影は枠に残る。端まで送ると影が消える) */
 .md table:not(.stack) {
   background: linear-gradient(to right, var(--bg) 40%, transparent) left / 28px 100% no-repeat local,
@@ -1137,7 +1147,14 @@ p.review-source { display: block; min-height: 0; border: 0; }
   .review-quiz:has(> .md pre) > form { grid-column: 2; grid-row: 2 / span 2; }
   .review-quiz:has(> .md pre) > #review-answer { grid-column: 1; grid-row: 3; }
   .review-quiz:has(> .md pre) .choice { padding: 10px 12px; margin: 6px 0; }
+  .review-quiz:has(> .md pre) .review-next-side { display: block; margin-top: 16px; }
+  .review-quiz:has(> .md pre) .review-next-side .btn { width: 100%; }
+  .review-quiz:has(> .md pre):has(.review-next-side) #review-answer .review-next .btn.primary { display: none; }
 }
+.review-next-side { display: none; }
+/* 読解のカードの答え合わせ: 復習の帯と同じ形(幅いっぱい・52px、選ぶまでは押せない)。カードが多いので留めない */
+.reading-q .arm-submit { display: flex; width: 100%; min-height: 52px; margin-top: 10px; }
+.reading-q .reading-last { display: block; margin-top: 6px; }
 /* 10 問の区切り: いまの 10 問を運針で並べる(正解は藍の糸、間違えた問は針穴に朱の ×。色だけでなく形でも分かる) */
 .review-break { margin: 12px 0 24px; }
 .review-break-kicker { margin: 0 0 12px; font-size: .875rem; color: var(--ink-muted); }
@@ -1159,7 +1176,7 @@ p.review-source { display: block; min-height: 0; border: 0; }
   linear-gradient(45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 7px 7px no-repeat,
   linear-gradient(-45deg, transparent 43%, var(--shu) 43% 57%, transparent 57%) 50% 0 / 7px 7px no-repeat,
   repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px) 0 50% / 100% 3px no-repeat; }
-.retry-done { margin: 0 0 16px; font-size: .9375rem; }
+.retry-done { margin: 0 0 16px; font-size: .9375rem; word-break: auto-phrase; } /* 「仮縫いで / きた」と語の途中で折れていた */
 .retry-tag { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px dashed var(--baste); border-radius: var(--r-s); color: var(--accent-ink); font-size: .75rem; font-weight: 700; line-height: 1.6; vertical-align: 1px; }
 .break-rows { display: grid; gap: 12px; }
 .break-rows .break-unshin { margin: 0; }
@@ -1173,10 +1190,15 @@ p.review-source { display: block; min-height: 0; border: 0; }
 .missed-body b { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: .8125rem; color: var(--ink-muted); }
 .missed-read { color: var(--ink); font-size: .9375rem; line-height: 1.6; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .missed-read code { white-space: nowrap; }
+/* 1 文の中にブロック(箇条書きなど)が混ざっても、文の幅を 1 字につぶさない */
+.missed-read :is(ul, ol, li, p) { display: inline; margin: 0; padding: 0; list-style: none; }
 /* 選んだ誤答の why の 1 文目の前の小さな札 */
 .missed-why { display: inline-block; margin-right: 6px; padding: 0 5px; border: 1px solid currentColor; border-radius: var(--r-s); color: var(--shu); font-size: .75rem; font-weight: 700; line-height: 1.5; vertical-align: 1px; }
 /* 解き直しの結果(レッスン名の右): 正しく解けたら仮縫いの破線の枠、まだなら朱 */
 .missed-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent-ink); font-size: .875rem; }
+/* 開閉の印(display: flex で既定の印が消えていた)。「染まり方の見方」と同じ山形 */
+.missed-more > summary::after { content: ""; width: 7px; height: 7px; margin: -4px 0 0 10px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .2s; }
+.missed-more[open] > summary::after { margin-top: 4px; transform: rotate(-135deg); }
 .missed-more > .missed-list { margin-top: 0; }
 .missed-basted, .missed-again { padding: 0 5px; border-radius: var(--r-s); font-size: .75rem; font-weight: 700; line-height: 1.5; }
 .missed-basted { border: 1px dashed var(--baste); color: var(--accent-ink); }
