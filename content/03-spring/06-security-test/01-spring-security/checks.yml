@@ -12,11 +12,12 @@
 - after: ユーザーとパスワード
   question: |
     依存を入れた直後は、`user` と起動ログの生成パスワードでログインできた。そこへ haru と mocha の `UserDetailsService` の Bean を定義して再起動すると、`user` でログインできる?
-  choices: ["できる(haru・mocha と並んで使える)", "できない"]
+  choices: ["できる(haru・mocha と並んで使える)", "できない", "起動時にエラーで止まる"]
   answer: 1
   why:
     - "自動のユーザーに足されると読んだ答え"
     - ""
+    - "自動の `user` と自分の Bean がぶつかると読んだ答え。ぶつかることはなく、そのまま起動する"
   explanation: |
     `user` と生成パスワードは、自分で `UserDetailsService` を定義していないときだけ用意される。定義すると自動の方は引っ込み、ログインできるのは haru と mocha だけになる。
 - after: メソッド単位の認可とログイン中のユーザー

@@ -5,10 +5,10 @@ minutes: 15
 summary: エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。
 goals:
   - JDBC 直書きと比べて、JPA・Hibernate・Spring Data JPA がそれぞれ何を担当しているか説明できる
-  - "@Entity・@Id・@GeneratedValue・@Column・@ManyToOne・@OneToMany(mappedBy)でエンティティを書ける"
-  - JpaRepository を継承し、派生クエリ(And・Containing・Between・OrderBy・Top3・count)と @Query(JPQL)で検索を宣言できる
-  - Pageable と Page でページングでき、application.properties で H2(ファイルモード・コンソール)と ddl-auto を設定できる
-  - N+1 問題と LazyInitializationException の原因を説明し、join fetch と DTO への詰め替えで避けられる
+  - "`@Entity`・`@Id`・`@GeneratedValue`・`@Column`・`@ManyToOne`・`@OneToMany`(`mappedBy`)でエンティティを書ける"
+  - "`JpaRepository` を継承し、派生クエリ(`And`・`Containing`・`Between`・`OrderBy`・`Top3`・`count`)と `@Query`(JPQL)で検索を宣言できる"
+  - "`Pageable` と `Page` でページングでき、`application.properties` で H2(ファイルモード・コンソール)と `ddl-auto` を設定できる"
+  - N+1 問題と `LazyInitializationException` の原因を説明し、`join fetch` と DTO への詰め替えで避けられる
 samples:
   - title: Spring Data がメソッド名をどう読むか(PartTree)
     description: |

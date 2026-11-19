@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 配列の限界を超える List / Set / Map。ArrayList・HashMap の基本操作から、不変コレクション、ループ中の削除、equals と hashCode、並べ替えまで。
 goals:
-  - List / Set / Map の違いと主な実装クラス(ArrayList・HashSet・LinkedHashSet・TreeSet・HashMap)を使い分けられる
-  - ArrayList と HashMap の基本操作(add / get / set / remove / put / getOrDefault / entrySet など)を書ける
-  - List.of の不変性と UnsupportedOperationException、ループ中の削除と ConcurrentModificationException を説明し、正しく回避できる
-  - HashSet / HashMap に自作クラスを入れるとき、equals と hashCode をセットで実装する理由を説明できる
-  - Collections.sort と Comparator で並べ替えができる
+  - "`List` / `Set` / `Map` の違いと主な実装クラス(`ArrayList`・`HashSet`・`LinkedHashSet`・`TreeSet`・`HashMap`)を使い分けられる"
+  - "`ArrayList` と `HashMap` の基本操作(`add` / `get` / `set` / `remove` / `put` / `getOrDefault` / `entrySet` など)を書ける"
+  - "`List.of` の不変性と `UnsupportedOperationException`、ループ中の削除と `ConcurrentModificationException` を説明し、正しく回避できる"
+  - "`HashSet` / `HashMap` に自作クラスを入れるとき、`equals` と `hashCode` をセットで実装する理由を説明できる"
+  - "`Collections.sort` と `Comparator` で並べ替えができる"
 samples:
   - title: ArrayList の基本操作
     description: 追加・取得・置き換え・削除・検索をひととおり試します。存在しない添字を `get` すると何が起きるかも確かめましょう。置き換えと削除のあと、最後の一覧には誰が残るだろうか。
@@ -128,7 +128,7 @@ quiz:
     answer: 3
     why:
       - "`List.of` の不変さが詰め替え先にも残ると読んだ答え。`new ArrayList<>(...)` は可変なので `add` できる"
-      - "Set に同じ値を入れると例外と読んだ答え。2 回目は入らず false が返るだけ"
+      - "Set に同じ値を入れると例外と読んだ答え。2 回目は入らず `false` が返るだけ"
       - "Map の同じキーへの put を例外と読んだ答え。値が上書きされるだけ"
       - ""
     explanation: |
@@ -162,7 +162,7 @@ quiz:
       System.out.println(m.size() + " " + m.get("A")
           + " " + m.getOrDefault("C", 0));
       ```
-    choices: ["3 1 0", "2 1 null", "2 3 0", "2 3 null"]
+    choices: ["`3 1 0`", "`2 1 null`", "`2 3 0`", "`2 3 null`"]
     answer: 2
     why:
       - "同じキーの `put` を別のエントリとして足すと読んだ答え。実際は上書き"
@@ -172,13 +172,13 @@ quiz:
     explanation: |
       同じキー `"A"` への2回目の `put` は **上書き** なので、エントリは A と B の2つ、`get("A")` は後から入れた `3` です。キー `"C"` は存在しないので `getOrDefault` は第2引数の `0` を返します。
   - question: |
-      `Emp` クラスで `equals` だけを「社員番号が同じなら true」になるようオーバーライドし、`hashCode` はオーバーライドしなかった。次のコードの結果として最も適切なのは?
+      `Emp` クラスで `equals` だけを「社員番号が同じなら `true`」になるようオーバーライドし、`hashCode` はオーバーライドしなかった。次のコードの結果として最も適切なのは?
       ```java
       Set<Emp> set = new HashSet<>();
       set.add(new Emp("E001"));
       System.out.println(set.contains(new Emp("E001")));
       ```
-    choices: ["ほぼ確実に false", "必ず true", "コンパイルエラー", "実行時に例外"]
+    choices: ["ほぼ確実に `false`", "必ず `true`", "コンパイルエラー", "実行時に例外"]
     answer: 0
     why:
       - ""

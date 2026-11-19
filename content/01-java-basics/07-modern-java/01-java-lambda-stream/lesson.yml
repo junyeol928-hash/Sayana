@@ -5,10 +5,10 @@ minutes: 15
 summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。
 goals:
   - 匿名クラスをラムダ式とメソッド参照に書き換えられる
-  - 関数型インターフェース(Function / Predicate / Consumer / Supplier / Comparator)の役割を説明できる
-  - filter / map / sorted / distinct / limit をつないで、Stream の3段階で処理を書ける
-  - collect(toList / toMap / groupingBy / joining)と mapToInt の sum / average で集計できる
-  - 遅延評価・Stream の再利用不可・実質 final という3つの罠を説明できる
+  - 関数型インターフェース(`Function` / `Predicate` / `Consumer` / `Supplier` / `Comparator`)の役割を説明できる
+  - "`filter` / `map` / `sorted` / `distinct` / `limit` をつないで、Stream の3段階で処理を書ける"
+  - "`collect`(`toList` / `toMap` / `groupingBy` / `joining`)と `mapToInt` の `sum` / `average` で集計できる"
+  - 遅延評価・Stream の再利用不可・実質 `final` という3つの罠を説明できる
 samples:
   - title: 匿名クラス → ラムダ式 → メソッド参照
     description: 並べ替えのルールを、匿名クラス・ラムダ式・メソッド参照の3通りの書き方で渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。② の短い順で、同じ 3 文字の Bob と Ken はどちらが先になるだろうか。

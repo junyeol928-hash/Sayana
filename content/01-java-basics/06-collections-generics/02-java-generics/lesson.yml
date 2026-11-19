@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。
 goals:
-  - raw 型の問題点(実行時の ClassCastException)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
-  - 型パラメータ付きクラス(Box<T>・Pair<K, V>)とジェネリックメソッドを書ける
-  - "<T extends Comparable<T>> で境界を付け、型パラメータのメソッドを呼べるようにできる"
-  - List<Integer> が List<Number> ではない理由を説明し、? extends / ? super を PECS で使い分けられる
-  - 型消去のために new T() や obj instanceof List<String> ができないこと、型引数にプリミティブを使えないことを説明できる
+  - raw 型の問題点(実行時の `ClassCastException`)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
+  - 型パラメータ付きクラス(`Box<T>`・`Pair<K, V>`)とジェネリックメソッドを書ける
+  - "`<T extends Comparable<T>>` で境界を付け、型パラメータのメソッドを呼べるようにできる"
+  - "`List<Integer>` が `List<Number>` ではない理由を説明し、`? extends` / `? super` を PECS で使い分けられる"
+  - 型消去のために `new T()` や `obj instanceof List<String>` ができないこと、型引数にプリミティブを使えないことを説明できる
 samples:
   - title: raw 型の事故とジェネリクス
     description: |
@@ -153,7 +153,7 @@ quiz:
       List<Integer> b = new ArrayList<>();
       System.out.println(a.getClass() == b.getClass());
       ```
-    choices: ["true", "false", "コンパイルエラー", "実行時に `ClassCastException`"]
+    choices: ["`true`", "`false`", "コンパイルエラー", "実行時に `ClassCastException`"]
     answer: 0
     why:
       - ""
@@ -170,7 +170,7 @@ quiz:
       System.out.print(" ");
       System.out.print(ids.get(2) == ids.get(3));
       ```
-    choices: ["true true", "false false", "true false", "false true"]
+    choices: ["`true true`", "`false false`", "`true false`", "`false true`"]
     answer: 2
     why:
       - "`==` が値を比べると読んだ答え。実際は同じオブジェクトかを比べる"

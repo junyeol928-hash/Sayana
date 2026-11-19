@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: abstract で「未完成」を宣言し、interface で「できること」を約束する。テンプレートメソッド、default メソッド、Comparable、「インターフェースに対してプログラムする」まで。
 goals:
-  - 抽象クラス・抽象メソッドのルール(new できない/子は全部実装する)を説明できる
+  - 抽象クラス・抽象メソッドのルール(`new` できない/子は全部実装する)を説明できる
   - テンプレートメソッドパターンで「流れは親、差分は子」の設計ができる
-  - interface を implements で複数実装し、default / static メソッドの役割を説明できる
+  - "`interface` を `implements` で複数実装し、`default` / `static` メソッドの役割を説明できる"
   - 抽象クラスとインターフェースを使い分け、変数の型をインターフェースにする理由を説明できる
-  - Comparable を実装して Arrays.sort で並べ替えられる
+  - "`Comparable` を実装して `Arrays.sort` で並べ替えられる"
 samples:
   - title: 帳票出力をテンプレートメソッドで作る
     description: 処理の流れ(見出し→本文→フッター)は親の `print()` が決め、子は `title()` と `body()` の差分だけを書きます。在庫 8 個のコピー用紙の行には、何が付く?

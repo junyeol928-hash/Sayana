@@ -5,10 +5,10 @@ minutes: 15
 summary: 承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。
 goals:
   - 業務ルール1〜7を「エンティティで守るもの」と「Service で守るもの」に分け、その理由を説明できる
-  - ApprovalService の submit / approve / returnBack / withdraw を、チェック → エンティティの操作 → 履歴の保存 の順で書ける
-  - "@Transactional で状態の変更と ApprovalHistory の保存を1つのトランザクションにし、RuntimeException でロールバックされる理由を説明できる"
-  - 承認待ち一覧(GET /approvals)と詳細画面のボタンを作り、ボタンの出し分けとルールのチェックを区別できる
-  - "@Version の楽観ロックで、同時に承認されたときの二重承認を防げる"
+  - "`ApprovalService` の `submit` / `approve` / `returnBack` / `withdraw` を、チェック → エンティティの操作 → 履歴の保存 の順で書ける"
+  - "`@Transactional` で状態の変更と `ApprovalHistory` の保存を1つのトランザクションにし、`RuntimeException` でロールバックされる理由を説明できる"
+  - 承認待ち一覧(`GET /approvals`)と詳細画面のボタンを作り、ボタンの出し分けとルールのチェックを区別できる
+  - "`@Version` の楽観ロックで、同時に承認されたときの二重承認を防げる"
 samples:
   - title: 「誰が」のルールは Service、状態のルールはエンティティ
     description: |
@@ -205,7 +205,7 @@ quiz:
       JPA は UPDATE に `WHERE id=? AND version=3`(読んだときの値)を付けます。太郎のコミットで version は 4 になっているので、部長の UPDATE は **0件**。
       Hibernate がこれを検出し、Spring は `ObjectOptimisticLockingFailureException` を投げてトランザクションをロールバックします。同じトランザクションの履歴の INSERT も消えます。
   - question: |
-      金額の判定を次のように書きました。業務ルール3(100,000円 **以上** の承認は ADMIN だけ。休暇の金額は null)に照らして、正しい指摘は?
+      金額の判定を次のように書きました。業務ルール3(100,000円 **以上** の承認は ADMIN だけ。休暇の金額は `null`)に照らして、正しい指摘は?
       ```java
       static boolean requiresAdmin(Integer amount) {
           return amount > 100_000;

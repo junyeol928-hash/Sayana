@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: extends で既存クラスを土台にする。super とコンストラクタの順番、@Override、Object の toString/equals、そして「継承より委譲」まで。
 goals:
-  - extends で子クラスを作り、is-a 関係が成り立つかで継承の是非を判断できる
-  - super(...) とコンストラクタが「親→子」の順に呼ばれる仕組みを説明できる
-  - "@Override を付けてメソッドをオーバーライドし、super.メソッド() で親の処理を再利用できる"
-  - protected / final / Object クラス(toString・equals)の役割を説明できる
+  - "`extends` で子クラスを作り、is-a 関係が成り立つかで継承の是非を判断できる"
+  - "`super(...)` とコンストラクタが「親→子」の順に呼ばれる仕組みを説明できる"
+  - "`@Override` を付けてメソッドをオーバーライドし、`super.メソッド()` で親の処理を再利用できる"
+  - "`protected` / `final` / `Object` クラス(`toString`・`equals`)の役割を説明できる"
   - オーバーロードとオーバーライドの違い、「継承より委譲」の理由を説明できる
 samples:
   - title: 社員の給与計算(extends と @Override)

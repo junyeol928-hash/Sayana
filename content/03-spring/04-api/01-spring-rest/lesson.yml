@@ -5,10 +5,10 @@ minutes: 15
 summary: URL は名詞・操作は HTTP メソッド・結果はステータスコード。@RestController と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。
 goals:
   - リソースと URL、HTTP メソッド(GET / POST / PUT / PATCH / DELETE)、ステータスコード(200 / 201 / 204 / 400 / 404 / 409)を使い分けられる
-  - "@RestController と @RequestBody で、record と JSON を相互に変換できる(Jackson)"
-  - "ResponseEntity で 201 Created + Location と 404 Not Found を返し分けられる"
-  - PUT と PATCH の違いを説明し、PATCH を null になれる型で正しく実装できる
-  - エンティティではなく DTO(record)を返す理由と、日時を ISO-8601 で出す仕組み(JavaTimeModule)を説明できる
+  - "`@RestController` と `@RequestBody` で、record と JSON を相互に変換できる(Jackson)"
+  - "`ResponseEntity` で 201 Created + Location と 404 Not Found を返し分けられる"
+  - PUT と PATCH の違いを説明し、PATCH を `null` になれる型で正しく実装できる
+  - エンティティではなく DTO(record)を返す理由と、日時を ISO-8601 で出す仕組み(`JavaTimeModule`)を説明できる
 samples:
   - title: タスク API を MockMvc で叩いてみる
     libraries: [spring]
@@ -197,7 +197,7 @@ quiz:
       `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(`GET` は「状態を変えない」約束のメソッド)。
       `DELETE /api/task/3` は動き自体は正しいですが、単数形なので `/api/tasks`(一覧・作成)と URL の形が揃いません。
   - question: |
-      完了済み(done = true)のタスク 5 に `PATCH /api/tasks/5` で `{"title":"新しい名前"}` を送りました。次の実装だと、どうなる?
+      完了済み(`done = true`)のタスク 5 に `PATCH /api/tasks/5` で `{"title":"新しい名前"}` を送りました。次の実装だと、どうなる?
       ```java
       record UpdateTaskRequest(String title, boolean done) {}
 

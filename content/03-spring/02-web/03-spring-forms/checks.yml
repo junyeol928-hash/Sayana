@@ -12,7 +12,7 @@
     - "`@NotBlank` と `@NotEmpty` の役目を逆に覚えた答え"
     - "空白だけなら長さ 0 と同じと読んだ答え"
   explanation: |
-    `@NotEmpty` が見るのは「null でも長さ 0 でもない」ことだけで、空白 3 つは長さ 3 なので通る。`@NotBlank` は空白だけの文字列も NG にする。
+    `@NotEmpty` が見るのは「`null` でも長さ 0 でもない」ことだけで、空白 3 つは長さ 3 なので通る。`@NotBlank` は空白だけの文字列も NG にする。
 - after: "@Validated と BindingResult"
   question: |
     `MemberForm` の `name` には `@NotBlank` が付いている。`name` を空欄にして POST すると?

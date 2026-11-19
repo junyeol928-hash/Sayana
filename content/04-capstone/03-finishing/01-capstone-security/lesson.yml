@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 承認くんに Spring Security でログインを付け、固定の社員ID をログイン中の社員に置き換える。URL はロールで、業務ルールは Service で、と2段で守る。
 goals:
-  - 承認くんの URL 表から SecurityFilterChain のルール(permitAll・hasAnyRole・authenticated)を正しい順番で書ける
-  - Employee から UserDetails(LoginUser)を作る UserDetailsService を書き、パスワードを BCrypt で保存・照合できる
-  - "@AuthenticationPrincipal でログイン中の社員を受け取り、capstone-apply の固定の社員ID を置き換えられる"
-  - sec:authorize でボタンをロールで出し分け、画面で隠すだけでは守れない理由を説明できる
-  - 業務ルール1〜3を Service 側の AccessPolicy で判定し、「誰が・どの状態で・いくらまで」を1か所にまとめられる
+  - 承認くんの URL 表から `SecurityFilterChain` のルール(`permitAll`・`hasAnyRole`・`authenticated`)を正しい順番で書ける
+  - "`Employee` から `UserDetails`(`LoginUser`)を作る `UserDetailsService` を書き、パスワードを BCrypt で保存・照合できる"
+  - "`@AuthenticationPrincipal` でログイン中の社員を受け取り、capstone-apply の固定の社員ID を置き換えられる"
+  - "`sec:authorize` でボタンをロールで出し分け、画面で隠すだけでは守れない理由を説明できる"
+  - 業務ルール1〜3を Service 側の `AccessPolicy` で判定し、「誰が・どの状態で・いくらまで」を1か所にまとめられる
 samples:
   - title: ボタンが見えることと、承認できることは別
     description: |
@@ -141,7 +141,7 @@ quiz:
       public String create(@RequestParam Long employeeId, ...) {
       ```
     choices:
-      - "hidden には数値を入れられないので、employeeId が null になる"
+      - "hidden には数値を入れられないので、employeeId が `null` になる"
       - "th:action を使っているので CSRF トークンが二重になり 403 になる"
       - "#authentication は Thymeleaf では使えない"
       - "hidden の値はブラウザで書き換えられるので、他人になりすまして申請できる"

@@ -11,10 +11,10 @@
     System.out.println(a.ordinal() + " " + b.name());
   question: "3行の出力は?"
   choices:
-    - "true / true / 0 RED"
-    - "false / true / 0 RED"
-    - "true / true / 1 RED"
-    - "false / false / 0 RED"
+    - "`true` / `true` / `0 RED`"
+    - "`false` / `true` / `0 RED`"
+    - "`true` / `true` / `1 RED`"
+    - "`false` / `false` / `0 RED`"
   answer: 0
   why:
     - ""

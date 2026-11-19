@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: Date / Calendar の地雷(可変・月が0始まり)を避けて java.time へ。LocalDate から Instant までの使い分け、不変ゆえの「戻り値を捨てる」罠、Period と Duration、YYYY と mm の取り違え、テストのための Clock 注入まで。
 goals:
-  - Date / Calendar の問題点(可変・月が0始まり)と、java.time が不変である意味を説明できる
-  - LocalDate / LocalTime / LocalDateTime / ZonedDateTime / OffsetDateTime / Instant を用途で使い分けられる
-  - plusDays などの戻り値を受け取って日付を計算し、Period・Duration・ChronoUnit.DAYS.between を使い分けられる
-  - "DateTimeFormatter のパターンで yyyy と YYYY、MM と mm の違いを説明できる"
-  - 曜日・月末を API で求め、now() を直接呼ばずに日付を引数や Clock で受け取る設計にできる
+  - "`Date` / `Calendar` の問題点(可変・月が0始まり)と、`java.time` が不変である意味を説明できる"
+  - "`LocalDate` / `LocalTime` / `LocalDateTime` / `ZonedDateTime` / `OffsetDateTime` / `Instant` を用途で使い分けられる"
+  - "`plusDays` などの戻り値を受け取って日付を計算し、`Period`・`Duration`・`ChronoUnit.DAYS.between` を使い分けられる"
+  - "`DateTimeFormatter` のパターンで `yyyy` と `YYYY`、`MM` と `mm` の違いを説明できる"
+  - 曜日・月末を API で求め、`now()` を直接呼ばずに日付を引数や `Clock` で受け取る設計にできる
 samples:
   - title: 作る・足す・不変の罠
     description: |

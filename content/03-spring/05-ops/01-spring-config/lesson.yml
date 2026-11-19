@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。
 goals:
-  - application.properties と application.yml の書き方の違いを理解し、よく使うキー(server.port、spring.datasource.*、logging.level.*)を書ける
-  - "@Value(\"${キー:既定値}\") と @ConfigurationProperties(record)を使い分けて設定値を受け取れる"
-  - application-{profile}.yml と spring.profiles.active で環境ごとに設定を切り替え、@Profile で Bean を切り替えられる
-  - 設定の優先順位と、キーから環境変数名への変換ルール(SPRING_DATASOURCE_URL など)を説明できる
+  - "`application.properties` と `application.yml` の書き方の違いを理解し、よく使うキー(`server.port`、`spring.datasource.*`、`logging.level.*`)を書ける"
+  - "`@Value(\"${キー:既定値}\")` と `@ConfigurationProperties`(record)を使い分けて設定値を受け取れる"
+  - "`application-{profile}.yml` と `spring.profiles.active` で環境ごとに設定を切り替え、`@Profile` で Bean を切り替えられる"
+  - 設定の優先順位と、キーから環境変数名への変換ルール(`SPRING_DATASOURCE_URL` など)を説明できる
   - パスワードや API キーを設定ファイルに書かず、環境変数で渡せる
 samples:
   - title: 設定値を @Value で受け取る(既定値つき)

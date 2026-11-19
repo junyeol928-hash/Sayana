@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: JDK 21 を入れて、javac・java・JShell・STS の4通りで Hello World を動かす。JDK/JRE/JVM の関係とエラーの読み方も押さえる。
 goals:
-  - JDK・JRE・JVM の違いと、javac → バイトコード → JVM という実行の流れを説明できる
-  - Windows に JDK 21 を入れ、JAVA_HOME と Path を設定して java -version / javac -version で確認できる
-  - Hello World の各行(public class とファイル名、main メソッド、System.out.println、セミコロン、波括弧)の意味を説明できる
-  - javac + java、java Hello.java、JShell、STS のそれぞれでプログラムを実行できる
+  - JDK・JRE・JVM の違いと、`javac` → バイトコード → JVM という実行の流れを説明できる
+  - Windows に JDK 21 を入れ、`JAVA_HOME` と `Path` を設定して `java -version` / `javac -version` で確認できる
+  - Hello World の各行(`public class` とファイル名、`main` メソッド、`System.out.println`、セミコロン、波括弧)の意味を説明できる
+  - "`javac` + `java`、`java Hello.java`、JShell、STS のそれぞれでプログラムを実行できる"
   - よくあるコンパイルエラー・実行時エラーのメッセージを読んで原因を特定できる
 
 samples:

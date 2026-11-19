@@ -26,11 +26,12 @@
     }
     OrderStatus.fromCode("DELIVERED");
     ```
-  choices: ["`IllegalArgumentException`(不明なコード)", "`DELIVERED` が返る"]
+  choices: ["`IllegalArgumentException`(不明なコード)", "`DELIVERED` が返る", "`null` が返る(見つからないので)"]
   answer: 0
   why:
     - ""
     - "`fromCode` も定数名で探すと読んだ答え。名前のとおり、コード値で探す"
+    - "見つからなければ `null` を返すと読んだ答え。コメントのとおり、無いコードは例外で知らせる作り"
   explanation: |
     `fromCode` はコード値(`"03"` など)で探すので、定数名の `"DELIVERED"` は見つからず例外になる。定数名で引くのは `valueOf("DELIVERED")`。
 - after: switch 式と EnumMap

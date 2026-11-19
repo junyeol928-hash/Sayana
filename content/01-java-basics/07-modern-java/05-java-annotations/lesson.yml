@@ -5,10 +5,10 @@ minutes: 15
 summary: "@ は「目印」で、それ自体は何もしない。標準の @Override から、@interface による自作、@Retention / @Target の意味、リフレクション(getAnnotation / isAnnotationPresent)で目印を読んで処理を挟む仕組みまで。Spring の @Service や @Transactional がどう読まれているかの予告つき。"
 goals:
   - アノテーションは「コードに付けた目印(メタデータ)」で、それ自体は何もせず、読む側(コンパイラ / 実行時のプログラム)が意味を決めることを説明できる
-  - "@Override / @Deprecated / @SuppressWarnings / @FunctionalInterface の役割と、@Override が防ぐミスを説明できる"
-  - "@interface でアノテーションを定義し、要素・default・value の省略を使い分けられる"
-  - "@Retention(SOURCE / CLASS / RUNTIME)と @Target の意味を説明でき、実行時に読むには RUNTIME が必要だと分かる"
-  - リフレクション(getDeclaredMethods / getDeclaredFields / getAnnotation / isAnnotationPresent)で自作アノテーションを読み、処理を切り替えられる
+  - "`@Override` / `@Deprecated` / `@SuppressWarnings` / `@FunctionalInterface` の役割と、`@Override` が防ぐミスを説明できる"
+  - "`@interface` でアノテーションを定義し、要素・`default`・`value` の省略を使い分けられる"
+  - "`@Retention`(`SOURCE` / `CLASS` / `RUNTIME`)と `@Target` の意味を説明でき、実行時に読むには `RUNTIME` が必要だと分かる"
+  - リフレクション(`getDeclaredMethods` / `getDeclaredFields` / `getAnnotation` / `isAnnotationPresent`)で自作アノテーションを読み、処理を切り替えられる
 samples:
   - title: 標準アノテーションは実行時まで残る?
     description: |
@@ -196,7 +196,7 @@ quiz:
       System.out.println(Api.class.getAnnotation(Draft.class) != null);
       System.out.println(Api.class.getAnnotation(Stable.class) != null);
       ```
-    choices: ["false / true", "true / true", "true / false", "false / false"]
+    choices: ["`false` / `true`", "`true` / `true`", "`true` / `false`", "`false` / `false`"]
     answer: 0
     why:
       - ""
@@ -238,7 +238,7 @@ quiz:
       Retry r = m.getAnnotation(Retry.class);
       System.out.println(r.times() + " " + r.waitMillis());
       ```
-    choices: ["5 0", "null", "コンパイルエラー", "3 0"]
+    choices: ["`5 0`", "`null`", "コンパイルエラー", "`3 0`"]
     answer: 3
     why:
       - "`call()` に付けた値を読んだ答え。取り出しているのは `ping()` のアノテーションで、`times` は `default` の 3"

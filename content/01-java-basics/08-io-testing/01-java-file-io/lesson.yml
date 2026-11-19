@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: Path と Files でファイルを読み書きする。文字コード(UTF-8 / MS932)・閉じ忘れ・相対パスの基準という三大地雷と、CSV 集計の定番パターン。
 goals:
-  - Path と Files(readString / writeString / readAllLines / write / lines / list)でファイルを読み書きできる
+  - "`Path` と `Files`(`readString` / `writeString` / `readAllLines` / `write` / `lines` / `list`)でファイルを読み書きできる"
   - 文字コードを明示する理由を説明でき、Windows 由来のファイルを MS932 で読める
-  - BufferedReader / BufferedWriter と Files.lines を try-with-resources で確実に閉じられる
+  - "`BufferedReader` / `BufferedWriter` と `Files.lines` を try-with-resources で確実に閉じられる"
   - 相対パスが作業ディレクトリ基準で解決されること、STS とコマンドラインで基準が違うことを説明できる
-  - IOException を握りつぶさずに扱い、CSV を読んで集計し別ファイルに書き出せる
+  - "`IOException` を握りつぶさずに扱い、CSV を読んで集計し別ファイルに書き出せる"
 samples:
   - title: 一時ファイルに書いて読み戻す
     description: |
@@ -205,11 +205,11 @@ quiz:
           System.out.println(s);
       }
       ```
-    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ null が出力される", "コンパイルは通り、memo.txt が無いと `NoSuchFileException` で落ちる", "コンパイルエラーになる"]
+    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ `null` が出力される", "コンパイルは通り、memo.txt が無いと `NoSuchFileException` で落ちる", "コンパイルエラーになる"]
     answer: 3
     why:
       - "無いファイルは空として読まれると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
-      - "無いファイルで null が返ると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
+      - "無いファイルで `null` が返ると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
       - "readString を宣言なしで呼べると読んだ答え。実行の前にコンパイルで止まる"
       - ""
     explanation: |

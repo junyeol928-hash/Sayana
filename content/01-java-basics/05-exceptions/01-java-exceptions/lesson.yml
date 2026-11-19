@@ -4,9 +4,9 @@ status: ready
 minutes: 15
 summary: try / catch / finally、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。
 goals:
-  - try / catch / finally の実行順を説明できる
-  - 例外クラスの階層(Throwable / Error / Exception / RuntimeException)と、検査例外・非検査例外の違いを説明できる
-  - throw と throws を使い分け、独自例外クラスを作れる
+  - "`try` / `catch` / `finally` の実行順を説明できる"
+  - 例外クラスの階層(`Throwable` / `Error` / `Exception` / `RuntimeException`)と、検査例外・非検査例外の違いを説明できる
+  - "`throw` と `throws` を使い分け、独自例外クラスを作れる"
   - スタックトレースの1行目と Caused by から原因を特定できる
   - try-with-resources でリソースを確実に閉じ、例外をラップするときに原因(cause)を渡せる
 samples:

@@ -102,15 +102,15 @@
   why:
     - ""
     - "`computeIfAbsent` が呼ぶたびにキーを足すと読んだ答え。既にあるキーには足さない"
-    - "jiro も dev に入り、無いキーは空リストと読んだ答え。jiro は ops に入り、無いキーの `get` は null"
-    - "無いキーの `get` が例外を出すと読んだ答え。`get` は null を返すだけで、そのまま表示される"
-  explanation: "`Map<String, List<String>>` は「部署名 → 名前リスト」。`computeIfAbsent` は「キーがなければ作って入れ、あればそれを返す」ので、`\"dev\"` のリストに 2 人、`\"ops\"` に 1 人。Map のキーは 2 個。存在しない `\"hr\"` の `get` は null(例外にはなりません)。`get` の戻り値の型が `List<String>` だと分かれば、`dev.size()` が読めます。"
+    - "jiro も dev に入り、無いキーは空リストと読んだ答え。jiro は ops に入り、無いキーの `get` は `null`"
+    - "無いキーの `get` が例外を出すと読んだ答え。`get` は `null` を返すだけで、そのまま表示される"
+  explanation: "`Map<String, List<String>>` は「部署名 → 名前リスト」。`computeIfAbsent` は「キーがなければ作って入れ、あればそれを返す」ので、`\"dev\"` のリストに 2 人、`\"ops\"` に 1 人。Map のキーは 2 個。存在しない `\"hr\"` の `get` は `null`(例外にはなりません)。`get` の戻り値の型が `List<String>` だと分かれば、`dev.size()` が読めます。"
   trace:
     - "2行目: `\"dev\"` がないので新しい `ArrayList` を作って登録し、`\"taro\"` を追加"
     - "3行目: `\"dev\"` はあるのでそのリストに `\"hanako\"` を追加 → 2人"
     - "4行目: `\"ops\"` を新規作成して `\"jiro\"` を追加"
     - "5行目: 型は `List<String>`。要素は 2"
-    - "6行目: 2 2 null(Map.get は存在しないキーで null を返す)"
+    - "6行目: `2 2 null`(`Map.get` は存在しないキーで `null` を返す)"
 - title: "共通レスポンス型の T を追う"
   level: 3
   code: |
@@ -129,10 +129,10 @@
     System.out.println(total + " " + res.getData().getClass().getSimpleName().isEmpty());
   question: "出力は?"
   choices:
-    - "60 false"
-    - "60 true"
+    - "`60 false`"
+    - "`60 true`"
     - "コンパイルエラー"
-    - "30 false"
+    - "`30 false`"
   answer: 0
   why:
     - ""

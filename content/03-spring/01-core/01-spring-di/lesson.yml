@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。
 goals:
-  - 依存を自分で new するコードの問題点(テストしにくい・差し替えられない)を説明できる
+  - 依存を自分で `new` するコードの問題点(テストしにくい・差し替えられない)を説明できる
   - 素の Java でコンストラクタに依存を渡す「手動 DI」を書ける
-  - "@Component 系のアノテーションと @Configuration + @Bean で Bean を登録し、AnnotationConfigApplicationContext から取り出せる"
+  - "`@Component` 系のアノテーションと `@Configuration` + `@Bean` で Bean を登録し、`AnnotationConfigApplicationContext` から取り出せる"
   - コンストラクタインジェクションが推奨される理由を、フィールドインジェクションと比べて説明できる
-  - "同じ型の Bean が複数あるときに @Primary / @Qualifier で選べ、Bean が singleton であることの注意点を説明できる"
+  - "同じ型の Bean が複数あるときに `@Primary` / `@Qualifier` で選べ、Bean が singleton であることの注意点を説明できる"
 samples:
   - title: 手動 DI とコンテナ DI を見比べる
     description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。② のコンテナ版でも、コンストラクタは呼ばれるだろうか。2 回目の `getBean` は同じものを返すだろうか。

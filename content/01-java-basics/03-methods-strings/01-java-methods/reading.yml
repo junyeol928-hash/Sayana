@@ -117,9 +117,9 @@
     - "if の中身を飛ばして読んだ答え。-1 では `skip` を出し、return で run は出さない"
   explanation: "n が負のときだけ `skip` を表示して return で終了します。0 は負ではないので run:0 が表示されます。void メソッドでも return; で途中終了できます。"
   trace:
-    - "9行目: `n = 3` → if は false → `run:3` と表示"
-    - "10行目: `n = -1` → if は true → `skip` と表示 → return で終了(6行目は実行されない)"
-    - "11行目: `n = 0` → `0 < 0` は false → `run:0` と表示"
+    - "9行目: `n = 3` → if は `false` → `run:3` と表示"
+    - "10行目: `n = -1` → if は `true` → `skip` と表示 → return で終了(6行目は実行されない)"
+    - "11行目: `n = 0` → `0 < 0` は `false` → `run:0` と表示"
 - title: "中身の変更と指し直し"
   level: 3
   code: |

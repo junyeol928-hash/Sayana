@@ -6,7 +6,7 @@ summary: 補完・クイックフィックス・インポート整理など毎�
 goals:
   - Ctrl+Space / Ctrl+1 / Ctrl+Shift+O / Ctrl+Shift+F など、毎日使うショートカットを使える
   - Ctrl+Shift+T・R、F3、Ctrl+Alt+H でコードの中を素早く移動・調査できる
-  - main・sysout・foreach のテンプレートと、Alt+Shift+S のソース生成を使える
+  - "`main`・`sysout`・`foreach` のテンプレートと、Alt+Shift+S のソース生成を使える"
   - 名前変更・メソッド抽出・ローカル変数抽出・インライン化を使い、IDE のリファクタリングが安全な理由と限界を説明できる
   - テストを緑に保ったまま小さく変えるリファクタリングの進め方と、保存時アクションを設定できる
 samples:

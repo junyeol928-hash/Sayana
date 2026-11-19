@@ -19,11 +19,12 @@
     ```text
     No active profile set, falling back to 1 default profile: "default"
     ```
-  choices: ["使われる", "使われない"]
+  choices: ["使われる", "使われない", "起動に失敗する"]
   answer: 1
   why:
     - "ファイルを置けば読まれると読んだ答え"
     - ""
+    - "`No active profile set` の行をエラーと読んだ答え。既定のプロファイルに切り替わり、起動は続く"
   explanation: |
     dev が有効になっていないので `application-dev.yml` は読まれず、`application.yml` の値で動く。使うには `--spring.profiles.active=dev` などで dev を有効にする。
 - after: よくあるミス

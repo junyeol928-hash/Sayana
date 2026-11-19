@@ -12,22 +12,22 @@
     System.out.println(stock.size());
   question: "4行の出力は?"
   choices:
-    - "3 / null / -1 / 3"
-    - "8 / null / -1 / 2"
-    - "8 / 0 / -1 / 2"
-    - "8 / null / null / 3"
+    - "`3` / `null` / `-1` / `3`"
+    - "`8` / `null` / `-1` / `2`"
+    - "`8` / `0` / `-1` / `2`"
+    - "`8` / `null` / `null` / `3`"
   answer: 1
   why:
     - "同じキーの `put` を別のエントリと読んだ答え。実際は 8 に上書きされる"
     - ""
     - "無いキーの `get` は 0 を返すと読んだ答え。`get` に既定値は無い"
-    - "`getOrDefault` も null を返し、上書きも件数に入ると読んだ答え"
-  explanation: "`\"pen\"` は 3 → 8 に上書き。`\"ink\"` は無いので `get` は null、`getOrDefault` は -1。キーは `\"pen\"` と `\"cup\"` の2つなので `size()` は 2。"
+    - "`getOrDefault` も `null` を返し、上書きも件数に入ると読んだ答え"
+  explanation: "`\"pen\"` は 3 → 8 に上書き。`\"ink\"` は無いので `get` は `null`、`getOrDefault` は -1。キーは `\"pen\"` と `\"cup\"` の2つなので `size()` は 2。"
   trace:
     - "2〜3行目: `pen = 3` のあと同じキーで `put` → `pen = 8` に上書き"
     - "4行目: `cup = 0` を登録。ペアは 2 組"
     - "5行目: `get(\"pen\")` → 8"
-    - "6行目: `get(\"ink\")` → 無いので null"
+    - "6行目: `get(\"ink\")` → 無いので `null`"
     - "7行目: `getOrDefault(\"ink\", -1)` → -1"
     - "8行目: `size()` → 2"
 - title: "Set に入れると何個になる?"
@@ -39,21 +39,21 @@
     System.out.println(raw.size() + " " + unique.size() + " " + added);
   question: "出力は?"
   choices:
-    - "5 5 true"
-    - "5 3 false"
-    - "3 3 false"
-    - "5 4 true"
+    - "`5 5 true`"
+    - "`5 3 false`"
+    - "`3 3 false`"
+    - "`5 4 true`"
   answer: 1
   why:
     - "HashSet が重複も残すと読んだ答え。実際は重複が消える"
     - ""
     - "元の List の重複まで消えると読んだ答え。HashSet に詰めても raw は 5 つのまま"
     - "既にある osaka を add すると増えると読んだ答え。実際は入らない"
-  explanation: "raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある `\"osaka\"` を add しても追加されず false が返ります。"
+  explanation: "raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある `\"osaka\"` を add しても追加されず `false` が返ります。"
   trace:
     - "1行目: List は重複を許すので 5 要素"
     - "2行目: Set に変換 → 重複が除かれ 3 要素"
-    - "3行目: `\"osaka\"` は既にある → 追加されず、戻り値は false"
+    - "3行目: `\"osaka\"` は既にある → 追加されず、戻り値は `false`"
     - "4行目: `5 3 false`"
 - title: "不変 List に add したら?"
   level: 2
@@ -130,9 +130,9 @@
     }
   question: "2行の出力は?"
   choices:
-    - "A / true"
-    - "null / false"
-    - "A / false"
+    - "`A` / `true`"
+    - "`null` / `false`"
+    - "`A` / `false`"
     - "コンパイルエラー(自作クラスはキーにできない)"
   answer: 1
   why:

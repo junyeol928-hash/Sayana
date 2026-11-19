@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 承認くんに検索画面 GET /requests/search を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
 goals:
-  - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、Specification の部品を allOf でつないで検索できる
-  - Pageable(要求)と Page(結果)の違い、page が 0 始まりであること、size の上限と sort の許可制が必要な理由を説明できる
-  - クエリパラメータの文字列から、不正値に強い PageRequest と Sort(新しい順+id)を組み立てられる
+  - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、`Specification` の部品を `allOf` でつないで検索できる
+  - "`Pageable`(要求)と `Page`(結果)の違い、`page` が 0 始まりであること、`size` の上限と `sort` の許可制が必要な理由を説明できる"
+  - クエリパラメータの文字列から、不正値に強い `PageRequest` と `Sort`(新しい順+`id`)を組み立てられる
   - Thymeleaf で「全 N 件中 X〜Y 件目」と前へ/次へを表示し、検索条件をリンクと URL に引き継げる
-  - 一覧の N+1 を @EntityGraph で避け、コレクションの fetch とページングを混ぜてはいけない理由を説明できる
+  - 一覧の N+1 を `@EntityGraph` で避け、コレクションの fetch とページングを混ぜてはいけない理由を説明できる
 samples:
   - title: PageRequest と Page の数字を確かめる
     description: |
@@ -156,21 +156,21 @@ quiz:
       if (c.hasKeyword()) specs.add(keywordContains(c.getKeyword()));
       repo.findAll(Specification.allOf(specs), pageable);
       ```
-      (`hasKeyword()` は「null でも空白だけでもない」なら true)
+      (`hasKeyword()` は「`null` でも空白だけでもない」なら `true`)
     choices:
-      - "status is null and type = 'EXPENSE' and title like '%   %'"
+      - "`status is null and type = 'EXPENSE' and title like '%   %'`"
       - "条件なし(全件)"
-      - "type = 'EXPENSE' だけ"
-      - "type = 'EXPENSE' と、件名か理由の like '%%'"
+      - "`type = 'EXPENSE'` だけ"
+      - "`type = 'EXPENSE'` と、件名か理由の `like '%%'`"
     answer: 2
     why:
-      - "null や空白の条件もそのまま足すと読んだ答え。部品を足すのは値がある条件だけ"
+      - "`null` や空白の条件もそのまま足すと読んだ答え。部品を足すのは値がある条件だけ"
       - "type の条件を見落とした答え。EXPENSE は値があるので `typeIs` が足される"
       - ""
-      - "空白だけのキーワードも足されると読んだ答え。`hasKeyword()` が false なので足されない"
+      - "空白だけのキーワードも足されると読んだ答え。`hasKeyword()` が `false` なので足されない"
     explanation: |
-      値がある条件だけ部品を足すので、`status` は null で足されず、キーワードは空白だけなので `hasKeyword()` が false で足されません。残るのは `typeIs` の1つだけです。
-      `status is null` になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
+      値がある条件だけ部品を足すので、`status` は `null` で足されず、キーワードは空白だけなので `hasKeyword()` が `false` で足されません。残るのは `typeIs` の1つだけです。
+      `status is null` になるのは、`null` をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
   - question: |
       検索結果の「次へ」リンクを次のように書きました。`/requests/search?status=SUBMITTED&keyword=出張` で検索してから「次へ」を押すと、どうなる?
       ```html

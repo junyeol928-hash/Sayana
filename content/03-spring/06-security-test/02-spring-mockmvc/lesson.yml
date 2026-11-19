@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: サーバーを起動せずに Controller を叩く MockMvc。perform → andExpect の基本、standaloneSetup と @WebMvcTest、@MockitoBean での差し替え、文字化けとコンテキストキャッシュまで。
 goals:
-  - Controller のテスト方法(単体・standaloneSetup・@WebMvcTest・@SpringBootTest)を速さと範囲で選べる
-  - MockMvc で perform → andExpect を書き、status / content / jsonPath / view / model / redirectedUrl で検証できる
-  - Service を偽物(手書きのスタブ、@MockitoBean + Mockito)に差し替えて Controller だけをテストできる
-  - standaloneSetup で日本語が文字化けする理由と直し方を説明できる
+  - Controller のテスト方法(単体・`standaloneSetup`・`@WebMvcTest`・`@SpringBootTest`)を速さと範囲で選べる
+  - "`MockMvc` で `perform` → `andExpect` を書き、`status` / `content` / `jsonPath` / `view` / `model` / `redirectedUrl` で検証できる"
+  - Service を偽物(手書きのスタブ、`@MockitoBean` + Mockito)に差し替えて Controller だけをテストできる
+  - "`standaloneSetup` で日本語が文字化けする理由と直し方を説明できる"
   - コンテキストキャッシュの仕組みと、テストが遅くなる原因を説明できる
 samples:
   - title: MockMvc で Controller を呼び出す

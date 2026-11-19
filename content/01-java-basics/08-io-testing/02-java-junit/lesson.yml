@@ -5,10 +5,10 @@ minutes: 15
 summary: JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、@ParameterizedTest、テストしやすい設計まで。この道場の採点の仕組みもこれ。
 goals:
   - 自動テストを書く理由(デグレの早期発見・動く仕様書)を説明できる
-  - "@Test・@DisplayName・@BeforeEach と assertEquals / assertTrue / assertThrows / assertAll でテストを書ける"
+  - "`@Test`・`@DisplayName`・`@BeforeEach` と `assertEquals` / `assertTrue` / `assertThrows` / `assertAll` でテストを書ける"
   - Arrange-Act-Assert と「1テスト1観点」で読みやすいテストを書ける
-  - 同値分割と境界値分析でテストケースを選び、@ParameterizedTest + @CsvSource で表のように書ける
-  - now() や入出力をロジックから切り離し、テストしやすい形に設計できる
+  - 同値分割と境界値分析でテストケースを選び、`@ParameterizedTest` + `@CsvSource` で表のように書ける
+  - "`now()` や入出力をロジックから切り離し、テストしやすい形に設計できる"
 samples:
   - title: assertEquals を自作して JUnit の気持ちを知る
     description: |
@@ -190,7 +190,7 @@ quiz:
       - "数を多く試せば見つかると読んだ答え。境目から遠い値ばかりで、どちらのバグも見逃す"
       - ""
     explanation: |
-      **境界値分析** では、境目の **両側** を試します。`age > 65` のバグは 65 で(本当は true なのに false)、`age >= 64` のバグは 64 で(本当は false なのに true)見つかります。
+      **境界値分析** では、境目の **両側** を試します。`age > 65` のバグは 65 で(本当は `true` なのに `false`)、`age >= 64` のバグは 64 で(本当は `false` なのに `true`)見つかります。
       65 だけでは `>= 64` のバグを見逃し、0 と 100 や 30, 50, 70 のような境目から遠い値では、どちらのバグも見つかりません。同値クラスの代表値(例:30 と 80)に加えて、境目の両側を必ず入れましょう。
   - question: |
       次のテストを実行したときの結果は?

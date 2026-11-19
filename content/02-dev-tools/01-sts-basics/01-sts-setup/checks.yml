@@ -15,11 +15,12 @@
 - after: 文字コードを UTF-8 にする
   question: |
     ワークスペースの Text file encoding が MS932 のまま。`pom.xml` に `project.build.sourceEncoding` = UTF-8 と書いてある Maven プロジェクトの `.java` は、STS でどちらとして読まれる?
-  choices: ["UTF-8", "MS932"]
+  choices: ["UTF-8", "MS932", "ファイルごとに自動で判定"]
   answer: 0
   why:
     - ""
     - "ワークスペースの設定が全部のファイルに効くと読んだ答え。`pom.xml` の指定を見落としている"
+    - "ファイルの中身から文字コードを推測すると読んだ答え。どう読むかは、STS に設定した文字コードで決まる"
   explanation: |
     Maven プロジェクトでは、STS(m2e)が `pom.xml` の `project.build.sourceEncoding` を読んで、プロジェクト単位で UTF-8 を設定する。プロジェクトの設定は、ワークスペースの設定より優先される。
 - after: よくあるトラブル

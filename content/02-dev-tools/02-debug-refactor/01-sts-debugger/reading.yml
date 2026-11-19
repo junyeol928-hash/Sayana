@@ -23,7 +23,7 @@
     - "1〜2行目: 例外の種類は `NullPointerException`、原因は `name` が `null` であること"
     - "3行目(一番上の at 行): Greeter.java の15行目で発生"
     - "4行目: その Greeter.greet を呼び出したのは Main.java の5行目"
-    - "まず15行目を確認し、name がどこで null になったかをさらに追う"
+    - "まず15行目を確認し、name がどこで `null` になったかをさらに追う"
 - title: "off-by-one によるバグ"
   level: 2
   code: |

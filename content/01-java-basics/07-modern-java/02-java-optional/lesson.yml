@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 「値がないかもしれない」を型で表す Optional。作り方・取り出し方、map / flatMap で null チェックを消す書き方、orElse と orElseGet の違い、使ってはいけない場所まで。
 goals:
-  - null が「10億ドルの過ち」と呼ばれる理由と、Optional が解決することを説明できる
-  - of / ofNullable / empty で Optional を作り、orElse / orElseGet / orElseThrow / ifPresent / ifPresentOrElse で取り出せる
-  - orElse と orElseGet の評価タイミングの違いを説明できる
-  - map / filter / flatMap で、ネストした null チェックを1本のチェーンに書き換えられる
-  - get() や isPresent() + get() を避け、Optional を戻り値に限って使える
+  - "`null` が「10億ドルの過ち」と呼ばれる理由と、Optional が解決することを説明できる"
+  - "`of` / `ofNullable` / `empty` で Optional を作り、`orElse` / `orElseGet` / `orElseThrow` / `ifPresent` / `ifPresentOrElse` で取り出せる"
+  - "`orElse` と `orElseGet` の評価タイミングの違いを説明できる"
+  - "`map` / `filter` / `flatMap` で、ネストした `null` チェックを1本のチェーンに書き換えられる"
+  - "`get()` や `isPresent()` + `get()` を避け、Optional を戻り値に限って使える"
 samples:
   - title: null を返すメソッドと Optional を返すメソッド
     description: 戻り値が `Optional<String>` なら「見つからないかもしれない」ことが型でわかります。取り出し方をいろいろ試してみましょう。ID 3 では、①〜④ のどれが例外の行を出すだろうか。
@@ -226,8 +226,8 @@ quiz:
     choices: ["フィールドを `private Optional<String> nickname;` にする", "メソッドの引数を `void send(Optional<String> cc)` にする", "`List<Optional<String>>` で「歯抜け」のリストを表す", "検索メソッドの戻り値を `Optional<Employee> findById(String id)` にする"]
     answer: 3
     why:
-      - "null の代わりにどこでも使えると読んだ答え。Optional は Serializable でなく、フィールドには向かない"
-      - "引数で「無いかも」を表せると読んだ答え。呼ぶ側に包む手間をかけ、Optional 自体に null も来うる"
+      - "`null` の代わりにどこでも使えると読んだ答え。Optional は Serializable でなく、フィールドには向かない"
+      - "引数で「無いかも」を表せると読んだ答え。呼ぶ側に包む手間をかけ、Optional 自体に `null` も来うる"
       - "歯抜けを Optional で表すと読んだ答え。コレクションには、ない要素を入れないほうが素直"
       - ""
     explanation: |

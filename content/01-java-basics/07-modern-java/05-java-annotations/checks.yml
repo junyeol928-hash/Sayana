@@ -46,7 +46,7 @@
   answer: 0
   why:
     - ""
-    - "付いていなければ空の値が入ると読んだ答え。`getAnnotation` が null を返し、`value()` を呼べない"
+    - "付いていなければ空の値が入ると読んだ答え。`getAnnotation` が `null` を返し、`value()` を呼べない"
     - "付いていないことをコンパイラが見抜くと読んだ答え。付いているかは実行時に決まる"
   explanation: |
-    付いていないアノテーションを `getAnnotation` すると null が返り、その `value()` を呼ぶので NPE になる。だから読む側は `if (a == null)` で「目印なし」を先に分ける。
+    付いていないアノテーションを `getAnnotation` すると `null` が返り、その `value()` を呼ぶので NPE になる。だから読む側は `if (a == null)` で「目印なし」を先に分ける。

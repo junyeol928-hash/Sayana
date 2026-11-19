@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: if / else if / else と switch 式で処理を分ける。波括弧・フォールスルー・文字列の == という三大地雷の避け方まで。
 goals:
-  - if / else if / else を、波括弧を省略せずに書ける
-  - 範囲判定で条件を正しい順に並べ、ガード節(早期 return)でネストを浅くできる
-  - 従来の switch 文のフォールスルーを理解し、switch 式(アロー構文・複数ラベル・yield)で書ける
-  - 文字列を equals で比較し、null と switch の関係(NullPointerException)を説明できる
-  - "if (x = 5) がコンパイルエラーになる理由と、boolean を == true で比べない理由を説明できる"
+  - "`if` / `else if` / `else` を、波括弧を省略せずに書ける"
+  - 範囲判定で条件を正しい順に並べ、ガード節(早期 `return`)でネストを浅くできる
+  - 従来の switch 文のフォールスルーを理解し、switch 式(アロー構文・複数ラベル・`yield`)で書ける
+  - 文字列を `equals` で比較し、`null` と switch の関係(`NullPointerException`)を説明できる
+  - "`if (x = 5)` がコンパイルエラーになる理由と、`boolean` を `== true` で比べない理由を説明できる"
 samples:
   - title: 送料計算(if / else if / else)
     description: 購入金額と会員ランクで送料を決めます。条件は上から順に評価され、最初に当てはまった1つだけが実行されます。2980 円のシルバー会員の送料はいくら?
@@ -136,7 +136,7 @@ quiz:
       - ""
     explanation: |
       `x = 5` は代入式で、その値は `int` の `5` です。Java の if の条件は `boolean` でなければならず、`int` → `boolean` の変換は存在しないので `incompatible types: int cannot be converted to boolean` になります。
-      紛らわしいのは `if (ok = true)`。これも比較ではなく代入ですが、式の値が `boolean`(true)なので **コンパイルが通ってしまい**、常に true の分岐になります。`== true` と書く習慣をやめて `if (ok)` と書けば、この事故はそもそも起きません。
+      紛らわしいのは `if (ok = true)`。これも比較ではなく代入ですが、式の値が `boolean`(`true`)なので **コンパイルが通ってしまい**、常に `true` の分岐になります。`== true` と書く習慣をやめて `if (ok)` と書けば、この事故はそもそも起きません。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -156,7 +156,7 @@ quiz:
       - "条件を確かめずに内側まで進んだ答え。x は 3 なので外側の `x > 5` で止まる"
       - "波括弧のない入れ子の if と `else` を文法違反と読んだ答え。`else` は一番近い if に付いて通る"
     explanation: |
-      インデントに惑わされないこと。Java では `else` は **一番近い if**(ここでは `if (x > 10)`)に結びつきます(ぶら下がり `else`)。つまり外側の `if (x > 5)` が false の時点で、内側の if も `else` も丸ごとスキップされ、`終` だけが出力されます。
+      インデントに惑わされないこと。Java では `else` は **一番近い if**(ここでは `if (x > 10)`)に結びつきます(ぶら下がり `else`)。つまり外側の `if (x > 5)` が `false` の時点で、内側の if も `else` も丸ごとスキップされ、`終` だけが出力されます。
       見た目どおり「5以下なら小」にしたいなら、波括弧で外側の if のブロックを閉じる必要があります。だから現場では1行でも波括弧を省略しません。
   - question: |
       次のコードについて正しい説明はどれ?
@@ -168,13 +168,13 @@ quiz:
       };
       System.out.println(s);
       ```
-    choices: ["コンパイルエラーになる", "NG と出力される", "実行時に例外が発生する", "null と出力される"]
+    choices: ["コンパイルエラーになる", "NG と出力される", "実行時に例外が発生する", "`null` と出力される"]
     answer: 0
     why:
       - ""
       - "`code` が 2 なので動くと読んだ答え"
       - "合う case が無いと、実行時に落ちると読んだ答え"
-      - "合う case が無いと null を返すと読んだ答え"
+      - "合う case が無いと `null` を返すと読んだ答え"
     explanation: |
       switch **式** は必ず値を返さなければならないので、すべての入力をカバーしている(網羅している)必要があります。`int` は 1 と 2 以外の値も取りうるのに `default` がないため、`the switch expression does not cover all possible input values` というコンパイルエラーになります。
       `code` が実際には 2 であっても、コンパイラは「取りうるすべての値」で判断します。`default -> "不明";` を足せば `NG` と出力されます。値を返さない switch **文** なら網羅していなくてもエラーにはなりません。
@@ -186,7 +186,7 @@ quiz:
       System.out.println(b == "Java");
       System.out.println("Java".equals(b));
       ```
-    choices: ["true と true", "true と false", "false と true", "false と false"]
+    choices: ["`true` と `true`", "`true` と `false`", "`false` と `true`", "`false` と `false`"]
     answer: 2
     why:
       - "`==` でも中身を比べると読んだ答え"

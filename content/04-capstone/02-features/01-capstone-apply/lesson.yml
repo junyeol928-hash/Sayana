@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: 承認くんに新規申請フォームと「自分の申請一覧」を作る。相関チェック・DRAFT での保存・PRG・状態の日本語表示まで。
 goals:
-  - RequestForm に Bean Validation の注釈を付け、種類によって金額が必須になるルールを @AssertTrue の相関チェックで書ける
-  - "GET /requests/new・POST /requests・GET /requests の3つのハンドラを作り、エラー時は同じ画面、成功時は PRG でリダイレクトできる"
+  - "`RequestForm` に Bean Validation の注釈を付け、種類によって金額が必須になるルールを `@AssertTrue` の相関チェックで書ける"
+  - "`GET /requests/new`・`POST /requests`・`GET /requests` の3つのハンドラを作り、エラー時は同じ画面、成功時は PRG でリダイレクトできる"
   - 状態と申請者をフォームではなく Service で決める理由(マスアサインメント・層の依存方向)を説明できる
-  - "Thymeleaf の th:object・th:field・th:errors・th:each で、入力フォームと状態を日本語で出す一覧を作れる"
+  - "Thymeleaf の `th:object`・`th:field`・`th:errors`・`th:each` で、入力フォームと状態を日本語で出す一覧を作れる"
   - ログインの代わりの固定IDを1か所に閉じ込め、後で置き換えられる形にできる
 samples:
   - title: 申請フォームの入力チェックを動かす
@@ -120,7 +120,7 @@ quiz:
       - "`@Size` や相関チェックまで落ちると数えた答え。空文字は 50 字を超えない"
     explanation: |
       `title` が空なので `@NotBlank` で1件、`amount` が 0 なので `@Min(1)` で1件、合わせて **2件** です。
-      相関チェック `isAmountEntered()` は「経費精算で金額が **null** か」だけを見ます。0 は null ではないので `true` になり、エラーは出ません。
+      相関チェック `isAmountEntered()` は「経費精算で金額が **`null`** か」だけを見ます。0 は `null` ではないので `true` になり、エラーは出ません。
       「金額が不正」は `@Min`、「金額が無い」は相関チェック、と担当が分かれているので同じ原因でエラーが二重に出ません。
   - question: |
       次のメソッドの検証エラーは、BindingResult ではどの項目名(フィールド名)で記録される?
@@ -163,11 +163,11 @@ quiz:
     why:
       - ""
       - "入力エラーで 400 になると読んだ答え。エラーは引数の BindingResult が受け止める"
-      - "null の `types` で例外が出ると読んだ答え。テンプレートは null を空として扱う"
+      - "`null` の `types` で例外が出ると読んだ答え。テンプレートは `null` を空として扱う"
       - "Model がリクエストをまたいで残ると読んだ答え。セッションには入れていない"
     explanation: |
       Model は **リクエストごと** に作られます。GET で入れた `types` は POST のリクエストには残っていません。
-      `th:each="t : ${types}"` は `types` が null だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
+      `th:each="t : ${types}"` は `types` が `null` だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
       対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
   - question: |
       `list.html` に次のように書きました。申請の状態が `RequestStatus.DRAFT` のとき、セルに表示されるのは?

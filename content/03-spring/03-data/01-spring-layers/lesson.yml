@@ -8,7 +8,7 @@ goals:
   - Controller・Service・Repository それぞれの責務と、依存を上から下への一方通行にする理由を説明できる
   - DTO とエンティティを分ける理由と、層別・機能別のパッケージ構成の違いを説明できる
   - Repository をインターフェースにして、メモリ実装に差し替えて Service をテストできる
-  - "@Controller / @Service / @Repository を付けたクラスを DI コンテナで組み立てられる"
+  - "`@Controller` / `@Service` / `@Repository` を付けたクラスを DI コンテナで組み立てられる"
 samples:
   - title: Service を Spring も DB も使わずにテストする
     description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ ✔ と ✘ のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。

@@ -9,12 +9,12 @@
         String show() { return name; }
     }
     ```
-  choices: ["コンパイルエラー", "`show()` が「佐藤」を返す", "`show()` が null を返す"]
+  choices: ["コンパイルエラー", "`show()` が「佐藤」を返す", "`show()` が `null` を返す"]
   answer: 0
   why:
     - ""
     - "`private` も子から直接読めると読んだ答え"
-    - "子の name には値が入らず、null になると読んだ答え"
+    - "子の name には値が入らず、`null` になると読んだ答え"
   explanation: |
     `private` のフィールドは、子のオブジェクトの中に存在はするが、子のコードからは直接触れない。親に getter を用意して、それ経由で読む。直接読むと次のエラーになる: `name has private access in Employee`
 - after: オーバーライドと @Override
@@ -38,10 +38,11 @@
 - after: protected / final / Object
   question: |
     `Employee` の `protected` メソッドを、**同じパッケージ** にある(子クラスではない)`Report` クラスから呼ぶと?
-  choices: ["呼べる", "コンパイルエラー"]
+  choices: ["呼べる", "コンパイルエラー", "コンパイルは通り、実行時にエラー"]
   answer: 0
   why:
     - ""
     - "`protected` を「子クラスだけ」と読んだ答え"
+    - "コンパイルは通っても実行時に止められると読んだ答え。同じパッケージからなら、実行しても呼べる"
   explanation: |
     `protected` は同じパッケージのクラスからも見える。子クラスに限られるのは、別パッケージから使う場合。

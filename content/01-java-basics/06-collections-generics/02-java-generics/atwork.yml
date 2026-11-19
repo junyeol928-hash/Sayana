@@ -25,15 +25,15 @@
         }
     }
   notes:
-    1: "「この class は REST API の窓口」という Spring の目印"
-    9: "戻り値を外から読む:HTTP レスポンス → 共通レスポンス → UserDto。JSON の形が想像できる"
-    10: "`Optional<User>`:User が見つかったかもしれない箱。Repository の findById と同じ型"
-    12: "`Optional<User>` → `Optional<UserDto>` に変換。map の中で T が変わる(Optional 章・ラムダ章)"
+    1: "「この `class` は REST API の窓口」という Spring の目印"
+    9: "戻り値を外から読む:HTTP レスポンス → 共通レスポンス → `UserDto`。JSON の形が想像できる"
+    10: "`Optional<User>`:`User` が見つかったかもしれない箱。Repository の `findById` と同じ型"
+    12: "`Optional<User>` → `Optional<UserDto>` に変換。`map` の中で `T` が変わる(Optional 章・ラムダ章)"
     14: "見つからなければ 404 と失敗レスポンス。型は同じ `ResponseEntity<ApiResponse<UserDto>>` に揃えている"
-    18: "「String をキー、UserDto の List を値にする Map」を data に持つ共通レスポンス"
-    19: "Map の V がさらに List。入れ子は外側から訳す"
+    18: "「`String` をキー、`UserDto` の `List` を値にする `Map`」を `data` に持つ共通レスポンス"
+    19: "`Map` の `V` がさらに `List`。入れ子は外側から訳す"
   points:
     - "`<…>` を見たら「何の型が入るか」を必ず読む。入れ子は外側から「〜の」で訳す"
-    - "`JpaRepository<User, Long>` の2つの型引数で、findById の引数(Long)と戻り値(`Optional<User>`)の型が決まる"
-    - "`Optional<T>` や `ResponseEntity<T>` は「T をくるむ箱」。中身の T が本当に欲しいデータ"
-    - "`ApiResponse<T>` のような自前の共通型は、まずクラス定義を開いて T がどのフィールドに使われているかを確認する"
+    - "`JpaRepository<User, Long>` の2つの型引数で、`findById` の引数(`Long`)と戻り値(`Optional<User>`)の型が決まる"
+    - "`Optional<T>` や `ResponseEntity<T>` は「`T` をくるむ箱」。中身の `T` が本当に欲しいデータ"
+    - "`ApiResponse<T>` のような自前の共通型は、まずクラス定義を開いて `T` がどのフィールドに使われているかを確認する"

@@ -23,10 +23,11 @@
 - after: Service は単体テストで、ルールを表にする
   question: |
     表に `"ADMIN, 100000, RETURNED, ?"`(ADMIN が 10 万円の差戻し中の申請を承認)の行を足す。期待値は?
-  choices: ["NG(例外 `BusinessRuleException`)", "OK(ADMIN なので承認できる)"]
+  choices: ["NG(例外 `BusinessRuleException`)", "OK(ADMIN なので承認できる)", "OK(差戻しは承認者の手元に戻った状態)"]
   answer: 0
   why:
     - ""
     - "ADMIN なら状態を問わないと考えた答え。差戻しの申請は、再申請で申請中に戻るまで承認できない"
+    - "差戻しの戻り先を承認者と読んだ答え。戻した先は申請者で、再申請までは誰も承認できない"
   explanation: |
     ADMIN なので金額のルール3は通るが、RETURNED → APPROVED の矢印は無い。例外になり、履歴の `save` も呼ばれない。

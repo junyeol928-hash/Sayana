@@ -5,13 +5,14 @@
     int n = -5;
     System.out.println(n % 2 == 1);
     ```
-  choices: ["false", "true"]
+  choices: ["`false`", "`true`", "実行時に例外"]
   answer: 0
   why:
     - ""
     - "余りはいつも 0 か正の数と読んだ答え。`%` の符号は割られる数に揃い、`-5 % 2` は `-1`"
+    - "負の数の余りは求められず例外になると読んだ答え。例外で止まるのは 0 で割ったときだけ"
   explanation: |
-    `%` の結果は割られる数(左側)の符号に揃うので、`-5 % 2` は `-1`。`== 1` にならず false。奇数判定は `n % 2 != 0` と書く。
+    `%` の結果は割られる数(左側)の符号に揃うので、`-5 % 2` は `-1`。`== 1` にならず `false`。奇数判定は `n % 2 != 0` と書く。
 - after: 複合代入とインクリメント
   question: |
     出力は?
@@ -34,13 +35,14 @@
     ```java
     System.out.println(true || false && false);
     ```
-  choices: ["true", "false"]
+  choices: ["`true`", "`false`", "コンパイルエラー"]
   answer: 0
   why:
     - ""
     - "左から順に `(true || false) && false` と読んだ答え。`&&` が `||` より先に結びつく"
+    - "`||` と `&&` を括弧なしで混ぜると通らないと読んだ答え。括弧が無くても優先順位で決まり、そのまま通る"
   explanation: |
-    `&&` は `||` より優先度が高いので、`true || (false && false)` と読む。左が true なので全体も true。
+    `&&` は `||` より優先度が高いので、`true || (false && false)` と読む。左が `true` なので全体も `true`。
 - before: "+ は、どちらかのオペランドが"
   hides: 5
   question: |

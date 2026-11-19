@@ -5,10 +5,10 @@ minutes: 15
 summary: HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。
 goals:
   - HTTP のメソッド・パス・クエリ・ステータスコードを読み取り、400/404/405 の原因を推測できる
-  - DispatcherServlet が対応表(HandlerMapping)を使って Controller に振り分ける流れを説明できる
-  - "@Controller(ビュー名を返す)と @RestController(本体を返す)を使い分けられる"
-  - "@GetMapping / @PostMapping / @RequestMapping・@PathVariable・@RequestParam(required・defaultValue)でリクエストを受け取れる"
-  - ResponseEntity でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる
+  - "`DispatcherServlet` が対応表(`HandlerMapping`)を使って Controller に振り分ける流れを説明できる"
+  - "`@Controller`(ビュー名を返す)と `@RestController`(本体を返す)を使い分けられる"
+  - "`@GetMapping` / `@PostMapping` / `@RequestMapping`・`@PathVariable`・`@RequestParam`(`required`・`defaultValue`)でリクエストを受け取れる"
+  - "`ResponseEntity` でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる"
 samples:
   - title: Controller を MockMvc で呼んでみる
     libraries: [spring]

@@ -6,8 +6,8 @@ summary: for・while・do-while の使い分けと break/continue、多重ルー
 goals:
   - for 文の3つの部分(初期化・条件式・更新)の実行順と、ループ変数のスコープを説明できる
   - 回数・条件・最低1回の観点で for / while / do-while を使い分けられる
-  - break / continue と多重ループを使って、累積・カウンタ・表の出力が書ける
-  - ループ内の文字列連結を StringBuilder で書き、+ 連結が遅くなる理由を説明できる
+  - "`break` / `continue` と多重ループを使って、累積・カウンタ・表の出力が書ける"
+  - ループ内の文字列連結を `StringBuilder` で書き、`+` 連結が遅くなる理由を説明できる
   - off-by-one、累積変数の初期化位置、浮動小数点によるループ制御のバグを見抜ける
 samples:
   - title: for・while・do-while をくらべる

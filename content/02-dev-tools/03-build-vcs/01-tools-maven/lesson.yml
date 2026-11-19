@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。
 goals:
-  - pom.xml の座標(groupId / artifactId / version)・parent・properties・dependencies・build/plugins を読んで意味を説明できる
-  - Spring Boot の parent がバージョンを管理する仕組みを理解し、version を書くべき依存と書かない依存を区別できる
-  - スコープ(compile / runtime / test / provided)と推移的依存を説明し、dependency:tree で依存の出どころを調べられる
-  - ライフサイクルの順番(validate → compile → test → package → install)を理解し、./mvnw clean test などを使い分けられる
+  - "`pom.xml` の座標(`groupId` / `artifactId` / `version`)・`parent`・`properties`・`dependencies`・`build/plugins` を読んで意味を説明できる"
+  - Spring Boot の `parent` がバージョンを管理する仕組みを理解し、`version` を書くべき依存と書かない依存を区別できる
+  - スコープ(`compile` / `runtime` / `test` / `provided`)と推移的依存を説明し、`dependency:tree` で依存の出どころを調べられる
+  - ライフサイクルの順番(`validate` → `compile` → `test` → `package` → `install`)を理解し、`./mvnw clean test` などを使い分けられる
   - STS で Maven build... / Update Project / Dependency Hierarchy を使い、ダウンロード失敗やバージョン衝突に対処できる
 samples: []
 quiz:

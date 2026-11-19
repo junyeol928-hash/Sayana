@@ -23,10 +23,11 @@
 - after: パッケージ構成:層別か、機能別か
   question: |
     メインクラス(`@SpringBootApplication`)は `com.example.shop` にある。`com.example.order` に置いた `@Service` の `OrderService` は、コンポーネントスキャンで見つかる?
-  choices: ["見つかる", "見つからない"]
+  choices: ["見つかる", "見つからない", "公開クラスなら見つかる"]
   answer: 1
   why:
     - "`com.example` までが同じなら範囲内と読んだ答え"
     - ""
+    - "クラスを公開にすれば範囲の外でも見つかると読んだ答え。範囲を決めるのはパッケージの位置だけ"
   explanation: |
     スキャンの範囲はメインクラスのパッケージとその配下だけ。`com.example.order` は `com.example.shop` の外(隣)なので見つからない。`com.example.shop.order` のように配下へ置く。

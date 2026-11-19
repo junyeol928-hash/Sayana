@@ -5,10 +5,10 @@ minutes: 15
 summary: Controller から漏れた例外は 500 と Whitelabel Error Page に。@ExceptionHandler と @RestControllerAdvice で業務例外をステータスに対応させ、ProblemDetail(RFC 9457)でエラーの形をそろえる。
 goals:
   - 処理されない例外が 500 / Whitelabel Error Page になるまでの流れを説明できる
-  - "@ExceptionHandler(Controller 単位)と @RestControllerAdvice(全体)を使い分け、どのハンドラが選ばれるかを説明できる"
-  - 業務例外(NotFound・状態の矛盾など)と 404 / 409 / 500 の対応を1か所に集められる。ResponseStatusException も使える
-  - ProblemDetail でエラーレスポンスの形をそろえ、バリデーションエラーを項目ごとのメッセージにできる
-  - ログには詳細、利用者には安全なメッセージ、という原則と、画面アプリの templates/error/404.html を説明できる
+  - "`@ExceptionHandler`(Controller 単位)と `@RestControllerAdvice`(全体)を使い分け、どのハンドラが選ばれるかを説明できる"
+  - 業務例外(`NotFound`・状態の矛盾など)と 404 / 409 / 500 の対応を1か所に集められる。`ResponseStatusException` も使える
+  - "`ProblemDetail` でエラーレスポンスの形をそろえ、バリデーションエラーを項目ごとのメッセージにできる"
+  - ログには詳細、利用者には安全なメッセージ、という原則と、画面アプリの `templates/error/404.html` を説明できる
 samples:
   - title: 例外ハンドラが「ない」とき・「ある」とき
     libraries: [spring]

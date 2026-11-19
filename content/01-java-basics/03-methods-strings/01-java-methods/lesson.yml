@@ -4,12 +4,12 @@ status: ready
 minutes: 15
 summary: 処理に名前を付けて呼び出すメソッド。引数と戻り値、static の意味、オーバーロード、Java が「値渡し」である本当の意味、可変長引数と再帰まで。
 goals:
-  - 戻り値・引数・void を使って static メソッドを定義し、呼び出せる
-  - public static void main の各部品の意味を説明できる
-  - 全経路で return が必要な理由を理解し、早期 return(ガード節)で書ける
+  - 戻り値・引数・`void` を使って `static` メソッドを定義し、呼び出せる
+  - "`public static void main` の各部品の意味を説明できる"
+  - 全経路で `return` が必要な理由を理解し、早期 `return`(ガード節)で書ける
   - オーバーロードのルール(シグネチャに戻り値の型は含まれない)を説明できる
   - Java が常に値渡しであること、参照型では「参照の値」が渡ることを図で説明できる
-  - 可変長引数と再帰(終了条件と StackOverflowError)を使える
+  - 可変長引数と再帰(終了条件と `StackOverflowError`)を使える
 samples:
   - title: 請求計算をメソッドに分ける
     description: 戻り値のあるメソッドと void のメソッド。main から `static` メソッドを呼び出します。980 円を 3 個買うと、税込はいくらと表示される?
@@ -220,7 +220,7 @@ quiz:
       - "void でも値を返せると読んだ答え。void のメソッドで `return x` はエラー"
     explanation: |
       C は `x > 0` なら 1、そうでなければ if を抜けて `return 0;` に来るので、すべての経路で値を返します。
-      A は `x <= 0` の経路で何も返さないので `missing return statement`。紛らわしいのは B で、人間には「`x > 0` か `x <= 0` のどちらかは必ず成り立つ」と分かりますが、**コンパイラは条件式の中身を論理的に解析しません**。最後が `else` で終わっていないので「どちらも false で抜ける経路がある」とみなされ、同じく `missing return statement` です。
+      A は `x <= 0` の経路で何も返さないので `missing return statement`。紛らわしいのは B で、人間には「`x > 0` か `x <= 0` のどちらかは必ず成り立つ」と分かりますが、**コンパイラは条件式の中身を論理的に解析しません**。最後が `else` で終わっていないので「どちらも `false` で抜ける経路がある」とみなされ、同じく `missing return statement` です。
       D は void(戻り値なし)なのに値を返そうとしているので `incompatible types: unexpected return value` です。
   - question: |
       次のコードを実行するとどうなる?

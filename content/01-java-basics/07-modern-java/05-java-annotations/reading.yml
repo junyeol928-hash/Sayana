@@ -77,21 +77,21 @@
     System.out.println(Api.class.getAnnotation(Stable.class) != null);
   question: "2行の出力は?"
   choices:
-    - "true / true"
-    - "false / true"
-    - "true / false"
-    - "false / false"
+    - "`true` / `true`"
+    - "`false` / `true`"
+    - "`true` / `false`"
+    - "`false` / `false`"
   answer: 1
   why:
-    - "ソースに付いていれば実行時も読めると読んだ答え。SOURCE の @Draft はコンパイルで消える"
+    - "ソースに付いていれば実行時も読めると読んだ答え。`SOURCE` の `@Draft` はコンパイルで消える"
     - ""
-    - "SOURCE と RUNTIME の残り方を逆に読んだ答え。実行時まで残るのは RUNTIME の @Stable"
-    - "アノテーションは実行時に読めないと読んだ答え。RUNTIME の @Stable は getAnnotation で取れる"
-  explanation: "@Draft は SOURCE なのでコンパイル後には消え、実行時には null。@Stable は RUNTIME なので取れます。フレームワークが読むアノテーションが必ず RUNTIME なのはこのためです。"
+    - "`SOURCE` と `RUNTIME` の残り方を逆に読んだ答え。実行時まで残るのは `RUNTIME` の `@Stable`"
+    - "アノテーションは実行時に読めないと読んだ答え。`RUNTIME` の `@Stable` は `getAnnotation` で取れる"
+  explanation: "`@Draft` は `SOURCE` なのでコンパイル後には消え、実行時には `null`。`@Stable` は `RUNTIME` なので取れます。フレームワークが読むアノテーションが必ず `RUNTIME` なのはこのためです。"
   trace:
     - "7行目: 両方のアノテーションを付ける(ソース上は両方ある)"
-    - "10行目: Draft は class ファイルに残っていない → null → false"
-    - "11行目: Stable は実行時まで残る → 取れる → true"
+    - "10行目: `Draft` は class ファイルに残っていない → `null` → `false`"
+    - "11行目: `Stable` は実行時まで残る → 取れる → `true`"
 - title: "Aspect の proceed()"
   level: 3
   code: |

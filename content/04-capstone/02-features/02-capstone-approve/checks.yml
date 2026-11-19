@@ -12,11 +12,12 @@
 - after: "@Transactional:状態と履歴は一蓮托生"
   question: |
     `approve` の中で、履歴の INSERT が DB のエラー(`DataIntegrityViolationException`。RuntimeException の仲間)で失敗した。申請の状態は?
-  choices: ["状態の変更もロールバックされ、申請中のまま", "状態の変更はコミットされ、承認済なのに履歴が無い"]
+  choices: ["状態の変更もロールバックされ、申請中のまま", "状態の変更はコミットされ、承認済なのに履歴が無い", "ロールバックで、差戻しの状態になる"]
   answer: 0
   why:
     - ""
     - "状態の変更は先に確定したと考えた答え。コミットはメソッドの最後で、例外が出れば UPDATE ごと取り消される"
+    - "ロールバックを差戻しへの切り替えと読んだ答え。ロールバックは承認する前の申請中に戻すだけ"
   explanation: |
     状態の UPDATE と履歴の INSERT は、`@Transactional` の 1 つのトランザクションの中にある。RuntimeException が外へ出れば、両方なかったことになる。
 - after: 画面:承認待ち一覧とボタン

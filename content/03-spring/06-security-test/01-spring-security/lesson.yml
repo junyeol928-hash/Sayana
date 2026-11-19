@@ -6,9 +6,9 @@ summary: 認証(誰か)と認可(何をしてよいか)。SecurityFilterChain �
 goals:
   - 認証と認可の違いを説明でき、未ログイン(ログイン画面へ)と権限不足(403)を区別できる
   - 依存を入れただけで全画面がログイン必須になる理由(secure by default)と、リクエストがフィルタチェーンを通る流れを説明できる
-  - SecurityFilterChain の Bean をラムダ DSL で書き、permitAll / hasRole / authenticated を正しい順に並べられる
-  - パスワードを PasswordEncoder(BCrypt)でハッシュ化して保存し、matches で照合する理由を説明できる
-  - CSRF トークン・@PreAuthorize・@AuthenticationPrincipal の役割を説明できる
+  - "`SecurityFilterChain` の Bean をラムダ DSL で書き、`permitAll` / `hasRole` / `authenticated` を正しい順に並べられる"
+  - パスワードを `PasswordEncoder`(BCrypt)でハッシュ化して保存し、`matches` で照合する理由を説明できる
+  - CSRF トークン・`@PreAuthorize`・`@AuthenticationPrincipal` の役割を説明できる
 samples:
   - title: ソルトなしとソルトありのハッシュを比べる
     description: haru と mocha が同じパスワードを使っています。仕組みの体験用で、本番は BCrypt を使います。ソルトなしとソルトありで、2 人のハッシュはそれぞれ同じになる?

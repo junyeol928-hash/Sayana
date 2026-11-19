@@ -5,9 +5,9 @@ minutes: 15
 summary: Java Project・Maven Project・Spring Starter Project の違いを知り、Spring Boot の雛形を作って Boot Dashboard で起動する。既存プロジェクトのインポート、エラーが消えないときの対処、ポート 8080 の衝突まで。
 goals:
   - Java Project・Maven Project・Spring Starter Project の違いを、ビルドと依存管理の観点で説明できる
-  - Spring Starter Project を Java 21・Maven・Spring Web で作成し、生成されたフォルダ構成(src/main/java・src/main/resources・pom.xml・mvnw)を読める
+  - Spring Starter Project を Java 21・Maven・Spring Web で作成し、生成されたフォルダ構成(`src/main/java`・`src/main/resources`・`pom.xml`・`mvnw`)を読める
   - 既存の Maven プロジェクトを Existing Maven Projects でインポートできる
-  - .project / .classpath / .settings が何かを知り、Git に入れない理由を説明できる
+  - "`.project` / `.classpath` / `.settings` が何かを知り、Git に入れない理由を説明できる"
   - Maven > Update Project と Project > Clean を使い分け、Boot Dashboard での起動・停止とポート衝突に対処できる
 
 quiz:

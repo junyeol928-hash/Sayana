@@ -120,21 +120,21 @@
     System.out.println(item.getCode());
   question: "出力は?"
   choices:
-    - "A-100"
-    - "null"
+    - "`A-100`"
+    - "`null`"
     - "コンパイルエラー"
     - "実行時エラー"
   answer: 1
   why:
-    - "`code = code` でフィールドに入ると読んだ答え。どちらの `code` も引数を指し、フィールドは null のまま"
+    - "`code = code` でフィールドに入ると読んだ答え。どちらの `code` も引数を指し、フィールドは `null` のまま"
     - ""
     - "同じ名前どうしの代入を文法違反と読んだ答え。引数を引数に入れるだけで通ってしまう"
-    - "null のフィールドを返すと例外になると読んだ答え。null を返して表示するだけなら null と出る"
-  explanation: "5行目の `code = code;` は「引数を引数に代入」しているだけで、フィールド `code` には何も入りません。`this.code = code;` と書く必要があります。フィールドは初期値の null のままなので、null と表示されます。"
+    - "`null` のフィールドを返すと例外になると読んだ答え。`null` を返して表示するだけなら `null` と出る"
+  explanation: "5行目の `code = code;` は「引数を引数に代入」しているだけで、フィールド `code` には何も入りません。`this.code = code;` と書く必要があります。フィールドは初期値の `null` のままなので、`null` と表示されます。"
   trace:
-    - "13行目: Item を作る。フィールド `code` は null"
-    - '14行目: `setCode("A-100")` → 5行目で引数 `code` に引数 `code` を代入(意味なし)。フィールドは null のまま'
-    - "15行目: `getCode()` はフィールド `code` を返す → null"
+    - "13行目: Item を作る。フィールド `code` は `null`"
+    - '14行目: `setCode("A-100")` → 5行目で引数 `code` に引数 `code` を代入(意味なし)。フィールドは `null` のまま'
+    - "15行目: `getCode()` はフィールド `code` を返す → `null`"
 - title: "ローカル変数がフィールドを隠す"
   level: 3
   code: |
@@ -275,10 +275,10 @@
     System.out.println(c.show());
   question: "出力は?"
   choices:
-    - "0:fast"
-    - "3:safe"
-    - "3:fast"
-    - "0:null"
+    - "`0:fast`"
+    - "`3:safe`"
+    - "`3:fast`"
+    - "`0:null`"
   answer: 2
   why:
     - "コンストラクタがあると初期化子が効かないと読んだ答え"
@@ -309,8 +309,8 @@
     System.out.println(p.getNickname());
   question: "出力は?"
   choices:
-    - "neko"
-    - "null"
+    - "`neko`"
+    - "`null`"
     - "コンパイルエラー"
     - "実行時エラー"
   answer: 1
@@ -318,12 +318,12 @@
     - "`nickname = nickname` でフィールドに入ると読んだ答え"
     - ""
     - "同じ名前どうしの代入を文法違反と読んだ答え"
-    - "null を返すと例外になると読んだ答え"
-  explanation: "5行目は引数 `nickname` を引数 `nickname` に代入しているだけで、フィールドには何も入りません。`this.nickname = nickname;` が正解の書き方です。フィールドは既定値 null のままなので null と表示されます。コンパイルは通るため見つけにくいバグです。"
+    - "`null` を返すと例外になると読んだ答え"
+  explanation: "5行目は引数 `nickname` を引数 `nickname` に代入しているだけで、フィールドには何も入りません。`this.nickname = nickname;` が正解の書き方です。フィールドは既定値 `null` のままなので `null` と表示されます。コンパイルは通るため見つけにくいバグです。"
   trace:
-    - '13行目: `new Profile("neko")` → フィールド `nickname` は null'
+    - '13行目: `new Profile("neko")` → フィールド `nickname` は `null`'
     - "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)"
-    - "14行目: `getNickname()` はフィールドを返す → null"
+    - "14行目: `getNickname()` はフィールドを返す → `null`"
 - title: "Lombok が作るコンストラクタを推測する"
   level: 3
   code: |
@@ -342,8 +342,8 @@
   question: "`@RequiredArgsConstructor` は Lombok の注釈で、**初期化していない final のフィールドだけ** を引数に取るコンストラクタを自動で作ります。Spring(第3部)はそのコンストラクタを呼んで部品を渡します。Spring がこのクラスを作って send を呼んだとき、何が起きる?"
   choices:
     - "正常にメールが送られる"
-    - "`reportRepository` が null で `NullPointerException`"
-    - "`mailSender` が null で `NullPointerException`"
+    - "`reportRepository` が `null` で `NullPointerException`"
+    - "`mailSender` が `null` で `NullPointerException`"
     - "コンパイルエラー"
   answer: 2
   why:
@@ -351,10 +351,10 @@
     - "final のフィールドがコンストラクタに入らないと読んだ答え"
     - ""
     - "final でないフィールドがあるとコンパイルが通らないと読んだ答え"
-  explanation: "`@RequiredArgsConstructor` は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、`mailSender` は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、`mailSender` は null のまま。10行目で `NullPointerException` です。final の付け忘れが原因です。"
+  explanation: "`@RequiredArgsConstructor` は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、`mailSender` は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、`mailSender` は `null` のまま。10行目で `NullPointerException` です。final の付け忘れが原因です。"
   trace:
     - "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)"
-    - "5行目: mailSender は final でないので引数に含まれない → 既定値 null のまま"
+    - "5行目: mailSender は final でないので引数に含まれない → 既定値 `null` のまま"
     - "6行目: static final の定数はインスタンスの初期化とは無関係"
     - "9行目: reportRepository は注入済みなので動く"
-    - "10行目: `mailSender` が null → `NullPointerException`"
+    - "10行目: `mailSender` が `null` → `NullPointerException`"

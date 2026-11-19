@@ -5,9 +5,9 @@ minutes: 15
 summary: 承認くんの土台を作る。Spring Boot 3.5.16 の pom.xml でのプロジェクト作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。
 goals:
   - 設計どおりの依存・パッケージ構成で Spring Boot のプロジェクトを作り、起動クラスより下にパッケージを置く理由を説明できる
-  - H2 ファイルモードで ddl-auto・sql.init.mode・defer-datasource-initialization を設定し、data.sql を何度流しても壊れないように書ける
-  - "@Entity・@Enumerated(EnumType.STRING)・@ManyToOne(LAZY)・@PrePersist で Employee / ApprovalRequest / ApprovalHistory を書ける"
-  - 画面の検索を派生クエリ(OrderBy・count・関連エンティティでの絞り込み)で宣言し、H2 コンソールで中身を確かめられる
+  - H2 ファイルモードで `ddl-auto`・`sql.init.mode`・`defer-datasource-initialization` を設定し、`data.sql` を何度流しても壊れないように書ける
+  - "`@Entity`・`@Enumerated`(`EnumType.STRING`)・`@ManyToOne`(`LAZY`)・`@PrePersist` で `Employee` / `ApprovalRequest` / `ApprovalHistory` を書ける"
+  - 画面の検索を派生クエリ(`OrderBy`・`count`・関連エンティティでの絞り込み)で宣言し、H2 コンソールで中身を確かめられる
 samples:
   - title: ORDINAL で保存していたら何が起きるか
     description: |
@@ -92,16 +92,16 @@ quiz:
           DRAFT, CHECKING, SUBMITTED, APPROVED, RETURNED, WITHDRAWN
       }
       ```
-    choices: ["SUBMITTED", "起動時にエラーになる", "CHECKING", "null"]
+    choices: ["`SUBMITTED`", "起動時にエラーになる", "`CHECKING`", "`null`"]
     answer: 2
     why:
       - "名前で保存されていると読んだ答え。既定の ORDINAL は番号で保存する"
       - "enum を変えると起動で弾かれると読んだ答え。起動時に番号の意味までは確かめない"
       - ""
-      - "合わない値は null になると読んだ答え。番号 1 は新しい enum にもある"
+      - "合わない値は `null` になると読んだ答え。番号 1 は新しい enum にもある"
     explanation: |
       ORDINAL は宣言順の番号で保存します。保存時の `SUBMITTED` は 0 始まりで **1** です。新しい enum では 1 番が `CHECKING` なので、データは1バイトも変わっていないのに「確認中」として読まれます。
-      番号の範囲内なのでエラーにも null にもならず、**黙って意味がずれる** のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
+      番号の範囲内なのでエラーにも `null` にもならず、**黙って意味がずれる** のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
   - question: |
       次の application.yml で起動すると、どうなる?(`data.sql` には社員3人の MERGE 文があり、CommandLineRunner で `findByEmail("haru@example.com").orElseThrow()` を呼んでいる)
       ```yaml

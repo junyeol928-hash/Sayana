@@ -126,7 +126,7 @@
     - "分岐は図にしないと読んだ答え。if-else は alt で表し、-100 は else に入って例外になる"
   explanation: "if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、`IllegalArgumentException` が発生します。"
   trace:
-    - "2行目: `request.getAmount()` は -100 なので条件は false"
+    - "2行目: `request.getAmount()` は -100 なので条件は `false`"
     - "5行目の else に入る"
     - "6行目: `IllegalArgumentException` を throw する"
     - "この if-else 全体が、シーケンス図では alt の `[amount > 0]` / `[else]` の2区画として描かれる"

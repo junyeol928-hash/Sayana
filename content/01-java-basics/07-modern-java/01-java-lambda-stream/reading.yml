@@ -8,9 +8,9 @@
     System.out.println(big.test(len.apply(word)));
   question: "出力は?"
   choices:
-    - "6"
-    - "true"
-    - "false"
+    - "`6`"
+    - "`true`"
+    - "`false`"
     - "コンパイルエラー"
   answer: 1
   why:
@@ -22,7 +22,7 @@
   trace:
     - "1行目: String を受け取って長さ(Integer)を返す処理"
     - "2行目: Integer を受け取って 3 より大きいか返す処理"
-    - "4行目: 内側 `len.apply(\"lambda\")` = 6 → `big.test(6)` = true"
+    - "4行目: 内側 `len.apply(\"lambda\")` = 6 → `big.test(6)` = `true`"
 - title: "メソッド参照をラムダに戻す"
   level: 2
   code: |
@@ -192,9 +192,9 @@
   explanation: "要素は1つずつ全段を通ります。1 は filter を通過して map へ(F1 M1)、2 は filter で落ちるので map に行かない(F2)、3 は通過(F3 M3)。「filter を全部やってから map」ではないのがポイントです。"
   trace:
     - "10行目の `toList()` が呼ばれて初めて流れ始める"
-    - "要素1: F1 → true → M1 → 10"
-    - "要素2: F2 → false → ここで終わり(M2 は出ない)"
-    - "要素3: F3 → true → M3 → 30"
+    - "要素1: F1 → `true` → M1 → 10"
+    - "要素2: F2 → `false` → ここで終わり(M2 は出ない)"
+    - "要素3: F3 → `true` → M3 → 30"
     - "出力: F1 M1 F2 F3 M3、out = [10, 30]"
 - title: "groupingBy と counting"
   level: 2

@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、ordinal を保存してはいけない理由、switch 式の網羅性、EnumMap まで。
 goals:
-  - record で自動生成されるもの(フィールド・コンストラクタ・アクセサ・equals/hashCode/toString)を説明できる
+  - record で自動生成されるもの(フィールド・コンストラクタ・アクセサ・`equals`/`hashCode`/`toString`)を説明できる
   - コンパクトコンストラクタで値を検証し、不変の値オブジェクトを書ける
-  - "public static final int の定数より enum が優れている理由と、ordinal を永続化してはいけない理由を説明できる"
+  - "`public static final int` の定数より enum が優れている理由と、`ordinal` を永続化してはいけない理由を説明できる"
   - フィールド・コンストラクタ・メソッドを持つ enum を書き、switch 式で網羅的に分岐できる
-  - enum をキーにした集計に EnumMap を使える
+  - enum をキーにした集計に `EnumMap` を使える
 samples:
   - title: record の自動生成とコンパクトコンストラクタ
     description: |

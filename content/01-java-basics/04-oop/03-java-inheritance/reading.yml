@@ -15,16 +15,16 @@
     System.out.println(f.label() + " " + f.monthlyFee());
   question: "出力は?"
   choices:
-    - "基本プラン 1000"
-    - "基本プラン 2500"
+    - "`基本プラン 1000`"
+    - "`基本プラン 2500`"
     - "コンパイルエラー"
-    - "null 2500"
+    - "`null 2500`"
   answer: 1
   why:
     - "子の上書きを見落とした答え"
     - ""
     - "子に書いていない `label()` は呼べないと読んだ答え"
-    - "子に無い `label()` は null を返すと読んだ答え"
+    - "子に無い `label()` は `null` を返すと読んだ答え"
   explanation: "`label()` は `FamilyPlan` に書かれていないので、親 Plan の版がそのまま使われます。`monthlyFee()` は子で上書きしているので 2500 です。"
   trace:
     - "10行目: `FamilyPlan` を new(親 `Plan()` → 子 `FamilyPlan()` の順に初期化)"
@@ -148,9 +148,9 @@
     new Child();
   question: "出力は?"
   choices:
-    - "init: base"
-    - "init: child"
-    - "init: null"
+    - "`init: base`"
+    - "`init: child`"
+    - "`init: null`"
     - "コンパイルエラー"
   answer: 2
   why:
@@ -158,10 +158,10 @@
     - "子のフィールドが先に初期化されると読んだ答え"
     - ""
     - "上書きできるメソッドをコンストラクタで呼ぶとエラーと読んだ答え。危険だが文法上は通る"
-  explanation: "`new Child()` では、まず親 `Base()` が動きます。その中で呼ばれる `describe()` は、実体が Child なので**子の上書き版**が動きます。しかしこの時点では子のフィールド初期化子(`label = \"child\"`)はまだ実行されていないため、label は null です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。"
+  explanation: "`new Child()` では、まず親 `Base()` が動きます。その中で呼ばれる `describe()` は、実体が Child なので**子の上書き版**が動きます。しかしこの時点では子のフィールド初期化子(`label = \"child\"`)はまだ実行されていないため、label は `null` です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。"
   trace:
     - "14行目: `new Child()` → 親 `Base()` が先に動く(子の初期化子はまだ)"
     - "3行目: `describe()` を呼ぶ → 実体は Child なので子の `describe()`(11行目)"
-    - "11行目: label はまだ初期化されていない → null を返す"
+    - "11行目: label はまだ初期化されていない → `null` を返す"
     - "3行目: `init: null` と表示"
     - 'その後: 子の初期化子で `label = "child"` になるが、表示はもう終わっている'

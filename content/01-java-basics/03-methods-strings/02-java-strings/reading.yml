@@ -35,17 +35,17 @@
     System.out.println((x == y) + " " + (x == z) + " " + x.equals(z) + " " + (x == w));
   question: "出力は?"
   choices:
-    - "true false true true"
-    - "true true true true"
-    - "false false true false"
-    - "true false true false"
+    - "`true false true true`"
+    - "`true true true true`"
+    - "`false false true false`"
+    - "`true false true false`"
   answer: 0
   why:
     - ""
     - "`new String` も、プールの同じものを返すと読んだ答え"
     - "リテラル同士の連結も `intern()` も、別物を作ると読んだ答え"
     - "`intern()` が新しい文字列を作ると読んだ答え"
-  explanation: "`\"ad\" + \"min\"` はリテラルどうしの連結なのでコンパイル時に `\"admin\"` にまとめられ、プールの同じオブジェクトになります(x == y は true)。`new String` は別オブジェクト(x == z は false)。equals は中身比較なので true。`intern()` はプール内の同じ内容のオブジェクトを返すので x == w は true。実務では `intern` を見ることは稀ですが、== が危ういことの理解に役立ちます。"
+  explanation: "`\"ad\" + \"min\"` はリテラルどうしの連結なのでコンパイル時に `\"admin\"` にまとめられ、プールの同じオブジェクトになります(`x == y` は `true`)。`new String` は別オブジェクト(`x == z` は `false`)。`equals` は中身比較なので `true`。`intern()` はプール内の同じ内容のオブジェクトを返すので `x == w` は `true`。実務では `intern` を見ることは稀ですが、`==` が危ういことの理解に役立ちます。"
   trace:
     - '1行目: プールに `"admin"` が置かれ、`x` が指す'
     - '2行目: リテラルどうしの `+` はコンパイル時に `"admin"` になる → `x` と同じものを指す'
@@ -105,12 +105,12 @@
     - "大文字にする最後の return に進むと読んだ答え"
     - ""
     - "空白だけの文字列が、空文字になって返ると読んだ答え"
-    - "null にも `isBlank()` が呼ばれると読んだ答え"
-  explanation: "`\"  Tmp \"` は null でも空白でもないので先に進み、`strip` して `\"Tmp\"`、大文字小文字を無視して `\"tmp\"` と一致するので `\"TEMP\"`。`\" \"` は `isBlank` が true で `\"NONE\"`。null は `code == null` が true になり、|| の右側(`isBlank`)は評価されないので例外にならず `\"NONE\"`。||(短絡評価)と定数を左に置く書き方が null を守っています。"
+    - "`null` にも `isBlank()` が呼ばれると読んだ答え"
+  explanation: "`\"  Tmp \"` は `null` でも空白でもないので先に進み、`strip` して `\"Tmp\"`、大文字小文字を無視して `\"tmp\"` と一致するので `\"TEMP\"`。`\" \"` は `isBlank` が `true` で `\"NONE\"`。`null` は `code == null` が `true` になり、`||` の右側(`isBlank`)は評価されないので例外にならず `\"NONE\"`。`||`(短絡評価)と定数を左に置く書き方が `null` を守っています。"
   trace:
-    - '`normalize("  Tmp ")`: 2行目 false → 5行目 `strip` で `"Tmp"`、`equalsIgnoreCase` で true → `"TEMP"`'
-    - '`normalize(" ")`: 2行目 `isBlank` が true → `"NONE"`'
-    - '`normalize(null)`: 2行目 `code == null` が true。`||` の右は評価されない → `"NONE"`'
+    - '`normalize("  Tmp ")`: 2行目 `false` → 5行目 `strip` で `"Tmp"`、`equalsIgnoreCase` で `true` → `"TEMP"`'
+    - '`normalize(" ")`: 2行目 `isBlank` が `true` → `"NONE"`'
+    - '`normalize(null)`: 2行目 `code == null` が `true`。`||` の右は評価されない → `"NONE"`'
     - "結果: `TEMP NONE NONE` と表示"
 - title: "Base64 と文字コードの往復"
   level: 3
@@ -123,17 +123,17 @@
     System.out.println(raw.length + " " + encoded.length() + " " + restored.equals(secret) + " " + (restored == secret));
   question: "出力は?"
   choices:
-    - "1 4 true true"
-    - "3 4 true false"
-    - "3 3 true true"
-    - "3 4 false false"
+    - "`1 4 true true`"
+    - "`3 4 true false`"
+    - "`3 3 true true`"
+    - "`3 4 false false`"
   answer: 1
   why:
-    - "1 文字は 1 バイトと読み、`==` も true とした答え"
+    - "1 文字は 1 バイトと読み、`==` も `true` とした答え"
     - ""
-    - "Base64 でも長さが変わらないと読み、`==` も true とした答え"
+    - "Base64 でも長さが変わらないと読み、`==` も `true` とした答え"
     - "往復で中身が変わると読んだ答え"
-  explanation: "`\"鍵\"` は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので encoded は 4 文字。decode → new String で元の内容に戻るので equals は true。ただし new String で作った別オブジェクトなので == は false。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。"
+  explanation: "`\"鍵\"` は UTF-8 で 3 バイト。Base64 は 3 バイトを 4 文字にするので `encoded` は 4 文字。`decode` → `new String` で元の内容に戻るので `equals` は `true`。ただし `new String` で作った別オブジェクトなので `==` は `false`。暗号・鍵管理のコードは、この「String → byte[] → 表現形式 → byte[] → String」の往復でできています。"
   trace:
     - "2行目: 日本語1文字は UTF-8 で 3 バイト → `raw.length` は 3"
     - "3行目: 3 バイト → Base64 で 4 文字(パディングなし)"

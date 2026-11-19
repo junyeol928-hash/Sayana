@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、th:text と XSS、th:each・th:if、フラグメントによる共通レイアウトまで。
 goals:
-  - テンプレートエンジンの役割と、ビュー名から templates/ のファイルが選ばれる流れを説明できる
-  - "${...}・*{...}・@{...}・#{...} の4種類の式を使い分けられる"
-  - th:text と th:utext の違いを XSS と結びつけて説明し、正しく使い分けられる
-  - th:each(ステータス変数)と th:if / th:unless で一覧や条件付き表示を書ける
-  - th:fragment と th:replace で共通レイアウトを作り、#temporals・#numbers で整形できる
+  - テンプレートエンジンの役割と、ビュー名から `templates/` のファイルが選ばれる流れを説明できる
+  - "`${...}`・`*{...}`・`@{...}`・`#{...}` の4種類の式を使い分けられる"
+  - "`th:text` と `th:utext` の違いを XSS と結びつけて説明し、正しく使い分けられる"
+  - "`th:each`(ステータス変数)と `th:if` / `th:unless` で一覧や条件付き表示を書ける"
+  - "`th:fragment` と `th:replace` で共通レイアウトを作り、`#temporals`・`#numbers` で整形できる"
 samples:
   - title: テンプレート文字列を描画してみる
     libraries: [spring, thymeleaf]

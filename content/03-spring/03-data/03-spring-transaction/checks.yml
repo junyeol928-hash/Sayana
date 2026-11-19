@@ -1,11 +1,12 @@
 - after: "@Transactional を Service に付ける"
   question: |
     `@Transactional` のメソッドで、`findById` で読んだ口座の残高を変えた。`save` は呼ばずに正常終了すると、DB の残高は?
-  choices: ["変わらない(`save` していないので)", "`save` なしでも更新される"]
+  choices: ["変わらない(`save` していないので)", "`save` なしでも更新される", "例外になる(`save` 抜けの変更なので)"]
   answer: 1
   why:
     - "`save` を呼ばないと DB に書かれないと読んだ答え"
     - ""
+    - "`save` を呼ばない変更は不正として止められると読んだ答え。呼ばなくても例外は出ず、コミットで書き込まれる"
   explanation: |
     トランザクションの中で読んだエンティティの変更は JPA が覚えていて、コミットのときに UPDATE を出す(変更検知)。
 - after: プロキシの仕組みと2つの罠

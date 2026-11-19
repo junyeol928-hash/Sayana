@@ -18,11 +18,12 @@
     ```java
     LocalDate today = LocalDate.now();
     ```
-  choices: ["2024-03-31", "2024-04-01"]
+  choices: ["2024-03-31", "2024-04-01", "2024-04-01T08:00"]
   answer: 0
   why:
     - ""
     - "`now()` が日本の今日を返すと読んだ答え。引数なしの `now()` は、サーバーのゾーン(UTC)で読む"
+    - "`LocalDate` が時刻まで持ち、日本の今を返すと読んだ答え。持つのは日付だけで、読むのはサーバーのゾーン"
   explanation: |
     引数なしの `now()` は、サーバーのタイムゾーンで「今」を読む。日本時間 8:00 は UTC ではまだ前日の 23:00 なので 3/31。日本の「今日」が欲しいなら `LocalDate.now(ZoneId.of("Asia/Tokyo"))` と書く。
 - after: 期間:Period と Duration

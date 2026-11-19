@@ -6,7 +6,7 @@ summary: 知らない Spring Boot プロジェクトに入ったときの読む�
 goals:
   - 知らないプロジェクトを、README・依存・パッケージ構成・設定・テストの順に眺めて、層と役割の見当をつけられる
   - 1本の API を、URL → Controller → リクエスト DTO → Service → Repository → レスポンス・例外ハンドラの順に自分で追える
-  - "@Transactional の境界と、例外が投げられたときにロールバック・Advice が動く順番を、コードから読み取れる"
+  - "`@Transactional` の境界と、例外が投げられたときにロールバック・Advice が動く順番を、コードから読み取れる"
   - エラーログのスタックトレースを「1行目・一番下の Caused by・最初の自分の行」の順に読み、原因の行まで逆にたどれる
   - Lombok・DI・AOP・Jackson・バリデーション・Filter など、ソースに書かれていない処理を意識して読める
 samples:

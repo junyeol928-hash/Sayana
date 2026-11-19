@@ -5,9 +5,9 @@ minutes: 20
 summary: 同時に動く複数のスレッドと、共有される1つの状態。競合状態、synchronized・volatile・AtomicInteger、ExecutorService・Future・CompletableFuture、シングルトン Bean のフィールドの危険まで。
 goals:
   - スレッドとは何か、Web アプリが「1リクエスト=1スレッド」で動き、Bean を全スレッドで共有することを説明できる
-  - count++ が競合状態を起こす理由を「読む・足す・書く」の3ステップで説明できる
-  - synchronized・volatile・AtomicInteger の役割の違いを説明し、使い分けられる
-  - ExecutorService に仕事を投げ、Future をタイムアウト付きで受け取り、shutdown まで書ける
+  - "`count++` が競合状態を起こす理由を「読む・足す・書く」の3ステップで説明できる"
+  - "`synchronized`・`volatile`・`AtomicInteger` の役割の違いを説明し、使い分けられる"
+  - "`ExecutorService` に仕事を投げ、`Future` をタイムアウト付きで受け取り、`shutdown` まで書ける"
   - シングルトン Bean に書き換え可能なフィールドを持たせる危険を見抜き、ローカル変数に直せる
 samples:
   - title: スレッドを2本動かして join で待つ

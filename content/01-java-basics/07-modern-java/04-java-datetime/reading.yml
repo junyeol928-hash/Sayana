@@ -35,20 +35,20 @@
     System.out.println(a + " " + b + " " + days);
   question: "出力は?"
   choices:
-    - "true true 0"
-    - "false true 0"
-    - "false false 0"
-    - "true false 1"
+    - "`true true 0`"
+    - "`false true 0`"
+    - "`false false 0`"
+    - "`true false 1`"
   answer: 1
   why:
-    - "同じ日を isBefore で true と読んだ答え。同じ日は「前」ではないので false"
+    - "同じ日を `isBefore` で `true` と読んだ答え。同じ日は「前」ではないので `false`"
     - ""
-    - "isAfter の否定を見落とした答え。isAfter は false で、`!` が付いて true になる"
-    - "当日を 1 日と数え、判定も逆に読んだ答え。差は 0 日で、a は false、b は true"
-  explanation: "同じ日なので isBefore は false(「前」ではない)。isAfter も false なので、その否定 b は true。つまり a は「期限当日は無効」、b は「期限当日も有効」という判定です。差は 0 日。実務の有効期限バグはこの境界の読み違いから起きます。"
+    - "`isAfter` の否定を見落とした答え。`isAfter` は `false` で、`!` が付いて `true` になる"
+    - "当日を 1 日と数え、判定も逆に読んだ答え。差は 0 日で、`a` は `false`、`b` は `true`"
+  explanation: "同じ日なので `isBefore` は `false`(「前」ではない)。`isAfter` も `false` なので、その否定 `b` は `true`。つまり `a` は「期限当日は無効」、`b` は「期限当日も有効」という判定です。差は 0 日。実務の有効期限バグはこの境界の読み違いから起きます。"
   trace:
-    - "3行目: 9/16 は 9/16 より前ではない → false"
-    - "4行目: 9/16 は 9/16 より後ではない → isAfter が false → 否定して true"
+    - "3行目: 9/16 は 9/16 より前ではない → `false`"
+    - "4行目: 9/16 は 9/16 より後ではない → `isAfter` が `false` → 否定して `true`"
     - "5行目: 同じ日の差 → 0"
     - "6行目: `false true 0`"
 - title: "UTC と東京時間"
@@ -86,10 +86,10 @@
     System.out.println(fee + " " + fee.equals(limit) + " " + (fee.compareTo(limit) == 0));
   question: "`setScale(桁数, 丸め方)` は小数点以下の桁数をそろえるメソッドです。BigDecimal の `equals` は値と scale(小数点以下の桁数)の両方を比べ、`compareTo` は値だけを比べます。出力は?"
   choices:
-    - "85 true true"
-    - "85 false true"
-    - "85.0 false true"
-    - "84 false false"
+    - "`85 true true`"
+    - "`85 false true`"
+    - "`85.0 false true`"
+    - "`84 false false`"
   answer: 1
   why:
     - "`equals` も値だけで比べると読んだ答え。桁数の違いも `equals` では効く"

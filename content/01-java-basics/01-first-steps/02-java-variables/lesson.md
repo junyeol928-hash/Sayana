@@ -41,8 +41,8 @@ Java は**静的型付け言語**です。変数の型はコンパイル時に�
 - `int` や `class` などの**キーワード**は使えない。`_` 1文字だけの名前も不可(Java 9 以降)
 
 **現場の慣習**
-- 変数名は **lowerCamelCase**:`totalPrice`、`userName`、`isActive`
-- 定数は **UPPER_SNAKE_CASE**:`MAX_RETRY_COUNT`、`TAX_RATE`(定数はクラスの `static final` フィールドとして書くのが普通。クラスは後のレッスンで扱います)
+- 変数名は **lowerCamelCase**: `totalPrice`、`userName`、`isActive`
+- 定数は **UPPER_SNAKE_CASE**: `MAX_RETRY_COUNT`、`TAX_RATE`(定数はクラスの `static final` フィールドとして書くのが普通。クラスは後のレッスンで扱います)
 - `a`、`tmp`、`data2` のような意味のない名前は避ける。日本語の変数名も文法上は書けるが、現場ではまず使わない
 
 ### final:再代入を禁止する

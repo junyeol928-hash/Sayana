@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: main の1行 SpringApplication.run の裏側。@SpringBootApplication の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと --debug レポートの読み方、devtools まで。
 goals:
-  - "@SpringBootApplication が @Configuration・@EnableAutoConfiguration・@ComponentScan の合成であることを説明できる"
-  - SpringApplication.run の起動の流れ(スキャン → 自動設定 → DI → Tomcat 起動 → Runner)を説明できる
-  - starter を入れると Bean が用意される理由を、@ConditionalOnClass / @ConditionalOnMissingBean の考え方で説明できる
+  - "`@SpringBootApplication` が `@Configuration`・`@EnableAutoConfiguration`・`@ComponentScan` の合成であることを説明できる"
+  - "`SpringApplication.run` の起動の流れ(スキャン → 自動設定 → DI → Tomcat 起動 → Runner)を説明できる"
+  - starter を入れると Bean が用意される理由を、`@ConditionalOnClass` / `@ConditionalOnMissingBean` の考え方で説明できる
   - コンポーネントスキャンの範囲を理解し、「Bean が見つからない」エラーをパッケージ構成から直せる
-  - 起動ログ・APPLICATION FAILED TO START・--debug の自動設定レポートを読んで原因を探せる
+  - 起動ログ・`APPLICATION FAILED TO START`・`--debug` の自動設定レポートを読んで原因を探せる
 samples:
   - title: 「利用者が定義していなければ既定を使う」を真似る
     description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定(`UserConfig`)が無い 1 回目と、ある 2 回目で、`alert` のメッセージはそれぞれどの Notifier で送られるだろうか。

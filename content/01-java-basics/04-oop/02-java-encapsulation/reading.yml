@@ -143,9 +143,9 @@
     System.out.println(entity.getCardId() + ":" + entity.getKeyVersion());
   question: "`@AllArgsConstructor` は、全フィールドを宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(`@Getter` は本文で扱ったもの)。出力は?"
   choices:
-    - "C001:3"
-    - "コンパイルエラー(getCardId は存在しない)"
-    - "null:0"
+    - "`C001:3`"
+    - "コンパイルエラー(`getCardId` は存在しない)"
+    - "`null:0`"
     - "実行時エラー"
   answer: 0
   why:
@@ -222,7 +222,7 @@
   why:
     - "`toString()` がお互いを呼び合うことを見落とした答え。`results` と `key` をたどり続けて止まらない"
     - ""
-    - "参照の先が null と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる"
+    - "参照の先が `null` と読んだ答え。互いに入っているので呼び合いが続き、スタックが尽きる"
     - "循環する参照を文法違反と読んだ答え。コンパイルは通り、実行時の `toString()` で起きる"
   explanation: "`@Data` の `toString()` は `results` フィールドも文字列化しようとし、各 ResultEntity の `toString()` はさらに `key` フィールド(元の KeyEntity)を文字列化しようとします。これが互いを呼び合い続け、`StackOverflowError` になることがあります。双方向関連には exclude や個別アノテーションでの対処が必要です。"
   trace:
@@ -248,16 +248,16 @@
     System.out.println(req);
   question: "`@Builder` は `CommandRequest.builder().項目名(値)….build()` の形で組み立てる Builder(「ネストクラス」のレッスンで扱う)を自動で作る Lombok の注釈、`@ToString` は toString を作る注釈です。出力される timeoutMillis の値は?"
   choices:
-    - "0"
+    - "`0`"
     - "コンパイルエラー"
     - "実行時例外"
-    - "null"
+    - "`null`"
   answer: 0
   why:
     - ""
     - "Builder で全項目を設定しないと、コンパイルが通らないと読んだ答え"
     - "設定しない項目があると `build()` で落ちると読んだ答え"
-    - "設定しない項目は null と読んだ答え。int は基本データ型なので既定値は 0"
+    - "設定しない項目は `null` と読んだ答え。int は基本データ型なので既定値は 0"
   explanation: "Builder では `timeoutMillis()` が呼ばれていないため、int の既定値である 0 のまま `build()` が実行され、CommandRequest(仕事では ApduRequest)が完成します。"
   trace:
     - "9〜12行目: sessionId と commandHex だけがセットされ、timeoutMillis は一度も呼ばれていない"

@@ -29,11 +29,11 @@
     Money c = a;
     System.out.println(a.equals(b) + " " + a.equals(c));
     ```
-  choices: ["false true", "true true", "false false"]
+  choices: ["`false true`", "`true true`", "`false false`"]
   answer: 0
   why:
     - ""
     - "`equals` は中身で比べると読んだ答え。オーバーライドしない `equals` は、同じインスタンスかを比べる"
     - "`c = a` で別のインスタンスができると読んだ答え。`c` は `a` と同じインスタンスを指す"
   explanation: |
-    オーバーライドしていない `equals` は `Object` から受け継いだもので、`==` と同じく「同じインスタンスか」を比べる。b は中身が同じでも別のインスタンスなので false、c は a と同じインスタンスなので true。
+    オーバーライドしていない `equals` は `Object` から受け継いだもので、`==` と同じく「同じインスタンスか」を比べる。b は中身が同じでも別のインスタンスなので `false`、c は a と同じインスタンスなので `true`。

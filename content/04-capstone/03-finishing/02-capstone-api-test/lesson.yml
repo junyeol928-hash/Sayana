@@ -4,11 +4,11 @@ status: ready
 minutes: 15
 summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を ProblemDetail で返し分け、@WebMvcTest + @MockitoBean とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
 goals:
-  - 承認くんの REST API(GET /api/requests?status=、GET /api/requests/{id}、POST /api/requests/{id}/approve)を Controller に実装できる
-  - エンティティではなく record の DTO(RequestSummary / RequestDetail)を返す理由を説明し、用途ごとに DTO を分けられる
-  - "404(ない)・409(今の状態ではできない)・403(権限がない)を区別し、BusinessRuleException を @ExceptionHandler で 409 の ProblemDetail にできる"
-  - "@WebMvcTest + @MockitoBean で Controller を、@ParameterizedTest のテーブル駆動テストで業務ルールを確かめられる"
-  - テストピラミッドの考え方で @SpringBootTest を少数に絞り、STS で全テストを流して緑にできる
+  - 承認くんの REST API(`GET /api/requests?status=`、`GET /api/requests/{id}`、`POST /api/requests/{id}/approve`)を Controller に実装できる
+  - エンティティではなく record の DTO(`RequestSummary` / `RequestDetail`)を返す理由を説明し、用途ごとに DTO を分けられる
+  - "404(ない)・409(今の状態ではできない)・403(権限がない)を区別し、`BusinessRuleException` を `@ExceptionHandler` で 409 の `ProblemDetail` にできる"
+  - "`@WebMvcTest` + `@MockitoBean` で Controller を、`@ParameterizedTest` のテーブル駆動テストで業務ルールを確かめられる"
+  - テストピラミッドの考え方で `@SpringBootTest` を少数に絞り、STS で全テストを流して緑にできる
 samples:
   - title: エンティティをそのまま JSON にすると何が出る?
     libraries: [spring]
@@ -201,11 +201,11 @@ quiz:
                   .map(RequestSummary::from).toList();
       }
       ```
-    choices: ["400 Bad Request になる", "status が null として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
+    choices: ["400 Bad Request になる", "status が `null` として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
     answer: 0
     why:
       - ""
-      - "変換できない値は null になると読んだ答え。`required = false` は無いときに null にするだけ"
+      - "変換できない値は `null` になると読んだ答え。`required = false` は無いときに `null` にするだけ"
       - "大文字小文字を無視して変換されると読んだ答え。enum への変換は区別する"
       - "変換の失敗をサーバーの異常と読んだ答え。リクエストの形が変として 400 になる"
     explanation: |

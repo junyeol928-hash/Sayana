@@ -49,7 +49,7 @@
     }
     Item i = new Item("ペン");
     ```
-  choices: ["コンパイルエラー", "name に「ペン」が入る", "name は null のまま"]
+  choices: ["コンパイルエラー", "name に「ペン」が入る", "name は `null` のまま"]
   answer: 0
   why:
     - ""

@@ -4,10 +4,10 @@ status: ready
 minutes: 15
 summary: 同じ型の値をまとめて扱う配列。宣言・生成、インデックスと範囲外例外、ループでの処理、参照型としての振る舞い、Arrays クラス、二次元配列まで。
 goals:
-  - 配列を new や初期化子で作り、要素の既定値と length を説明できる
-  - ArrayIndexOutOfBoundsException のメッセージから原因を特定できる
+  - 配列を `new` や初期化子で作り、要素の既定値と `length` を説明できる
+  - "`ArrayIndexOutOfBoundsException` のメッセージから原因を特定できる"
   - for と拡張 for を使い分けて、合計・平均・最大・探索・カウント・逆順を書ける
-  - 配列が参照型であること(代入はエイリアス、== は同一性の比較)を理解し、copyOf / Arrays.equals を正しく使える
+  - 配列が参照型であること(代入はエイリアス、`==` は同一性の比較)を理解し、`copyOf` / `Arrays.equals` を正しく使える
   - 二次元配列(ジャグ配列を含む)を作ってループで処理できる
 samples:
   - title: 配列を作って中身を見る
@@ -150,7 +150,7 @@ quiz:
       int[] y = {1, 2, 3};
       System.out.println((x == y) + " " + Arrays.equals(x, y));
       ```
-    choices: ["true true", "true false", "false false", "false true"]
+    choices: ["`true true`", "`true false`", "`false false`", "`false true`"]
     answer: 3
     why:
       - "`==` でも中身を比べると読んだ答え"

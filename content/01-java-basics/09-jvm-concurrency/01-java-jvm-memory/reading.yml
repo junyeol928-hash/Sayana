@@ -72,9 +72,9 @@
     System.out.println(coupon.discount);
   question: "出力は?"
   choices:
-    - "0"
-    - "20"
-    - "null"
+    - "`0`"
+    - "`20`"
+    - "`null`"
     - "コンパイルエラー"
   answer: 1
   why:
