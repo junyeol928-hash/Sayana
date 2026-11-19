@@ -183,7 +183,7 @@ Could not transfer artifact com.h2database:h2:jar:2.3.232
   from/to central (https://repo.maven.apache.org/maven2)
 ```
 
-会社のネットワークでは **プロキシ** 経由でないと外に出られないことが多く、`~/.m2/settings.xml` の `<proxies>` にプロキシを設定します。また一度失敗すると `.lastUpdated` という印が残り、しばらく再試行されません(`was cached in the local repository, resolution will not be reattempted…`)。`./mvnw -U …`(STS なら Update Project の **Force Update**)で強制的に取り直します。
+会社のネットワークでは **プロキシ** 経由でないと外に出られないことが多く、`~/.m2/settings.xml` の `<proxies>` にプロキシを設定します。また一度失敗すると `.lastUpdated` という印が残り、しばらく再試行されません。このときは `was cached in the local repository, resolution will not be reattempted…` と出ます。`./mvnw -U …`(STS なら Update Project の **Force Update**)で強制的に取り直します。
 
 ### バージョン衝突
 

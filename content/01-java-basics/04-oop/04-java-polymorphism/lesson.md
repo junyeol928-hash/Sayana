@@ -146,7 +146,7 @@ if (a instanceof Dog d) {
 }
 ```
 
-`a instanceof Dog d` は「実体が Dog なら、Dog 型の変数 `d` に入れて true」。検査とキャストが1つになり、キャスト先の書き間違いが起きません。`a` が `null` なら単に false です。Java 21 では `switch` でも `case Dog d ->` と書けます(モダンJavaの章の読解問題に出てきます)。
+`a instanceof Dog d` は「実体が Dog なら、Dog 型の変数 `d` に入れて `true`」。検査とキャストが1つになり、キャスト先の書き間違いが起きません。`a` が `null` なら単に `false` です。Java 21 では `switch` でも `case Dog d ->` と書けます(モダンJavaの章の読解問題に出てきます)。
 
 `instanceof` 自体は悪ではありません。`equals` の中のように型の確認が本質な場所では堂々と使います。ただ、業務ロジックで型分岐が並び始めたら、前節の「引っ越し」を考えましょう。
 

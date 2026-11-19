@@ -187,7 +187,7 @@ public int hashCode() {
 }
 ```
 
-ルールは「`equals` が true なら `hashCode` も必ず同じ」。`equals` だけ直すと別の場所を探しに行き、`contains` が `false` になります。STS の「ソース → hashCode() および equals() の生成」を使うのが安全です。
+ルールは「`equals` が `true` なら `hashCode` も必ず同じ」。`equals` だけ直すと別の場所を探しに行き、`contains` が `false` になります。STS の「ソース → hashCode() および equals() の生成」を使うのが安全です。
 
 ::: haru
 equals だけじゃダメなんすね……。

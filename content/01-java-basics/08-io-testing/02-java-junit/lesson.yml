@@ -2,7 +2,7 @@ id: java-junit
 title: JUnit入門
 status: ready
 minutes: 15
-summary: JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、@ParameterizedTest、テストしやすい設計まで。この道場の採点の仕組みもこれ。
+summary: JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、`@ParameterizedTest`、テストしやすい設計まで。この道場の採点の仕組みもこれ。
 goals:
   - 自動テストを書く理由(デグレの早期発見・動く仕様書)を説明できる
   - "`@Test`・`@DisplayName`・`@BeforeEach` と `assertEquals` / `assertTrue` / `assertThrows` / `assertAll` でテストを書ける"
@@ -150,7 +150,7 @@ quiz:
       - "書いた順に関係なく `0` が期待値として報告される、と読んだ答え"
       - ""
       - "順が逆だと比べずに素通りすると読んだ答え。500 と 0 は違うので失敗し、メッセージだけが逆になる"
-      - "引数の順をコンパイラが見ると読んだ答え。どちらも int なのでコンパイルは通る"
+      - "引数の順をコンパイラが見ると読んだ答え。どちらも `int` なのでコンパイルは通る"
     explanation: |
       `assertEquals` の引数は **(期待値, 実際の値)** の順です。このコードは逆に渡しているので、JUnit は `actual`(500)を期待値、`0` を実際の値として扱い、`expected: <500> but was: <0>` と報告します。
       成否(失敗すること)は変わりませんが、メッセージが「0 が返ってきた」と **嘘をつく** ので、調べる人が逆方向に迷い込みます。正しくは `assertEquals(0, actual)` です。

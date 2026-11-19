@@ -26,14 +26,14 @@
   why:
     - ""
     - "代入の順を逆に読んだ答え"
-    - "g は最初の実体のまま変わらないと読んだ答え"
-    - "Greeter 型の変数に、別のクラスは入れ直せないと読んだ答え"
-  explanation: "変数 g の型は Greeter のままですが、指している実体が EnglishGreeter → JapaneseGreeter と変わるので、動く `greet()` も変わります。同じ `g.greet()` という呼び出しで違う結果になるのがポリモーフィズムです。"
+    - "`g` は最初の実体のまま変わらないと読んだ答え"
+    - "`Greeter` 型の変数に、別のクラスは入れ直せないと読んだ答え"
+  explanation: "変数 `g` の型は `Greeter` のままですが、指している実体が `EnglishGreeter` → `JapaneseGreeter` と変わるので、動く `greet()` も変わります。同じ `g.greet()` という呼び出しで違う結果になるのがポリモーフィズムです。"
   trace:
-    - "11行目: g は EnglishGreeter の実体を指す"
-    - '12行目: `g.greet()` → 実体 EnglishGreeter の `greet` → `"Hello"`'
-    - "13行目: g が JapaneseGreeter の実体を指し直す(変数の型は Greeter のまま)"
-    - '14行目: `g.greet()` → 実体 JapaneseGreeter の `greet` → `"こんにちは"`'
+    - "11行目: `g` は `EnglishGreeter` の実体を指す"
+    - '12行目: `g.greet()` → 実体 `EnglishGreeter` の `greet` → `"Hello"`'
+    - "13行目: `g` が `JapaneseGreeter` の実体を指し直す(変数の型は `Greeter` のまま)"
+    - '14行目: `g.greet()` → 実体 `JapaneseGreeter` の `greet` → `"こんにちは"`'
 - title: "リストの中の実体ごとに動きが変わる"
   level: 2
   code: |
@@ -62,15 +62,15 @@
   answer: 0
   why:
     - ""
-    - "全部が AdultFee の 1200 と読んだ答え"
-    - "同じ AdultFee は 1 回だけ数えると読んだ答え"
+    - "全部が `AdultFee` の 1200 と読んだ答え"
+    - "同じ `AdultFee` は 1 回だけ数えると読んだ答え"
     - "抽象クラスの型ではリストを作れないと読んだ答え"
-  explanation: "リストの型は `List<Fee>` ですが、中身は AdultFee、ChildFee、AdultFee の実体です。f.amount() はそれぞれの実体の版が動くので `1200 + 500 + 1200` で 2900 です。"
+  explanation: "リストの型は `List<Fee>` ですが、中身は `AdultFee`、`ChildFee`、`AdultFee` の実体です。`f.amount()` はそれぞれの実体の版が動くので `1200 + 500 + 1200` で 2900 です。"
   trace:
-    - "11行目: Fee 型のリストに、子クラスの実体を3つ入れる(アップキャスト)"
-    - "13〜14行目 1周目: f は AdultFee → 1200"
-    - "2周目: f は ChildFee → 500(合計 1700)"
-    - "3周目: f は AdultFee → 1200(合計 2900)"
+    - "11行目: `Fee` 型のリストに、子クラスの実体を3つ入れる(アップキャスト)"
+    - "13〜14行目 1周目: `f` は `AdultFee` → 1200"
+    - "2周目: `f` は `ChildFee` → 500(合計 1700)"
+    - "3周目: `f` は `AdultFee` → 1200(合計 2900)"
     - "16行目: 2900"
 - title: "親の流れの中で、子のメソッドが動く"
   level: 2
@@ -107,8 +107,8 @@
     - "`e2` 側の `header()` の上書きを見落とした答え"
     - ""
     - "片方の上書きがもう片方にも効くと読んだ答え"
-    - "abstract でない `header()` を上書きするとエラーと読んだ答え。普通のメソッドも上書きできる"
-  explanation: "`export()` は親に1つだけあり、その中で `header()` と `body()` を呼びます。CsvExporter は `body()` だけ上書きしているので `header()` は親の `\"H\"`。JsonExporter は `header()` も上書きしているので `\"{\"`。どちらも「流れは親、中身は実体」で決まります。"
+    - "`abstract` でない `header()` を上書きするとエラーと読んだ答え。普通のメソッドも上書きできる"
+  explanation: "`export()` は親に1つだけあり、その中で `header()` と `body()` を呼びます。`CsvExporter` は `body()` だけ上書きしているので `header()` は親の `\"H\"`。`JsonExporter` は `header()` も上書きしているので `\"{\"`。どちらも「流れは親、中身は実体」で決まります。"
   trace:
     - '21行目: `e1.export()` → 親の `export`(2行目)→ `header()` は上書きなし → `"H"`、`body()` は Csv の版 → `"a,b,c"` → `"H|a,b,c"`'
     - '21行目: `e2.export()` → 親の `export` → `header()` は Json の版 → `"{"`、`body()` は Json の版 → `"x:1"` → `"{|x:1"`'
@@ -139,11 +139,11 @@
     - "メソッドも変数の型で選ばれると読んだ答え"
     - ""
     - "フィールドとメソッドの決まり方を逆に読んだ答え"
-  explanation: "メソッドは実体の型で決まる(動的ディスパッチ)ので `b.kind()` は Sub の版で `\"sub\"`。しかし**フィールドはオーバーライドされず、変数の型で決まります**。b の型は Base なので `b.kind` は Base のフィールド `\"base\"` です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。"
+  explanation: "メソッドは実体の型で決まる(動的ディスパッチ)ので `b.kind()` は `Sub` の版で `\"sub\"`。しかし**フィールドはオーバーライドされず、変数の型で決まります**。`b` の型は `Base` なので `b.kind` は `Base` のフィールド `\"base\"` です。フィールドを親子で同名にするのは混乱のもとなので、実務では避けられます。"
   trace:
-    - "11行目: 変数の型 Base、実体 Sub(アップキャスト)"
-    - '12行目: `b.kind` → フィールドは変数の型 Base で解決 → `"base"`'
-    - '12行目: `b.kind()` → メソッドは実体 Sub で解決 → `"sub"`'
+    - "11行目: 変数の型 `Base`、実体 `Sub`(アップキャスト)"
+    - '12行目: `b.kind` → フィールドは変数の型 `Base` で解決 → `"base"`'
+    - '12行目: `b.kind()` → メソッドは実体 `Sub` で解決 → `"sub"`'
     - "結果: `base sub` と表示"
 - title: "static メソッドはポリモーフィズムしない"
   level: 3
@@ -168,15 +168,15 @@
     - "コンパイルエラー"
   answer: 1
   why:
-    - "static メソッドも実体の型で選ばれると読んだ答え"
+    - "`static` メソッドも実体の型で選ばれると読んだ答え"
     - ""
     - "`name()` も変数の型で選ばれると読んだ答え"
-    - "変数経由の static 呼び出しを文法違反と読んだ答え"
-  explanation: "static メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。`x.tag()` は変数の型 Base の `tag()` が選ばれて `\"B\"`。一方、インスタンスメソッド `name()` は実体 Sub の版で `\"sub\"` です。static メソッドを変数経由で呼ぶのは紛らわしいので、`Base.tag()` のようにクラス名で呼ぶのが作法です。"
+    - "変数経由の `static` 呼び出しを文法違反と読んだ答え"
+  explanation: "`static` メソッドはインスタンスではなくクラスに属するので、上書き(オーバーライド)の対象になりません。`x.tag()` は変数の型 `Base` の `tag()` が選ばれて `\"B\"`。一方、インスタンスメソッド `name()` は実体 `Sub` の版で `\"sub\"` です。`static` メソッドを変数経由で呼ぶのは紛らわしいので、`Base.tag()` のようにクラス名で呼ぶのが作法です。"
   trace:
-    - "11行目: 変数の型 Base、実体 Sub"
-    - '12行目: `x.tag()` → static は変数の型(Base)で決まる → `"B"`'
-    - '12行目: `x.name()` → インスタンスメソッドは実体(Sub)で決まる → `"sub"`'
+    - "11行目: 変数の型 `Base`、実体 `Sub`"
+    - '12行目: `x.tag()` → `static` は変数の型(`Base`)で決まる → `"B"`'
+    - '12行目: `x.name()` → インスタンスメソッドは実体(`Sub`)で決まる → `"sub"`'
     - "結果: `B sub` と表示"
 - title: "instanceof で分岐する"
   level: 2
@@ -204,13 +204,13 @@
     - "`ClassCastException`"
   answer: 1
   why:
-    - "変数の型が Shape なら、Circle の判定にも当てはまると読んだ答え"
+    - "変数の型が `Shape` なら、`Circle` の判定にも当てはまると読んだ答え"
     - ""
     - "`area()` の値を表示すると読んだ答え"
     - "`instanceof` でキャストに失敗すると読んだ答え。合わない型は `false` になるだけで例外は出ない"
-  explanation: "s の実体は Square なので、最初の `s instanceof Circle` は `false`、次の `s instanceof Square` が `true` になり、`sq` という Square 型の変数が使えます。`sq.side` はフィールド `side`(2.0)です。`area()` ではなく `side` を表示している点に注意してください。"
+  explanation: "`s` の実体は `Square` なので、最初の `s instanceof Circle` は `false`、次の `s instanceof Square` が `true` になり、`sq` という `Square` 型の変数が使えます。`sq.side` はフィールド `side`(2.0)です。`area()` ではなく `side` を表示している点に注意してください。"
   trace:
-    - "10行目: 変数の型 Shape、実体 Square"
-    - "11行目: `s instanceof Circle` → 実体は Square → `false`"
-    - "13行目: `s instanceof Square` → `true` → `sq`(Square 型)が使える"
-    - "14行目: `sq.side` は 2(double なので 2.0)→ `square 2.0` と表示"
+    - "10行目: 変数の型 `Shape`、実体 `Square`"
+    - "11行目: `s instanceof Circle` → 実体は `Square` → `false`"
+    - "13行目: `s instanceof Square` → `true` → `sq`(`Square` 型)が使える"
+    - "14行目: `sq.side` は 2(`double` なので 2.0)→ `square 2.0` と表示"

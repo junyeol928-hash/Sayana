@@ -53,9 +53,9 @@ System.out.println(a);  // Money[amount=100, currency=JPY]
 
 ### record の制約:不変で、継承できない
 
-- フィールドは全部 `final`。セッターは書けない(`cannot assign a value to final variable amount`)
+- フィールドは全部 `final`。セッターは書けない。代入しようとすると `cannot assign a value to final variable amount`
 - record は暗黙に `final`。継承しようとすると `cannot inherit from final Money`
-- インスタンスフィールドの追加は不可(`field declaration must be static`)。static フィールド・メソッド追加・インターフェース実装は OK
+- インスタンスフィールドの追加は不可で、足すと `field declaration must be static` と出る。static フィールド・メソッド追加・インターフェース実装は OK
 
 ::: sensei
 値で比較するなら中身は変わっちゃダメ。HashSet に入れた後で変わったら、hashCode がズレて二度と見つからない。
@@ -253,7 +253,7 @@ OrderStatus.valueOf(input);
 // null      → NullPointerException: Name is null
 ```
 
-外部の文字列は null・空白・大文字小文字を整えてから変換します。
+外部の文字列は `null`・空白・大文字小文字を整えてから変換します。
 
 ::: point まとめ
 - record は **値を運ぶ不変クラス**。フィールド・コンストラクタ・アクセサ・equals/hashCode/toString を自動生成

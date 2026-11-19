@@ -74,15 +74,15 @@ public class MemberForm {
 }
 ```
 
-| 注釈 | チェック内容 | null のとき |
+| 注釈 | チェック内容 | `null` のとき |
 |---|---|---|
-| `@NotNull` | null でない | NG |
-| `@NotEmpty` | null でも長さ0でもない | NG |
+| `@NotNull` | `null` でない | NG |
+| `@NotEmpty` | `null` でも長さ0でもない | NG |
 | `@NotBlank` | 空白だけでもない | NG |
 | `@Size` `@Min` `@Max` | 長さ・数値の範囲 | OK |
 | `@Email` `@Pattern` | 形式・正規表現 | OK |
 
-大事なのは右列。**`@NotNull` 系以外は null を OK とみなします**。「未入力かどうかは別の注釈の担当」という設計なので、必須項目は `@NotBlank` などと組み合わせます。メッセージは `@NotBlank(message = "名前を入力してください")` のように変えられます(省略時は Hibernate Validator の既定文。言語は、Spring MVC の画面ではリクエストのロケール(ブラウザの言語設定)、Spring を通さずに検証したときは JVM の既定ロケールで決まり、日本語なら「空白は許可されていません」)。
+大事なのは右列。**`@NotNull` 系以外は `null` を OK とみなします**。「未入力かどうかは別の注釈の担当」という設計なので、必須項目は `@NotBlank` などと組み合わせます。メッセージは `@NotBlank(message = "名前を入力してください")` のように変えられます(省略時は Hibernate Validator の既定文。言語は、Spring MVC の画面ではリクエストのロケール(ブラウザの言語設定)、Spring を通さずに検証したときは JVM の既定ロケールで決まり、日本語なら「空白は許可されていません」)。
 
 ::: trivia javax から jakarta へ
 古い記事の `javax.validation` は、Java EE が Eclipse 財団へ移管された際、商標の都合で `jakarta.*` に改名されたもの。Spring Boot 3 以降は `jakarta` 一択です。
@@ -181,7 +181,7 @@ constraint '...NotBlank' validating type
 ::: point まとめ
 - フォームは **フォームクラス + `@ModelAttribute`**。パラメータ名とプロパティ名でバインドされ、Model にも入る
 - テンプレートは **`th:object` + `th:field="*{...}"`**、エラー表示は `th:errors` / `#fields.hasErrors`
-- 入力ルールは **Bean Validation の注釈** で宣言。`@NotNull` 系以外は null を OK とみなす
+- 入力ルールは **Bean Validation の注釈** で宣言。`@NotNull` 系以外は `null` を OK とみなす
 - **`@Validated` + 直後の `BindingResult`**。エラーなら同じ画面を返す
 - 成功したら **`redirect:`(PRG)**。メッセージは **フラッシュ属性** で渡す
 - エンティティを直接フォームにしない。相関チェックは `@AssertTrue` から

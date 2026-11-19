@@ -109,7 +109,7 @@ Content-Type: application/json
 - **PUT** … 送った内容で **丸ごと置き換え** る。送らなかった項目は「空にする」意味になる。同じリクエストを何度送っても結果が同じ(**冪等**)
 - **PATCH** … 送った項目 **だけ** 変える
 
-PATCH を record で受けるなら、項目は `Boolean` や `LocalDate` のような **null になれる型** にします。`boolean` だと「送られてこなかった」が `false` に化け、勝手に未完了へ戻る事故になります。
+PATCH を record で受けるなら、項目は `Boolean` や `LocalDate` のような **`null` になれる型** にします。`boolean` だと「送られてこなかった」が `false` に化け、勝手に未完了へ戻る事故になります。
 
 ```java
 record UpdateTaskRequest(String title,
@@ -193,7 +193,7 @@ Ensure that the compiler uses the '-parameters' flag.
 - REST は **URL = リソース(複数形の名詞)**、**操作 = HTTP メソッド**、**結果 = ステータスコード**
 - `@RestController` の戻り値は本文。Jackson が record ⇔ JSON を変換する
 - 作成は **201 + Location**(`ResponseEntity.created`)、見つからなければ **404**(`ResponseEntity.of(Optional)`)
-- PUT は丸ごと置き換え、PATCH は一部変更。PATCH の項目は null になれる型で
+- PUT は丸ごと置き換え、PATCH は一部変更。PATCH の項目は `null` になれる型で
 - エンティティではなく **DTO(record)** を返す。日時は JavaTimeModule で **ISO-8601**
 :::
 

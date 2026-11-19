@@ -201,7 +201,7 @@ Could not resolve placeholder 'shop.nmae' in value "${shop.nmae}"
 
 逆に既定値付きだと **黙って既定値で動く** ので、綴りミスに気づきにくくなります。
 
-**プロファイル用ファイルの中で `spring.profiles.active` を書く**:「dev の中で prod を有効に」は矛盾するので、Boot 2.4 以降はエラーになります(`... is invalid in a profile specific resource`)。
+**プロファイル用ファイルの中で `spring.profiles.active` を書く**:「dev の中で prod を有効に」は矛盾するので、Boot 2.4 以降は `... is invalid in a profile specific resource` というエラーになります。
 
 ::: point まとめ
 - 設定は `application.yml`(または `.properties`)に出す。コードに直書きしない

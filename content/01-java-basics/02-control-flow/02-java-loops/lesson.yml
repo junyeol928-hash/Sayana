@@ -2,7 +2,7 @@ id: java-loops
 title: ループ
 status: ready
 minutes: 15
-summary: for・while・do-while の使い分けと break/continue、多重ループ、StringBuilder での文字列組み立て、そして off-by-one や無限ループといった定番のバグを押さえる。
+summary: for・while・do-while の使い分けと `break`/`continue`、多重ループ、`StringBuilder` での文字列組み立て、そして off-by-one や無限ループといった定番のバグを押さえる。
 goals:
   - for 文の3つの部分(初期化・条件式・更新)の実行順と、ループ変数のスコープを説明できる
   - 回数・条件・最低1回の観点で for / while / do-while を使い分けられる

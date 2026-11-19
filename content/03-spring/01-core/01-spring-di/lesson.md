@@ -171,7 +171,7 @@ class OrderService {
 | 観点 | フィールド | コンストラクタ |
 |---|---|---|
 | `final` | 付けられない | 付けられる |
-| テストで `new` | 依存が null のまま | 引数で渡せる |
+| テストで `new` | 依存が `null` のまま | 引数で渡せる |
 | 依存の多さ | 見えにくい | 引数の数で一目瞭然 |
 
 フィールドインジェクションのクラスを `new OrderService()` でテストすると、`mail` が `null` のまま `NullPointerException` になります。Spring はリフレクションで `private` フィールドに直接値を入れているので、Spring 抜きでは正しく作れないのです。

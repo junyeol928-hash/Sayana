@@ -2,7 +2,7 @@ id: capstone-search
 title: 検索とページング
 status: ready
 minutes: 15
-summary: 承認くんに検索画面 GET /requests/search を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
+summary: 承認くんに検索画面 `GET /requests/search` を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
 goals:
   - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、`Specification` の部品を `allOf` でつないで検索できる
   - "`Pageable`(要求)と `Page`(結果)の違い、`page` が 0 始まりであること、`size` の上限と `sort` の許可制が必要な理由を説明できる"

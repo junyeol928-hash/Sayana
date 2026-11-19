@@ -10,7 +10,7 @@
     // ("C001", "ACTIVE"), ("C001", "REVOKED"), ("C002", "ACTIVE")
 
     List<KeyEntity> result = keyRepository.findByCardIdAndStatus("C001", "ACTIVE");
-  question: "result に入る件数は?"
+  question: "`result` に入る件数は?"
   choices:
     - "0件"
     - "1件"
@@ -24,10 +24,10 @@
     - "`And` を `Or` と読んだ答え。両方を満たす行だけが返るので1件"
   explanation: "`findByCardIdAndStatus` は「`WHERE card_id = ? AND status = ?`」相当です。`cardId` が `\"C001\"` かつ `status` が `\"ACTIVE\"` の行は1件だけです。"
   trace:
-    - "1〜2行目: findByCardIdAndStatus という名前から WHERE card_id = ? AND status = ? が組み立てられる"
+    - "1〜2行目: `findByCardIdAndStatus` という名前から `WHERE card_id = ? AND status = ?` が組み立てられる"
     - "保存データのうち、`card_id` が `\"C001\"` の行は2件(`ACTIVE` と `REVOKED`)"
     - "その中で `status` が `\"ACTIVE\"` の行は1件だけ"
-    - "結果: result は1件"
+    - "結果: `result` は1件"
 - title: "検査例外とロールバック"
   level: 2
   code: |
@@ -37,7 +37,7 @@
         throw new CryptoCommunicationException("crypto timeout");
     }
     // CryptoCommunicationException は Exception を直接継承した検査例外
-  question: "`issue(\"C001\")` を呼んだあと、DB の key_master テーブルは?(@Transactional のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)"
+  question: "`issue(\"C001\")` を呼んだあと、DB の key_master テーブルは?(`@Transactional` のロールバックの規則は、次のレッスン「トランザクション」で詳しく扱います)"
   choices:
     - "ロールバックされ、保存されていない"
     - "保存した行が残る"
@@ -51,9 +51,9 @@
     - "検査例外の扱いが足りないと読んだ答え。`throws` で宣言してあるのでコンパイルは通る"
   explanation: "`@Transactional` の既定のロールバック対象は `RuntimeException` と `Error` だけです。`CryptoCommunicationException`(仕事では `HsmCommunicationException`)は検査例外(`Exception` を直接継承)なので、`rollbackFor` の指定がない限りロールバックされず、`save` した内容が確定してしまいます。"
   trace:
-    - "3行目: save が実行される(まだ確定はしていない)"
+    - "3行目: `save` が実行される(まだ確定はしていない)"
     - "4行目: 検査例外 `CryptoCommunicationException` が投げられる"
-    - "@Transactional の既定設定を確認: rollbackFor の指定なし → 検査例外はロールバック対象外"
+    - "`@Transactional` の既定設定を確認: `rollbackFor` の指定なし → 検査例外はロールバック対象外"
     - "結果: メソッドは異常終了するが、3行目の保存内容はコミットされて残る"
 - title: "rollbackFor を指定した場合"
   level: 2
@@ -77,10 +77,10 @@
     - "`rollbackFor` に `Exception` は指定できないと読んだ答え。どの例外クラスでも指定できる"
   explanation: "`rollbackFor = Exception.class` は「`Exception`(とそのサブクラス、つまり検査例外も含めほぼすべて)が出たらロールバックする」という明示的な指定です。これにより検査例外でも取り消されます。"
   trace:
-    - "1行目: rollbackFor で対象を Exception.class まで広げている"
-    - "3行目: save が実行される"
+    - "1行目: `rollbackFor` で対象を `Exception.class` まで広げている"
+    - "3行目: `save` が実行される"
     - "4行目: `CryptoCommunicationException`(`Exception` のサブクラス)が投げられる"
-    - "rollbackFor の条件に一致するのでロールバックが実行される"
+    - "`rollbackFor` の条件に一致するのでロールバックが実行される"
     - "結果: 3行目の保存内容も取り消され、テーブルに行は残らない"
 - title: "N+1 が起きる箇所を見つける"
   level: 2
@@ -99,14 +99,14 @@
     - "6回"
   answer: 3
   why:
-    - "関連も一緒に取ると読んだ答え。LAZY の `results` は触るたびに1回ずつ取る"
-    - "関連をまとめて1回で取ると読んだ答え。LAZY の `results` は `key` ごとに1回ずつで、計 1 + 5"
+    - "関連も一緒に取ると読んだ答え。`LAZY` の `results` は触るたびに1回ずつ取る"
+    - "関連をまとめて1回で取ると読んだ答え。`LAZY` の `results` は `key` ごとに1回ずつで、計 1 + 5"
     - "`findAll` の1回を数え落とした答え。`findAll` の1回とループの5回で 6"
     - ""
   explanation: "`findAll()` で1回、その後ループの5回分、`getResults()` にアクセスするたびに遅延ロードのSELECTが1回ずつ発行されるため、合計 `1 + 5 = 6` 回になります。これが N+1 問題です。"
   trace:
     - "1行目: `findAll()` で1回目の SELECT(5件の `KeyEntity` を取得)"
-    - "3行目: forループが5回まわる"
+    - "3行目: `for` ループが5回まわる"
     - "4行目: 1回目のループで `key.getResults()` にアクセス → 遅延ロードの SELECT が発行される(2回目)"
     - "同様に2〜5回目のループでもそれぞれSELECTが発行される(3〜6回目)"
-    - "合計: 1(findAll) + 5(各keyのresults) = 6回"
+    - "合計: 1(`findAll`) + 5(各 `key` の `results`) = 6回"

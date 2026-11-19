@@ -17,7 +17,7 @@
     - "ローカル変数にもフィールドと同じ既定値 0 が入ると読んだ答え。既定値があるのはフィールドだけ"
     - "C 言語のように未初期化のゴミ値が読めると読んだ答え。Java は代入前に読むことをコンパイルで止める"
   explanation: |
-    フィールド `n` には new のときに既定値 0 が入るが、ローカル変数 `m` には既定値がない。代入前に読んでいるので `variable m might not have been initialized` になる。
+    フィールド `n` には `new` のときに既定値 0 が入るが、ローカル変数 `m` には既定値がない。代入前に読んでいるので `variable m might not have been initialized` になる。
 - after: 参照の代入と null
   question: |
     出力は?

@@ -2,7 +2,7 @@ id: spring-boot-startup
 title: Spring Bootの起動の仕組み
 status: ready
 minutes: 15
-summary: main の1行 SpringApplication.run の裏側。@SpringBootApplication の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと --debug レポートの読み方、devtools まで。
+summary: "`main` の1行 `SpringApplication.run` の裏側。`@SpringBootApplication` の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと `--debug` レポートの読み方、devtools まで。"
 goals:
   - "`@SpringBootApplication` が `@Configuration`・`@EnableAutoConfiguration`・`@ComponentScan` の合成であることを説明できる"
   - "`SpringApplication.run` の起動の流れ(スキャン → 自動設定 → DI → Tomcat 起動 → Runner)を説明できる"

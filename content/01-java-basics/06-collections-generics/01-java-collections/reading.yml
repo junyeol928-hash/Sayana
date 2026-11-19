@@ -45,14 +45,14 @@
     - "`5 4 true`"
   answer: 1
   why:
-    - "HashSet が重複も残すと読んだ答え。実際は重複が消える"
+    - "`HashSet` が重複も残すと読んだ答え。実際は重複が消える"
     - ""
-    - "元の List の重複まで消えると読んだ答え。HashSet に詰めても raw は 5 つのまま"
-    - "既にある osaka を add すると増えると読んだ答え。実際は入らない"
-  explanation: "raw は List なので 5 つのまま。HashSet に入れると重複が消えて tokyo, osaka, nagoya の 3 つ。既にある `\"osaka\"` を add しても追加されず `false` が返ります。"
+    - "元の `List` の重複まで消えると読んだ答え。`HashSet` に詰めても `raw` は 5 つのまま"
+    - "既にある `osaka` を `add` すると増えると読んだ答え。実際は入らない"
+  explanation: "`raw` は `List` なので 5 つのまま。`HashSet` に入れると重複が消えて `tokyo`, `osaka`, `nagoya` の 3 つ。既にある `\"osaka\"` を `add` しても追加されず `false` が返ります。"
   trace:
-    - "1行目: List は重複を許すので 5 要素"
-    - "2行目: Set に変換 → 重複が除かれ 3 要素"
+    - "1行目: `List` は重複を許すので 5 要素"
+    - "2行目: `Set` に変換 → 重複が除かれ 3 要素"
     - "3行目: `\"osaka\"` は既にある → 追加されず、戻り値は `false`"
     - "4行目: `5 3 false`"
 - title: "不変 List に add したら?"
@@ -104,11 +104,11 @@
     - "`[1, 2, 3, 4]`"
   answer: 2
   why:
-    - "拡張 for の中で remove できると読んだ答え。実際は次の要素へ進む所で例外になる"
+    - "拡張 `for` の中で `remove` できると読んだ答え。実際は次の要素へ進む所で例外になる"
     - "4 を飛ばして 2 だけ消えると読んだ答え。2 を消した直後の `next()` で例外が出る"
     - ""
-    - "ループ中の remove が元のリストに効かないと読んだ答え。`nums` 自体が変わり、次の `next()` で例外になる"
-  explanation: "拡張 for の途中で `nums.remove` を呼んでいるので、次に `next()` が呼ばれた瞬間に `ConcurrentModificationException` が投げられます。なお `n` は `Integer` なので `remove(Object)` が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら `nums.removeIf(n -> n % 2 == 0)` です。"
+    - "ループ中の `remove` が元のリストに効かないと読んだ答え。`nums` 自体が変わり、次の `next()` で例外になる"
+  explanation: "拡張 `for` の途中で `nums.remove` を呼んでいるので、次に `next()` が呼ばれた瞬間に `ConcurrentModificationException` が投げられます。なお `n` は `Integer` なので `remove(Object)` が選ばれ、添字ではなく値 2 を消そうとしています。安全に書くなら `nums.removeIf(n -> n % 2 == 0)` です。"
   trace:
     - "2行目: `Iterator` が `nums` を回し始める"
     - "`n = 1`: 奇数なので何もしない"
@@ -140,7 +140,7 @@
     - ""
     - "`get` と `containsKey` で探し方が違うと読んだ答え。どちらも `hashCode` と `equals` で探し、両方見つからない"
     - "自作クラスはキーにできないと読んだ答え。キーにはなれる"
-  explanation: "`Point` は `equals` と `hashCode` を上書きしていないため、`Object` のもの(参照が同じかどうか)が使われます。`put` したときの `Point` と `get` で作った `Point` は別インスタンスなので「別のキー」とみなされ、`get` は `null`、`containsKey` は `false`。`equals` と `hashCode` を `x`, `y` で比べるように上書きすると(後で習う record なら自動で付きます)`A` / `true` になります。"
+  explanation: "`Point` は `equals` と `hashCode` を上書きしていないため、`Object` のもの(参照が同じかどうか)が使われます。`put` したときの `Point` と `get` で作った `Point` は別インスタンスなので「別のキー」とみなされ、`get` は `null`、`containsKey` は `false`。`equals` と `hashCode` を `x`, `y` で比べるように上書きすると(後で習う `record` なら自動で付きます)`A` / `true` になります。"
   trace:
     - "8行目: 1つ目の `Point` インスタンス(#P1)をキーに `\"A\"` を登録"
     - "9行目: 新しい `Point`(#P2)で `get`。`hashCode` が違う(または `equals` が `false`)→ 見つからず `null`"

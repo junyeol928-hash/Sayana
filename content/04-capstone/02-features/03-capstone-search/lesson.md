@@ -142,7 +142,7 @@ public class RequestSearchService {
 }
 ```
 
-`allOf` は空のリストなら「条件なし(全件)」になります。`SearchCondition` は `status`・`type`・`keyword` のフィールドと getter/setter、`hasKeyword()`(null でも空白だけでもない)を持つ普通のクラスです。
+`allOf` は空のリストなら「条件なし(全件)」になります。`SearchCondition` は `status`・`type`・`keyword` のフィールドと getter/setter、`hasKeyword()`(`null` でも空白だけでもない)を持つ普通のクラスです。
 
 ```java
 // web/RequestSearchController.java

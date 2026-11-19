@@ -2,7 +2,7 @@ id: spring-mockmvc
 title: MockMvcによるテスト
 status: ready
 minutes: 15
-summary: サーバーを起動せずに Controller を叩く MockMvc。perform → andExpect の基本、standaloneSetup と @WebMvcTest、@MockitoBean での差し替え、文字化けとコンテキストキャッシュまで。
+summary: サーバーを起動せずに Controller を叩く `MockMvc`。`perform` → `andExpect` の基本、`standaloneSetup` と `@WebMvcTest`、`@MockitoBean` での差し替え、文字化けとコンテキストキャッシュまで。
 goals:
   - Controller のテスト方法(単体・`standaloneSetup`・`@WebMvcTest`・`@SpringBootTest`)を速さと範囲で選べる
   - "`MockMvc` で `perform` → `andExpect` を書き、`status` / `content` / `jsonPath` / `view` / `model` / `redirectedUrl` で検証できる"

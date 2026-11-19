@@ -2,7 +2,7 @@ id: spring-transaction
 title: トランザクション
 status: ready
 minutes: 15
-summary: "@Transactional で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、readOnly・伝播・楽観ロックの入口まで。"
+summary: "`@Transactional` で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、`readOnly`・伝播・楽観ロックの入口まで。"
 goals:
   - トランザクションと ACID を、振込の例で途中失敗したらどうなるかを使って説明できる
   - "`@Transactional` を Service に付け、既定でロールバックされる例外(`RuntimeException` と `Error`)と `rollbackFor` の使い方を説明できる"

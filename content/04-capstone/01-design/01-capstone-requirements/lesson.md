@@ -161,7 +161,7 @@ public enum RequestStatus {
 }
 ```
 
-なぜ switch **式** なのか。enum の switch 式は全定数を網羅しないとコンパイルエラーになります(`the switch expression does not cover all possible input values`)。将来 `CANCELLED` を足したとき、**遷移を決め忘れた場所をコンパイラが全部教えてくれる** のです。`if` の連鎖だと黙って `false` が返ります。
+なぜ switch **式** なのか。enum の switch 式は全定数を網羅しないと、`the switch expression does not cover all possible input values` というコンパイルエラーになります。将来 `CANCELLED` を足したとき、**遷移を決め忘れた場所をコンパイラが全部教えてくれる** のです。`if` の連鎖だと黙って `false` が返ります。
 
 ::: sensei
 状態を `boolean approved; boolean returned;` みたいなフラグで持つと、「承認済みかつ差戻し」なんてありえない組み合わせが作れてしまう。enum なら同時に1つの値しか持てない。型で矛盾を防ぐんだ。

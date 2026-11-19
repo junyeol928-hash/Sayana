@@ -2,7 +2,7 @@ id: java-strings
 title: 文字列
 status: ready
 minutes: 15
-summary: String は不変、比較は equals。substring・split・strip などの定番メソッド、書式指定とテキストブロック、StringBuilder、数値変換まで、業務で毎日使う文字列操作を固める。
+summary: String は不変、比較は `equals`。`substring`・`split`・`strip` などの定番メソッド、書式指定とテキストブロック、`StringBuilder`、数値変換まで、業務で毎日使う文字列操作を固める。
 goals:
   - "`String` が不変であることを説明し、変換メソッドの戻り値を正しく受け取れる"
   - "`==` と `equals` の違いを文字列プールと `new String` の観点で説明し、`null` 安全に比較できる"

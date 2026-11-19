@@ -210,8 +210,8 @@ if (!d.allowed()) {
 起動時に `ROLE_ADMIN should not start with ROLE_ since ROLE_ is automatically prepended when using hasAnyRole` で落ちます(`hasRole` も中で `hasAnyRole` を使うので、メッセージはこうなる)。`hasRole` には `ROLE_` を付けません。付けて書きたいなら `hasAuthority("ROLE_ADMIN")` です。
 :::
 
-::: warn @AuthenticationPrincipal が null
-`UserDetailsService` が `LoginUser` 以外(Spring の `User` など)を返していると、型が合わず **黙って null** が入ります。返す型と引数の型を揃えます。
+::: warn @AuthenticationPrincipal に何も入らない
+`UserDetailsService` が `LoginUser` 以外(Spring の `User` など)を返していると、型が合わず **黙って `null`** が入ります。返す型と引数の型を揃えます。
 :::
 
 ::: warn 手書きの form で 403

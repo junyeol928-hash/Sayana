@@ -181,7 +181,7 @@ configured Template Resolvers
 
 ビュー名とファイルのパス・大文字小文字・`templates/` の下に置いたかを確認します。ビュー名に `.html` や `templates/` は付けません。
 
-**② プロパティ名のタイプミス・null**
+**② プロパティ名のタイプミス・`null`**
 
 ```text
 EL1008E: Property or field 'nmae' cannot be found on object

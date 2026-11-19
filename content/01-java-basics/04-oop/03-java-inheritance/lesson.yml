@@ -2,7 +2,7 @@ id: java-inheritance
 title: 継承
 status: ready
 minutes: 15
-summary: extends で既存クラスを土台にする。super とコンストラクタの順番、@Override、Object の toString/equals、そして「継承より委譲」まで。
+summary: "`extends` で既存クラスを土台にする。`super` とコンストラクタの順番、`@Override`、Object の `toString`/`equals`、そして「継承より委譲」まで。"
 goals:
   - "`extends` で子クラスを作り、is-a 関係が成り立つかで継承の是非を判断できる"
   - "`super(...)` とコンストラクタが「親→子」の順に呼ばれる仕組みを説明できる"
@@ -194,14 +194,14 @@ quiz:
       `super.hello()` は **親クラス側の実装** を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。
       もし `super.` を付け忘れて `hello() + "+Sub"` と書くと、自分自身を無限に呼び続けて `StackOverflowError` になります。
   - question: |
-      継承(extends)の使い方として **最も適切** なのはどれ?
-    choices: ["注文クラスでログ出力を使いたいので、OrderService extends Logger にする", "自社の社員クラス階層で、パート社員を社員の一種として PartTimer extends Employee にする", "String に便利メソッドを足したいので、MyString extends String にする", "2つのクラスの機能を両方使いたいので、extends A, B と書く"]
+      継承(`extends`)の使い方として **最も適切** なのはどれ?
+    choices: ["注文クラスでログ出力を使いたいので、`OrderService extends Logger` にする", "自社の社員クラス階層で、パート社員を社員の一種として `PartTimer extends Employee` にする", "String に便利メソッドを足したいので、`MyString extends String` にする", "2つのクラスの機能を両方使いたいので、`extends A, B` と書く"]
     answer: 1
     why:
       - "機能を使いたいだけで継承した答え"
       - ""
-      - "どのクラスでも継承できると読んだ答え。String は final クラスなので継承できない"
-      - "クラスを 2 つ継承できると読んだ答え。Java のクラスは単一継承で extends A, B はエラー"
+      - "どのクラスでも継承できると読んだ答え。String は `final` クラスなので継承できない"
+      - "クラスを 2 つ継承できると読んだ答え。Java のクラスは単一継承で `extends A, B` はエラー"
     explanation: |
       「パート社員は社員の一種」という **is-a 関係** が自然に成り立ち、自分たちで管理しているクラス階層なので継承の好例です。
       is-a が成り立たず、機能だけを使いたいなら、継承ではなくフィールドに **持って任せる(委譲)** のが基本です。

@@ -22,17 +22,17 @@
     - "AD"
   answer: 1
   why:
-    - "例外の後も try の残りが動くと読んだ答え。0 除算の時点で try は中断し、B は出ない"
+    - "例外の後も `try` の残りが動くと読んだ答え。0 除算の時点で `try` は中断し、`B` は出ない"
     - ""
-    - "例外が起きると finally の後で止まると読んだ答え。実際は E まで出る"
-    - "0 除算の例外が catch の型に合わないと読んだ答え。型は合っていて、C が出る"
-  explanation: "4行目で 0 除算 → `ArithmeticException`。5行目の B は飛ばされ、catch で C、finally で D、catch で受け止めたので処理は続き E。B だけが表示されません。"
+    - "例外が起きると `finally` の後で止まると読んだ答え。実際は `E` まで出る"
+    - "0 除算の例外が `catch` の型に合わないと読んだ答え。型は合っていて、`C` が出る"
+  explanation: "4行目で 0 除算 → `ArithmeticException`。5行目の `B` は飛ばされ、`catch` で `C`、`finally` で `D`、`catch` で受け止めたので処理は続き `E`。`B` だけが表示されません。"
   trace:
-    - "3行目: A を表示"
+    - "3行目: `A` を表示"
     - "4行目: `10 / 0` → `ArithmeticException` 発生。5行目には進まない"
-    - "6〜7行目: 型が一致する catch → C を表示"
-    - "8〜9行目: finally → D を表示"
-    - "11行目: 例外は処理済みなので続行 → E を表示"
+    - "6〜7行目: 型が一致する `catch` → `C` を表示"
+    - "8〜9行目: `finally` → `D` を表示"
+    - "11行目: 例外は処理済みなので続行 → `E` を表示"
 - title: "どの catch で捕まる?"
   level: 2
   code: |
@@ -56,9 +56,9 @@
   why:
     - "`null` を「不正な引数」の例外と見た答え。`null` の呼び出しで起きるのは別の例外"
     - ""
-    - "一番下の `Exception` の catch が受けると読んだ答え。先に合った catch で止まる"
-    - "`null` に `length()` を呼んでも何も起きないと読んだ答え。実際は例外になり、catch に入る"
-  explanation: "`null` の `s` に `length()` を呼ぶと `NullPointerException`。上から照合すると `IllegalArgumentException` とは無関係、`RuntimeException` の子なので2つ目の catch で捕まります。3つ目の `Exception` にも一致しますが、最初に一致した1つだけが実行されます。"
+    - "一番下の `Exception` の `catch` が受けると読んだ答え。先に合った `catch` で止まる"
+    - "`null` に `length()` を呼んでも何も起きないと読んだ答え。実際は例外になり、`catch` に入る"
+  explanation: "`null` の `s` に `length()` を呼ぶと `NullPointerException`。上から照合すると `IllegalArgumentException` とは無関係、`RuntimeException` の子なので2つ目の `catch` で捕まります。3つ目の `Exception` にも一致しますが、最初に一致した1つだけが実行されます。"
   trace:
     - "3行目: `s` は `null` → `NullPointerException` が投げられる"
     - "4行目: `IllegalArgumentException` ではない → 不一致"
@@ -92,17 +92,17 @@
     - "[parse終了]値=0"
   answer: 1
   why:
-    - "finally を見落とした答え。例外で抜けるときも finally は動く"
+    - "`finally` を見落とした答え。例外で抜けるときも `finally` は動く"
     - ""
-    - "finally が main の catch の後に動くと読んだ答え。parse を抜ける途中で先に動く"
-    - "変換に失敗すると 0 が返ると読んだ答え。parseInt は例外を投げ、「値=」の行は実行されない"
-  explanation: "parse の中で `NumberFormatException` が発生します。parse には catch が無いので例外は上に抜けますが、抜ける途中で parse の finally が実行され [parse終了] が先に出ます。その後 main の catch で捕まり 変換失敗。12行目は実行されません。"
+    - "`finally` が `main` の `catch` の後に動くと読んだ答え。`parse` を抜ける途中で先に動く"
+    - "変換に失敗すると 0 が返ると読んだ答え。`parseInt` は例外を投げ、「値=」の行は実行されない"
+  explanation: "`parse` の中で `NumberFormatException` が発生します。`parse` には `catch` が無いので例外は上に抜けますが、抜ける途中で `parse` の `finally` が実行され `[parse終了]` が先に出ます。その後 `main` の `catch` で捕まり `変換失敗`。12行目は実行されません。"
   trace:
     - "11行目: `parse(\"x1\")` を呼ぶ"
-    - "3行目: `parseInt(\"x1\")` → `NumberFormatException`。return には至らない"
-    - "4〜5行目: parse を抜ける前に finally → [parse終了] を表示"
-    - "例外は main へ伝播。12行目は飛ばされる"
-    - "13〜14行目: catch で捕まえて 変換失敗 を表示"
+    - "3行目: `parseInt(\"x1\")` → `NumberFormatException`。`return` には至らない"
+    - "4〜5行目: `parse` を抜ける前に `finally` → `[parse終了]` を表示"
+    - "例外は `main` へ伝播。12行目は飛ばされる"
+    - "13〜14行目: `catch` で捕まえて `変換失敗` を表示"
 - title: "検査例外と throws"
   level: 2
   code: |
@@ -126,14 +126,14 @@
     - "`read()` が `null` を返し、`null` と表示"
   answer: 2
   why:
-    - "例外のメッセージが s に入ると読んだ答え。実際はコンパイルの段階で止まる"
+    - "例外のメッセージが `s` に入ると読んだ答え。実際はコンパイルの段階で止まる"
     - "検査例外の扱い漏れが実行時に出ると読んだ答え。実際はコンパイルで見つかる"
     - ""
     - "例外のときは `null` が返ると読んだ答え。実際はコンパイルの段階で止まる"
-  explanation: "`read()` は `throws IOException` と宣言しており、`IOException` は検査例外です。呼ぶ側の main は catch も throws も書いていないので、コンパイラが9行目でエラーにします。実行には至りません。main に `throws IOException` を付けるか try-catch で囲めば通ります。"
+  explanation: "`read()` は `throws IOException` と宣言しており、`IOException` は検査例外です。呼ぶ側の `main` は `catch` も `throws` も書いていないので、コンパイラが9行目でエラーにします。実行には至りません。`main` に `throws IOException` を付けるか `try-catch` で囲めば通ります。"
   trace:
     - "4行目: `read` は検査例外 `IOException` を投げうると宣言"
-    - "9行目: main は対処(catch / throws)を書いていない → コンパイルエラー"
+    - "9行目: `main` は対処(`catch` / `throws`)を書いていない → コンパイルエラー"
     - "10行目: コンパイルが通らないので実行されない"
 - title: "ユーザー定義例外と Caused by"
   level: 3
@@ -166,13 +166,13 @@
   answer: 0
   why:
     - ""
-    - "cause が渡っていないと読んだ答え。コンストラクタの `super(msg, cause)` で渡っている"
+    - "`cause` が渡っていないと読んだ答え。コンストラクタの `super(msg, cause)` で渡っている"
     - "元の例外がそのまま `main` まで届くと読んだ答え。実際は `find` の中で捕まえている"
     - "独自例外にはいつも `throws` が要ると読んだ答え。継承元を見ると宣言は要らない"
-  explanation: "`find` の中で `NumberFormatException` を catch し、それを原因(cause)として `DataAccessException` に包んで投げ直しています。`DataAccessException` は `RuntimeException` 系なので `throws` は不要。`main` で捕まえ、`getMessage()` は `\"lookup failed\"`、`getCause()` は元の `NumberFormatException` です。"
+  explanation: "`find` の中で `NumberFormatException` を `catch` し、それを原因(`cause`)として `DataAccessException` に包んで投げ直しています。`DataAccessException` は `RuntimeException` 系なので `throws` は不要。`main` で捕まえ、`getMessage()` は `\"lookup failed\"`、`getCause()` は元の `NumberFormatException` です。"
   trace:
     - "15行目: `find()` を呼ぶ"
     - "7行目: `\"id-7\"` は数値ではない → `NumberFormatException`"
-    - "8〜9行目: catch して、`cause = e` として `DataAccessException` を新たに throw。`find` を抜ける"
-    - "16行目: `DataAccessException` を catch"
-    - "17行目: メッセージ `\"lookup failed\"`、cause は `NumberFormatException` → 連結して表示"
+    - "8〜9行目: `catch` して、`cause = e` として `DataAccessException` を新たに `throw`。`find` を抜ける"
+    - "16行目: `DataAccessException` を `catch`"
+    - "17行目: メッセージ `\"lookup failed\"`、`cause` は `NumberFormatException` → 連結して表示"

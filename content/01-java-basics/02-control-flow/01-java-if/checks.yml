@@ -36,7 +36,7 @@
   why:
     - ""
     - "`case 2` の処理で止まると読んだ答え。`break` が無いので `case 3` の Y まで落ちる"
-    - "`default` まで落ち続けると読んだ答え。`case 3` の `break` で switch を抜ける"
+    - "`default` まで落ち続けると読んだ答え。`case 3` の `break` で `switch` を抜ける"
   explanation: |
     `case 1` に飛び、`break` が無いので `case 2` の X、`case 3` の Y と落ちていき、`case 3` の `break` で抜ける。
 - before: インデントだけ見ると

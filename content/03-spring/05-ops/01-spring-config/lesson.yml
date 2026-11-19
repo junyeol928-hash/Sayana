@@ -2,7 +2,7 @@ id: spring-config
 title: 設定ファイルとプロファイル
 status: ready
 minutes: 15
-summary: application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。
+summary: "`application.yml`・`@Value`・`@ConfigurationProperties`・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。"
 goals:
   - "`application.properties` と `application.yml` の書き方の違いを理解し、よく使うキー(`server.port`、`spring.datasource.*`、`logging.level.*`)を書ける"
   - "`@Value(\"${キー:既定値}\")` と `@ConfigurationProperties`(record)を使い分けて設定値を受け取れる"

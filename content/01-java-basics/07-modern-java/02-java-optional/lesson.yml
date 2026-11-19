@@ -2,7 +2,7 @@ id: java-optional
 title: Optional
 status: ready
 minutes: 15
-summary: 「値がないかもしれない」を型で表す Optional。作り方・取り出し方、map / flatMap で null チェックを消す書き方、orElse と orElseGet の違い、使ってはいけない場所まで。
+summary: 「値がないかもしれない」を型で表す Optional。作り方・取り出し方、`map` / `flatMap` で `null` チェックを消す書き方、`orElse` と `orElseGet` の違い、使ってはいけない場所まで。
 goals:
   - "`null` が「10億ドルの過ち」と呼ばれる理由と、Optional が解決することを説明できる"
   - "`of` / `ofNullable` / `empty` で Optional を作り、`orElse` / `orElseGet` / `orElseThrow` / `ifPresent` / `ifPresentOrElse` で取り出せる"

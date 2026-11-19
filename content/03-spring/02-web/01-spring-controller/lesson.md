@@ -132,7 +132,7 @@ public class ItemController {
 
 - `@GetMapping` / `@PostMapping` は `@RequestMapping(method = GET)` などの省略形です。クラスに付けた `@RequestMapping` のパスは、メソッド側のパスの前に連結されます。
 - **`@PathVariable`**:パスの `{id}` 部分を受け取ります。`/api/items/abc` のように `int` に変換できないと **400** です。
-- **`@RequestParam`**:クエリ(や POST フォームの値)を受け取ります。**デフォルトは `required = true`** で、無いと **400**(`Required request parameter 'name' ... is not present`)。
+- **`@RequestParam`**:クエリ(や POST フォームの値)を受け取ります。**デフォルトは `required = true`** で、無いと **400** になり、`Required request parameter 'name' ... is not present` と出ます。
   - `required = false` なら無いとき `null`。`int` のような基本型は `null` を入れられないので、ラッパー型(`Integer`)にするか `defaultValue` を使います。
   - `defaultValue` を付けると暗黙に `required = false` になり、**`?page=` のように空文字のときも** 既定値が使われます。
 

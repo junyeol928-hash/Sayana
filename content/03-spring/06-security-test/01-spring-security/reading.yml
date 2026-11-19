@@ -6,7 +6,7 @@
         .requestMatchers("/api/admin/**").permitAll()
         .requestMatchers("/api/admin/danger").hasRole("ADMIN")
         .anyRequest().authenticated());
-  question: "認証済みだが ADMIN ロールを持たないユーザーが GET /api/admin/danger にアクセスすると?"
+  question: "認証済みだが `ADMIN` ロールを持たないユーザーが `GET /api/admin/danger` にアクセスすると?"
   choices:
     - "200(通る)"
     - "401"
@@ -18,11 +18,11 @@
     - "認証が足りないと読んだ答え。ログイン済みのうえ、先に一致した `permitAll()` で通る"
     - "後ろの `hasRole` が効くと読んだ答え。上から順に評価され、先に一致した `permitAll()` で通る"
     - "ルールが重なると起動で止まると読んだ答え。重なっても起動し、先に一致したほうが使われる"
-  explanation: "requestMatchers は上から順に評価され、最初にマッチした条件が使われます。/api/admin/danger は先に書かれた /api/admin/** にもマッチするため、そこで permitAll() が適用されてしまい、後ろの `hasRole(\"ADMIN\")` は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
+  explanation: "`requestMatchers` は上から順に評価され、最初にマッチした条件が使われます。`/api/admin/danger` は先に書かれた `/api/admin/**` にもマッチするため、そこで `permitAll()` が適用されてしまい、後ろの `hasRole(\"ADMIN\")` は一度も評価されません。順番を意識しないと意図せず全公開になる典型例です。"
   trace:
     - "1〜2行目: `/api/admin/**` に `permitAll()` を設定"
     - "3行目: `/api/admin/danger` にも `hasRole(\"ADMIN\")` を設定しているが、2行目より後ろにある"
-    - "リクエスト時: /api/admin/danger は2行目の /api/admin/** に先にマッチする"
+    - "リクエスト時: `/api/admin/danger` は2行目の `/api/admin/**` に先にマッチする"
     - "結果: 最初にマッチした `permitAll()` が適用され、認証すら不要で 200 が返る"
 - title: "ROLE_ 接頭辞の付け忘れ"
   level: 1
@@ -37,7 +37,7 @@
     http.authorizeHttpRequests(auth -> auth
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().authenticated());
-  question: "ROLE を `\"ADMIN\"` として持つユーザーが /api/admin/xxx にアクセスすると?"
+  question: "ROLE を `\"ADMIN\"` として持つユーザーが `/api/admin/xxx` にアクセスすると?"
   choices:
     - "200"
     - "401"
@@ -49,7 +49,7 @@
     - "権限の不一致を未認証と読んだ答え。認証はできているので、権限不足の 403"
     - ""
     - "`ROLE_` の付け忘れをコンパイラが見つけると読んだ答え。ただの文字列なので、コンパイルは通る"
-  explanation: "`hasRole(\"ADMIN\")` は内部で `hasAuthority(\"ROLE_ADMIN\")` を探します。UserDetailsService 側では接頭辞なしの `\"ADMIN\"` という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
+  explanation: "`hasRole(\"ADMIN\")` は内部で `hasAuthority(\"ROLE_ADMIN\")` を探します。`UserDetailsService` 側では接頭辞なしの `\"ADMIN\"` という権限しか登録していないため一致せず、認証はできていても権限判定で失敗し 403 になります。"
   trace:
     - "1〜5行目: 権限として `\"ADMIN\"`(`ROLE_` なし)が登録される"
     - "8〜10行目: `hasRole(\"ADMIN\")` は `\"ROLE_ADMIN\"` という権限を探す"
@@ -87,9 +87,9 @@
     - "一般ユーザーを未認証と読んだ答え。ログイン済みで、しかも内部呼び出しなので権限チェックも無い"
   explanation: "`@PreAuthorize` は AOP のプロキシが外からの呼び出しを横取りして動きます。`deactivateUser` から `this.deleteUser(...)` を呼ぶのはクラス内部からの直接呼び出しなのでプロキシを通らず、権限チェックは行われません。結果として一般ユーザーでも `deleteUser` の中身が実行されてしまいます。"
   trace:
-    - "15行目: Controller から deactivateUser を呼ぶ(これはプロキシ経由)"
+    - "15行目: Controller から `deactivateUser` を呼ぶ(これはプロキシ経由)"
     - "5行目: `deactivateUser` の中で `this.deleteUser(userId)` を呼ぶ(内部呼び出し)"
-    - "この呼び出しはプロキシを経由しないため @PreAuthorize が評価されない"
+    - "この呼び出しはプロキシを経由しないため `@PreAuthorize` が評価されない"
     - "10行目: 権限チェックなしで `deleteUser` の本体が実行され、`deleted: u001` が出力される"
 - title: "CSRF を無効化していないままの POST"
   level: 2
@@ -107,7 +107,7 @@
 
     // クライアントから:
     // POST /api/items (Authorization ヘッダあり、CSRF トークンなし)
-  question: "この POST リクエストに、Spring Security の CSRF のフィルタはどう応える?"
+  question: "この `POST` リクエストに、Spring Security の CSRF のフィルタはどう応える?"
   choices:
     - "200 で正常に処理される"
     - "401(認証情報がない)"
@@ -115,15 +115,15 @@
     - "500(サーバエラー)"
   answer: 2
   why:
-    - "認証できれば POST も通ると読んだ答え。CSRF 保護が有効なままで、トークンが無いと 403"
-    - "認証情報が無いと読んだ答え。Authorization ヘッダは付いていて、止めるのは CSRF のチェック"
+    - "認証できれば `POST` も通ると読んだ答え。CSRF 保護が有効なままで、トークンが無いと 403"
+    - "認証情報が無いと読んだ答え。`Authorization` ヘッダは付いていて、止めるのは CSRF のチェック"
     - ""
     - "トークンが無いことをサーバー側の故障と読んだ答え。CSRF フィルタが 403 で拒否する"
-  explanation: "`csrf()` を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。`httpBasic` で認証自体はできていても、状態を変える POST リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では `csrf(csrf -> csrf.disable())` にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(`/error`)を `permitAll` にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
+  explanation: "`csrf()` を明示的に disable していないので、CSRF 保護はデフォルトで有効なままです。`httpBasic` で認証自体はできていても、状態を変える `POST` リクエストに CSRF トークンが付いていないため、CSRF フィルタの時点で 403 になります。ステートレスな API では `csrf(csrf -> csrf.disable())` にするのが定石です。なお CSRF のフィルタは認証より前で動くので、Spring Boot 3 の実アプリでは、エラー画面(`/error`)を `permitAll` にしていないと、応答が 401 に見えることがあります(MockMvc では 403 のまま)。"
   trace:
     - "5〜6行目: `authorizeHttpRequests` と `httpBasic` は設定しているが `csrf()` の呼び出しがない"
-    - "7行目のコメントのとおり、csrf 保護はデフォルト(有効)のまま残る"
-    - "POST リクエストが CSRF フィルタに到達し、トークンチェックで失敗する"
+    - "7行目のコメントのとおり、`csrf` 保護はデフォルト(有効)のまま残る"
+    - "`POST` リクエストが CSRF フィルタに到達し、トークンチェックで失敗する"
     - "結果: Controller に届く前に 403 で止まる"
 - title: "自作フィルタが認証情報をセットし忘れる"
   level: 2
@@ -145,7 +145,7 @@
     public String ping(Authentication authentication) {
         return authentication.getName();
     }
-  question: "有効な API キー付きで GET /api/ping を呼ぶと、Controller の authentication は?"
+  question: "有効な API キー付きで `GET /api/ping` を呼ぶと、Controller の `authentication` は?"
   choices:
     - "キーの持ち主の情報が入る"
     - "未認証として扱われる"
@@ -160,6 +160,6 @@
   explanation: "キーの検証自体は通っていますが、`SecurityContextHolder.getContext().setAuthentication(...)` を呼び忘れているため、認証情報は一度もセットされません。`chain.doFilter` は呼ばれるのでリクエストは先に進みますが、後段が「未認証」として扱う設定なら 401 になり、Controller に届いた場合も `Authentication` は空(`null` 相当)になります。"
   trace:
     - "5〜6行目: ヘッダのキーを検証し、正しいと分かる"
-    - "7行目: しかし SecurityContextHolder に認証情報をセットする処理がない"
-    - "9行目: chain.doFilter は呼ばれるので後続フィルタ・Controller には進む"
-    - "結果: 検証は通ったのに「誰か」が確定していないため、authentication は使えない(未認証扱い)"
+    - "7行目: しかし `SecurityContextHolder` に認証情報をセットする処理がない"
+    - "9行目: `chain.doFilter` は呼ばれるので後続フィルタ・Controller には進む"
+    - "結果: 検証は通ったのに「誰か」が確定していないため、`authentication` は使えない(未認証扱い)"

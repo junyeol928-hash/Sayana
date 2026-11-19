@@ -2,7 +2,7 @@ id: java-classes
 title: クラスとオブジェクト
 status: ready
 minutes: 15
-summary: バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・this・static、参照の代入と null、toString まで。
+summary: バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・`this`・`static`、参照の代入と `null`、`toString` まで。
 goals:
   - クラスとインスタンスの違いを説明し、`new` でインスタンスを作ってフィールドを読み書きできる
   - コンストラクタを書き、`this` でフィールドと引数を区別できる。オーバーロードと `this(...)` を使える

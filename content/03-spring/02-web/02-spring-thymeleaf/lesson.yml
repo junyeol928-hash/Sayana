@@ -2,7 +2,7 @@ id: spring-thymeleaf
 title: Thymeleaf
 status: ready
 minutes: 15
-summary: Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、th:text と XSS、th:each・th:if、フラグメントによる共通レイアウトまで。
+summary: Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、`th:text` と XSS、`th:each`・`th:if`、フラグメントによる共通レイアウトまで。
 goals:
   - テンプレートエンジンの役割と、ビュー名から `templates/` のファイルが選ばれる流れを説明できる
   - "`${...}`・`*{...}`・`@{...}`・`#{...}` の4種類の式を使い分けられる"
@@ -181,7 +181,7 @@ quiz:
     choices: ["`src/main/resources/static/orders/detail.html`", "`src/main/webapp/orders/detail.html`", "`src/main/java/templates/orders/detail.html`", "`src/main/resources/templates/orders/detail.html`"]
     answer: 3
     why:
-      - "HTML ファイルなので static に置くと読んだ答え。static は CSS や画像のような、加工せずそのまま返すファイルの置き場"
+      - "HTML ファイルなので `static` に置くと読んだ答え。`static` は CSS や画像のような、加工せずそのまま返すファイルの置き場"
       - "JSP 時代の置き場所(`src/main/webapp`)と取り違えた答え"
       - "`templates` をソースコードの下に置くと読んだ答え。探すのは `src/main/resources` の `templates`"
       - ""

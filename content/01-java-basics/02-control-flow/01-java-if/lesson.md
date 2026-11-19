@@ -195,7 +195,7 @@ switch (day) {
 - `switch (式)` の値と一致する `case` に **ジャンプ** し、そこから下を実行します。
 - `break` で switch を抜けます。
 - どの `case` にも一致しなければ `default` に飛びます。
-- `case` に値を書く switch で使える型は `byte` / `short` / `char` / `int`(とそのラッパー型)、`String`(Java 7〜)、`enum` です。`long`・`float`・`double`・`boolean` は使えません(`long` を渡すと `selector type long is not allowed` というエラー)。なお Java 21 からは、後で学ぶパターンマッチングを使えば `Object` など任意の参照型でも switch できます。
+- `case` に値を書く switch で使える型は `byte` / `short` / `char` / `int`(とそのラッパー型)、`String`(Java 7〜)、`enum` です。`long`・`float`・`double`・`boolean` は使えません。`long` を渡すと `selector type long is not allowed` というエラーになります。なお Java 21 からは、後で学ぶパターンマッチングを使えば `Object` など任意の参照型でも switch できます。
 
 問題は `break` を忘れたときです。
 
@@ -274,7 +274,7 @@ String rank = switch (score / 10) {
 
 `return` ではなく `yield` なのは、`return` だと「メソッドから抜ける」意味と区別がつかないからです。`yield` は「この switch 式の値はこれ」という専用のキーワードです。
 
-なお、アロー構文は値を返さない **switch 文** でも使えます(`case 6 -> System.out.println("土曜");`)。ただし1つの switch の中で `->` と `:` を混ぜることはできません(`different case kinds used in the switch`)。
+なお、アロー構文は値を返さない **switch 文** でも使えます(`case 6 -> System.out.println("土曜");`)。ただし1つの switch の中で `->` と `:` を混ぜることはできません。混ぜると `different case kinds used in the switch` というエラーになります。
 
 ::: haru
 じゃあもう、昔の `case X:` + `break` は使わなくていいんすか?
@@ -284,7 +284,7 @@ String rank = switch (score / 10) {
 新規コードなら「アロー構文、値が欲しいなら switch 式」が現場の推奨。break 忘れが構造的に起きないし、default 漏れはコンパイラが見つけてくれる。ただ古いコードは `case:` だらけだから、読めるようにはしておくこと。
 :::
 
-## 文字列の分岐:equals と null に注意
+## 文字列の分岐:equals と `null` に注意
 
 ### 文字列を == で比べてはいけない
 
@@ -303,7 +303,7 @@ System.out.println(rank.equals("GOLD")); // true
 
 さらに現場では、`rank.equals("GOLD")` ではなく **`"GOLD".equals(rank)`** と書くことがよくあります。`rank` が `null` だと前者は `NullPointerException` ですが、後者はリテラル側のメソッドを呼ぶので、単に `false` が返るだけです。
 
-### String の switch と null
+### String の switch と `null`
 
 `switch` は内部で `equals` 相当の比較をしてくれるので、文字列の分岐を安全に書けます。
 
@@ -325,13 +325,13 @@ Exception in thread "main" java.lang.NullPointerException:
 
 `<local3>` はコンパイラが裏で作った一時変数の名前です(番号は場合によって変わります)。メッセージに `hashCode()` が出ているのは、String の switch が内部で `hashCode()` を使ってジャンプ先を絞り込んでいるからです(コラム参照)。`null` の可能性があるなら、switch の前にガード節で `null` チェックをしておきます。
 
-::: trivia Java 21 なら case null も書ける
-Java 21 で正式になった「switch のパターンマッチング」では、`case null -> "未入力";` のように **null 専用の case** を書けるようになりました。`case null` を書いた switch だけは null で NPE になりません。パターンマッチングは「モダンJava」の章で詳しくやります。
+::: trivia Java 21 なら switch で NPE を防げる
+Java 21 で正式になった「switch のパターンマッチング」では、`case null -> "未入力";` のように **`null` 専用の case** を書けるようになりました。`case null` を書いた switch だけは `null` で NPE になりません。パターンマッチングは「モダンJava」の章で詳しくやります。
 :::
 
 ::: point if と switch の使い分け
 - **switch**:決まった値(数値・文字列・enum)の **どれと一致するか** で分ける。注文ステータスや会員ランクの振り分けなど。case が並ぶだけで見通しがよい
-- **if**:**範囲**(`score >= 70`)、`&&` / `||` の **組み合わせ**、**null チェック** など、値の一致では書けない条件。入力チェックや境界の判定
+- **if**:**範囲**(`score >= 70`)、`&&` / `||` の **組み合わせ**、**`null` チェック** など、値の一致では書けない条件。入力チェックや境界の判定
 - 迷ったら「等しいかどうかだけで分けられるなら switch、それ以外は if」
 :::
 
@@ -368,7 +368,7 @@ if (done) { ... }           // 現場ではこう書く
 if (!done) { ... }          // false の判定は ! で
 ```
 
-`done` はすでに `boolean` なので、`== true` と比べても同じ値が出るだけです。冗長なうえ、上のように `=` を1つ打ち間違えると「常に true」の代入になるのに **コンパイルが通ってしまいます**。`if (done)` と書けば、そもそもこの事故は起こりません。変数名を `isEmpty` `hasStock` `canShip` のように「はい/いいえ」で読める名前にすると、`if (hasStock)` が英文のように読めて一石二鳥です。
+`done` はすでに `boolean` なので、`== true` と比べても同じ値が出るだけです。冗長なうえ、上のように `=` を1つ打ち間違えると「常に `true`」の代入になるのに **コンパイルが通ってしまいます**。`if (done)` と書けば、そもそもこの事故は起こりません。変数名を `isEmpty` `hasStock` `canShip` のように「はい/いいえ」で読める名前にすると、`if (hasStock)` が英文のように読めて一石二鳥です。
 
 ### if の後ろにセミコロン
 
@@ -386,7 +386,7 @@ if (stock == 0); {
 - 範囲判定は **大きい方から/小さい方から順に**。異常系は **ガード節で先に return** してネストを浅く
 - 従来の switch 文は `break` を忘れると **フォールスルー**。新規コードは **アロー構文・switch 式** が推奨
 - switch 式は `case 1, 2 ->` の複数ラベル、ブロックでは `yield`、**網羅していないとコンパイルエラー**
-- 文字列は **`equals`** で比較(`"GOLD".equals(rank)` で null 安全に)。**null を switch に渡すと NPE**
+- 文字列は **`equals`** で比較(`"GOLD".equals(rank)` で `null` 安全に)。**`null` を switch に渡すと NPE**
 - boolean は `== true` と書かず `if (done)` / `if (!done)`
 :::
 

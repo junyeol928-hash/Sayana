@@ -2,7 +2,7 @@ id: java-annotations
 title: アノテーションの仕組み
 status: ready
 minutes: 15
-summary: "@ は「目印」で、それ自体は何もしない。標準の @Override から、@interface による自作、@Retention / @Target の意味、リフレクション(getAnnotation / isAnnotationPresent)で目印を読んで処理を挟む仕組みまで。Spring の @Service や @Transactional がどう読まれているかの予告つき。"
+summary: "`@` は「目印」で、それ自体は何もしない。標準の `@Override` から、`@interface` による自作、`@Retention` / `@Target` の意味、リフレクション(`getAnnotation` / `isAnnotationPresent`)で目印を読んで処理を挟む仕組みまで。Spring の `@Service` や `@Transactional` がどう読まれているかの予告つき。"
 goals:
   - アノテーションは「コードに付けた目印(メタデータ)」で、それ自体は何もせず、読む側(コンパイラ / 実行時のプログラム)が意味を決めることを説明できる
   - "`@Override` / `@Deprecated` / `@SuppressWarnings` / `@FunctionalInterface` の役割と、`@Override` が防ぐミスを説明できる"

@@ -2,7 +2,7 @@ id: spring-logging
 title: ログ
 status: ready
 minutes: 15
-summary: System.out.println を卒業して SLF4J + Logback でログを出す。レベルの使い分け、{} と例外の渡し方、logging.level での絞り込み、個人情報を出さない作法まで。
+summary: "`System.out.println` を卒業して SLF4J + Logback でログを出す。レベルの使い分け、`{}` と例外の渡し方、`logging.level` での絞り込み、個人情報を出さない作法まで。"
 goals:
   - "`System.out.println` ではなくロガーを使う理由と、SLF4J(API)と Logback(実装)の関係を説明できる"
   - "`LoggerFactory.getLogger(自クラス.class)` でロガーを作り、5つのログレベルを使い分けられる"

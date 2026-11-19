@@ -2,7 +2,7 @@ id: spring-forms
 title: フォームとバリデーション
 status: ready
 minutes: 15
-summary: フォームクラスと @ModelAttribute で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。
+summary: フォームクラスと `@ModelAttribute` で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。
 goals:
   - フォームクラスと `@ModelAttribute` で入力を受け取り、`th:object` / `th:field` で画面と結びつけられる
   - "Bean Validation の注釈(`@NotBlank`・`@Size`・`@Email`・`@Min`・`@Max`・`@Pattern`)を、`null` の扱いの違いを踏まえて使い分けられる"

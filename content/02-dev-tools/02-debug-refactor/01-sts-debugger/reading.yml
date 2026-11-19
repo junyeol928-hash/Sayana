@@ -21,9 +21,9 @@
   explanation: "スタックトレースは一番上の at 行が例外の発生場所を表します。この場合 `Greeter.java` の15行目で `name` が `null` のまま `toUpperCase()` を呼んでいることが原因です。"
   trace:
     - "1〜2行目: 例外の種類は `NullPointerException`、原因は `name` が `null` であること"
-    - "3行目(一番上の at 行): Greeter.java の15行目で発生"
-    - "4行目: その Greeter.greet を呼び出したのは Main.java の5行目"
-    - "まず15行目を確認し、name がどこで `null` になったかをさらに追う"
+    - "3行目(一番上の at 行): `Greeter.java` の15行目で発生"
+    - "4行目: その `Greeter.greet` を呼び出したのは `Main.java` の5行目"
+    - "まず15行目を確認し、`name` がどこで `null` になったかをさらに追う"
 - title: "off-by-one によるバグ"
   level: 2
   code: |
@@ -40,8 +40,8 @@
     - "コンパイルエラー"
   answer: 2
   why:
-    - "ループが添字 2 で終わると読んだ答え。`<=` なので i が 3 でも回り、`scores[3]` に触れる"
-    - "ループが1回も回らないと読んだ答え。i が 0〜2 で足したあと、i が 3 で例外になる"
+    - "ループが添字 2 で終わると読んだ答え。`<=` なので `i` が 3 でも回り、`scores[3]` に触れる"
+    - "ループが1回も回らないと読んだ答え。`i` が 0〜2 で足したあと、`i` が 3 で例外になる"
     - ""
     - "範囲外の添字をコンパイラが見抜くと読んだ答え。添字の範囲は実行時に調べられる"
   explanation: "条件が `i <= scores.length` になっているため、`i` が 3(存在しない添字)のときに `scores[3]` にアクセスしてしまい、実行時に `ArrayIndexOutOfBoundsException` が発生します。配列の最後の添字は `length - 1` です。"
@@ -89,7 +89,7 @@
     }
     // 呼び出し側:
     boolean result = isAdminUser("ADMIN");
-  question: "result の値と、その原因は?"
+  question: "`result` の値と、その原因は?"
   choices:
     - "`true`。どちらも中身が `\"ADMIN\"` だから"
     - "`false`。`==` は参照を比べるから"
@@ -99,11 +99,11 @@
   why:
     - "`==` を中身の比較と読んだ答え。`==` は参照を比べ、`new String` は別のインスタンス"
     - ""
-    - "String 同士の `==` は書けないと読んだ答え。文法上は通り、参照の比較になる"
+    - "`String` 同士の `==` は書けないと読んだ答え。文法上は通り、参照の比較になる"
     - "`==` の比較で例外が出ると読んだ答え。例外は出ず、別のインスタンスなので `false`"
   explanation: "`role`(呼び出し側の `\"ADMIN\"`)と `adminRole`(`new String` で作った別インスタンス)は中身が同じでも別のオブジェクトです。`==` は参照を比較するので `false` になります。`equals` を使えば意図通り `true` になります。"
   trace:
-    - "`isAdminUser(\"ADMIN\")` が呼ばれ、role には `\"ADMIN\"` という文字列への参照が入る"
-    - "2行目: adminRole は `new String(\"ADMIN\")` で明示的に別インスタンスとして作られる"
+    - "`isAdminUser(\"ADMIN\")` が呼ばれ、`role` には `\"ADMIN\"` という文字列への参照が入る"
+    - "2行目: `adminRole` は `new String(\"ADMIN\")` で明示的に別インスタンスとして作られる"
     - "3行目: `role == adminRole` は「同じインスタンスか」を見るので `false`"
-    - "変数ビューで role と adminRole のインスタンス(参照先)が別であることを確認すれば原因が分かる"
+    - "変数ビューで `role` と `adminRole` のインスタンス(参照先)が別であることを確認すれば原因が分かる"

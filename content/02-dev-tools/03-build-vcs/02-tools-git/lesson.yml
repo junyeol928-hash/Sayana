@@ -2,7 +2,7 @@ id: tools-git
 title: Git連携
 status: ready
 minutes: 15
-summary: 作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、.gitignore、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。
+summary: 作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、`.gitignore`、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。
 goals:
   - 作業ツリー・ステージ・コミット・ブランチ・リモートの関係を図で説明できる
   - "`.gitignore` に何を書くべきか(`target/`・`/data/`・APIキー・IDE設定)を理由とともに説明できる"

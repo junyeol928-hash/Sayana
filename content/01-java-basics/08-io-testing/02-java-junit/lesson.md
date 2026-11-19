@@ -56,7 +56,7 @@ class CartTest {
 | アサーション | 確かめること |
 |---|---|
 | `assertEquals(期待, 実際)` | 等しい(`equals`) |
-| `assertTrue(条件)` | 条件が true |
+| `assertTrue(条件)` | 条件が `true` |
 | `assertThrows(型, 処理)` | 例外が投げられる |
 | `assertAll(...)` | 全部確かめてまとめて報告 |
 

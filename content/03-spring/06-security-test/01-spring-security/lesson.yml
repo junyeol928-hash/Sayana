@@ -2,7 +2,7 @@ id: spring-security
 title: Spring Security入門
 status: ready
 minutes: 15
-summary: 認証(誰か)と認可(何をしてよいか)。SecurityFilterChain で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。
+summary: 認証(誰か)と認可(何をしてよいか)。`SecurityFilterChain` で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。
 goals:
   - 認証と認可の違いを説明でき、未ログイン(ログイン画面へ)と権限不足(403)を区別できる
   - 依存を入れただけで全画面がログイン必須になる理由(secure by default)と、リクエストがフィルタチェーンを通る流れを説明できる

@@ -191,7 +191,7 @@ int total = 100;
 System.out.println(count != 0 && total / count > 10);  // false
 ```
 
-いちばんよく見るガードは **null チェック** です。`name != null && name.length() > 3` のように **左に安全確認、右に本題** の順で書きます。逆順(`name.length() > 3 && name != null`)だと、`name` が null のとき左側で先に `NullPointerException` になり、ガードの意味がありません。`if (list == null || list.isEmpty())` も同じ考え方の定型句です。
+いちばんよく見るガードは **`null` チェック** です。`name != null && name.length() > 3` のように **左に安全確認、右に本題** の順で書きます。逆順(`name.length() > 3 && name != null`)だと、`name` が `null` のとき左側で先に `NullPointerException` になり、ガードの意味がありません。`if (list == null || list.isEmpty())` も同じ考え方の定型句です。
 
 ### `&` と `&&` は別物
 
@@ -350,7 +350,7 @@ System.out.println(Math.round(bmi * 10) / 10);    // 22   ← long / int で整�
 - 整数のゼロ除算は `ArithmeticException`。`double` は `Infinity` / `NaN` になり、黙って進む。
 - `b += 1` には **暗黙のキャスト** が入る。`byte` / `short` / `char` の演算結果は `int`。
 - 後置 `i++` の式の値は **増える前**。`i = i++` では増えない。`++` は単独の文で使う。
-- `&&` / `||` は **短絡評価**。ゼロ除算や null のガードに使う。`&` / `|` は両方評価する。
+- `&&` / `||` は **短絡評価**。ゼロ除算や `null` のガードに使う。`&` / `|` は両方評価する。
 - `+` は左から評価。一度 `String` になると以降は連結。
 - 三項演算子 `条件 ? A : B` は値を選ぶ式。入れ子は1段まで。
 - 優先順位は覚えるより **迷ったら括弧**。

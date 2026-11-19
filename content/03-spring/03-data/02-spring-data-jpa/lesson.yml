@@ -2,7 +2,7 @@ id: spring-data-jpa
 title: Spring Data JPA
 status: ready
 minutes: 15
-summary: エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。
+summary: エンティティでクラスとテーブルを対応づけ、`JpaRepository` と派生クエリで実装なしの DB アクセスを書く。`ddl-auto`・N+1・遅延ロードの落とし穴まで。
 goals:
   - JDBC 直書きと比べて、JPA・Hibernate・Spring Data JPA がそれぞれ何を担当しているか説明できる
   - "`@Entity`・`@Id`・`@GeneratedValue`・`@Column`・`@ManyToOne`・`@OneToMany`(`mappedBy`)でエンティティを書ける"

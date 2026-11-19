@@ -46,7 +46,7 @@ error: illegal start of expression
             ^
 ```
 
-`new int[3]{1, 2, 3}` のように「サイズ指定」と「初期化子」を両方書くのもエラーです(`array creation with both dimension expression and initialization is illegal`)。サイズは中身から決まるので、二重指定は許されません。
+`new int[3]{1, 2, 3}` のように「サイズ指定」と「初期化子」を両方書くのもエラーで、`array creation with both dimension expression and initialization is illegal` と出ます。サイズは中身から決まるので、二重指定は許されません。
 
 ### 要素の既定値
 
@@ -333,7 +333,7 @@ System.out.println(Arrays.deepToString(hours));
 ## まとめ
 
 ::: point このレッスンのポイント
-- 配列は **同じ型の値を固定個数並べたもの**。`new int[5]` か `{1, 2, 3}` で作り、要素は既定値(0 / false / null)で初期化済み。
+- 配列は **同じ型の値を固定個数並べたもの**。`new int[5]` か `{1, 2, 3}` で作り、要素は既定値(`0` / `false` / `null`)で初期化済み。
 - インデックスは **0 〜 length-1**。範囲外は `ArrayIndexOutOfBoundsException`。メッセージの `Index 3 out of bounds for length 3` を読む。
 - 要素数は `length`(フィールド、カッコなし)。
 - 読むだけなら拡張 for、書き換え・位置が必要なら普通の for。

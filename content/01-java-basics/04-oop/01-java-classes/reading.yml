@@ -24,14 +24,14 @@
   answer: 0
   why:
     - ""
-    - "`balance` を全インスタンスで共有と読んだ答え。static ではないので実体ごとに別の箱"
+    - "`balance` を全インスタンスで共有と読んだ答え。`static` ではないので実体ごとに別の箱"
     - "`w2` の `deposit(30)` を見落とした答え。`w2` にも 30 が入る"
     - "`w2` への入金も `w1` に足されると読んだ答え。`w1` と `w2` は別の実体で、`w1` は 150"
   explanation: "`w1` と `w2` は別々の実体で、`balance` の箱もそれぞれ持っています。`w1` には `100 + 50` で 150、`w2` には 30 が入ります。"
   trace:
     - "8〜9行目: 実体を2つ作る。それぞれ `balance` は 0"
-    - "10〜11行目: w1 の balance が 100 → 150"
-    - "12行目: w2 の balance が 30"
+    - "10〜11行目: `w1` の `balance` が 100 → 150"
+    - "12行目: `w2` の `balance` が 30"
     - "13行目: `150 30` と表示"
 - title: "同じ実体を2つの変数が指す"
   level: 2
@@ -51,17 +51,17 @@
     - "125 125 125"
   answer: 1
   why:
-    - "`w2 = w1` で別の実体ができると読んだ答え。同じ実体を指すので w1 も w2 も 120"
+    - "`w2 = w1` で別の実体ができると読んだ答え。同じ実体を指すので `w1` も `w2` も 120"
     - ""
-    - "w2 に別の balance があると読んだ答え。w1 と w2 は同じ実体なので w2 も 120"
-    - "w3 も同じ実体と読んだ答え。new した w3 は別の実体なので 5"
-  explanation: "`w2 = w1` は住所のコピーなので、w1 と w2 は同じ実体を指します。どちら経由で deposit しても同じ balance が増えて 120。w3 は別の実体なので 5 です。new の回数(2回)= 実体の数、と数えるのがコツです。"
+    - "`w2` に別の `balance` があると読んだ答え。`w1` と `w2` は同じ実体なので `w2` も 120"
+    - "`w3` も同じ実体と読んだ答え。`new` した `w3` は別の実体なので 5"
+  explanation: "`w2 = w1` は住所のコピーなので、`w1` と `w2` は同じ実体を指します。どちら経由で `deposit` しても同じ `balance` が増えて 120。`w3` は別の実体なので 5 です。`new` の回数(2回)= 実体の数、と数えるのがコツです。"
   trace:
-    - "1行目: 実体 A を作り w1 が指す"
-    - "2行目: w2 も実体 A を指す(コピーされたのは住所)"
-    - "3行目: 実体 B を作り w3 が指す"
-    - "4〜5行目: 実体 A の balance が 100 → 120"
-    - "6行目: 実体 B の balance が 5"
+    - "1行目: 実体 A を作り `w1` が指す"
+    - "2行目: `w2` も実体 A を指す(コピーされたのは住所)"
+    - "3行目: 実体 B を作り `w3` が指す"
+    - "4〜5行目: 実体 A の `balance` が 100 → 120"
+    - "6行目: 実体 B の `balance` が 5"
     - "7行目: `120 120 5` と表示"
 - title: "static フィールドと インスタンスフィールド"
   level: 2
@@ -93,8 +93,8 @@
     - "`a` の 2 回目の `enter()` を見落とした答え"
     - ""
     - "呼んだ順を取り違えた答え"
-    - "myNo も static で、全員で共有すると読んだ答え"
-  explanation: "`total` は static なので全員で共有され、`enter()` が3回呼ばれて 3 になります。myNo は実体ごとで、「そのときの `total`」を保存します。a は1回目(1)と3回目(3)で上書きされて 3、b は2回目で 2 です。"
+    - "`myNo` も `static` で、全員で共有すると読んだ答え"
+  explanation: "`total` は `static` なので全員で共有され、`enter()` が3回呼ばれて 3 になります。`myNo` は実体ごとで、「そのときの `total`」を保存します。`a` は1回目(1)と3回目(3)で上書きされて 3、`b` は2回目で 2 です。"
   trace:
     - "13行目: `a.enter()` → `total` は 1、`a.myNo` は 1"
     - "14行目: `b.enter()` → `total` は 2、`b.myNo` は 2"
@@ -132,7 +132,7 @@
     - "`null` のフィールドを返すと例外になると読んだ答え。`null` を返して表示するだけなら `null` と出る"
   explanation: "5行目の `code = code;` は「引数を引数に代入」しているだけで、フィールド `code` には何も入りません。`this.code = code;` と書く必要があります。フィールドは初期値の `null` のままなので、`null` と表示されます。"
   trace:
-    - "13行目: Item を作る。フィールド `code` は `null`"
+    - "13行目: `Item` を作る。フィールド `code` は `null`"
     - '14行目: `setCode("A-100")` → 5行目で引数 `code` に引数 `code` を代入(意味なし)。フィールドは `null` のまま'
     - "15行目: `getCode()` はフィールド `code` を返す → `null`"
 - title: "ローカル変数がフィールドを隠す"
@@ -158,15 +158,15 @@
     - "`show()` でコンパイルエラーになる"
   answer: 2
   why:
-    - "static メソッドからもフィールド `count` を読めると読んだ答え"
+    - "`static` メソッドからもフィールド `count` を読めると読んだ答え"
     - "名前だけの `count` もフィールドと読み、`report()` も見落とした答え"
     - ""
     - "フィールドと同じ名前のローカル変数を文法違反と読んだ答え"
-  explanation: "`show()` の中では、ローカル変数 `count`(1)がフィールド `count`(10)を隠します。名前だけの `count` はローカル変数、`this.count` はフィールドなので `1 10` になります。しかし `report()` は static メソッドで、static でないフィールド `count` を参照しているためコンパイルエラーです。"
+  explanation: "`show()` の中では、ローカル変数 `count`(1)がフィールド `count`(10)を隠します。名前だけの `count` はローカル変数、`this.count` はフィールドなので `1 10` になります。しかし `report()` は `static` メソッドで、`static` でないフィールド `count` を参照しているためコンパイルエラーです。"
   trace:
     - "5行目: ローカル変数 `count = 1` を宣言。同名のフィールドは `this.count` でしか見えなくなる"
     - "6行目: `count` は 1、`this.count` は 10 → `1 10`(ここは問題ない)"
-    - "10行目: static メソッドからインスタンスフィールド `count` を参照 → 「どの実体の `count` か」決まらない → コンパイルエラー"
+    - "10行目: `static` メソッドからインスタンスフィールド `count` を参照 → 「どの実体の `count` か」決まらない → コンパイルエラー"
     - "結果: コンパイルが通らないので、何も実行されない"
 - title: "どのコンストラクタが選ばれる?"
   level: 1
@@ -202,10 +202,10 @@
   answer: 0
   why:
     - ""
-    - "引数 1 つのコンストラクタは price に触れないと読んだ答え。`this.price = 1000` を入れている"
-    - "price を全部の Ticket で共有と読んだ答え。price は実体ごとで、a は 1000"
+    - "引数 1 つのコンストラクタは `price` に触れないと読んだ答え。`this.price = 1000` を入れている"
+    - "`price` を全部の `Ticket` で共有と読んだ答え。`price` は実体ごとで、`a` は 1000"
     - "同じ名前のコンストラクタは 2 つ書けないと読んだ答え。引数が違えばオーバーロードできる"
-  explanation: "引数1つなら Ticket(String) が選ばれて price は 1000 固定。引数2つなら Ticket(String, int) が選ばれて price は 1500 です。引数の数で動くコンストラクタが決まります。"
+  explanation: "引数1つなら `Ticket(String)` が選ばれて `price` は 1000 固定。引数2つなら `Ticket(String, int)` が選ばれて `price` は 1500 です。引数の数で動くコンストラクタが決まります。"
   trace:
     - '20行目: 引数1つ → 5行目のコンストラクタ → `seat = "A-1"`、`price = 1000`'
     - '21行目: 引数2つ → 10行目のコンストラクタ → `seat = "B-2"`、`price = 1500`'
@@ -243,11 +243,11 @@
     - "A のみ"
   answer: 1
   why:
-    - "呼んだ順に表示されると読んだ答え。`this(...)` が先に奥まで進み、奥の A から戻りながら出る"
+    - "呼んだ順に表示されると読んだ答え。`this(...)` が先に奥まで進み、奥の `A` から戻りながら出る"
     - ""
-    - "`this(...)` を飛ばして自分の行だけ動くと読んだ答え。呼び先の A と B も実行される"
-    - "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると B、C と残りの行が動く"
-  explanation: "`this(...)` は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。`Room()` → `Room(String)` → `Room(String, int)` と潜っていき、いちばん奥の A から順に表示されます。"
+    - "`this(...)` を飛ばして自分の行だけ動くと読んだ答え。呼び先の `A` と `B` も実行される"
+    - "呼び先へ移ったら戻らないと読んだ答え。呼び先が終わると `B`、`C` と残りの行が動く"
+  explanation: "`this(...)` は1行目にあるので、まず呼び先のコンストラクタが最後まで実行され、それから自分の残りの行が動きます。`Room()` → `Room(String)` → `Room(String, int)` と潜っていき、いちばん奥の `A` から順に表示されます。"
   trace:
     - "22行目: `new Room()` → 5行目 `Room()` に入る"
     - '6行目: `this("未設定")` → 10行目 `Room(String)` に入る(7行目はまだ)'
@@ -285,7 +285,7 @@
     - "初期化子がコンストラクタより後に動くと読んだ答え"
     - ""
     - "初期化子もコンストラクタの代入も効かないと読んだ答え"
-  explanation: "初期化子で `retry = 3`、`mode = \"safe\"` になったあと、コンストラクタ本体で mode だけ `\"fast\"` に上書きされます。`retry` はコンストラクタで触っていないので初期化子の 3 のままです。"
+  explanation: "初期化子で `retry = 3`、`mode = \"safe\"` になったあと、コンストラクタ本体で `mode` だけ `\"fast\"` に上書きされます。`retry` はコンストラクタで触っていないので初期化子の 3 のままです。"
   trace:
     - '14行目: `new` → 既定値(`retry=0`, `mode=null`)→ 初期化子(`retry=3`, `mode="safe"`)'
     - '5〜6行目: コンストラクタ本体で `mode = "fast"`(`retry` はそのまま)'
@@ -322,7 +322,7 @@
   explanation: "5行目は引数 `nickname` を引数 `nickname` に代入しているだけで、フィールドには何も入りません。`this.nickname = nickname;` が正解の書き方です。フィールドは既定値 `null` のままなので `null` と表示されます。コンパイルは通るため見つけにくいバグです。"
   trace:
     - '13行目: `new Profile("neko")` → フィールド `nickname` は `null`'
-    - "5行目: 引数 nickname に引数 nickname を代入(フィールドは変わらない)"
+    - "5行目: 引数 `nickname` に引数 `nickname` を代入(フィールドは変わらない)"
     - "14行目: `getNickname()` はフィールドを返す → `null`"
 - title: "Lombok が作るコンストラクタを推測する"
   level: 3
@@ -339,7 +339,7 @@
             mailSender.send(r);
         }
     }
-  question: "`@RequiredArgsConstructor` は Lombok の注釈で、**初期化していない final のフィールドだけ** を引数に取るコンストラクタを自動で作ります。Spring(第3部)はそのコンストラクタを呼んで部品を渡します。Spring がこのクラスを作って send を呼んだとき、何が起きる?"
+  question: "`@RequiredArgsConstructor` は Lombok の注釈で、**初期化していない `final` のフィールドだけ** を引数に取るコンストラクタを自動で作ります。Spring(第3部)はそのコンストラクタを呼んで部品を渡します。Spring がこのクラスを作って `send` を呼んだとき、何が起きる?"
   choices:
     - "正常にメールが送られる"
     - "`reportRepository` が `null` で `NullPointerException`"
@@ -348,13 +348,13 @@
   answer: 2
   why:
     - "`mailSender` も Spring が入れてくれると読んだ答え"
-    - "final のフィールドがコンストラクタに入らないと読んだ答え"
+    - "`final` のフィールドがコンストラクタに入らないと読んだ答え"
     - ""
-    - "final でないフィールドがあるとコンパイルが通らないと読んだ答え"
-  explanation: "`@RequiredArgsConstructor` は final のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは ReportService(ReportRepository) で、`mailSender` は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、`mailSender` は `null` のまま。10行目で `NullPointerException` です。final の付け忘れが原因です。"
+    - "`final` でないフィールドがあるとコンパイルが通らないと読んだ答え"
+  explanation: "`@RequiredArgsConstructor` は `final` のフィールドだけを引数に取るコンストラクタを作ります。生成されるのは `ReportService(ReportRepository)` で、`mailSender` は含まれません。Spring は生成されたコンストラクタ経由でしか注入しないので、`mailSender` は `null` のまま。10行目で `NullPointerException` です。`final` の付け忘れが原因です。"
   trace:
-    - "2行目: Lombok が生成するのは「final フィールドだけ」を引数に取るコンストラクタ → ReportService(ReportRepository reportRepository)"
-    - "5行目: mailSender は final でないので引数に含まれない → 既定値 `null` のまま"
-    - "6行目: static final の定数はインスタンスの初期化とは無関係"
-    - "9行目: reportRepository は注入済みなので動く"
+    - "2行目: Lombok が生成するのは「`final` フィールドだけ」を引数に取るコンストラクタ → `ReportService(ReportRepository reportRepository)`"
+    - "5行目: `mailSender` は `final` でないので引数に含まれない → 既定値 `null` のまま"
+    - "6行目: `static final` の定数はインスタンスの初期化とは無関係"
+    - "9行目: `reportRepository` は注入済みなので動く"
     - "10行目: `mailSender` が `null` → `NullPointerException`"

@@ -2,7 +2,7 @@ id: java-encapsulation
 title: カプセル化
 status: ready
 minutes: 15
-summary: フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、final と不変オブジェクト、防御的コピーまで。
+summary: フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、`final` と不変オブジェクト、防御的コピーまで。
 goals:
   - アクセス修飾子4種(`public` / `protected` / なし / `private`)の見える範囲を説明できる
   - 「全フィールドに getter/setter」がカプセル化にならない理由を説明し、不変条件を守るメソッドを設計できる

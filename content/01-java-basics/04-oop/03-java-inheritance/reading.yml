@@ -25,9 +25,9 @@
     - ""
     - "子に書いていない `label()` は呼べないと読んだ答え"
     - "子に無い `label()` は `null` を返すと読んだ答え"
-  explanation: "`label()` は `FamilyPlan` に書かれていないので、親 Plan の版がそのまま使われます。`monthlyFee()` は子で上書きしているので 2500 です。"
+  explanation: "`label()` は `FamilyPlan` に書かれていないので、親 `Plan` の版がそのまま使われます。`monthlyFee()` は子で上書きしているので 2500 です。"
   trace:
-    - "10行目: `FamilyPlan` を new(親 `Plan()` → 子 `FamilyPlan()` の順に初期化)"
+    - "10行目: `FamilyPlan` を `new`(親 `Plan()` → 子 `FamilyPlan()` の順に初期化)"
     - '11行目: `f.label()` → 子に無い → 親の `label()` → `"基本プラン"`'
     - "11行目: `f.monthlyFee()` → 子で上書き済み → 2500"
 - title: "3段のコンストラクタの順序"
@@ -55,16 +55,16 @@
     - "MB"
   answer: 2
   why:
-    - "親のコンストラクタは動かないと読んだ答え。`super()` をたどって Top と Middle も実行される"
-    - "子の本体から先に動くと読んだ答え。`super()` が先頭なので一番上の Top から順に出る"
+    - "親のコンストラクタは動かないと読んだ答え。`super()` をたどって `Top` と `Middle` も実行される"
+    - "子の本体から先に動くと読んだ答え。`super()` が先頭なので一番上の `Top` から順に出る"
     - ""
-    - "Middle の `super()` を見落とした答え。書いていなくても自動で入り、Top も実行される"
-  explanation: "`Bottom()` の `super()` が `Middle()` を呼び、`Middle()` の(自動で補われた)`super()` が `Top()` を呼びます。いちばん上の Top から順に本体が実行されるので T → M → B です。"
+    - "`Middle` の `super()` を見落とした答え。書いていなくても自動で入り、`Top` も実行される"
+  explanation: "`Bottom()` の `super()` が `Middle()` を呼び、`Middle()` の(自動で補われた)`super()` が `Top()` を呼びます。いちばん上の `Top` から順に本体が実行されるので `T` → `M` → `B` です。"
   trace:
     - "14行目: `new Bottom()` → `Bottom()` に入る → 9行目 `super()` で `Middle()` へ"
     - "5行目: `Middle()` の1行目に自動の `super()` → `Top()` へ"
-    - "2行目: `Top()` の本体 → `T` を表示 → Middle に戻る"
-    - "5行目: `Middle()` の本体 → `M` を表示 → Bottom に戻る"
+    - "2行目: `Top()` の本体 → `T` を表示 → `Middle` に戻る"
+    - "5行目: `Middle()` の本体 → `M` を表示 → `Bottom` に戻る"
     - "10行目: `Bottom()` の残り → `B` を表示"
 - title: "super.method() で親の結果を再利用する"
   level: 2
@@ -92,7 +92,7 @@
   answer: 2
   why:
     - "子の上書きを見落とした答え"
-    - "`super.hello(name)` が name だけを返すと読んだ答え"
+    - "`super.hello(name)` が `name` だけを返すと読んだ答え"
     - ""
     - "`super.hello()` も自分自身を呼ぶと読んだ答え"
   explanation: "子の `hello()` は、`super.hello(name)` で親の版を呼んで `\"Hello, Ken\"` を受け取り、`\"-san\"` を足して返します。`super.` を付けずに `hello(name)` と書くと自分自身を呼び続けて StackOverflowError になります。"
@@ -124,11 +124,11 @@
     - ""
     - "同じ名前で引数の型を変えるとエラーと読んだ答え"
     - "どちらを呼ぶか、実行時に決められず落ちると読んだ答え"
-  explanation: "子の `discount(long)` は引数の型が親の `discount(int)` と違うため、上書きではなく「別のメソッド(オーバーロード)」です。呼び出しの 1000 は int なので、ぴったり一致する親の `discount(int)` がコンパイル時に選ばれ 1000 が返ります。@Override を付けていればコンパイルエラーで気づけました。"
+  explanation: "子の `discount(long)` は引数の型が親の `discount(int)` と違うため、上書きではなく「別のメソッド(オーバーロード)」です。呼び出しの 1000 は `int` なので、ぴったり一致する親の `discount(int)` がコンパイル時に選ばれ 1000 が返ります。`@Override` を付けていればコンパイルエラーで気づけました。"
   trace:
-    - "5行目: 引数が long → 親の `discount(int)` とはシグネチャが違う → 上書きではない"
-    - "8行目: PremiumMember は `discount(int)`(親から継承)と `discount(long)`(自分)の2つを持つ"
-    - "9行目: 1000 は int → 完全一致する `discount(int)` が選ばれる → 親の版 → 1000"
+    - "5行目: 引数が `long` → 親の `discount(int)` とはシグネチャが違う → 上書きではない"
+    - "8行目: `PremiumMember` は `discount(int)`(親から継承)と `discount(long)`(自分)の2つを持つ"
+    - "9行目: 1000 は `int` → 完全一致する `discount(int)` が選ばれる → 親の版 → 1000"
 - title: "親のコンストラクタから、上書きされたメソッドが呼ばれる"
   level: 3
   code: |
@@ -158,10 +158,10 @@
     - "子のフィールドが先に初期化されると読んだ答え"
     - ""
     - "上書きできるメソッドをコンストラクタで呼ぶとエラーと読んだ答え。危険だが文法上は通る"
-  explanation: "`new Child()` では、まず親 `Base()` が動きます。その中で呼ばれる `describe()` は、実体が Child なので**子の上書き版**が動きます。しかしこの時点では子のフィールド初期化子(`label = \"child\"`)はまだ実行されていないため、label は `null` です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。"
+  explanation: "`new Child()` では、まず親 `Base()` が動きます。その中で呼ばれる `describe()` は、実体が `Child` なので**子の上書き版**が動きます。しかしこの時点では子のフィールド初期化子(`label = \"child\"`)はまだ実行されていないため、`label` は `null` です。「親のコンストラクタから上書き可能なメソッドを呼ぶ」のは危険、と言われる理由です。"
   trace:
     - "14行目: `new Child()` → 親 `Base()` が先に動く(子の初期化子はまだ)"
-    - "3行目: `describe()` を呼ぶ → 実体は Child なので子の `describe()`(11行目)"
-    - "11行目: label はまだ初期化されていない → `null` を返す"
+    - "3行目: `describe()` を呼ぶ → 実体は `Child` なので子の `describe()`(11行目)"
+    - "11行目: `label` はまだ初期化されていない → `null` を返す"
     - "3行目: `init: null` と表示"
     - 'その後: 子の初期化子で `label = "child"` になるが、表示はもう終わっている'

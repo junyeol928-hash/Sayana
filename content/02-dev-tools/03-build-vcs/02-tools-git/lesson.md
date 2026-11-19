@@ -164,7 +164,7 @@ hint: Updates were rejected because the remote contains
 hint: work that you do not have locally.
 ```
 
-壊れたわけではありません。**自分が pull した後に、誰かが先に push した** という意味です(STS では push 結果のダイアログに `rejected - non-fast-forward` と出ます)。Git は他人のコミットを消さないよう、先に取り込むことを求めています。正しい対処は **pull して相手の変更を取り込み(コンフリクトがあれば解消し)、それから push** です。ここで「押し通す」ために force push を使うのが、次に説明する最悪の一手です。
+壊れたわけではありません。**自分が pull した後に、誰かが先に push した** という意味です。STS では push 結果のダイアログに `rejected - non-fast-forward` と出ます。Git は他人のコミットを消さないよう、先に取り込むことを求めています。正しい対処は **pull して相手の変更を取り込み(コンフリクトがあれば解消し)、それから push** です。ここで「押し通す」ために force push を使うのが、次に説明する最悪の一手です。
 
 ## やってはいけないこと
 

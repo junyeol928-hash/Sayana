@@ -2,7 +2,7 @@ id: spring-di
 title: DIとIoCコンテナ
 status: ready
 minutes: 15
-summary: new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。
+summary: "`new` だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、`@Primary` / `@Qualifier`、singleton スコープの落とし穴まで。"
 goals:
   - 依存を自分で `new` するコードの問題点(テストしにくい・差し替えられない)を説明できる
   - 素の Java でコンストラクタに依存を渡す「手動 DI」を書ける

@@ -2,7 +2,7 @@ id: capstone-api-test
 title: REST APIとテスト
 status: ready
 minutes: 15
-summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を ProblemDetail で返し分け、@WebMvcTest + @MockitoBean とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
+summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を `ProblemDetail` で返し分け、`@WebMvcTest` + `@MockitoBean` とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
 goals:
   - 承認くんの REST API(`GET /api/requests?status=`、`GET /api/requests/{id}`、`POST /api/requests/{id}/approve`)を Controller に実装できる
   - エンティティではなく record の DTO(`RequestSummary` / `RequestDetail`)を返す理由を説明し、用途ごとに DTO を分けられる

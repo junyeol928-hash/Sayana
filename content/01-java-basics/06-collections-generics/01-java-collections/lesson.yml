@@ -2,7 +2,7 @@ id: java-collections
 title: コレクション
 status: ready
 minutes: 15
-summary: 配列の限界を超える List / Set / Map。ArrayList・HashMap の基本操作から、不変コレクション、ループ中の削除、equals と hashCode、並べ替えまで。
+summary: 配列の限界を超える List / Set / Map。`ArrayList`・`HashMap` の基本操作から、不変コレクション、ループ中の削除、`equals` と `hashCode`、並べ替えまで。
 goals:
   - "`List` / `Set` / `Map` の違いと主な実装クラス(`ArrayList`・`HashSet`・`LinkedHashSet`・`TreeSet`・`HashMap`)を使い分けられる"
   - "`ArrayList` と `HashMap` の基本操作(`add` / `get` / `set` / `remove` / `put` / `getOrDefault` / `entrySet` など)を書ける"

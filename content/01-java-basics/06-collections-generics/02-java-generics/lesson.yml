@@ -2,7 +2,7 @@ id: java-generics
 title: ジェネリクス
 status: ready
 minutes: 15
-summary: List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。
+summary: "`List<String>` の `<>` の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。"
 goals:
   - raw 型の問題点(実行時の `ClassCastException`)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
   - 型パラメータ付きクラス(`Box<T>`・`Pair<K, V>`)とジェネリックメソッドを書ける
@@ -145,7 +145,7 @@ quiz:
       - ""
     explanation: |
       `? extends Number` のリストは「Number の **何かの** 子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
-      値を **取り出す** なら extends、**入れる** なら super(PECS)です。
+      値を **取り出す** なら `extends`、**入れる** なら `super`(PECS)です。
   - question: |
       次のコードを実行したときの出力は?
       ```java

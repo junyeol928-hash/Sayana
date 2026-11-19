@@ -46,7 +46,7 @@ flowchart TD
 
 - **Error**:メモリ不足など JVM レベルの深刻な問題。アプリでは catch しません。
 - **検査例外**(checked exception):`Exception` のうち `RuntimeException` 系 **以外**。ファイルが無い・通信が切れたなど「コードが正しくても起きうる」失敗です。コンパイラが **catch するか `throws` で宣言するかを強制** します。
-- **非検査例外**(unchecked exception):`RuntimeException` とそのサブクラス(と `Error`)。null 参照や不正な引数など、主に **プログラムのバグや前提違反** を表します。処理は強制されません。
+- **非検査例外**(unchecked exception):`RuntimeException` とそのサブクラス(と `Error`)。`null` 参照や不正な引数など、主に **プログラムのバグや前提違反** を表します。処理は強制されません。
 
 検査例外を放置するとコンパイルエラーです。
 

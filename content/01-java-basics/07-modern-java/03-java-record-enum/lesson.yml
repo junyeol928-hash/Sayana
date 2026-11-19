@@ -2,7 +2,7 @@ id: java-record-enum
 title: recordとenum
 status: ready
 minutes: 15
-summary: 値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、ordinal を保存してはいけない理由、switch 式の網羅性、EnumMap まで。
+summary: 値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、`ordinal` を保存してはいけない理由、`switch` 式の網羅性、`EnumMap` まで。
 goals:
   - record で自動生成されるもの(フィールド・コンストラクタ・アクセサ・`equals`/`hashCode`/`toString`)を説明できる
   - コンパクトコンストラクタで値を検証し、不変の値オブジェクトを書ける
@@ -130,9 +130,9 @@ quiz:
     answer: 0
     why:
       - ""
-      - "record には static フィールドも置けないと読んだ答え。static なら置ける"
+      - "record には `static` フィールドも置けないと読んだ答え。`static` なら置ける"
       - "record にメソッドを足せないと読んだ答え。インスタンスメソッドは自由に足せる"
-      - "record はインターフェースも実装できないと読んだ答え。implements は書ける"
+      - "record はインターフェースも実装できないと読んだ答え。`implements` は書ける"
     explanation: |
       record のフィールドは暗黙に `private final` なので、メソッド内で再代入すると `cannot assign a value to final variable x` になります。値を変えたいなら、新しい record を作って返すのが流儀です。
       record で禁止されているのは **インスタンスフィールドの追加** と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。インスタンスフィールドを足すと次のメッセージが出ます: `field declaration must be static`
@@ -197,16 +197,16 @@ quiz:
       - "コンパイルは通り、`price(Size.L)` を呼ぶと 0 が返る"
       - "`L` を網羅していないので、コンパイルエラーになる"
       - "コンパイルは通り、`price(Size.L)` を呼ぶと例外が発生する"
-      - "enum の switch 式には必ず `default` が必要なので、コンパイルエラーになる"
+      - "enum の `switch` 式には必ず `default` が必要なので、コンパイルエラーになる"
     answer: 1
     why:
-      - "書いていない定数は 0 になると読んだ答え。switch 式は全定数か `default` が要り、コンパイルエラー"
+      - "書いていない定数は 0 になると読んだ答え。`switch` 式は全定数か `default` が要り、コンパイルエラー"
       - ""
-      - "漏れが実行時に分かると読んだ答え。switch 式の網羅はコンパイル時に確かめられる"
-      - "enum の switch 式に `default` が必須と読んだ答え。全定数を書けば `default` なしで通る"
+      - "漏れが実行時に分かると読んだ答え。`switch` 式の網羅はコンパイル時に確かめられる"
+      - "enum の `switch` 式に `default` が必須と読んだ答え。全定数を書けば `default` なしで通る"
     explanation: |
-      switch 式は必ず値を返す必要があるので、enum の **全定数** を case に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
-      全定数を書いて `default` を省くと、後から定数を追加したときにこの switch がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で `default` を書かない理由です。
+      `switch` 式は必ず値を返す必要があるので、enum の **全定数** を `case` に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
+      全定数を書いて `default` を省くと、後から定数を追加したときにこの `switch` がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で `default` を書かない理由です。
 columns:
   - type: genba
     title: JPA の @Enumerated はデフォルトが ORDINAL

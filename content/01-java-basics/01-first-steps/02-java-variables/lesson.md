@@ -107,7 +107,7 @@ boolean ok = true;
 
 C 言語の `int` は環境によってサイズが変わりますが、Java の `int` は**どの OS・CPU でも必ず32bit**と言語仕様で決まっています。JVM 上で動く Java は、Windows でも Linux でも同じ計算結果になる必要があるからです。
 
-## 参照型の入口:String と null
+## 参照型の入口:String と `null`
 
 プリミティブ型8種以外は、すべて**参照型**です。代表が文字列を表す `String` です。`String` は頭が大文字なことからも分かるとおり、プリミティブ型ではなく**クラス**です。
 
@@ -134,7 +134,7 @@ flowchart LR
 
 - `age` には **値 30 そのもの** が入っている
 - `name` には **"Haru" という String オブジェクトの場所(参照)** が入っている。オブジェクト本体は**ヒープ**と呼ばれる領域に作られる
-- `memo` には **null** が入っている。null は「どのオブジェクトも指していない」という特別な値
+- `memo` には **`null`** が入っている。`null` は「どのオブジェクトも指していない」という特別な値
 
 `null` が入った変数でオブジェクトの機能を使おうとすると、実行時に `NullPointerException`(通称ぬるぽ)が発生します。
 
@@ -237,7 +237,7 @@ System.out.println(new java.math.BigDecimal(0.1));
 
 この小さなズレが計算で積み重なって表に出てくるわけです。
 
-そこで現場の常識:**お金の計算に double を使わない。**代わりに `java.math.BigDecimal`(10進数で正確に計算できるクラス)を使うか、「円」や「セント」の整数(`long`)で持ちます。
+そこで現場の常識:**お金の計算に `double` を使わない**。代わりに `java.math.BigDecimal`(10進数で正確に計算できるクラス)を使うか、「円」や「セント」の整数(`long`)で持ちます。
 
 ```java
 import java.math.BigDecimal;
@@ -266,7 +266,7 @@ var list = new java.util.ArrayList<String>();  // ArrayList<String>
 
 - 使えるのは**ローカル変数だけ**(フィールドやメソッドの引数には使えない)
 - **初期化が必須**:`var x;` はエラー(何型か推論できない)
-- `var x = null;` もエラー(null だけでは型が決まらない)
+- `var x = null;` もエラー(`null` だけでは型が決まらない)
 
 ::: genba var は使う?使わない?
 現場の意見は割れています。

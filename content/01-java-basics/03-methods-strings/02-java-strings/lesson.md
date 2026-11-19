@@ -53,7 +53,7 @@ flowchart LR
 ソースに書いたリテラルは JVM の **文字列プール** に1つだけ置かれ、使い回されます。`"Ja" + "va"` のような定数同士の連結もコンパイル時に `"Java"` になるのでプール行き。一方、`new String(...)` や実行時の連結は別オブジェクトです。入力やDBの値は常に後者なので、**文字列は必ず equals**。`new String("…")` は無駄なので、現場では書きません。
 
 ::: haru
-リテラル同士だと `==` でも true になるから、テストをすり抜けちゃうんすね……。
+リテラル同士だと `==` でも `true` になるから、テストをすり抜けちゃうんすね……。
 :::
 
 `null` かもしれない変数は、**固定値の側から** 呼ぶのが定石です。
@@ -64,7 +64,7 @@ String rank = null;
 rank.equals("GOLD");   // NullPointerException
 ```
 
-比べる **両方** が null かもしれない(変数同士の比較)なら、`java.util.Objects.equals(a, b)` が使えます。片方だけ null なら `false`、両方 null なら `true` を返し、例外は出しません。
+比べる **両方** が `null` かもしれない(変数同士の比較)なら、`java.util.Objects.equals(a, b)` が使えます。片方だけ `null` なら `false`、両方 `null` なら `true` を返し、例外は出しません。
 
 ## よく使うメソッド
 
@@ -80,7 +80,7 @@ rank.equals("GOLD");   // NullPointerException
 | `"EMP-001".startsWith("EMP-")` | `true` |
 | `"a-b-c".replace("-", "/")` | `"a/b/c"`(全部置換) |
 | `"ab".repeat(3)` | `"ababab"` |
-| `"  ".isBlank()` | `true`(空白だけでも true) |
+| `"  ".isBlank()` | `true`(空白だけでも `true`) |
 
 `substring(開始, 終了)` は「開始以上・終了未満」。範囲外だと例外です。
 
@@ -183,7 +183,7 @@ error: bad operand types for binary operator '=='
 
 ::: point まとめ
 - String は **不変**。`s = s.toUpperCase();` のように戻り値を受け取る
-- 中身の比較は `equals` / `equalsIgnoreCase`。null かもしれないなら `"固定値".equals(変数)`
+- 中身の比較は `equals` / `equalsIgnoreCase`。`null` かもしれないなら `"固定値".equals(変数)`
 - リテラルと定数連結はプールで共有、`new String` と実行時連結は別物。だから `==` は使わない
 - `substring` の終了位置は含まない。`split` は正規表現(`.` は `\\.`)
 - 日本語入力の空白除去は `trim` より `strip`

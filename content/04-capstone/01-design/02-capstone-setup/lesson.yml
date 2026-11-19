@@ -2,7 +2,7 @@ id: capstone-setup
 title: プロジェクト作成とエンティティ
 status: ready
 minutes: 15
-summary: 承認くんの土台を作る。Spring Boot 3.5.16 の pom.xml でのプロジェクト作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。
+summary: 承認くんの土台を作る。Spring Boot 3.5.16 の `pom.xml` でのプロジェクト作成、パッケージ構成、`application.yml`(H2 ファイルモード)、3つのエンティティと Repository、`data.sql` の初期データ、H2 コンソールでの確認まで。
 goals:
   - 設計どおりの依存・パッケージ構成で Spring Boot のプロジェクトを作り、起動クラスより下にパッケージを置く理由を説明できる
   - H2 ファイルモードで `ddl-auto`・`sql.init.mode`・`defer-datasource-initialization` を設定し、`data.sql` を何度流しても壊れないように書ける

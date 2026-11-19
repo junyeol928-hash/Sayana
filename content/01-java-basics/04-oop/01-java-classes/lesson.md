@@ -175,7 +175,7 @@ error: non-static variable salary cannot be referenced
 目安は「インスタンスの状態を使う処理はインスタンスメソッド、使わない計算は static」。`Math.max` みたいにね。
 :::
 
-## 参照の代入と null
+## 参照の代入と `null`
 
 ```java
 Employee a = new Employee("佐藤", 300000);
@@ -217,7 +217,7 @@ Exception in thread "main"
   because "staff[0]" is null
 ```
 
-Java 15 以降は、既定でこのように「何が null だったか」まで教えてくれます(Helpful NullPointerExceptions。Java 14 ではオプション `-XX:+ShowCodeDetailsInExceptionMessages` を付けたときだけ)。変数名まで出るのは STS や Maven のようにデバッグ情報付きでコンパイルしたときで、`javac` を素で使うと `"<local1>[0]"` のような番号になります。
+Java 15 以降は、既定でこのように「何が `null` だったか」まで教えてくれます(Helpful NullPointerExceptions。Java 14 ではオプション `-XX:+ShowCodeDetailsInExceptionMessages` を付けたときだけ)。変数名まで出るのは STS や Maven のようにデバッグ情報付きでコンパイルしたときで、`javac` を素で使うと `"<local1>[0]"` のような番号になります。
 
 ## toString で中身を表示する
 
@@ -244,7 +244,7 @@ public String toString() {
 
 ::: point まとめ
 - クラスは関連するデータと処理をまとめた **自作の型**。`new` で作った実体が **インスタンス**
-- フィールドは既定値(0 / false / null)で初期化される
+- フィールドは既定値(`0` / `false` / `null`)で初期化される
 - コンストラクタで初期値を受け取る。`this.x = x` でフィールドと引数を区別、`this(...)` は先頭に
 - コンストラクタを1つでも書くと **デフォルトコンストラクタは消える**
 - `static` はクラスに1つ。static メソッドからインスタンスのフィールドは直接使えない

@@ -2,7 +2,7 @@ id: capstone-approve
 title: 承認・差戻しフロー
 status: ready
 minutes: 15
-summary: 承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。
+summary: 承認くんの心臓部。業務ルールをエンティティと `ApprovalService` に振り分け、`@Transactional` で状態と履歴を一緒に保存し、`@Version` で二重承認を防ぐ。
 goals:
   - 業務ルール1〜7を「エンティティで守るもの」と「Service で守るもの」に分け、その理由を説明できる
   - "`ApprovalService` の `submit` / `approve` / `returnBack` / `withdraw` を、チェック → エンティティの操作 → 履歴の保存 の順で書ける"

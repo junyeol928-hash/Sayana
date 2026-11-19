@@ -198,5 +198,5 @@ error: local variables referenced from a lambda
 :::
 
 ::: sensei
-次は「Optional」。`average()` の戻り値の正体と、null との付き合い方だ。
+次は「Optional」。`average()` の戻り値の正体と、`null` との付き合い方だ。
 :::

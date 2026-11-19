@@ -2,7 +2,7 @@ id: tools-maven
 title: Maven(pom.xml・依存関係・ライフサイクル)
 status: ready
 minutes: 15
-summary: このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。
+summary: このアプリ自身の `pom.xml` を教材に、座標・`parent`・依存関係とスコープ・ライフサイクル・`mvnw` を読み解く。STS での Maven 操作とトラブル対処まで。
 goals:
   - "`pom.xml` の座標(`groupId` / `artifactId` / `version`)・`parent`・`properties`・`dependencies`・`build/plugins` を読んで意味を説明できる"
   - Spring Boot の `parent` がバージョンを管理する仕組みを理解し、`version` を書くべき依存と書かない依存を区別できる
@@ -111,7 +111,7 @@ quiz:
       「新しい方が勝つ」わけではないので、`b` が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
       衝突はエラーにならず黙って解決されるので、`dependency:tree` で確認する習慣が大事です。
   - question: |
-      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for switch(`case Integer i ->`)を使っています。結果は?
+      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for `switch`(`case Integer i ->`)を使っています。結果は?
       ```xml
       <parent>
         <groupId>org.springframework.boot</groupId>

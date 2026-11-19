@@ -208,7 +208,7 @@ select ... from departments where id=?
 List<Employee> findAllWithDepartment();
 ```
 
-`join fetch` は内部結合なので、部署が未設定(`department_id` が null)の社員は結果から消えます。全員を出したいなら `left join fetch` にします。
+`join fetch` は内部結合なので、部署が未設定(`department_id` が `null`)の社員は結果から消えます。全員を出したいなら `left join fetch` にします。
 
 ### 遅延ロードと LazyInitializationException
 

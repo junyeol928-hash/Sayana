@@ -2,7 +2,7 @@ id: java-lambda-stream
 title: ラムダとStream
 status: ready
 minutes: 15
-summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。
+summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 `final` の罠まで。
 goals:
   - 匿名クラスをラムダ式とメソッド参照に書き換えられる
   - 関数型インターフェース(`Function` / `Predicate` / `Consumer` / `Supplier` / `Comparator`)の役割を説明できる
@@ -269,12 +269,12 @@ quiz:
     answer: 0
     why:
       - ""
-      - "引数を受け取らない static の呼び出しと読んだ答え。受け取った文字列そのものの `length()` を呼ぶ"
-      - "static メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
+      - "引数を受け取らない `static` の呼び出しと読んだ答え。受け取った文字列そのものの `length()` を呼ぶ"
+      - "`static` メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
       - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その `length()` を返す"
     explanation: |
       `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
-      static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
+      `static` メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
   - question: |
       次のコードのうち、**コンパイルエラーになる行** はどれ?
       ```java

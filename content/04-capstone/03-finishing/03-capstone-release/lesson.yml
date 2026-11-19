@@ -2,7 +2,7 @@ id: capstone-release
 title: 例外・ログ・プロファイルで仕上げ
 status: ready
 minutes: 15
-summary: 承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の @RestControllerAdvice を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。
+summary: 承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の `@RestControllerAdvice` を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。
 goals:
   - 画面向けのエラーページ(`templates/error/404.html`・`500.html`)と、API 向けの `@RestControllerAdvice` を使い分けられる
   - "`@RestControllerAdvice` で `BusinessRuleException` → 409、存在しない申請 → 404、想定外の例外 → 500(中身を漏らさず `errorId` を返す)を共通形式で返せる"

@@ -2,7 +2,7 @@ id: spring-rest
 title: REST API
 status: ready
 minutes: 15
-summary: URL は名詞・操作は HTTP メソッド・結果はステータスコード。@RestController と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。
+summary: URL は名詞・操作は HTTP メソッド・結果はステータスコード。`@RestController` と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。
 goals:
   - リソースと URL、HTTP メソッド(GET / POST / PUT / PATCH / DELETE)、ステータスコード(200 / 201 / 204 / 400 / 404 / 409)を使い分けられる
   - "`@RestController` と `@RequestBody` で、record と JSON を相互に変換できる(Jackson)"

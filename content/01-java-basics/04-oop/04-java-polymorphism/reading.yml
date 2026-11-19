@@ -11,7 +11,7 @@
     class Bird extends Animal implements Flyable {
         public void fly() { }
     }
-  question: "Bird と Animal、Bird と Flyable のクラス図上の関係は、それぞれ何?"
+  question: "`Bird` と `Animal`、`Bird` と `Flyable` のクラス図上の関係は、それぞれ何?"
   choices:
     - "両方とも継承"
     - "Animal とは継承、Flyable とは実現"
@@ -19,14 +19,14 @@
     - "両方とも実現"
   answer: 1
   why:
-    - "implements も継承と読んだ答え。インターフェースを実装する関係は実現"
+    - "`implements` も継承と読んだ答え。インターフェースを実装する関係は実現"
     - ""
-    - "継承と実現を逆に読んだ答え。extends は継承、implements は実現"
-    - "extends も実現と読んだ答え。クラスを extends する関係は継承"
-  explanation: "extends で継いでいる Animal との関係は「継承」、implements で実装している Flyable(インターフェース)との関係は「実現」です。キーワードを見れば関係の種類がそのまま分かります。"
+    - "継承と実現を逆に読んだ答え。`extends` は継承、`implements` は実現"
+    - "`extends` も実現と読んだ答え。クラスを `extends` する関係は継承"
+  explanation: "`extends` で継いでいる `Animal` との関係は「継承」、`implements` で実装している `Flyable`(インターフェース)との関係は「実現」です。キーワードを見れば関係の種類がそのまま分かります。"
   trace:
-    - "7行目: `class Bird extends Animal` → Animal とは継承関係(白抜き三角+実線)"
-    - "7行目: `implements Flyable` → Flyable とは実現関係(白抜き三角+点線)"
+    - "7行目: `class Bird extends Animal` → `Animal` とは継承関係(白抜き三角+実線)"
+    - "7行目: `implements Flyable` → `Flyable` とは実現関係(白抜き三角+点線)"
     - "8行目: `fly()` を具体的に実装しているのが「実現」の意味そのもの"
 - title: "集約かコンポジションか、コンストラクタで見分ける"
   level: 2
@@ -46,7 +46,7 @@
             this.favorite = favorite;
         }
     }
-  question: "(A) の Library-Book、(B) の ReadingClub-Book は、それぞれどちらの関係?"
+  question: "(A) の `Library`-`Book`、(B) の `ReadingClub`-`Book` は、それぞれどちらの関係?"
   choices:
     - "両方コンポジション"
     - "(A)はコンポジション、(B)は集約"
@@ -54,14 +54,14 @@
     - "両方集約"
   answer: 1
   why:
-    - "final で持てばコンポジションと読んだ答え。(B) は外で作った Book を受け取るので集約"
+    - "`final` で持てばコンポジションと読んだ答え。(B) は外で作った `Book` を受け取るので集約"
     - ""
-    - "作る側と受け取る側を逆に読んだ答え。自分で new する (A) がコンポジション"
-    - "フィールドに持つだけなら集約と読んだ答え。(A) は自分で new し、一緒に生まれ消えるのでコンポジション"
-  explanation: "(A) は Library が自分のコンストラクタで new Book(...) して部品を作り、そのまま持ち続けているのでコンポジションです(Library と一緒に生まれ、一緒に消える)。(B) は外で作られた Book をコンストラクタで受け取っているだけなので集約です(同じ Book をほかのクラスも持てる)。"
+    - "作る側と受け取る側を逆に読んだ答え。自分で `new` する (A) がコンポジション"
+    - "フィールドに持つだけなら集約と読んだ答え。(A) は自分で `new` し、一緒に生まれ消えるのでコンポジション"
+  explanation: "(A) は `Library` が自分のコンストラクタで `new Book(...)` して部品を作り、そのまま持ち続けているのでコンポジションです(`Library` と一緒に生まれ、一緒に消える)。(B) は外で作られた `Book` をコンストラクタで受け取っているだけなので集約です(同じ `Book` をほかのクラスも持てる)。"
   trace:
-    - "(A) 4〜6行目: Library のコンストラクタの中で `new Book(...)` している → 部品を作るのも持ち続けるのも Library → コンポジション"
-    - "(B) 12〜14行目: favorite はコンストラクタの引数として外から渡される → ReadingClub は生成に関与しない → 集約"
+    - "(A) 4〜6行目: `Library` のコンストラクタの中で `new Book(...)` している → 部品を作るのも持ち続けるのも `Library` → コンポジション"
+    - "(B) 12〜14行目: `favorite` はコンストラクタの引数として外から渡される → `ReadingClub` は生成に関与しない → 集約"
 - title: "シーケンス図のメッセージ順とメソッド呼び出しの対応"
   level: 2
   code: |
@@ -90,14 +90,14 @@
   why:
     - ""
     - "呼び出し先の処理が後回しになると読んだ答え"
-    - "呼ばれる側の service が先に動くと読んだ答え"
+    - "呼ばれる側の `service` が先に動くと読んだ答え"
     - "`place()` の途中で呼び出し元に戻ると読んだ答え"
-  explanation: "シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。controller が1を出力→ `service.place()` を呼ぶ(同期メッセージ)→ service が2,3を出力して戻る→ controller が続きの4を出力、という順です。"
+  explanation: "シーケンス図と同じで、呼び出しは上から下へ、戻りは呼び出し元に戻ってから続きが実行されます。`controller` が1を出力→ `service.place()` を呼ぶ(同期メッセージ)→ `service` が2,3を出力して戻る→ `controller` が続きの4を出力、という順です。"
   trace:
     - "`handle()` が呼ばれ `1: controller start` を出力"
     - "`service.place()` を呼び出す(シーケンス図の同期メッセージに相当)"
     - "`place()` の中で `2: service start`、`3: service end` を出力して呼び出し元に戻る(リプライメッセージ)"
-    - "controller に戻り、続きの `4: controller end` を出力"
+    - "`controller` に戻り、続きの `4: controller end` を出力"
 - title: "alt フラグメントとif-elseの対応"
   level: 3
   code: |
@@ -112,7 +112,7 @@
     // 呼び出し側:
     OrderRequest badRequest = new OrderRequest(-100);
     service.place(badRequest);
-  question: "この if-else をシーケンス図で表すとき使う複合フラグメントと、最後の呼び出しの結果は?"
+  question: "この `if-else` をシーケンス図で表すとき使う複合フラグメントと、最後の呼び出しの結果は?"
   choices:
     - "opt を使う。`saved` が返る"
     - "alt を使う。例外が発生する"
@@ -120,13 +120,13 @@
     - "複合フラグメントは使わない。`saved` が返る"
   answer: 1
   why:
-    - "if-else を opt と読んだ答え。どちらか一方を必ず通る分岐は alt で、-100 では例外になる"
+    - "`if-else` を opt と読んだ答え。どちらか一方を必ず通る分岐は alt で、-100 では例外になる"
     - ""
-    - "分岐をくり返しと取り違えた答え。if-else は alt で、-100 は else に入って例外になる"
-    - "分岐は図にしないと読んだ答え。if-else は alt で表し、-100 は else に入って例外になる"
-  explanation: "if-else のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。badRequest の amount は -100 で 0 より大きくないため else 側に入り、`IllegalArgumentException` が発生します。"
+    - "分岐をくり返しと取り違えた答え。`if-else` は alt で、-100 は `else` に入って例外になる"
+    - "分岐は図にしないと読んだ答え。`if-else` は alt で表し、-100 は `else` に入って例外になる"
+  explanation: "`if-else` のように「どちらか一方が必ず実行される」分岐は alt フラグメントで表します。`badRequest` の `amount` は -100 で 0 より大きくないため `else` 側に入り、`IllegalArgumentException` が発生します。"
   trace:
     - "2行目: `request.getAmount()` は -100 なので条件は `false`"
-    - "5行目の else に入る"
-    - "6行目: `IllegalArgumentException` を throw する"
-    - "この if-else 全体が、シーケンス図では alt の `[amount > 0]` / `[else]` の2区画として描かれる"
+    - "5行目の `else` に入る"
+    - "6行目: `IllegalArgumentException` を `throw` する"
+    - "この `if-else` 全体が、シーケンス図では alt の `[amount > 0]` / `[else]` の2区画として描かれる"
