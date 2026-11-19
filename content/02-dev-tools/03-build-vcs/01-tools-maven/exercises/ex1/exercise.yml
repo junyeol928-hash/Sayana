@@ -2,8 +2,8 @@ title: mvn コマンドの実行計画を作る
 className: MavenPlan
 difficulty: 2
 problem: |
-  `./mvnw clean package` と打ったとき、Maven は実際にどのフェーズを順に実行するのか。
-  それを一覧にする `plan(String command)` を完成させてください。
+  `./mvnw clean package` と打ったとき、Maven はどのフェーズを順に実行するのか。
+  その一覧(同じフェーズは1回だけ書く)を作る `plan(String command)` を完成させてください。
 
   **この演習で扱うフェーズ(簡略版)**
 
@@ -17,9 +17,10 @@ problem: |
   1. `command` は空白区切りで複数の指定を並べたもの。前後や間の空白がいくつあってもよい
   2. 左から順に1つずつ処理し、結果のリストに追加していく
      - `clean` → `"clean"` を追加
-     - default ライフサイクルのフェーズ → `validate` から **そのフェーズまでを順に全部** 追加
+     - default ライフサイクルのフェーズ → `validate` から**そのフェーズまでを順に全部**追加
      - `:` を含むもの(`spring-boot:run` など)→ プラグインのゴールなので、そのまま1つ追加
-  3. すでにリストにあるものは追加しない(2回目以降は飛ばす)
+  3. すでにリストにあるものは追加しない(2回目以降は飛ばす)。
+     ※ 本物の Maven は飛ばしません。`./mvnw compile package` と並べると、validate〜compile を実行したあと、もう一度 validate から package までを実行します(だから普通は最後のフェーズだけを指定します)。この演習では「どのフェーズが関わるか」の一覧として重複を省きます
   4. 上のどれにも当てはまらない指定があれば `IllegalArgumentException` を投げる。メッセージにはその指定をそのまま含める(打ち間違いを利用者に知らせるため)
   5. `command` が `null`・空文字・空白だけのときも `IllegalArgumentException`(本物の Maven も「No goals have been specified」で止まります)
 

@@ -4,15 +4,16 @@ status: ready
 minutes: 15
 summary: 同じ型の値をまとめて扱う配列。宣言・生成、インデックスと範囲外例外、ループでの処理、参照型としての振る舞い、Arrays クラス、二次元配列まで。
 goals:
-  - 配列を new や初期化子で作り、要素の既定値と length を説明できる
-  - ArrayIndexOutOfBoundsException のメッセージから原因を特定できる
+  - 配列を `new` や初期化子で作り、要素の既定値と `length` を説明できる
+  - "`ArrayIndexOutOfBoundsException` のメッセージから原因を特定できる"
   - for と拡張 for を使い分けて、合計・平均・最大・探索・カウント・逆順を書ける
-  - 配列が参照型であること(代入はエイリアス、== は同一性の比較)を理解し、copyOf / Arrays.equals を正しく使える
+  - 配列が参照型であること(代入はエイリアス、`==` は同一性の比較)を理解し、`copyOf` / `Arrays.equals` を正しく使える
   - 二次元配列(ジャグ配列を含む)を作ってループで処理できる
 samples:
   - title: 配列を作って中身を見る
     description: |
       `new` で作った直後の既定値と、`length`、`Arrays.toString` の動きを確認します。
+      `new int[5]` で作った直後の配列には、何が入っている?
     code: |
       import java.util.Arrays;
 
@@ -29,10 +30,11 @@ samples:
 
       int[] primes = {2, 3, 5, 7};       // 要素を足すと length も変わる
       System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
-      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(毎回変わる)
+      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
-      `b = a` は同じ配列を指すだけ。`Arrays.copyOf` は新しい配列を作ります。`==` と `Arrays.equals` の違いも確認しましょう。
+      `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` は、それぞれ何を返すか。
+      `b[0] = 99` のあと、`a` の中身はどうなる?
     code: |
       import java.util.Arrays;
 
@@ -55,6 +57,7 @@ samples:
   - title: 典型アルゴリズム(合計・平均・最大・探索・カウント)
     description: |
       売上データで定番の処理をまとめて実行します。配列の中身や `target` を変えて結果を確かめましょう。
+      `target` の 8000 は、どのインデックスで見つかる?
     code: |
       int[] sales = {12000, 8000, 15000, 8000, 21000};   // ここを書き換えてみよう
 
@@ -84,6 +87,7 @@ samples:
   - title: 二次元配列とジャグ配列
     description: |
       行ごとに長さが違う「ジャグ配列」の勤務時間表を、行ごとに合計します。
+      パートの社員1は、何日・何時間と表示される?
     code: |
       import java.util.Arrays;
 
@@ -113,9 +117,14 @@ quiz:
       ```
     choices: ["1", "99", "コンパイルエラー", "実行時に例外が発生する"]
     answer: 1
+    why:
+      - "`b = a` で配列が複製されると読んだ答え"
+      - ""
+      - "配列どうしの代入はできないと読んだ答え。`b = a` は参照の代入で文法として正しい"
+      - "2 つの変数から同じ配列を書き換えると例外になると読んだ答え。問題なく 99 が入る"
     explanation: |
       配列は参照型なので、`b = a` でコピーされるのは「配列を指す参照」だけです。`a` と `b` は同じ配列を指しているため、`b[0] = 99` は `a[0]` から見ても 99 になります。
-      「1」になると思った人は、`b = a` で配列が複製されると勘違いしています。別の配列が欲しいなら `Arrays.copyOf(a, a.length)` か `a.clone()` を使います。文法上の誤りはないので、コンパイルエラーや例外にはなりません。
+      別の配列が欲しいなら `Arrays.copyOf(a, a.length)` か `a.clone()` を使います。
   - question: |
       次のうち、コンパイルエラーになる行はどれですか?
       ```java
@@ -126,8 +135,13 @@ quiz:
       ```
     choices: ["A", "B", "C", "D"]
     answer: 2
+    why:
+      - "`new int[3]` を疑った答え。要素 3 個の配列を作る正しい書き方"
+      - "宣言と同時の `{1, 2, 3}` を疑った答え。初期化子として正しい"
+      - ""
+      - "サイズの無い `new int[]{4, 5}` を疑った答え。サイズを書かないこの形が正しい"
     explanation: |
-      配列の要素数 `length` は **フィールド** なので、カッコを付けて `b.length()` と書くと `cannot find symbol ... method length()` というコンパイルエラーになります。正しくは `b.length` です(String の `length()` はメソッドなのでカッコが必要、という違いが混乱のもと)。
+      配列の要素数 `length` は**フィールド**なので、カッコを付けて `b.length()` と書くと `cannot find symbol ... method length()` というコンパイルエラーになります。正しくは `b.length` です(String の `length()` はメソッドなのでカッコが必要、という違いが混乱のもと)。
       A は要素3個の配列の生成、B は宣言と同時の初期化子、D はサイズを書かない `new int[]{...}` 形式で、いずれも正しい書き方です。D でサイズまで書いて `new int[2]{4, 5}` にするとエラーになります。
   - question: |
       次のコードの出力はどれですか?
@@ -136,8 +150,13 @@ quiz:
       int[] y = {1, 2, 3};
       System.out.println((x == y) + " " + Arrays.equals(x, y));
       ```
-    choices: ["true true", "true false", "false false", "false true"]
+    choices: ["`true true`", "`true false`", "`false false`", "`false true`"]
     answer: 3
+    why:
+      - "`==` でも中身を比べると読んだ答え"
+      - "`==` と `Arrays.equals` の役割を逆に読んだ答え"
+      - "`Arrays.equals` も、同じ配列かどうかを比べると読んだ答え"
+      - ""
     explanation: |
       `==` は参照型では「同じオブジェクトを指しているか」を比べます。`x` と `y` は中身が同じでも別々に作られた配列なので `false`。
       `Arrays.equals` は長さと全要素を比べるので `true` です。中身を比べるつもりで `==` や `x.equals(y)`(配列の equals も `==` と同じ判定)を使うのは定番のバグです。
@@ -147,11 +166,16 @@ quiz:
       int[][] t = {{1, 2, 3}, {4}, {5, 6}};
       System.out.println(t.length + " " + t[1].length + " " + t[2][1]);
       ```
-    choices: ["3 1 6", "3 3 6", "6 1 5", "実行時に ArrayIndexOutOfBoundsException"]
+    choices: ["`3 1 6`", "`3 3 6`", "`6 1 5`", "実行時に `ArrayIndexOutOfBoundsException`"]
     answer: 0
+    why:
+      - ""
+      - "全行が同じ長さだと読んだ答え"
+      - "`t.length` を全要素数と読み、`t[2][1]` の列を 1 始まりで数えた答え"
+      - "`t[2][1]` を範囲外と読んだ答え"
     explanation: |
       二次元配列は「配列の配列」です。`t.length` は行の数で 3、`t[1]` は `{4}` なので長さ 1、`t[2][1]` は `{5, 6}` の1番目(0始まり)で 6 です。
-      「3 3 6」は全行が同じ長さだと思い込んだ答えですが、Java では行ごとに長さが違ってよい(ジャグ配列)。「6 1 5」は全要素数と1始まりの数え方を混ぜた誤りです。どのインデックスも範囲内なので例外にもなりません。
+      Java では行ごとに長さが違ってよく(ジャグ配列)、どのインデックスも範囲内なので例外にもなりません。
   - question: |
       次のコードの出力はどれですか?
       ```java
@@ -163,9 +187,13 @@ quiz:
       ```
     choices: ["[200, 400, 600]", "コンパイルエラー", "[100, 200, 300]", "[I@1b6d3586 のような文字列"]
     answer: 2
+    why:
+      - "`p` への代入が配列の要素に戻ると読んだ答え"
+      - "ループ変数には代入できないと読んだ答え。`p` への代入は文法上許される"
+      - ""
+      - "配列をそのまま表示すると読んだ答え。Arrays.toString を通すので [100, 200, 300] の形で出る"
     explanation: |
-      拡張 for 文の変数 `p` には要素の値が **コピー** されて入ります。`p` に代入しても変わるのはローカル変数 `p` だけで、配列の中身はそのままです。書き換えたいなら `for (int i = 0; i < prices.length; i++) prices[i] *= 2;` のように普通の for を使います。
-      ループ変数への代入は文法上許されるのでコンパイルエラーにはなりません。また `Arrays.toString` を使っているので `[I@...` のような表示にもなりません。
+      拡張 `for` 文の変数 `p` には要素の値が**コピー**されて入ります。`p` に代入しても変わるのはローカル変数 `p` だけで、配列の中身はそのままです。書き換えたいなら `for (int i = 0; i < prices.length; i++) prices[i] *= 2;` のように普通の `for` を使います。
 columns:
   - type: trivia
     title: length と length() と size()、なぜバラバラ?
@@ -196,7 +224,7 @@ columns:
     body: |
       デバッグ中に `System.out.println("受信データ: " + data);` と書いたら、ログに `受信データ: [I@1b6d3586` と出てきた……新人あるあるです。
 
-      配列は `toString()` を中身の表示用に作り替えていないので、「型名@ハッシュ値」が出ます。`[I` は int の配列、`[Ljava.lang.String;` は String の配列、`[[I` は int の二次元配列を表す JVM 内部の型名です。`@` の後ろは実行するたびに変わります。
+      配列は `toString()` を中身の表示用に作り替えていないので、「型名@ハッシュ値」が出ます。`[I` は int の配列、`[Ljava.lang.String;` は String の配列、`[[I` は int の二次元配列を表す JVM 内部の型名です。`@` の後ろは中身とは無関係な値で、環境や実行によって変わることがあります。
 
       中身を見たいときは次のとおり。
 

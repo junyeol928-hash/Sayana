@@ -2,19 +2,19 @@ id: spring-config
 title: 設定ファイルとプロファイル
 status: ready
 minutes: 15
-summary: application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。
+summary: "`application.yml`・`@Value`・`@ConfigurationProperties`・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。"
 goals:
-  - application.properties と application.yml の書き方の違いを理解し、よく使うキー(server.port、spring.datasource.*、logging.level.*)を書ける
-  - "@Value(\"${キー:既定値}\") と @ConfigurationProperties(record)を使い分けて設定値を受け取れる"
-  - application-{profile}.yml と spring.profiles.active で環境ごとに設定を切り替え、@Profile で Bean を切り替えられる
-  - 設定の優先順位と、キーから環境変数名への変換ルール(SPRING_DATASOURCE_URL など)を説明できる
+  - "`application.properties` と `application.yml` の書き方の違いを理解し、よく使うキー(`server.port`、`spring.datasource.*`、`logging.level.*`)を書ける"
+  - "`@Value(\"${キー:既定値}\")` と `@ConfigurationProperties`(record)を使い分けて設定値を受け取れる"
+  - "`application-{profile}.yml` と `spring.profiles.active` で環境ごとに設定を切り替え、`@Profile` で Bean を切り替えられる"
+  - 設定の優先順位と、キーから環境変数名への変換ルール(`SPRING_DATASOURCE_URL` など)を説明できる
   - パスワードや API キーを設定ファイルに書かず、環境変数で渡せる
 samples:
   - title: 設定値を @Value で受け取る(既定値つき)
     libraries: [spring]
     description: |
-      `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。
-      `shop.name` の行を消すと、`@Value` の `:` の後ろに書いた既定値が使われることを確かめましょう。
+      `MapPropertySource` は「キーと値の `Map`」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。1 行目の税率は、8% と 10% のどちらで出る?
+      1 行目の店名と、`server.port` の行に出る値は何だろうか。そのあと `shop.name` の行を消したら、何が出る?
     code: |
       import org.springframework.beans.factory.annotation.Value;
       import org.springframework.context.annotation.*;
@@ -51,7 +51,7 @@ samples:
     libraries: [spring]
     description: |
       `setActiveProfiles` は Spring Boot の `spring.profiles.active` に当たります。**`register` より前** に呼ぶのがポイントです。
-      `"dev"` を `"prod"` にしたり、`{ }`(プロファイルなし)にしたりして、登録される Bean が変わるのを確かめましょう。
+      `"dev"` のときに登録されるのは、`smtp` と `console` のどちら?そのあと `"prod"` や `{ }`(プロファイルなし)に変えたら、どうなるだろうか。
     code: |
       import org.springframework.context.annotation.*;
 
@@ -110,22 +110,32 @@ quiz:
         port: 8081
       ```
     choices:
-      - "8080 と jdbc:h2:file:./data/app"
-      - "8081 と jdbc:h2:file:./data/app"
-      - "8081 と 未設定(application-dev.yml に書いていないので)"
+      - "8080 と `jdbc:h2:file:./data/app`"
+      - "8081 と `jdbc:h2:file:./data/app`"
+      - "8081 と 未設定(`application-dev.yml` に書いていないので)"
       - "起動エラー(同じキーが2か所にあるので)"
     answer: 1
+    why:
+      - "`dev` のファイルが共通の値を上書きしないと読んだ答え"
+      - ""
+      - "`dev` 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
+      - "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ"
     explanation: |
-      プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は dev 側の 8081 が勝ち、dev 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
-      同じキーが複数の場所にあるのは正常な状態で、優先順位の高い方が採用されるだけなのでエラーにはなりません。
+      プロファイル用のファイルは共通の `application.yml` を**丸ごと置き換えるのではなく、書いたキーだけを上書き**します。`server.port` は `dev` 側の 8081 が勝ち、`dev` 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
-    choices: ["dojo.exec.max-heap", "DOJO.EXEC.MAX-HEAP", "DOJO_EXEC_MAXHEAP", "DOJO_EXEC_MAX_HEAP"]
+    choices: ["`dojo.exec.max-heap`", "`DOJO.EXEC.MAX-HEAP`", "`DOJO_EXEC_MAXHEAP`", "`DOJOEXECMAXHEAP`"]
     answer: 2
+    why:
+      - "キーをそのまま環境変数名にすると読んだ答え。`.` や `-` を含む名前は多くのシェルで設定すらできない"
+      - "大文字にするだけでよいと読んだ答え。`.` は `_` に変え、`-` は削除する"
+      - ""
+      - "区切りも全部消すと読んだ答え。`.` は `_` に変えるもので、消すと1語のキーになり対応しない"
     explanation: |
       変換ルールは「`.` を `_` に」「`-` は削除」「全部大文字」の3つなので `DOJO_EXEC_MAXHEAP` です。
-      `DOJO_EXEC_MAX_HEAP` は `_` が `.` の区切りとみなされ、`dojo.exec.max.heap`(max の下の heap)という別のキーとして扱われます。
+      `DOJOEXECMAXHEAP` は区切りの `_` が無いので、`dojoexecmaxheap` という1語のキーになり、対応しません。
       `.` や `-` を含む名前は、Windows 以外の多くのシェルでは環境変数名として設定すらできません。
+      なお `DOJO_EXEC_MAX_HEAP`(`-` を `_` にした形)も互換のため実際には効きますが、公式ドキュメントの規則どおりの名前は `DOJO_EXEC_MAXHEAP` です。
   - question: |
       次の設定がすべてあるとき、`@Value("${shop.fee:500}") int fee` に入る値は?
       ```text
@@ -136,8 +146,13 @@ quiz:
       ```
     choices: ["1000", "800", "400", "500"]
     answer: 0
+    why:
+      - ""
+      - "環境変数が一番強いと読んだ答え。コマンドライン引数のほうが強く、1000 が勝つ"
+      - "プロファイル用のファイルが一番強いと読んだ答え。環境変数やコマンドライン引数のほうが強い"
+      - "`:500` を常に使う値と読んだ答え。既定値はどこにもキーが無いときだけ使われる"
     explanation: |
-      優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > application-{profile}.yml > application.yml」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
+      優先順位は「コマンドライン引数 > Java システムプロパティ > OS の環境変数 > `application-{profile}.yml` > `application.yml`」です。より「起動する人に近い」設定が勝つので、`--shop.fee=1000` が採用されます。
       500 は `@Value` の既定値で、どこにもキーが無いときにだけ使われます。コマンドライン引数を外せば環境変数の 800 になります。
   - question: |
       `application.yml` にこう書いたところ、サーバは 8080 のまま起動し、エラーも出ませんでした。原因は?
@@ -146,16 +161,20 @@ quiz:
         port:9090
       ```
     choices:
-      - "server.port は application.yml では変更できず、コマンドライン引数でしか指定できない"
-      - "port: の後ろにスペースが無いので、port:9090 という1つの文字列として読まれた"
-      - "YAML ではポート番号を \"9090\" のように引用符で囲む必要がある"
-      - "application.properties が無いと application.yml は読まれない"
+      - "`server.port` は `application.yml` では変更できず、コマンドライン引数でしか指定できない"
+      - "`port:` の後ろにスペースが無いので、`port:9090` という1つの文字列として読まれた"
+      - "YAML ではポート番号を `\"9090\"` のように引用符で囲む必要がある"
+      - "`application.properties` が無いと `application.yml` は読まれない"
     answer: 1
+    why:
+      - "`server.port` はファイルで変えられないと読んだ答え。ファイルでも変えられ、原因はコロンの後ろのスペース"
+      - ""
+      - "数値に引用符が要ると読んだ答え。数値はそのまま書けばよく、原因はコロンの後ろのスペース"
+      - "yml は単独では読まれないと読んだ答え。`application.yml` だけでも読まれる"
     explanation: |
       YAML のキーと値の区切りは「コロン + スペース」です。`port:9090` はスペースが無いので区切りとみなされず、`server` の値が `"port:9090"` という文字列になります。`server.port` というキーは存在しないことになり、既定の 8080 で黙って起動します。
-      数値はそのまま書けばよく、引用符は不要です。`application.yml` は単独で読まれますし、`server.port` も設定ファイルで変更できます。
   - question: |
-      次の Bean 定義で、**プロファイルを何も指定せずに** 起動したとき、登録される `PaymentGateway` の Bean はどれ?
+      次の Bean 定義で、**プロファイルを何も指定せずに**起動したとき、登録される `PaymentGateway` の Bean はどれ?
       ```java
       @Bean @Profile("prod")
       PaymentGateway realGateway() { ... }
@@ -163,8 +182,13 @@ quiz:
       @Bean @Profile("dev")
       PaymentGateway fakeGateway() { ... }
       ```
-    choices: ["realGateway だけ", "fakeGateway だけ", "どちらも登録されない", "両方登録される"]
+    choices: ["`realGateway` だけ", "`fakeGateway` だけ", "どちらも登録されない", "両方登録される"]
     answer: 2
+    why:
+      - "指定が無いと `prod` 扱いと読んだ答え。有効なのは `default` だけで、`prod` の Bean は作られない"
+      - "指定が無いと `dev` 扱いと読んだ答え。有効なのは `default` だけで、`dev` の Bean も作られない"
+      - ""
+      - "指定が無いと `@Profile` が無視されると読んだ答え。`default` だけが有効で、どちらも登録されない"
     explanation: |
       プロファイルを指定しないときに有効なのは `default` プロファイルだけです。`prod` も `dev` も有効ではないので、どちらの Bean も登録されません。この状態で `PaymentGateway` を注入しようとすると、起動時に `No qualifying bean of type 'PaymentGateway'` で失敗します。
       「指定し忘れたときにどうなるか」まで決めておくのが大事で、安全側(本物の決済をしない側)を `@Profile("!prod")` にしておくと、指定し忘れても事故になりません。
@@ -183,7 +207,7 @@ columns:
 
       実際に読むと `{pin=83, country=false, pw=0123}` です。国コード `NO` が `false` になるので「Norway problem」と呼ばれます。
 
-      特に危ないのが、数字だけのパスワードや社員番号・郵便番号・電話番号です。起動はするのに値だけが変わるので、原因に気づきにくい不具合になります。**数字で始まる文字列や、yes/no/on/off は引用符で囲む** と覚えておきましょう(`.properties` 形式ならこの問題は起きません)。
+      特に危ないのが、数字だけのパスワードや社員番号・郵便番号・電話番号です。起動はするのに値だけが変わるので、原因に気づきにくい不具合になります。**数字で始まる文字列や、yes/no/on/off は引用符で囲む**と覚えておきましょう(`.properties` 形式ならこの問題は起きません)。
   - type: genba
     title: 開発PCから本番DBを消した話
     body: |
@@ -191,11 +215,11 @@ columns:
 
       再発防止で決まったルールはこうでした。
 
-      - 共通の `application.yml` には **ローカル用の安全な値** だけを書く(H2 やローカルの Docker など)
-      - 本番の接続先・パスワードは **本番サーバの環境変数** でだけ渡す(`SPRING_DATASOURCE_URL` など)。開発PCには本番の認証情報を置かない
+      - 共通の `application.yml` には**ローカル用の安全な値**だけを書く(H2 やローカルの Docker など)
+      - 本番の接続先・パスワードは**本番サーバの環境変数**でだけ渡す(`SPRING_DATASOURCE_URL` など)。開発PCには本番の認証情報を置かない
       - 危ない処理(全削除・メール一斉送信)の Bean には `@Profile("!prod")` や `@Profile("prod")` を付けて、取り違えても動かない構造にする
 
-      「人間は間違える」前提で、**間違えても事故にならない仕組み** を設定で作るのが現場の知恵です。
+      「人間は間違える」前提で、**間違えても事故にならない仕組み**を設定で作るのが現場の知恵です。
   - type: trivia
     title: 「設定は環境変数に」の元ネタ ―― The Twelve-Factor App
     body: |
@@ -225,7 +249,7 @@ sts:
           greeting: 共通設定です
         ```
 
-        YAML エディタで `ser` と打って **Ctrl+Space** を押すと、`server.port` などのキーが説明つきで補完されます。インデントは **スペース2つ**(Tab キーを押してもスペースが入る設定になっています)。
+        YAML エディタで `ser` と打って **Ctrl+Space** を押すと、`server.port` などのキーが説明つきで補完されます。インデントは**スペース2つ**(Tab キーを押してもスペースが入る設定になっています)。
     - title: application-dev.yml と application-prod.yml を作る
       detail: |
         `src/main/resources` を右クリックし、**New > File**(新規 > ファイル)で `application-dev.yml` を作ります。同じように `application-prod.yml` も作ります。
@@ -293,7 +317,7 @@ sts:
     - title: 環境変数で上書きして優先順位を確かめる
       detail: |
         同じ実行構成の **Environment**(環境)タブで **Add...**(追加...)を押し、名前 `SERVER_PORT`、値 `9090` を追加して **Run**。
-        prod のまま起動しても `Tomcat started on port 9090` になり、**環境変数が application-prod.yml より優先される** ことが分かります。
+        prod のまま起動しても `Tomcat started on port 9090` になり、**環境変数が application-prod.yml より優先される**ことが分かります。
         さらに Program arguments に `--server.port=7070` を足すと 7070 になり、コマンドライン引数が一番強いことも確かめられます。
         終わったら環境変数と引数を消して **Apply** しておきましょう(残っていると、後で「なぜかポートが違う」と悩みます)。
     - title: Java道場の設定ファイルを読む

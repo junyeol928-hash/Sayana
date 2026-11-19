@@ -2,16 +2,16 @@ id: java-lambda-stream
 title: ラムダとStream
 status: ready
 minutes: 15
-summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。
+summary: 匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 `final` の罠まで。
 goals:
   - 匿名クラスをラムダ式とメソッド参照に書き換えられる
-  - 関数型インターフェース(Function / Predicate / Consumer / Supplier / Comparator)の役割を説明できる
-  - filter / map / sorted / distinct / limit をつないで、Stream の3段階で処理を書ける
-  - collect(toList / toMap / groupingBy / joining)と mapToInt の sum / average で集計できる
-  - 遅延評価・Stream の再利用不可・実質 final という3つの罠を説明できる
+  - 関数型インターフェース(`Function` / `Predicate` / `Consumer` / `Supplier` / `Comparator`)の役割を説明できる
+  - "`filter` / `map` / `sorted` / `distinct` / `limit` をつないで、Stream の3段階で処理を書ける"
+  - "`collect`(`toList` / `toMap` / `groupingBy` / `joining`)と `mapToInt` の `sum` / `average` で集計できる"
+  - 遅延評価・Stream の再利用不可・実質 `final` という3つの罠を説明できる
 samples:
   - title: 匿名クラス → ラムダ式 → メソッド参照
-    description: 同じ「並べ替えのルール」を3通りで渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。
+    description: 並べ替えのルールを、匿名クラス・ラムダ式・メソッド参照の3通りの書き方で渡します。`Comparator.comparing` に「何で比べるか」を渡す書き方が現場の定番です。② の短い順で、同じ 3 文字の Bob と Ken はどちらが先になるだろうか。
     code: |
       import java.util.*;
       import java.util.function.*;
@@ -53,7 +53,7 @@ samples:
       }
       picked.forEach(print);
   - title: 注文リストを Stream で絞り込む(for 文と比べる)
-    description: 5,000円以上の注文をした顧客を、重複なし・名前順で3人まで。同じ処理を for 文でも書いて比べます。
+    description: 5,000円以上の注文をした顧客を、重複なし・名前順で3人まで。同じ処理を for 文でも書いて比べます。5,000 円ちょうどの Suzuki は、最後の 3 人に残るだろうか。
     code: |
       import java.util.*;
 
@@ -110,7 +110,7 @@ samples:
           }
       }
   - title: collect で集計する(groupingBy / toMap / joining)
-    description: 社員リストを部署ごとにまとめたり、Map にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。
+    description: 社員リストを部署ごとにまとめたり、`Map` にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。開発の 2 人の平均給与は、何万円と出るだろうか。
     code: |
       import java.util.*;
       import java.util.stream.*;
@@ -177,7 +177,8 @@ samples:
           }
       }
   - title: 3つの罠(遅延評価・再利用・実質 final)
-    description: 終端操作を呼ぶまで中間操作は動かないこと、Stream は使い切りであることを、出力の順番で確かめます。
+    description: |
+      「まだ何も起きていない」と `map: a` は、どちらが先に出るだろうか。`limit(2)` のとき `filter` は何回動き、使い終わった `s` をもう一度使うと何が起きる?
     code: |
       import java.util.*;
       import java.util.stream.*;
@@ -234,9 +235,14 @@ quiz:
       ```
     choices: ["[30, 10, 30, 20]", "[10, 20, 30]", "[10, 20, 30, 30]", "[30, 10, 20]"]
     answer: 1
+    why:
+      - "`distinct` と `sorted` を見落とし、`map` だけを効かせた答え。重複が消えて並べ替えられる"
+      - ""
+      - "`distinct` を見落とした答え。重複した 3 は 1 つになる"
+      - "`sorted` を見落とした答え。`distinct` の後に並べ替えて [1, 2, 3] になる"
     explanation: |
       `distinct()` で重複した 3 が1つになり `[3, 1, 2]`、`sorted()` で `[1, 2, 3]`、`map` で10倍して `[10, 20, 30]` です。
-      `[10, 20, 30, 30]` は distinct を見落とした場合、`[30, 10, 20]` は sorted を見落とした場合の答えです。中間操作は書いた順に1段ずつ効きます。
+      中間操作は書いた順に1段ずつ効きます。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -249,18 +255,28 @@ quiz:
       ```
     choices: ["ab!", "!ab", "!", "コンパイルエラー"]
     answer: 2
+    why:
+      - "`map` のラムダがすぐ動くと読んだ答え。終端操作が無いので要素は流れない"
+      - "`map` が後から動くと読んだ答え。終端操作が無いので、いつまでも動かない"
+      - ""
+      - "使わない Stream の式は書けないと読んだ答え。文法的に正しい式文で、コンパイルは通る"
     explanation: |
-      `map` は中間操作で、**遅延評価** されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
-      文法的には正しい式文なのでコンパイルエラーにはなりません。「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
+      `map` は中間操作で、**遅延評価**されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
+      「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
   - question: |
       メソッド参照 `String::length` と同じ意味のラムダ式はどれ?
-    choices: ["s -> s.length()", "() -> String.length()", "s -> String.length(s)", "(s, t) -> s.length() + t.length()"]
+    choices: ["`s -> s.length()`", "`() -> String.length()`", "`s -> String.length(s)`", "`(s, t) -> s.length() + t.length()`"]
     answer: 0
+    why:
+      - ""
+      - "引数を受け取らない `static` の呼び出しと読んだ答え。受け取った文字列そのものの `length()` を呼ぶ"
+      - "`static` メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
+      - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その `length()` を返す"
     explanation: |
-      `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
-      `length()` は static メソッドではないので `String.length()` や `String.length(s)` という呼び方はできません。static メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
+      `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの**の `length()` を呼びます。つまり `s -> s.length()` です。
+      `static` メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
   - question: |
-      次のコードのうち、**コンパイルエラーになる行** はどれ?
+      次のコードのうち、**コンパイルエラーになる行**はどれ?
       ```java
       int count = 0;                              // (A)
       List<String> list = List.of("x", "y");
@@ -270,9 +286,14 @@ quiz:
       ```
     choices: ["(A)", "(B)", "(C)", "(D)"]
     answer: 2
+    why:
+      - "宣言の行がエラーと読んだ答え。宣言は普通で、ラムダの中で `count` を書き換える行がエラー"
+      - "ラムダの中で println を呼べないと読んだ答え。外の変数に触れていないので問題ない"
+      - ""
+      - "`count` という変数名とぶつかると読んだ答え。`count()` は `Stream` のメソッドで、変数とは別"
     explanation: |
-      ラムダ式から参照できるローカル変数は、`final` か **実質 final**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
-      数えたいなら (D) のように `count()` を使うのが正解です。(A) の宣言自体や、外の変数に触れない (B) は問題ありません。
+      ラムダ式から参照できるローカル変数は、`final` か **実質 `final`**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので、次のコンパイルエラーになります: `local variables referenced from a lambda expression must be final or effectively final`
+      数えたいなら (D) のように `count()` を使うのが正解です。
   - question: |
       次のコードを実行するとどうなる?
       ```java
@@ -280,20 +301,25 @@ quiz:
       System.out.println(s.count());
       System.out.println(s.toList());
       ```
-    choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと、実行時に例外が発生する"]
+    choices: ["3 と [A, B, C] が出力される", "3 と [] が出力される", "コンパイルエラーになる", "3 が出力されたあと例外になる"]
     answer: 3
+    why:
+      - "Stream を何度でも使えると読んだ答え。2 回目の終端操作で例外になる"
+      - "使い終わった Stream は空になると読んだ答え。空を返すのではなく `IllegalStateException`"
+      - "使用済みかをコンパイラが見ると読んだ答え。追跡されないので通り、実行時に例外になる"
+      - ""
     explanation: |
-      Stream は **一度終端操作を呼んだら使い切り** です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
-      コンパイラは「この Stream が使用済みか」を追跡しないのでコンパイルは通ります。もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
+      Stream は**一度終端操作を呼んだら使い切り**です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
+      もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
 columns:
   - type: trivia
     title: ラムダ式は「匿名クラスの省略記法」ではない
     body: |
       ラムダ式は匿名クラスを短く書いただけ……と思われがちですが、中身は別物です。
 
-      匿名クラスを書くと、コンパイル時に `Main$1.class` のようなクラスファイルが1つずつ作られます。一方ラムダ式はクラスファイルを作らず、`invokedynamic` という JVM 命令に置き換えられ、**実行時に初めて** 実装オブジェクトが組み立てられます(`LambdaMetafactory` が担当)。ラムダを大量に書いてもクラスファイルが増えず、起動時の読み込みも軽くなるのはこのためです。
+      匿名クラスを書くと、コンパイル時に `Main$1.class` のようなクラスファイルが1つずつ作られます。一方ラムダ式はクラスファイルを作らず、`invokedynamic` という JVM 命令に置き換えられ、**実行時に初めて**実装オブジェクトが組み立てられます(`LambdaMetafactory` が担当)。ラムダを大量に書いてもクラスファイル(jar の中身)が増えないのはこのためです。ただし実装は初めて実行されたときに組み立てるので、その1回目には少し手間がかかります。
 
-      もう1つの違いは `this` の意味です。匿名クラスの中の `this` は「匿名クラス自身」ですが、ラムダの中の `this` は **外側のクラスのインスタンス** を指します。ラムダは新しいスコープを作らないので、外と同じ名前のローカル変数をラムダの引数に使うこともできません(`variable x is already defined`)。
+      もう1つの違いは `this` の意味です。匿名クラスの中の `this` は「匿名クラス自身」ですが、ラムダの中の `this` は**外側のクラスのインスタンス**を指します。ラムダは新しいスコープを作らないので、外と同じ名前のローカル変数をラムダの引数に使うこともできず、次のコンパイルエラーになります: `variable x is already defined`
   - type: mistake
     title: "comparing(...).reversed() でいきなりコンパイルエラー"
     body: |

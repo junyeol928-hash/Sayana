@@ -1,0 +1,41 @@
+- after: "@Transactional を Service に付ける"
+  question: |
+    `@Transactional` のメソッドで、`findById` で読んだ口座の残高を変えた。`save` は呼ばずに正常終了すると、DB の残高は?
+  choices: ["変わらない(`save` していないので)", "`save` なしでも、コミットで更新される", "例外になる(`save` 抜けの変更なので)"]
+  answer: 1
+  why:
+    - "`save` を呼ばないと DB に書かれないと読んだ答え"
+    - ""
+    - "`save` を呼ばない変更は不正として止められると読んだ答え。呼ばなくても例外は出ず、コミットで書き込まれる"
+  explanation: |
+    トランザクションの中で読んだエンティティの変更は JPA が覚えていて、コミットのときに UPDATE を出す(変更検知)。
+- after: プロキシの仕組みと2つの罠
+  question: |
+    `@Transactional` を `private` メソッドに付けて起動した。どうなる?
+  choices: ["起動時にエラーになる", "エラーは出ず、トランザクションも始まらない", "`public` のときと同じく効く"]
+  answer: 1
+  why:
+    - "付け間違いは起動時に知らされると読んだ答え"
+    - ""
+    - "どのメソッドにも割り込めると読んだ答え"
+  explanation: |
+    プロキシはメソッドをオーバーライドして割り込むので、オーバーライドできない `private` には割り込めない。エラーも出ずに黙って無視されるので、効いているかはログで確かめる。
+- after: readOnly と伝播
+  question: |
+    `audit.log` は別の Bean の `@Transactional(propagation = REQUIRES_NEW)` のメソッド。最後の `reduce` で RuntimeException が出ると、DB に残るのは?
+    ```java
+    @Transactional
+    public void order(Order o) {
+        orderRepository.save(o);
+        audit.log("注文受付");
+        stock.reduce(o);   // ここで例外
+    }
+    ```
+  choices: ["何も残らない", "注文と操作ログ", "操作ログだけ"]
+  answer: 2
+  why:
+    - "全部で 1 つのトランザクションと読んだ答え"
+    - "例外より前に保存したものは残ると読んだ答え"
+    - ""
+  explanation: |
+    `REQUIRES_NEW` は外側を止めて別建てで動くので、`audit.log` を抜けた時点で操作ログはコミット済み。外側の注文の保存は例外でロールバックされ、操作ログだけが残る。

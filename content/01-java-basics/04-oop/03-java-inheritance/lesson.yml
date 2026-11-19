@@ -2,16 +2,16 @@ id: java-inheritance
 title: 継承
 status: ready
 minutes: 15
-summary: extends で既存クラスを土台にする。super とコンストラクタの順番、@Override、Object の toString/equals、そして「継承より委譲」まで。
+summary: "`extends` で既存クラスを土台にする。`super` とコンストラクタの順番、`@Override`、Object の `toString`/`equals`、そして「継承より委譲」まで。"
 goals:
-  - extends で子クラスを作り、is-a 関係が成り立つかで継承の是非を判断できる
-  - super(...) とコンストラクタが「親→子」の順に呼ばれる仕組みを説明できる
-  - "@Override を付けてメソッドをオーバーライドし、super.メソッド() で親の処理を再利用できる"
-  - protected / final / Object クラス(toString・equals)の役割を説明できる
+  - "`extends` で子クラスを作り、is-a 関係が成り立つかで継承の是非を判断できる"
+  - "`super(...)` とコンストラクタが「親→子」の順に呼ばれる仕組みを説明できる"
+  - "`@Override` を付けてメソッドをオーバーライドし、`super.メソッド()` で親の処理を再利用できる"
+  - "`protected` / `final` / `Object` クラス(`toString`・`equals`)の役割を説明できる"
   - オーバーロードとオーバーライドの違い、「継承より委譲」の理由を説明できる
 samples:
   - title: 社員の給与計算(extends と @Override)
-    description: 正社員・パート・マネージャーが、それぞれ自分の `salary()` を持ちます。`Manager` は `super.salary()` で親の計算を再利用しています。
+    description: 正社員・パート・マネージャーが、それぞれ自分の `salary()` を持ちます。`Manager` は `super.salary()` で親の計算を再利用しています。80 時間働いたパートの鈴木さんの給料は、いくら?
     code: |
       class Employee {
           private final String name;
@@ -48,7 +48,8 @@ samples:
       System.out.println(p.getName() + ": " + p.salary() + "円");
       System.out.println(m.getName() + ": " + m.salary() + "円");
   - title: コンストラクタが呼ばれる順番
-    description: 子のコンストラクタは、先頭で(書かなくても)親のコンストラクタを呼びます。だから出力は必ず「親→子」の順です。
+    description: |
+      `C` のコンストラクタには `super()` を書いていない。`new C()` で、A・B・C のコンストラクタの出力はどの順に並ぶ?
     code: |
       class A {
           A() { System.out.println("A のコンストラクタ"); }
@@ -63,10 +64,12 @@ samples:
           C() { System.out.println("C のコンストラクタ"); }
       }
 
-      // ここを変えてみよう:new B() にする / B の super(); を2行目に移動してみる(エラーになる)
+      // ここを変えてみよう:new B() にする / B の super(); を2行目に移動してみる
+      // (Java 21 ではコンパイルエラー。Java 25 以降は this を使わない文なら super() の前に書ける)
       new C();
   - title: toString と equals をオーバーライドする
-    description: "Object から引き継いだ `toString()` は「クラス名@ハッシュ値」、`equals()` は「同じオブジェクトか」の判定です。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。"
+    description: |
+      何もオーバーライドしない `RawPoint` と、`toString`・`equals` を上書きした `Point`。JShell ではクラス名の前に `REPL.$JShell$..` が付きます。`RawPoint` と `Point` で、表示はどう違う? 同じ座標どうしを `equals` で比べると、それぞれどうなる?
     code: |
       class RawPoint {             // 何もオーバーライドしない
           final int x, y;
@@ -118,9 +121,13 @@ quiz:
       ```
     choices: ["2", "12", "21", "コンパイルエラー"]
     answer: 1
+    why:
+      - "`super()` を書いていないので、親のコンストラクタは動かないと読んだ答え"
+      - ""
+      - "子の本体が先に動くと読んだ答え"
+      - "`super()` を書かないとエラーと読んだ答え"
     explanation: |
-      `Q()` に `super()` は書かれていませんが、コンパイラが先頭に **引数なしの `super()` を自動挿入** します。そのため親の `P()` が先に実行されて `1`、続いて `2` が出力され、`12` です。
-      `2` だけにはなりません(親のコンストラクタは省略できない)。順番も必ず「親→子」なので `21` にもなりません。
+      `Q()` に `super()` は書かれていませんが、コンパイラが先頭に**引数なしの `super()` を自動挿入**します。そのため親の `P()` が先に実行されて `1`、続いて `2` が出力され、`12` です。
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -133,11 +140,15 @@ quiz:
           Circle(double r) { this.r = r; }
       }
       ```
-    choices: ["問題なくコンパイルできる", "Shape の name が private なので Circle が継承できずエラー", "Circle のコンストラクタで引数なしの Shape() を呼ぼうとしてエラー", "Circle が final フィールドを持つのでエラー"]
+    choices: ["問題なくコンパイルできる", "`Shape` の `name` が `private` なので `Circle` が継承できずエラー", "`Circle` のコンストラクタで引数なしの `Shape()` を呼ぼうとしてエラー", "`Circle` が `final` フィールドを持つのでエラー"]
     answer: 2
+    why:
+      - "自動で入る `super()` を見落とした答え"
+      - "`private` フィールドがあると継承できないと読んだ答え。継承はでき、子から直接触れないだけ"
+      - ""
+      - "`final` フィールドが原因と読んだ答え。`r` はコンストラクタで初期化しているので問題ない"
     explanation: |
-      `Circle(double r)` には `super(...)` がないので、コンパイラが `super()` を自動挿入します。ところが `Shape` には `Shape(String)` しかなく、引数なしのコンストラクタがないため `constructor Shape in class Shape cannot be applied to given types` になります。`super("円");` を先頭に書けば直ります。
-      親の private フィールドがあっても継承自体はできます(子から直接触れないだけ)。final フィールドもコンストラクタで初期化していれば問題ありません。
+      `Circle(double r)` には `super(...)` がないので、コンパイラが `super()` を自動挿入します。ところが `Shape` には `Shape(String)` しかなく、引数なしのコンストラクタがないため、次のコンパイルエラーになります: `constructor Shape in class Shape cannot be applied to given types` `super("円");` を先頭に書けば直ります。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -152,8 +163,13 @@ quiz:
       ```
     choices: ["100", "50", "コンパイルエラー", "150"]
     answer: 0
+    why:
+      - ""
+      - "`pai()` を `pay()` のオーバーライドと読んだ答え"
+      - "名前の違うメソッドの追加をエラーと読んだ答え。`@Override` が無いので気づかれずに通る"
+      - "親と子のメソッドの結果が足されると読んだ答え"
     explanation: |
-      `pai` は `pay` の typo なので **オーバーライドではなく、新しいメソッドの追加** です。`p.pay()` は親から引き継いだ `pay()` を呼ぶので `100` が出力されます。コンパイルエラーにもならないのが怖いところです。
+      `pai` は `pay` の typo なので**オーバーライドではなく、新しいメソッドの追加**です。`p.pay()` は親から引き継いだ `pay()` を呼ぶので `100` が出力されます。コンパイルエラーにもならないのが怖いところです。
       `pai()` に `@Override` を付けていれば `method does not override or implement a method from a supertype` でコンパイル時に気づけました。だから現場では `@Override` を必ず付けます。
   - question: |
       次のコードを実行したときの出力は?
@@ -167,18 +183,28 @@ quiz:
       }
       System.out.println(new Sub().hello());
       ```
-    choices: ["Sub", "Base", "StackOverflowError が発生する", "Base+Sub"]
+    choices: ["`Sub`", "`Base`", "`StackOverflowError` が発生する", "`Base+Sub`"]
     answer: 3
+    why:
+      - "`super.hello()` が返す `Base` を見落とした答え"
+      - "親の `hello()` がそのまま返ると読んだ答え"
+      - "`super.hello()` が自分自身を呼ぶと読んだ答え"
+      - ""
     explanation: |
-      `super.hello()` は **親クラス側の実装** を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。
+      `super.hello()` は**親クラス側の実装**を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。
       もし `super.` を付け忘れて `hello() + "+Sub"` と書くと、自分自身を無限に呼び続けて `StackOverflowError` になります。
   - question: |
-      継承(extends)の使い方として **最も適切** なのはどれ?
-    choices: ["注文クラスでログ出力を使いたいので、OrderService extends Logger にする", "自社の社員クラス階層で、パート社員を社員の一種として PartTimer extends Employee にする", "String に便利メソッドを足したいので、MyString extends String にする", "2つのクラスの機能を両方使いたいので、extends A, B と書く"]
+      継承(`extends`)の使い方として**最も適切**なのはどれ?
+    choices: ["注文クラスでログ出力を使いたいので、`OrderService extends Logger` にする", "自社の社員クラス階層で、パート社員を社員の一種として `PartTimer extends Employee` にする", "String に便利メソッドを足したいので、`MyString extends String` にする", "2つのクラスの機能を両方使いたいので、`extends A, B` と書く"]
     answer: 1
+    why:
+      - "機能を使いたいだけで継承した答え"
+      - ""
+      - "どのクラスでも継承できると読んだ答え。String は `final` クラスなので継承できない"
+      - "クラスを 2 つ継承できると読んだ答え。Java のクラスは単一継承で `extends A, B` はエラー"
     explanation: |
-      「パート社員は社員の一種」という **is-a 関係** が自然に成り立ち、自分たちで管理しているクラス階層なので継承の好例です。
-      「注文サービスはロガーの一種」は成り立たないので、Logger はフィールドとして **持って任せる(委譲)** べきです。`String` は `final` クラスなので継承できません。Java のクラスは **単一継承** なので `extends A, B` もコンパイルエラーです。
+      「パート社員は社員の一種」という **is-a 関係**が自然に成り立ち、自分たちで管理しているクラス階層なので継承の好例です。
+      is-a が成り立たず、機能だけを使いたいなら、継承ではなくフィールドに **持って任せる(委譲)** のが基本です。
 columns:
   - type: trivia
     title: Java 標準ライブラリにもある「継承の失敗作」
@@ -187,7 +213,7 @@ columns:
 
       その結果、Stack は Vector の public メソッドを全部引き継ぎ、**「上に積んで上から取る」はずのスタックの途中に `add(0, x)` で割り込める** ようになってしまいました。「スタックは配列の一種」という is-a が成り立っていなかったのです。今では Javadoc 自身が `ArrayDeque` などの別クラスを使うよう勧めています。
 
-      `java.util.Properties extends Hashtable` も同類です。設定値(文字列)を入れる箱なのに、親の `put` で文字列以外も入れられ、`getProperty` が `null` を返す事故が起きえます。『Effective Java』は「継承のために設計して文書化せよ、さもなくば継承を禁止せよ」と述べ、これらを反面教師に挙げています。
+      `java.util.Properties extends Hashtable` も同類です。設定値(文字列)を入れる箱なのに、親の `put` で文字列以外も入れられ、`getProperty` が `null` を返す事故が起きえます。『Effective Java』は「継承よりコンポジションを選ぶ」の項でこれらを反面教師に挙げ、「継承のために設計して文書化せよ、さもなくば継承を禁止せよ」とも述べています。
   - type: mistake
     title: 親のコンストラクタから、子がオーバーライドしたメソッドを呼ぶと……
     body: |
@@ -210,7 +236,7 @@ columns:
       label=null
       ```
 
-      実体が Sub なので、`Base()` の中の `describe()` は **Sub 側** が呼ばれます。しかし Sub のフィールド初期化(`label = "sub"`)は **親のコンストラクタが終わった後**。だから `null` です。
+      実体が Sub なので、`Base()` の中の `describe()` は **Sub 側**が呼ばれます。しかし Sub のフィールド初期化(`label = "sub"`)は**親のコンストラクタが終わった後**。だから `null` です。
 
       「親→子」の初期化順の副作用です。コンストラクタからはオーバーライド可能なメソッドを呼ばない(呼ぶなら `private` か `final` だけ)のが鉄則です。
   - type: genba

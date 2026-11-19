@@ -2,12 +2,12 @@ id: tools-maven
 title: Maven(pom.xml・依存関係・ライフサイクル)
 status: ready
 minutes: 15
-summary: このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。
+summary: このアプリ自身の `pom.xml` を教材に、座標・`parent`・依存関係とスコープ・ライフサイクル・`mvnw` を読み解く。STS での Maven 操作とトラブル対処まで。
 goals:
-  - pom.xml の座標(groupId / artifactId / version)・parent・properties・dependencies・build/plugins を読んで意味を説明できる
-  - Spring Boot の parent がバージョンを管理する仕組みを理解し、version を書くべき依存と書かない依存を区別できる
-  - スコープ(compile / runtime / test / provided)と推移的依存を説明し、dependency:tree で依存の出どころを調べられる
-  - ライフサイクルの順番(validate → compile → test → package → install)を理解し、./mvnw clean test などを使い分けられる
+  - "`pom.xml` の座標(`groupId` / `artifactId` / `version`)・`parent`・`properties`・`dependencies`・`build/plugins` を読んで意味を説明できる"
+  - Spring Boot の `parent` がバージョンを管理する仕組みを理解し、`version` を書くべき依存と書かない依存を区別できる
+  - スコープ(`compile` / `runtime` / `test` / `provided`)と推移的依存を説明し、`dependency:tree` で依存の出どころを調べられる
+  - ライフサイクルの順番(`validate` → `compile` → `test` → `package` → `install`)を理解し、`./mvnw clean test` などを使い分けられる
   - STS で Maven build... / Update Project / Dependency Hierarchy を使い、ダウンロード失敗やバージョン衝突に対処できる
 samples: []
 quiz:
@@ -24,12 +24,16 @@ quiz:
       - 問題なくコンパイルできる
       - テストコード(src/test/java)からなら使えるので、警告だけ出てコンパイルできる
       - コンパイルエラーになる
-      - コンパイルは通り、実行時に ClassNotFoundException になる
+      - コンパイルは通り、実行時に `ClassNotFoundException` になる
     answer: 2
+    why:
+      - "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ"
+      - "テストで使えることと本体のコンパイルを混ぜた答え。本体からの `import` は警告でなくエラー"
+      - ""
+      - "コンパイルは通り、実行時に落ちると読んだ答え。runtime の jar は、本体のコンパイルにそもそも使えない"
     explanation: |
       **runtime** スコープの jar は、テストと実行時のクラスパスには載りますが、**本体(src/main)のコンパイル時のクラスパスには載りません**。そのため `package org.h2 does not exist`(パッケージ org.h2 は存在しません)というコンパイルエラーになります。
       これは「DB ドライバのクラスを直接使わず、JDBC / JPA の標準インターフェース越しに使え」という設計をビルドで強制してくれる仕組みです。
-      警告で済むことはありません。実行時に ClassNotFoundException になるのは、逆に **provided** の jar を実行環境が用意していなかった場合などです。
   - question: |
       次の `pom.xml` を `./mvnw compile` したときの結果として正しいのは?
       ```xml
@@ -51,28 +55,38 @@ quiz:
       </dependencies>
       ```
     choices:
-      - "starter-web は parent のバージョン表から補われるが、commonmark は「version is missing」のエラーになる"
+      - "starter-web は parent の表で補われ、commonmark はエラーになる"
       - 両方とも parent が version を補うので成功する
       - version を省略すると Maven Central の最新版が自動で使われるので成功する
       - 両方とも version が無いのでエラーになる
     answer: 0
+    why:
+      - ""
+      - "parent がどの依存の版も補うと読んだ答え。補えるのは parent の表に載るものだけ"
+      - "版を省くと最新版になると読んだ答え。Maven は最新版を自動では選ばず、エラーにする"
+      - "parent の版の表を見落とした答え。Spring の部品は表に載っているので省ける"
     explanation: |
       Spring Boot の parent が持つ **dependencyManagement**(推奨バージョン表)に載っているライブラリだけ、version を省略できます。starter-web は当然載っていますが、commonmark は載っていないので
-      `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの pom.xml で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
-      Maven は「version 省略なら最新版」という動きはしません。同じ pom.xml なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
+      `'dependencies.dependency.version' for org.commonmark:commonmark:jar is missing.` というエラーでビルドが始まりません。このアプリの `pom.xml` で commonmark にだけ `${commonmark.version}` が書いてあるのはそのためです。
+      同じ `pom.xml` なら、いつ誰がビルドしても同じ jar になるのが Maven の大前提です。
   - question: |
       `./mvnw install` を実行したところ、テストが1件失敗しました。このとき起きることとして正しいのは?
     choices:
-      - test フェーズは失敗扱いだが、package と install は続けて実行される
+      - "`test` フェーズは失敗扱いだが、`package` と `install` は続けて実行される"
       - 失敗したテストだけ飛ばして、jar が作られる
-      - install は「登録」だけなので、コンパイルもテストも行われない
-      - test フェーズで止まり、jar は作られず ~/.m2 への登録もされない
+      - "`install` は「登録」だけなので、コンパイルもテストも行われない"
+      - "`test` フェーズで止まり、jar は作られず `~/.m2` への登録もされない"
     answer: 3
+    why:
+      - "失敗しても後のフェーズが続くと読んだ答え。失敗したフェーズで止まる"
+      - "落ちたテストを飛ばして進むと読んだ答え。1件でも失敗すると `test` フェーズで止まる"
+      - "`install` を登録だけの操作と読んだ答え。指定したフェーズより前が順に全部実行される"
+      - ""
     explanation: |
-      フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら validate → compile → test → package → verify → install の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
+      フェーズを指定すると、**それより前のフェーズが順番に全部**実行されます。`install` なら `validate` → `compile` → `test` → `package` → `verify` → `install` の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
       「テストが落ちたものは jar にしない」のが Maven の安全装置です。テストを飛ばす `-DskipTests` というオプションもありますが、「落ちるから飛ばす」は現場では御法度です。
   - question: |
-      `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では util を管理していないものとします)
+      `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では `util` を管理していないものとします)
       ```text
       com.example:shop:jar:1.0
       +- com.example:a:jar:1.0:compile
@@ -87,12 +101,17 @@ quiz:
       - 両方がクラスパスに載る
       - バージョン衝突のエラーでビルドが止まる
     answer: 1
+    why:
+      - "新しい版が勝つと読んだ答え。Maven は依存の木で根に近い 2.0 を選ぶ"
+      - ""
+      - "同じ jar が2つ載ると読んだ答え。同じ groupId:artifactId はどちらか1つだけが選ばれる"
+      - "版の衝突をエラーと読んだ答え。Maven は黙って根に近い方を選ぶ"
     explanation: |
-      Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。util 3.0 は shop → a → b → util の3段目、util 2.0 は shop → c → util の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
-      「新しい方が勝つ」わけではないので、b が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
-      同じ groupId:artifactId の jar が2つ同時に載ることはありませんし、Maven は衝突をエラーにもしません(黙って片方を選ぶ)。だから dependency:tree で確認する習慣が大事です。
+      Maven の衝突解決は **nearest wins**(依存の木で根に近い方が勝つ)です。`util` 3.0 は `shop → a → b → util` の3段目、`util` 2.0 は `shop → c → util` の2段目なので、**2.0** が採用されます(同じ深さなら pom.xml で先に宣言した方)。
+      「新しい方が勝つ」わけではないので、`b` が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
+      衝突はエラーにならず黙って解決されるので、`dependency:tree` で確認する習慣が大事です。
   - question: |
-      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for switch(`case Integer i ->`)を使っています。結果は?
+      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 の `switch` のパターンマッチング(`case Integer i ->`)を使っています。結果は?
       ```xml
       <parent>
         <groupId>org.springframework.boot</groupId>
@@ -105,15 +124,19 @@ quiz:
       ```
     choices:
       - JDK 21 で動かしているので問題なくコンパイルできる
-      - コンパイルは通るが、実行時に UnsupportedClassVersionError になる
+      - コンパイルは通るが、実行時に `UnsupportedClassVersionError` になる
       - コンパイルエラーになる
       - properties は単なるメモなので、ビルド結果に影響しない
     answer: 2
+    why:
+      - "JDK の版でコンパイルの版が決まると読んだ答え。`java.version` の 17 が `--release 17` として効く"
+      - "実行時の版の不一致と取り違えた答え。Java 21 の文法なので、17 指定のコンパイルで止まる"
+      - ""
+      - "properties をただのメモと読んだ答え。`java.version` は parent がコンパイラの設定に使う"
     explanation: |
-      Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル** するので、Java 21 で正式化された機能は
+      Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル**するので、Java 21 で正式化された機能は
       `patterns in switch statements are not supported in -source 17` のようなエラーになります。
       ちなみに Boot 3.5 の parent の既定値は 17 なので、`<java.version>21</java.version>` の行を消しても同じことが起きます。このアプリの pom.xml にこの行があるのはそのためです。
-      properties は `${...}` で参照される変数であり、プラグインの設定にも使われるので、ビルド結果に直接効きます。
 columns:
   - type: genba
     title: anthropic-java は Jackson 2.19.4 が欲しいのに、入るのは 2.21.4
@@ -146,7 +169,7 @@ columns:
 
       定番アドバイスは「`.m2` を丸ごと消せ」。直りはしますが、何百もの jar を全部取り直すので社内プロキシ環境では数十分かかり、原因(プロキシ設定など)が残っていればまた壊れます。
 
-      正しい手順は、エラーメッセージに出ている **そのライブラリのフォルダだけ** を消して(例:`.m2\repository\com\h2database\h2\2.3.232`)、`./mvnw -U clean test` か STS の **Maven > Update Project...** で **Force Update of Snapshots/Releases** にチェックを入れて取り直すことです。`.lastUpdated` という拡張子のファイルが並んでいたら、それが「前回ダウンロードに失敗した」印です。
+      正しい手順は、エラーメッセージに出ている**そのライブラリのフォルダだけ**を消して(例:`.m2\repository\com\h2database\h2\2.3.232`)、`./mvnw -U clean test` か STS の **Maven > Update Project...** で **Force Update of Snapshots/Releases** にチェックを入れて取り直すことです。`.lastUpdated` という拡張子のファイルが並んでいたら、それが「前回ダウンロードに失敗した」印です。
   - type: trivia
     title: src/main/java という謎の階層は Maven が決めた
     body: |
@@ -206,7 +229,7 @@ sts:
       detail: |
         エクスプローラーのアドレス欄に `%USERPROFILE%\.m2\repository` と入力して開きます(`.m2` は隠しフォルダ扱いになっていることがあるので、アドレス欄から直接入るのが確実です)。
         `com\h2database\h2\2.3.232` と降りていき、`h2-2.3.232.jar` と `h2-2.3.232.pom` があれば成功です。座標(groupId / artifactId / version)がそのままフォルダ構成になっていることを確かめてください。
-        `wrapper\dists` の下には、mvnw がダウンロードした Maven 本体も入っています。
+        ひとつ上の `%USERPROFILE%\.m2\wrapper\dists` には、mvnw がダウンロードした Maven 本体(`apache-maven-3.9.11`)が入っています(`repository` の中ではありません)。
     - title: コマンドラインでも同じことをする
       detail: |
         PowerShell でプロジェクトのフォルダ(pom.xml のある場所)に移動し、次を実行します(コマンドプロンプトなら `./` を付けずに `mvnw`)。

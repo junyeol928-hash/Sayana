@@ -38,6 +38,12 @@ public class GlobalModel {
         return review.due().size();
     }
 
+    /** ホームの「今日の復習」の目安(分)。先頭の 10 問で数える。 */
+    @ModelAttribute("dueMinutes")
+    public int dueMinutes() {
+        return ReviewService.firstBlockMinutes(review.due());
+    }
+
     @ModelAttribute("streak")
     public int streak() {
         return activity.currentStreak();

@@ -11,17 +11,22 @@
     System.out.println(a.ordinal() + " " + b.name());
   question: "3行の出力は?"
   choices:
-    - "true / true / 0 RED"
-    - "false / true / 0 RED"
-    - "true / true / 1 RED"
-    - "false / false / 0 RED"
+    - "`true` / `true` / `0 RED`"
+    - "`false` / `true` / `0 RED`"
+    - "`true` / `true` / `1 RED`"
+    - "`false` / `false` / `0 RED`"
   answer: 0
-  explanation: "enum の各定数はインスタンスが1つだけなので、valueOf で取り出しても同じ物を指します。== も equals も true。ordinal は RED が最初なので 0、name は \"RED\" です。"
+  why:
+    - ""
+    - "`valueOf` が新しいインスタンスを作ると読んだ答え。実際は既存の定数を返す"
+    - "`ordinal` を 1 から数えた答え。`ordinal` は 0 始まりで、最初の `RED` は 0"
+    - "`valueOf` が別物を作り、`equals` も別と見ると読んだ答え。実際はどちらも同じ物"
+  explanation: "`enum` の各定数はインスタンスが1つだけなので、`valueOf` で取り出しても同じ物を指します。`==` も `equals` も `true`。`ordinal()` は `RED` が最初なので 0、`name()` は `\"RED\"` です。"
   trace:
-    - "3行目: a は RED(唯一のインスタンス)を指す"
-    - "4行目: valueOf(\"RED\") も同じ RED を返す"
-    - "5〜6行目: 同じインスタンスなので == も equals も true"
-    - "7行目: RED は 0 番目、name() は \"RED\""
+    - "3行目: `a` は `RED`(唯一のインスタンス)を指す"
+    - "4行目: `valueOf(\"RED\")` も同じ `RED` を返す"
+    - "5〜6行目: 同じインスタンスなので `==` も `equals` も `true`"
+    - "7行目: `RED` は 0 番目、`name()` は `\"RED\"`"
 - title: "record の equals"
   level: 2
   code: |
@@ -34,17 +39,22 @@
     System.out.println(p1);
   question: "3行の出力は?"
   choices:
-    - "true / true / Point[x=1, y=2]"
-    - "false / true / Point[x=1, y=2]"
-    - "false / false / Point@1a2b3c"
+    - "`true` / `true` / `Point[x=1, y=2]`"
+    - "`false` / `true` / `Point[x=1, y=2]`"
+    - "`false` / `false` / `Point@1a2b3c`"
     - "コンパイルエラー"
   answer: 1
-  explanation: "new を2回しているので別インスタンス → == は false。record は全フィールドを比べる equals を自動生成するので equals は true。toString も「型名[フィールド=値, ...]」の形で自動生成されます。"
+  why:
+    - "`==` も値で比べると読んだ答え。`==` は参照の比較"
+    - ""
+    - "`record` を普通のクラスと同じと読んだ答え。`record` は `equals` と `toString` を自動で持つ"
+    - "1 行の宣言だけでは使えないと読んだ答え。コンストラクタや `equals`、`toString` は自動で作られる"
+  explanation: "`new` を2回しているので別インスタンス → `==` は `false`。`record` は全フィールドを比べる `equals` を自動生成するので `equals` は `true`。`toString` も「型名[フィールド=値, ...]」の形で自動生成されます。"
   trace:
-    - "3〜4行目: 別々の Point インスタンスを2つ作る(中身は同じ)"
-    - "5行目: == は参照比較 → 別物なので false"
-    - "6行目: record の equals は x と y を比較 → true"
-    - "7行目: 自動生成された toString → Point[x=1, y=2]"
+    - "3〜4行目: 別々の `Point` インスタンスを2つ作る(中身は同じ)"
+    - "5行目: `==` は参照比較 → 別物なので `false`"
+    - "6行目: `record` の `equals` は `x` と `y` を比較 → `true`"
+    - "7行目: 自動生成された `toString` → `Point[x=1, y=2]`"
 - title: "switch 式とフォールスルーの違い"
   level: 2
   code: |
@@ -74,12 +84,17 @@
     - "111 10"
     - "110 110"
   answer: 1
-  explanation: "古い switch 文は break が無いので、MID に入ったあと HIGH の処理まで落ちて(フォールスルー)10 + 100 = 110。矢印 case の switch 式はフォールスルーしないので 10 です。"
+  why:
+    - "古い `switch` 文が `break` なしでも止まると読んだ答え。`MID` から `HIGH` まで落ちて `10 + 100 = 110`"
+    - ""
+    - "フォールスルーが `LOW` から始まると読んだ答え。入るのは `MID` からで、`LOW` の `n += 1` は通らない"
+    - "矢印の `switch` 式も下へ落ちると読んだ答え。矢印 `case` はフォールスルーせず 10"
+  explanation: "古い `switch` 文は `break` が無いので、`MID` に入ったあと `HIGH` の処理まで落ちて(フォールスルー)`10 + 100 = 110`。矢印 `case` の `switch` 式はフォールスルーしないので 10 です。"
   trace:
-    - "oldStyle: case MID から開始 → n = 10"
-    - "break が無いので case HIGH も実行 → n = 110"
-    - "newStyle: case MID -> 10 で終わり"
-    - "出力: \"110 10\""
+    - "`oldStyle`: `case MID` から開始 → `n = 10`"
+    - "`break` が無いので `case HIGH` も実行 → `n = 110`"
+    - "`newStyle`: `case MID -> 10` で終わり"
+    - "出力: `110 10`"
 - title: "コンパクトコンストラクタの検証"
   level: 2
   code: |
@@ -97,16 +112,21 @@
     Email e2 = new Email("sato");
   question: "実行するとどうなる?"
   choices:
-    - "sato@example.com と表示され、その後 IllegalArgumentException"
-    - "Sato@Example.com と表示され、その後 IllegalArgumentException"
-    - "sato@example.com と表示され、正常終了"
+    - "`sato@example.com` と表示され、その後 `IllegalArgumentException`"
+    - "`Sato@Example.com` と表示され、その後 `IllegalArgumentException`"
+    - "`sato@example.com` と表示され、正常終了"
     - "コンパイルエラー"
   answer: 0
-  explanation: "e1 は @ を含むので検証を通り、小文字に変換された値がフィールドに入ります。e2 は @ が無いので検証で例外になり、Email は作られません。コンパクトコンストラクタは「不正な record を作らせない門番」です。"
+  why:
+    - ""
+    - "小文字への変換が効かないと読んだ答え。代入し直した値がフィールドに入る"
+    - "`@` の無い `sato` も通ると読んだ答え。検証で `IllegalArgumentException` になり、作られない"
+    - "`Email { … }` の中で引数に代入できないと読んだ答え。代入でき、その値が使われる"
+  explanation: "`e1` は @ を含むので検証を通り、小文字に変換された値がフィールドに入ります。`e2` は @ が無いので検証で例外になり、`Email` は作られません。コンパクトコンストラクタは「不正な `record` を作らせない門番」です。"
   trace:
-    - "10行目: 検証 OK → value を小文字化 → 末尾で自動的にフィールドに代入"
-    - "11行目: \"sato@example.com\" と表示"
-    - "12行目: \"sato\" は @ を含まない → IllegalArgumentException"
+    - "10行目: 検証 OK → `value` を小文字化 → 末尾で自動的にフィールドに代入"
+    - "11行目: `sato@example.com` と表示"
+    - "12行目: `\"sato\"` は `@` を含まない → `IllegalArgumentException`"
 - title: "sealed と switch の網羅"
   level: 3
   code: |
@@ -123,15 +143,20 @@
     }
     System.out.println(show(new Ok(0)));
     System.out.println(show(new Ng("timeout")));
-  question: "2行の出力は?"
+  question: "`case Ok ok` は「`Ok` 型なら変数 `ok` で受け取る」、`when` はその `case` に入る追加の条件です(本文「`switch` で『型』を分ける」)。2行の出力は?"
   choices:
-    - "positive 0 / ng: timeout"
-    - "zero or negative / ng: timeout"
-    - "コンパイルエラー(default が無い)"
+    - "`positive 0` / `ng: timeout`"
+    - "`zero or negative` / `ng: timeout`"
+    - "コンパイルエラー(`default` が無い)"
     - "実行時エラー"
   answer: 1
-  explanation: "Ok(0) は最初の case のガード(value > 0)を満たさないので次の case Ok に入り \"zero or negative\"。Ng は3つ目の case。sealed で Ok と Ng の2種類しか無いと分かっているので default は不要で、コンパイルも通ります。"
+  why:
+    - "`when` の条件を見落とした答え。0 は条件を満たさない"
+    - ""
+    - "`default` が要ると読んだ答え。`sealed` なら全種類を書けば要らない"
+    - "`Ok(0)` に合う `case` が無いと読んだ答え。`when` の無い `case Ok` が受け取る"
+  explanation: "`Ok(0)` は最初の `case` のガード(`value > 0`)を満たさないので次の `case Ok` に入り `zero or negative`。`Ng` は3つ目の `case`。`sealed` で `Ok` と `Ng` の2種類しか無いと分かっているので `default` は不要で、コンパイルも通ります。"
   trace:
-    - "12行目: r は Ok(0)。1つ目の case は when 0 > 0 が false → スキップ"
-    - "2つ目の case Ok ok に一致 → \"zero or negative\""
-    - "13行目: r は Ng → 3つ目の case → \"ng: timeout\""
+    - "12行目: `r` は `Ok(0)`。1つ目の `case` は `0 > 0` が `false` → スキップ"
+    - "2つ目の `case Ok ok` に一致 → `\"zero or negative\"`"
+    - "13行目: `r` は `Ng` → 3つ目の `case` → `ng: timeout`"

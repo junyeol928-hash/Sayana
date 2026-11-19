@@ -16,7 +16,7 @@ problem: |
   **手順2:`NotificationSender` の2つのメソッドを完成させる**
 
   1. `renderAll(Notification[] list)` … 各通知の `render()` の結果を、同じ順番で入れた `String[]` を返す
-  2. `smsPhones(Notification[] list)` … **SMS の通知だけ** を選び、その電話番号(`getPhone()`)を `","` 区切りでつなげて返す。SMS が1つもなければ `""`
+  2. `smsPhones(Notification[] list)` … **SMS の通知だけ**を選び、その電話番号(`getPhone()`)を `","` 区切りでつなげて返す。SMS が1つもなければ `""`
 
   | 呼び出し | 結果 |
   |---|---|

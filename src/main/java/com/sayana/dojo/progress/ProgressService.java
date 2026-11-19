@@ -290,7 +290,7 @@ public class ProgressService {
             Set<String> passedHere = lesson.exercises().stream().map(ExerciseDef::key).filter(passed::contains)
                     .collect(Collectors.toSet());
             List<QuizAttempt> attempts = quizByLesson.getOrDefault(lesson.id(), List.of());
-            Integer best = attempts.stream().map(QuizAttempt::getScore).max(Integer::compare).orElse(null);
+            Integer best = bestOfFirstAttempts(attempts);
             Integer lastScore = attempts.stream().max(Comparator.comparing(QuizAttempt::getCreatedAt))
                     .map(QuizAttempt::getScore).orElse(null);
             Set<String> checked = checkedByLesson.getOrDefault(lesson.id(), Set.of());
@@ -318,4 +318,34 @@ public class ProgressService {
                     checked, graduated(lesson.id()));
         }
     }
+
+    /**
+     * クイズの最高点。各日の最初の採点の点だけを数える(答えを見た直後の解き直しは、位置や答えを覚えているだけなので
+     * 練習として数えない。翌日以降に解き直せば数える)。スマホ版の採点と同じ規則。
+     */
+    static Integer bestOfFirstAttempts(List<QuizAttempt> attempts) {
+        java.util.Map<java.time.LocalDate, QuizAttempt> firstOfDay = new java.util.HashMap<>();
+        Integer before = null;
+        for (QuizAttempt a : attempts) {
+            java.time.LocalDate day = java.time.LocalDate.ofInstant(a.getCreatedAt(), java.time.ZoneId.systemDefault());
+            if (day.isBefore(FIRST_ATTEMPT_RULE_FROM)) {
+                // 規則を入れる前の記録は全部数える(すでに縹になった人が後戻りしないように)
+                before = before == null ? a.getScore() : Math.max(before, a.getScore());
+                continue;
+            }
+            firstOfDay.merge(day, a, (x, y) -> x.getCreatedAt().isBefore(y.getCreatedAt()) ? x : y);
+        }
+        Integer after = firstOfDay.values().stream().map(QuizAttempt::getScore).max(Integer::compare).orElse(null);
+        // 三項演算子で書くと Math.max の int に合わせて null を開いてしまうので、分けて書く
+        if (before == null) {
+            return after;
+        }
+        if (after == null) {
+            return before;
+        }
+        return Math.max(before, after);
+    }
+
+    /** 「各日の最初の採点だけ」を始めた日。 */
+    static final java.time.LocalDate FIRST_ATTEMPT_RULE_FROM = java.time.LocalDate.of(2026, 11, 20);
 }

@@ -6,14 +6,14 @@ summary: 知らない Spring Boot プロジェクトに入ったときの読む�
 goals:
   - 知らないプロジェクトを、README・依存・パッケージ構成・設定・テストの順に眺めて、層と役割の見当をつけられる
   - 1本の API を、URL → Controller → リクエスト DTO → Service → Repository → レスポンス・例外ハンドラの順に自分で追える
-  - "@Transactional の境界と、例外が投げられたときにロールバック・Advice が動く順番を、コードから読み取れる"
+  - "`@Transactional` の境界と、例外が投げられたときにロールバック・Advice が動く順番を、コードから読み取れる"
   - エラーログのスタックトレースを「1行目・一番下の Caused by・最初の自分の行」の順に読み、原因の行まで逆にたどれる
   - Lombok・DI・AOP・Jackson・バリデーション・Filter など、ソースに書かれていない処理を意識して読める
 samples:
   - title: 例外が下の層から上の層へ戻る道のりを見る
     description: |
-      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を Service が原因付きの例外に包み直し、スタックトレースには `Caused by` として残ります。
-      自分のクラスの行だけを抜き出すと、**上が例外の起きた場所、下へ行くほど呼び出し元** だと分かります。最後に「一番下の Caused by」(根本原因)をたどります。
+      Spring を使わない素の Java で、Controller → Service → Repository の呼び出しを再現します。Repository で起きた例外を、Service が原因付きの例外に包み直します。一番下の Caused by(根本原因)は、どの例外になる?
+      自分のクラスの行だけを抜き出したスタックトレースでは、Controller・Service・Repository の行はどの順に並ぶだろうか。
     code: |
       // Controller → Service → Repository の呼び出しと、例外が戻る道のりを観察する
       // ここを変えてみよう:post("C100") を post("C200") に / Service の new KeyIssueFailedException(..., e) の e を null にすると Caused by はどうなる?
@@ -96,8 +96,8 @@ samples:
   - title: 1本の API を通しで動かして、呼ばれる順番を確かめる
     libraries: [spring]
     description: |
-      解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。
-      入力エラーのときは Controller のメソッドに入る前に止まり、Advice にハンドラが無いので本文の無い 400 になります(Spring が出す WARN のログも読んでみましょう)。
+      解説の鍵発行 API を、`MockMvc`(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー**の3通りで、どこまで処理が進んだかが分かります。入力エラーのとき、どの層の名乗りまで出る?
+      3 通りそれぞれで、最後のステータスは何番になるだろうか。
     code: |
       // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
       // ここを変えてみよう:3つ目の keyVersion を 300 や 1 に / Advice の @ExceptionHandler の行を消すと、2つ目はどうなる?
@@ -196,7 +196,7 @@ samples:
     libraries: [spring]
     description: |
       `@Transactional` の付いた Service は、Spring が作ったプロキシ(`$$SpringCGLIB$$`)に包まれています。例外のスタックトレースを、自分のコードの行・Spring の行・プロキシの行に分けて表示します。
-      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。ロールバックが例外が外へ出る途中で起きていることも、`[TX]` の表示で確かめましょう。
+      **自分のコードの下に `TransactionInterceptor` が見えたら「トランザクションの中で起きた」** という意味です。`[TX]` の行には、コミットとロールバックのどちらが出る?それは例外の表示より前だろうか、後だろうか。
     code: |
       // @Transactional の Service は、Spring が作った「プロキシ」に包まれている。スタックトレースでそれを見る
       // ここを変えてみよう:rotate の @Transactional を消すと、Bean のクラス名とスタックトレースはどう変わる?
@@ -260,13 +260,17 @@ quiz:
       初めて触るプロジェクトで、`POST /api/orders` の動きを調べることになった。1本の API を追う順番として最も適切なのは?
     choices:
       - "Repository → Service → Controller → DTO"
-      - "Controller(URL の特定)→ リクエスト DTO → Service → Repository → レスポンス・例外ハンドラ"
-      - "例外ハンドラ → Controller → Service → Repository"
+      - "Controller → リクエスト DTO → Service → Repository → 例外ハンドラ"
+      - "例外ハンドラ → Controller → リクエスト DTO → Service → Repository"
       - "Entity をすべて読んでから、Controller を全部読む"
     answer: 1
+    why:
+      - "DB に近い側から読めばよいと考えた答え。リクエストが流れる順に Controller から追うと、分岐を見落としにくい"
+      - ""
+      - "例外の行き先を先に押さえようとした答え。流れる順に追わないと、どの例外がどこへ行くかがつながらない"
+      - "全体を先に読もうとした答え。頼まれた API に関係ない所まで読み、時間がかかるだけ"
     explanation: |
-      リクエストが **実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
-      逆順や飛び飛びで読むと、Service の分岐やどの例外がどこへ行くかがつながりません。Entity を先に全部読むのは、頼まれた API に関係ない所まで読むことになり、時間がかかるだけです。
+      リクエストが**実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
   - question: |
       Service が次の例外を投げている。Controller にも Service にも try-catch は無い。プロジェクトには下の Advice がある。`C001` に有効な鍵がすでにあるとき、応答はどうなる?
       ```java
@@ -285,8 +289,13 @@ quiz:
           }
       }
       ```
-    choices: ["誰も catch していないので 500", "Advice が受け取り、409 + ErrorResponse", "例外は無視され、201 が返る", "コンパイルエラーになる(throws 宣言が無い)"]
+    choices: ["誰も `catch` していないので 500", "Advice が受け取り、409 + `ErrorResponse`", "例外は無視され、201 が返る", "コンパイルエラーになる(`throws` 宣言が無い)"]
     answer: 1
+    why:
+      - "try-catch が無いので処理されないと読んだ答え。Advice の `@ExceptionHandler` が受けて 409 を返す"
+      - ""
+      - "例外が無視されると読んだ答え。例外で処理は止まり、Advice が 409 にする"
+      - "`throws` 宣言が要ると読んだ答え。`RuntimeException` の子なので、宣言なしでコンパイルできる"
     explanation: |
       業務例外は Controller を素通りして DispatcherServlet まで届き、`@RestControllerAdvice` の **同じ型(または親の型)を受ける `@ExceptionHandler`** が呼ばれます。ここでは `dup` が 409 + `ErrorResponse` を返します。
       try-catch が見当たらなくても「処理されていない」とは限りません。受けるハンドラが本当に無いときだけ 500 になります。`RuntimeException` の子(非検査例外)なので、`throws` 宣言が無くてもコンパイルできます。
@@ -301,11 +310,16 @@ quiz:
       KeyEntity key = keyRepository.findById(keyId)
               .orElseThrow(() -> new KeyNotFoundException(keyId));
       ```
-    choices: ["KeyRepository の中に書かれている", "継承元の JpaRepository(とその親)で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
+    choices: ["`KeyRepository` インターフェースの中に書かれている", "継承元の `JpaRepository` 側で宣言されている", "Service の中で定義されている", "どこにも無いのでコンパイルエラー"]
     answer: 1
+    why:
+      - "`KeyRepository` の中に書いてあると読んだ答え。中にあるのは別のメソッド1つだけ"
+      - ""
+      - "呼んでいる Service に定義があると読んだ答え"
+      - "見当たらないので無いと読んだ答え。コンパイルは通る"
     explanation: |
       `KeyRepository` 自身が宣言しているのは `existsByCardIdAndStatus` だけです。`findById`・`save`・`deleteById` などの基本的な操作は、`extends` している **`JpaRepository` 側**(正確にはその親の `CrudRepository`)で宣言されていて、実装は Spring Data が起動時に用意します。
-      Repository を読むときは、インターフェースの中身が短くても **継承元まで見る** のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
+      Repository を読むときは、インターフェースの中身が短くても**継承元まで見る**のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
   - question: |
       次の Service で、`crypto.generateKey` が `CryptoException`(仕事では HsmException。`Exception` を継承した検査例外)を投げた。DB はどうなる?
       ```java
@@ -323,13 +337,18 @@ quiz:
       ```
     choices:
       - "例外が起きたので、失効もロールバックされる"
-      - "メソッドが普通に return したのでコミットされ、今の鍵は失効したまま残る"
+      - "メソッドが普通に `return` したのでコミットされ、今の鍵は失効したまま残る"
       - "検査例外なので、コンパイルエラーになる"
-      - "@Transactional が例外を自動で投げ直し、500 になる"
+      - "`@Transactional` が例外を自動で投げ直し、500 になる"
     answer: 1
+    why:
+      - "例外が起きればロールバックされると読んだ答え。`catch` して普通に `return` したので、コミットされる"
+      - ""
+      - "検査例外の扱いが足りないと読んだ答え。`catch` しているのでコンパイルは通る"
+      - "`@Transactional` が例外を投げ直すと読んだ答え。`catch` した例外はそこで終わり、`null` が返る"
     explanation: |
-      ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
-      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。catch しているのでコンパイルエラーにはなりません。
+      ロールバックが決まるのは**例外が `@Transactional` のプロキシの外へ出たとき**です。ここでは `catch` して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
+      直すなら、`catch` の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。
   - question: |
       エラーログに次のスタックトレースがあった(一部省略)。原因を調べるために、まず開くべき場所はどれ?
       ```text
@@ -345,21 +364,25 @@ quiz:
           ...
       ```
     choices:
-      - "KeyIssueController.java の 24 行目"
-      - "InvocableHandlerMethod(Spring の内部)"
-      - "CryptoClient.java の 57 行目(一番下の Caused by の、最初の自分のパッケージの行)"
-      - "KeyIssueService$$SpringCGLIB$$0(<generated>)"
+      - "`KeyIssueController.java` の 24 行目"
+      - "`InvocableHandlerMethod`(Spring の内部)"
+      - "`CryptoClient.java` の 57 行目"
+      - "`KeyIssueService$$SpringCGLIB$$0(<generated>)`"
     answer: 2
+    why:
+      - "呼び出しの入口から調べると考えた答え。Controller の行は、呼び出し元をたどるときに使う"
+      - "Spring の内部に原因があると読んだ答え。それは Spring が Controller を呼ぶまでの部品で、直す場所ではない"
+      - ""
+      - "プロキシの行を失敗した場所と読んだ答え。`$$SpringCGLIB$$` は Spring が作ったプロキシで、ソースが無い"
     explanation: |
-      根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
-      Controller の行は呼び出し元をたどるときに使いますが、出発点ではありません。`InvocableHandlerMethod` は Spring が Controller を呼ぶまでの内部処理、`$$SpringCGLIB$$` は `@Transactional` のためのプロキシで、ソースファイルが無いので `<generated>` と表示されます。どちらも「通った部品の地図」としては役立ちますが、直す場所ではありません。
+      根本原因は **一番下の `Caused by`** にあり、その中で**最初に出てくる自分たちのパッケージ(`com.example.keys`)の行**が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
 columns:
   - type: mistake
     title: 「try-catch が無い = エラー処理が抜けている」とレビューに書いてしまう
     body: |
-      新人のレビューコメントで多いのが「この Service、例外を投げっぱなしで catch していません」。でも Spring の業務アプリでは、業務例外を **投げっぱなしにして `@RestControllerAdvice` で受ける** のが普通の形です。Controller や Service に try-catch を書かないこと自体が設計です。
+      新人のレビューコメントで多いのが「この Service、例外を投げっぱなしで catch していません」。でも Spring の業務アプリでは、業務例外を**投げっぱなしにして `@RestControllerAdvice` で受ける**のが普通の形です。Controller や Service に try-catch を書かないこと自体が設計です。
 
-      逆に、本当に危ないのは **catch して何もしない** コードです。
+      逆に、本当に危ないのは **catch して何もしない**コードです。
 
       ```java
       } catch (CryptoException e) {
@@ -381,11 +404,11 @@ columns:
   - type: trivia
     title: スタックトレースに出る「$$SpringCGLIB$$0」と「<generated>」の正体
     body: |
-      `KeyIssueService$$SpringCGLIB$$0.issue(<generated>)` という行は、Spring が起動時に作った **プロキシのクラス** です。`@Transactional` などの AOP を効かせるために、元のクラスを継承したクラスを CGLIB というライブラリで実行時に生成しています。ソースファイルが無いので、行番号の代わりに `<generated>` と表示されます。
+      `KeyIssueService$$SpringCGLIB$$0.issue(<generated>)` という行は、Spring が起動時に作った**プロキシのクラス**です。`@Transactional` などの AOP を効かせるために、元のクラスを継承したクラスを CGLIB というライブラリで実行時に生成しています。ソースファイルが無いので、行番号の代わりに `<generated>` と表示されます。
 
       Spring Framework 6.0 より前は `$$EnhancerBySpringCGLIB$$1a2b3c` のような名前でした。古いブログ記事のスタックトレースと見た目が違うのはそのためです。
 
-      この行が見えたら「このメソッドには何かのアノテーション(多くは `@Transactional`)が効いている」と読めます。逆に、`@Transactional` を付けたのにこの行が出てこないなら、自己呼び出しなどでプロキシを通っていない合図です(第3部3章「トランザクション」)。
+      この行が見えたら「このメソッドには何かのアノテーション(多くは `@Transactional`)が効いている」と読めます。逆に、`@Transactional` を付けたメソッドの名前でこの行が出てこない(呼び出し元のメソッド名でしか出ていない)なら、自己呼び出しなどでそのメソッドがプロキシを通っていない合図です(第3部3章「トランザクション」)。
 sts:
   intro: |
     STS(Eclipse)の「読むための機能」を使って、1本の API を入口から最後まで追い、スタックトレースから該当行へジャンプします。題材は自分で作ったプロジェクト(「例外ハンドリング」のレッスンの `todo-api` など)で構いません。

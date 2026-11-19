@@ -9,6 +9,9 @@ problem: |
       String name;   // 氏名
       String dept;   // 部署
       int salary;    // 月給(円)
+
+      Employee(String name, String dept, int salary) { … }   // 3つのフィールドに入れる
+      public String toString() { … }                         // "佐藤(営業 300000円)" の形式
   }
   ```
 
@@ -41,5 +44,5 @@ problem: |
   ```
 
   ヒント:
-  - `raiseAll` は何も返しません。配列に入っているのはインスタンスへの **参照** なので、`e.salary` を書き換えれば呼び出し元の社員の月給が変わります。
+  - `raiseAll` は何も返しません。配列に入っているのはインスタンスへの**参照**なので、`e.salary` を書き換えれば呼び出し元の社員の月給が変わります。
   - `topEarner` は「今までで一番高い社員」を入れておく変数を `null` で始めると、全部 `null` の場合も自然に扱えます。

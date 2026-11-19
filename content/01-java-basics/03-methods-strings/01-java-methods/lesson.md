@@ -6,7 +6,7 @@
 今日が回収日。メソッドを自分で作れるようになると、あの呪文が全部読めるようになる。
 :::
 
-main に全部書くと、同じ計算のコピペが増えて追えなくなります。**メソッド** は「処理のまとまりに名前を付け、何度でも呼べるようにしたもの」です。
+main に全部書くと、同じ計算のコピペが増えて追えなくなります。**メソッド**は「処理のまとまりに名前を付け、何度でも呼べるようにしたもの」です。
 
 ## メソッドの定義と呼び出し
 
@@ -28,11 +28,11 @@ public class Invoice {
 | 部品 | 意味 |
 |---|---|
 | `int` | **戻り値の型**(返す値の型) |
-| `withTax` | メソッド名(動詞で始める) |
+| `withTax` | メソッド名(何をするか分かる名前。ふつうは `calcTax` のように動詞で始める) |
 | `(int price)` | **引数**(受け取る値の型と名前) |
 | `return 式;` | 値を返してメソッドを終える |
 
-定義側の `price` を **仮引数**、呼び出し側の `1000` を **実引数** と呼びます。実引数の値が仮引数にコピーされて本体が動き、`return` の値が呼び出し元に戻ります。値を返さないなら戻り値の型は **`void`**。引数の数・型・順番が合わなければコンパイルエラー(`cannot be applied to given types`)です。
+定義側の `price` を**仮引数**、呼び出し側の `1000` を**実引数**と呼びます。実引数の値が仮引数にコピーされて本体が動き、`return` の値が呼び出し元に戻ります。値を返さないなら戻り値の型は **`void`**。引数の数・型・順番が合わなければ、`cannot be applied to given types` というコンパイルエラーになります。
 
 <figure class="figure"><svg viewBox="0 0 580 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-methods-arr06a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="40" width="200" height="120" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="120" y="66" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">呼び出し元(main)</text><text x="120" y="98" font-size="14" text-anchor="middle" fill="var(--ink)">int result = add(3, 5);</text><text x="120" y="136" font-size="13" text-anchor="middle" fill="var(--ink-muted)">result に 8 が入る</text><rect x="360" y="40" width="200" height="120" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="66" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">メソッド add</text><text x="460" y="98" font-size="14" text-anchor="middle" fill="var(--ink)">a = 3, b = 5</text><text x="460" y="122" font-size="14" text-anchor="middle" fill="var(--ink)">sum = 8</text><text x="460" y="146" font-size="13" text-anchor="middle" fill="var(--ink-muted)">return sum;</text><path d="M222 78 L355 78" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-methods-arr06a)"/><text x="290" y="70" font-size="13" text-anchor="middle" fill="var(--ink)">引数 3, 5</text><path d="M358 130 L225 130" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-methods-arr06a)"/><text x="290" y="150" font-size="13" text-anchor="middle" fill="var(--ink)">戻り値 8</text></svg><figcaption>呼び出しの流れ(例は add(3, 5)):引数がコピーされて渡り、処理が終わると戻り値が呼び出し元に返る</figcaption></figure>
 
@@ -43,7 +43,7 @@ public class Invoice {
 ### public static の正体
 
 - **`public`** … アクセス修飾子。どのクラスからでも呼べる。
-- **`static`** … メソッドが **クラスそのものに属する**。オブジェクトを作らずに `クラス名.メソッド名()` で呼べる。`Math.max(3, 5)` や `Arrays.toString(a)` が呼べたのはこれ。同じクラス内ならクラス名は省略可。
+- **`static`** … メソッドが**クラスそのものに属する**。オブジェクトを作らずに `クラス名.メソッド名()` で呼べる。`Math.max(3, 5)` や `Arrays.toString(a)` が呼べたのはこれ。同じクラス内ならクラス名は省略可。
 - **`main`** … JVM はオブジェクトを作らずに入口を呼ぶので、`static` が必須。
 
 `static` を付け忘れたメソッドを main から呼ぶと、こう怒られます。
@@ -53,7 +53,7 @@ error: non-static method greet() cannot be
   referenced from a static context
 ```
 
-`static` のないメソッドは **インスタンスメソッド** といい、オブジェクトに属します。次の「クラスとオブジェクト」でやるので、今は「main から直接呼ぶなら `static`」で十分です。
+`static` のないメソッドは**インスタンスメソッド**といい、オブジェクトに属します。このあとの「クラスとオブジェクト」でやるので、今は「main から直接呼ぶなら `static`」で十分です。
 
 ## return と早期 return
 
@@ -81,11 +81,11 @@ static void ship(int qty) {
 }
 ```
 
-なお、`return` で返せる値は **1つだけ** です。「最小値と最大値の両方を返したい」ときは、配列(`return new int[]{min, max};`)や、後で習うクラス・`record` などの **入れ物1つにまとめて** 返します。
+なお、`return` で返せる値は **1つだけ**です。「最小値と最大値の両方を返したい」ときは、配列(`return new int[]{min, max};`)や、後で習うクラス・`record` などの**入れ物1つにまとめて**返します。
 
 ## オーバーロード
 
-**引数の型・数・並び** が違えば、同じ名前のメソッドを複数定義できます(**オーバーロード**)。
+**引数の型・数・並び**が違えば、同じ名前のメソッドを複数定義できます(**オーバーロード**)。
 
 ```java
 static int total(int price, int qty) {
@@ -97,7 +97,7 @@ static int total(int price, int qty, int off) {
 // total(500, 3) → 1500 / total(500, 3, 200) → 1300
 ```
 
-どれを呼ぶかは実引数の型と数から **コンパイル時に** 決まります。`println` が int も String も受け取れるのも、オーバーロードされているからです。Java にはデフォルト引数がないので、「少ない版が多い版を呼ぶ」のが定番です。
+どれを呼ぶかは実引数の型と数から**コンパイル時に**決まります。`println` が int も `String` も受け取れるのも、オーバーロードされているからです。Java にはデフォルト引数がないので、「少ない版が多い版を呼ぶ」のが定番です。
 
 戻り値の型だけが違うのは **NG** です。
 
@@ -111,7 +111,7 @@ static long parse(String s) { ... }
 
 ## スコープとローカル変数
 
-メソッド内で宣言した変数と仮引数は **ローカル変数** です。呼び出しのたびに作られ、`return` で消え、他のメソッドからは見えません(同名でも別物)。既定値がないので、代入前に読むと `variable x might not have been initialized` です。
+メソッド内で宣言した変数と仮引数は**ローカル変数**です。呼び出しのたびに作られ、`return` で消え、他のメソッドからは見えません(同名でも別物)。既定値がないので、代入前に読むと次のコンパイルエラーになります: `variable x might not have been initialized`
 
 ## Java は値渡し
 
@@ -127,7 +127,7 @@ addTen(x);
 System.out.println(x);   // 5
 ```
 
-配列などの参照型では、変数に入っているのは「参照」なので、**参照の値がコピー** されます。コピーも同じ配列を指すので、中身の書き換えは呼び出し元から見えます。
+配列などの参照型では、変数に入っているのは「参照」なので、**参照の値がコピー**されます。コピーも同じ配列を指すので、中身の書き換えは呼び出し元から見えます。
 
 ```java
 static void clear(int[] prices) {
@@ -151,7 +151,7 @@ flowchart LR
   Q -. "reset 内の代入後" .-> Y["新しい配列 [9, 9]"]
 ```
 
-`reset` の代入は、コピーである `prices` の向き先を変えただけ。`p` は元の配列を指したままです。もし **参照渡し** なら `p` まで新しい配列を指すはずなので、Java は参照渡しではありません。正確には「参照を値渡ししている」です。
+`reset` の代入は、コピーである `prices` の向き先を変えただけ。`p` は元の配列を指したままです。もし**参照渡し**なら `p` まで新しい配列を指すはずなので、Java は参照渡しではありません。正確には「参照を値渡ししている」です。
 
 ::: haru
 中身はいじれるけど、呼び出し元の変数そのものは差し替えられない、ってことっすね。
@@ -172,11 +172,11 @@ static int sum(int... nums) {   // nums は int[]
 // sum() → 0 / sum(1, 2, 3) → 6
 ```
 
-中身はただの配列で、コンパイラが呼び出し側で配列を作って渡します。置けるのは **1つだけ、最後の引数** です。
+中身はただの配列で、コンパイラが呼び出し側で配列を作って渡します。置けるのは **1つだけ、最後の引数**です。
 
 ## 再帰の入口
 
-メソッドが自分自身を呼ぶことを **再帰** といいます。階乗 n! = n × (n−1)! はそのまま書けます。
+メソッドが自分自身を呼ぶことを**再帰**といいます。階乗 n! = n × (n−1)! はそのまま書けます。
 
 ```java
 static long factorial(int n) {
@@ -188,7 +188,7 @@ static long factorial(int n) {
 // factorial(5) → 120
 ```
 
-呼び出しのたびに JVM は **スタック** に「1回分の作業場(スタックフレーム:引数・ローカル変数・戻り先)」を積みます。終了条件を忘れると積み続けてあふれます。
+呼び出しのたびに JVM は**スタック**に「1回分の作業場(スタックフレーム:引数・ローカル変数・戻り先)」を積みます。終了条件を忘れると積み続けてあふれます。
 
 ```text
 Exception in thread "main"
@@ -198,7 +198,7 @@ Exception in thread "main"
 	...
 ```
 
-既定の設定だと深さ数千〜数万で起きます。現場ではループで書けるものはループで書き、再帰はフォルダ階層のような **木構造** をたどるときに使います。
+既定の設定だと深さ数千〜数万で起きます。現場ではループで書けるものはループで書き、再帰はフォルダ階層のような**木構造**をたどるときに使います。
 
 ## 良いメソッドの条件
 
@@ -213,9 +213,9 @@ Exception in thread "main"
 ::: point まとめ
 - メソッドは `戻り値の型 名前(引数) { … }`。値を返さないなら `void`
 - `static` はクラスに属するメソッド。オブジェクトなしで呼べるので main にも必須
-- 戻り値ありのメソッドは **全経路で return**。ガード節で早期 return
+- 戻り値ありのメソッドは**全経路で return**。ガード節で早期 return
 - オーバーロードは引数の型・数・並びで区別。**戻り値の型だけの違いは不可**
-- Java は **常に値渡し**。参照型は「参照の値」が渡るので中身は変えられるが、呼び出し元の変数は差し替えられない
+- Java は**常に値渡し**。参照型は「参照の値」が渡るので中身は変えられるが、呼び出し元の変数は差し替えられない
 - 可変長引数 `int...` の正体は配列。再帰は終了条件を忘れると `StackOverflowError`
 :::
 

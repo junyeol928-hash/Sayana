@@ -2,10 +2,10 @@ id: tools-git
 title: Git連携
 status: ready
 minutes: 15
-summary: 作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、.gitignore、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。
+summary: 作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、`.gitignore`、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。
 goals:
   - 作業ツリー・ステージ・コミット・ブランチ・リモートの関係を図で説明できる
-  - .gitignore に何を書くべきか(target/・data/・APIキー・IDE設定)を理由とともに説明できる
+  - "`.gitignore` に何を書くべきか(`target/`・`/data/`・APIキー・IDE設定)を理由とともに説明できる"
   - STS の Git Staging ビューと Team メニューで、コミット・push・pull・ブランチ作成・差分確認ができる
   - GitHub に個人アクセストークンで接続し、feature ブランチ + プルリクエストの流れを体験する
   - コンフリクトを Merge Tool で解消でき、APIキーのコミットや force push がなぜ危険かを説明できる
@@ -14,25 +14,34 @@ quiz:
   - question: |
       3つのファイルを変更しました。このうち `InvoiceService.java` と `InvoiceServiceTest.java` の2つだけを1つのコミットにし、`README.md` の変更は次のコミットに回したい。どうする?
     choices:
-      - git commit -a -m "請求額の端数処理を修正" を実行する
-      - 2つのファイルだけを git add(STS なら Git Staging ビューで Staged Changes に移す)してからコミットする
+      - '`git commit -a -m "請求額の端数処理を修正"` を実行する'
+      - 2つのファイルだけを `git add` してからコミットする
       - README.md を一度削除してからコミットし、後で元に戻す
-      - いったん3つともコミットして、あとで git push --force で README.md の分を消す
+      - いったん3つともコミットして、あとで `git push --force` で README.md の分を消す
     answer: 1
+    why:
+      - "`commit -a` で2つだけ入ると読んだ答え。`-a` は変更した管理対象を全部ステージし、`README.md` も入る"
+      - ""
+      - "ファイルを消して外す答え。ステージに載せた分だけがコミットに入るので、消す必要はない"
+      - "後から履歴を書き換える答え。ステージで2つだけ選べば force push は要らない"
     explanation: |
-      これこそ **ステージ** の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを `git add`(STS では Git Staging ビューで **Unstaged Changes** から **Staged Changes** へドラッグ)してコミットすれば、README.md の変更は作業ツリーに残ったままになります。
-      `git commit -a` は変更済みの管理対象ファイルを **全部** 自動でステージしてしまうので README.md も入ります。ファイルを削除したり force push で履歴を書き換えたりするのは、目的に対して危険すぎる遠回りです。
+      これこそ**ステージ**の出番です。コミットに入るのはステージに載せたものだけなので、2つだけを `git add`(STS では Git Staging ビューで **Unstaged Changes** から **Staged Changes** へドラッグ)してコミットすれば、`README.md` の変更は作業ツリーに残ったままになります。
   - question: |
-      `application-local.yml` に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。**最初に** やるべきことは?
+      `application-local.yml` に Claude の APIキーを書いたまま、うっかりコミットして GitHub の公開リポジトリに push してしまいました。**最初に**やるべきことは?
     choices:
       - application-local.yml を削除するコミットを作って push する
-      - git commit --amend でコミットを書き換え、git push --force する
+      - "`git commit --amend` でコミットを書き換え、`git push --force` する"
       - リポジトリを非公開(Private)に切り替える
       - Claude Console でそのAPIキーを無効化し、新しいキーを発行する
     answer: 3
+    why:
+      - "削除コミットで消えると読んだ答え。過去のコミットにキーは残っている"
+      - "履歴を書き換えれば済むと読んだ答え。push 済みのキーは、すでに誰かに拾われた前提で動く"
+      - "非公開にすれば済むと読んだ答え。すでにコピーされていたら手遅れで、先にキーを無効化する"
+      - ""
     explanation: |
-      公開リポジトリに push されたキーは、巡回しているボットに **数分で** 拾われる前提で動きます。削除コミットを作っても **過去のコミットには残っている** し、force push や非公開化をしても、すでに誰かがコピーしていたら手遅れです。
-      だから最初にやるのは **キーそのものを無効化(revoke)して作り直す** こと。これで漏れたキーはただの文字列になります。履歴の掃除や .gitignore への追加(`application-local.yml` を書く)は、その後の再発防止策です。
+      公開リポジトリに push されたキーは、巡回しているボットに**数分で**拾われる前提で動きます。削除コミットを作っても**過去のコミットには残っている**し、force push や非公開化をしても、すでに誰かがコピーしていたら手遅れです。
+      だから最初にやるのは**キーそのものを無効化(revoke)して作り直す**こと。これで漏れたキーはただの文字列になります。履歴の掃除や .gitignore への追加(`application-local.yml` を書く)は、その後の再発防止策です。
   - question: |
       `git push` したら次のように拒否されました。どうする?
       ```text
@@ -42,36 +51,48 @@ quiz:
       hint: work that you do not have locally.
       ```
     choices:
-      - git pull でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する
-      - git push --force で自分の履歴を送り込む
+      - "`git pull` でリモートの変更を取り込み(コンフリクトがあれば解消し)、もう一度 push する"
+      - "`git push --force` で自分の履歴を送り込む"
       - ローカルのリポジトリを削除して clone し直し、変更を手で書き直す
       - 新しいブランチを作って、そちらを main に名前変更してから push する
     answer: 0
+    why:
+      - ""
+      - "自分の履歴で上書きすればよいと読んだ答え。`--force` は先に push された他人のコミットを消す"
+      - "ローカルが壊れたと読んだ答え。リモートの変更を pull で取り込めば済む"
+      - "ブランチの付け替えで避けられると読んだ答え。リモートの変更を pull で取り込めば済む"
     explanation: |
       このメッセージは「あなたが最後に pull した後に、誰かが先に push した」という意味です。Git は他人のコミットを消さないように、先に取り込むことを求めています。正解は **pull → (必要ならコンフリクト解消)→ push**。STS なら **Team > Pull** してから **Team > Push to Upstream** です。
-      `--force` は相手のコミットをリモートから消してしまう最悪の手。clone し直しやブランチの付け替えは、不要に手間がかかるうえ事故の元です。
   - question: |
       `target/` フォルダを最初のコミットで間違って入れてしまいました。あとから `.gitignore` に `target/` を書きましたが、ビルドするたびに `target/` の中のファイルが「変更あり」と表示され続けます。どうする?
     choices:
-      - .gitignore の書き方が間違っているので、/target/** に書き直す
-      - STS を再起動すれば .gitignore が反映される
-      - git rm -r --cached target を実行して管理対象から外し、そのことをコミットする
-      - .gitignore 自体をまだコミットしていないのが原因なので、.gitignore をコミットすれば表示されなくなる
+      - "`.gitignore` の書き方が間違っているので、`/target/**` に書き直す"
+      - "STS を再起動すれば `.gitignore` が反映される"
+      - "`git rm -r --cached target` を実行して管理対象から外し、そのことをコミットする"
+      - "`.gitignore` 自体をまだコミットしていないのが原因なので、`.gitignore` をコミットすれば表示されなくなる"
     answer: 2
+    why:
+      - ".gitignore の書き方が原因と読んだ答え。`target/` で正しく、管理済みのファイルには効かない"
+      - "再起動で反映されると読んだ答え。原因は設定の読み込みではない"
+      - ""
+      - ".gitignore をコミットすれば効くと読んだ答え。作業ツリーにあれば効くが、管理済みのファイルには効かない"
     explanation: |
-      `.gitignore` が効くのは **まだ管理されていないファイル** だけです。一度コミットしたファイルは管理対象のままなので、`git rm -r --cached target` で「管理対象から外す(ディスク上のファイルは消さない)」をしてコミットします。それ以降は .gitignore が効いて表示されなくなります。
-      書き方は `target/` で正しく、STS を再起動しても変わりません。また .gitignore はコミットしていなくても(作業ツリーにあるだけで)効くので、.gitignore をコミットしても管理済みのファイルはそのままです。
+      `.gitignore` が効くのは**まだ管理されていないファイル**だけです。一度コミットしたファイルは管理対象のままなので、`git rm -r --cached target` で「管理対象から外す(ディスク上のファイルは消さない)」をしてコミットします。それ以降は .gitignore が効いて表示されなくなります。
   - question: |
       main ブランチで作業していて、これから「送料無料ラインの変更」に取りかかります。現場の一般的な運用(main + feature ブランチ + プルリクエスト)に沿った最初の操作は?
     choices:
       - main のまま変更してコミットし、そのまま main に push する
-      - feature/free-shipping のようなブランチを作って切り替える(STS なら Team > Switch To > New Branch...)
+      - feature/free-shipping などのブランチを作って切り替える
       - リポジトリのフォルダを丸ごとコピーして、コピー側で作業する
       - 変更が終わるまでコミットせず、最後に1回だけまとめてコミットする
     answer: 1
+    why:
+      - "main で直接作業してよいと読んだ答え。main への直接 push は、ブランチ保護で禁止されていることも多い"
+      - ""
+      - "フォルダのコピーで作業を分ける答え。作業を分けるのは Git のブランチの役目"
+      - "コミットは最後にまとめて1回と読んだ答え。最初の操作はブランチ作成で、コミットはこまめにする"
     explanation: |
-      main は「いつでも動く状態」に保ち、作業は **feature ブランチ** で行います。コマンドなら `git switch -c feature/free-shipping`、STS なら **Team > Switch To > New Branch...** で、**Check out new branch** にチェックを入れたまま作成します。終わったら push して GitHub で **プルリクエスト** を作り、レビューを経て main にマージします。
-      main へ直接 push はブランチ保護で禁止されていることが多く、フォルダのコピーは Git を使う意味がありません。コミットは小さく、意味のまとまりごとにこまめに行うのが基本です。
+      main は「いつでも動く状態」に保ち、作業は **feature ブランチ**で行います。コマンドなら `git switch -c feature/free-shipping`、STS なら **Team > Switch To > New Branch...** で、**Check out new branch** にチェックを入れたまま作成します。終わったら push して GitHub で**プルリクエスト**を作り、レビューを経て main にマージします。
 columns:
   - type: genba
     title: 金曜の夜に push した APIキー、月曜には請求書
@@ -88,7 +109,7 @@ columns:
 
       force push は「リモートのブランチを、自分の手元の状態で上書きする」操作です。手元に同僚のコミットが無ければ、それは「無かったこと」になります(同僚の PC には残っているので救出はできますが、チーム全員の作業が止まります)。
 
-      対策は3つ。①共有ブランチでは force push しない。②自分専用のブランチで履歴を整えたときは、リモートが自分の知っている状態のときだけ上書きする `--force-with-lease` を使う。③GitHub の **ブランチ保護** で main などへの force push を禁止しておく。現場では③が設定済みのことが多いですが、それでも①が基本です。
+      対策は3つ。①共有ブランチでは force push しない。②自分専用のブランチで履歴を整えたときは、リモートが自分の知っている状態のときだけ上書きする `--force-with-lease` を使う。③GitHub の**ブランチ保護**で main などへの force push を禁止しておく。現場では③が設定済みのことが多いですが、それでも①が基本です。
   - type: trivia
     title: Git は Linux のために数週間で作られた
     body: |
@@ -100,7 +121,7 @@ columns:
 sts:
   intro: |
     STS に最初から入っている Git 機能(EGit)を使い、GitHub 上の練習用リポジトリで「クローン → コミット → push → ブランチとプルリクエスト → コンフリクト解消」を一通り体験します。
-    このアプリのリポジトリではなく、**壊しても困らない練習用リポジトリ** を使ってください。GitHub のアカウントが必要です。
+    このアプリのリポジトリではなく、**壊しても困らない練習用リポジトリ**を使ってください。GitHub のアカウントが必要です。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
   steps:
     - title: Git パースペクティブを開く
@@ -123,12 +144,12 @@ sts:
         - **Repository access** で **Only select repositories** を選び、`git-practice` だけを指定
         - **Permissions** の **Contents** を **Read and write** にする
 
-        **Generate token** を押すと `github_pat_...` で始まるトークンが表示されます。**この画面を閉じると二度と表示されない** ので、次の手順で使うまでコピーしておきます(メモ帳などに保存したままにしない)。
+        **Generate token** を押すと `github_pat_...` で始まるトークンが表示されます。**この画面を閉じると二度と表示されない**ので、次の手順で使うまでコピーしておきます(メモ帳などに保存したままにしない)。
     - title: Clone a Git repository でクローンする
       detail: |
         GitHub のリポジトリ画面の **Code** ボタンで HTTPS の URL(`https://github.com/<ユーザー名>/git-practice.git`)をコピーします。
         STS の Git Repositories ビューで **Clone a Git repository**(Git リポジトリーのクローン)を押すと、URI 欄にコピーした URL が自動で入ります(入らなければ貼り付け)。
-        - **Authentication** の **User** に GitHub のユーザー名、**Password** に先ほどの **トークン** を入力
+        - **Authentication** の **User** に GitHub のユーザー名、**Password** に先ほどの**トークン**を入力
         - **Store in Secure Store**(セキュア・ストアに保管)にチェック
 
         **Next** → ブランチ選択で `main` にチェック → **Next** → **Directory**(ディレクトリー)に保存先(例 `C:\Users\<名前>\git\git-practice`)を確認して **Finish**。
@@ -163,8 +184,8 @@ sts:
         STS に戻り、**Team > Switch To > main** で main に切り替えてから **Team > Pull**(チーム > プル)を実行し、`memo.md` が main にも現れれば成功です。
     - title: わざとコンフリクトを起こして Merge Tool で解消する
       detail: |
-        1. GitHub の画面で `README.md` を開き、鉛筆アイコン(Edit)で **1行目** を書き換えて **Commit changes**
-        2. STS 側でも、pull する前に `README.md` の **同じ1行目** を別の内容に書き換えてコミットする
+        1. GitHub の画面で `README.md` を開き、鉛筆アイコン(Edit)で **1行目**を書き換えて **Commit changes**
+        2. STS 側でも、pull する前に `README.md` の**同じ1行目**を別の内容に書き換えてコミットする
         3. **Team > Pull** を実行すると、コンフリクトの通知が出て、`README.md` に赤い衝突マークが付く
         4. `README.md` を右クリック > **Team > Merge Tool**(チーム > マージ・ツール)を選ぶと、左に自分の変更、右に相手の変更が並ぶ。左側を正しい内容に直して **Ctrl+S**
         5. **Team > Add to Index**(チーム > 索引に追加)で「解消済み」にし(Git Staging ビューで Staged Changes へ移してもよい)、Git Staging ビューで **Commit**(メッセージはマージ用のものが入っている)
@@ -173,7 +194,7 @@ sts:
         ファイルに `<<<<<<<` `=======` `>>>>>>>` が残っていないこと、History ビューで2本の線が合流していることを確認できれば成功です。
 checklist:
   - key: gitignore-read
-    text: このアプリの .gitignore を読み、target/・data/・APIキー関連・IDE 設定の行がそれぞれなぜあるのか説明できた
+    text: このアプリの .gitignore を読み、target/・/data/・APIキー関連・IDE 設定の行がそれぞれなぜあるのか説明できた
   - key: git-config
     text: STS の Preferences で user.name と user.email を設定した
   - key: pat-clone

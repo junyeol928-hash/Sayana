@@ -6,12 +6,12 @@ summary: 補完・クイックフィックス・インポート整理など毎�
 goals:
   - Ctrl+Space / Ctrl+1 / Ctrl+Shift+O / Ctrl+Shift+F など、毎日使うショートカットを使える
   - Ctrl+Shift+T・R、F3、Ctrl+Alt+H でコードの中を素早く移動・調査できる
-  - main・sysout・foreach のテンプレートと、Alt+Shift+S のソース生成を使える
+  - "`main`・`sysout`・`foreach` のテンプレートと、Alt+Shift+S のソース生成を使える"
   - 名前変更・メソッド抽出・ローカル変数抽出・インライン化を使い、IDE のリファクタリングが安全な理由と限界を説明できる
   - テストを緑に保ったまま小さく変えるリファクタリングの進め方と、保存時アクションを設定できる
 samples:
   - title: 抽出の前と後で結果が同じことを確かめる
-    description: レッスン本文のメソッド抽出の例です。`totalBefore` が抽出前、`totalAfter` が抽出後。リファクタリングは「振る舞いを変えない」ことが条件なので、どんな入力でも同じ結果になるはずです。
+    description: レッスン本文のメソッド抽出の例です。`totalBefore` が抽出前、`totalAfter` が抽出後。空の配列 `{}` のような端の入力でも、前と後は同じ値になるだろうか。
     code: |
       // メソッド抽出の前(totalBefore)と後(totalAfter)を比べる
       // ここを変えてみよう:inputs に配列を足す / subtotal の中身をわざと壊して「違う!」を出す
@@ -52,11 +52,19 @@ quiz:
       String label = "count";
       count += account;
       ```
-    choices: ["変数 count の宣言と、それを使っている count += の部分だけ", "上に加えて、文字列 \"count\" も \"total\" になる", "上に加えて、account も actotal になる", "count という文字が含まれる箇所すべて"]
+    choices:
+      - "変数 `count` の宣言と、それを使っている `count +=` の部分だけ"
+      - '上に加えて、文字列 `"count"` も `"total"` になる'
+      - "上に加えて、`account` も `actotal` になる"
+      - "`count` という文字が含まれる箇所すべて"
     answer: 0
+    why:
+      - ""
+      - "名前変更が文字列の中まで変えると読んだ答え。文字列は名前ではなくデータ"
+      - "名前変更を文字の置換と読んだ答え。名前の一部が同じでも別の変数"
+      - "名前変更を Ctrl+F の一括置換と取り違えた答え。変わるのは同じ宣言を指す箇所だけ"
     explanation: |
-      IDE の名前変更は、ソースを構文木に解析して **同じ宣言を指している箇所だけ** を書き換えます。`account` は別の変数、`"count"` はただの文字列データなので変わりません。
-      「count という文字が含まれる箇所すべて」が変わるのは、テキストの検索と置換(Ctrl+F)で一括置換した場合です。`account` が `actotal` になる事故はこちらで起きます。
+      IDE の名前変更は、ソースを構文木に解析して**同じ宣言を指している箇所だけ**を書き換えます。`account` は別の変数、`"count"` はただの文字列データなので変わりません。
   - question: |
       次のメソッドで、`int max = scores[0];` から `for` の閉じ括弧までの4行を選択し、**Alt+Shift+M** で `maxOf` という名前で抽出しました。作られるメソッドは?(アクセス修飾子は省略して示す)
       ```java
@@ -68,11 +76,15 @@ quiz:
           System.out.println("最高点: " + max);
       }
       ```
-    choices: ["static void maxOf(int[] scores)", "static int maxOf(int[] scores)", "static int maxOf()", "static int maxOf(int max, int[] scores)"]
+    choices: ["`static void maxOf(int[] scores)`", "`static int maxOf(int[] scores)`", "`static int maxOf()`", "`static int maxOf(int max, int[] scores)`"]
     answer: 1
+    why:
+      - "戻り値を見落とした答え。`void` では `max` を呼び出し元に返せない"
+      - ""
+      - "`scores` は引数に要らないと読んだ答え。範囲の外で宣言された変数を使っている"
+      - "`max` も引数になると読んだ答え。`max` は範囲の中で宣言されるので引数にならない"
     explanation: |
-      STS は選択範囲の **データの流れ** を解析します。範囲の中で使っている外の変数は `scores` だけなので引数は `int[] scores`。範囲の中で値が決まり、後ろの `println` で使われる変数は `max` なので、戻り値は `int` になり、元の場所は `int max = maxOf(scores);` に置き換わります(アクセス修飾子はダイアログで選べます)。
-      `void` だと `max` を呼び出し元に返せません。`max` は範囲の中で宣言されているので引数にはなりません。
+      STS は選択範囲の**データの流れ**を解析します。範囲の中で使っている外の変数は `scores` だけなので引数は `int[] scores`。範囲の中で値が決まり、後ろの `println` で使われる変数は `max` なので、戻り値は `int` になり、元の場所は `int max = maxOf(scores);` に置き換わります(アクセス修飾子はダイアログで選べます)。
   - question: |
       新しいクラスに次の1行を書いたところ、`List cannot be resolved to a type`(List を型に解決できません)と赤線が出ました。最も手早い直し方は?
       ```java
@@ -80,9 +92,14 @@ quiz:
       ```
     choices: ["Ctrl+Shift+F を押す", "Ctrl+Shift+R を押す", "Ctrl+Shift+O を押す", "Ctrl+D を押す"]
     answer: 2
+    why:
+      - "整形のキーと取り違えた答え。Ctrl+Shift+F はフォーマットで、`import` は足さない"
+      - "似たキーと取り違えた答え。Ctrl+Shift+R はファイルを開くキーで、`import` は足さない"
+      - ""
+      - "Ctrl+D で直ると読んだ答え。Ctrl+D は行削除で、`import` は足さない"
     explanation: |
-      **Ctrl+Shift+O(Organize Imports)** は、足りない import を追加し、使っていない import を削除します。`List` と `ArrayList` の import が一度に入ります。`List` のように同名のクラスが複数ある(`java.util.List` と `java.awt.List`)場合は、どちらにするか選ぶダイアログが出るので `java.util.List` を選びます。
-      Ctrl+Shift+F はフォーマット、Ctrl+Shift+R はファイルを開く、Ctrl+D は行削除で、どれも import は追加しません(赤線の上で Ctrl+1 → **Import 'List' (java.util)** でも直せます)。
+      **Ctrl+Shift+O(Organize Imports)** は、足りない `import` を追加し、使っていない `import` を削除します。`List` と `ArrayList` の `import` が一度に入ります。`List` のように同名のクラスが複数ある(`java.util.List` と `java.awt.List`)場合は、どちらにするか選ぶダイアログが出るので `java.util.List` を選びます。
+      赤線の上で Ctrl+1 を押し、`java.util` の `List` を `import` する候補を選んでも直せます。
   - question: |
       `counter.next()` は呼ぶたびに 1, 2, 3, … を返すメソッドです。次のコードの `n` を **Alt+Shift+I**(インライン化)したところ、`System.out.println(counter.next() + counter.next());` になりました。出力はどう変わる?
       ```java
@@ -91,16 +108,26 @@ quiz:
       ```
     choices: ["2 のまま変わらない", "2 から 3 に変わる", "コンパイルエラーになる", "2 から 1 に変わる"]
     answer: 1
+    why:
+      - "インライン化で振る舞いは変わらないと読んだ答え。呼ぶ回数が変わる"
+      - ""
+      - "書き換え後の式が文法違反と読んだ答え。正しい式なので通り、出力だけが変わる"
+      - "`next()` を1回だけ呼ぶと読んだ答え。インライン化の後は2回呼んで `1 + 2 = 3`"
     explanation: |
-      インライン化前は `next()` を1回だけ呼び、その値 1 を2回足すので `2`。インライン化後は `next()` を **2回** 呼ぶので `1 + 2 = 3` になります。式に副作用がある(呼ぶたびに状態が変わる)と、インライン化で評価回数が変わり、振る舞いが変わってしまいます。
-      文法的には正しいのでコンパイルエラーにはなりません。IDE の機能でもこうした変化を常に止めてくれるとは限らないので、**リファクタリングのたびにテストを回す** ことが大切です。
+      インライン化前は `next()` を1回だけ呼び、その値 1 を2回足すので `2`。インライン化後は `next()` を **2回**呼ぶので `1 + 2 = 3` になります。式に副作用がある(呼ぶたびに状態が変わる)と、インライン化で評価回数が変わり、振る舞いが変わってしまいます。
+      IDE の機能でもこうした変化を常に止めてくれるとは限らないので、**リファクタリングのたびにテストを回す**ことが大切です。
   - question: |
       テストのある既存コードをリファクタリングするときの進め方として、最も適切なのはどれ?
     choices: ["まとめて全部直してから、最後に一度だけテストを実行する", "テストが赤いままでも、IDE の機能を使えば安全なので気にせず進める", "リファクタリングのついでに、気になったバグもその場で直して一緒にテストする", "テストが緑の状態から始め、名前変更や抽出を1つするたびにテストを実行する"]
     answer: 3
+    why:
+      - "テストは最後に1回でよいと読んだ答え。赤になったとき、どの変更が原因か分からなくなる"
+      - "IDE の機能なら確かめなくてよいと読んだ答え。赤から始めると、壊したのが自分か元からか区別できない"
+      - "ついでに直すほうが早いと読んだ答え。何が結果を変えたのか分からなくなる"
+      - ""
     explanation: |
-      **緑から始めて、小さく1つ変えるごとにテスト** が基本です。赤になったら原因は直前の1手だけなので、Ctrl+Z で戻せばすぐ元の状態に戻れます。
-      まとめて直すと、赤になったときにどの変更が原因か分かりません。赤いまま始めると、自分の変更で壊したのか元から壊れていたのか区別できません。バグ修正は「振る舞いを変える」作業なので、リファクタリング(振る舞いを変えない)とは分けて行い、別々にテストで確かめるのが現場の作法です。
+      **緑から始めて、小さく1つ変えるごとにテスト**が基本です。赤になったら原因は直前の1手だけなので、Ctrl+Z で戻せばすぐ元の状態に戻れます。
+      バグ修正は「振る舞いを変える」作業なので、リファクタリング(振る舞いを変えない)とは分けて行い、別々にテストで確かめるのが現場の作法です。
 columns:
   - type: trivia
     title: リファクタリングの源流は Smalltalk
@@ -123,20 +150,20 @@ columns:
   - type: mistake
     title: 補完に任せたら java.awt.List が入っていた
     body: |
-      補完や Ctrl+Shift+O は、**同名のクラスが複数あるとき** に要注意です。例えば `List` には `java.util.List`(コレクション)と `java.awt.List`(古い GUI 部品)があり、うっかり後者を選ぶと次のエラーになります。
+      補完や Ctrl+Shift+O は、**同名のクラスが複数あるとき**に要注意です。例えば `List` には `java.util.List`(コレクション)と `java.awt.List`(古い GUI 部品)があり、うっかり後者を選ぶと次のエラーになります。
 
       ```text
       The type List is not generic; it cannot be
       parameterized with arguments <String>
       ```
 
-      原因はファイル先頭の `import java.awt.List;` です。同様に `@Test` は JUnit 5 の `org.junit.jupiter.api.Test` と JUnit 4 の `org.junit.Test` があり、JUnit 4 の方を選ぶと JUnit 5 だけの環境では **テストが実行されません**。
+      原因はファイル先頭の `import java.awt.List;` です。同様に `@Test` は JUnit 5 の `org.junit.jupiter.api.Test` と JUnit 4 の `org.junit.Test` があり、JUnit 4 の方を選ぶと JUnit 5 だけの環境では**テストが実行されません**。
 
-      対策は、エラーが出たらまず **import 文を見る** こと。普段使わないパッケージは **Window > Preferences > Java > Appearance > Type Filters**(型フィルター)に `java.awt.*` などを登録すると、候補に出なくなります。
+      対策は、エラーが出たらまず **import 文を見る**こと。普段使わないパッケージは **Window > Preferences > Java > Appearance > Type Filters**(型フィルター)に `java.awt.*` などを登録すると、候補に出なくなります。
 sts:
   intro: |
     ショートカットとテンプレートでコードを書き、Alt+Shift+S のソース生成とリファクタリング機能を一通り試します。最後に保存時アクションを設定します。
-    表のキーは Windows 版 STS 4 の標準設定です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
+    表のキーは Windows 版 STS(Eclipse)の標準設定です。メニュー名は英語 UI 表記で、日本語化している場合の表記を括弧で併記しています。
   steps:
     - title: Ctrl+Shift+L でショートカット一覧を見る
       detail: |

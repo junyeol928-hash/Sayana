@@ -16,7 +16,7 @@ problem: |
 
   **POST /requests の詳細**
 
-  - フォームは `@Validated @ModelAttribute RequestForm form` で受け取り、**直後の引数** に `BindingResult` を置く
+  - フォームは `@Validated @ModelAttribute RequestForm form` で受け取り、**直後の引数**に `BindingResult` を置く
   - エラーが無ければ `requestService.createDraft(CURRENT_EMPLOYEE_ID, form.toEntity())` で保存し、
     戻り値の id を使ってフラッシュ属性 `"message"` に `"下書きを保存しました(No.<id>)"` を入れる
     (例:`下書きを保存しました(No.1)`。かっこは全角)
@@ -24,14 +24,14 @@ problem: |
 
   **種類の選択肢 `"types"`**
 
-  画面のセレクトボックスのために、Model に `"types"`(`RequestType.values()`)が **どのハンドラでも** 入っているようにします。
+  画面のセレクトボックスのために、Model に `"types"`(`RequestType.values()`)が**どのハンドラでも**入っているようにします。
   `GET /requests/new` で `model.addAttribute` するだけだと、**入力エラーで画面を返したときに選択肢が空になります**。
   `@ModelAttribute("types")` を付けたメソッドを Controller に1つ作ると、そのクラスの全ハンドラの前に呼ばれて Model に入ります。
 
   **ログインはまだ無い**
 
   申請者は定数 `CURRENT_EMPLOYEE_ID`(社員ID 1)で代用します(capstone-security でログインユーザーに置き換えます)。
-  一覧には **この社員の申請だけ** を出します。
+  一覧には**この社員の申請だけ**を出します。
 
   テストは `MockMvcBuilders.standaloneSetup(...)` に `LocalValidatorFactoryBean` を渡して MockMvc を作り、
   ビュー名・Model・リダイレクト先・フラッシュ属性・保存された申請を確かめます(テンプレートは描画しません)。

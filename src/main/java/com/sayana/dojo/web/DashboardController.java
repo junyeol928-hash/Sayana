@@ -30,9 +30,11 @@ public class DashboardController {
     private final SubmissionRepository submissions;
     private final ContentRepository content;
     private final AiService ai;
+    private final java.time.Clock clock;
 
     public DashboardController(ProgressService progress, ActivityService activity, ReviewService review,
-                               SubmissionRepository submissions, ContentRepository content, AiService ai) {
+                               SubmissionRepository submissions, ContentRepository content, AiService ai, java.time.Clock clock) {
+        this.clock = clock;
         this.progress = progress;
         this.activity = activity;
         this.review = review;
@@ -42,7 +44,7 @@ public class DashboardController {
     }
 
     @GetMapping("/")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, jakarta.servlet.http.HttpSession session) {
         var parts = progress.overview();
         model.addAttribute("parts", parts);
         model.addAttribute("nextLesson", progress.nextLesson().orElse(null));
@@ -51,7 +53,10 @@ public class DashboardController {
         model.addAttribute("studiedToday", activity.studiedToday());
         model.addAttribute("totalDays", activity.totalDays());
         model.addAttribute("upcoming", review.upcoming().size());
-        model.addAttribute("graduated", review.graduatedCount());
+        long graduated = review.graduatedCount();
+        model.addAttribute("graduated", graduated);
+        // 復習で卒業: 褐のマスを数だけ並べる(24 まで。超えたら「…」)
+        model.addAttribute("graduatedCells", java.util.Collections.nCopies((int) Math.min(graduated, 24), 4));
         model.addAttribute("recentSubmissions", submissions.findTop50ByOrderByCreatedAtDesc().stream().limit(5).toList());
         model.addAttribute("completedLessons", parts.stream().mapToLong(ProgressService.PartProgress::completed).sum());
         model.addAttribute("readyLessons", content.readyLessons().size());
@@ -80,8 +85,15 @@ public class DashboardController {
         model.addAttribute("deepCount", dyeCounts[2] + dyeCounts[3] + dyeCounts[4]);
         // 数字の欄はスマホ版とそろえる(次の復習・読解の正解はブラウザ側で数える・この 7 日の稽古)
         var upcomingItems = review.upcoming();
-        model.addAttribute("nextReview", !review.due().isEmpty() ? "今日"
+        // 今日の復習がある日は、上の「今日の復習」の行と重なるので「次の復習」は出さない(スマホ版と同じ)
+        model.addAttribute("nextReview", !review.due().isEmpty() ? null
                 : upcomingItems.isEmpty() ? "なし" : upcomingItems.getFirst().getDueDate().format(DateTimeFormatter.ofPattern("M/d")));
+        // 今日の復習を終えた日は、今日の稽古を言う(「済み 5 問(仮縫い 2)· 明日 7 問」)
+        java.time.LocalDate tomorrow = java.time.LocalDate.now(clock).plusDays(1);
+        model.addAttribute("doneToday", review.todayTally()[0]);
+        model.addAttribute("tomorrowDue", upcomingItems.stream().filter(it -> tomorrow.equals(it.getDueDate())).count());
+        model.addAttribute("bastedToday", session.getAttribute(ReviewController.RETRY_KEY) instanceof ReviewController.RetryState st
+                && st.day.equals(java.time.LocalDate.now(clock)) ? st.results.values().stream().filter(Boolean.TRUE::equals).count() : 0L);
         model.addAttribute("weekDays", activity.recentDays(7).stream().filter(d -> d.actions() > 0).count());
         model.addAttribute("readingTotal", content.readyLessons().stream().mapToInt(l -> l.reading().size()).sum());
         progress.nextLesson().ifPresent(next -> {
@@ -91,6 +103,7 @@ public class DashboardController {
                 model.addAttribute("nextDyeRead", DYE_READ[s.dyeLevel()]);
                 model.addAttribute("nextDyeMeaning", s.dyeLabel().split("・")[1]);
                 model.addAttribute("nextHint", nextDyeHint(s));
+                model.addAttribute("nextKicker", nextKicker(s));
             });
             model.addAttribute("nextIndex", content.readyLessons().indexOf(next) + 1);
             model.addAttribute("nextTitleSize", titleSize(next.title()));
@@ -134,6 +147,18 @@ public class DashboardController {
 
     /** 段の意味(地図の読み上げ用。スマホ版 app.js の DYE の meaning と同じ)。 */
     static final String[] DYE_MEANING = {"まだ", "読んだ", "クイズ合格", "演習もできた", "復習をすべて卒業"};
+
+    /** ヒーローの見出しの行: 次の段の量を言う(読み終えたレッスンで「読む 18 分」と言わない。スマホ版 app.js の kicker と同じ)。 */
+    static String nextKicker(ProgressService.LessonStatus s) {
+        Lesson l = s.lesson();
+        if (s.dyeLevel() == 1 && !l.quiz().isEmpty()) {
+            return "クイズ " + l.quiz().size() + " 問";
+        }
+        if (s.dyeLevel() == 2 && !l.exercises().isEmpty()) {
+            return "演習 " + l.exercises().size() + " 問";
+        }
+        return "読む " + l.minutes() + " 分";
+    }
 
     /** 次の段へ進む条件(スマホ版 app.js の nextDyeHint と同じ文言)。 */
     public static String nextDyeHint(ProgressService.LessonStatus s) {

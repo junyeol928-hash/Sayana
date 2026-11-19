@@ -6,7 +6,7 @@
 getter も equals も手書きしたな? record なら1行だ。ついでに「状態を int で持つ」悪習も enum で卒業しよう。
 :::
 
-前回の「Optional」に続き、今回も「型で表す」話。**ただの値** を表す record と、**決まった選択肢** を表す enum です。
+前回の「Optional」に続き、今回も「型で表す」話。**ただの値**を表す record と、**決まった選択肢**を表す enum です。
 
 ## record:データを運ぶクラスを1行で
 
@@ -32,7 +32,7 @@ record ならこれだけです。
 record Money(long amount, String currency) {}
 ```
 
-`(long amount, String currency)` を **レコードコンポーネント** と呼び、コンパイラが次のものを自動生成します。
+`(long amount, String currency)` を**レコードコンポーネント**と呼び、コンパイラが次のものを自動生成します。
 
 | 自動生成されるもの | 中身 |
 |---|---|
@@ -53,9 +53,9 @@ System.out.println(a);  // Money[amount=100, currency=JPY]
 
 ### record の制約:不変で、継承できない
 
-- フィールドは全部 `final`。セッターは書けない(`cannot assign a value to final variable amount`)
+- フィールドは全部 `final`。セッターは書けない。代入しようとすると `cannot assign a value to final variable amount`
 - record は暗黙に `final`。継承しようとすると `cannot inherit from final Money`
-- インスタンスフィールドの追加は不可(`field declaration must be static`)。static フィールド・メソッド追加・インターフェース実装は OK
+- インスタンスフィールドの追加は不可(static フィールド・メソッド追加・インターフェース実装は OK)。足すと次のエラーになる: `field declaration must be static`
 
 ::: sensei
 値で比較するなら中身は変わっちゃダメ。HashSet に入れた後で変わったら、hashCode がズレて二度と見つからない。
@@ -63,7 +63,7 @@ System.out.println(a);  // Money[amount=100, currency=JPY]
 
 ## コンパクトコンストラクタで検証する
 
-不正な値を作らせないには **コンパクトコンストラクタ** を使います。引数リストを書かないコンストラクタで、本体の後にフィールドへの代入が自動で行われます。
+不正な値を作らせないには**コンパクトコンストラクタ**を使います。引数リストを書かないコンストラクタで、本体の後にフィールドへの代入が自動で行われます。
 
 ```java
 record Money(long amount, String currency) {
@@ -83,17 +83,17 @@ record Money(long amount, String currency) {
 }
 ```
 
-`add` は自分を書き換えず **新しい Money を返す**。これが不変オブジェクトの流儀です。
+`add` は自分を書き換えず**新しい `Money` を返す**。これが不変オブジェクトの流儀です。
 
 ::: genba 現場ではこう使う
 - **DTO**:API のリクエスト/レスポンス。Spring も Jackson も record 対応済み
 - **値オブジェクト**:金額・メールアドレスなど検証ルール付きの値
-- **Map の複合キー**:equals/hashCode が正しいので安心
+- **`Map` の複合キー**:equals/hashCode が正しいので安心
 
-状態が変わっていく **エンティティ**(会員・注文)には向きません。
+状態が変わっていく**エンティティ**(会員・注文)には向きません。
 :::
 
-注意:不変なのは **浅く** です。`record Cart(List<String> items)` に外から渡した List を後で書き換えると中身が変わります。コンパクトコンストラクタで `items = List.copyOf(items);` と防御コピーしておきましょう。
+注意:不変なのは**浅く**です。`record Cart(List<String> items)` に外から渡した `List` を後で書き換えると中身が変わります。コンパクトコンストラクタで `items = List.copyOf(items);` と防御コピーしておきましょう。
 
 ## enum:決まった選択肢を型にする
 
@@ -115,7 +115,7 @@ void ship(OrderStatus s) { ... }
 ship(OrderStatus.SHIPPED);  // これ以外はコンパイルエラー
 ```
 
-enum は `java.lang.Enum` を継承した特別なクラスで、各定数は **唯一のインスタンス**。だから比較は `==` で安全です。
+enum は `java.lang.Enum` を継承した特別なクラスで、各定数は**唯一のインスタンス**。だから比較は `==` で安全です。
 
 ```java
 for (OrderStatus s : OrderStatus.values()) {
@@ -125,13 +125,13 @@ for (OrderStatus s : OrderStatus.values()) {
 var s = OrderStatus.valueOf("SHIPPED"); // 文字列→定数
 ```
 
-- `values()`:全定数を **宣言順** の配列で返す
+- `values()`:全定数を**宣言順**の配列で返す
 - `valueOf(String)`:名前から定数を引く。一致しないと `IllegalArgumentException: No enum constant OrderStatus.shipped`(大文字小文字も区別)
 - `ordinal()`:宣言順の番号(0始まり)
 
-### ordinal を DB に保存してはいけない
+### `ordinal` を DB に保存してはいけない
 
-`ordinal()` は **宣言の順番** にすぎません。`ORDERED` と `SHIPPED` の間に `PAID` を足した瞬間、保存済みの `1` は「発送済み」から「支払済み」に化け、エラーも出ません。保存するなら `name()` か、自前の **コード値** を使います。
+`ordinal()` は**宣言の順番**にすぎません。`ORDERED` と `SHIPPED` の間に `PAID` を足した瞬間、保存済みの `1` は「発送済み」から「支払済み」に化け、エラーも出ません。保存するなら `name()` か、自前の**コード値**を使います。
 
 ## フィールド・メソッドを持つ enum
 
@@ -172,11 +172,11 @@ enum OrderStatus {
 }
 ```
 
-`valueOf("03")` は **定数名** で探すので例外になります。コード値で引くときは自分で書いた `fromCode` を使います。`name()` を保存する方法も、定数名をリネームした瞬間に壊れるので、長く使うデータほどコード値が安全です。
+`valueOf("03")` は**定数名**で探すので例外になります。コード値で引くときは自分で書いた `fromCode` を使います。`name()` を保存する方法も、定数名をリネームした瞬間に壊れるので、長く使うデータほどコード値が安全です。
 
 <figure class="figure"><svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="20" y="24" font-size="14" fill="var(--ink-muted)">DB の列 status</text><rect x="20" y="36" width="120" height="150" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="80" y="66" font-size="15" text-anchor="middle" fill="var(--ink)">"01"</text><text x="80" y="96" font-size="15" text-anchor="middle" fill="var(--ink)">"02"</text><text x="80" y="126" font-size="15" text-anchor="middle" fill="var(--ink)">"03"</text><text x="80" y="156" font-size="15" text-anchor="middle" fill="var(--ink)">"09"</text><defs><marker id="java-record-enum-arr21a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><path d="M150 90 L250 90" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-record-enum-arr21a)"/><text x="200" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">fromCode</text><path d="M250 130 L150 130" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-record-enum-arr21a)"/><text x="200" y="150" font-size="13" text-anchor="middle" fill="var(--ink)">getCode</text><text x="260" y="24" font-size="14" fill="var(--ink-muted)">enum OrderStatus(インスタンスは4つだけ)</text><rect x="260" y="36" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="57" font-size="14" text-anchor="middle" fill="var(--ink)">ORDERED</text><rect x="260" y="76" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="97" font-size="14" text-anchor="middle" fill="var(--ink)">SHIPPED</text><rect x="260" y="116" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="137" font-size="14" text-anchor="middle" fill="var(--ink)">DELIVERED</text><rect x="260" y="156" width="150" height="32" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="335" y="177" font-size="14" text-anchor="middle" fill="var(--ink)">CANCELLED</text><rect x="440" y="36" width="140" height="150" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/><text x="510" y="60" font-size="13" text-anchor="middle" fill="var(--ink-muted)">各定数が持つ値</text><text x="510" y="90" font-size="13" text-anchor="middle" fill="var(--ink)">code = "03"</text><text x="510" y="112" font-size="13" text-anchor="middle" fill="var(--ink)">ほかの値も持てる</text><text x="510" y="145" font-size="13" text-anchor="middle" fill="var(--ink)">getCode()</text><text x="510" y="165" font-size="13" text-anchor="middle" fill="var(--ink)">→ "03"</text><path d="M410 132 L440 110" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 3"/></svg><figcaption>enum の定数はインスタンスが1つずつ。DB のコード値とは fromCode / getCode で行き来する</figcaption></figure>
 
-## switch 式と EnumMap
+## switch 式と `EnumMap`
 
 enum は switch 式と相性抜群です。**全定数を case に書けば default は不要**で、コンパイラが網羅性をチェックします。
 
@@ -189,7 +189,7 @@ String label = switch (status) {
 };
 ```
 
-定数を追加すると、この switch が `the switch expression does not cover all possible input values` で **コンパイルエラー** になり対応漏れを教えてくれます。だから現場ではあえて `default` を書きません。
+定数を追加すると、この switch が `the switch expression does not cover all possible input values` で**コンパイルエラー**になり対応漏れを教えてくれます。だから現場ではあえて `default` を書きません。
 
 状態遷移のルールも enum に持たせると見通しが良くなります。
 
@@ -200,7 +200,7 @@ flowchart LR
     O --> C["CANCELLED(キャンセル)"]
 ```
 
-enum をキーにする Map なら **EnumMap** を使います。内部は ordinal を添字にした配列なので HashMap より速く、反復は宣言順です。
+enum をキーにする `Map` なら **`EnumMap`** を使います。内部は ordinal を添字にした配列なので HashMap より速く、反復は宣言順です。
 
 ```java
 Map<OrderStatus, Integer> count =
@@ -219,6 +219,25 @@ for (OrderStatus s : orders) {
 選択肢を表すなら要らない。型安全、名前で表示、網羅性チェック、メソッドも持てる。int に勝ち目はないよ。
 :::
 
+### switch で「型」を分ける(Java 21)
+
+Java 21 では、case に**型**を書いて分岐できます(switch のパターンマッチング)。`case Card c ->` は「`Card` 型なら変数 c に入れて右を実行」、`when` はその case に入る追加の条件です。
+
+```java
+sealed interface Payment permits Card, Cash {}
+record Card(String brand, int amount) implements Payment {}
+record Cash(int amount) implements Payment {}
+
+String text = switch (payment) {
+    case Card c when c.amount() >= 10000 -> "高額のカード払い(" + c.brand() + ")";
+    case Card c -> "カード払い(" + c.brand() + ")";
+    case Cash c -> "現金 " + c.amount() + "円";
+};
+```
+
+- `sealed interface Payment permits Card, Cash` は「`Payment` を実装できるのは `Card` と `Cash` だけ」という宣言です。種類が閉じているので、enum と同じく**全部の型を case に書けば default は不要**です
+- case は上から順に照合します。`when` 付きの case は、同じ型の条件なしの case より**上**に書きます。逆にすると `this case label is dominated by a preceding case label` でコンパイルエラーです
+
 ## よくあるミス
 
 ```java
@@ -234,15 +253,16 @@ OrderStatus.valueOf(input);
 // null      → NullPointerException: Name is null
 ```
 
-外部の文字列は null・空白・大文字小文字を整えてから変換します。
+外部の文字列は `null`・空白・大文字小文字を整えてから変換します。
 
 ::: point まとめ
-- record は **値を運ぶ不変クラス**。フィールド・コンストラクタ・アクセサ・equals/hashCode/toString を自動生成
-- 検証は **コンパクトコンストラクタ** で。record は final で継承不可、浅い不変なので List は `List.copyOf`
+- record は**値を運ぶ不変クラス**。フィールド・コンストラクタ・アクセサ・equals/hashCode/toString を自動生成
+- 検証は**コンパクトコンストラクタ**で。record は final で継承不可、浅い不変なので `List` は `List.copyOf`
 - enum は選択肢そのものを型にする。比較は `==`、`values()` は宣言順
 - **ordinal は永続化しない**。`name()` かコード値を保存する
 - enum はフィールド・メソッドを持てる。switch 式は全定数を書けば **default なしで網羅性チェック**
-- enum キーの Map は **EnumMap**
+- Java 21 の switch は**型**でも分けられる(`case Card c ->`)。sealed で種類を閉じれば default は不要
+- enum キーの `Map` は **`EnumMap`**
 :::
 
 ::: sensei

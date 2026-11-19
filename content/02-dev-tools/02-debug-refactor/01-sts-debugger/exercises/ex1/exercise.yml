@@ -2,7 +2,7 @@ title: 遅刻日数カウンターのバグを直す
 className: LateCounter
 difficulty: 1
 problem: |
-  勤怠システムの「遅刻日数」を数える `countLate(int[] arrivals, int start)` に、**バグが2つ** 入っています。
+  勤怠システムの「遅刻日数」を数える `countLate(int[] arrivals, int start)` に、**バグが2つ**入っています。
   テストが全部通るように直してください。
 
   - `arrivals` … 1か月分の出社時刻。「0時からの分数」で表します(9:00 → `540`、9:10 → `550`)

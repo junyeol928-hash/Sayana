@@ -8,7 +8,7 @@ problem: |
   > 新しいカードに鍵を発行しようとすると、毎回 500 エラーになります。
 
   雛形には Controller・DTO・Service・Repository・例外ハンドラが1ファイルに入っています。
-  解説の順番(Controller → DTO → Service → Repository → レスポンス・例外ハンドラ)で読み、次の **処理詳細(仕様書)** と食い違っている所を見つけて `KeyIssueService` を直してください。食い違いは **2か所** です。
+  解説の順番(Controller → DTO → Service → Repository → レスポンス・例外ハンドラ)で読み、次の **処理詳細(仕様書)** と食い違っている所を見つけて `KeyIssueService` を直してください。食い違いは **2か所**です。
 
   | 項番 | 処理内容 |
   |---|---|
@@ -29,7 +29,7 @@ problem: |
 
   読むときのヒント:
   - Service の各行の右に、処理詳細の項番をコメントで書き込んでみましょう。どの項番にも当たらない行や、順番が入れ替わっている行が怪しい所です
-  - 409 に変えているのは誰か? Controller に try-catch はありません。`@RestControllerAdvice` の `@ExceptionHandler` が **どの型の例外を受けているか** を確かめてください
+  - 409 に変えているのは誰か? Controller に try-catch はありません。`@RestControllerAdvice` の `@ExceptionHandler` が**どの型の例外を受けているか**を確かめてください
   - Controller・Repository・例外ハンドラは正しく書かれています。直すのは `KeyIssueService` だけです
 
   採点では最初に `C001`(`ACTIVE` の鍵あり)と `C002`(`REVOKED` の鍵だけ)のデータが入っています。

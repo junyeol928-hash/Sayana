@@ -8,7 +8,7 @@
 
 ## 今回作るもの
 
-下書きを **申請** し、承認者が **承認・差戻し**、申請者が **取下げ** できるようにします。操作のたびに履歴が残ります。
+下書きを**申請**し、承認者が**承認・差戻し**、申請者が**取下げ**できるようにします。操作のたびに履歴が残ります。
 
 | ファイル | パッケージ | 役割 |
 |---|---|---|
@@ -36,7 +36,7 @@
 
 ## エンティティ:状態の変え方を自分で守る
 
-capstone-requirements の `ApprovalFlow.next`(遷移できなければ例外)を使います。`ApprovalRequest` の `setStatus` は消しておきます。
+capstone-requirements で書き、capstone-setup で `domain` に置いた `ApprovalFlow.next`(遷移できなければ例外)を使います。`ApprovalRequest` には `setStatus` を作りません(capstone-setup から setter なしの方針です)。
 
 ```java
 public void approve(Employee approver, String comment,
@@ -58,9 +58,9 @@ public void returnBack(Employee approver, String comment,
 // approver・comment・decidedAt を代入するだけ
 ```
 
-チェックを **全部済ませてから代入** するのがポイント。途中で例外が出ても、中途半端な状態が残りません。`return` は予約語なので、メソッド名は `returnBack` です。
+チェックを**全部済ませてから代入**するのがポイント。途中で例外が出ても、中途半端な状態が残りません。`return` は予約語なので、メソッド名は `returnBack` です。
 
-## ApprovalService:誰がやってよいかと履歴
+## `ApprovalService`:誰がやってよいかと履歴
 
 `com.example.approval.service.ApprovalService` です。
 
@@ -97,9 +97,9 @@ public class ApprovalService {
 
 `submit`・`returnBack`・`withdraw` も「探す → 誰かを確かめる → エンティティを呼ぶ → 履歴」の同じ並びです(コードは「STSでやってみよう」)。時刻を1回だけ取ってエンティティと履歴に渡すので、両者の日時がずれません。
 
-`r` を `save` していないのに気づきましたか? トランザクションの中で取得したエンティティは JPA が **管理状態** にしていて、コミット時に変更を検出して UPDATE を出します(**ダーティチェック**)。
+`r` を `save` していないのに気づきましたか? トランザクションの中で取得したエンティティは JPA が**管理状態**にしていて、コミット時に変更を検出して UPDATE を出します(**ダーティチェック**)。
 
-## @Transactional:状態と履歴は一蓮托生
+## `@Transactional`:状態と履歴は一蓮托生
 
 ```mermaid
 sequenceDiagram
@@ -117,9 +117,9 @@ sequenceDiagram
     S-->>C: 申請 / 例外ならロールバック
 ```
 
-クラスに付けた `@Transactional` で、全メソッドが1つのトランザクションになります。状態の UPDATE と履歴の INSERT は **両方成功するか、両方なかったことになるか** のどちらか。「承認済みなのに履歴が無い」はありえません(ルール6)。
+クラスに付けた `@Transactional` で、public メソッドを呼ぶたびに、そのメソッド全体が1つのトランザクションになります。状態の UPDATE と履歴の INSERT は**両方成功するか、両方なかったことになるか**のどちらか。「承認済みなのに履歴が無い」はありえません(ルール6)。
 
-Spring がロールバックするのは、既定では **RuntimeException(と Error)** が外へ出たときだけ。チェック例外ならコミットされます。`BusinessRuleException` を `RuntimeException` にしたのはこのためです(ルール7)。
+Spring がロールバックするのは、既定では **`RuntimeException`(と `Error`)** が外へ出たときだけ。チェック例外ならコミットされます。`BusinessRuleException` を `RuntimeException` にしたのはこのためです(ルール7)。
 
 ## 画面:承認待ち一覧とボタン
 
@@ -146,7 +146,7 @@ public String approve(@PathVariable Long id,
 
 ルール違反は例外のメッセージをそのまま画面へ。2つ目の catch は後で説明する楽観ロックの失敗です。
 
-`CURRENT_APPROVER_ID` は前回と同じく **ログインの代わりの固定ID**(初期データの承認者)で、capstone-security で置き換えます。詳細画面のボタンは状態で出し分けます。
+`CURRENT_APPROVER_ID` は前回と同じく**ログインの代わりの固定ID**(初期データの承認者)で、capstone-security で置き換えます。詳細画面のボタンは状態で出し分けます。
 
 ```html
 <form th:if="${req.status.name() == 'SUBMITTED'}"
@@ -159,20 +159,20 @@ public String approve(@PathVariable Long id,
 </form>
 ```
 
-ボタンを隠すのは **親切**、ルールを守るのは **Service**。POST は curl でも送れるからです。
+ボタンを隠すのは**親切**、ルールを守るのは **Service**。POST は curl でも送れるからです。
 
 ## 二重承認と楽観ロック
 
 太郎と部長が同じ申請を同時に承認したら? 両方のトランザクションが「申請中」を読めば、ルール5のチェックは両方とも通ります。結果は承認2回・履歴2件です。
 
-これを防ぐのが **楽観ロック**。エンティティにバージョン番号の列を足すだけです。
+これを防ぐのが**楽観ロック**。エンティティにバージョン番号の列を足すだけです。
 
 ```java
 @Version
 private Long version;
 ```
 
-JPA は UPDATE に `WHERE id=? AND version=?`(読んだときの番号)を付け、成功したら番号を1増やします。後から来た方は更新 **0件** になり、Spring は `ObjectOptimisticLockingFailureException` を投げてロールバックします。もちろん履歴の INSERT も消えます。
+JPA は UPDATE に `WHERE id=? AND version=?`(読んだときの番号)を付け、成功したら番号を1増やします。後から来た方は更新 **0件**になり、Spring は `ObjectOptimisticLockingFailureException` を投げてロールバックします。もちろん履歴の INSERT も消えます。
 
 ::: trivia 楽観と悲観
 「めったにぶつからない」と楽観して、ぶつかったときだけ失敗させるのが楽観ロック。`SELECT ... FOR UPDATE` で先に行をロックして待たせるのが悲観ロック。承認のように衝突がまれな業務は楽観ロックが定番です。
@@ -181,21 +181,21 @@ JPA は UPDATE に `WHERE id=? AND version=?`(読んだときの番号)を付け
 ## よくあるミス
 
 ::: warn 履歴を先に保存する
-`histories.save(...)` を `r.approve(...)` より前に書くと、承認が例外で失敗しても「承認した」履歴が先に保存されます。トランザクションがあればロールバックで消えますが、それは保険。`@Transactional` を付け忘れた瞬間に「承認していないのに承認した」履歴が残ります。**成功した後に記録** が筋です。
+`histories.save(...)` を `r.approve(...)` より前に書くと、承認が例外で失敗しても「承認した」履歴が先に保存されます。トランザクションがあればロールバックで消えますが、それは保険。`@Transactional` を付け忘れた瞬間に「承認していないのに承認した」履歴が残ります。**成功した後に記録**が筋です。
 :::
 
 ::: warn チェック例外でロールバックされない
-`BusinessRuleException extends Exception` にすると、例外が出ても **コミット** されます(`rollbackFor` を指定しない限り)。業務ルール違反は RuntimeException で表します。
+`BusinessRuleException extends Exception` にすると、例外が出ても**コミット**されます(`rollbackFor` を指定しない限り)。業務ルール違反は `RuntimeException` で表します。
 :::
 
 ::: warn 同じクラスの中から呼ぶ
-メソッド単位で `@Transactional` を付けたクラスで、付いていないメソッドから `this.approve(...)` を呼んでもトランザクションは始まりません。`@Transactional` は Spring が作る **プロキシ** を通った呼び出しにだけ効き、`this` の呼び出しはプロキシを通らないからです。
+メソッド単位で `@Transactional` を付けたクラスで、付いていないメソッドから `this.approve(...)` を呼んでもトランザクションは始まりません。`@Transactional` は Spring が作る**プロキシ**を通った呼び出しにだけ効き、`this` の呼び出しはプロキシを通らないからです。
 :::
 
 ::: point まとめ
-- 状態のルール(4・5)は **エンティティ**、誰がのルール(1〜3)と履歴(6)は **Service**
+- 状態のルール(4・5)は**エンティティ**、誰がのルール(1〜3)と履歴(6)は **Service**
 - 状態を変える入口は `approve` などのメソッドだけ。チェックを済ませてから代入
-- `@Transactional` で **状態の変更と履歴を1つのトランザクションに**。RuntimeException でロールバック
+- `@Transactional` で**状態の変更と履歴を1つのトランザクションに**。`RuntimeException` でロールバック
 - ボタンの出し分けは親切、ルールの本体は Service
 - 同時操作は **`@Version` の楽観ロック** で防ぐ
 :::

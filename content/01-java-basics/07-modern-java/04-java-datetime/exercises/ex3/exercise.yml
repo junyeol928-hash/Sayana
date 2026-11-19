@@ -12,7 +12,7 @@ problem: |
 
   **2. `count(LocalDate from, LocalDate to, Set<LocalDate> holidays)` … 期間内の営業日数**
 
-  - `from` と `to` を **両方含む**
+  - `from` と `to` を**両方含む**
   - `from` が `to` より後なら `0`
 
   **3. `addBusinessDays(LocalDate start, int n, Set<LocalDate> holidays)` … n 営業日後**

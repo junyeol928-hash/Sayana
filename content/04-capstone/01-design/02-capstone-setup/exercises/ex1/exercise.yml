@@ -4,7 +4,7 @@ difficulty: 2
 libraries: [spring, jpa]
 problem: |
   承認くんの中心になるエンティティ `ApprovalRequest`(申請)を完成させてください。
-  フィールド・コンストラクタ・getter はできていて、足りないのは **JPA のアノテーション** と **引数なしコンストラクタ** です。
+  フィールド・コンストラクタ・getter はできていて、足りないのは **JPA のアノテーション**と**引数なしコンストラクタ**です。
   `Employee`(社員)は完成済みなので、書き方の見本にしてください。
 
   やること:
@@ -21,6 +21,6 @@ problem: |
   - `@Enumerated` を付けないと、enum は **定数の順番(0, 1, 2…)** で保存されます。enum の途中に定数を足すと、既存データの意味がずれる事故になります。
   - `@ManyToOne` の既定の取得方法は EAGER(いつも一緒に読む)です。一覧画面で無駄な SELECT が増えないよう、LAZY を明示します。
 
-  ※ 採点環境には DB がないので、テストは **リフレクション** でアノテーションを確認し、`@PrePersist` のメソッドは直接呼んで確かめます。
+  ※ 採点環境には DB がないので、テストは**リフレクション**でアノテーションを確認し、`@PrePersist` のメソッドは直接呼んで確かめます。
   STS では `com.example.approval.domain` パッケージに `ApprovalRequest.java`・`Employee.java`(`public class`)と、
   `Role.java`・`RequestType.java`・`RequestStatus.java`(`public enum`)を別ファイルで置きます。

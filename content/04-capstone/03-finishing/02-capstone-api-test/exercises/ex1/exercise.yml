@@ -3,7 +3,7 @@ className: RequestApiController
 difficulty: 2
 libraries: [spring]
 problem: |
-  承認くんの REST API のうち、**見るだけ** の2本を完成させてください。データは `RequestService`(インターフェース)から受け取ります。
+  承認くんの REST API のうち、**見るだけ**の2本を完成させてください。データは `RequestService`(インターフェース)から受け取ります。
   テストではメモリ上の実装が渡されます。
 
   | リクエスト | レスポンス |
@@ -25,7 +25,7 @@ problem: |
 
   やること:
   1. `RequestSummary.from` と `RequestDetail.from` で、`ApprovalRequest` から DTO に詰め替える。
-     申請者・承認者は **名前だけ**(`applicant().name()`)を入れ、`Employee` ごと入れない(メールアドレスが漏れます)。
+     申請者・承認者は**名前だけ**(`applicant().name()`)を入れ、`Employee` ごと入れない(メールアドレスが漏れます)。
      承認者がまだいない(`approver()` が `null`)なら `approverName` も `null`
   2. `list` に `@GetMapping` を付け、`status` を `@RequestParam(required = false)` で受け取って `service.findByStatus(status)` の結果を `RequestSummary` に変換して返す
   3. `detail` に `@GetMapping("/{id}")` を付け、`@PathVariable` で受け取る。見つからなければ 404

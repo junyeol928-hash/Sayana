@@ -1,0 +1,33 @@
+- after: 設計①:任意条件をどう組み立てるか
+  question: |
+    任意の条件に「金額の下限」を足して 4 つにした。派生クエリで全組み合わせを書くと何本? Specification なら部品はいくつ?
+  choices: ["派生クエリ 16 本・部品 4 個", "派生クエリ 8 本・部品 4 個", "派生クエリ 4 本・部品 16 個"]
+  answer: 0
+  why:
+    - ""
+    - "条件 3 つのときの数のまま読んだ答え。1 つ増えるたびに倍になるので、2⁴ = 16 本"
+    - "派生クエリと部品の数を取り違えた答え。部品は条件 1 つに 1 個なので 4 個"
+  explanation: |
+    4 つそれぞれに「使う/使わない」があるので、派生クエリは 2⁴ = 16 本。Specification は条件 1 つ = 部品 1 つなので 4 個。
+- after: 設計②:ページングとソート
+  question: |
+    count クエリを減らしたくて、検索の戻り値を `Page` から `Slice` に変えた。画面で出せなくなるのは?
+  choices: ["「全 N 件中」の総件数", "「次へ」のリンク", "そのページの 20 件の中身"]
+  answer: 0
+  why:
+    - ""
+    - "総件数が無いと次も分からないと考えた答え。`Slice` も `hasNext()` で、次のページがあるかは分かる"
+    - "count を減らすと中身も取れないと考えた答え。中身の `getContent()` は `Slice` でも取れる"
+  explanation: |
+    `Slice` は count クエリを出さないので、総件数も総ページ数も知らない。「全 N 件中」が出せなくなる。
+- after: STS での実装
+  question: |
+    `search` の引数から `BindingResult binding` を消した。`/requests/search?status=FOO` が来ると?
+  choices: ["400 Bad Request になる", "status は指定なしとして検索される", "status が `FOO` の申請(0 件)が返る"]
+  answer: 0
+  why:
+    - ""
+    - "`BindingResult` があるときの動きと取り違えた答え。無ければ、変換の失敗がそのまま例外になる"
+    - "`FOO` がそのまま検索に使われると読んだ答え。status は `enum` なので、`FOO` は変換の段階で失敗する"
+  explanation: |
+    `BindingResult` が無いと、`FOO` を `enum` に変換できない失敗を Spring MVC が `MethodArgumentNotValidException` にして、400 を返す。

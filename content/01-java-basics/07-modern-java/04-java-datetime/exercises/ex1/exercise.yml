@@ -7,13 +7,13 @@ problem: |
 
   **1. `endDate(LocalDate start, int months)` … 満了日**
 
-  - 開始日 `start` から `months` か月の契約の満了日 =「`months` か月後の **前日**」
+  - 開始日 `start` から `months` か月の契約の満了日 =「`months` か月後の**前日**」
   - 例:2024-04-01 開始の12か月契約 → 2025-03-31
   - `months` が 1 未満なら `IllegalArgumentException`
 
   **2. `noticeDate(LocalDate end)` … 更新案内を送る日**
 
-  - 満了日の **1か月前** の日(`minusMonths(1)`)
+  - 満了日の **1か月前**の日(`minusMonths(1)`)
   - 前月に同じ日がなければ月末になります(2025-03-31 → 2025-02-28)。これは java.time が自動でやってくれます
 
   **3. `daysLeft(LocalDate today, LocalDate end)` … 満了までの残り日数**
@@ -29,4 +29,4 @@ problem: |
   | `daysLeft(2024-12-25, 2025-01-05)` | `11` |
   | `daysLeft(2025-01-10, 2025-01-05)` | `-5` |
 
-  注意:java.time は不変です。`start.plusMonths(months);` と書いただけでは何も変わりません。**戻り値を使う** こと。
+  注意:java.time は不変です。`start.plusMonths(months);` と書いただけでは何も変わりません。**戻り値を使う**こと。

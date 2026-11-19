@@ -2,17 +2,17 @@ id: java-concurrency
 title: スレッドと並行処理
 status: ready
 minutes: 20
-summary: 同時に動く複数のスレッドと、共有される1つの状態。競合状態、synchronized・volatile・AtomicInteger、ExecutorService・Future・CompletableFuture、シングルトン Bean のフィールドの危険まで。
+summary: 同時に動く複数のスレッドと、共有される1つの状態。競合状態、`synchronized`・`volatile`・`AtomicInteger`、`ExecutorService`・`Future`・`CompletableFuture`、シングルトン Bean のフィールドの危険まで。
 goals:
   - スレッドとは何か、Web アプリが「1リクエスト=1スレッド」で動き、Bean を全スレッドで共有することを説明できる
-  - count++ が競合状態を起こす理由を「読む・足す・書く」の3ステップで説明できる
-  - synchronized・volatile・AtomicInteger の役割の違いを説明し、使い分けられる
-  - ExecutorService に仕事を投げ、Future をタイムアウト付きで受け取り、shutdown まで書ける
+  - "`count++` が競合状態を起こす理由を「読む・足す・書く」の3ステップで説明できる"
+  - "`synchronized`・`volatile`・`AtomicInteger` の役割の違いを説明し、使い分けられる"
+  - "`ExecutorService` に仕事を投げ、`Future` をタイムアウト付きで受け取り、`shutdown` まで書ける"
   - シングルトン Bean に書き換え可能なフィールドを持たせる危険を見抜き、ローカル変数に直せる
 samples:
   - title: スレッドを2本動かして join で待つ
     description: |
-      配列の前半と後半を別々のスレッドで合計します。`start()` で動き出し、`join()` で終わるまで待ちます。各スレッドは **自分専用の枠** に書くので、取り合いは起きません。
+      配列の前半と後半を別々のスレッドで合計する。`start()` で動き出し、`join()` で終わるまで待つ。2 本のスレッドはそれぞれ**自分専用の枠**に書く。合計は 1 本で 1〜1000 を足したときと同じになるだろうか。
     code: |
       int[] numbers = new int[1000];
       for (int i = 0; i < numbers.length; i++) {
@@ -38,7 +38,7 @@ samples:
       System.out.println("合計 = " + (partial[0] + partial[1]));
   - title: count++ の割り込みを手で再現する
     description: |
-      `count++` は「読む → 1を足す → 書き戻す」の3ステップです。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現すると、加算が1回分消えるのが分かります。
+      `count++` は「読む → 1を足す → 書き戻す」の3ステップ。2つのスレッドがこの途中で入れ替わった順番を、1本のスレッドで手で再現する。2回 `count++` したはずの `count` はいくつになるだろうか。
     code: |
       int count = 0;
 
@@ -55,7 +55,7 @@ samples:
       // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから B が読む順に並べ替えると?
   - title: AtomicInteger と synchronized なら必ず合う
     description: |
-      4本のスレッドが1万回ずつ数えます。`AtomicInteger` と `synchronized` のどちらでも、毎回ぴったり 40000 になります。素の `int` の `count++` で同じことをすると、**実行するたびに 40000 より小さい値になり得る**(毎回違う)ので、このサンプルには入れていません。
+      4本のスレッドが1万回ずつ数える。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。
     code: |
       import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,7 +89,7 @@ samples:
       System.out.println("synchronized  : " + sync.get() + "(期待値と一致: " + (sync.get() == expected) + ")");
   - title: ExecutorService と Future(タイムアウト付き)
     description: |
-      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取ります。結果は **投げた順** に取り出すので、どれが先に終わっても表示の順番は変わりません。後半は、時間のかかる仕事を `get(タイムアウト)` で諦める例です。
+      3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取る。どの仕事が先に終わるかは決まっていないが、結果はどの順で表示されるだろうか。後半の、5 秒かかる仕事を `get` で 100 ミリ秒だけ待つとどうなる?
     code: |
       import java.util.*;
       import java.util.concurrent.*;
@@ -124,7 +124,7 @@ samples:
       System.out.println("プールは止まった? " + pool.isTerminated());
   - title: CompletableFuture で非同期処理をつなぐ
     description: |
-      `supplyAsync` で別スレッドに仕事を任せ、`thenApply`(普通の関数)と `thenCompose`(CompletableFuture を返す関数)でつなぎます。最後の `join()` で完了を待ちます。
+      `supplyAsync` で別スレッドに仕事を任せ、`thenApply`(普通の関数)と `thenCompose`(`CompletableFuture` を返す関数)でつなぎます。最後の `join()` で完了を待ちます。割引のあと、支払いはいくらになるだろうか。
     code: |
       import java.util.concurrent.*;
 
@@ -166,27 +166,40 @@ quiz:
       ```
     choices: ["必ず 2000", "2000 未満になることがある", "必ず 1000", "実行のたびに値がバラバラ(0〜2000)"]
     answer: 0
+    why:
+      - ""
+      - "素の `count++` と同じと読んだ答え。`incrementAndGet()` は別物"
+      - "2 つのスレッドが同じ 1000 回を分け合うと読んだ答え。それぞれが 1000 回ずつ足して 2000"
+      - "終わる前に読むと読んだ答え。`join()` を見落としている"
     explanation: |
-      `incrementAndGet()` は「読む・足す・書く」を **割り込まれない1つの操作** として行うので、2つのスレッドが同時に呼んでも加算は消えません。さらに `join()` で両方の終了を待ってから読んでいるので、必ず 2000 です。
-      「2000 未満になることがある」のは、素の `int` で `count++` した場合です。`join()` を書き忘れた場合も、途中の値を読んでしまうことがあります。
+      `incrementAndGet()` は「読む・足す・書く」を**割り込まれない1つの操作**として行うので、2つのスレッドが同時に呼んでも加算は消えません。さらに `join()` で両方の終了を待ってから読んでいるので、必ず 2000 です。
   - question: |
-      複数のスレッドから同時に呼ばれる `count++`(`count` は int のフィールド)がスレッドセーフでない理由は?
-    choices: ["int 型は複数スレッドから読めないから", "読む・1を足す・書き戻すの3ステップに分かれていて、途中に別スレッドが割り込めるから", "count++ はコンパイル時に削除されることがあるから", "フィールドはスレッドごとにコピーされて別々の値になるから"]
+      複数のスレッドから同時に呼ばれる `count++`(`count` は `int` のフィールド)がスレッドセーフでない理由は?
+    choices: ["`int` 型は複数スレッドから読めないから", "読む・足す・書き戻すの間に、別スレッドが割り込めるから", "`count++` はコンパイル時に削除されることがあるから", "フィールドはスレッドごとにコピーされて別々の値になるから"]
     answer: 1
+    why:
+      - "`int` は複数スレッドから読めないと読んだ答え。読むこと自体は問題なく、問題は途中の割り込み"
+      - ""
+      - "`count++` がコンパイルで消えると読んだ答え。消えはせず、読む・足す・書くの間に割り込まれる"
+      - "フィールドをスレッドごとのものと読んだ答え。スレッドごとなのはローカル変数"
     explanation: |
-      `count++` は1行に見えても、中では「①読む → ②1を足す → ③書き戻す」です。2つのスレッドが両方とも①で同じ値を読むと、どちらも同じ値を書き戻し、1回分の加算が消えます。これが **競合状態** です。
-      int を読むこと自体は問題ありません。フィールドはヒープ上の1つを全スレッドが共有しています(スレッドごとに別々なのはスタック上のローカル変数)。
+      `count++` は1行に見えても、中では「①読む → ②1を足す → ③書き戻す」です。2つのスレッドが両方とも①で同じ値を読むと、どちらも同じ値を書き戻し、1回分の加算が消えます。これが**競合状態**です。
   - question: |
       次のフィールドを持つクラスの `increment()` を、複数のスレッドが同時に呼ぶ。正しい説明は?
       ```java
       private volatile int count = 0;
       public void increment() { count++; }
       ```
-    choices: ["volatile を付けたので完全にスレッドセーフ", "volatile は値の見え方(可視性)を保証するだけで、count++ の3ステップは割り込まれ得る", "volatile を付けたフィールドに ++ はコンパイルエラー", "volatile を付けると count は常に 0 のまま"]
+    choices: ["`volatile` を付けたので完全にスレッドセーフ", "`volatile` は見え方を保証するだけで、`count++` は割り込まれ得る", "`volatile` を付けたフィールドに `++` はコンパイルエラー", "`volatile` を付けると `count` は常に 0 のまま"]
     answer: 1
+    why:
+      - "`volatile` で操作が 1 つの塊になると読んだ答え。保証するのは見え方だけ"
+      - ""
+      - "`volatile` のフィールドに `++` は書けないと読んだ答え。書けて、コンパイルも通る"
+      - "`volatile` で値が変わらなくなると読んだ答え。値は変わる"
     explanation: |
       `volatile` が保証するのは「書いた値がほかのスレッドにすぐ見える」ことだけです。`count++` の「読む・足す・書く」を1つの塊にはしないので、加算が消える競合状態はそのまま残ります。
-      複数ステップをまとめて守るには `synchronized` か `AtomicInteger` を使います。volatile が向いているのは、停止フラグのような「1回書いて、ほかが読むだけ」の値です。
+      複数ステップをまとめて守るには `synchronized` か `AtomicInteger` を使います。`volatile` が向いているのは、停止フラグのような「1回書いて、ほかが読むだけ」の値です。
   - question: |
       Spring の `@Service` クラスに次のフィールドがあった。問題点として正しいのは?
       ```java
@@ -196,11 +209,15 @@ quiz:
           ...
       }
       ```
-    choices: ["問題ない。リクエストごとに新しい ItemService が作られるので", "Bean は既定でアプリ全体に1個だけで全リクエストが共有するため、同時に put すると HashMap が壊れることがある", "HashMap は遅いので ArrayList にするべき", "final が付いていないのでコンパイルエラー"]
+    choices: ["問題ない。リクエストごとに新しい ItemService が作られるので", "Bean は既定で 1 個だけで、同時の `put` で `HashMap` が壊れうる", "HashMap は遅いので ArrayList にするべき", "`final` が付いていないのでコンパイルエラー"]
     answer: 1
+    why:
+      - "Bean がリクエストごとに作られると読んだ答え。既定では 1 個を使い回す"
+      - ""
+      - "速さの問題と読んだ答え。問題は全スレッドが同じ `HashMap` に同時に書くこと"
+      - "`final` が無いとコンパイルが通らないと読んだ答え。通るので、かえって気づきにくい"
     explanation: |
-      Spring の Bean は既定で **シングルトン**(アプリ全体で1個)です。全リクエスト=全スレッドが同じ `ItemService` の同じ `HashMap` を触るので、同時に書き込むと中のデータ構造が壊れることがあります。`ConcurrentHashMap` に変えるか、そもそも状態を Bean に持たない設計にします。
-      リクエストごとに作られるわけではありません。final が無くてもコンパイルは通ります(だからこそ気づきにくい)。
+      Spring の Bean は既定で**シングルトン**(アプリ全体で1個)です。全リクエスト=全スレッドが同じ `ItemService` の同じ `HashMap` を触るので、同時に書き込むと中のデータ構造が壊れることがあります。`ConcurrentHashMap` に変えるか、そもそも状態を Bean に持たない設計にします。
   - question: |
       次のコードの出力は?
       ```java
@@ -219,8 +236,13 @@ quiz:
       ```
     choices: ["done", "timeout", "何も出力されない", "コンパイルエラー"]
     answer: 1
+    why:
+      - "`get` が処理の終わりまで待つと読んだ答え。時間を渡した `get` は 1 秒で待つのをやめる"
+      - ""
+      - "タイムアウトで黙って終わると読んだ答え。`TimeoutException` を `catch` して `timeout` と出す"
+      - "Thread.sleep の例外を扱っていないと読んだ答え。値を返すラムダは Callable で、例外を投げてよい"
     explanation: |
-      処理には5秒かかりますが、`get(1, TimeUnit.SECONDS)` は1秒で待つのをやめて `TimeoutException` を投げます。catch で受けて `timeout` と表示します。
+      処理には5秒かかりますが、`get(1, TimeUnit.SECONDS)` は1秒で待つのをやめて `TimeoutException` を投げます。`catch` で受けて `timeout` と表示します。
       引数なしの `get()` なら5秒待って `done` を表示します。外部 API が応答しないと永遠に待つことになるので、実務ではタイムアウト付きの `get` が定石です。
 columns:
   - type: mistake
@@ -235,11 +257,11 @@ columns:
 
       ある日、外部 API 側のサーバーが「接続は受けるが返事をしない」状態になりました。`get()` は結果が来るまで無期限に待つので、リクエストを処理していたスレッドが次々と止まったまま戻らなくなります。Web サーバーのスレッドには上限がある(Spring Boot 既定の Tomcat なら最大200本)ので、全部が待ちで埋まった時点で、在庫と関係ない画面まで一切応答しなくなりました。
 
-      対策は、`f.get(3, TimeUnit.SECONDS)` のように **必ず待つ時間に上限を付ける** こと。タイムアウトしたら `cancel(true)` して、エラー画面や「在庫確認中」の表示に切り替えます。レビューで `get()` や `join()` を見たら、時間制限があるかを真っ先に確認してください。
+      対策は、`f.get(3, TimeUnit.SECONDS)` のように**必ず待つ時間に上限を付ける**こと。タイムアウトしたら `cancel(true)` して、エラー画面や「在庫確認中」の表示に切り替えます。レビューで `get()` や `join()` を見たら、時間制限があるかを真っ先に確認してください。
   - type: genba
     title: 外部装置は「1つずつ順番に」しか受け付けないことがある
     body: |
-      鍵の生成に使う暗号装置(仕事では HSM。ハードウェアセキュリティモジュール)や古い業務端末など、**同時に1つの接続しか受け付けない** 外部装置があります。Web アプリからは複数のリクエストが同時に来るので、そのまま呼ぶと装置側でエラーになります。
+      鍵の生成に使う暗号装置(仕事では HSM。ハードウェアセキュリティモジュール)や古い業務端末など、**同時に1つの接続しか受け付けない**外部装置があります。Web アプリからは複数のリクエストが同時に来るので、そのまま呼ぶと装置側でエラーになります。
 
       こういうとき、Service の中に `Executors.newSingleThreadExecutor()`(スレッド1本だけのプール)を持たせ、装置へのアクセスは必ずそこに投げる形にします。何本のリクエストスレッドから呼ばれても、実際に装置に触るのは1本だけで、残りは順番待ちになります。
 
@@ -249,6 +271,8 @@ columns:
     body: |
       これまでの Java のスレッドは OS のスレッドと1対1で、1本ごとに数百KB〜1MB 程度のスタックを確保します。数千本も作ると重いので、Web サーバーはスレッドプールで数を絞ってきました。
 
-      Java 21 で正式に入った **仮想スレッド**(Virtual Threads)は、JVM が管理する軽いスレッドです。待ち(外部 API の応答待ちなど)の間は OS のスレッドを手放すので、何万本作っても平気です。`Thread.ofVirtual().start(...)` や `Executors.newVirtualThreadPerTaskExecutor()` で使えます。Spring Boot 3.2 以降なら `spring.threads.virtual.enabled=true` の1行で、リクエスト処理が仮想スレッドになります。
+      Java 21 で正式に入った**仮想スレッド**(Virtual Threads)は、JVM が管理する軽いスレッドです。待ち(外部 API の応答待ちなど)の間はふつう OS のスレッドを手放すので、何万本作っても平気です。ただし Java 21 では、synchronized の中や native メソッドの中で待っている間は OS のスレッドを手放せません(pinning。synchronized については Java 24 で解消)。`Thread.ofVirtual().start(...)` や `Executors.newVirtualThreadPerTaskExecutor()` で使えます。Spring Boot 3.2 以降なら `spring.threads.virtual.enabled=true` の1行で、リクエスト処理が仮想スレッドになります。
 
-      ただし、仮想スレッドでも **共有される状態の危険はまったく同じ** です。安くなったのはスレッドの数で、競合状態の対策(この回の内容)は変わりません。
+      ただし、仮想スレッドでも**共有される状態の危険はまったく同じ**です。安くなったのはスレッドの数で、競合状態の対策(この回の内容)は変わりません。
+
+      また、仮想スレッドは安いので使い回さず、仕事ごとに1本作るのが作法です(`Executors.newVirtualThreadPerTaskExecutor()`)。この回の「スレッドは使い回す」は、OS と1対1の従来のスレッドの話です。

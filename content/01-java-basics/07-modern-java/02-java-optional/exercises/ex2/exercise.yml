@@ -8,7 +8,7 @@ problem: |
   - `Customer` … `getName()` 氏名、`getAddress()` 住所(**null のことがある**)
   - `Address` … `getZip()` 郵便番号、`getCity()` 市区町村(どちらも **null や空白だけのことがある**)
 
-  次の2つのメソッドを、`if (x != null)` を重ねずに **Optional の map / filter チェーン** で完成させてください。
+  次の2つのメソッドを、`if (x != null)` を重ねずに **Optional の map / filter チェーン**で完成させてください。
 
   | メソッド | 返す値 |
   |---|---|

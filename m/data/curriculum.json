@@ -20,7 +20,7 @@
       }, {
         "id" : "java-variables",
         "title" : "変数と型",
-        "summary" : "プリミティブ型8種と参照型の違い、型変換・オーバーフロー・double の誤差など「黙って壊れる」ポイントを押さえる",
+        "summary" : "プリミティブ型8種と参照型の違い、型変換・オーバーフロー・`double` の誤差など「黙って壊れる」ポイントを押さえる",
         "minutes" : 19,
         "ready" : true,
         "exercises" : 3,
@@ -32,7 +32,7 @@
         "id" : "java-operators",
         "title" : "演算子",
         "summary" : "整数除算・剰余・複合代入・インクリメント・短絡評価・文字列連結・三項演算子・優先順位まで、「静かに間違う」演算子の落とし穴をまとめて潰す",
-        "minutes" : 20,
+        "minutes" : 22,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -46,8 +46,8 @@
       "lessons" : [ {
         "id" : "java-if",
         "title" : "条件分岐",
-        "summary" : "if / else if / else と switch 式で処理を分ける。波括弧・フォールスルー・文字列の == という三大地雷の避け方まで。",
-        "minutes" : 27,
+        "summary" : "`if` / `else if` / `else` と `switch` 式で処理を分ける。波括弧・フォールスルー・文字列の `==` という三大地雷の避け方まで。",
+        "minutes" : 28,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -57,7 +57,7 @@
       }, {
         "id" : "java-loops",
         "title" : "ループ",
-        "summary" : "for・while・do-while の使い分けと break/continue、多重ループ、StringBuilder での文字列組み立て、そして off-by-one や無限ループといった定番のバグを押さえる。",
+        "summary" : "for・while・do-while の使い分けと `break`/`continue`、多重ループ、`StringBuilder` での文字列組み立て、そして off-by-one や無限ループといった定番のバグを押さえる。",
         "minutes" : 20,
         "ready" : true,
         "exercises" : 3,
@@ -83,7 +83,7 @@
       "lessons" : [ {
         "id" : "java-methods",
         "title" : "メソッド",
-        "summary" : "処理に名前を付けて呼び出すメソッド。引数と戻り値、static の意味、オーバーロード、Java が「値渡し」である本当の意味、可変長引数と再帰まで。",
+        "summary" : "処理に名前を付けて呼び出すメソッド。引数と戻り値、`static` の意味、オーバーロード、Java が「値渡し」である本当の意味、可変長引数と再帰まで。",
         "minutes" : 15,
         "ready" : true,
         "exercises" : 3,
@@ -94,7 +94,7 @@
       }, {
         "id" : "java-strings",
         "title" : "文字列",
-        "summary" : "String は不変、比較は equals。substring・split・strip などの定番メソッド、書式指定とテキストブロック、StringBuilder、数値変換まで、業務で毎日使う文字列操作を固める。",
+        "summary" : "String は不変、比較は `equals`。`substring`・`split`・`strip` などの定番メソッド、書式指定とテキストブロック、`StringBuilder`、数値変換まで、業務で毎日使う文字列操作を固める。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 3,
@@ -109,8 +109,8 @@
       "lessons" : [ {
         "id" : "java-classes",
         "title" : "クラスとオブジェクト",
-        "summary" : "バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・this・static、参照の代入と null、toString まで。",
-        "minutes" : 21,
+        "summary" : "バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・`this`・`static`、参照の代入と `null`、`toString` まで。",
+        "minutes" : 22,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -120,7 +120,7 @@
       }, {
         "id" : "java-encapsulation",
         "title" : "カプセル化",
-        "summary" : "フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、final と不変オブジェクト、防御的コピーまで。",
+        "summary" : "フィールドを隠して、不変条件を守る操作だけを公開する。アクセス修飾子、getter/setter の落とし穴、引数チェック、`final` と不変オブジェクト、防御的コピーまで。",
         "minutes" : 20,
         "ready" : true,
         "exercises" : 3,
@@ -131,7 +131,7 @@
       }, {
         "id" : "java-inheritance",
         "title" : "継承",
-        "summary" : "extends で既存クラスを土台にする。super とコンストラクタの順番、@Override、Object の toString/equals、そして「継承より委譲」まで。",
+        "summary" : "`extends` で既存クラスを土台にする。`super` とコンストラクタの順番、`@Override`、Object の `toString`/`equals`、そして「継承より委譲」まで。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 3,
@@ -142,8 +142,8 @@
       }, {
         "id" : "java-polymorphism",
         "title" : "ポリモーフィズム",
-        "summary" : "親の型の変数で子のインスタンスを扱い、実行時の型でメソッドが選ばれる。型の if 連鎖を消す技と、キャスト・instanceof・効かないものの罠まで。",
-        "minutes" : 26,
+        "summary" : "親の型の変数で子のインスタンスを扱い、実行時の型でメソッドが選ばれる。型の if 連鎖を消す技と、キャスト・`instanceof`・効かないものの罠まで。",
+        "minutes" : 28,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -153,8 +153,8 @@
       }, {
         "id" : "java-abstract-interface",
         "title" : "抽象クラスとインターフェース",
-        "summary" : "abstract で「未完成」を宣言し、interface で「できること」を約束する。テンプレートメソッド、default メソッド、Comparable、「インターフェースに対してプログラムする」まで。",
-        "minutes" : 15,
+        "summary" : "`abstract` で「未完成」を宣言し、`interface` で「できること」を約束する。テンプレートメソッド、`default` メソッド、Comparable、「インターフェースに対してプログラムする」まで。",
+        "minutes" : 16,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -164,8 +164,8 @@
       }, {
         "id" : "java-nested-classes",
         "title" : "ネストクラスと匿名クラス",
-        "summary" : "クラスの中のクラス(static ネスト・内部・ローカル・匿名)を見分け、Builder や匿名クラスの Comparator を読み書きする。初期化ブロックと new したときの実行順まで。",
-        "minutes" : 22,
+        "summary" : "クラスの中のクラス(`static` ネスト・内部・ローカル・匿名)を見分け、Builder や匿名クラスの Comparator を読み書きする。初期化ブロックと `new` したときの実行順まで。",
+        "minutes" : 23,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -179,7 +179,7 @@
       "lessons" : [ {
         "id" : "java-exceptions",
         "title" : "例外処理",
-        "summary" : "try / catch / finally、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。",
+        "summary" : "`try` / `catch` / `finally`、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。",
         "minutes" : 17,
         "ready" : true,
         "exercises" : 3,
@@ -194,7 +194,7 @@
       "lessons" : [ {
         "id" : "java-collections",
         "title" : "コレクション",
-        "summary" : "配列の限界を超える List / Set / Map。ArrayList・HashMap の基本操作から、不変コレクション、ループ中の削除、equals と hashCode、並べ替えまで。",
+        "summary" : "配列の限界を超える List / Set / Map。`ArrayList`・`HashMap` の基本操作から、不変コレクション、ループ中の削除、`equals` と `hashCode`、並べ替えまで。",
         "minutes" : 18,
         "ready" : true,
         "exercises" : 3,
@@ -205,7 +205,7 @@
       }, {
         "id" : "java-generics",
         "title" : "ジェネリクス",
-        "summary" : "List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。",
+        "summary" : "`List<String>` の `<>` の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。",
         "minutes" : 17,
         "ready" : true,
         "exercises" : 3,
@@ -220,8 +220,8 @@
       "lessons" : [ {
         "id" : "java-lambda-stream",
         "title" : "ラムダとStream",
-        "summary" : "匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 final の罠まで。",
-        "minutes" : 14,
+        "summary" : "匿名クラスをラムダ式に書き換え、Stream の「生成→中間操作→終端操作」でコレクションを絞り込み・変換・集計する。遅延評価や実質 `final` の罠まで。",
+        "minutes" : 15,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -231,7 +231,7 @@
       }, {
         "id" : "java-optional",
         "title" : "Optional",
-        "summary" : "「値がないかもしれない」を型で表す Optional。作り方・取り出し方、map / flatMap で null チェックを消す書き方、orElse と orElseGet の違い、使ってはいけない場所まで。",
+        "summary" : "「値がないかもしれない」を型で表す Optional。作り方・取り出し方、`map` / `flatMap` で `null` チェックを消す書き方、`orElse` と `orElseGet` の違い、使ってはいけない場所まで。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 3,
@@ -242,8 +242,8 @@
       }, {
         "id" : "java-record-enum",
         "title" : "recordとenum",
-        "summary" : "値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、ordinal を保存してはいけない理由、switch 式の網羅性、EnumMap まで。",
-        "minutes" : 18,
+        "summary" : "値を運ぶ不変クラスは record で1行に、決まった選択肢は enum で型に。コンパクトコンストラクタの検証、`ordinal` を保存してはいけない理由、`switch` 式の網羅性、`EnumMap` まで。",
+        "minutes" : 20,
         "ready" : true,
         "exercises" : 3,
         "quiz" : 5,
@@ -253,7 +253,7 @@
       }, {
         "id" : "java-datetime",
         "title" : "日付API",
-        "summary" : "Date / Calendar の地雷(可変・月が0始まり)を避けて java.time へ。LocalDate から Instant までの使い分け、不変ゆえの「戻り値を捨てる」罠、Period と Duration、YYYY と mm の取り違え、テストのための Clock 注入まで。",
+        "summary" : "Date / Calendar の地雷(可変・月が0始まり)を避けて `java.time` へ。`LocalDate` から `Instant` までの使い分け、不変ゆえの「戻り値を捨てる」罠、Period と Duration、`YYYY` と `mm` の取り違え、テストのための Clock 注入まで。",
         "minutes" : 11,
         "ready" : true,
         "exercises" : 3,
@@ -264,7 +264,7 @@
       }, {
         "id" : "java-annotations",
         "title" : "アノテーションの仕組み",
-        "summary" : "@ は「目印」で、それ自体は何もしない。標準の @Override から、@interface による自作、@Retention / @Target の意味、リフレクション(getAnnotation / isAnnotationPresent)で目印を読んで処理を挟む仕組みまで。Spring の @Service や @Transactional がどう読まれているかの予告つき。",
+        "summary" : "`@` は「目印」で、それ自体は何もしない。標準の `@Override` から、`@interface` による自作、`@Retention` / `@Target` の意味、リフレクション(`getAnnotation` / `isAnnotationPresent`)で目印を読んで処理を挟む仕組みまで。Spring の `@Service` や `@Transactional` がどう読まれているかの予告つき。",
         "minutes" : 19,
         "ready" : true,
         "exercises" : 3,
@@ -290,7 +290,7 @@
       }, {
         "id" : "java-junit",
         "title" : "JUnit入門",
-        "summary" : "JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、@ParameterizedTest、テストしやすい設計まで。この道場の採点の仕組みもこれ。",
+        "summary" : "JUnit 5 で自動テストを書く。assert の基本、Arrange-Act-Assert、境界値と同値分割、`@ParameterizedTest`、テストしやすい設計まで。この道場の採点の仕組みもこれ。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 3,
@@ -305,7 +305,7 @@
       "lessons" : [ {
         "id" : "java-jvm-memory",
         "title" : "JVMとメモリ",
-        "summary" : "変数やオブジェクトは実行中どこにあるのか。スタックとフレーム、ヒープと参照、値渡しの正体、GC と到達可能性、メモリリーク、OutOfMemoryError と StackOverflowError を1枚の絵でつなぐ。",
+        "summary" : "変数やオブジェクトは実行中どこにあるのか。スタックとフレーム、ヒープと参照、値渡しの正体、GC と到達可能性、メモリリーク、`OutOfMemoryError` と `StackOverflowError` を1枚の絵でつなぐ。",
         "minutes" : 22,
         "ready" : true,
         "exercises" : 3,
@@ -316,7 +316,7 @@
       }, {
         "id" : "java-concurrency",
         "title" : "スレッドと並行処理",
-        "summary" : "同時に動く複数のスレッドと、共有される1つの状態。競合状態、synchronized・volatile・AtomicInteger、ExecutorService・Future・CompletableFuture、シングルトン Bean のフィールドの危険まで。",
+        "summary" : "同時に動く複数のスレッドと、共有される1つの状態。競合状態、`synchronized`・`volatile`・`AtomicInteger`、`ExecutorService`・`Future`・`CompletableFuture`、シングルトン Bean のフィールドの危険まで。",
         "minutes" : 22,
         "ready" : true,
         "exercises" : 3,
@@ -336,7 +336,7 @@
       "lessons" : [ {
         "id" : "sts-setup",
         "title" : "STSの導入と画面構成",
-        "summary" : "STS(Spring Tool Suite 4)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。",
+        "summary" : "STS(Spring Tools for Eclipse)を Windows に入れ、JDK 21 の登録・文字コード UTF-8 の設定を済ませる。パースペクティブ・ビュー・エディタの画面構成と、困ったときの戻し方まで。",
         "minutes" : 11,
         "ready" : true,
         "exercises" : 1,
@@ -388,7 +388,7 @@
       "lessons" : [ {
         "id" : "tools-maven",
         "title" : "Maven(pom.xml・依存関係・ライフサイクル)",
-        "summary" : "このアプリ自身の pom.xml を教材に、座標・parent・依存関係とスコープ・ライフサイクル・mvnw を読み解く。STS での Maven 操作とトラブル対処まで。",
+        "summary" : "このアプリ自身の `pom.xml` を教材に、座標・`parent`・依存関係とスコープ・ライフサイクル・`mvnw` を読み解く。STS での Maven 操作とトラブル対処まで。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 1,
@@ -399,7 +399,7 @@
       }, {
         "id" : "tools-git",
         "title" : "Git連携",
-        "summary" : "作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、.gitignore、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。",
+        "summary" : "作業ツリー・ステージ・コミット・ブランチ・リモートの基本から、`.gitignore`、STS の Git 機能、GitHub のトークン認証、コンフリクト解消、現場のブランチ運用とやってはいけないことまで。",
         "minutes" : 12,
         "ready" : true,
         "exercises" : 0,
@@ -419,7 +419,7 @@
       "lessons" : [ {
         "id" : "spring-di",
         "title" : "DIとIoCコンテナ",
-        "summary" : "new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。",
+        "summary" : "`new` だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、`@Primary` / `@Qualifier`、singleton スコープの落とし穴まで。",
         "minutes" : 18,
         "ready" : true,
         "exercises" : 3,
@@ -430,7 +430,7 @@
       }, {
         "id" : "spring-boot-startup",
         "title" : "Spring Bootの起動の仕組み",
-        "summary" : "main の1行 SpringApplication.run の裏側。@SpringBootApplication の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと --debug レポートの読み方、devtools まで。",
+        "summary" : "`main` の1行 `SpringApplication.run` の裏側。`@SpringBootApplication` の中身、自動設定と条件付き Bean、コンポーネントスキャンの範囲、組み込み Tomcat、起動ログと `--debug` レポートの読み方、devtools まで。",
         "minutes" : 15,
         "ready" : true,
         "exercises" : 2,
@@ -445,7 +445,7 @@
       "lessons" : [ {
         "id" : "spring-controller",
         "title" : "Controllerとルーティング",
-        "summary" : "HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。",
+        "summary" : "HTTP の基本から、`DispatcherServlet` が URL を Controller のメソッドに振り分ける仕組み、`@GetMapping`・`@PathVariable`・`@RequestParam`、JSON・`ResponseEntity`・redirect まで。",
         "minutes" : 17,
         "ready" : true,
         "exercises" : 3,
@@ -456,7 +456,7 @@
       }, {
         "id" : "spring-thymeleaf",
         "title" : "Thymeleaf",
-        "summary" : "Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、th:text と XSS、th:each・th:if、フラグメントによる共通レイアウトまで。",
+        "summary" : "Controller から Model で値を渡し、Thymeleaf のテンプレートで HTML を作る。4種類の式、`th:text` と XSS、`th:each`・`th:if`、フラグメントによる共通レイアウトまで。",
         "minutes" : 12,
         "ready" : true,
         "exercises" : 2,
@@ -467,8 +467,8 @@
       }, {
         "id" : "spring-forms",
         "title" : "フォームとバリデーション",
-        "summary" : "フォームクラスと @ModelAttribute で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。",
-        "minutes" : 12,
+        "summary" : "フォームクラスと `@ModelAttribute` で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。",
+        "minutes" : 13,
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
@@ -493,7 +493,7 @@
       }, {
         "id" : "spring-data-jpa",
         "title" : "Spring Data JPA",
-        "summary" : "エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。",
+        "summary" : "エンティティでクラスとテーブルを対応づけ、`JpaRepository` と派生クエリで実装なしの DB アクセスを書く。`ddl-auto`・N+1・遅延ロードの落とし穴まで。",
         "minutes" : 18,
         "ready" : true,
         "exercises" : 2,
@@ -504,7 +504,7 @@
       }, {
         "id" : "spring-transaction",
         "title" : "トランザクション",
-        "summary" : "@Transactional で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、readOnly・伝播・楽観ロックの入口まで。",
+        "summary" : "`@Transactional` で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、`readOnly`・伝播・楽観ロックの入口まで。",
         "minutes" : 10,
         "ready" : true,
         "exercises" : 2,
@@ -519,7 +519,7 @@
       "lessons" : [ {
         "id" : "spring-rest",
         "title" : "REST API",
-        "summary" : "URL は名詞・操作は HTTP メソッド・結果はステータスコード。@RestController と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。",
+        "summary" : "URL は名詞・操作は HTTP メソッド・結果はステータスコード。`@RestController` と Jackson で JSON を返し、201 + Location、404、PUT と PATCH、DTO と日時の扱いまで。",
         "minutes" : 13,
         "ready" : true,
         "exercises" : 3,
@@ -530,7 +530,7 @@
       }, {
         "id" : "spring-exception-handling",
         "title" : "例外ハンドリング",
-        "summary" : "Controller から漏れた例外は 500 と Whitelabel Error Page に。@ExceptionHandler と @RestControllerAdvice で業務例外をステータスに対応させ、ProblemDetail(RFC 9457)でエラーの形をそろえる。",
+        "summary" : "Controller から漏れた例外は 500 と Whitelabel Error Page に。`@ExceptionHandler` と `@RestControllerAdvice` で業務例外をステータスに対応させ、`ProblemDetail`(RFC 9457)でエラーの形をそろえる。",
         "minutes" : 12,
         "ready" : true,
         "exercises" : 2,
@@ -545,7 +545,7 @@
       "lessons" : [ {
         "id" : "spring-config",
         "title" : "設定ファイルとプロファイル",
-        "summary" : "application.yml・@Value・@ConfigurationProperties・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。",
+        "summary" : "`application.yml`・`@Value`・`@ConfigurationProperties`・プロファイル・環境変数で、同じ jar を環境ごとに違う設定で動かす。秘密情報の渡し方まで。",
         "minutes" : 12,
         "ready" : true,
         "exercises" : 2,
@@ -556,7 +556,7 @@
       }, {
         "id" : "spring-logging",
         "title" : "ログ",
-        "summary" : "System.out.println を卒業して SLF4J + Logback でログを出す。レベルの使い分け、{} と例外の渡し方、logging.level での絞り込み、個人情報を出さない作法まで。",
+        "summary" : "`System.out.println` を卒業して SLF4J + Logback でログを出す。レベルの使い分け、`{}` と例外の渡し方、`logging.level` での絞り込み、個人情報を出さない作法まで。",
         "minutes" : 12,
         "ready" : true,
         "exercises" : 2,
@@ -571,7 +571,7 @@
       "lessons" : [ {
         "id" : "spring-security",
         "title" : "Spring Security入門",
-        "summary" : "認証(誰か)と認可(何をしてよいか)。SecurityFilterChain で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。",
+        "summary" : "認証(誰か)と認可(何をしてよいか)。`SecurityFilterChain` で URL ごとに鍵をかけ、パスワードは BCrypt、フォームは CSRF トークンで守る。",
         "minutes" : 16,
         "ready" : true,
         "exercises" : 2,
@@ -582,7 +582,7 @@
       }, {
         "id" : "spring-mockmvc",
         "title" : "MockMvcによるテスト",
-        "summary" : "サーバーを起動せずに Controller を叩く MockMvc。perform → andExpect の基本、standaloneSetup と @WebMvcTest、@MockitoBean での差し替え、文字化けとコンテキストキャッシュまで。",
+        "summary" : "サーバーを起動せずに Controller を叩く `MockMvc`。`perform` → `andExpect` の基本、`standaloneSetup` と `@WebMvcTest`、`@MockitoBean` での差し替え、文字化けとコンテキストキャッシュまで。",
         "minutes" : 11,
         "ready" : true,
         "exercises" : 3,
@@ -628,8 +628,8 @@
       }, {
         "id" : "capstone-setup",
         "title" : "プロジェクト作成とエンティティ",
-        "summary" : "承認くんの土台を作る。Spring Starter Project の作成、パッケージ構成、application.yml(H2 ファイルモード)、3つのエンティティと Repository、data.sql の初期データ、H2 コンソールでの確認まで。",
-        "minutes" : 14,
+        "summary" : "承認くんの土台を作る。Spring Boot 3.5.16 の `pom.xml` でのプロジェクト作成、パッケージ構成、`application.yml`(H2 ファイルモード)、3つのエンティティと Repository、`data.sql` の初期データ、H2 コンソールでの確認まで。",
+        "minutes" : 15,
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
@@ -654,8 +654,8 @@
       }, {
         "id" : "capstone-approve",
         "title" : "承認・差戻しフロー",
-        "summary" : "承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。",
-        "minutes" : 13,
+        "summary" : "承認くんの心臓部。業務ルールをエンティティと `ApprovalService` に振り分け、`@Transactional` で状態と履歴を一緒に保存し、`@Version` で二重承認を防ぐ。",
+        "minutes" : 14,
         "ready" : true,
         "exercises" : 2,
         "quiz" : 5,
@@ -665,7 +665,7 @@
       }, {
         "id" : "capstone-search",
         "title" : "検索とページング",
-        "summary" : "承認くんに検索画面 GET /requests/search を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。",
+        "summary" : "承認くんに検索画面 `GET /requests/search` を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。",
         "minutes" : 15,
         "ready" : true,
         "exercises" : 2,
@@ -691,7 +691,7 @@
       }, {
         "id" : "capstone-api-test",
         "title" : "REST APIとテスト",
-        "summary" : "承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を ProblemDetail で返し分け、@WebMvcTest + @MockitoBean とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。",
+        "summary" : "承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を `ProblemDetail` で返し分け、`@WebMvcTest` + `@MockitoBean` とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。",
         "minutes" : 19,
         "ready" : true,
         "exercises" : 2,
@@ -702,7 +702,7 @@
       }, {
         "id" : "capstone-release",
         "title" : "例外・ログ・プロファイルで仕上げ",
-        "summary" : "承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の @RestControllerAdvice を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。",
+        "summary" : "承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の `@RestControllerAdvice` を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。",
         "minutes" : 17,
         "ready" : true,
         "exercises" : 1,

@@ -9,7 +9,7 @@ problem: |
   |---|---|
   | `long total(int[] sales)` | 売上の合計 |
   | `double average(int[] sales)` | 1日あたりの平均売上(小数点以下も含める) |
-  | `int bestDay(int[] sales)` | 売上が最大だった日の **インデックス**(0始まり) |
+  | `int bestDay(int[] sales)` | 売上が最大だった日の**インデックス**(0始まり) |
 
   ### 例
   `sales = {12000, 8000, 15000, 8000, 21000}` のとき

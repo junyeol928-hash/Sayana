@@ -17,8 +17,8 @@ problem: |
 
   **1. `resolve(Map<String, Level> config, String loggerName)`**:そのロガーに効くレベルを返す
 
-  - 設定のキーのうち、ロガー名と **完全に一致する** か、ロガー名が **「キー + `.`」で始まる** ものを候補にする
-  - 候補が複数あれば、**一番長いキー** を採用する
+  - 設定のキーのうち、ロガー名と**完全に一致する**か、ロガー名が **「キー + `.`」で始まる** ものを候補にする
+  - 候補が複数あれば、**一番長いキー**を採用する
   - 候補が無ければ `"root"` の値。`"root"` も無ければ `Level.INFO`(Spring Boot の既定)
 
   | ロガー名 | 結果 | 理由 |
@@ -26,11 +26,11 @@ problem: |
   | `com.sayana.dojo.ai.AiService` | `INFO` | `com.sayana.dojo.ai` が一番長い一致 |
   | `com.sayana.dojo.exec.Grader` | `DEBUG` | `com.sayana.dojo` に一致 |
   | `com.sayana.dojo` | `DEBUG` | 完全一致 |
-  | `com.sayana.dojox.Foo` | `WARN` | `com.sayana.dojo` とは **ドット区切りで** 一致しない |
+  | `com.sayana.dojox.Foo` | `WARN` | `com.sayana.dojo` とは**ドット区切りで**一致しない |
   | `org.hibernate.SQL` | `WARN` | どれにも一致しないので root |
 
   **2. `isEnabled(Map<String, Level> config, String loggerName, Level level)`**:そのロガーで、レベル `level` のログが出力されるなら `true`
 
-  出力されるのは「効いているレベル **以上**」のログです(`TRACE < DEBUG < INFO < WARN < ERROR`)。`Level` は宣言順に並べた enum なので、`compareTo` で大小を比べられます。
+  出力されるのは「効いているレベル**以上**」のログです(`TRACE < DEBUG < INFO < WARN < ERROR`)。`Level` は宣言順に並べた enum なので、`compareTo` で大小を比べられます。
 
   STS の本物のプロジェクトでこの判定を自分で書くことはありません(Logback がやってくれます)。仕組みを知っておくと、「設定したのに DEBUG が出ない」ときにキーの綴りや区切りを疑えるようになります。

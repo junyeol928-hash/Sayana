@@ -3,7 +3,7 @@
 :::
 
 ::: sensei
-それ、1年分だと `sales365` まで作るの? 合計を出すコードも365個の足し算になるよ。こういうときに使うのが **配列** だね。
+それ、1年分だと `sales365` まで作るの? 合計を出すコードも365個の足し算になるよ。こういうときに使うのが**配列**だね。
 :::
 
 ::: haru
@@ -12,7 +12,7 @@
 
 ## 配列の基本:宣言・生成・初期化
 
-**配列(array)** は、**同じ型の値を決まった個数だけ、連続した番号付きで並べたもの** です。一つひとつの値を **要素(element)**、要素の番号を **インデックス(index、添字)** と呼びます。インデックスは **0 から始まります**。
+**配列(array)** は、**同じ型の値を決まった個数だけ、連続した番号付きで並べたもの**です。一つひとつの値を **要素(element)**、要素の番号を **インデックス(index、添字)** と呼びます。インデックスは **0 から始まります**。
 
 ```java
 int[] sales = new int[7];   // int を7個入れられる配列を「生成」して、変数 sales に入れる
@@ -22,14 +22,14 @@ System.out.println(sales[0]);      // 12000
 System.out.println(sales.length);  // 7
 ```
 
-`int[]` は「int の配列」という **型** です。`new int[7]` で要素7個分の配列が実際に作られます。宣言と生成は分けて書くこともできます。
+`int[]` は「int の配列」という**型**です。`new int[7]` で要素7個分の配列が実際に作られます。宣言と生成は分けて書くこともできます。
 
 ```java
 int[] scores;            // 宣言だけ(まだ配列は存在しない)
 scores = new int[3];     // ここで生成
 ```
 
-最初から中身が決まっているなら **配列初期化子** `{ ... }` が便利です。要素数は数えて自動で決まります。
+最初から中身が決まっているなら**配列初期化子** `{ ... }` が便利です。要素数は数えて自動で決まります。
 
 ```java
 int[] primes = {2, 3, 5, 7};                  // 宣言と同時なら {} だけでOK
@@ -46,7 +46,7 @@ error: illegal start of expression
             ^
 ```
 
-`new int[3]{1, 2, 3}` のように「サイズ指定」と「初期化子」を両方書くのもエラーです(`array creation with both dimension expression and initialization is illegal`)。サイズは中身から決まるので、二重指定は許されません。
+`new int[3]{1, 2, 3}` のように「サイズ指定」と「初期化子」を両方書くのもエラーで、次のメッセージが出ます: `array creation with both dimension expression and initialization is illegal` サイズは中身から決まるので、二重指定は許されません。
 
 ### 要素の既定値
 
@@ -77,11 +77,11 @@ error: cannot find symbol
 STS(Eclipse のコンパイラ)だと `Cannot invoke length() on the array type int[]` と表示されます。文字列の `"abc".length()` はメソッドなのでカッコが必要。ここは本当によく混ざります。
 
 ::: sensei
-配列の長さは **生成したときに決まって、あとから変えられない**。これは後で大事になるから覚えておいて。
+配列の長さは**生成したときに決まって、あとから変えられない**。これは後で大事になるから覚えておいて。
 :::
 
 ::: trivia なぜ 0 から数えるのか
-インデックスは「先頭から何個ぶんずれた位置か」という **オフセット** だと考えると自然です。先頭要素は0個ずれた位置なので `[0]`。C 言語以来の伝統で、Java もそれを引き継いでいます。
+インデックスは「先頭から何個ぶんずれた位置か」という**オフセット**だと考えると自然です。先頭要素は0個ずれた位置なので `[0]`。C 言語以来の伝統で、Java もそれを引き継いでいます。
 :::
 
 ## インデックスの範囲外アクセス
@@ -109,7 +109,7 @@ Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 3 out
 `Index -1` なら「0 の手前まで戻りすぎ」、`Index 7 ... for length 7` なら「`<=` か `+1` が怪しい」。数字と、スタックトレースの `(Main.java:3)` の行番号を見るだけで当たりが付きます。
 :::
 
-**なぜ Java は例外にするのか。** C 言語では範囲外に書き込んでもチェックされず、隣のメモリを壊して「たまに変な値になる」バグや、セキュリティ上の穴(バッファオーバーフロー)の原因になってきました。Java の JVM は **配列アクセスのたびに範囲チェック** を行い、範囲外なら必ず例外で止めます。少しのコストと引き換えに「黙って壊れる」を防いでいるわけです(JIT コンパイラが不要なチェックを最適化で消すので、実用上の遅さはほぼ気になりません)。
+**なぜ Java は例外にするのか。** C 言語では範囲外に書き込んでもチェックされず、隣のメモリを壊して「たまに変な値になる」バグや、セキュリティ上の穴(バッファオーバーフロー)の原因になってきました。Java の JVM は**配列アクセスのたびに範囲チェック**を行い、範囲外なら必ず例外で止めます。少しのコストと引き換えに「黙って壊れる」を防いでいるわけです(JIT コンパイラが不要なチェックを最適化で消すので、実用上の遅さはほぼ気になりません)。
 
 ## 配列をループで回す:for と拡張 for
 
@@ -129,9 +129,9 @@ for (int s : sales) {
 }
 ```
 
-拡張 for 文 `for (型 変数 : 配列)` は「配列の要素を先頭から順に変数に入れてループ」します。インデックスの書き間違いが起きないので、**読むだけなら拡張 for が第一候補** です。
+拡張 for 文 `for (型 変数 : 配列)` は「配列の要素を先頭から順に変数に入れてループ」します。インデックスの書き間違いが起きないので、**読むだけなら拡張 for が第一候補**です。
 
-ただし拡張 for の変数は **要素のコピー** です。代入しても配列の中身は変わりません。
+ただし拡張 for の変数は**要素のコピー**です。代入しても配列の中身は変わりません。
 
 ```java
 int[] prices = {100, 200, 300};
@@ -199,7 +199,7 @@ b[0] = 99;
 System.out.println(a[0]);   // 99 !?
 ```
 
-配列は **参照型** です。変数 `a` に入っているのは配列そのものではなく、**ヒープ領域にある配列オブジェクトを指す「参照」** です。`b = a` で複製されるのは参照の値だけなので、`a` と `b` は **同じ1つの配列** を指します。このように、1つのオブジェクトを複数の変数が指している状態を **エイリアス(別名)** と呼びます。
+配列は**参照型**です。変数 `a` に入っているのは配列そのものではなく、**ヒープ領域にある配列オブジェクトを指す「参照」** です。`b = a` で複製されるのは参照の値だけなので、`a` と `b` は**同じ1つの配列**を指します。このように、1つのオブジェクトを複数の変数が指している状態を **エイリアス(別名)** と呼びます。
 
 ```mermaid
 flowchart LR
@@ -217,7 +217,7 @@ flowchart LR
   C -- "Arrays.copyOf(a, 3) は新しい配列" --> Y
 ```
 
-本当に別の配列が欲しいときは **コピーを作ります**。
+本当に別の配列が欲しいときは**コピーを作ります**。
 
 ```java
 int[] a = {1, 2, 3};
@@ -229,7 +229,7 @@ System.out.println(a[0]);              // 1(元は無事)
 ```
 
 ::: sensei
-ちなみに「Java は参照渡し」っていう説明はよく見るけど、正確じゃない。Java は常に **値渡し** で、配列の場合は「参照という値」がコピーされて渡るだけ。だから結果として同じ配列を触れる、ってこと。メソッドのレッスンでもう一度やるよ。
+ちなみに「Java は参照渡し」っていう説明はよく見るけど、正確じゃない。Java は常に**値渡し**で、配列の場合は「参照という値」がコピーされて渡るだけ。だから結果として同じ配列を触れる、ってこと。メソッドのレッスンでもう一度やるよ。
 :::
 
 ### == で中身は比べられない
@@ -245,7 +245,7 @@ System.out.println(Arrays.equals(x, y));  // true(長さと全要素が等しい
 
 中身の比較は **`Arrays.equals`** を使います。`x.equals(y)` も `==` と同じ判定になるので注意(配列は `equals` を中身比較に作り替えていません)。
 
-## Arrays クラスの便利メソッド
+## `Arrays` クラスの便利メソッド
 
 `java.util.Arrays` は配列を扱う道具箱です。ファイル先頭に `import java.util.Arrays;` を書いて使います(STS なら `Ctrl+Shift+O` で自動追加)。
 
@@ -264,15 +264,15 @@ Arrays.fill(flags, -1);                      // 全要素を同じ値で埋め�
 System.out.println(Arrays.toString(flags));  // [-1, -1, -1, -1]
 ```
 
-配列を `println` に直接渡すと `[I@659e0bfd` のような謎の文字列が出ます。`[I` は「int の配列」を表す JVM 内部の型名、`@` の後ろはハッシュ値(実行ごとに変わる)です。**中身を見たいときは `Arrays.toString`**、と体で覚えましょう。
+配列を `println` に直接渡すと `[I@659e0bfd` のような謎の文字列が出ます。`[I` は「int の配列」を表す JVM 内部の型名、`@` の後ろはハッシュ値(中身とは無関係で、環境や実行によって変わることがある)です。**中身を見たいときは `Arrays.toString`**、と体で覚えましょう。
 
-`Arrays.sort` は **戻り値を返さず、渡した配列そのものを並べ替えます**。元の順番も残したいなら、先に `copyOf` でコピーしてからソートします。
+`Arrays.sort` は**戻り値を返さず、渡した配列そのものを並べ替えます**。元の順番も残したいなら、先に `copyOf` でコピーしてからソートします。
 
 ## 二次元配列とジャグ配列
 
-表のようなデータ(社員×曜日の勤務時間など)は **二次元配列** で表せます。Java の二次元配列の正体は **「配列の配列」** です。
+表のようなデータ(社員×曜日の勤務時間など)は**二次元配列**で表せます。Java の二次元配列の正体は **「配列の配列」** です。
 
-<figure class="figure"><svg viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-arrays-arrow03b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="70" width="80" height="50" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="100" font-size="14" text-anchor="middle" fill="var(--ink)">grid</text><path d="M102 95 L160 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><rect x="166" y="40" width="90" height="110" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><rect x="178" y="52" width="66" height="38" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.5"/><text x="211" y="76" font-size="13" text-anchor="middle" fill="var(--ink)">[0] 住所</text><rect x="178" y="100" width="66" height="38" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.5"/><text x="211" y="124" font-size="13" text-anchor="middle" fill="var(--ink)">[1] 住所</text><path d="M246 71 L306 71" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><path d="M246 119 L306 119" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><rect x="312" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="340" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">1</text><rect x="376" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="404" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">2</text><rect x="440" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="468" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">3</text><rect x="312" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="340" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">4</text><rect x="376" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="404" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">5</text><rect x="440" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="468" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">6</text><text x="404" y="30" font-size="13" text-anchor="middle" fill="var(--ink-muted)">grid[0] = {1, 2, 3}</text><text x="404" y="170" font-size="13" text-anchor="middle" fill="var(--ink-muted)">grid[1][0] は「1 行目の配列」の「0 番目」= 4</text></svg><figcaption>二次元配列は「行の配列」。例:grid = {{1, 2, 3}, {4, 5, 6}} なら、grid が指す配列の各要素が、また別の配列(各行)を指す</figcaption></figure>
+<figure class="figure"><svg viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-arrays-arrow03b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="70" width="80" height="50" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="100" font-size="14" text-anchor="middle" fill="var(--ink)">grid</text><path d="M102 95 L160 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><rect x="166" y="40" width="90" height="110" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><rect x="178" y="52" width="66" height="38" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.5"/><text x="211" y="76" font-size="13" text-anchor="middle" fill="var(--ink)">[0] 住所</text><rect x="178" y="100" width="66" height="38" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.5"/><text x="211" y="124" font-size="13" text-anchor="middle" fill="var(--ink)">[1] 住所</text><path d="M246 71 L306 71" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><path d="M246 119 L306 119" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-arrays-arrow03b)"/><rect x="312" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="340" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">1</text><rect x="376" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="404" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">2</text><rect x="440" y="52" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="468" y="77" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">3</text><rect x="312" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="340" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">4</text><rect x="376" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="404" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">5</text><rect x="440" y="100" width="56" height="38" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text x="468" y="125" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">6</text><text x="404" y="30" font-size="13" text-anchor="middle" fill="var(--ink-muted)">grid[0] = {1, 2, 3}</text><text x="404" y="170" font-size="13" text-anchor="middle" fill="var(--ink-muted)">grid[1][0] は「[1] の行(2 行目)」の「[0](先頭)」= 4</text></svg><figcaption>二次元配列は「行の配列」。例:grid = {{1, 2, 3}, {4, 5, 6}} なら、grid が指す配列の各要素が、また別の配列(各行)を指す</figcaption></figure>
 
 ```java
 int[][] hours = {
@@ -298,10 +298,10 @@ System.out.println(Arrays.deepToString(hours));
 - `new int[3][5]` … 3行×5列をまとめて生成(全要素0)
 - `new int[3][]` … 行の入れ物だけ生成。各行は `null` なので、`hours[0] = new int[5];` のように後から作る
 
-`new int[3][]` のまま `hours[0].length` を読むと `NullPointerException: Cannot read the array length because "hours[0]" is null` になります。二次元配列の表示は `Arrays.toString` ではなく **`Arrays.deepToString`**、比較は **`Arrays.deepEquals`** です(`toString` だと `[[I@..., [I@...]` になる)。
+`new int[3][]` のまま `hours[0].length` を読むと `NullPointerException: Cannot read the array length because "hours[0]" is null` になります(STS や `javac -g` でコンパイルした場合。`javac` だけだと変数名の代わりに `"<local1>[0]"` のような番号が出ます)。二次元配列の表示は `Arrays.toString` ではなく **`Arrays.deepToString`**、比較は **`Arrays.deepEquals`** です(`toString` だと `[[I@..., [I@...]` になる)。
 
 ::: warn clone と copyOf は「浅いコピー」
-二次元配列に `clone()` を使うと、外側の配列だけが新しくなり、各行は元と **共有** されたままです。行の中身まで別にしたいなら、行ごとに `copyOf` しましょう。
+二次元配列に `clone()` を使うと、外側の配列だけが新しくなり、各行は元と**共有**されたままです。行の中身まで別にしたいなら、行ごとに `copyOf` しましょう。
 :::
 
 ## 配列の長さは変えられない → だからコレクションがある
@@ -313,7 +313,7 @@ System.out.println(Arrays.deepToString(hours));
 :::
 
 ::: sensei
-いい質問。そこで `ArrayList` みたいな **コレクション** の出番。要素を足すと自動で伸びてくれる。現場の業務コードは、配列より `List` を使うことのほうが多いよ。コレクションのレッスンでじっくりやろう。
+いい質問。そこで `ArrayList` みたいな**コレクション**の出番。要素を足すと自動で伸びてくれる。現場の業務コードは、配列より `List` を使うことのほうが多いよ。コレクションのレッスンでじっくりやろう。
 :::
 
 それでも配列を学ぶ価値は大きいです。`ArrayList` の中身は実は配列で、容量が足りなくなると「大きな配列を作ってコピー」を内部でやっています。`main(String[] args)` や `"a,b,c".split(",")` の戻り値など、標準APIのあちこちに配列が出てきますし、要素数が固定で速さが欲しい処理(画像のピクセル、バイト列)では今も配列が主役です。
@@ -322,7 +322,7 @@ System.out.println(Arrays.deepToString(hours));
 
 ::: warn 現場でよく見る配列のミス
 - `i <= a.length` で最後に `ArrayIndexOutOfBoundsException` → `i < a.length`
-- `a.length()` でコンパイルエラー → 配列は `length`、String は `length()`
+- `a.length()` でコンパイルエラー → 配列は `length`、`String` は `length()`
 - `println(a)` で `[I@1b6d3586` → `Arrays.toString(a)`
 - `a == b` で中身を比較 → `Arrays.equals(a, b)`
 - `int[] copy = a;` でコピーしたつもり → `Arrays.copyOf` か `clone()`
@@ -333,11 +333,11 @@ System.out.println(Arrays.deepToString(hours));
 ## まとめ
 
 ::: point このレッスンのポイント
-- 配列は **同じ型の値を固定個数並べたもの**。`new int[5]` か `{1, 2, 3}` で作り、要素は既定値(0 / false / null)で初期化済み。
-- インデックスは **0 〜 length-1**。範囲外は `ArrayIndexOutOfBoundsException`。メッセージの `Index 3 out of bounds for length 3` を読む。
+- 配列は**同じ型の値を固定個数並べたもの**。`new int[5]` か `{1, 2, 3}` で作り、要素は既定値(`0` / `false` / `null`)で初期化済み。
+- インデックスは **0 〜 length-1**。範囲外は `ArrayIndexOutOfBoundsException`。メッセージで読むのは次の部分: `Index 3 out of bounds for length 3`
 - 要素数は `length`(フィールド、カッコなし)。
 - 読むだけなら拡張 for、書き換え・位置が必要なら普通の for。
-- 配列は **参照型**。代入は同じ配列を指すだけ。コピーは `Arrays.copyOf` / `clone()`、比較は `Arrays.equals`、表示は `Arrays.toString`。
+- 配列は**参照型**。代入は同じ配列を指すだけ。コピーは `Arrays.copyOf` / `clone()`、比較は `Arrays.equals`、表示は `Arrays.toString`。
 - 二次元配列は「配列の配列」。行ごとに長さが違ってよい(ジャグ配列)。表示は `Arrays.deepToString`。
 - 長さは変えられない。可変長が必要なら、後で学ぶ `List`(コレクション)を使う。
 :::

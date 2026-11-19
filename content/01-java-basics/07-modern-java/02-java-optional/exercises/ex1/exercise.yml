@@ -7,7 +7,7 @@ problem: |
 
   | メソッド | 返す値 |
   |---|---|
-  | `Optional<Employee> findById(List<Employee> emps, String id)` | ID が一致する社員。いなければ **空の Optional** |
+  | `Optional<Employee> findById(List<Employee> emps, String id)` | ID が一致する社員。いなければ**空の Optional** |
   | `String nameOf(List<Employee> emps, String id)` | ID が一致する社員の氏名。いなければ `"(不明)"` |
 
   ### 例
@@ -19,7 +19,7 @@ problem: |
   - `nameOf(emps, "E99")` → `"(不明)"`
 
   ### ルール
-  - 同じ ID の社員が複数いたら、**リストの先頭に近い方** を返す。
+  - 同じ ID の社員が複数いたら、**リストの先頭に近い方**を返す。
   - 見つからないときに `null` を返してはいけません(Optional を返すメソッドが null を返すのは最悪のパターンです)。
 
   ### ヒント

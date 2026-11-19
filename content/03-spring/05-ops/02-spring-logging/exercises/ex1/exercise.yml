@@ -12,7 +12,7 @@ problem: |
   | `"a@example.jp"` | `"a***@example.jp"` |
   | `null`、`@` が無い、`@` で始まる | `"***"` |
 
-  **2. `maskCard(String cardNumber)`**:ハイフン `-` と空白を取り除いたうえで、**末尾4桁だけ残して** 残りを `*` にする
+  **2. `maskCard(String cardNumber)`**:ハイフン `-` と空白を取り除いたうえで、**末尾4桁だけ残して**残りを `*` にする
 
   | 入力 | 結果 |
   |---|---|
@@ -21,7 +21,7 @@ problem: |
   | `"1234"`、`"12-3"`(取り除いた後が4桁以下)、`null` | `"****"` |
 
   **3. `loginMessage(String userId, String email, String password)`**:ログイン試行のログメッセージを組み立てる。
-  メールはマスクし、パスワードは **長さも含めて一切出さず** 固定の `[MASKED]` にする
+  メールはマスクし、パスワードは**長さも含めて一切出さず**固定の `[MASKED]` にする
 
   ```text
   loginMessage("u001", "taro.yamada@example.com", "himitsu123")

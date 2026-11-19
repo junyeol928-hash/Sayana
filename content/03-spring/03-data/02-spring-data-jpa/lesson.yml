@@ -2,18 +2,18 @@ id: spring-data-jpa
 title: Spring Data JPA
 status: ready
 minutes: 15
-summary: エンティティでクラスとテーブルを対応づけ、JpaRepository と派生クエリで実装なしの DB アクセスを書く。ddl-auto・N+1・遅延ロードの落とし穴まで。
+summary: エンティティでクラスとテーブルを対応づけ、`JpaRepository` と派生クエリで実装なしの DB アクセスを書く。`ddl-auto`・N+1・遅延ロードの落とし穴まで。
 goals:
   - JDBC 直書きと比べて、JPA・Hibernate・Spring Data JPA がそれぞれ何を担当しているか説明できる
-  - "@Entity・@Id・@GeneratedValue・@Column・@ManyToOne・@OneToMany(mappedBy)でエンティティを書ける"
-  - JpaRepository を継承し、派生クエリ(And・Containing・Between・OrderBy・Top3・count)と @Query(JPQL)で検索を宣言できる
-  - Pageable と Page でページングでき、application.properties で H2(ファイルモード・コンソール)と ddl-auto を設定できる
-  - N+1 問題と LazyInitializationException の原因を説明し、join fetch と DTO への詰め替えで避けられる
+  - "`@Entity`・`@Id`・`@GeneratedValue`・`@Column`・`@ManyToOne`・`@OneToMany`(`mappedBy`)でエンティティを書ける"
+  - "`JpaRepository` を継承し、派生クエリ(`And`・`Containing`・`Between`・`OrderBy`・`Top3`・`count`)と `@Query`(JPQL)で検索を宣言できる"
+  - "`Pageable` と `Page` でページングでき、`application.properties` で H2(ファイルモード・コンソール)と `ddl-auto` を設定できる"
+  - N+1 問題と `LazyInitializationException` の原因を説明し、`join fetch` と DTO への詰め替えで避けられる
 samples:
   - title: Spring Data がメソッド名をどう読むか(PartTree)
     description: |
-      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。
-      `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。DB には接続しません。
+      派生クエリのメソッド名は、起動時に Spring Data の `PartTree` クラスが解析しています。それを直接呼んで、条件・並び順・件数制限がどう読み取られるかを見てみましょう。DB には接続しません。出力の `SIMPLE_PROPERTY (1): [Is, Equals]` は「引数1個の等価比較で、`Is` や `Equals` と書いても同じ意味」という表示です。
+      `DepartmentName` は、どのプロパティの条件として読まれる?
     libraries: [spring, jpa]
     code: |
       import org.springframework.data.repository.query.parser.Part;
@@ -59,11 +59,16 @@ quiz:
       List<Employee> findTop3ByDepartmentNameOrderByAgeDesc(String name);
       ```
     choices:
-      - "名前が name の社員を、部署の年齢順に3件"
-      - "部署名が name の社員を全件取り、年齢の若い順に並べて先頭3件"
-      - "部署名が name の社員を、年齢の高い順に並べて先頭3件"
-      - "部署名が name の部署を3件、社員の年齢順に"
+      - "名前が `name` の社員を、部署の年齢順に3件"
+      - "部署名が `name` の社員を全件取り、年齢の若い順に並べて先頭3件"
+      - "部署名が `name` の社員を、年齢の高い順に並べて先頭3件"
+      - "部署名が `name` の部署を3件、社員の年齢順に"
     answer: 2
+    why:
+      - "`DepartmentName` を社員の `name` と読んだ答え。関連先 `department` の `name` をたどる条件"
+      - "`Desc` を若い順と読んだ答え。`Desc` は降順なので年齢の高い順"
+      - ""
+      - "戻り値を部署と読んだ答え。戻り値の型どおり、返すのは `Employee`"
     explanation: |
       `find` + `Top3`(先頭3件)+ `By` + `DepartmentName`(`department.name` をたどる条件)+ `OrderByAgeDesc`(年齢の降順)と読みます。返すのは戻り値どおり `Employee` です。
       `Desc` は降順(大きい順)なので「若い順」ではありません。`DepartmentName` は社員自身の `name` ではなく、関連先 `department` の `name` です。
@@ -73,16 +78,21 @@ quiz:
       List<Employee> findByNmae(String name);
       ```
     choices:
-      - "起動時に No property 'nmae' found for type 'Employee' のエラーで起動に失敗する"
-      - "起動はするが、このメソッドを呼んだときに初めて例外になる"
+      - "起動時に `No property 'nmae' found` のエラーで失敗する"
+      - "起動はするが、`findByNmae` を呼んだときに初めて例外になる"
       - "コンパイルエラーになる"
       - "条件が無視されて全件が返る"
     answer: 0
+    why:
+      - ""
+      - "メソッドを呼ぶときに名前を解析すると読んだ答え。名前は起動時に解析され、そこで失敗する"
+      - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
+      - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
-      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません(Did you mean 'name' と候補も出ます)。
+      派生クエリのメソッド名は、Repository のプロキシを作る**起動時**に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。`Did you mean 'name'` と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
   - question: |
-      社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
+      社員が10人いて、全員が**別々の部署**に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
       次のコードを(同じトランザクション内で)実行すると、SQL は合計何回発行される?
       ```java
       for (Employee e : employeeRepository.findAll()) {
@@ -91,27 +101,41 @@ quiz:
       ```
     choices: ["1回", "2回", "10回", "11回"]
     answer: 3
+    why:
+      - "社員と部署を一度に取ると読んだ答え。LAZY の部署は触ったときに1件ずつ取る"
+      - "部署をまとめて1回で取ると読んだ答え。LAZY の部署は社員ごとに1回ずつ取り、計 1 + 10"
+      - "社員一覧を取る1回を数え落とした答え。`findAll` の1回と部署の10回で 11"
+      - ""
     explanation: |
-      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 1 + 10 = 11 回です。これが **N+1 問題** です。
+      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 `1 + 10 = 11` 回です。これが **N+1 問題**です。
       同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は `join fetch` で一度に取ることです。
   - question: |
       `@Query` の JPQL として正しいものはどれ?(エンティティは `Employee`、テーブル名は `employees`、フィールドは `age`、列名も `age`)
     choices:
-      - "select * from employees where age >= :age"
-      - "select e from Employee e where e.age >= :age"
-      - "select e from employees e where e.age >= :age"
-      - "select Employee from Employee where age >= ?"
+      - "`select * from employees where age >= :age`"
+      - "`select e from Employee e where e.age >= :age`"
+      - "`select e from employees e where e.age >= :age`"
+      - "`select Employee from Employee where age >= ?`"
     answer: 1
+    why:
+      - "SQL の書き方と読んだ答え。JPQL にテーブル名や `select *` は無い"
+      - ""
+      - "`from` にテーブル名を書くと読んだ答え。JPQL の `from` に書くのはエンティティ名の `Employee`"
+      - "クラス名をそのまま select に書けると読んだ答え。JPQL は別名を付けて `select e` と `e.age` で書く"
     explanation: |
-      JPQL は **エンティティ(クラス名)とフィールド名** に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
+      JPQL は**エンティティ(クラス名)とフィールド名**に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
       `employees` はテーブル名なので JPQL では使えません(エンティティ名として解決できずエラー)。`select *` は SQL の書き方で、JPQL にはありません。テーブル名で生の SQL を書きたいときは `@Query(value = "...", nativeQuery = true)` を使います。
   - question: |
       本番環境の `spring.jpa.hibernate.ddl-auto` の設定として、最も適切なものは?
-    choices: ["create", "update", "validate", "create-drop"]
+    choices: ["`create`", "`update`", "`validate`", "`create-drop`"]
     answer: 2
+    why:
+      - "起動のたびに表を合わせてくれて便利と読んだ答え。`create` は起動のたびに作り直し、全データが消える"
+      - "足りない分だけ直すので安全と読んだ答え。列の削除や型変更はせず記録も残らないので、本番の変更管理に向かない"
+      - ""
+      - "終了時に片付くので安全と読んだ答え。起動・終了のたびに作り直すので全データが消える"
     explanation: |
       本番は `validate`(エンティティと実テーブルが合っているか検証するだけ)か `none` にし、テーブル変更は Flyway などのマイグレーションで SQL ファイルとして管理します。
-      `create` と `create-drop` は起動・終了のたびにテーブルを作り直すので全データが消えます。`update` は列や表を足すだけで、列の削除・型変更はせず、何を実行したかの記録も残らないため、本番の変更管理には向きません。
 columns:
   - type: trivia
     title: javax.persistence が jakarta.persistence に変わった理由
@@ -122,7 +146,7 @@ columns:
       package javax.persistence does not exist
       ```
 
-      JPA を含む Java EE は2017年に Oracle から Eclipse 財団へ移管され、**Jakarta EE** になりました。ところが `javax` という名前は商標の都合で移管後に変更できない取り決めになり、Jakarta EE 9(2020年)でパッケージ名を一斉に `jakarta.*` へ付け替えたのです。
+      JPA を含む Java EE は、2017年に Oracle が Eclipse 財団への移管を発表し、2018年に **Jakarta EE** と改名されました。ところが商標の都合で「`javax` パッケージのままでは API を変更・追加できない」取り決めになり、Jakarta EE 9(2020年)でパッケージ名を一斉に `jakarta.*` へ付け替えたのです。
 
       Spring Boot 3 はこれが前提なので `jakarta.persistence.*` を使います。古い記事のコードは import の `javax` を `jakarta` に直せば動くことが多いです(`javax.sql.DataSource` のような JDK 本体のものは `javax` のまま)。
   - type: mistake
@@ -139,7 +163,7 @@ columns:
 
       部署をログに出した瞬間 `java.lang.StackOverflowError`。部署→社員リスト→社員→部署……と toString が無限に往復するからです。Lombok の `@Data` をエンティティに付けても同じことが起きます。
 
-      しかも関連に触るので、遅延ロードの SQL が勝手に飛んだり LazyInitializationException になったりします。エンティティの toString に **関連フィールドは入れない** のが定番です。
+      しかも関連に触るので、遅延ロードの SQL が勝手に飛んだり LazyInitializationException になったりします。エンティティの toString に**関連フィールドは入れない**のが定番です。
   - type: genba
     title: 起動ログの WARN「spring.jpa.open-in-view is enabled by default」
     body: |
@@ -168,7 +192,7 @@ sts:
         **Next**(次へ)を押します。
     - title: 依存関係を選ぶ
       detail: |
-        **Spring Boot Version** は本教材と同じ 3.5 系を選びます。検索欄で次の3つを探してチェックを入れ、**Finish**(完了)を押します。
+        **Spring Boot Version** は `SNAPSHOT`・`M`・`RC` の付かない正式版を選びます(start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります)。検索欄で次の3つを探してチェックを入れ、**Finish**(完了)を押します。
         - `JPA` → **Spring Data JPA**
         - `H2` → **H2 Database**
         - `Web` → **Spring Web**
@@ -237,11 +261,11 @@ sts:
         - **User Name** は `sa`、**Password** は空
 
         **Connect** を押し、`SELECT * FROM EMPLOYEES;` を実行します。3行が表示され、`DEPARTMENT_ID` 列に部署の id が入っていれば成功です。
-        JDBC URL を既定の `jdbc:h2:~/test` のまま接続すると、空の別 DB に繋がってテーブルが見えないので注意してください。
+        JDBC URL を既定の `jdbc:h2:~/test` のまま接続すると、`Database "…/test" not found, either pre-create it or allow remote database creation …` のエラーになるか(ホームに test の DB が無いとき)、空の別 DB に繋がってテーブルが見えないので注意してください。
     - title: 落とし穴を体験する
       detail: |
         1. 停止(Console の赤い四角 **Terminate** ボタン)して再起動し、データが消えずに残っている(insert が流れない)ことを確認します。プロジェクト直下の `data` フォルダ(**F5** で表示を更新)に `jpa-demo.mv.db` ができています。
-        2. `forEach` の出力を `e.getName() + " / " + e.getDepartment().getName()` に変えて起動すると、`LazyInitializationException: could not initialize proxy ... - no Session` で落ちます。CommandLineRunner はトランザクションの外なので、検索が終わった時点でセッションが閉じているからです。
+        2. `forEach` の出力を `e.getName() + " / " + e.getDepartment().getName()` に変えて起動すると、次の例外で落ちます: `LazyInitializationException: could not initialize proxy ... - no Session` CommandLineRunner はトランザクションの外なので、検索が終わった時点でセッションが閉じているからです。
         3. Repository に `@Query("select e from Employee e join fetch e.department where e.name like %:keyword%")` を付けたメソッドを追加して使うと、部署名も表示できます。Console の SQL に `join departments` が入っていることを確かめましょう。
         4. 最後に `findByNameContaining` を `findByNmaeContaining` に変えて起動し、`No property 'nmae' found` で起動に失敗することを見ておきます(確認したら元に戻す)。
 checklist:

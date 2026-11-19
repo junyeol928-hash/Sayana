@@ -2,18 +2,18 @@ id: spring-transaction
 title: トランザクション
 status: ready
 minutes: 15
-summary: "@Transactional で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、readOnly・伝播・楽観ロックの入口まで。"
+summary: "`@Transactional` で「全部成功か全部取り消し」を作る。検査例外ではロールバックされない罠、プロキシの仕組みと自己呼び出しの罠、`readOnly`・伝播・楽観ロックの入口まで。"
 goals:
   - トランザクションと ACID を、振込の例で途中失敗したらどうなるかを使って説明できる
-  - "@Transactional を Service に付け、既定でロールバックされる例外(RuntimeException と Error)と rollbackFor の使い方を説明できる"
-  - プロキシの仕組みから、同じクラス内の呼び出しや private メソッドで @Transactional が効かない理由を説明できる
-  - readOnly = true と、伝播の REQUIRED / REQUIRES_NEW の違いを使い分けられる
-  - トランザクション内で外部 API やメール送信をしない理由と、@Version による楽観ロックの仕組みを説明できる
+  - "`@Transactional` を Service に付け、既定でロールバックされる例外(`RuntimeException` と `Error`)と `rollbackFor` の使い方を説明できる"
+  - プロキシの仕組みから、同じクラス内の呼び出しや `private` メソッドで `@Transactional` が効かない理由を説明できる
+  - "`readOnly = true` と、伝播の `REQUIRED` / `REQUIRES_NEW` の違いを使い分けられる"
+  - トランザクション内で外部 API やメール送信をしない理由と、`@Version` による楽観ロックの仕組みを説明できる
 samples:
   - title: ロールバックされる例外・されない例外・効かない呼び出し
     description: |
-      DB の代わりに「開始・コミット・ロールバック」を表示するトランザクションマネージャを登録して、`@Transactional` の動きを観察します。
-      `Bean のクラス` に `SpringCGLIB` と出ているのが、Spring が差し替えたプロキシです。③ で検査例外なのにコミットされていること、④ でトランザクションが始まってすらいないことを確かめてから、コメントの「ここを変えてみよう」を試してください。
+      DB の代わりに「開始・コミット・ロールバック」を表示するトランザクションマネージャを登録して、`@Transactional` の動きを観察します。見終わったら、コメントの「ここを変えてみよう」も試してください。
+      `Bean のクラス` には `OrderService` の名前がそのまま出るだろうか。② の `RuntimeException` と ③ の検査例外では、コミットとロールバックのどちらになる?④ の同じクラスの中からの呼び出しでも、`[TX]` の行は出るだろうか。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -100,11 +100,16 @@ quiz:
       - "ロールバックされ、在庫は元に戻る"
       - "コミットされ、在庫は減ったままになる"
       - "コンパイルエラーになる"
-      - "PaymentException が RuntimeException に包まれて投げ直され、ロールバックされる"
+      - "`PaymentException` が `RuntimeException` に包まれて投げ直され、ロールバックされる"
     answer: 1
+    why:
+      - "例外が出れば、種類を問わずロールバックされると読んだ答え"
+      - ""
+      - "検査例外の扱いが足りないと読んだ答え。`throws` で宣言してあるのでコンパイルは通る"
+      - "Spring が検査例外を実行時例外に包むと読んだ答え。包み直さず、そのまま伝わってコミットされる"
     explanation: |
-      `@Transactional` が既定でロールバックするのは RuntimeException と Error だけです。検査例外は「呼び出し側が対処する想定内の結果」とみなされ、例外は呼び出し元にそのまま伝わりつつ、トランザクションは **コミット** されます。
-      在庫も戻したいなら `@Transactional(rollbackFor = PaymentException.class)` と書きます。`throws` を宣言しているのでコンパイルは通ります。Spring が例外を包み直すこともありません。
+      `@Transactional` が既定でロールバックするのは `RuntimeException` と `Error` だけです。検査例外は「呼び出し側が対処する想定内の結果」とみなされ、例外は呼び出し元にそのまま伝わりつつ、トランザクションは**コミット**されます。
+      在庫も戻したいなら `@Transactional(rollbackFor = PaymentException.class)` と書きます。
   - question: |
       `OrderService` は DI で受け取ったプロキシ経由で `importAll` が呼ばれます。このとき、トランザクションはどうなる?
       ```java
@@ -118,25 +123,34 @@ quiz:
       public void order(Order o) { ... }
       ```
     choices:
-      - "importAll 全体で1つのトランザクションになる"
-      - "order の呼び出しごとに1つずつトランザクションが開始される"
+      - "`importAll` 全体で1つのトランザクションになる"
+      - "`order` の呼び出しごとに1つずつトランザクションが開始される"
       - "起動時にエラーになる"
-      - "order の @Transactional は効かず、トランザクションは開始されない"
+      - "`order` の `@Transactional` は効かず、トランザクションは開始されない"
     answer: 3
+    why:
+      - "中で呼んだ `@Transactional` が外側まで広がると読んだ答え。`importAll` には付いておらず、`order` のも自己呼び出しで効かない"
+      - "`@Transactional` がどこから呼んでも効くと読んだ答え。`this` からの呼び出しはプロキシを通らず効かない"
+      - "自己呼び出しを Spring が起動時に止めると読んだ答え。エラーも警告も出ず、黙って無視される"
+      - ""
     explanation: |
-      `order(o)` は `this.order(o)` のことで、`this` はプロキシではなく本体です。プロキシを通らないので、`order` の `@Transactional` は **無視** されます(エラーも警告も出ません)。
+      `order(o)` は `this.order(o)` のことで、`this` はプロキシではなく本体です。プロキシを通らないので、`order` の `@Transactional` は**無視**されます(エラーも警告も出ません)。
       `importAll` に `@Transactional` を付ければ全体で1つになります。1件ずつ別のトランザクションにしたいなら、`order` を別の Bean に移して DI 経由で呼びます。
   - question: |
       「決済サービスの `PaymentException`(検査例外)が起きたときもロールバックしたい」場合の指定として正しいものは?
     choices:
-      - "@Transactional(rollbackFor = PaymentException.class)"
-      - "@Transactional(noRollbackFor = PaymentException.class)"
-      - "@Transactional(readOnly = true)"
-      - "@Transactional(propagation = Propagation.REQUIRES_NEW)"
+      - "`@Transactional(rollbackFor = PaymentException.class)`"
+      - "`@Transactional(noRollbackFor = PaymentException.class)`"
+      - "`@Transactional(readOnly = true)`"
+      - "`@Transactional(propagation = Propagation.REQUIRES_NEW)`"
     answer: 0
+    why:
+      - ""
+      - "`noRollbackFor` を対象の指定と読んだ答え。逆に、この例外ではロールバックしない指定"
+      - "読み取り専用にすれば書き込みが残らないと読んだ答え。`readOnly` は参照専用の指定で、ロールバックの条件とは関係ない"
+      - "別のトランザクションにすれば戻ると読んだ答え。`REQUIRES_NEW` は伝播の指定で、ロールバックの条件とは関係ない"
     explanation: |
       `rollbackFor` に指定した例外(とその子)が投げられるとロールバックされます。`rollbackFor = Exception.class` とすればすべての検査例外が対象になります。
-      `noRollbackFor` は逆に「この例外ではロールバックしない」指定です。`readOnly` は参照専用の指定、`REQUIRES_NEW` は伝播(別のトランザクションを開始する)の指定で、どちらもロールバックの条件とは関係ありません。
   - question: |
       次のメソッドで `withdraw` が `IllegalStateException`(残高不足)を投げたとき、どうなる?
       ```java
@@ -152,25 +166,35 @@ quiz:
       ```
       (`accountService` は別の Bean で、`@Transactional` は付いていないものとする)
     choices:
-      - "IllegalStateException なのでロールバックされる"
+      - "`IllegalStateException` なのでロールバックされる"
       - "warn ログが出た後、例外が呼び出し元に伝わる"
-      - "例外を catch して正常終了したので、入金だけがコミットされる"
+      - "例外を `catch` して正常終了したので、入金だけがコミットされる"
       - "何も更新されない"
     answer: 2
+    why:
+      - "`RuntimeException` なら、`catch` しても必ずロールバックされると読んだ答え"
+      - "`catch` しても例外が外へ出ると読んだ答え。`catch` して投げ直していないので、正常に終わる"
+      - ""
+      - "`withdraw` で失敗したので入金も無かったと読んだ答え。先に `deposit` が実行され、それがコミットされる"
     explanation: |
-      Spring がロールバックを判断するのは「メソッドから例外が **外へ出たか**」です。メソッドの中で catch して正常に戻ると成功とみなされ、先に実行した入金(`deposit`)だけがコミットされます。お金が湧いて出る事故です。
-      RuntimeException でも、握りつぶせばロールバックされません。ロールバックしたいなら catch せずに投げる(ログを出すなら catch してから投げ直す)のが基本です。
+      Spring がロールバックを判断するのは「メソッドから例外が**外へ出たか**」です。メソッドの中で `catch` して正常に戻ると成功とみなされ、先に実行した入金(`deposit`)だけがコミットされます。お金が湧いて出る事故です。
+      ロールバックしたいなら `catch` せずに投げる(ログを出すなら `catch` してから投げ直す)のが基本です。
   - question: |
-      商品エンティティに `@Version private Integer version;` があります。A さんと B さんが **同じ version = 3** の商品を読み込み、A さんが先に価格を変更して保存しました。続けて B さんが在庫数を変更して保存すると?
+      商品エンティティに `@Version private Integer version;` があります。A さんと B さんが**同じ version = 3** の商品を読み込み、A さんが先に価格を変更して保存しました。続けて B さんが在庫数を変更して保存すると?
     choices:
       - "B さんの変更で上書きされ、A さんの価格変更は消える"
-      - "B さんの保存は失敗し、ObjectOptimisticLockingFailureException になる"
+      - "B さんの保存は失敗し、例外になる"
       - "A さんと B さんの変更が自動でマージされる"
       - "B さんの保存は、A さんのトランザクションが終わるまで待たされてから成功する"
     answer: 1
+    why:
+      - "`@Version` が無いときの動きと取り違えた答え。version 3 のままの更新は0件になり、例外で失敗する"
+      - ""
+      - "別々の項目なら合わせてくれると読んだ答え。JPA は変更をマージせず、B さんの保存は失敗する"
+      - "悲観ロックの動きと取り違えた答え。`@Version` は待たせず、古い version での更新を失敗させる"
     explanation: |
       A さんの保存で version は 4 になりました。B さんの更新は `update ... where id = ? and version = 3` となり、該当行が0件なので、楽観ロックの失敗として `ObjectOptimisticLockingFailureException` が投げられます。
-      `@Version` がなければ、後勝ちで A さんの変更が黙って消えます(ロストアップデート)。JPA が変更を自動でマージすることはありません。待たせてから進めるのは、行ロックを取る **悲観ロック** の動きです。
+      `@Version` がなければ、後勝ちで A さんの変更が黙って消えます(ロストアップデート)。JPA が変更を自動でマージすることはありません。待たせてから進めるのは、行ロックを取る**悲観ロック**の動きです。
 columns:
   - type: mistake
     title: "import を間違えて「readOnly が無い」と怒られる"
@@ -186,7 +210,7 @@ columns:
       - `org.springframework.transaction.annotation.Transactional`(Spring 版。`readOnly` や `rollbackFor` がある)
       - `jakarta.transaction.Transactional`(JTA 版。`rollbackOn` など)
 
-      Spring Data JPA を入れると Hibernate 経由で JTA 版もクラスパスに入るので、import の候補で下を選ぶとこうなります。Spring は JTA 版も解釈しますが、属性名が違って混乱の元。**Spring 版に統一** しましょう。
+      Spring Data JPA を入れると Hibernate 経由で JTA 版もクラスパスに入るので、import の候補で下を選ぶとこうなります。Spring は JTA 版も解釈しますが、属性名が違って混乱の元。**Spring 版に統一**しましょう。
   - type: genba
     title: 決済 API の遅延で、関係ない画面まで全部止まった
     body: |
@@ -203,7 +227,7 @@ columns:
   - type: trivia
     title: テストに付けた @Transactional は最後に必ずロールバックする
     body: |
-      同じ `@Transactional` でも、**テストメソッド** に付けると意味が変わります。Spring のテスト支援(TestContext フレームワーク)は、テストに付いた `@Transactional` を見つけると、テストの開始前にトランザクションを開始し、終了後に **成功しても必ずロールバック** します。
+      同じ `@Transactional` でも、**テストメソッド**に付けると意味が変わります。Spring のテスト支援(TestContext フレームワーク)は、テストに付いた `@Transactional` を見つけると、テストの開始前にトランザクションを開始し、終了後に**成功しても必ずロールバック**します。
 
       おかげで、テストで INSERT したデータが DB に残らず、次のテストに影響しません。テストのたびに DB を作り直さなくて済む、よくできた仕組みです。コミットして中身を確かめたいときは `@Commit` を付けます。
 
@@ -253,7 +277,7 @@ sts:
         }
         ```
 
-        `AccountRepository` は `JpaRepository<Account, Long>` を継承するだけです。`TransferService` は **まだ @Transactional を付けずに** 書きます。
+        `AccountRepository` は `JpaRepository<Account, Long>` を継承するだけです。`TransferService` は**まだ @Transactional を付けずに**書きます。
 
         ```java
         @Service
@@ -309,7 +333,7 @@ sts:
     - title: 検査例外ではロールバックされないことを確かめる
       detail: |
         `transfer` の2回目の `orElseThrow()` を `orElseThrow(() -> new Exception("口座がありません"))` に変え、メソッドに `throws Exception` を付けます(CommandLineRunner の `catch` も `Exception` に変える)。
-        A の残高を 10000 に戻して再起動すると、`@Transactional` が付いているのに `A: 7000` になり、ログには `Initiating transaction commit` が出ます。
+        A の残高を 10000 に戻して再起動すると、`@Transactional` が付いているのに `A: 7000` になり、ログには次の行が出ます: `Initiating transaction commit`
         最後に `@Transactional(rollbackFor = Exception.class)` に変えて、ロールバックされるようになることを確かめます。
 checklist:
   - key: tx-without

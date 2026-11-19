@@ -8,7 +8,7 @@
     <p class="page-lead">業務のコードを読む力を、実行せずに頭の中で追って鍛えます。全 <b th:text="${total}">171</b> 問。
         答え合わせの記録はこのブラウザの中だけに残ります(スマホ版では復習にも出ます)。</p>
     <section th:each="g : ${groups}" class="lesson-section" th:attr="aria-label=${g.lesson.title}">
-        <h2 class="section-title"><a th:href="@{/lessons/{id}(id=${g.lesson.id})}" th:text="${g.lesson.title}"></a></h2>
+        <h2 class="section-title"><a th:href="@{/lessons/{id}(id=${g.lesson.id},from='reading')}" th:text="${g.lesson.title}"></a></h2>
         <ol class="reading-list">
             <th:block th:each="r, rs : ${g.questions}">
                 <li th:replace="~{fragments/lesson-parts :: readingCard(${r}, ${g.lesson.id} + '@' + ${rs.index}, null)}"></li>

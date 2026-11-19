@@ -1,0 +1,54 @@
+- after: 3種類のプロジェクトの違い
+  question: |
+    **Java Project** で作った小さなツールを、STS の入っていない CI サーバーでビルドしたい。そのままでできる?
+  choices:
+    - "できない。設定が Eclipse 独自で、`pom.xml` が無い"
+    - "できる。`mvn` のコマンドでビルドできる"
+    - "できる。`javac` が `.classpath` を読んでビルドする"
+  answer: 0
+  why:
+    - ""
+    - "Java Project も Maven でビルドできると読んだ答え。`mvn` が読むファイルが無い"
+    - "`.classpath` をビルドの設定と考えた答え。`javac` はそれを読まない"
+  explanation: |
+    Java Project は STS(Eclipse)の設定だけで動き、`pom.xml` を持たない。STS の外でもビルドしたいなら、Maven Project(Spring Starter Project も中身はこれ)で作る。
+- after: エラーが消えないときの順番
+  question: |
+    STS を開いたまま、エクスプローラー(STS の外)で `.java` ファイルを書き換えた。STS のエディタは古い内容のまま。まず試すのは?
+  choices: ["F5 キー(Refresh)", "Maven > Update Project...", "Project > Clean..."]
+  answer: 0
+  why:
+    - ""
+    - "`pom.xml` を直したときの一手と取り違えた答え。Update Project は `pom.xml` から設定を作り直すもので、外での編集は読まない"
+    - "コンパイル結果の問題と取り違えた答え。Clean はビルドをやり直すだけで、外で変えたファイルを読み込み直すのは F5"
+  explanation: |
+    STS の外で変えたファイルは、まず F5(Refresh)で読み込み直す。STS が覚えているファイルの中身を、ディスクの今の中身に合わせる一手。
+- after: Boot Dashboard で起動・停止、そして 8080
+  question: |
+    demo を起動して `http://localhost:8080` を開いたら、**Whitelabel Error Page**(404)が出た。いまの状態は?
+  choices:
+    - "サーバーは動いている。その URL に応える画面をまだ作っていないだけ"
+    - "サーバーの起動に失敗している"
+    - "Spring Web の依存が入っておらず、画面を出せない"
+  answer: 0
+  why:
+    - ""
+    - "エラーの画面を起動の失敗と読んだ答え。起動に失敗していれば、このページを返す相手がいない"
+    - "依存が足りないと考えた答え。Spring Web が無ければ Web サーバーも起動せず、このページすら返らない"
+  explanation: |
+    Whitelabel Error Page は、起動した Spring Boot が返している 404 のページ。「サーバーは動いている」の証拠になる。
+- before: Web server failed to start.
+  hides: 2
+  question: |
+    道場アプリ(8080 番)を動かしたまま、demo を Boot Dashboard の ▶ で起動した。demo はどうなる?
+  choices:
+    - "起動に失敗する"
+    - "道場アプリを止めて、demo が 8080 番で起動する"
+    - "demo は空いている 8081 番で起動する"
+  answer: 0
+  why:
+    - ""
+    - "▶ の「止めてから起動し直す」が別のアプリにも効くと読んだ答え。止めるのは、押したそのアプリだけ"
+    - "空いている番号へ自動で移ると考えた答え。番号は `server.port`(既定 8080)で決まり、勝手には変わらない"
+  explanation: |
+    1 つのポート番号を同時に使えるのは 1 プロセスだけ。8080 は道場アプリが使っているので、demo の Web サーバーは起動できない。

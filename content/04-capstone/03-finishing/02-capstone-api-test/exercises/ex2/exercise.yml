@@ -3,7 +3,7 @@ className: RequestApiController
 difficulty: 3
 libraries: [spring]
 problem: |
-  承認くんの API に **承認** を足し、失敗したときのエラーを RFC 9457 の **ProblemDetail** で返してください。
+  承認くんの API に**承認**を足し、失敗したときのエラーを RFC 9457 の **ProblemDetail** で返してください。
   承認の業務ルールは `RequestService`(テストではメモリ実装)が守っていて、違反なら `BusinessRuleException`、
   申請がなければ `RequestNotFoundException` を投げます。Controller の仕事は、それを正しい HTTP に翻訳することです。
 
@@ -32,7 +32,7 @@ problem: |
      404・title「申請が見つかりません」・detail に例外メッセージ、で返す
 
   `Principal` は「ログイン中の人」を表す Java 標準のインターフェースで、引数に書くと Spring MVC が入れてくれます
-  (テストでは `post(...).principal(...)` で渡しています)。`@ExceptionHandler` は **同じ Controller の中で起きた例外** だけを受け持ちます。
+  (テストでは `post(...).principal(...)` で渡しています)。`@ExceptionHandler` は**同じ Controller の中で起きた例外**だけを受け持ちます。
 
   **STS で書くなら**:`BusinessRuleException` と `RequestNotFoundException` は `com.example.approval.domain`、
   `RequestApiController` は `com.example.approval.web.api` に置きます。`RequestService` の役目は、

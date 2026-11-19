@@ -8,7 +8,7 @@
 
 ## 抽象クラス:未完成の設計図
 
-`abstract` を付けたメソッドを **抽象メソッド** と呼びます。本体 `{ }` を持たず、名前・引数・戻り値の型だけを宣言します。抽象メソッドを1つでも持つクラスは **抽象クラス**(`abstract class`)にしなければなりません。
+`abstract` を付けたメソッドを**抽象メソッド**と呼びます。本体 `{ }` を持たず、名前・引数・戻り値の型だけを宣言します。抽象メソッドを1つでも持つクラスは**抽象クラス**(`abstract class`)にしなければなりません。
 
 ```java
 abstract class Shape {
@@ -30,14 +30,14 @@ class Square extends Shape {
 
 抽象クラスのルールは2つです。
 
-1. **`new` できない**。`new Shape()` は `Shape is abstract; cannot be instantiated` というコンパイルエラー。
-2. 継承した **具象クラス**(abstract でないクラス)は、抽象メソッドを **全部実装しないとコンパイルエラー**。`Square is not abstract and does not override abstract method area() in Shape`。
+1. **`new` できない**。`new Shape()` は次のコンパイルエラーになる: `Shape is abstract; cannot be instantiated`
+2. 継承した**具象クラス**(abstract でないクラス)は、抽象メソッドを**全部実装しないと**次のコンパイルエラーになる: `Square is not abstract and does not override abstract method area() in Shape`
 
 親に `return 0;` のダミーを書く方式だと、子が書き忘れても「面積0の図形」が静かに生まれます。`abstract` なら書き忘れをコンパイラが止めます。なお抽象クラスもフィールドやコンストラクタを持てます(子の `super(...)` から呼ばれます)。
 
 ## テンプレートメソッドパターン
 
-抽象クラスの代表的な使い道が **テンプレートメソッドパターン**。**処理の流れは親が決め、差分だけを子が埋める** 設計です。
+抽象クラスの代表的な使い道が**テンプレートメソッドパターン**。**処理の流れは親が決め、差分だけを子が埋める**設計です。
 
 ```java
 abstract class Report {
@@ -84,7 +84,7 @@ class Invoice implements Payable, Printable {
 ```
 
 - 本体のないメソッドは暗黙に **`public abstract`**。フィールドは暗黙に **`public static final`(定数)** で、インスタンスごとの状態は持てません。
-- `extends` は1つだけですが、`implements` は **カンマで複数** 書けます。
+- `extends` は1つだけですが、`implements` は**カンマで複数**書けます。
 - 実装側のメソッドには **`public` が必須**。省略すると `attempting to assign weaker access privileges; was public`(約束より公開範囲を狭めるな)。
 
 ```mermaid
@@ -104,7 +104,7 @@ flowchart BT
 
 ## default メソッドと static メソッド(Java 8+)
 
-Java 8 から、インターフェースに **本体付きのメソッド** を書けるようになりました。
+Java 8 から、インターフェースに**本体付きのメソッド**を書けるようになりました。
 
 ```java
 interface Payable {
@@ -119,9 +119,9 @@ interface Payable {
 }
 ```
 
-**default メソッド** は実装クラスがそのまま使っても上書きしてもよく、**static メソッド** は `Payable.sum(x, y)` とインターフェース名で呼びます。
+**default メソッド**は実装クラスがそのまま使っても上書きしてもよく、**static メソッド**は `Payable.sum(x, y)` とインターフェース名で呼びます。
 
-default が生まれた理由は後方互換です。Java 8 で `List` に `sort` を抽象メソッドとして足すと、世界中の `List` 実装クラスがコンパイルエラーになる。default なら **既存の実装を壊さずに進化できる** のです。
+default が生まれた理由は後方互換です。Java 8 で `List` に `sort` を抽象メソッドとして足すと、世界中の `List` 実装クラスがコンパイルエラーになる。default なら**既存の実装を壊さずに進化できる**のです。
 
 ## 使い分けと「インターフェースに対してプログラムする」
 
@@ -134,7 +134,7 @@ default が生まれた理由は後方互換です。Java 8 で `List` に `sort
 
 現場の方針は **「まずインターフェース。共通の実装や状態を共有したくなったら抽象クラス」**。`ArrayList` が `AbstractList` を継承しつつ `List` を実装しているように、併用も定番です。
 
-もう1つの大原則が **インターフェースに対してプログラムする** です。
+もう1つの大原則が**インターフェースに対してプログラムする**です。
 
 ```java
 List<String> names = new ArrayList<>();
@@ -142,11 +142,11 @@ List<String> names = new ArrayList<>();
 
 変数の型は `List`(インターフェース)、実体は `ArrayList`(クラス)。使う側は `List` の約束しか知らないので、`LinkedList` に替えたくなっても右辺1か所の修正で済みます(コレクションは後の章で)。
 
-料金計算なら `interface PriceRule { int apply(int price); }` を用意し、レジ側は `PriceRule` 型だけを相手にします。通常価格・セール・会員割引を **レジに触らず差し替え** られ、テストでは偽物も差し込めます。Spring の DI(依存性注入)は、この差し替えを自動化する仕組みです。
+料金計算なら `interface PriceRule { int apply(int price); }` を用意し、レジ側は `PriceRule` 型だけを相手にします。通常価格・セール・会員割引を**レジに触らず差し替え**られ、テストでは偽物も差し込めます。Spring の DI(依存性注入)は、この差し替えを自動化する仕組みです。
 
 <figure class="figure"><svg viewBox="0 0 580 230" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-abstract-interface-tri10a" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M0 0 L12 7 L0 14 z" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/></marker></defs><rect x="190" y="16" width="200" height="60" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2" stroke-dasharray="7 4"/><text x="290" y="38" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">«interface» PriceRule</text><text x="290" y="62" font-size="13" text-anchor="middle" fill="var(--ink)">+ apply(price)</text><path d="M100 150 L100 110 L290 110 L290 80" stroke="var(--ink)" stroke-width="2" fill="none" marker-end="url(#java-abstract-interface-tri10a)" stroke-dasharray="6 4"/><path d="M290 150 L290 110" stroke="var(--ink)" stroke-width="2" fill="none" stroke-dasharray="6 4"/><path d="M480 150 L480 110 L290 110" stroke="var(--ink)" stroke-width="2" fill="none" stroke-dasharray="6 4"/><rect x="20" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="100" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">NormalPrice</text><text x="100" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 定価のまま</text><rect x="210" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="290" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">SalePrice</text><text x="290" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 2割引</text><rect x="400" y="150" width="160" height="60" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="480" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">MemberPrice</text><text x="480" y="196" font-size="12" text-anchor="middle" fill="var(--ink-muted)">apply → 会員割引</text><text x="440" y="100" font-size="12" fill="var(--ink-muted)">implements(点線)</text></svg><figcaption>レジが知っているのは PriceRule の約束だけ。下の実装は何個増えても、レジ側のコードは変わらない</figcaption></figure>
 
-### Comparable:「並べ替えられる」という約束
+### `Comparable`:「並べ替えられる」という約束
 
 ```java
 class Item implements Comparable<Item> {
@@ -163,22 +163,22 @@ Item[] items = { new Item(300), new Item(100) };
 Arrays.sort(items);   // compareTo で安い順に
 ```
 
-`compareTo` は「自分が相手より **前なら負、同じなら0、後なら正**」を返す約束です。`<Item>` は比べる相手の型(ジェネリクスの章で詳しく)。`Arrays.sort` は `Comparable` という約束だけを頼りに並べています。実装し忘れると、実行時に `ClassCastException: class Item cannot be cast to class java.lang.Comparable` で落ちます。
+`compareTo` は「自分が相手より**前なら負、同じなら0、後なら正**」を返す約束です。`<Item>` は比べる相手の型(ジェネリクスの章で詳しく)。`Arrays.sort` は `Comparable` という約束だけを頼りに並べています。実装し忘れると、実行時に次の例外で落ちます: `ClassCastException: class Item cannot be cast to class java.lang.Comparable`
 
 ::: trivia sealed で実装クラスを限定する(Java 17+)
-`sealed interface Shape permits Circle, Square {}` と書くと、実装できるのはその2つだけに。種類が確定するので switch の網羅性チェックが効きます(モダンJavaの章で再登場)。
+`sealed interface Shape permits Circle, Square {}` と書くと、実装できるのはその2つだけに。種類が確定するので switch の網羅性チェックが効きます(モダンJavaの章の読解問題で再登場)。
 :::
 
 ::: warn @Override は必ず付ける
-`compareTo` を `compareto` と打ち間違えても、`@Override` がなければ「ただの新メソッド」として通ります。抽象メソッドなら未実装エラーで気づけますが、default メソッドの上書きミスは誰も教えてくれません。
+`toString` を `tostring` と打ち間違えても、`@Override` がなければ「ただの新メソッド」として通ります。`compareTo` のような抽象メソッドなら未実装のエラーで気づけますが、`toString` や default メソッドのように**親に実装がある**メソッドの上書きミスは誰も教えてくれません。
 :::
 
 ::: point まとめ
-- 抽象クラスは **`new` できず**、子は抽象メソッドを **全部実装しないとコンパイルエラー**
+- 抽象クラスは **`new` できず**、子は抽象メソッドを**全部実装しないとコンパイルエラー**
 - **テンプレートメソッド**:流れは親の `final` メソッド、差分は子の抽象メソッド
 - `interface` のメソッドは暗黙に `public abstract`、フィールドは定数。**`implements` は複数可**
 - **default / static メソッド**(Java 8+)。default は既存実装を壊さず機能を足す仕組み
-- 迷ったら **まずインターフェース**。変数の型はインターフェースにして実体を差し替え可能に
+- 迷ったら**まずインターフェース**。変数の型はインターフェースにして実体を差し替え可能に
 - `compareTo` は「前なら負・同じなら0・後なら正」
 :::
 

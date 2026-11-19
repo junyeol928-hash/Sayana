@@ -24,13 +24,18 @@
     - "C D E F A B"
     - "A B D C E F"
   answer: 0
-  explanation: "static ブロックは読み込み時に親(Base)→子(Derived)の順で1回だけ実行されます(A→B)。そのあとインスタンスの初期化ブロック→コンストラクタが親→子の順で走ります(C→D→E→F)。"
+  why:
+    - ""
+    - "親の分を全部終えてから子の `static` が動くと読んだ答え。`static` は親→子とも、インスタンスの初期化より先"
+    - "`static` ブロックがインスタンスを作った後と読んだ答え。クラスの読み込み時に、`new` の初期化より先に動く"
+    - "親の初期化ブロックをコンストラクタの後と読んだ答え。初期化ブロックはコンストラクタ本体の前に動く"
+  explanation: "`static` ブロックは読み込み時に親(`Base`)→子(`Derived`)の順で1回だけ実行されます(`A`→`B`)。そのあとインスタンスの初期化ブロック→コンストラクタが親→子の順で走ります(`C`→`D`→`E`→`F`)。"
   trace:
-    - "new Derived() の実行で、まだ読み込まれていない Derived を読み込む"
-    - "Derived の親 Base が先に読み込まれ、Base の static ブロックが実行される → A"
-    - "続いて Derived の static ブロックが実行される → B"
-    - "インスタンス生成:Base のインスタンス初期化ブロック → C、Base のコンストラクタ → D"
-    - "続いて Derived のインスタンス初期化ブロック → E、Derived のコンストラクタ → F"
+    - "`new Derived()` の実行で、まだ読み込まれていない `Derived` を読み込む"
+    - "`Derived` の親 `Base` が先に読み込まれ、`Base` の `static` ブロックが実行される → `A`"
+    - "続いて `Derived` の `static` ブロックが実行される → `B`"
+    - "インスタンス生成:`Base` のインスタンス初期化ブロック → `C`、`Base` のコンストラクタ → `D`"
+    - "続いて `Derived` のインスタンス初期化ブロック → `E`、`Derived` のコンストラクタ → `F`"
 - title: "匿名クラスの中の this と Outer.this"
   level: 3
   code: |
@@ -59,12 +64,17 @@
     - "11 11"
     - "2 11"
   answer: 0
-  explanation: "匿名クラス自身が value というフィールドを持っているので、ただの value はこの匿名クラス自身のもの(1→2)を指します。外側の Counter が持つ value(10)には触れていないので、10 のままです。区別したいときに Counter.this.value と書きます。"
+  why:
+    - ""
+    - "`value++` が外側の `Counter` の `value` を増やすと読んだ答え。増えるのは匿名クラス自身の `value`(1→2)"
+    - "ただの `value` も外側の `value` と読んだ答え。匿名クラス自身の `value` が外側の名前を隠す"
+    - "両方の `value` が増えると読んだ答え。増えるのは匿名クラス自身の `value` だけで、外側は 10 のまま"
+  explanation: "匿名クラス自身が `value` というフィールドを持っているので、ただの `value` はこの匿名クラス自身のもの(1→2)を指します。外側の `Counter` が持つ `value`(10)には触れていないので、10 のままです。区別したいときに `Counter.this.value` と書きます。"
   trace:
-    - "makeIncrementer() が匿名 Runnable を作って返す(この時点ではまだ run しない)"
-    - "r.run() を呼ぶと、匿名クラス自身の value(1)が value++ で 2 になる"
-    - "Counter.this.value は外側 Counter インスタンスの value で、変更していないので 10 のまま"
-    - "\"2 10\" と表示される"
+    - "`makeIncrementer()` が匿名 `Runnable` を作って返す(この時点ではまだ `run` しない)"
+    - "`r.run()` を呼ぶと、匿名クラス自身の `value`(1)が `value++` で 2 になる"
+    - "`Counter.this.value` は外側 `Counter` インスタンスの `value` で、変更していないので 10 のまま"
+    - "`2 10` と表示される"
 - title: "内部クラスから外側フィールドへのアクセス"
   level: 1
   code: |
@@ -83,17 +93,22 @@
     System.out.println(s.print());
   question: "出力は?"
   choices:
-    - "残高: 1000"
-    - "残高: 0"
-    - "NullPointerException が発生"
+    - "`残高: 1000`"
+    - "`残高: 0`"
+    - "`NullPointerException` が発生"
     - "コンパイルエラー"
   answer: 0
-  explanation: "Statement は非static の内部クラスなので、外側 Wallet の private フィールド balance にもそのままアクセスできます。w.new Statement() は「w に結び付いた Statement を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
+  why:
+    - ""
+    - "内部クラスからは外側の値が見えず、0 になると読んだ答え"
+    - "外側のインスタンスが無いと読んだ答え。`w.new Statement()` で `w` に結び付いている"
+    - "`private` の `balance` に、内部クラスからは触れないと読んだ答え"
+  explanation: "`Statement` は非 `static` の内部クラスなので、外側 `Wallet` の `private` フィールド `balance` にもそのままアクセスできます。`w.new Statement()` は「`w` に結び付いた `Statement` を作る」という意味で、外側フィールドの値(1000)がそのまま読めます。"
   trace:
-    - "Wallet を作ると balance = 1000"
-    - "w.new Statement() で、w に結び付いた Statement インスタンスを作る"
-    - "print() の中の balance は、結び付いている w の balance を指す"
-    - "\"残高: 1000\" と表示される"
+    - "`Wallet` を作ると `balance = 1000`"
+    - "`w.new Statement()` で、`w` に結び付いた `Statement` インスタンスを作る"
+    - "`print()` の中の `balance` は、結び付いている `w` の `balance` を指す"
+    - "`残高: 1000` と表示される"
 - title: "実質的final違反のコンパイルエラー"
   level: 3
   code: |
@@ -113,17 +128,22 @@
     }
   question: "このコードは?"
   choices:
-    - "urgent の値に応じて \"normal\" か \"urgent\" が表示される"
-    - "常に \"normal\" と表示される"
-    - "実行時エラーになる"
+    - "urgent の値に応じて `normal` か `urgent` が表示される"
+    - "常に `normal` と表示される"
+    - "実行時に再代入を見つけてエラーになる"
     - "コンパイルエラーになる"
   answer: 3
-  explanation: "label は宣言時と if の中の2箇所で代入されています。urgent が false でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的final の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、代入が1箇所だけである必要があります。"
+  why:
+    - "ローカル変数は何度代入しても、匿名クラスから使えると読んだ答え"
+    - "宣言時の値が取り込まれると読んだ答え"
+    - "実行してから問題が分かると読んだ答え"
+    - ""
+  explanation: "`label` は宣言時と `if` の中の2箇所で代入されています。`urgent` が `false` でその分岐が実行されなくても、コンパイラは「再代入され得る変数」とみなすため、実質的 `final` の条件を満たさずコンパイルエラーになります。匿名クラスから使うローカル変数は、一度値が決まったあとに再代入されない(実質的 `final`)必要があります。"
   trace:
-    - "label を \"normal\" で初期化"
-    - "if (urgent) の中で label に再代入するコードがある(実行されるかは関係ない)"
-    - "この時点で label は実質的final ではなくなる"
-    - "匿名クラスの run() の中で label を使おうとしている行でコンパイルエラー"
+    - '`label` を `"normal"` で初期化'
+    - "`if (urgent)` の中で `label` に再代入するコードがある(実行されるかは関係ない)"
+    - "この時点で `label` は実質的 `final` ではなくなる"
+    - "匿名クラスの `run()` の中で `label` を使おうとしている行でコンパイルエラー"
 - title: "static ネストクラスの new の書き方"
   level: 1
   code: |
@@ -138,13 +158,18 @@
     System.out.println(e.message);
   question: "出力は?"
   choices:
-    - "失敗しました"
-    - "null"
+    - "`失敗しました`"
+    - "`null`"
     - "コンパイルエラー(Responseのインスタンスが必要)"
     - "実行時エラー"
   answer: 0
-  explanation: "Error は static ネストクラスなので、外側 Response のインスタンスが無くても Response.Error という型名でそのまま new できます。Response のインスタンスを作る必要はありません。"
+  why:
+    - ""
+    - "`message` が空のままと読んだ答え。コンストラクタで渡した「失敗しました」が `message` に入る"
+    - "内部クラス(`static` なし)と取り違えた答え"
+    - "外側を作っていないので、実行時に落ちると読んだ答え"
+  explanation: "`Error` は `static` ネストクラスなので、外側 `Response` のインスタンスが無くても `Response.Error` という型名でそのまま `new` できます。`Response` のインスタンスを作る必要はありません。"
   trace:
-    - "Error は static なので Response とは無関係に生成できる"
-    - "new Response.Error(\"失敗しました\") で message に文字列が入る"
-    - "e.message を表示 → \"失敗しました\""
+    - "`Error` は `static` なので `Response` とは無関係に生成できる"
+    - '`new Response.Error("失敗しました")` で `message` に文字列が入る'
+    - "`e.message` を表示 → `失敗しました`"

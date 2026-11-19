@@ -2,17 +2,18 @@ id: java-strings
 title: 文字列
 status: ready
 minutes: 15
-summary: String は不変、比較は equals。substring・split・strip などの定番メソッド、書式指定とテキストブロック、StringBuilder、数値変換まで、業務で毎日使う文字列操作を固める。
+summary: String は不変、比較は `equals`。`substring`・`split`・`strip` などの定番メソッド、書式指定とテキストブロック、`StringBuilder`、数値変換まで、業務で毎日使う文字列操作を固める。
 goals:
-  - String が不変であることを説明し、変換メソッドの戻り値を正しく受け取れる
-  - == と equals の違いを文字列プールと new String の観点で説明し、null 安全に比較できる
-  - length / charAt / substring / indexOf / split / strip などで文字列を分解・検証できる
-  - String.format / formatted とテキストブロックで整形した文字列を作れる
-  - Integer.parseInt で数値に変換し、NumberFormatException の原因を見抜ける
+  - "`String` が不変であることを説明し、変換メソッドの戻り値を正しく受け取れる"
+  - "`==` と `equals` の違いを文字列プールと `new String` の観点で説明し、`null` 安全に比較できる"
+  - "`length` / `charAt` / `substring` / `indexOf` / `split` / `strip` などで文字列を分解・検証できる"
+  - "`String.format` / `formatted` とテキストブロックで整形した文字列を作れる"
+  - "`Integer.parseInt` で数値に変換し、`NumberFormatException` の原因を見抜ける"
 samples:
   - title: 不変と equals、文字列プール
     description: |
-      `s.toUpperCase();` だけでは `s` は変わりません(JShell では捨てられた戻り値 `"JAVA"` が表示されます)。`==` と `equals` の違いも確かめましょう。
+      JShell では、受け取らなかった戻り値も画面に表示されます。`==` と `equals` は、それぞれ何を返すか。
+      `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わる?
     code: |
       // String は不変。そして中身の比較は equals
       // ここを変えてみよう:input を "GOLD" や null にする / b を d + "va" の形にしてみる
@@ -33,7 +34,9 @@ samples:
       System.out.println("equals           : " + "GOLD".equals(input));
       System.out.println("equalsIgnoreCase : " + "GOLD".equalsIgnoreCase(input));
   - title: メールアドレスを整えて分解する
-    description: strip / toLowerCase / indexOf / substring など、よく使うメソッドの組み合わせです。`trim` では全角スペースが残る点に注目。
+    description: |
+      `strip` / `toLowerCase` / `indexOf` / `substring` など、よく使うメソッドの組み合わせ。前後の全角スペースに注目しよう。
+      前の全角スペースは、`trim` で消える?
     code: |
       // よく使う String のメソッド(メールアドレスを整えて分解する)
       // ここを変えてみよう:email の中身や前後の空白(全角スペースも)を変える
@@ -55,7 +58,9 @@ samples:
       System.out.println("区切り線  : " + "-".repeat(20));
       System.out.println("空白だけ? " + "   ".isBlank() + " / 空文字? " + "   ".isEmpty());
   - title: CSV の行を分解して集計する
-    description: "`split` で列に分け、`strip` してから `Integer.parseInt`。`strip()` を外すと `NumberFormatException` になるのを確かめてみましょう。"
+    description: |
+      `split` で列に分け、`strip` してから `Integer.parseInt`。`strip()` を外したら何が起きるかも試してみよう。
+      `"a.b.c".split(".")` は、何個に分ける?
     code: |
       // CSV の1行を分解して集計する(split / strip / Integer.parseInt / String.join)
       // ここを変えてみよう:列の前後の空白を増やす / strip() を外すとどうなる? / "1,200" のようなカンマ入りにする
@@ -83,7 +88,7 @@ samples:
       System.out.println("split(\".\")   → " + "a.b.c".split(".").length + " 個");
       System.out.println("split(\"\\\\.\") → " + "a.b.c".split("\\.").length + " 個");
   - title: 書式指定とテキストブロックで帳票を作る
-    description: "`%-10s`(左寄せ)、`%4d`(右寄せ)、`%,9d`(3桁区切り)、`%05d`(0埋め)。`%%` は `%` そのものを出力します。"
+    description: "`%-10s`(左寄せ)、`%4d`(右寄せ)、`%,9d`(3桁区切り)、`%05d`(0埋め)。`%%` は `%` そのものを出力します。伝票番号の 42 は、`%05d` でどう表示される?"
     code: |
       // 書式指定(String.format / formatted)とテキストブロックで帳票を作る
       // ここを変えてみよう:%-10s の 10 や %,9d の 9 を変える / 金額を 1234567 にする
@@ -117,8 +122,13 @@ quiz:
       ```
     choices: ["JAVA!", "java", "JAVA", "java!"]
     answer: 1
+    why:
+      - "`toUpperCase()` と `concat()` が、`s` 自身を書き換えると読んだ答え"
+      - ""
+      - "`toUpperCase()` だけが `s` を書き換えると読んだ答え"
+      - "`concat()` だけが `s` に足されると読んだ答え"
     explanation: |
-      String は **不変(immutable)** です。`toUpperCase()` も `concat("!")` も、元の `s` を書き換えるのではなく **新しい String を作って返す** だけ。戻り値をどこにも受け取っていないので捨てられ、`s` は `"java"` のままです。
+      String は **不変(immutable)** です。`toUpperCase()` も `concat("!")` も、元の `s` を書き換えるのではなく**新しい String を作って返す**だけ。戻り値をどこにも受け取っていないので捨てられ、`s` は `"java"` のままです。
       `JAVA!` にしたいなら `s = s.toUpperCase().concat("!");` のように、戻り値を変数に代入する必要があります。戻り値を捨ててもコンパイルエラーにはならないので、気づきにくいミスです。
   - question: |
       次のコードを実行したときの出力は?
@@ -128,12 +138,17 @@ quiz:
       String c = new String("Java");
       System.out.println((a == b) + " " + (a == c) + " " + a.equals(c));
       ```
-    choices: ["true true true", "false false true", "true false true", "false false false"]
+    choices: ["`true true true`", "`false false true`", "`true false true`", "`false false false`"]
     answer: 2
+    why:
+      - "`new String` も、プールの同じものを返すと読んだ答え"
+      - "`\"Ja\" + \"va\"` も、実行時に新しく作ると読んだ答え"
+      - ""
+      - "`equals` も、同じオブジェクトかどうかを比べると読んだ答え"
     explanation: |
-      `"Ja" + "va"` は **定数同士の連結** なので、コンパイル時に `"Java"` という1つのリテラルになり、文字列プールの同じオブジェクトを指します。だから `a == b` は `true`。
-      `new String("Java")` は **必ず新しいオブジェクト** を作るので `a == c` は `false`。中身を比べる `equals` は `true` です。
-      もし `String d = "Ja"; String b = d + "va";` のように **変数を含む連結** なら実行時に新しいオブジェクトが作られ、`a == b` は `false` になります。結果が書き方次第で変わるからこそ、文字列は常に `equals` で比べます。
+      `"Ja" + "va"` は**定数同士の連結**なので、コンパイル時に `"Java"` という1つのリテラルになり、文字列プールの同じオブジェクトを指します。だから `a == b` は `true`。
+      `new String("Java")` は**必ず新しいオブジェクト**を作るので `a == c` は `false`。中身を比べる `equals` は `true` です。
+      もし `String d = "Ja"; String b = d + "va";` のように**変数を含む連結**なら実行時に新しいオブジェクトが作られ、`a == b` は `false` になります。結果が書き方次第で変わるからこそ、文字列は常に `equals` で比べます。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -143,10 +158,15 @@ quiz:
       ```
     choices: ["A001", ",コーヒー", "コーヒー,", "コーヒー"]
     answer: 3
+    why:
+      - "最初のカンマより前を切り出すと読んだ答え。開始は `i + 1` なのでカンマの次から"
+      - "開始位置をカンマの位置 `i` と読んだ答え"
+      - "substring の終了位置の文字も含むと読んだ答え"
+      - ""
     explanation: |
       `indexOf(",")` は最初のカンマの位置 `4` を返します。`indexOf(",", i + 1)` は位置 5 以降で次のカンマを探すので `9`。
-      `substring(5, 9)` は **開始位置を含み、終了位置を含まない** ので、インデックス 5〜8 の `"コーヒー"` になります。
-      `,コーヒー` は開始を `i`(カンマの位置)にした場合、`コーヒー,` は終了位置も含むと勘違いした場合の答えです。
+      `substring(5, 9)` は**開始位置を含み、終了位置を含まない**ので、インデックス 5〜8 の `"コーヒー"` になります。
+
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -155,15 +175,25 @@ quiz:
       ```
     choices: ["0", "4", "1", "実行時に例外が発生する"]
     answer: 0
+    why:
+      - ""
+      - "`split(\".\")` をピリオドで区切ると読んだ答え"
+      - "区切りが見つからず、全体が 1 つ残ると読んだ答え"
+      - ". を正規表現として不正と読み、例外になるとした答え"
     explanation: |
-      `split` の引数は **正規表現** で、`.` は「任意の1文字」を意味します。すべての文字が区切りとみなされ、間にできる要素はすべて空文字になります。`split` は **末尾の空文字の要素を取り除く** ので、結果は長さ `0` の配列です。
-      ピリオドで区切りたいときは `split("\\.")` とエスケープします(正規表現の `\.` を Java の文字列で書くと `"\\."`)。こうすれば `4` になります。例外にはなりません。
+      `split` の引数は**正規表現**で、`.` は「任意の1文字」を意味します。すべての文字が区切りとみなされ、間にできる要素はすべて空文字になります。`split` は**末尾の空文字の要素を取り除く**ので、結果は長さ `0` の配列です。
+      ピリオドで区切りたいときは `split("\\.")` とエスケープします(正規表現の `\.` を Java の文字列で書くと `"\\."`)。こうすれば `4` になります。
   - question: |
-      次のうち、実行すると **NumberFormatException が発生する** のはどれ?
-    choices: ['Integer.parseInt("-42")', 'Integer.parseInt("042")', 'Integer.parseInt(" 42")', 'Integer.parseInt("+42")']
+      次のうち、実行すると **NumberFormatException が発生する**のはどれ?
+    choices: ['`Integer.parseInt("-42")`', '`Integer.parseInt("042")`', '`Integer.parseInt(" 42")`', '`Integer.parseInt("+42")`']
     answer: 2
+    why:
+      - "マイナス付きは変換できないと読んだ答え"
+      - "先頭の 0 で失敗すると読んだ答え"
+      - ""
+      - "`+` の記号は変換できないと読んだ答え"
     explanation: |
-      `Integer.parseInt` は前後の空白を許さないので、`" 42"` は `NumberFormatException: For input string: " 42"` になります。CSV や画面入力の値は `strip()` してから変換するのが定石です。
+      `Integer.parseInt` は前後の空白を許さないので、`" 42"` は次の例外になります: `NumberFormatException: For input string: " 42"` CSV や画面入力の値は `strip()` してから変換するのが定石です。
       `"-42"` は -42、`"042"` は先頭の 0 が無視されて 42、`"+42"` も(Java 7 以降)42 として正しく変換されます。カンマ入りの `"1,000"` や小数の `"1.5"` も例外になります。
 columns:
   - type: mistake
@@ -181,7 +211,7 @@ columns:
         Index 3 out of bounds for length 1
       ```
 
-      `split` は **末尾に続く空文字の要素を捨てる** 仕様なので、電話・メール・備考が全部空だと、配列の長さは 4 ではなく 1 になります。テストデータは全項目が埋まっていたので気づきませんでした。
+      `split` は**末尾に続く空文字の要素を捨てる**仕様なので、電話・メール・備考が全部空だと、配列の長さは 4 ではなく 1 になります。テストデータは全項目が埋まっていたので気づきませんでした。
 
       列数が決まっているデータは、第2引数に負の数を渡す `split(",", -1)` で空欄も残すのが鉄則です。こうすれば `"山田,,,"` でも長さ 4(`["山田", "", "", ""]`)になります。
   - type: genba
@@ -189,9 +219,9 @@ columns:
     body: |
       固定幅の帳票を `String.format("%-10s", name)` で作ったら、日本語の行だけ列がずれた――現場でよく聞く話です。
 
-      `length()` や `%-10s` が数えるのは **文字数** です。ところが等幅フォントでは、全角文字は半角2文字分の **表示幅** を取ります。`"山田"` は2文字なので8個の空白で埋められますが、画面上は半角12文字分の幅になり、列がずれます。
+      `length()` や `%-10s` が数えるのは**文字数**です。ところが等幅フォントでは、全角文字は半角2文字分の**表示幅**を取ります。`"山田"` は2文字なので8個の空白で埋められますが、画面上は半角12文字分の幅になり、列がずれます。
 
-      さらに銀行の振込データのような **固定長ファイル** は、文字数でも表示幅でもなく **バイト数** で桁が決まります。Shift_JIS 系(Windows-31J)なら全角1文字は2バイトなので、`s.getBytes("Windows-31J").length` で数えるのが定番です。同じ「山田」でも UTF-8 なら6バイトになるので、どの文字コードで出力するかを先に確認しましょう。
+      さらに銀行の振込データのような**固定長ファイル**は、文字数でも表示幅でもなく**バイト数**で桁が決まります。Shift_JIS 系(Windows-31J)なら全角1文字は2バイトなので、`s.getBytes(Charset.forName("Windows-31J")).length` で数えるのが定番です(文字コード名を文字列で渡す `getBytes("Windows-31J")` は、`UnsupportedEncodingException` の例外処理が必要になります)。同じ「山田」でも UTF-8 なら6バイトになるので、どの文字コードで出力するかを先に確認しましょう。
 
       「長さ」には文字数・表示幅・バイト数の3種類がある。帳票やファイル連携の仕様書を読むときは、どれのことかを必ず確認してください。
   - type: trivia
@@ -201,4 +231,4 @@ columns:
 
       そこで Java 9 で **Compact Strings**(JEP 254)が入り、内部は `byte[]` と「符号化の種類」を表すフラグになりました。すべての文字が Latin-1(1バイトで表せる英数字など)なら1文字1バイト、日本語などが1文字でも混ざれば従来どおり UTF-16(1文字2バイト)で格納します。英数字中心のアプリではヒープ使用量が目に見えて減りました。
 
-      この切り替えができるのも String が **不変** だから。あとから日本語が書き込まれる心配がないので、作るときに一度だけ形式を決めればよいのです。同じ理由で `hashCode()` の結果も一度計算したらキャッシュされています。
+      この切り替えができるのも String が**不変**だから。あとから日本語が書き込まれる心配がないので、作るときに一度だけ形式を決めればよいのです。同じ理由で `hashCode()` の結果も一度計算したらキャッシュされています。

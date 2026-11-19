@@ -10,7 +10,7 @@
 
 配列は作った時点で長さが固定です。「件数不明の CSV を読む」「重複を消す」「社員番号で引く」といった日常の要求に、配列だけで応えるのは骨が折れます。
 
-**コレクション** は「複数のオブジェクトをまとめて扱う入れ物」の総称で、`java.util` にインターフェースと実装クラスの一式(**コレクションフレームワーク**)があります。
+**コレクション**は「複数のオブジェクトをまとめて扱う入れ物」の総称で、`java.util` にインターフェースと実装クラスの一式(**コレクションフレームワーク**)があります。
 
 ```mermaid
 flowchart TD
@@ -26,7 +26,7 @@ flowchart TD
     M --> TM["TreeMap"]
 ```
 
-上段が **インターフェース**、下段が **実装クラス**。`Map` は `Collection` を継承しない別系統です。
+上段が**インターフェース**、下段が**実装クラス**。`Map` は `Collection` を継承しない別系統です。
 
 ```java
 import java.util.*;
@@ -34,9 +34,9 @@ import java.util.*;
 List<String> names = new ArrayList<>();
 ```
 
-変数の型はインターフェース、`new` するのは実装クラス。こう書けば実装を差し替えても呼び出し側が壊れません(ポリモーフィズムの実践)。`<String>` は「中身は String」という指定(**ジェネリクス**)、右辺の `<>` は **ダイヤモンド演算子**。詳しくは次回です。
+変数の型はインターフェース、`new` するのは実装クラス。こう書けば実装を差し替えても呼び出し側が壊れません(ポリモーフィズムの実践)。`<String>` は「中身は `String`」という指定(**ジェネリクスの型引数**)、右辺の `<>` は**ダイヤモンド演算子**。詳しくは次回です。
 
-## List:ArrayList が主役
+## `List`:`ArrayList` が主役
 
 ```java
 List<String> names = new ArrayList<>();
@@ -53,21 +53,21 @@ System.out.println(names.contains("田中")); // true
 
 `contains` や `remove(Object)` は `equals` で探します。
 
-`ArrayList` の中身は **配列** で、満杯になると約1.5倍の配列を作ってコピーします。`LinkedList` は要素を鎖でつないだ構造です。
+`ArrayList` の中身は**配列**で、満杯になると約1.5倍の配列を作ってコピーします。`LinkedList` は要素を鎖でつないだ構造です。
 
-| 操作 | ArrayList | LinkedList |
+| 操作 | `ArrayList` | `LinkedList` |
 |---|---|---|
 | get(i) | 速い(添字で一発) | 遅い(先頭からたどる) |
 | 途中への挿入 | 後ろをずらす | つなぎ替え(位置探しは遅い) |
 | メモリ | 小さい | 要素ごとにノード |
 
 ::: genba
-現場で使うリストは、まず `ArrayList`。理屈では LinkedList が速い場面でも、実測すると CPU キャッシュに優しい ArrayList が勝つことが多い。
+現場で使うリストは、まず `ArrayList`。理屈では `LinkedList` が速い場面でも、実測すると CPU キャッシュに優しい `ArrayList` が勝つことが多い。
 :::
 
-## Set と Map
+## `Set` と `Map`
 
-**Set** は重複なしの集合。実装は「並び順」で選びます。
+**`Set`** は重複なしの集合。実装は「並び順」で選びます。
 
 ```java
 List<String> tags =
@@ -80,7 +80,7 @@ System.out.println(new TreeSet<>(tags));
 
 `HashSet` は最速ですが順番は保証なし。「重複を消して順は保つ」なら `LinkedHashSet`。`add` は重複なら `false` を返します。
 
-**Map** はキーと値のペアの「辞書」です。
+**`Map`** はキーと値のペアの「辞書」です。
 
 ```java
 Map<String, Integer> stock = new HashMap<>();
@@ -117,7 +117,7 @@ System.out.println(count);  // {a=3, b=2, c=1}
 
 ## 不変コレクションとループ中の削除
 
-`List.of` / `Set.of` / `Map.of` は **不変**(変更不可)のコレクションを作ります。
+`List.of` / `Set.of` / `Map.of` は**不変**(変更不可)のコレクションを作ります。
 
 ```java
 List<String> fixed = List.of("A", "B");
@@ -131,10 +131,10 @@ java.lang.UnsupportedOperationException
 型は普通の `List` なので、コンパイルは通って実行時に落ちます。変更したいなら `new ArrayList<>(List.of(...))` で詰め替えます。`null` を入れると NPE になる点も注意。
 
 ::: warn Arrays.asList は「サイズ固定」で、不変ではない
-古いコードによく出る `Arrays.asList("A", "B")` は、`add` / `remove` は `UnsupportedOperationException` なのに、`set` で中身の置き換えはできる中途半端な `List` です。`List.of` は `set` も禁止。どちらも変数の型はただの `List` なので、「add で落ちた」「変わらないはずが変わった」ときは、その `List` を **どこで何で作ったか** まで追いかけます。
+古いコードによく出る `Arrays.asList("A", "B")` は、`add` / `remove` は `UnsupportedOperationException` なのに、`set` で中身の置き換えはできる中途半端な `List` です。`List.of` は `set` も禁止。どちらも変数の型はただの `List` なので、「add で落ちた」「変わらないはずが変わった」ときは、その `List` を**どこで何で作ったか**まで追いかけます。
 :::
 
-もう一つの地雷が、拡張 for の **中での remove** です。
+もう一つの地雷が、拡張 for の**中での remove** です。
 
 ```java
 List<String> list =
@@ -146,7 +146,7 @@ for (String s : list) {
 }
 ```
 
-拡張 for の裏では **Iterator**(要素を1つずつ取り出す係)が動いています。ArrayList は変更回数を数えていて、Iterator の知らない所で変わると「壊れたまま続けるより即死」を選びます(**fail-fast**)。正しくはこう。
+拡張 for の裏では **`Iterator`**(要素を1つずつ取り出す係)が動いています。`ArrayList` は変更回数を数えていて、`Iterator` の知らない所で変わると「壊れたまま続けるより即死」を選び、`ConcurrentModificationException` を投げます(**fail-fast**)。正しくはこう。
 
 ```java
 Iterator<String> it = list.iterator();
@@ -158,7 +158,7 @@ while (it.hasNext()) {
 list.removeIf(s -> s.equals("B"));  // 現場はこっち
 ```
 
-## equals と hashCode を正しく
+## `equals` と `hashCode` を正しく
 
 `HashSet` / `HashMap` は `hashCode()`(オブジェクトから計算する int)で格納場所を決め、そこで `equals` で一致を確かめます。`Object` から継承したままでは、どちらも「同じインスタンスか」しか見ません。
 
@@ -173,7 +173,7 @@ set.add(new Emp("E001"));
 System.out.println(set.size());  // 2 !?
 ```
 
-中身で同一視したいなら **両方** オーバーライドします。
+中身で同一視したいなら**両方**オーバーライドします。
 
 ```java
 @Override
@@ -187,7 +187,7 @@ public int hashCode() {
 }
 ```
 
-ルールは「`equals` が true なら `hashCode` も必ず同じ」。`equals` だけ直すと別の場所を探しに行き、`contains` が `false` になります。STS の「ソース → hashCode() および equals() の生成」を使うのが安全です。
+ルールは「`equals` が `true` なら `hashCode` も必ず同じ」。`equals` だけ直すと別の場所を探しに行き、`contains` が `false` になります。STS の「ソース → `hashCode()` および equals() の生成」を使うのが安全です。
 
 ::: haru
 equals だけじゃダメなんすね……。
@@ -197,7 +197,7 @@ equals だけじゃダメなんすね……。
 表札だけ変えて住所を変えないようなもの。郵便(検索)は届かない。
 :::
 
-## 並べ替えと Comparator の入口
+## 並べ替えと `Comparator` の入口
 
 ```java
 List<String> fruits = new ArrayList<>(
@@ -206,7 +206,7 @@ Collections.sort(fruits);
 System.out.println(fruits); // [apple, banana, kiwi]
 ```
 
-String や Integer は **Comparable**(自然な順序)を実装しているので、そのまま並びます。別の基準なら **Comparator**(比べ方のオブジェクト)を渡します。
+`String` や `Integer` は **`Comparable`**(自然な順序)を実装しているので、そのまま並びます。別の基準なら **`Comparator`**(比べ方のオブジェクト)を渡します。
 
 ```java
 fruits.sort(new Comparator<String>() {
@@ -218,7 +218,7 @@ fruits.sort(new Comparator<String>() {
 // [kiwi, apple, banana] 文字数順
 ```
 
-これは **匿名クラス**(名前を付けずにその場でインターフェースを実装するクラス)での書き方。現場では `Comparator.comparing(String::length)` と1行で書きます(ラムダの回で解説)。
+これは**匿名クラス**(名前を付けずにその場でインターフェースを実装するクラス)での書き方。現場では `Comparator.comparing(String::length)` と1行で書きます(ラムダの回で解説)。
 
 ## よくあるミス
 
@@ -241,7 +241,7 @@ int n = stock.get("ぶどう");  // NullPointerException
 ::: point まとめ
 - 順番あり → `List`(ほぼ `ArrayList`)、重複なし → `Set`、キーで引く → `Map`
 - 変数はインターフェース型で受ける:`List<String> x = new ArrayList<>();`
-- Set の順番は Hash=保証なし / LinkedHash=追加順 / Tree=ソート順
+- `Set` の順番は Hash=保証なし / LinkedHash=追加順 / Tree=ソート順
 - `List.of` は不変。変更すると `UnsupportedOperationException`
 - ループ中の削除は `Iterator.remove` か `removeIf`
 - Hash系に自作クラスを入れるなら `equals` と `hashCode` をセットで

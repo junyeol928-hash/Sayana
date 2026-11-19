@@ -3,7 +3,7 @@ className: Checkout
 difficulty: 2
 problem: |
   ネットショップのレジ `Checkout` を作ります。割引のやり方はキャンペーンごとに変わるので、
-  **割引ルールをインターフェース `PriceRule` で表し、レジのコードを変えずに差し替えられる** ようにします。
+  **割引ルールをインターフェース `PriceRule` で表し、レジのコードを変えずに差し替えられる**ようにします。
 
   ```java
   interface PriceRule {
@@ -26,7 +26,7 @@ problem: |
   - `label()` を上書きして `"500円引き"` の形式で返す
 
   **3. `Checkout.total(int[] prices)`**
-  - 商品の価格の配列を受け取り、**合計してから** フィールド `rule` の `apply` を1回だけ適用した金額を返す
+  - 商品の価格の配列を受け取り、**合計してから**フィールド `rule` の `apply` を1回だけ適用した金額を返す
   - 空配列なら合計 0 にルールを適用した値を返す
 
   **4. `Checkout.receipt(int[] prices)`**

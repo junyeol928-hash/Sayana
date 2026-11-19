@@ -25,7 +25,8 @@ public record Lesson(
         List<ChecklistItem> checklist,
         List<ExerciseDef> exercises,
         List<ReadingQuestion> reading,
-        List<AtWork> atWork) {
+        List<AtWork> atWork,
+        List<Check> checks) {
 
     public boolean ready() {
         return "ready".equals(status);
@@ -33,6 +34,16 @@ public record Lesson(
 
     public boolean hasSts() {
         return sts != null;
+    }
+
+    /** レッスンの説明文(ゴールと同じく `…` だけコードの書体に) */
+    public String summaryHtml() {
+        return summary == null ? "" : org.springframework.web.util.HtmlUtils.htmlEscape(summary).replaceAll("`([^`]+)`", "<code>$1</code>");
+    }
+
+    /** ゴールの文(地の文はエスケープし、`…` だけコードの書体に。コードの語を本文と同じ書体で出す) */
+    public List<String> goalsHtml() {
+        return goals.stream().map(g -> org.springframework.web.util.HtmlUtils.htmlEscape(g).replaceAll("`([^`]+)`", "<code>$1</code>")).toList();
     }
 
     /** レッスンにある段(読む → 仕事のコード → サンプル → クイズ → 演習 → 読解 → STSで試す)。レッスン画面の段の並びと同じ。 */
@@ -62,8 +73,9 @@ public record Lesson(
     }
 
     /** 選択式クイズ1問。answer は 0 始まり。 */
+    /** クイズの 1 問。whyHtml は選択肢と同じ並びで、選んだ誤答に向けた 1 文(正解の所は空。書いていなければ空のリスト)。 */
     public record QuizQuestion(String questionMarkdown, String questionHtml, List<String> choices,
-                               List<String> choicesHtml, int answer, String explanationHtml) {
+                               List<String> choicesHtml, int answer, String explanationHtml, List<String> whyHtml) {
     }
 
     /** コラム。type は trivia / genba / mistake。 */
@@ -95,7 +107,7 @@ public record Lesson(
      */
     public record ReadingQuestion(String title, int level, String code, String questionHtml,
                                   List<String> choicesHtml, int answer, String explanationHtml,
-                                  List<String> traceHtml) {
+                                  List<String> traceHtml, List<String> whyHtml) {
     }
 
     /**
@@ -104,5 +116,15 @@ public record Lesson(
      */
     public record AtWork(String title, String introHtml, String code, Map<Integer, String> notesHtml,
                          List<String> pointsHtml) {
+    }
+
+    /**
+     * 「手を止めて」(checks.yml)。本文の途中に置く 1 問(読みながら思い出す練習)。
+     * 置き場所は after(その ## 節の終わり)か before(書き出しがその文字の塊の直前。答えを見せる前に予想させる)。
+     * hides は before のとき、答えるまで畳む後ろの塊の数(答えが同じ画面に見えないように)。
+     * whyHtml は選択肢と同じ並びで、選んだ誤答に向けた 1 文(正解の所は空)。本文の HTML には描画済みのものが入っている。
+     */
+    public record Check(String after, String before, int hides, String questionHtml, List<String> choicesHtml, int answer,
+                        String explanationHtml, List<String> whyHtml) {
     }
 }

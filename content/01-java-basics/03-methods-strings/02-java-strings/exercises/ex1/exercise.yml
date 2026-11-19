@@ -8,7 +8,7 @@ problem: |
   | メソッド | 返す値 |
   |---|---|
   | `boolean isValid(String id)` | 正しい形式なら `true` |
-  | `String normalize(String id)` | 正しい形式なら **前後の空白を除き、`EMP-` を大文字にした** 社員番号。正しくなければ `null` |
+  | `String normalize(String id)` | 正しい形式なら**前後の空白を除き、`EMP-` を大文字にした**社員番号。正しくなければ `null` |
 
   ### ルール
   - 前後の空白(**全角スペースを含む**)は無視する。

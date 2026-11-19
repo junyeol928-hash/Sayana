@@ -2,16 +2,17 @@ id: java-exceptions
 title: 例外処理
 status: ready
 minutes: 15
-summary: try / catch / finally、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。
+summary: "`try` / `catch` / `finally`、検査例外と非検査例外、スタックトレースの読み方、try-with-resources、独自例外とラップ。そして現場で一番の罪「例外の握りつぶし」。"
 goals:
-  - try / catch / finally の実行順を説明できる
-  - 例外クラスの階層(Throwable / Error / Exception / RuntimeException)と、検査例外・非検査例外の違いを説明できる
-  - throw と throws を使い分け、独自例外クラスを作れる
+  - "`try` / `catch` / `finally` の実行順を説明できる"
+  - 例外クラスの階層(`Throwable` / `Error` / `Exception` / `RuntimeException`)と、検査例外・非検査例外の違いを説明できる
+  - "`throw` と `throws` を使い分け、独自例外クラスを作れる"
   - スタックトレースの1行目と Caused by から原因を特定できる
   - try-with-resources でリソースを確実に閉じ、例外をラップするときに原因(cause)を渡せる
 samples:
   - title: try / catch / finally の流れ
-    description: 例外が起きた行で try は中断し、型が合う catch に飛びます。finally は例外の有無にかかわらず必ず実行されます。
+    description: |
+      入力ごとに、try のどの行まで進み、どの catch に飛ぶだろうか。`"12a"` と `"0"` では何が違い、`(チェック終了)` は何回出る?
     code: |
       // try / catch / finally の流れを確かめる
       // ここを変えてみよう:inputs に "-5" や " 7" や null を足す / finally の行を消してみる
@@ -32,7 +33,7 @@ samples:
           }
       }
   - title: 独自例外を throw して catch する
-    description: "`Exception` を継承した独自例外は検査例外なので、投げるメソッドには `throws` が必要です。前提違反(数量0)は非検査例外の `IllegalArgumentException` で表します。"
+    description: "`Exception` を継承した独自例外は検査例外なので、投げるメソッドには `throws` が必要です。前提違反(数量0)は非検査例外の `IllegalArgumentException` で表します。在庫 5 に対して 3・4・0 と注文すると、それぞれどうなるだろうか。"
     code: |
       // 独自例外を throw して、呼び出し側で catch する
       // ここを変えてみよう:order の数量を 3 / 10 / 0 に変える
@@ -72,7 +73,8 @@ samples:
           }
       }
   - title: try-with-resources とクローズ順
-    description: "`AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられます。閉じる順番は開いた順の逆で、catch より前に閉じ終わります。"
+    description: |
+      `AutoCloseable` を実装したクラスは try-with-resources で自動的に閉じられる。2 つのリソースの open と close は、どんな順で出るだろうか。`fail` を true にしたら、close と catch のどちらが先に出る?
     code: |
       // try-with-resources:AutoCloseable を実装すると自動で close される
       // ここを変えてみよう:fail を true にする / リソースを3つに増やして close の順番を見る
@@ -102,7 +104,8 @@ samples:
           System.out.println("finally");
       }
   - title: ラップして再スロー(cause を渡す)
-    description: 下位の例外を自分の層の例外に包み直すときは、catch した例外を cause として渡します。`getCause()` で元の例外を取り出せます。
+    description: |
+      下位の例外を、自分の層の例外に包み直して投げる。`getCause()` は何を返し、「Caused by」の行には何が出るだろうか。
     code: |
       // ラップして再スロー:cause を渡すと「本当の原因」が残る
       // ここを変えてみよう:text を "8080" にする / new ConfigException の第2引数 e を消してみる
@@ -145,9 +148,13 @@ quiz:
       ```
     choices: ["ABCDE", "ACDE", "ACE", "ABDE"]
     answer: 1
+    why:
+      - "例外が起きても `try` の残りが動くと読んだ答え。例外の時点で `try` は中断し、B は出ない"
+      - ""
+      - "`finally` を見落とした答え。`finally` は例外があっても必ず動き、D が出る"
+      - "`parseInt` が成功すると読んだ答え。`\"x\"` は数値でないので例外になり、B を飛ばして `catch` の C が出る"
     explanation: |
-      `parseInt("x")` で `NumberFormatException` が発生した時点で try ブロックは中断するので、`B` は出力されません。型が合う catch に飛んで `C`、finally は必ず実行されるので `D`、例外は catch で処理済みなので try 文の後ろの `E` も実行されます。
-      `ACE` は finally を忘れた答え、`ABCDE` は「例外が起きても try の残りが実行される」という誤解です。
+      `parseInt("x")` で `NumberFormatException` が発生した時点で `try` ブロックは中断するので、`B` は出力されません。型が合う `catch` に飛んで `C`、`finally` は必ず実行されるので `D`、例外は `catch` で処理済みなので `try` 文の後ろの `E` も実行されます。
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -159,18 +166,28 @@ quiz:
           System.out.println("数値ではない");
       }
       ```
-    choices: ["数値でない text なら「数値ではない」と出力される", "数値でない text なら両方の catch が実行される", "実行時に ClassCastException が発生する", "2つ目の catch には絶対に届かないのでコンパイルエラー"]
+    choices: ["数値でない text なら「数値ではない」と出力される", "数値でない text なら両方の `catch` が実行される", "実行時に `ClassCastException` が発生する", "2つ目の `catch` には絶対に届かないのでコンパイルエラー"]
     answer: 3
+    why:
+      - "一番合う `catch` が選ばれると読んだ答え。`catch` は上から順で、届かない後ろの `catch` はコンパイルエラー"
+      - "合う `catch` が全部動くと読んだ答え。動くのは最初に合った 1 つだけで、この形はそもそも通らない"
+      - "例外の型の食い違いが実行時に出ると読んだ答え。届かない `catch` はコンパイル時にエラーになる"
+      - ""
     explanation: |
-      `NumberFormatException` は `IllegalArgumentException` の **サブクラス** です。catch は上から順に型をチェックするので、1つ目の catch がすべての `NumberFormatException` を捕まえてしまい、2つ目には絶対に届きません。javac はこれを `exception NumberFormatException has already been caught` というコンパイルエラーにします。
-      catch を並べるときは **サブクラス(具体的な例外)を先** に書きます。catch は最初に合った1つしか実行されません。
+      `NumberFormatException` は `IllegalArgumentException` の**サブクラス**です。`catch` は上から順に型をチェックするので、1つ目の `catch` がすべての `NumberFormatException` を捕まえてしまい、2つ目には絶対に届きません。javac はこれを `exception NumberFormatException has already been caught` というコンパイルエラーにします。
+      `catch` を並べるときは**サブクラス(具体的な例外)を先**に書きます。`catch` は最初に合った1つしか実行されません。
   - question: |
-      `import java.io.IOException;` 済みとして、**コンパイルエラーになる** メソッドはどれ?
-    choices: ["void a() { throw new IllegalStateException(\"x\"); }", "void b() throws IOException { throw new IOException(\"x\"); }", "void c() { throw new IOException(\"x\"); }", "void d() { throw new NumberFormatException(\"x\"); }"]
+      `import java.io.IOException;` 済みとして、**コンパイルエラーになる**メソッドはどれ?
+    choices: ["`void a() { throw new IllegalStateException(\"x\"); }`", "`void b() throws IOException { throw new IOException(\"x\"); }`", "`void c() { throw new IOException(\"x\"); }`", "`void d() { throw new NumberFormatException(\"x\"); }`"]
     answer: 2
+    why:
+      - "`IllegalStateException` にも宣言が要ると読んだ答え。`RuntimeException` の子なので宣言なしで投げられる"
+      - "検査例外は `catch` しないと投げられないと読んだ答え。`throws` で宣言すれば `catch` せずに投げられる"
+      - ""
+      - "`NumberFormatException` を検査例外と取り違えた答え。`RuntimeException` の子なので宣言なしで投げられる"
     explanation: |
-      `IOException` は `RuntimeException` の系統ではない **検査例外** なので、投げるメソッドは catch するか `throws IOException` で宣言しなければなりません。`c()` はどちらもしていないので `unreported exception IOException; must be caught or declared to be thrown` になります。
-      `b()` は throws で宣言しているのでOK。`IllegalStateException` と `NumberFormatException` は `RuntimeException` のサブクラス(非検査例外)なので、宣言なしで投げられます。
+      `IOException` は `RuntimeException` の系統ではない**検査例外**なので、投げるメソッドは `catch` するか `throws IOException` で宣言しなければなりません。`c()` はどちらもしていないので、次のコンパイルエラーになります: `unreported exception IOException; must be caught or declared to be thrown`
+      `b()` は `throws` で宣言しているのでOK。`IllegalStateException` と `NumberFormatException` は `RuntimeException` のサブクラス(非検査例外)なので、宣言なしで投げられます。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -191,8 +208,13 @@ quiz:
       ```
     choices: ["open1 open2 body close2 close1", "open1 open2 body close1 close2", "open1 body close1 open2 body close2", "open1 open2 body"]
     answer: 0
+    why:
+      - ""
+      - "開いた順に閉じると読んだ答え。`close()` は逆順で、後に開いた 2 から閉じる"
+      - "リソースごとにブロックを回すと読んだ答え。全部を開いてから body を 1 回だけ実行する"
+      - "`close()` を呼んでいないので閉じないと読んだ答え。`AutoCloseable` なら自動で逆順に呼ばれる"
     explanation: |
-      try-with-resources は `( )` の中のリソースを **書いた順に開き**、ブロックを抜けるときに **逆の順番で** `close()` を呼びます。後に開いたリソースは先に開いたものに依存していることが多い(DB接続の上で作った SQL 文など)ので、依存している側から閉じるためです。
+      try-with-resources は `( )` の中のリソースを**書いた順に開き**、ブロックを抜けるときに**逆の順番で** `close()` を呼びます。後に開いたリソースは先に開いたものに依存していることが多い(DB接続の上で作った SQL 文など)ので、依存している側から閉じるためです。
       `close()` を明示的に呼んでいなくても、`AutoCloseable` を実装していれば自動で呼ばれます。
   - question: |
       次のコードの問題点として最も適切なのは?
@@ -203,11 +225,15 @@ quiz:
           throw new ConfigException("設定の読み込みに失敗");
       }
       ```
-    choices: ["IOException は非検査例外なので catch できない", "catch した例外を cause として渡していないので、根本原因がスタックトレースから消える", "catch ブロックの中で throw することはできない", "ConfigException は Exception を直接継承していないと throw できない"]
+    choices: ["`IOException` は非検査例外なので `catch` できない", "`catch` した例外を cause として渡していないので、根本原因がスタックトレースから消える", "`catch` ブロックの中で `throw` することはできない", "`ConfigException` は `Exception` を直接継承していないと `throw` できない"]
     answer: 1
+    why:
+      - "`IOException` を非検査例外と取り違えた答え。`IOException` は検査例外で、どちらにしても `catch` はできる"
+      - ""
+      - "`catch` の中では投げ直せないと読んだ答え。`catch` の中で `throw` するのは普通の書き方"
+      - "独自例外は `Exception` の直接の子に限ると読んだ答え。`Exception` か `RuntimeException` の子孫なら投げられる"
     explanation: |
-      例外をラップして投げ直すこと自体は正しい設計ですが、`new ConfigException("...", e)` のように **元の例外 `e` を cause として渡さない** と、スタックトレースから `Caused by:` が消えます。ファイル名の誤りなのか、権限不足なのか、根本原因が分からなくなります。
-      catch の中で throw するのは普通のことで、`IOException` は検査例外なので catch できます。独自例外は `Exception` でも `RuntimeException` でも、その子孫を継承すれば throw できます。
+      例外をラップして投げ直すこと自体は正しい設計ですが、`new ConfigException("...", e)` のように**元の例外 `e` を cause として渡さない**と、スタックトレースから `Caused by:` が消えます。ファイル名の誤りなのか、権限不足なのか、根本原因が分からなくなります。
 columns:
   - type: genba
     title: 空の catch が招いた「3週間気づかない障害」
@@ -248,6 +274,6 @@ columns:
       }
       ```
 
-      このメソッドは例外を投げず、何事もなかったように `0` を返します。finally が `return` で終わると、try で起きた例外は **捨てられる** のが Java の仕様です。DB 更新は失敗しているのに、呼び出し元は成功だと思い込みます。
+      このメソッドは例外を投げず、何事もなかったように `0` を返します。finally が `return` で終わると、try で起きた例外は**捨てられる**のが Java の仕様です。DB 更新は失敗しているのに、呼び出し元は成功だと思い込みます。
 
-      javac は標準では何も言いませんが、`-Xlint:finally` を付けると `finally clause cannot complete normally` と警告してくれます。finally には **後始末だけ** を書き、`return` や `throw` は書かないのが鉄則です。
+      javac は標準では何も言いませんが、`-Xlint:finally` を付けると `finally clause cannot complete normally` と警告してくれます。finally には**後始末だけ**を書き、`return` や `throw` は書かないのが鉄則です。

@@ -8,7 +8,7 @@
 
 ## なぜ自動テストか
 
-**自動テスト** は「期待する結果」をコードで書いておき、機械に何度でも確かめさせる仕組みです。目視確認は直すたびに全部見直す必要があり、そのうち誰も見なくなります。自動テストなら、修正で別の場所が壊れる **デグレ(回帰バグ)** を数秒で見つけられ、「このメソッドはこう動く」という **動く仕様書** にもなります。
+**自動テスト**は「期待する結果」をコードで書いておき、機械に何度でも確かめさせる仕組みです。目視確認は直すたびに全部見直す必要があり、そのうち誰も見なくなります。自動テストなら、修正で別の場所が壊れる **デグレ(回帰バグ)** を数秒で見つけられ、「このメソッドはこう動く」という**動く仕様書**にもなります。
 
 この道場の採点も、まさにこの仕組みです。
 
@@ -22,7 +22,7 @@ flowchart LR
     E -- "いいえ" --> G["失敗メッセージ(赤)"]
 ```
 
-Java の定番テストフレームワークが **JUnit** で、現行は **JUnit 5**(テストを書くための部分は Jupiter と呼ばれます)。Spring Boot のプロジェクトには最初から入っています。
+Java の定番テストフレームワークが **JUnit** です。この道場は **JUnit 5**(テストを書くための部分は Jupiter と呼ばれます)を使います。2025年9月に JUnit 6 が出ていますが、`@Test` などの書き方は同じです。Spring Boot のプロジェクトには最初から入っています。
 
 ## JUnit 5 の基本
 
@@ -49,14 +49,14 @@ class CartTest {
 ```
 
 - `@Test` を付けた引数なし・`void` のメソッドが1つのテスト。JUnit 5 では `public` は不要です
-- `main` は要りません。JUnit が **リフレクション**(実行時にクラスの中身を調べる仕組み)で `@Test` 付きメソッドを探して呼び出します
-- JUnit は **テストメソッドごとにテストクラスのインスタンスを作り直します**。テスト同士で状態を共有しないための設計で、準備は `@BeforeEach` に書きます
+- `main` は要りません。JUnit が**リフレクション**(実行時にクラスの中身を調べる仕組み)で `@Test` 付きメソッドを探して呼び出します
+- JUnit は**テストメソッドごとにテストクラスのインスタンスを作り直します**。テスト同士で状態を共有しないための設計で、準備は `@BeforeEach` に書きます
 - `@DisplayName` で結果画面に出る名前を付けられます
 
 | アサーション | 確かめること |
 |---|---|
 | `assertEquals(期待, 実際)` | 等しい(`equals`) |
-| `assertTrue(条件)` | 条件が true |
+| `assertTrue(条件)` | 条件が `true` |
 | `assertThrows(型, 処理)` | 例外が投げられる |
 | `assertAll(...)` | 全部確かめてまとめて報告 |
 
@@ -82,7 +82,7 @@ assertEquals("金額が負です", e.getMessage());
 入力を全部試すのは不可能です。そこで2つの技法を使います。
 
 - **同値分割**:同じ扱いになる入力のグループ(**同値クラス**)に分け、各グループから代表を1つ選ぶ
-- **境界値分析**:バグは `>=` と `>` の取り違えなど **境目** に集まるので、境目の両側を試す
+- **境界値分析**:バグは `>=` と `>` の取り違えなど**境目**に集まるので、境目の両側を試す
 
 例:「0円以下はエラー、1〜4999円は送料500円、5000円以上は無料」
 
@@ -92,7 +92,7 @@ assertEquals("金額が負です", e.getMessage());
 | 有料 | 2000 | 1, 4999 |
 | 無料 | 8000 | 5000 |
 
-## @ParameterizedTest で表のように書く
+## `@ParameterizedTest` で表のように書く
 
 境界値のテストは入力と期待値の組が並ぶので、`@ParameterizedTest` と `@CsvSource` で表のように書けます。
 
@@ -112,7 +112,7 @@ void 送料(int amount, int expected) {
 1つの文字列が1回分のテストになり、カンマ区切りの値が引数の型に自動変換されます(前後の空白は無視)。`junit-jupiter-params` というモジュールの機能で、Spring Boot や STS の JUnit 5 ライブラリには含まれています。
 
 ::: warn assertEquals の引数の順番
-`assertEquals(期待値, 実際の値)` の順です。逆にしても成否は同じですが、失敗時の `expected: <0> but was: <500>` が **逆の意味** になり、調査する人を混乱させます。
+`assertEquals(期待値, 実際の値)` の順です。逆にしても成否は同じですが、失敗時の `expected: <0> but was: <500>` が**逆の意味**になり、調査する人を混乱させます。
 :::
 
 ## テストしやすい設計
@@ -131,7 +131,7 @@ static boolean isExpired(LocalDate limit,
 
 `LocalDate.now()` のような static 呼び出しをメソッドの奥に埋めると、結果が実行日で変わり、「月末だけ落ちるテスト」が生まれます。「今」は呼ぶ側から渡すか、`java.time.Clock` を受け取るようにします。
 
-同じように、ファイル入出力や画面表示といった **副作用** と、計算ロジックは分けます。「読む」「集計する」「書く」を別メソッドにすれば、集計は `List` を渡すだけでテストできます。前回、メソッドが `Path` を引数で受け取ったのも同じ考え方です。
+同じように、ファイル入出力や画面表示といった**副作用**と、計算ロジックは分けます。「読む」「集計する」「書く」を別メソッドにすれば、集計は `List` を渡すだけでテストできます。前回、メソッドが `Path` を引数で受け取ったのも同じ考え方です。
 
 ::: haru
 DB からユーザーを読むクラスは、どうテストするんすか? テストのたびに DB を用意するのはつらいっす。
@@ -141,7 +141,7 @@ DB からユーザーを読むクラスは、どうテストするんすか? テ
 同じ発想だよ。DB を読む部品(Repository)を外から渡す形にしておけば、テストでは「決めた通りに答える偽物」を渡せる。偽物を手軽に作るライブラリが **Mockito** で、第3部の MockMvc のレッスンで本格的に使う。
 :::
 
-<figure class="figure"><svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-junit-arr24b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="55" width="150" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">テスト対象</text><text x="95" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">UserService(本物)</text><path d="M170 85 L232 85" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arr24a)"/><rect x="238" y="55" width="170" height="60" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="323" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">UserRepository(モック)</text><text x="323" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">DB には触らない</text><text x="280" y="140" font-size="13" text-anchor="middle" fill="var(--ink)">when(...).thenReturn(...) で「呼ばれたらこう答える」を決めておく</text></svg><figcaption>モックは依存先を「決めた通りに答える偽物」に置き換える</figcaption></figure>
+<figure class="figure"><svg viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-junit-arr24b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="55" width="150" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="95" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">テスト対象</text><text x="95" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">UserService(本物)</text><path d="M170 85 L232 85" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-junit-arr24b)"/><rect x="238" y="55" width="170" height="60" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="323" y="80" font-size="13" text-anchor="middle" fill="var(--ink)">UserRepository(モック)</text><text x="323" y="100" font-size="12" text-anchor="middle" fill="var(--ink-muted)">DB には触らない</text><text x="280" y="140" font-size="13" text-anchor="middle" fill="var(--ink)">when(...).thenReturn(...) で「呼ばれたらこう答える」を決めておく</text></svg><figcaption>モックは依存先を「決めた通りに答える偽物」に置き換える</figcaption></figure>
 
 ```java
 UserRepository repo = mock(UserRepository.class);   // 偽物を作る
@@ -171,11 +171,11 @@ STS では **Run As > JUnit Test** で実行し、JUnit ビューのバーが緑
 - **テストの実行順に頼る**:JUnit は実行順を保証しません。各テストは単独で動くように
 
 ::: point まとめ
-- 自動テストはデグレを数秒で見つける **動く仕様書**。この道場の採点も JUnit 5
+- 自動テストはデグレを数秒で見つける**動く仕様書**。この道場の採点も JUnit 5
 - `@Test`、`assertEquals(期待, 実際)`、`assertThrows`、`assertAll`、`@BeforeEach`
 - **AAA** の3段、**1テスト1観点**、名前は日本語でも OK
-- テストケースは **同値分割 + 境界値**。表は `@ParameterizedTest` + `@CsvSource`
-- `now()` や入出力をロジックの奥に埋めない。**外から渡す** と テストしやすい
+- テストケースは**同値分割 + 境界値**。表は `@ParameterizedTest` + `@CsvSource`
+- `now()` や入出力をロジックの奥に埋めない。**外から渡す**と テストしやすい
 :::
 
 ::: sensei

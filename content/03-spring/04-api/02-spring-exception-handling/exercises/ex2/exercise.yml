@@ -4,7 +4,7 @@ difficulty: 3
 libraries: [spring]
 problem: |
   会員登録 API `POST /api/members` は、`@Valid @RequestBody MemberRequest` で入力チェックをしています。
-  チェックに引っかかると Spring は `MethodArgumentNotValidException` を投げ、何もしなければ本文の無い 400 になります。
+  チェックに引っかかると Spring は `MethodArgumentNotValidException` を投げ、何もしなければ 400 になります(採点環境では本文なし、Spring Boot でも `{"status":400,"error":"Bad Request",…}` だけ)。
   これでは画面側が「どの項目がなぜダメか」を表示できません。
 
   `ValidationErrorHandler`(`@RestControllerAdvice`)を完成させ、RFC 9457 の **ProblemDetail** 形式で、項目ごとのメッセージを返してください。
@@ -30,7 +30,7 @@ problem: |
   1. `@ExceptionHandler(MethodArgumentNotValidException.class)` を付けたメソッドで `ProblemDetail` を返す
   2. `ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "入力内容を確認してください")` で作り、`setTitle("入力エラー")`
   3. `ex.getBindingResult().getFieldErrors()` を回して、`項目名(getField())→ メッセージ(getDefaultMessage())` の `Map` を作る。
-     同じ項目にエラーが2つ以上あったら **最初の1つ** だけ入れる(`putIfAbsent`)。順番を保つなら `LinkedHashMap`
+     同じ項目にエラーが2つ以上あったら**最初の1つ**だけ入れる(`putIfAbsent`)。順番を保つなら `LinkedHashMap`
   4. `setProperty("errors", map)` で追加する(JSON では `type` や `title` と同じ階層に出ます)
 
   `type` と `instance` は Spring が埋めてくれるので、自分で設定しなくて構いません。

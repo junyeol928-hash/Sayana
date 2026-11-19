@@ -1,0 +1,40 @@
+- after: "@Value と @ConfigurationProperties"
+  question: |
+    `@ConfigurationProperties("shop")` の `record` が `@DefaultValue("5000") int freeThreshold` を持つ。`application.yml` が次のとき、`freeThreshold()` が返すのは?
+    ```yaml
+    shop:
+      free-threshold: 4000
+    ```
+  choices: ["5000", "4000", "`free-threshold` に合う項目が無く、起動時にエラーになる"]
+  answer: 1
+  why:
+    - "綴りが違うのでキーが無いとみなした答え"
+    - ""
+    - "綴りが一字一句合わないと失敗すると読んだ答え"
+  explanation: |
+    `@ConfigurationProperties` は綴りを緩く対応づけるので、ケバブ記法の `free-threshold` も `freeThreshold` に入る。`@DefaultValue` が使われるのは、キーが無いときだけ。
+- after: プロファイルで環境を切り替える
+  question: |
+    起動ログに次の行が出た。`application-dev.yml` に書いた `server.port: 8081` は使われる?
+    ```text
+    No active profile set, falling back to 1 default profile: "default"
+    ```
+  choices: ["使われる", "使われない", "起動に失敗する"]
+  answer: 1
+  why:
+    - "ファイルを置けば読まれると読んだ答え"
+    - ""
+    - "`No active profile set` の行をエラーと読んだ答え。既定のプロファイルに切り替わり、起動は続く"
+  explanation: |
+    dev が有効になっていないので `application-dev.yml` は読まれず、`application.yml` の値で動く。使うには `--spring.profiles.active=dev` などで dev を有効にする。
+- after: よくあるミス
+  question: |
+    設定ファイルには `shop.name: モカ珈琲店` とある。コードで `@Value("${shop.nmae:無名の店}") String name` と綴りを間違えた。起動すると?
+  choices: ["起動時に `Could not resolve placeholder` で止まる", "「無名の店」で黙って動く", "綴りを補って「モカ珈琲店」が入る"]
+  answer: 1
+  why:
+    - "既定値なしのときと取り違えた答え"
+    - ""
+    - "近い綴りのキーを探してくれると読んだ答え。`@Value` は書いたキーそのものだけを探す"
+  explanation: |
+    既定値付きのプレースホルダは、キーが見つからなければ既定値を使うだけで、エラーにならない。綴りミスに気づきにくいのは既定値付きの方。

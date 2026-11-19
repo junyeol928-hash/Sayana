@@ -25,9 +25,9 @@
         <!--/* 部と章は左の軸に縦書きで。現在地の読み上げには残す */-->
         <p class="lesson-axis" aria-hidden="true"><span th:text="${axisPart}">第三部 Spring</span><small th:text="${axisChapter}">第一章</small></p>
         <div class="lesson-hero-body">
-        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"> / <span th:text="${part.title}"></span> / <span th:text="${chapter.title}"></span></span></nav>
+        <nav class="breadcrumb" aria-label="現在地"><a th:href="@{/}">ホーム</a><span class="visually-hidden"><span class="crumb-part"> / <span th:text="${part.title}"></span></span> / <span th:text="${chapter.title}"></span></span></nav>
         <h1 th:text="${lesson.title}" th:classappend="${titleSize}" th:attr="data-lesson-id=${lesson.id}">タイトル</h1>
-        <p class="summary" th:text="${lesson.summary}"></p>
+        <p class="summary" th:utext="${lesson.summaryHtml()}"></p>
         <p class="meta">
             <span class="lesson-dye"><span class="dye lesson-swatch" th:classappend="'dye-' + ${status.dyeLevel()}" role="img"
                   th:attr="aria-label=${status.dyeLabel()}"></span> <b th:text="${#strings.substringBefore(status.dyeLabel(), '・') + '(' + #strings.substringAfter(status.dyeLabel(), '・') + ')'}">生成り(まだ)</b></span>
@@ -55,7 +55,7 @@
     </div>
     <details class="goals" th:if="${!lesson.goals.isEmpty()}" th:open="${!status.read}">
         <summary class="goals-title" th:text="'このレッスンのゴール(' + ${lesson.goals.size()} + ')'">このレッスンのゴール</summary>
-        <ul><li th:each="g : ${lesson.goals}" th:text="${g}"></li></ul>
+        <ul><li th:each="g : ${lesson.goalsHtml()}" th:utext="${g}"></li></ul>
     </details>
 
     <section id="read" class="lesson-section" aria-labelledby="read-title">
@@ -90,7 +90,7 @@
 
     <section id="run" class="lesson-section" th:if="${!lesson.samples.isEmpty()}" aria-labelledby="run-title">
         <h2 class="section-title" id="run-title">サンプルを動かす</h2>
-        <p class="section-lead">サンプルはこの画面で実行できます(JShell)。書き換えて何度でも動かしてみよう。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
+        <p class="section-lead">実行する前に、何が出るかを<b>予想</b>してから押そう。予想と違った所が、いちばん身につく所です。サンプルはこの画面で実行でき(JShell)、書き換えて何度でも試せます。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
         <div class="sample" th:each="s, st : ${lesson.samples}">
             <h3 th:text="${s.title}"></h3>
             <div class="md" th:utext="${s.descriptionHtml}"></div>
@@ -116,7 +116,7 @@
             <span th:if="${status.bestQuiz != null}" th:text="'(これまでの最高 ' + ${status.bestQuiz} + '/' + ${status.quizTotal} + ')'"></span></p>
         <form class="quiz" th:attr="hx-post=@{/lessons/{id}/quiz(id=${lesson.id})}" hx-target="#quiz-result" hx-swap="innerHTML">
             <ol>
-                <li th:each="q, st : ${lesson.quiz}" class="quiz-q">
+                <li th:each="q, st : ${lesson.quiz}" class="quiz-q" th:id="|quiz-q${st.index}|">
                     <div class="md" th:utext="${q.questionHtml}"></div>
                     <label th:each="c, cs : ${q.choicesHtml}" class="choice">
                         <input type="radio" th:name="'q' + ${st.index}" th:value="${cs.index}">

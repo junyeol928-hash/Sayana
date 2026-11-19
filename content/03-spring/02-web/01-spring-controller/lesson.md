@@ -6,15 +6,15 @@
 そこが今日の主役、**Controller** だ。「この URL が来たらこのメソッド」という対応表(ルーティング)をアノテーションで書く。まずは HTTP をおさらいしよう。
 :::
 
-前回は `@SpringBootApplication` から Tomcat が立ち上がるまでを見ました。今回は、届いた **HTTP リクエスト** を自分のメソッドに届けて、レスポンスを返すところまでを扱います。
+前回は `@SpringBootApplication` から Tomcat が立ち上がるまでを見ました。今回は、届いた **HTTP リクエスト**を自分のメソッドに届けて、レスポンスを返すところまでを扱います。
 
 ## HTTP を3分でおさらい
 
-Web アプリのやりとりは、いつも **1往復** です。クライアント(ブラウザや別のサーバー)が **リクエスト**(要求)を送り、サーバーが **レスポンス**(応答)を1つ返す。これで1回分が終わります。
+Web アプリのやりとりは、いつも **1往復**です。クライアント(ブラウザや別のサーバー)が**リクエスト**(要求)を送り、サーバーが**レスポンス**(応答)を1つ返す。これで1回分が終わります。
 
 <figure class="figure"><svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-controller-arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="20" y="40" width="140" height="130" rx="12" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="90" y="100" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">ブラウザ</text><text x="90" y="122" font-size="12" text-anchor="middle" fill="var(--ink-muted)">(クライアント)</text><rect x="420" y="40" width="160" height="130" rx="12" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="500" y="88" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">Spring Boot</text><text x="500" y="108" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">アプリ</text><text x="500" y="134" font-size="12" text-anchor="middle" fill="var(--ink-muted)">Controller が処理</text><path d="M165 75 L412 75" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-controller-arr)"/><text x="290" y="60" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">① リクエスト</text><text x="290" y="97" font-size="13" text-anchor="middle" fill="var(--ink)">GET /api/users</text><path d="M415 140 L168 140" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-controller-arr)"/><text x="290" y="128" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">② レスポンス</text><text x="290" y="162" font-size="13" text-anchor="middle" fill="var(--ink)">200 OK + JSON</text><text x="290" y="194" font-size="12" text-anchor="middle" fill="var(--ink-muted)">[{"id":1,"name":"Haru"}]</text></svg><figcaption>1往復:ブラウザが GET /api/users を送り、アプリが 200 OK と JSON を返す</figcaption></figure>
 
-ブラウザが `http://localhost:8080/hello?name=Haru` を開くと、サーバーには次のような **リクエスト** が届きます。
+ブラウザが `http://localhost:8080/hello?name=Haru` を開くと、サーバーには次のような**リクエスト**が届きます。
 
 ```text
 GET /hello?name=Haru HTTP/1.1
@@ -23,13 +23,13 @@ Host: localhost:8080
 
 | 部品 | 例 | 意味 |
 |---|---|---|
-| メソッド | `GET` / `POST` | 何をしたいか(取得/送信) |
+| HTTP メソッド | `GET` / `POST` | 何をしたいか(取得/送信) |
 | パス | `/hello` | どのリソースか |
 | クエリ | `?name=Haru` | `?` 以降の `キー=値` |
 
 クエリに日本語を入れると、ブラウザは `?name=%E3%83%8F%E3%83%AB` のように UTF-8 のバイト列を `%xx` で表した形(URL エンコード)で送り、Spring 側で元の文字列に戻してくれます。
 
-サーバーは **ステータスコード** 付きのレスポンスを返します。よく見るのはこのあたりです。
+サーバーは**ステータスコード**付きのレスポンスを返します。よく見るのはこのあたりです。
 
 | コード | 意味 | Spring でよくある原因 |
 |---|---|---|
@@ -62,11 +62,11 @@ Content-Type: application/json
 [{"id":1,"name":"Haru"}]
 ```
 
-1行目が **ステータス**、続く数行が **ヘッダー**(付帯情報。`Content-Type` は「本体は JSON です」という宣言)、空行のあとが **ボディ**(本体)です。リクエストも同じ形で、POST や PUT では送りたいデータをボディに入れます。
+1行目が**ステータス**、続く数行が**ヘッダー**(付帯情報。`Content-Type` は「本体は JSON です」という宣言)、空行のあとが**ボディ**(本体)です。リクエストも同じ形で、POST や PUT では送りたいデータをボディに入れます。
 
 ## DispatcherServlet が振り分ける
 
-Spring MVC では、すべてのリクエストをまず **DispatcherServlet** という1つのサーブレットが受け取ります。「受付窓口を1つにして、そこから担当者に回す」この設計を **フロントコントローラー** パターンと呼びます。Spring Boot は起動時に DispatcherServlet を `/` に登録しています。
+Spring MVC では、すべてのリクエストをまず **DispatcherServlet** という1つのサーブレットが受け取ります。「受付窓口を1つにして、そこから担当者に回す」この設計を**フロントコントローラー**パターンと呼びます。Spring Boot は起動時に DispatcherServlet を `/` に登録しています。
 
 ```mermaid
 flowchart TD
@@ -78,11 +78,11 @@ flowchart TD
     C -->|"オブジェクト"| M["HttpMessageConverter<br>文字列/JSONへ"]
 ```
 
-対応表(HandlerMapping)は **起動時に** `@GetMapping` などを全部読んで作られます。だから対応表に矛盾があると、リクエストを待たずに起動が失敗します(後述)。
+対応表(HandlerMapping)は**起動時に** `@GetMapping` などを全部読んで作られます。だから対応表に矛盾があると、リクエストを待たずに起動が失敗します(後述)。
 
-なぜ窓口を1つにするのか。文字コードの設定、例外を 400/500 に変換する処理、JSON 変換などの **共通処理を1か所に集められる** からです。Controller は「URL ごとの固有の仕事」だけ書けばよくなります。どのメソッドにも当たらなければ 404 になり、Spring Boot ではおなじみの **Whitelabel Error Page** が表示されます。
+なぜ窓口を1つにするのか。文字コードの設定、例外を 400/500 に変換する処理、JSON 変換などの**共通処理を1か所に集められる**からです。Controller は「URL ごとの固有の仕事」だけ書けばよくなります。どのメソッドにも当たらなければ 404 になり、Spring Boot ではおなじみの **Whitelabel Error Page** が表示されます。
 
-## @Controller と @RestController
+## `@Controller` と `@RestController`
 
 ```java
 @Controller                 // 戻り値は「ビュー名」
@@ -132,7 +132,7 @@ public class ItemController {
 
 - `@GetMapping` / `@PostMapping` は `@RequestMapping(method = GET)` などの省略形です。クラスに付けた `@RequestMapping` のパスは、メソッド側のパスの前に連結されます。
 - **`@PathVariable`**:パスの `{id}` 部分を受け取ります。`/api/items/abc` のように `int` に変換できないと **400** です。
-- **`@RequestParam`**:クエリ(や POST フォームの値)を受け取ります。**デフォルトは `required = true`** で、無いと **400**(`Required request parameter 'name' ... is not present`)。
+- **`@RequestParam`**:クエリ(や POST フォームの値)を受け取ります。**デフォルトは `required = true`** で、無いと **400** になり、次のメッセージが出ます: `Required request parameter 'name' ... is not present`
   - `required = false` なら無いとき `null`。`int` のような基本型は `null` を入れられないので、ラッパー型(`Integer`)にするか `defaultValue` を使います。
   - `defaultValue` を付けると暗黙に `required = false` になり、**`?page=` のように空文字のときも** 既定値が使われます。
 
@@ -154,7 +154,7 @@ public Item find(@PathVariable int id) {
 // → {"id":1,"name":"ボールペン","price":120}
 ```
 
-**ステータスコードも決めたい** ときは `ResponseEntity` で包みます。
+**ステータスコードも決めたい**ときは `ResponseEntity` で包みます。
 
 ```java
 @GetMapping("/api/items/{id}")
@@ -169,7 +169,7 @@ public ResponseEntity<Item> find(@PathVariable int id) {
 
 `ResponseEntity.status(HttpStatus.CONFLICT).build()` のように任意のコードも返せます。
 
-**`@Controller` で `"redirect:"` から始まる文字列** を返すと、ビュー名ではなく **リダイレクト**(302 と `Location` ヘッダー)になります。
+**`@Controller` で `"redirect:"` から始まる文字列** を返すと、ビュー名ではなく**リダイレクト**(302 と `Location` ヘッダー)になります。
 
 ```java
 @PostMapping("/orders")
@@ -179,14 +179,14 @@ public String order(@RequestParam String item) {
 }
 ```
 
-POST の結果画面をそのまま返すと、ユーザーが F5 を押したとき **POST がもう一度送られて二重注文** になります。そこで「POST → リダイレクト → GET で結果画面」にするのが **PRG(Post/Redirect/Get)パターン** です。F5 で再送されるのは最後の GET だけになります。
+POST の結果画面をそのまま返すと、ユーザーが F5 を押したとき **POST がもう一度送られて二重注文**になります。そこで「POST → リダイレクト → GET で結果画面」にするのが **PRG(Post/Redirect/Get)パターン**です。F5 で再送されるのは最後の GET だけになります。
 
 ::: sensei
 フォームを受ける POST は「処理したら redirect」が鉄則。「フォーム」のレッスンでも使うから覚えておいて。
 :::
 
 ::: genba Controller は薄く書く
-現場の Controller は「リクエストを受け取る → Service を呼ぶ → 結果をビュー名や `ResponseEntity` にする」だけの **薄い層** にします。計算や在庫チェックのような業務ロジックを Controller に書くと、HTTP なしでテストできず、画面と API で同じ処理を二重に書くことになります。層の分け方は「層分け」のレッスンで扱います。
+現場の Controller は「リクエストを受け取る → Service を呼ぶ → 結果をビュー名や `ResponseEntity` にする」だけの**薄い層**にします。計算や在庫チェックのような業務ロジックを Controller に書くと、HTTP なしでテストできず、画面と API で同じ処理を二重に書くことになります。層の分け方は「層分け」のレッスンで扱います。
 :::
 
 ## よくあるミス
@@ -206,11 +206,11 @@ to {GET [/hello]}: There is already 'helloController'
 bean method com.example.demo.HelloController#a() mapped.
 ```
 
-コンパイルは通りますが、**アプリの起動時** に落ちます(対応表を作る段階で矛盾に気づくため)。別クラスに同じパスがあっても同じエラーです。メソッドが違えば(GET と POST)同じパスでも OK です。
+コンパイルは通りますが、**アプリの起動時**に落ちます(対応表を作る段階で矛盾に気づくため)。別クラスに同じパスがあっても同じエラーです。メソッドが違えば(GET と POST)同じパスでも OK です。
 
 ### `@Controller` で文字列を返したつもり
 
-`@RestController` のつもりで `@Controller` と書くと、`"hello"` は **ビュー名** として扱われます。Thymeleaf 入りのプロジェクトなら `Error resolving template [hello]`、Thymeleaf が無ければ `Circular view path [hello]` という一見意味不明なエラーになります。「文字列が画面に出ない」ときはまずアノテーションを確認しましょう。
+`@RestController` のつもりで `@Controller` と書くと、`"hello"` は**ビュー名**として扱われます。Thymeleaf 入りのプロジェクトなら `Error resolving template [hello]`、Thymeleaf が無ければ `Circular view path [hello]` という一見意味不明なエラーになります。「文字列が画面に出ない」ときはまずアノテーションを確認しましょう。
 
 ::: haru
 エラーメッセージの英語、最初は怖いけど、`Required request parameter 'name'` とか、ちゃんと原因を言ってるんすね。
@@ -218,9 +218,9 @@ bean method com.example.demo.HelloController#a() mapped.
 
 ::: point まとめ
 - リクエストは **DispatcherServlet** が受け、起動時に作った対応表で Controller のメソッドに振り分ける
-- `@Controller` の戻り値は **ビュー名**、`@RestController`(= `@Controller` + `@ResponseBody`)は **本体**。オブジェクトは JSON になる
+- `@Controller` の戻り値は**ビュー名**、`@RestController`(= `@Controller` + `@ResponseBody`)は**本体**。オブジェクトは JSON になる
 - `@GetMapping` / `@PostMapping`、クラスの `@RequestMapping` はプレフィックス
 - `@PathVariable` はパスの一部、`@RequestParam` はクエリ。**必須がデフォルト**で、無いと 400
 - ステータスは `ResponseEntity`、POST の後は `"redirect:"` で **PRG**
-- 同じメソッド+パスが2つあると **起動時に** Ambiguous mapping
+- 同じメソッド+パスが2つあると**起動時に** Ambiguous mapping
 :::

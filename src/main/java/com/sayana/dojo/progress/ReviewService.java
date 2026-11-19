@@ -3,7 +3,15 @@ package com.sayana.dojo.progress;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +91,99 @@ public class ReviewService {
         return items.findByGraduatedFalseAndDueDateLessThanEqualOrderByDueDateAscIdAsc(LocalDate.now(clock));
     }
 
+    /**
+     * 次に出す復習。同じレッスンの問題を続けて出さず、いちばん長く復習していないレッスンの問題から出す(交互に混ぜる)。
+     * 似た問題を続けて解くより、混ぜて解くほうが「どの知識を使う問題か」を見分ける力がつく。スマホ版の nextDue と同じ規則。
+     *
+     * @param due 期限の来た問題(期限の古い順)
+     */
+    @Transactional(readOnly = true)
+    public Optional<ReviewItem> next(List<ReviewItem> due) {
+        if (due.isEmpty()) {
+            return Optional.empty();
+        }
+        Map<String, Instant> lastByLesson = new HashMap<>();
+        for (ReviewItem it : items.findAll()) {
+            if (it.getLastReviewedAt() != null) {
+                lastByLesson.merge(it.getLessonId(), it.getLastReviewedAt(), (a, b) -> a.isAfter(b) ? a : b);
+            }
+        }
+        // 同じ古さなら期限の古い順(min は最初に見つかったものを残す)
+        return due.stream().min(Comparator.comparing(it -> lastByLesson.getOrDefault(it.getLessonId(), Instant.EPOCH)));
+    }
+
+    /** 今日の復習の数と正解の数(同じ問題を 1 日に 2 回解いたら 1 問と数える)。 */
+    @Transactional(readOnly = true)
+    public int[] todayTally() {
+        LocalDate today = LocalDate.now(clock);
+        int n = 0;
+        int ok = 0;
+        for (ReviewItem it : items.findAll()) {
+            if (it.getLastReviewedAt() != null && LocalDate.ofInstant(it.getLastReviewedAt(), clock.getZone()).equals(today)) {
+                n++;
+                if (Boolean.TRUE.equals(it.getLastCorrect())) {
+                    ok++;
+                }
+            }
+        }
+        return new int[] {n, ok};
+    }
+
+    /** 今日答えた問題を、最後に答えた時刻の順に(区切りと終わりの画面で運針に並べ、間違えた問題を出す)。 */
+    @Transactional(readOnly = true)
+    public List<ReviewItem> todayItems() {
+        LocalDate today = LocalDate.now(clock);
+        return items.findAll().stream()
+                .filter(it -> it.getLastReviewedAt() != null && LocalDate.ofInstant(it.getLastReviewedAt(), clock.getZone()).equals(today))
+                .sorted(java.util.Comparator.comparing(ReviewItem::getLastReviewedAt))
+                .toList();
+    }
+
+    /** 今日答えた問題の正誤を、最後に答えた時刻の順に。 */
+    @Transactional(readOnly = true)
+    public List<Boolean> todayResults() {
+        return todayItems().stream().map(it -> Boolean.TRUE.equals(it.getLastCorrect())).toList();
+    }
+
+    /**
+     * 選択肢を見せる並び。復習では位置で覚えてしまわないよう入れ替える。同じ問題は同じ日なら同じ並び(開き直しても変わらない)。
+     */
+    public List<Integer> choiceOrder(ReviewItem item, int size) {
+        return shuffled(item.getItemRef() + "|" + LocalDate.now(clock), size);
+    }
+
+    /**
+     * 解き直しの並び。数分前に「✓ 正解」を見たのと別の並びにし、正解の位置も必ず変える(位置で当てないように。スマホ版と同じ)。
+     * 2 回目からの解き直し(pass)は、朝とそれまでの解き直しで見せたどの位置とも違う所に正解を置く(空きが無ければ直前と違う所)。
+     */
+    public List<Integer> retryOrder(ReviewItem item, int size, int answer, int pass) {
+        List<Integer> pick = choiceOrder(item, size);
+        List<Integer> used = new ArrayList<>(List.of(pick.indexOf(answer)));
+        for (int p = 1; p <= Math.max(1, pass); p++) {
+            List<List<Integer>> tries = new ArrayList<>();
+            for (int k = 1; k <= 12; k++) {
+                tries.add(shuffled(item.getItemRef() + "|" + LocalDate.now(clock) + "|retry" + (p > 1 ? p + "-" : "") + k, size));
+            }
+            // 12 の候補に使っていない位置が無いときは、並びを回して正解を使っていない位置へ(無ければ前の回と違う位置へ)。
+            // 近い種の乱数は最初の値が偏り、まだ見せていない位置があるのに 1 回目の位置に戻ることがあった(25 回目の審査)
+            List<Integer> unused = IntStream.range(0, size).filter(i -> !used.contains(i)).boxed().toList();
+            int target = unused.isEmpty() ? (used.getLast() + 1) % size : unused.getFirst();
+            pick = tries.stream().filter(o -> !used.contains(o.indexOf(answer))).findFirst().orElseGet(() -> {
+                List<Integer> rotated = new ArrayList<>(tries.getFirst());
+                Collections.rotate(rotated, target - rotated.indexOf(answer));
+                return rotated;
+            });
+            used.add(pick.indexOf(answer));
+        }
+        return pick;
+    }
+
+    private static List<Integer> shuffled(String key, int size) {
+        List<Integer> order = new ArrayList<>(IntStream.range(0, size).boxed().toList());
+        Collections.shuffle(order, new Random(key.hashCode()));
+        return order;
+    }
+
     @Transactional(readOnly = true)
     public List<ReviewItem> upcoming() {
         return items.findByGraduatedFalseAndDueDateGreaterThanOrderByDueDateAscIdAsc(LocalDate.now(clock));
@@ -93,7 +194,24 @@ public class ReviewService {
         return items.countByGraduatedTrue();
     }
 
-    /** 次の復習までの日数の説明(画面表示用)。 */
+    /** 復習で答えたあとの「次は」。ボタンの横に置く短い文字(スマホ版の nextLabel と同じ)。 */
+    public static String nextLabel(ReviewItem item) {
+        if (item.isGraduated()) {
+            return "卒業。もう出ません";
+        }
+        return "次は " + INTERVAL_DAYS[Math.min(item.getStage(), INTERVAL_DAYS.length - 1)] + " 日後";
+    }
+
+    /**
+     * 今日の復習の目安(分)。区切りの単位(先頭の 10 問)で数える。クイズは 25 秒、演習の書き直しは 3 分
+     * (スマホ版の reviewMinutes と同じ数え方。スマホには読解 45 秒もある)。
+     */
+    public static int firstBlockMinutes(List<ReviewItem> due) {
+        int secs = due.stream().limit(10).mapToInt(it -> it.getItemType() == ReviewItem.Type.QUIZ ? 25 : 180).sum();
+        return Math.max(1, Math.round(secs / 60f));
+    }
+
+    /** 次の復習までの日数の説明(演習の採点結果に出す)。 */
     public static String intervalLabel(ReviewItem item) {
         if (item.isGraduated()) {
             return "卒業(もう復習しなくてOK)";

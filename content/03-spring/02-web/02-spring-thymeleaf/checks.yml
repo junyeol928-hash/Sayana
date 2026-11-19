@@ -1,0 +1,46 @@
+- after: テンプレートエンジンとは
+  question: |
+    サーバーを通さず、テンプレートのファイルをそのままブラウザで開いた。次の行は画面にどう見える?
+    ```html
+    <h1 th:text="${title}">ここにタイトル</h1>
+    ```
+  choices: ["「ここにタイトル」と出る", "`${title}` と出る", "何も出ない"]
+  answer: 0
+  why:
+    - ""
+    - "属性の値が画面に出ると読んだ答え"
+    - "サーバーを通さないと中身が消えると読んだ答え"
+  explanation: |
+    ブラウザは知らない属性の `th:text` を無視するので、タグの中のダミー文字がそのまま見える(ナチュラルテンプレート)。サーバーで描画すると、Model の値に置き換わる。
+- after: 繰り返しと条件分岐
+  question: |
+    `flag` が文字列の `"off"` のとき、出力に残るのは?
+    ```html
+    <b th:if="${flag}">A</b>
+    <b th:unless="${flag}">B</b>
+    ```
+  choices: ["B だけ", "A だけ", "A と B の両方"]
+  answer: 0
+  why:
+    - ""
+    - "Java のように「`null` でない文字列は真」と読んだ答え"
+    - "`th:unless` を「条件なしで出す」と読んだ答え。`th:unless` は `th:if` の逆で、偽のときだけ出す"
+  explanation: |
+    Thymeleaf の真偽は Java より緩く、文字列の `"off"` は偽(`"false"` や `"no"` も同じ)。だから `th:if` の A は出ず、`th:unless` の B が出る。
+- after: よくあるミス
+  question: |
+    `${item.name}` を表示する行で、次のエラーが出た。原因は?
+    ```text
+    EL1007E: Property or field 'name' cannot be found on null
+    ```
+  choices:
+    - "`item` 自体が `null`"
+    - "`name` の綴り間違いか、getter が無い"
+    - "テンプレートのファイル名か置き場所が違う"
+  answer: 0
+  why:
+    - ""
+    - "`EL1008E` の場合と取り違えた答え。綴りや getter のときは `on object of type 'Item'` と型が出る"
+    - "テンプレートが見つからない場合と取り違えた答え。それなら `Error resolving template` と出る"
+  explanation: |
+    `on null` は、`.name` の手前の `item` が `null` だったという意味。`null` かもしれないなら `${item?.name}` と書く。

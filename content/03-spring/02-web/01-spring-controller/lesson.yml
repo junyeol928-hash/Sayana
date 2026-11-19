@@ -2,19 +2,19 @@ id: spring-controller
 title: Controllerとルーティング
 status: ready
 minutes: 15
-summary: HTTP の基本から、DispatcherServlet が URL を Controller のメソッドに振り分ける仕組み、@GetMapping・@PathVariable・@RequestParam、JSON・ResponseEntity・redirect まで。
+summary: HTTP の基本から、`DispatcherServlet` が URL を Controller のメソッドに振り分ける仕組み、`@GetMapping`・`@PathVariable`・`@RequestParam`、JSON・`ResponseEntity`・redirect まで。
 goals:
   - HTTP のメソッド・パス・クエリ・ステータスコードを読み取り、400/404/405 の原因を推測できる
-  - DispatcherServlet が対応表(HandlerMapping)を使って Controller に振り分ける流れを説明できる
-  - "@Controller(ビュー名を返す)と @RestController(本体を返す)を使い分けられる"
-  - "@GetMapping / @PostMapping / @RequestMapping・@PathVariable・@RequestParam(required・defaultValue)でリクエストを受け取れる"
-  - ResponseEntity でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる
+  - "`DispatcherServlet` が対応表(`HandlerMapping`)を使って Controller に振り分ける流れを説明できる"
+  - "`@Controller`(ビュー名を返す)と `@RestController`(本体を返す)を使い分けられる"
+  - "`@GetMapping` / `@PostMapping` / `@RequestMapping`・`@PathVariable`・`@RequestParam`(`required`・`defaultValue`)でリクエストを受け取れる"
+  - "`ResponseEntity` でステータスコードを返し分け、POST の後は redirect で PRG パターンにできる"
 samples:
   - title: Controller を MockMvc で呼んでみる
     libraries: [spring]
     description: |
-      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。
-      パスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。`[...]` は Spring が内部で投げた例外の名前です。
+      Web サーバーを起動せずに、Spring MVC の仕組み(DispatcherServlet)だけを動かして Controller を呼び出します。出力の `[...]` は Spring が内部で投げた例外の名前です。見終わったらパスやクエリを変えて、200 / 400 / 404 / 405 がどう変わるか試してみましょう。
+      `GET /users/abc` と `POST /hello` は、それぞれ何番が返る?
     code: |
       // Controller を MockMvc で呼んでみる(Web サーバーは起動しない)
       // ここを変えてみよう:URL やクエリを書き換える / name を消す
@@ -89,8 +89,8 @@ samples:
   - title: JSON・ResponseEntity・redirect
     libraries: [spring]
     description: |
-      `record` を返すと JSON に、`ResponseEntity` で包むとステータスコードを選べます。
-      `@Controller` で `"redirect:..."` を返すと 302 と `Location` ヘッダーが返ります(ブラウザはそこへ GET し直します)。
+      `record` を `ResponseEntity` で包んで返す API と、`@Controller` で `"redirect:..."` を返す画面用のメソッドを呼びます。
+      `GET /api/items/1`・`GET /api/items/99`・`POST /orders` は、それぞれどのステータスコードになり、本文やヘッダーに何が出るだろうか。
     code: |
       // 戻り値で変わるレスポンス:JSON・ResponseEntity・redirect:
       // ここを変えてみよう:存在しない ID(99)を GET する / quantity を変える
@@ -185,10 +185,15 @@ quiz:
           }
       }
       ```
-    choices: ["200 で Hi null", "400 Bad Request", "404 Not Found", "500 Internal Server Error"]
+    choices: ["200 で `Hi null`", "400 Bad Request", "404 Not Found", "500 Internal Server Error"]
     answer: 1
+    why:
+      - "パラメータが無ければ `null` が入ると読んだ答え。`@RequestParam` は既定で必須なので 400 になる"
+      - ""
+      - "クエリが無いとパスに一致しないと読んだ答え。パス `/hello` は一致し、`name` が無くて 400"
+      - "パラメータ不足をサーバー側の例外と読んだ答え。送る側の誤りとして 400 が返る"
     explanation: |
-      `@RequestParam` は **デフォルトで required = true** です。`name` が無いと `MissingServletRequestParameterException` になり、Spring が **400** を返します。メソッド自体は呼ばれません。
+      `@RequestParam` は **デフォルトで `required = true`** です。`name` が無いと `MissingServletRequestParameterException` になり、Spring が **400** を返します。メソッド自体は呼ばれません。
       `Hi null` にしたいなら `@RequestParam(required = false)`、既定値を入れたいなら `defaultValue = "..."` を付けます。パス `/hello` 自体は対応表にあるので 404 ではなく、例外はクライアント側の誤りとして処理されるので 500 でもありません。
   - question: |
       次の Controller があるとき、**405 Method Not Allowed** になるリクエストはどれ?
@@ -203,8 +208,13 @@ quiz:
           public String create(@RequestParam String item) { ... }
       }
       ```
-    choices: ["GET /api/orders/5", "POST /api/orders?item=pen", "DELETE /api/orders/5", "GET /orders/5"]
+    choices: ["`GET /api/orders/5`", "`POST /api/orders?item=pen`", "`DELETE /api/orders/5`", "`GET /orders/5`"]
     answer: 2
+    why:
+      - "クラスの `@RequestMapping` とメソッドの `/{id}` をつなげ損ねた答え。つなげると `find` に一致して 200"
+      - "`@PostMapping` にパスが無いので POST を受けないと読んだ答え。パスを省くとクラスの `/api/orders` に対応する"
+      - ""
+      - "パスが無いときも 405 と読んだ答え。パスが一致しないのは 404 で、405 はパスが合ってメソッドが違うとき"
     explanation: |
       `/api/orders/5` というパスには GET 用のメソッドがありますが、DELETE 用はありません。「パスは合っているがメソッドが違う」ときが **405** です。
       `GET /orders/5` はクラスの `@RequestMapping("/api/orders")` が前に付くので一致するパスがそもそも無く、**404** です。上の2つは正常に 200 になります。
@@ -219,11 +229,16 @@ quiz:
           }
       }
       ```
-    choices: ["文字列 hello をそのままレスポンス本体として返す", "/hello へリダイレクトする", "JSON の \"hello\" として返す", "ビュー名とみなし、テンプレート(Thymeleaf なら templates/hello.html)を描画する"]
+    choices: ["文字列 `hello` をそのままレスポンス本体として返す", "`/hello` へリダイレクトする", "JSON の `\"hello\"` として返す", "ビュー名とみなし、`hello` のテンプレートを描画する"]
     answer: 3
+    why:
+      - "`@RestController` と同じ扱いと読んだ答え"
+      - "戻り値の文字列を移動先の URL と読んだ答え。リダイレクトになるのは `redirect:` を付けたときだけ"
+      - "戻り値が JSON に変換されると読んだ答え。それは `@ResponseBody` が付いたときで、`@Controller` ではビュー名"
+      - ""
     explanation: |
-      `@Controller` の String の戻り値は **ビュー名** です。ViewResolver がテンプレートを探して HTML を作ります。テンプレートが無ければ `Error resolving template [hello]`(Thymeleaf がなければ `Circular view path [hello]`)のエラーになります。
-      文字列をそのまま返したいなら `@RestController`(= `@Controller` + `@ResponseBody`)を使います。リダイレクトは `"redirect:/..."` のように書いたときだけです。
+      `@Controller` の String の戻り値は**ビュー名**です。ViewResolver がテンプレート(Thymeleaf なら `templates/hello.html`)を探して HTML を作ります。テンプレートが無ければ、次のエラーになります: `Error resolving template [hello]` Thymeleaf が入っていないときは、次のエラーです: `Circular view path [hello]`
+      文字列をそのまま返したいなら `@RestController`(= `@Controller` + `@ResponseBody`)を使います。
   - question: |
       別々のクラスに、次の2つのメソッドを書いてしまいました。何が起きる?
       ```java
@@ -235,19 +250,28 @@ quiz:
       @GetMapping("/items")
       public String all() { ... }
       ```
-    choices: ["アプリの起動時に Ambiguous mapping の例外で起動に失敗する", "コンパイルエラーになる", "/items に初めてアクセスしたときに 500 エラーになる", "エラーにならず、どちらか片方が毎回ランダムに呼ばれる"]
+    choices: ["起動時に Ambiguous mapping の例外で失敗する", "コンパイルエラーになる", "`/items` に初めてアクセスしたときに 500 エラーになる", "エラーにならず、どちらか片方が毎回ランダムに呼ばれる"]
     answer: 0
+    why:
+      - ""
+      - "同じパスの重複をコンパイラが見つけると読んだ答え。注釈の値はただの文字列で、コンパイルは通る"
+      - "対応表がアクセス時に作られると読んだ答え。対応表は起動時に作られ、そこで失敗する"
+      - "重複していても片方が選ばれると読んだ答え。起動時に Ambiguous mapping で止まる"
     explanation: |
-      URL とメソッドの対応表(HandlerMapping)は **起動時に** 全 Controller を読んで作られます。同じ「GET + /items」が2つあると、その時点で `IllegalStateException: Ambiguous mapping` になり、アプリが起動しません。
+      URL とメソッドの対応表(HandlerMapping)は**起動時に**全 Controller を読んで作られます。同じ「GET + /items」が2つあると、その時点で `IllegalStateException: Ambiguous mapping` になり、アプリが起動しません。
       アノテーションの値はコンパイラから見ればただの文字列なので、コンパイルは通ります。ランダムに選ばれるような曖昧な動きはしません。
   - question: |
       注文フォームを POST すると、Controller が注文を登録して「注文完了」画面のビュー名を直接返しています。
       完了画面で F5(再読み込み)を押したお客様の注文が二重に登録されてしまいました。現場での定番の直し方はどれ?
-    choices: ["フォームの送信を POST から GET に変える", "@PostMapping を @RequestMapping に変える", "登録後に \"redirect:/orders/{id}\" を返し、完了画面は GET で表示する", "完了画面のテンプレートでブラウザのキャッシュを無効にする"]
+    choices: ["フォームの送信を POST から GET に変える", "`@PostMapping` を `@RequestMapping` に変える", "登録後に `\"redirect:/orders/{id}\"` を返し、完了画面は GET で表示する", "完了画面のテンプレートでブラウザのキャッシュを無効にする"]
     answer: 2
+    why:
+      - "GET なら再送しても安全と読んだ答え。登録を GET にすると、URL を開くだけ(ブックマークやクローラーでも)で注文が入る"
+      - "注釈を変えれば再送が止まると読んだ答え。`@RequestMapping` にしても挙動は変わらない"
+      - ""
+      - "キャッシュが二重登録の原因と読んだ答え。F5 は最後の POST を送り直すので、キャッシュの設定では防げない"
     explanation: |
-      **PRG(Post/Redirect/Get)パターン** です。POST の処理後に 302 でリダイレクトすると、ブラウザは完了画面を GET し直します。F5 で再送されるのは最後の GET だけなので、注文は増えません。
-      登録のような処理を GET にすると、URL を開くだけで(ブックマークやクローラーでも)注文が入ってしまいます。`@RequestMapping` にしても挙動は変わらず、キャッシュの設定は再送を防ぎません。
+      **PRG(Post/Redirect/Get)パターン**です。POST の処理後に 302 でリダイレクトすると、ブラウザは完了画面を GET し直します。F5 で再送されるのは最後の GET だけなので、注文は増えません。
 columns:
   - type: trivia
     title: "@RequestParam は引数名をどうやって知っている?"
@@ -269,7 +293,7 @@ columns:
     body: |
       PRG パターンにすると、完了画面で F5 を押しても POST は再送されません(PRG にしていないと、ブラウザに「フォームの再送信の確認」というダイアログが出ます。ここで「続行」を押されると二重登録です)。
 
-      ところが現場では、PRG にしたのに二重注文が起きることがあります。原因は **送信ボタンの連打**。リダイレクトが返ってくる前に2回クリックされると、POST が2回飛びます。PRG は「再読み込み」対策であって、「連打」は防げません。
+      ところが現場では、PRG にしたのに二重注文が起きることがあります。原因は**送信ボタンの連打**。リダイレクトが返ってくる前に2回クリックされると、POST が2回飛びます。PRG は「再読み込み」対策であって、「連打」は防げません。
 
       現場ではいくつかを組み合わせます。
 
@@ -288,13 +312,14 @@ columns:
       handler URL [/hello] again. Check your ViewResolver setup!
       ```
 
-      `@Controller` なので `"hello"` は **ビュー名** です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば `Error resolving template [hello]` になります。
+      `@Controller` なので `"hello"` は**ビュー名**です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば、次のエラーになります: `Error resolving template [hello]`
 
       文字列や JSON を返したいなら `@RestController`(またはメソッドに `@ResponseBody`)。
 sts:
   intro: |
     STS で Spring Web 入りのプロジェクトを作り、Controller を書いてブラウザから呼び出します。ステータスコードやエラー画面もわざと出してみましょう。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    STS のウィザード(裏は start.spring.io)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
   steps:
     - title: Spring Web 入りのプロジェクトを作る
       detail: |
@@ -329,7 +354,7 @@ sts:
         }
         ```
 
-        `@SpringBootApplication` のクラス(`HelloWebApplication`)と **同じパッケージかその下** に置くのがポイントです。別のパッケージに置くとコンポーネントスキャンの対象外になり、404 になります。
+        `@SpringBootApplication` のクラス(`HelloWebApplication`)と**同じパッケージかその下**に置くのがポイントです。別のパッケージに置くとコンポーネントスキャンの対象外になり、404 になります。
     - title: アプリを起動する
       detail: |
         プロジェクトを右クリックして **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。左下の **Boot Dashboard** でプロジェクトを選んで起動ボタンを押しても同じです。

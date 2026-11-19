@@ -37,7 +37,7 @@ This generated password is for development use only.
 
 「設定し忘れたら開きっぱなし」より「設定し忘れたら閉じっぱなし」の方が事故が小さい。これを **secure by default** と呼びます。
 
-Spring Security の正体は、DispatcherServlet より **手前** に並んだ **サーブレットフィルタの列**(SecurityFilterChain)です。Controller に届く前に、全リクエストが関所を通ります。
+Spring Security の正体は、DispatcherServlet より**手前**に並んだ**サーブレットフィルタの列**(`SecurityFilterChain`)です。Controller に届く前に、全リクエストが関所を通ります。
 
 ```mermaid
 flowchart LR
@@ -51,9 +51,9 @@ flowchart LR
 
 Controller に `if (ログイン済み?)` を書かなくてよいのは、ここで先に弾いているからです。
 
-## SecurityFilterChain を自分で定義する
+## `SecurityFilterChain` を自分で定義する
 
-既定のままでは使えないので、`@Bean` で関所のルールを書きます。Spring Security 6 では **ラムダ DSL** が標準です。
+既定のままでは使えないので、`@Bean` で関所のルールを書きます。Spring Security 6 では**ラムダ DSL** が標準です。
 
 ```java
 @Configuration
@@ -84,11 +84,11 @@ Spring Boot では `@EnableWebSecurity` は付けなくても有効です(自動
 
 ### ログイン状態はどこに覚えている?
 
-ログインに成功すると、認証情報(`Authentication`)は **HTTP セッション** に保存され、ブラウザには Cookie の `JSESSIONID` だけが渡ります。次のリクエストではフィルタがセッションから取り出し、**`SecurityContextHolder`**(スレッドごとの置き場。中身は `ThreadLocal`)に置きます。だから Controller でも Service でも「今の人」を取り出せます。ログイン成功時にはセッション ID を振り直し、ログイン前の ID を盗んでおく **セッション固定攻撃** も防いでいます。
+ログインに成功すると、認証情報(`Authentication`)は **HTTP セッション**に保存され、ブラウザには Cookie の `JSESSIONID` だけが渡ります。次のリクエストではフィルタがセッションから取り出し、**`SecurityContextHolder`**(スレッドごとの置き場。中身は `ThreadLocal`)に置きます。だから Controller でも Service でも「今の人」を取り出せます。ログイン成功時にはセッション ID を振り直し、ログイン前の ID を盗んでおく**セッション固定攻撃**も防いでいます。
 
 ### ルールの順番
 
-**ルールは上から順に評価され、最初に一致したもので決まります**。`if / else if` と同じなので、**細かい URL ほど上** に書きます。`anyRequest()` の後ろに `requestMatchers` を書くと起動時に `Can't configure requestMatchers after anyRequest` で落ちます。
+**ルールは上から順に評価され、最初に一致したもので決まります**。`if / else if` と同じなので、**細かい URL ほど上**に書きます。`anyRequest()` の後ろに `requestMatchers` を書くと起動時に `Can't configure requestMatchers after anyRequest` で落ちます。
 
 ::: sensei
 `hasRole("ADMIN")` は内部で `ROLE_` を付けて `ROLE_ADMIN` という権限(authority)と比べてる。だから `hasRole("ROLE_ADMIN")` と書くと起動時に怒られるよ。
@@ -96,7 +96,7 @@ Spring Boot では `@EnableWebSecurity` は付けなくても有効です(自動
 
 ## ユーザーとパスワード
 
-学習用ならメモリ上のユーザーで十分です。
+学習用ならメモリ上のユーザーで十分です。パスワードは `PasswordEncoder`(ここでは `BCryptPasswordEncoder`)で変換して持たせます。
 
 ```java
 @Bean
@@ -116,11 +116,11 @@ UserDetailsService users(PasswordEncoder enc) {
 }
 ```
 
-`UserDetailsService` の Bean を定義すると、生成パスワードの `user` は消えます。実務では `UserDetailsService` を自分で実装し、`loadUserByUsername` で **DB(Repository)からユーザーを引いて** 返します。
+`UserDetailsService` の Bean を定義すると、生成パスワードの `user` は消えます。実務では `UserDetailsService` を自分で実装し、`loadUserByUsername` で **DB(Repository)からユーザーを引いて**返します。
 
 ### パスワードは平文で保存しない
 
-DB が漏れた瞬間、平文なら全員のパスワードが即バレです。保存するのは **ハッシュ**(元に戻せない一方向の変換結果)。さらに:
+DB が漏れた瞬間、平文なら全員のパスワードが即バレです。保存するのは**ハッシュ**(元に戻せない一方向の変換結果)。さらに:
 
 - **ソルト**:ユーザーごとのランダム値を混ぜてからハッシュ化。同じパスワードでも別の値になり、事前計算表(レインボーテーブル)が効かない
 - **わざと遅くする**:SHA-256 は速すぎて総当たりに弱い。BCrypt は計算回数(コスト)を上げられる
@@ -187,15 +187,15 @@ String mypage(@AuthenticationPrincipal UserDetails me,
 
 - **とりあえず `anyRequest().permitAll()`**:動くけど何も守っていない。最初は閉じて、必要な所だけ開ける
 - **理由なく `csrf(csrf -> csrf.disable())`**:403 が消えるのは守りを外したから。正解は `th:action` を使うこと
-- **`@EnableMethodSecurity` 忘れ**:`@PreAuthorize` が **黙って無視される**。エラーが出ないので気づかない
+- **`@EnableMethodSecurity` 忘れ**:`@PreAuthorize` が**黙って無視される**。エラーが出ないので気づかない
 - **パスワードを `equals` で比較**:ハッシュ値は毎回違うので必ず不一致。`matches` を使う
 
 ::: point まとめ
 - **認証**=誰か、**認可**=何をしてよいか。未ログインはログイン画面へ、権限不足は 403
-- 依存を入れると **全 URL がログイン必須**(secure by default)。生成パスワードは起動ログに出る
-- `SecurityFilterChain` の `@Bean` で `permitAll` / `hasRole` / `authenticated` を書く。**上から最初に一致したルール** が効く
+- 依存を入れると**全 URL がログイン必須**(secure by default)。生成パスワードは起動ログに出る
+- `SecurityFilterChain` の `@Bean` で `permitAll` / `hasRole` / `authenticated` を書く。**上から最初に一致したルール**が効く
 - パスワードは **BCrypt でハッシュ化**(ソルト入り・わざと遅い)。照合は `matches`
-- 更新系は **CSRF トークン** が必須。Thymeleaf は `th:action` で自動
+- 更新系は **CSRF トークン**が必須。Thymeleaf は `th:action` で自動
 - `@PreAuthorize` でメソッドにも鍵を。ユーザーは `@AuthenticationPrincipal` で受け取る
 :::
 

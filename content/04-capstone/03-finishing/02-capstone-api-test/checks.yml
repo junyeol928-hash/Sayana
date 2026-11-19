@@ -1,0 +1,33 @@
+- after: 設計の考え方
+  question: |
+    承認者のモカが、API で**自分の**申請(申請中・5,000 円)を承認しようとした。承認くんの方針で返るのは?
+  choices: ["409 Conflict", "403 Forbidden", "404 Not Found"]
+  answer: 0
+  why:
+    - ""
+    - "自分の申請の拒否を権限の話と考えた答え。承認くんは 403 を、ロールでの門前払いだけに使う"
+    - "自分の申請は見せない扱いと考えた答え。申請はあり、APPROVER のモカは読めるので 404 ではない"
+  explanation: |
+    モカは APPROVER なので、ロールしか見ない Security の URL ルールは通る。自分の申請かどうかは業務ルール2で、Service の `BusinessRuleException` → 409。
+- after: "Controller のテスト:@WebMvcTest + @MockitoBean"
+  question: |
+    画面の JavaScript から `fetch` で `POST /api/requests/5/approve` を送った。ログイン中のセッション Cookie は付くが、CSRF トークンは付けていない。どうなる?
+  choices: ["403 になる", "API なので CSRF は確かめられず、承認される", "401 Unauthorized になる"]
+  answer: 0
+  why:
+    - ""
+    - "API は CSRF の対象外と考えた答え。Cookie で認証する API は対象になる"
+    - "CSRF の失敗を認証の失敗と考えた答え。ログインは済んでいて、トークンの無い POST は拒否の 403"
+  explanation: |
+    承認くんの API は画面と同じセッション Cookie で認証するので、`/api/**` でも CSRF 対策を外していない。トークンを `X-CSRF-TOKEN` ヘッダで送れば通る(テストの `.with(csrf())` と同じ役目)。
+- after: Service は単体テストで、ルールを表にする
+  question: |
+    表に `"ADMIN, 100000, RETURNED, ?"`(ADMIN が 10 万円の差戻し中の申請を承認)の行を足す。期待値は?
+  choices: ["NG(例外 `BusinessRuleException`)", "OK(ADMIN なので承認できる)", "OK(差戻しは承認者の手元に戻った状態)"]
+  answer: 0
+  why:
+    - ""
+    - "ADMIN なら状態を問わないと考えた答え。差戻しの申請は、再申請で申請中に戻るまで承認できない"
+    - "差戻しの戻り先を承認者と読んだ答え。戻した先は申請者で、再申請までは誰も承認できない"
+  explanation: |
+    ADMIN なので金額のルール3は通るが、RETURNED → APPROVED の矢印は無い。例外になり、履歴の `save` も呼ばれない。

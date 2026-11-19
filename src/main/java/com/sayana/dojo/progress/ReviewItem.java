@@ -44,6 +44,8 @@ public class ReviewItem {
     private int reviewCount;
     private boolean graduated;
     private Boolean lastCorrect;
+    /** 復習で最後に選んだ選択肢(元の番号)。今日の終わりに、どう読み違えたかを出すため。演習と、記録する前の分は null。 */
+    private Integer lastChoice;
     private Instant lastReviewedAt;
     private Instant createdAt;
 
@@ -74,6 +76,8 @@ public class ReviewItem {
     public void setGraduated(boolean graduated) { this.graduated = graduated; }
     public Boolean getLastCorrect() { return lastCorrect; }
     public void setLastCorrect(Boolean lastCorrect) { this.lastCorrect = lastCorrect; }
+    public Integer getLastChoice() { return lastChoice; }
+    public void setLastChoice(Integer lastChoice) { this.lastChoice = lastChoice; }
     public Instant getLastReviewedAt() { return lastReviewedAt; }
     public void setLastReviewedAt(Instant lastReviewedAt) { this.lastReviewedAt = lastReviewedAt; }
     public Instant getCreatedAt() { return createdAt; }

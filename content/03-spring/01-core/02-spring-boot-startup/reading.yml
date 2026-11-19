@@ -17,18 +17,23 @@
     @Value("${gateway.backend.base-url}") String baseUrl;
     @Value("${gateway.backend.timeout-millis:1000}") int timeout;
     @Value("${gateway.backend.retry:2}") int retry;
-  question: "baseUrl / timeout / retry の値は?"
+  question: "(予習:`@Value(\"${キー:既定値}\")` は設定ファイルの値をフィールドに入れる注釈で、キーが無ければ `:` の後ろの既定値を使います。`prod` プロファイルで起動すると `application-prod.yml` も読まれ、同じキーは共通の `application.yml` を上書きします。詳しくは第5章「設定ファイルとプロファイル」)`baseUrl` / `timeout` / `retry` の値は?"
   choices:
-    - "localhost:8081 / 3000 / 2"
-    - "back.internal / 3000 / 2"
-    - "back.internal / 1000 / 2"
-    - "back.internal / 3000 / 起動時に例外"
+    - "`http://localhost:8081` / 3000 / 2"
+    - "`https://backend.internal` / 3000 / 2"
+    - "`https://backend.internal` / 1000 / 2"
+    - "`https://backend.internal` / 3000 / 起動時に例外"
   answer: 1
-  explanation: "(キーの頭の gateway は、仕事では tsm)base-url は prod の yml が共通を上書きして https://backend.internal。timeout-millis は prod にないので共通の 3000(既定値の 1000 は使われない)。retry はどこにもないので既定値の 2 です。既定値があるので例外にはなりません。"
+  why:
+    - "`prod` で起動しても共通の yml だけが使われると読んだ答え"
+    - ""
+    - "`prod` に無いキーは既定値になると読んだ答え。共通の yml に 3000 があるのでそれが使われる"
+    - "どこにも無いキーは例外になると読んだ答え。`:2` の既定値があるので 2 が入る"
+  explanation: "(キーの頭の `gateway` は、仕事では `tsm`)`base-url` は `prod` の yml が共通を上書きして `https://backend.internal`。`timeout-millis` は `prod` にないので共通の 3000(既定値の 1000 は使われない)。`retry` はどこにもないので既定値の 2 です。既定値があるので例外にはなりません。"
   trace:
-    - "13行目: gateway.backend.base-url → 共通と prod の両方にある → prod が勝ち https://backend.internal"
-    - "14行目: gateway.backend.timeout-millis → 共通にだけある → 3000(:1000 はキーがない時だけ)"
-    - "15行目: gateway.backend.retry → どこにもない → 既定値 2"
+    - "13行目: `gateway.backend.base-url` → 共通と `prod` の両方にある → `prod` が勝ち `https://backend.internal`"
+    - "14行目: `gateway.backend.timeout-millis` → 共通にだけある → 3000(`:1000` はキーがない時だけ)"
+    - "15行目: `gateway.backend.retry` → どこにもない → 既定値 2"
 - title: "@ConfigurationProperties の対応"
   level: 2
   code: |
@@ -46,19 +51,24 @@
         private int idleSeconds = 60;
         private int retryCount = 3;
     }
-  question: "起動後の maxCount / idleSeconds / retryCount は?"
+  question: "(予習:`@ConfigurationProperties(prefix = \"…\")` は、設定ファイルの `prefix` 以下のキーを、名前が対応するフィールドにまとめて入れる注釈です。`@Getter @Setter` は Lombok が getter / setter を作る印。詳しくは第5章「設定ファイルとプロファイル」)起動後の `maxCount` / `idleSeconds` / `retryCount` は?"
   choices:
     - "100 / 300 / 3"
     - "100 / 60 / 3"
     - "0 / 300 / 3"
-    - "起動時に例外(retry-count がない)"
+    - "起動時に例外(`retry-count` がない)"
   answer: 0
-  explanation: "max-count は maxCount に、idle-seconds は idleSeconds に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。retryCount は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
+  why:
+    - ""
+    - "フィールドの初期値が優先されると読んだ答え。yml の 300 で上書きされる"
+    - "`max-count` と `maxCount` が結びつかないと読んだ答え。ハイフン区切りのキーはキャメルケースのフィールドに対応する"
+    - "yml にキーが無いと例外になると読んだ答え。無いキーのフィールドは初期値の 3 のまま"
+  explanation: "`max-count` は `maxCount` に、`idle-seconds` は `idleSeconds` に自動対応し、yml の値が入ります(初期値の 60 は上書きされる)。`retryCount` は yml にないので初期値の 3 のまま。yml にキーがなくても例外にはなりません。"
   trace:
-    - "8行目: prefix gateway.session 以下のキーをこのクラスに流し込む"
-    - "11行目: max-count → maxCount = 100"
-    - "12行目: idle-seconds → idleSeconds = 300(初期値 60 は上書き)"
-    - "13行目: retry-count は yml にない → 初期値 3 のまま"
+    - "8行目: `prefix` `gateway.session` 以下のキーをこのクラスに流し込む"
+    - "11行目: `max-count` → `maxCount = 100`"
+    - "12行目: `idle-seconds` → `idleSeconds = 300`(初期値 60 は上書き)"
+    - "13行目: `retry-count` は yml にない → 初期値 3 のまま"
 - title: "@Profile と Bean の選択"
   level: 2
   code: |
@@ -75,18 +85,23 @@
     public class CommandService {
         private final CommandSender sender;
     }
-  question: "`--spring.profiles.active=stg` で起動すると、sender には何が入る?"
+  question: "(予習:`@Profile(\"prod\")` を付けた Bean は、そのプロファイルが有効なときだけ作られます。プロファイルは起動引数 `--spring.profiles.active=…` で選びます。詳しくは第5章「設定ファイルとプロファイル」)`--spring.profiles.active=stg` で起動すると、`sender` には何が入る?"
   choices:
-    - "SecureCommandSender"
-    - "PlainCommandSender"
+    - "`SecureCommandSender`"
+    - "`PlainCommandSender`"
     - "両方の候補があり起動時に例外"
     - "どちらも作られず起動時に例外"
   answer: 1
-  explanation: "stg では @Profile({\"dev\",\"stg\"}) の plainSender だけが有効になり、secureSender は作られません。よって候補は1つで PlainCommandSender(仕事では PlainApduSender)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず NoSuchBeanDefinitionException(4)になります。"
+  why:
+    - "`@Profile` を見ずに、先に書いた Bean が入ると読んだ答え"
+    - ""
+    - "`@Profile` を付けても Bean は両方作られると読んだ答え"
+    - "プロファイルを指定しないときの動きと取り違えた答え。`stg` は `plainSender` の `@Profile` に含まれる"
+  explanation: "`stg` では `@Profile({\"dev\",\"stg\"})` の `plainSender` だけが有効になり、`secureSender` は作られません。よって候補は1つで `PlainCommandSender`(仕事では `PlainApduSender`)が注入されます。プロファイルを指定せずに起動すると、どちらも作られず、起動時に `UnsatisfiedDependencyException` になります(原因は `NoSuchBeanDefinitionException`。Bean が見つからない)。"
   trace:
-    - "3〜4行目: prod のときだけ SecureCommandSender の Bean ができる → stg では作られない"
-    - "6〜7行目: dev か stg のとき PlainCommandSender の Bean ができる → stg で作られる"
-    - "12行目: CommandSender 型の候補は PlainCommandSender の1つだけ → それが注入される"
+    - "3〜4行目: `prod` のときだけ `SecureCommandSender` の Bean ができる → `stg` では作られない"
+    - "6〜7行目: `dev` か `stg` のとき `PlainCommandSender` の Bean ができる → `stg` で作られる"
+    - "12行目: `CommandSender` 型の候補は `PlainCommandSender` の1つだけ → それが注入される"
 - title: "@PostConstruct と @Value の順番"
   level: 3
   code: |
@@ -105,15 +120,20 @@
             System.out.println(endpoint);
         }
     }
-  question: "yml に `gateway.crypto.host: crypto1` があるとき、起動時の出力は?"
+  question: "(予習:`@Value` は設定ファイルの値をフィールドに入れる注釈、`@PostConstruct` は「Bean を作り終えた後に1回だけ呼ばれるメソッド」の印です。`@Value` は第5章「設定ファイルとプロファイル」で詳しく扱います)yml に `gateway.crypto.host: crypto1` があるとき、起動時の出力は?"
   choices:
-    - "crypto1:9000"
-    - "null:9000"
+    - "`crypto1:9000`"
+    - "`null:9000`"
     - "起動時に例外"
-    - ":9000"
+    - "`:9000`"
   answer: 1
-  explanation: "フィールドへの @Value の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では host はまだ null なので、endpoint は \"null:9000\" になります。@PostConstruct の時点では host は crypto1(仕事では hsm1)になっていますが、endpoint はもう作られた後です。この問題を避けるため、設定値を使う初期化は @PostConstruct に書くか、コンストラクタ注入で受け取ります。"
+  why:
+    - "`@Value` がコンストラクタより先に入ると読んだ答え。フィールド注入は `new` の後なので、そのとき `host` は `null`"
+    - ""
+    - "`null` と連結すると例外になると読んだ答え。文字列の連結では `null` も `\"null\"` として連結される"
+    - "未注入の `host` を空文字と読んだ答え。`String` フィールドの初期値は `null` で、連結すると `null:9000`"
+  explanation: "フィールドへの `@Value` の注入は、コンストラクタが終わった後に行われます。コンストラクタ実行時点では `host` はまだ `null` なので、`endpoint` は `null:9000` になります。`@PostConstruct` の時点では `host` は `crypto1`(仕事では `hsm1`)になっていますが、`endpoint` はもう作られた後です。この問題を避けるため、設定値を使う初期化は `@PostConstruct` に書くか、コンストラクタ注入で受け取ります。"
   trace:
-    - "7〜9行目: Spring がまず new する。この時点で host は null → endpoint = \"null:9000\""
-    - "3〜4行目: new の後に @Value が処理され、host = \"crypto1\" になる"
-    - "11〜13行目: 注入完了後に init() が呼ばれ、endpoint(\"null:9000\")を出力"
+    - "7〜9行目: Spring がまず `new` する。この時点で `host` は `null` → `endpoint` は `null:9000`"
+    - "3〜4行目: `new` の後に `@Value` が処理され、`host` が `crypto1` になる"
+    - "11〜13行目: 注入完了後に `init()` が呼ばれ、`endpoint`(`null:9000`)を出力"

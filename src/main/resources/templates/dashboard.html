@@ -11,7 +11,7 @@
         <section class="today" aria-labelledby="today-title" th:if="${nextLesson}">
             <p class="today-axis" aria-hidden="true"><span th:text="${nextAxisPart}">第三部 Spring</span><small th:text="${nextAxisChapter}">第一章</small></p>
             <div class="today-body">
-            <p class="today-kicker"><span>今日の稽古</span><span class="visually-hidden" th:text="${nextChapter}">第1章</span><span th:text="'読む ' + ${nextLesson.minutes} + ' 分'"></span></p>
+            <p class="today-kicker"><span>今日の稽古</span><span class="visually-hidden" th:text="${nextChapter}">第1章</span><span th:text="${nextKicker}"></span></p>
             <h1 class="today-title" th:classappend="${nextTitleSize}" id="today-title"><a th:href="@{/lessons/{id}(id=${nextLesson.id})}" th:text="${nextLesson.title}">レッスン</a></h1>
             <!--/* 運針は、段ごとの済み具合(ブラウザの記録も合わせる)から app.js が描く */-->
             <div class="unshin-slot" th:attr="data-lesson=${nextLesson.id}"></div>
@@ -19,8 +19,10 @@
             <div class="today-actions"><a class="btn primary" th:href="@{/lessons/{id}(id=${nextLesson.id})}">稽古をはじめる</a></div>
             </div>
             <a class="today-review" th:href="@{/review}"><span>今日の復習</span>
-                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="'約 ' + ${(dueCount + 2) / 3} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
-                <span th:if="${dueCount == 0}" class="zero" th:text="'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
+                <span th:if="${dueCount > 0}"><b th:text="${dueCount}">3</b>問<small class="review-min" th:text="(${dueCount > 10} ? 'まず 10 問 ' : '') + '約 ' + ${dueMinutes} + ' 分'"></small> <svg class="icon sm" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+                <span th:if="${dueCount == 0}" class="zero" th:text="${doneToday > 0}
+                    ? '済み ' + ${doneToday} + ' 問' + (${bastedToday > 0} ? '(仮縫い ' + ${bastedToday} + ')' : '') + (${tomorrowDue > 0} ? ' · 明日 ' + ${tomorrowDue} + ' 問' : '')
+                    : 'なし' + (${upcoming > 0} ? ' · この先 ' + ${upcoming} + ' 問' : '')"></span></a>
             <p class="talk-line" th:if="${streak == 0}">モカ先輩「まずは1レッスン、15分だけやってみよう」</p>
             <p class="talk-line" th:if="${streak > 0 and !studiedToday}" th:text="'モカ先輩「連続 ' + ${streak} + ' 日。今日もちょっとだけやって記録をつなごう」'"></p>
             <p class="talk-line" th:if="${streak > 0 and studiedToday}" th:text="'モカ先輩「今日もやったね。連続 ' + ${streak} + ' 日目」'"></p>
@@ -57,10 +59,18 @@
                 <li><span class="dye dye-3"></span><span><span class="dye-name-sm"><ruby>藍<rt>あい</rt></ruby> <b class="dye-count" th:text="${dyeCounts[3]}"></b></span><span class="dye-meaning">演習もできた</span></span></li>
                 <li><span class="dye dye-4"></span><span><span class="dye-name-sm"><ruby>褐<rt>かち</rt></ruby> <b class="dye-count" th:text="${dyeCounts[4]}"></b></span><span class="dye-meaning">復習をすべて卒業</span></span></li>
             </ul>
-            <div class="home-stats">
-                <a th:href="@{/review}"><div class="stat-label">次の復習</div><div class="stat-value" th:text="${nextReview}">なし</div></a>
-                <a th:href="@{/reading}"><div class="stat-label">読解の正解</div><div class="stat-value"><span id="reading-ok">0</span><small th:text="'/ ' + ${readingTotal}"></small></div></a>
-                <div><div class="stat-label">この7日の稽古</div><div class="stat-value"><span th:text="${weekDays}">0</span><small>日</small></div></div>
+            <!-- 下の数は、枠の 3 マスをやめて布の言葉で 1 行ずつ(スマホ版の homeCloth と同じ) -->
+            <div class="home-cloth">
+                <div class="cloth-row"><span class="cloth-label">この 7 日</span>
+                    <div class="unshin" style="--steps: 7" role="img" th:attr="aria-label=|この 7 日のうち ${weekDays} 日稽古した|"><i th:each="d : ${days.subList(days.size() - 7, days.size())}" th:class="${d.actions() > 0} ? 'sewn' : null"></i></div>
+                    <span class="cloth-num"><th:block th:text="${weekDays}">0</th:block><small>日</small></span></div>
+                <a class="cloth-row" th:if="${nextReview != null}" th:href="@{/review}"><span class="cloth-label">次の復習</span><span></span><span class="cloth-num" th:text="${nextReview}">なし</span></a>
+                <div class="cloth-row"><span class="cloth-label">復習で卒業</span>
+                    <span class="grad-cells" aria-hidden="true"><span th:each="c : ${graduatedCells}" class="dye dye-4"></span><small th:if="${graduated == 0}">まだ</small><small th:if="${graduated > 24}">…</small></span>
+                    <span class="cloth-num"><th:block th:text="${graduated}">0</th:block><small>問</small></span></div>
+                <a class="cloth-row" th:href="@{/reading}"><span class="cloth-label">読解の正解</span>
+                    <span class="cloth-thread" id="reading-thread" th:attr="data-total=${readingTotal}" aria-hidden="true"></span>
+                    <span class="cloth-num"><span id="reading-ok">0</span><small th:text="'/ ' + ${readingTotal}"></small></span></a>
             </div>
         </section>
 
@@ -68,11 +78,17 @@
 <div class="dash-grid">
     <div class="dash-side">
         <section class="card heatmap-card" aria-labelledby="heat-title">
-            <div class="card-title" id="heat-title">直近8週間の稽古</div>
-            <div class="heatmap">
-                <span th:each="d : ${days}" class="cell" th:classappend="'lv' + ${d.level()}"
-                      th:title="${#temporals.format(d.day, 'M/d')} + ' : ' + ${d.actions} + ' 回'"></span>
+            <div class="card-title" id="heat-title">直近 8 週間の稽古</div>
+            <!-- 1 週 1 行の 7 目の運針(稽古した日は糸、しない日は針穴)。濃さは使わない(草の四角は汎用のダッシュボードの形だった) -->
+            <div class="week-rows">
+                <div class="week-row" th:each="w : ${#numbers.sequence(0, days.size() / 7 - 1)}">
+                    <span class="week-from" th:text="${#temporals.format(days[w * 7].day, 'M/d')}"></span>
+                    <div class="unshin" style="--steps: 7" role="img"
+                         th:attr="aria-label=|${#temporals.format(days[w * 7].day, 'M/d')} からの 7 日|"><i th:each="d : ${days.subList(w * 7, w * 7 + 7)}"
+                         th:class="${d.actions() > 0} ? 'sewn' : null" th:title="${#temporals.format(d.day, 'M/d')} + ' : ' + ${d.actions} + ' 回'"></i></div>
+                </div>
             </div>
+            <p class="week-note">1 週 1 行。稽古した日は糸、しない日は針穴</p>
         </section>
 
         <section class="card weak" th:if="${!weakLessons.isEmpty()}" aria-labelledby="weak-title">

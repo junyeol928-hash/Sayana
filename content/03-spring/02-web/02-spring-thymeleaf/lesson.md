@@ -3,14 +3,14 @@
 :::
 
 ::: sensei
-ビュー名を返したのに、肝心のビュー(テンプレート)が無かったんだね。今日はその **テンプレート側**、Thymeleaf(タイムリーフ)を書けるようになろう。
+ビュー名を返したのに、肝心のビュー(テンプレート)が無かったんだね。今日はその**テンプレート側**、Thymeleaf(タイムリーフ)を書けるようになろう。
 :::
 
-前回は、`@Controller` の戻り値が「ビュー名」になるところまで見ました。今回は、そのビュー名から HTML を作る **テンプレートエンジン** を扱います。
+前回は、`@Controller` の戻り値が「ビュー名」になるところまで見ました。今回は、そのビュー名から HTML を作る**テンプレートエンジン**を扱います。
 
 ## テンプレートエンジンとは
 
-**テンプレートエンジン** は、「HTML の雛形(テンプレート)」と「データ」を合体させて、最終的な HTML を作る部品です。Spring Boot で一番よく使われるのが **Thymeleaf** です。
+**テンプレートエンジン**は、「HTML の雛形(テンプレート)」と「データ」を合体させて、最終的な HTML を作る部品です。Spring Boot で一番よく使われるのが **Thymeleaf** です。
 
 ```mermaid
 flowchart TD
@@ -22,9 +22,9 @@ flowchart TD
     E --> H["完成した HTML<br>をブラウザへ"]
 ```
 
-HTML を作るのは **サーバー側** です。ブラウザに届くのは値が埋め込まれた普通の HTML で、`th:` の属性は残りません。
+HTML を作るのは**サーバー側**です。ブラウザに届くのは値が埋め込まれた普通の HTML で、`th:` の属性は残りません。
 
-Thymeleaf の特徴は **ナチュラルテンプレート**。`th:text` などはブラウザから見ると知らない属性なので無視され、テンプレートのファイルを直接ブラウザで開いても、ダミーの文字が入った見本として表示できます。デザイナーが作った HTML に `th:` 属性を足していく、という分業がしやすいのです。
+Thymeleaf の特徴は**ナチュラルテンプレート**。`th:text` などはブラウザから見ると知らない属性なので無視され、テンプレートのファイルを直接ブラウザで開いても、ダミーの文字が入った見本として表示できます。デザイナーが作った HTML に `th:` 属性を足していく、という分業がしやすいのです。
 
 ## Controller から値を渡す
 
@@ -57,7 +57,7 @@ public class ItemController {
 
 | 式 | 名前 | 用途 |
 |---|---|---|
-| `${...}` | 変数式 | Model の値を読む |
+| `${...}` | 変数式 | `Model` の値を読む |
 | `*{...}` | 選択変数式 | `th:object` の中で使う |
 | `@{...}` | リンク式 | URL を組み立てる |
 | `#{...}` | メッセージ式 | messages.properties の文言 |
@@ -73,7 +73,7 @@ public class ItemController {
 <!-- href="/orders/1001/cancel?from=detail" -->
 ```
 
-`@{...}` は、`{id}` を値で埋め、余った `( )` 内の引数をクエリにします。さらに、アプリが `/shop` のような **コンテキストパス** で公開されていれば、先頭に自動で `/shop` を付けます。`href="/orders/..."` と直書きすると、公開場所が変わったときに全部リンク切れになります。
+`@{...}` は、`{id}` を値で埋め、余った `( )` 内の引数をクエリにします。さらに、アプリが `/shop` のような**コンテキストパス**で公開されていれば、先頭に自動で `/shop` を付けます。`href="/orders/..."` と直書きすると、公開場所が変わったときに全部リンク切れになります。
 
 `#{...}` は画面の文言を `messages.properties` に集めておく仕組みです(多言語対応にも使います)。
 
@@ -82,7 +82,7 @@ public class ItemController {
 <h1 th:text="#{item.title}">見出し</h1>
 ```
 
-文字列と値をつなぐときは、`'合計: ' + ${total}` のほか、`|合計: ${total}円|` という **リテラル置換** も使えます。
+文字列と値をつなぐときは、`'合計: ' + ${total}` のほか、`|合計: ${total}円|` という**リテラル置換**も使えます。
 
 ## th:text と th:utext(XSS 対策)
 
@@ -99,7 +99,7 @@ model.addAttribute("comment",
 <!-- <p><script>alert('!')</script></p>  ← 実行される! -->
 ```
 
-`th:text` は `<` を `&lt;` のように **エスケープ** するので、文字として表示されるだけです。`th:utext`(unescaped text)はそのまま HTML として出します。ユーザーが入力した値を `th:utext` で出すと、他人のブラウザで任意のスクリプトが動く **XSS(クロスサイトスクリプティング)** の穴になります。
+`th:text` は `<` を `&lt;` のように**エスケープ**するので、文字として表示されるだけです。`th:utext`(unescaped text)はそのまま HTML として出します。ユーザーが入力した値を `th:utext` で出すと、他人のブラウザで任意のスクリプトが動く **XSS(クロスサイトスクリプティング)** の穴になります。
 
 ::: sensei
 `th:utext` は「自分たちで作った、安全だと分かっている HTML」専用。ユーザー入力には絶対に使わない。迷ったら `th:text` だ。
@@ -117,16 +117,16 @@ model.addAttribute("comment",
 </tr>
 ```
 
-- **`th:each`** は、付けたタグごと要素の数だけ繰り返します。2つ目の変数 `st` は **ステータス変数** で、`index`(0始まり)・`count`(1始まり)・`size`・`first`・`last`・`odd`・`even` が使えます。
+- **`th:each`** は、付けたタグごと要素の数だけ繰り返します。2つ目の変数 `st` は**ステータス変数**で、`index`(0始まり)・`count`(1始まり)・`size`・`first`・`last`・`odd`・`even` が使えます。
 - **`th:if`** は条件が真のときだけタグを出し、**`th:unless`** はその逆です。真偽は Java より緩く、`null`・`false`・数値の `0`・文字列 `"false"` `"off"` `"no"` が偽、それ以外は真です。
 
 ::: genba テンプレートは「表示するだけ」に
-`th:if="${o.status == 'ORDERED' and o.shippedAt == null}"` のような業務ルールをテンプレートに書き始めると危険です。テンプレートは **コンパイルされない** ので、綴りミスも型の間違いも、その画面を開くまで分かりません。JUnit でもテストしにくい。現場では判定を Java 側のメソッド(`order.cancellable()` など)にして、テンプレートは `th:if="${order.cancellable()}"` と呼ぶだけにします。
+`th:if="${o.status == 'ORDERED' and o.shippedAt == null}"` のような業務ルールをテンプレートに書き始めると危険です。テンプレートは**コンパイルされない**ので、綴りミスも型の間違いも、その画面を開くまで分かりません。JUnit でもテストしにくい。現場では判定を Java 側のメソッド(`order.cancellable()` など)にして、テンプレートは `th:if="${order.cancellable()}"` と呼ぶだけにします。
 :::
 
 ## 共通レイアウト:フラグメント
 
-ヘッダーやフッターは全ページ共通です。**フラグメント** として1か所に書き、各ページから呼び出します。
+ヘッダーやフッターは全ページ共通です。**フラグメント**として1か所に書き、各ページから呼び出します。
 
 ```html
 <!-- templates/fragments/layout.html -->
@@ -139,17 +139,17 @@ model.addAttribute("comment",
 </header>
 ```
 
-`~{テンプレート名 :: フラグメント名}` で指定します。`th:replace` は自分のタグごと置き換え、`th:insert` は自分のタグの **中に** 差し込みます。
+`~{テンプレート名 :: フラグメント名}` で指定します。`th:replace` は自分のタグごと置き換え、`th:insert` は自分のタグの**中に**差し込みます。
 
 このアプリ(Java道場)自身も Thymeleaf で作られていて、どのページも `th:replace="~{fragments/layout :: header}"` で共通ヘッダーを読み込んでいます。
 
 ::: trivia 「実行」ボタンの裏側は htmx + フラグメント
-このアプリのコード実行は **htmx** というライブラリで動いています。`<form hx-post="/run" hx-target="#playground-out">` が POST を送り、Controller は `return "fragments/run :: result";` と **フラグメントだけ** をビュー名として返します。届いた HTML の断片で `#playground-out` の中身だけを差し替えるので、ページ全体を再読み込みせずに結果が出るのです。JavaScript をほとんど書かずに「サクサク動く画面」が作れる、最近人気の組み合わせです。
+このアプリのコード実行は **htmx** というライブラリで動いています。`<form hx-post="/run" hx-target="#playground-out">` が POST を送り、Controller は `return "fragments/run :: result";` と**フラグメントだけ**をビュー名として返します。届いた HTML の断片で `#playground-out` の中身だけを差し替えるので、ページ全体を再読み込みせずに結果が出るのです。JavaScript をほとんど書かずに「サクサク動く画面」が作れる、最近人気の組み合わせです。
 :::
 
 ## ユーティリティとキャッシュ
 
-`#` で始まる **ユーティリティオブジェクト** で整形できます。
+`#` で始まる**ユーティリティオブジェクト**で整形できます。
 
 ```html
 <span th:text="${#temporals.format(order.orderedAt,
@@ -161,7 +161,7 @@ model.addAttribute("comment",
 
 `#temporals` は `LocalDateTime` などの日時、`#numbers` は数値、ほかに `#strings`・`#lists` などがあります。
 
-Thymeleaf は一度読んだテンプレートを **キャッシュ** します。本番では速くて良いのですが、開発中は HTML を直しても反映されず「あれ?」となります。開発中は `application.properties` に次を書きます。
+Thymeleaf は一度読んだテンプレートを**キャッシュ**します。本番では速くて良いのですが、開発中は HTML を直しても反映されず「あれ?」となります。開発中は `application.properties` に次を書きます。
 
 ```text
 spring.thymeleaf.cache=false
@@ -181,7 +181,7 @@ configured Template Resolvers
 
 ビュー名とファイルのパス・大文字小文字・`templates/` の下に置いたかを確認します。ビュー名に `.html` や `templates/` は付けません。
 
-**② プロパティ名のタイプミス・null**
+**② プロパティ名のタイプミス・`null`**
 
 ```text
 EL1008E: Property or field 'nmae' cannot be found on object
@@ -192,7 +192,7 @@ EL1007E: Property or field 'name' cannot be found on null
 1つ目は綴り間違いか、getter が無い(public でない)とき。2つ目は `${item.name}` の `item` 自体が `null` のときです。`null` かもしれないなら `${item?.name}` (安全ナビゲーション演算子)で `null` を返せます。
 
 ::: point まとめ
-- Controller は **Model** に値を入れて **ビュー名** を返す → `templates/ビュー名.html` が描画される
+- Controller は **`Model`** に値を入れて**ビュー名**を返す → `templates/ビュー名.html` が描画される
 - `${}` 変数、`*{}` 選択(`th:object`)、`@{}` URL(コンテキストパスも付く)、`#{}` メッセージ
 - 値の表示は **`th:text`**(エスケープ)。`th:utext` はユーザー入力に使うと **XSS**
 - `th:each` とステータス変数、`th:if` / `th:unless`

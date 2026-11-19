@@ -13,20 +13,24 @@
     System.out.println(b.name());
   question: "どうなる?"
   choices:
-    - "child と表示"
-    - "base と表示"
+    - "child と表示される"
+    - "base と表示される"
     - "コンパイルエラー"
-    - "実行時エラー"
+    - "実行時エラーになる"
   answer: 2
-  explanation: "Name()(大文字 N)は親の name() とは別のメソッドなので、上書きになっていません。@Override が付いているので「上書き対象が無い」とコンパイルエラーになります。@Override が無ければコンパイルは通り、\"base\" と表示されるバグが隠れたままになります。"
+  why:
+    - "`Name()` が `name()` を上書きすると読んだ答え。大文字の `Name` は別のメソッドで、`@Override` がエラーにする"
+    - "`@Override` が無いときの結果と取り違えた答え。上書き対象が無いので、`@Override` がコンパイルで止める"
+    - ""
+    - "上書きの失敗が実行時に分かると読んだ答え。`@Override` がコンパイル時に見つける"
+  explanation: "`Name()`(大文字 N)は親の `name()` とは別のメソッドなので、上書きになっていません。`@Override` が付いているので「上書き対象が無い」とコンパイルエラーになります。`@Override` が無ければコンパイルは通り、`base` と表示されるバグが隠れたままになります。"
   trace:
-    - "6行目: Name() は name() と別名 → 新しいメソッドの定義"
-    - "5行目: @Override は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
+    - "6行目: `Name()` は `name()` と別名 → 新しいメソッドの定義"
+    - "5行目: `@Override` は「親に同じメソッドがある」ことを要求 → 無いのでコンパイルエラー"
     - "実行には至らない"
-- title: "要素のデフォルト値"
+- title: "@Retention を書かないとき"
   level: 2
   code: |
-    @Retention(RetentionPolicy.RUNTIME)
     @interface Retry {
         int times() default 3;
         long waitMillis() default 0;
@@ -35,26 +39,28 @@
     class Client {
         @Retry(times = 5)
         public void call() {}
-
-        @Retry
-        public void ping() {}
     }
 
-    Method m = Client.class.getMethod("ping");
+    Method m = Client.class.getMethod("call");
     Retry r = m.getAnnotation(Retry.class);
     System.out.println(r.times() + " " + r.waitMillis());
   question: "出力は?"
   choices:
-    - "5 0"
-    - "3 0"
-    - "null"
-    - "コンパイルエラー"
-  answer: 1
-  explanation: "ping() には @Retry が引数なしで付いているので、要素はすべてデフォルト値(times = 3、waitMillis = 0)です。call() の 5 は関係ありません。RUNTIME なので getAnnotation で取り出せます。"
+    - "`5 0` と出力される"
+    - "`3 0` と出力される"
+    - "`null` と出力される"
+    - "`NullPointerException` で止まる"
+  answer: 3
+  why:
+    - "`@Retry(times = 5)` が付いているので読めると読んだ答え。保持期間の指定が無い"
+    - "`default` の値が使われると読んだ答え。そもそもアノテーションを取り出せていない"
+    - "取れないときは `null` と出ると読んだ答え。`r` 自体が `null` なので、呼び出しで落ちる"
+    - ""
+  explanation: "`@Retention` を書かないと保持期間は `CLASS` で、`.class` ファイルには残っても実行時には読めません。`getAnnotation` は `null` を返し、`r.times()` で `NullPointerException` になります。実行時に読むアノテーションには `@Retention(RetentionPolicy.RUNTIME)` が要ります。"
   trace:
-    - "15行目: ping メソッドの Method オブジェクトを取得"
-    - "16行目: RUNTIME なので @Retry が取れる(null ではない)"
-    - "17行目: 引数なしで付けたので times は default の 3、waitMillis は 0"
+    - "1行目: `@Retention` が無いので、保持期間は既定の `CLASS`"
+    - "11〜12行目: 実行時には `@Retry` が見えず、`getAnnotation` は `null` を返す"
+    - "13行目: `null` に対して `r.times()` を呼び、`NullPointerException`"
 - title: "Retention と getAnnotation"
   level: 2
   code: |
@@ -71,16 +77,21 @@
     System.out.println(Api.class.getAnnotation(Stable.class) != null);
   question: "2行の出力は?"
   choices:
-    - "true / true"
-    - "false / true"
-    - "true / false"
-    - "false / false"
+    - "`true` / `true`"
+    - "`false` / `true`"
+    - "`true` / `false`"
+    - "`false` / `false`"
   answer: 1
-  explanation: "@Draft は SOURCE なのでコンパイル後には消え、実行時には null。@Stable は RUNTIME なので取れます。フレームワークが読むアノテーションが必ず RUNTIME なのはこのためです。"
+  why:
+    - "ソースに付いていれば実行時も読めると読んだ答え。`SOURCE` の `@Draft` はコンパイルで消える"
+    - ""
+    - "`SOURCE` と `RUNTIME` の残り方を逆に読んだ答え。実行時まで残るのは `RUNTIME` の `@Stable`"
+    - "アノテーションは実行時に読めないと読んだ答え。`RUNTIME` の `@Stable` は `getAnnotation` で取れる"
+  explanation: "`@Draft` は `SOURCE` なのでコンパイル後には消え、実行時には `null`。`@Stable` は `RUNTIME` なので取れます。フレームワークが読むアノテーションが必ず `RUNTIME` なのはこのためです。"
   trace:
     - "7行目: 両方のアノテーションを付ける(ソース上は両方ある)"
-    - "10行目: Draft は class ファイルに残っていない → null → false"
-    - "11行目: Stable は実行時まで残る → 取れる → true"
+    - "10行目: `Draft` は `.class` ファイルに残っていない → `null` → `false`"
+    - "11行目: `Stable` は実行時まで残る → 取れる → `true`"
 - title: "Aspect の proceed()"
   level: 3
   code: |
@@ -103,17 +114,22 @@
     // 一般ユーザーとして、別の Bean から keyService.revokeAll() を呼ぶ
   question: "何が起きる?"
   choices:
-    - "\"revoked\" がログに出て正常終了"
-    - "AccessDeniedException が投げられ、\"revoked\" は出ない"
-    - "@RequiresAdmin は何もしないので普通に実行される"
+    - "`revoked` がログに出て正常終了"
+    - "`AccessDeniedException` が投げられる"
+    - "`@RequiresAdmin` は効かず普通に実行される"
     - "コンパイルエラー"
   answer: 1
-  explanation: "別の Bean からの呼び出しはプロキシを通るので、Aspect の guard が先に動きます。管理者でないので例外を投げ、proceed() に到達しません。よって revokeAll の本体は実行されず \"revoked\" も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。"
+  why:
+    - "Service に権限チェックが無いので通ると読んだ答え。チェックは本体の外で動く"
+    - ""
+    - "アノテーションは目印なので何も起きないと読んだ答え。それを読む Aspect が動いて例外を投げる"
+    - "権限がコンパイル時に確かめられると読んだ答え。コンパイルは通り、実行時に Aspect が例外で止める"
+  explanation: "別の Bean からの呼び出しはプロキシを通るので、Aspect の `guard` が先に動きます。管理者でないので例外を投げ、`proceed()` に到達しません。よって `revokeAll` の本体は実行されず `revoked` も出ません。Service のコードには権限チェックが1行も無いのに止まる、というのが AOP の「見えない処理」です。"
   trace:
-    - "呼び出し: keyService はプロキシ → guard() が横取り"
-    - "5行目: 一般ユーザーなので条件が true"
-    - "6行目: AccessDeniedException を投げる → 8行目には行かない"
-    - "revokeAll() の本体は一度も実行されない"
+    - "呼び出し: `keyService` はプロキシ → `guard()` が横取り"
+    - "5行目: 一般ユーザーなので条件が `true`"
+    - "6行目: `AccessDeniedException` を投げる → 8行目には行かない"
+    - "`revokeAll()` の本体は一度も実行されない"
 - title: "Jackson と @JsonProperty"
   level: 2
   code: |
@@ -127,14 +143,19 @@
     System.out.println(json);
   question: "出力に最も近いものは?"
   choices:
-    - "{\"userId\":1,\"displayName\":\"Sato\",\"passwordHash\":\"xxxx\"}"
-    - "{\"user_id\":1,\"displayName\":\"Sato\"}"
-    - "{\"user_id\":1,\"display_name\":\"Sato\"}"
+    - "`{\"userId\":1,\"displayName\":\"Sato\",\"passwordHash\":\"xxxx\"}`"
+    - "`{\"user_id\":1,\"displayName\":\"Sato\"}`"
+    - "`{\"user_id\":1,\"display_name\":\"Sato\"}`"
     - "コンパイルエラー"
   answer: 1
-  explanation: "@JsonProperty(\"user_id\") でキー名が user_id になり、@JsonIgnore の passwordHash は JSON から除外されます。displayName はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで record のコンポーネントとアノテーションを読んでいます。"
+  why:
+    - "アノテーションを見落とした答え。2 つとも出力を変えている"
+    - ""
+    - "`@JsonProperty` が全部のキーをスネークケースにすると読んだ答え。効くのは付けた `userId` だけ"
+    - "`record` の部品にアノテーションを付けられないと読んだ答え。付けられて、Jackson が実行時に読む"
+  explanation: "`@JsonProperty(\"user_id\")` でキー名が `user_id` になり、`@JsonIgnore` の `passwordHash` は JSON から除外されます。`displayName` はアノテーションが無いのでそのまま。Jackson は実行時にリフレクションで `record` のコンポーネントとアノテーションを読んでいます。"
   trace:
-    - "2行目: userId → キー名を \"user_id\" に変更"
-    - "3行目: displayName はそのまま"
-    - "4行目: passwordHash は出力しない(機密情報を漏らさない定番の使い方)"
-    - "出力: {\"user_id\":1,\"displayName\":\"Sato\"}"
+    - "2行目: `userId` → キー名を `\"user_id\"` に変更"
+    - "3行目: `displayName` はそのまま"
+    - "4行目: `passwordHash` は出力しない(機密情報を漏らさない定番の使い方)"
+    - "出力: `{\"user_id\":1,\"displayName\":\"Sato\"}`"

@@ -18,7 +18,7 @@ problem: |
   **1. `static Comparator<Product> byPriceDesc()`**
   - 匿名クラスで実装した `Comparator<Product>` を返す
   - `compare(a, b)` は、`a` を前にしたいなら負、同じ順位なら 0、後にしたいなら正を返す
-  - 価格の **高い方が前**。価格が同じなら `name` の辞書順(`a.name.compareTo(b.name)`)
+  - 価格の**高い方が前**。価格が同じなら `name` の辞書順(`a.name.compareTo(b.name)`)
 
   **2. `static void sortForShelf(Product[] items)`**
   - `Arrays.sort(items, byPriceDesc())` で、受け取った配列をその場で並べ替える(戻り値なし)
@@ -32,4 +32,4 @@ problem: |
   - 「ノート」と「付箋」の辞書順は `"ノート".compareTo("付箋")` の結果に任せれば OK です。
 
   注意:
-  - ラムダ式(第7章で習います)ではなく、**匿名クラス** で書いてください。テストで匿名クラスかどうかを確かめます。
+  - ラムダ式(第7章で習います)ではなく、**匿名クラス**で書いてください。テストで匿名クラスかどうかを確かめます。

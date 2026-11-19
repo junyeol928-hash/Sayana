@@ -4,17 +4,17 @@ status: ready
 minutes: 15
 summary: 承認くんに新規申請フォームと「自分の申請一覧」を作る。相関チェック・DRAFT での保存・PRG・状態の日本語表示まで。
 goals:
-  - RequestForm に Bean Validation の注釈を付け、種類によって金額が必須になるルールを @AssertTrue の相関チェックで書ける
-  - "GET /requests/new・POST /requests・GET /requests の3つのハンドラを作り、エラー時は同じ画面、成功時は PRG でリダイレクトできる"
+  - "`RequestForm` に Bean Validation の注釈を付け、種類によって金額が必須になるルールを `@AssertTrue` の相関チェックで書ける"
+  - "`GET /requests/new`・`POST /requests`・`GET /requests` の3つのハンドラを作り、エラー時は同じ画面、成功時は PRG でリダイレクトできる"
   - 状態と申請者をフォームではなく Service で決める理由(マスアサインメント・層の依存方向)を説明できる
-  - "Thymeleaf の th:object・th:field・th:errors・th:each で、入力フォームと状態を日本語で出す一覧を作れる"
+  - "Thymeleaf の `th:object`・`th:field`・`th:errors`・`th:each` で、入力フォームと状態を日本語で出す一覧を作れる"
   - ログインの代わりの固定IDを1か所に閉じ込め、後で置き換えられる形にできる
 samples:
   - title: 申請フォームの入力チェックを動かす
     libraries: [spring]
     description: |
-      `RequestForm` を Validator で直接検証します。経費精算なのに金額が無いと、相関チェック(`amountEntered`)のエラーになります。
-      最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
+      `RequestForm` を `validator.validate(form)` で直接検証します。最初に Hibernate Validator のバージョン表示(INFO)が出ることがありますが、気にしなくて大丈夫です。
+      経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? それぞれどの項目のエラー?
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
       // ここを変えてみよう:type を LEAVE に / amount を null や 0 に / title を "" や 51文字に
@@ -63,7 +63,7 @@ samples:
             .forEach(System.out::println);
   - title: 自分の申請だけを日本語の状態で一覧にする
     description: |
-      一覧の考え方をメモリ上で再現します。申請者IDで絞り込み、状態は enum の名前ではなく `label` で表示します。
+      一覧の考え方をメモリ上で再現します。社員 1 の一覧に何件が並び、状態の欄に何と出る?
     code: |
       // 「自分の申請だけ」を一覧に出す Service の考え方(メモリ版)
       // ここを変えてみよう:CURRENT_EMPLOYEE_ID を 2 に / 申請を足してみる
@@ -96,7 +96,15 @@ samples:
       }
 quiz:
   - question: |
-      レッスンの `RequestForm` を次の値で検証しました。エラー(制約違反)は何件?
+      `RequestForm` の検証は次のとおり(抜き出し)。この値で検証すると、エラー(制約違反)は何件?
+      ```java
+      @NotBlank @Size(max = 50) private String title;
+      @NotNull private RequestType type;
+      @Min(1) private Integer amount;
+      @NotBlank private String reason;
+      // 経費精算・備品購入なら amount が null でないこと
+      @AssertTrue public boolean isAmountEntered() { … }
+      ```
       ```java
       form.setTitle("");
       form.setType(RequestType.EXPENSE);
@@ -105,9 +113,14 @@ quiz:
       ```
     choices: ["1件", "3件", "2件", "4件"]
     answer: 2
+    why:
+      - "金額の 0 を見落とした答え。0 は「1 以上」に反する"
+      - "金額 0 で相関チェックも落ちると読んだ答え。0 は「金額なし」ではない"
+      - ""
+      - "`@Size` や相関チェックまで落ちると数えた答え。空文字は 50 字を超えない"
     explanation: |
-      `title` が空なので `@NotBlank` で1件、`amount` が 0 なので `@Min(1)` で1件、合わせて **2件** です。
-      相関チェック `isAmountEntered()` は「経費精算で金額が **null** か」だけを見ます。0 は null ではないので `true` になり、エラーは出ません。
+      `title` が空なので `@NotBlank` で1件、`amount` が 0 なので `@Min(1)` で1件、合わせて **2件**です。
+      相関チェック `isAmountEntered()` は「経費精算で金額が **`null`** か」だけを見ます。0 は `null` ではないので `true` になり、エラーは出ません。
       「金額が不正」は `@Min`、「金額が無い」は相関チェック、と担当が分かれているので同じ原因でエラーが二重に出ません。
   - question: |
       次のメソッドの検証エラーは、BindingResult ではどの項目名(フィールド名)で記録される?
@@ -117,10 +130,15 @@ quiz:
       ```
     choices: ["isAmountEntered", "amount", "type", "amountEntered"]
     answer: 3
+    why:
+      - "メソッド名がそのまま項目名になると読んだ答え。先頭の `is` は外れる"
+      - "金額のチェックなので `amount` に付くと読んだ答え。付くのはメソッド名から作る項目"
+      - "種類で必須かが決まるので `type` に付くと読んだ答え。付くのはメソッド名から作る項目"
+      - ""
     explanation: |
       Bean Validation は JavaBeans の規約で getter をプロパティとして扱います。`boolean` を返す `isXxx()` はプロパティ `xxx` なので、`isAmountEntered()` は **`amountEntered`** です。
       だから画面では `th:errors="*{amountEntered}"` と書きます。`amount` の横に出したいなら、`amount` の入力欄のそばにこの span を置けば十分です。
-      エラーを `amount` 自体に付けたいなら、クラスレベルの独自制約を作るか、Service で `result.rejectValue("amount", ...)` します。
+      エラーを `amount` 自体に付けたいなら、クラスレベルの独自制約を作るか、Controller で `result.rejectValue("amount", ...)` します(`BindingResult` は Web 層のものなので、Service には渡しません)。
   - question: |
       次の Controller で、POST /requests が入力エラーになって `requests/new` を返したとき、画面はどうなる?
       ```java
@@ -142,10 +160,15 @@ quiz:
       ```
     choices: ["エラーは表示されるが、種類のセレクトボックスが「選択してください」だけになる", "400 Bad Request になる", "types が無いので 500 エラーになる", "GET のときの types がセッションから復元されて正常に表示される"]
     answer: 0
+    why:
+      - ""
+      - "入力エラーで 400 になると読んだ答え。エラーは引数の BindingResult が受け止める"
+      - "`null` の `types` で例外が出ると読んだ答え。テンプレートは `null` を空として扱う"
+      - "Model がリクエストをまたいで残ると読んだ答え。セッションには入れていない"
     explanation: |
-      Model は **リクエストごと** に作られます。GET で入れた `types` は POST のリクエストには残っていません。
-      `th:each="t : ${types}"` は `types` が null だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
-      BindingResult が直後にあるので 400 にもなりません。対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
+      Model は**リクエストごと**に作られます。GET で入れた `types` は POST のリクエストには残っていません。
+      `th:each="t : ${types}"` は `types` が `null` だと0回繰り返すだけで例外にはならないので、選択肢が消えた画面が黙って表示されます。
+      対策は `@ModelAttribute("types")` を付けたメソッドで、全ハンドラの前に Model に入れることです。
   - question: |
       `list.html` に次のように書きました。申請の状態が `RequestStatus.DRAFT` のとき、セルに表示されるのは?
       ```html
@@ -153,24 +176,33 @@ quiz:
       ```
     choices: ["下書き", "DRAFT", "0", "RequestStatus.DRAFT"]
     answer: 1
+    why:
+      - "表示名が自動で出ると読んだ答え。表示名は自分で呼び出す"
+      - ""
+      - "宣言順の番号が出ると読んだ答え。`th:text` は `toString()` の定数名を出す"
+      - "型名付きで出ると読んだ答え。`enum` の `toString()` は定数名だけを返す"
     explanation: |
-      `th:text` は値を文字列にして出します。enum の `toString()` は(上書きしていなければ)定数名を返すので **`DRAFT`** です。
-      `ordinal()` の `0` や、型名付きの表記にはなりません。テンプレートの中の「状態」はプロトタイプ用の仮の文字で、描画時に置き換えられます。
+      `th:text` は値を文字列にして出します。`enum` の `toString()` は(上書きしていなければ)定数名を返すので **`DRAFT`** です。
+      テンプレートの中の「状態」はプロトタイプ用の仮の文字で、描画時に置き換えられます。
       利用者に見せるなら `${r.status.label()}` のように表示名を出します。
   - question: |
-      `RequestForm` に `status`(状態)や `applicantId`(申請者)の項目を **作らない** 一番の理由は?
-    choices: ["Thymeleaf が enum の項目を扱えないから", "項目が多いと Bean Validation が遅くなるから", "パラメータを足すだけで、状態や申請者を好きな値にできてしまうから", "JPA のエンティティと同じ名前の項目はフォームに置けないから"]
+      `RequestForm` に `status`(状態)や `applicantId`(申請者)の項目を**作らない**一番の理由は?
+    choices: ["Thymeleaf が `enum` の項目を扱えないから", "項目が多いと Bean Validation が遅くなるから", "パラメータを足すだけで、状態や申請者を好きな値にできてしまうから", "JPA のエンティティと同じ名前の項目はフォームに置けないから"]
     answer: 2
+    why:
+      - "Thymeleaf の制約と読んだ答え。Thymeleaf は `enum` も扱える"
+      - "性能の問題と読んだ答え。問題は速さではなく安全"
+      - ""
+      - "名前の重なりが禁止と読んだ答え。同じ名前の項目も置ける"
     explanation: |
-      `@ModelAttribute` は、リクエストパラメータと **同じ名前のプロパティすべて** に値を詰めます。フォームに `status` があれば、
+      `@ModelAttribute` は、リクエストパラメータと**同じ名前のプロパティすべて**に値を詰めます。フォームに `status` があれば、
       開発者ツールで `status=APPROVED` を足すだけで「最初から承認済み」の申請が作れてしまいます(マスアサインメント)。
       状態と申請者は利用者が入力するものではないので、Service が決めます(新規は `DRAFT`、申請者はログイン中の人)。
-      Thymeleaf は enum を扱えますし、同名の項目を置くこと自体は文法上の問題ではありません。
 columns:
   - type: mistake
     title: "@AssertTrue を付けたのに、相関チェックが一度も動かない"
     body: |
-      相関チェックを書いたのに、経費精算を金額なしで登録できてしまう。原因はメソッドの **名前か戻り値の型** であることがほとんどです。
+      相関チェックを書いたのに、経費精算を金額なしで登録できてしまう。原因はメソッドの**名前か戻り値の型**であることがほとんどです。
 
       ```java
       @AssertTrue(message = "金額が必須です")
@@ -180,8 +212,8 @@ columns:
       public boolean checkAmount() { ... }       // is / get で始まらない
       ```
 
-      Bean Validation がメソッドを検証するのは、JavaBeans の **getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
-      `Boolean` なら `getXxx()` でなければなりません。条件を外れたメソッドは **エラーも警告も出ずに無視** されます。
+      Bean Validation がメソッドを検証するのは、**getter** とみなせるときだけです。`isXxx()` が getter になるのはプリミティブの `boolean` を返すときだけで、
+      `Boolean` なら `getXxx()` でなければなりません(Hibernate Validator は独自に `boolean hasXxx()` も getter として扱います)。条件を外れたメソッドは**エラーも警告も出ずに無視**されます。
 
       対策は、相関チェックにも必ずテストを書くこと(演習のように Validator で直接検証できます)。
   - type: genba
@@ -189,10 +221,10 @@ columns:
     body: |
       今回はログイン機能がまだ無いので、申請者を `CURRENT_EMPLOYEE_ID = 1L` で代用しました。現場でも「認証は別チームが作っていて、まだ来ない」はよくある話です。
 
-      困るのは、仮の値が **あちこちに散らばる** ことです。Controller の3か所に `1L` と直接書いておくと、本物のログインに切り替えたときに1か所だけ置き換え漏れ、
+      困るのは、仮の値が**あちこちに散らばる**ことです。Controller の3か所に `1L` と直接書いておくと、本物のログインに切り替えたときに1か所だけ置き換え漏れ、
       「なぜか全員の申請が社員1のものとして登録される」という本番障害になります。
 
-      - 仮の値は **定数1つ** にまとめる(置き換える場所が1か所になる)
+      - 仮の値は**定数1つ**にまとめる(置き換える場所が1か所になる)
       - `// TODO capstone-security で…` のように、いつ・何に置き換えるかを書く(STS の **Window > Show View > Tasks**(タスク)ビューに TODO が一覧で出ます)
       - 仮のまま本番に出ないよう、レビューで TODO の残りを確認する
 
@@ -210,7 +242,7 @@ columns:
       空欄は「値なし」なので、Spring は数値に変換するとき `null` にします。ところが `int` は `null` を入れられないので、
       変換失敗(`typeMismatch`)のエラーとして BindingResult に記録され、相関チェックより先に画面へ戻されてしまいます。
 
-      フォームの数値項目は **ラッパー型(Integer / Long)にして、未入力を null で表す** のが定石です。エンティティ側も同じで、
+      フォームの数値項目は**ラッパー型(Integer / Long)にして、未入力を null で表す**のが定石です。エンティティ側も同じで、
       休暇の金額を DB の NULL で持つために `Integer amount` にしています。
 sts:
   intro: |
@@ -221,12 +253,13 @@ sts:
     - title: 依存関係と初期データを確認する
       detail: |
         **Package Explorer**(パッケージ・エクスプローラー)で `approval-app` の `pom.xml` を開き、**Dependencies** タブ(または `pom.xml` タブ)に
-        `spring-boot-starter-validation` と `spring-boot-starter-thymeleaf` があることを確認します。無ければプロジェクトを右クリック >
-        **Spring > Add Starters**(Spring > スターターの追加)で **Validation** / **Thymeleaf** を足します。
+        `spring-boot-starter-validation` と `spring-boot-starter-thymeleaf` があることを確認します。無ければ capstone-setup の `pom.xml` の全文と見比べて、
+        `<dependencies>` に足りない `<dependency>` を手で足し(`<version>` は書かない)、**Maven > Update Project...**(**Alt+F5**)します。
+        STS の **Spring > Add Starters** は start.spring.io を使うので、Spring Boot 3.5 のプロジェクトでは使えません。
 
-        初期データ(capstone-setup で入れたもの)に **id=1 の社員** がいることも確認しておきます。この社員を「ログイン中の人」の代わりに使います。
+        初期データ(capstone-setup で入れたもの)に **id=1 の社員**がいることも確認しておきます。この社員を「ログイン中の人」の代わりに使います。
         役割は何でも構いません(承認者も自分の経費は申請するので、申請は全員できます)。
-    - title: enum に表示名を足す(domain)
+    - title: enum の表示名と、申請者を入れるメソッドを用意する(domain)
       detail: |
         `com.example.approval.domain` の `RequestType.java` を開き、表示名と「金額が必須か」の判定を足します。
 
@@ -250,8 +283,17 @@ sts:
         }
         ```
 
-        `RequestStatus.java` にも同じ形で `label()` を足します(`DRAFT("下書き")`・`SUBMITTED("申請中")`・`APPROVED("承認済")`・
-        `RETURNED("差戻し")`・`WITHDRAWN("取下げ")`)。capstone-requirements で作った `canTransitionTo` などのメソッドはそのまま残します。
+        `RequestStatus.java` には、capstone-setup で入れた `label()`(`DRAFT("下書き")`・`SUBMITTED("申請中")`・`APPROVED("承認済")`・
+        `RETURNED("差戻し")`・`WITHDRAWN("取下げ")`)がすでにあります。`public String label()` になっていることだけ確かめます(画面のテンプレートから呼ぶため)。
+
+        続けて `ApprovalRequest.java` に、申請者を入れるだけのメソッドを足します。setter は作らない方針のままです(状態は初期値の `DRAFT`、作成日時は `@PrePersist` が入れます)。
+
+        ```java
+        public void assignApplicant(Employee applicant) {
+            this.applicant = applicant;
+        }
+        ```
+
         保存して、Package Explorer に赤い × が出ていなければ OK です。
     - title: Repository に「自分の申請」の派生クエリを足す(repository)
       detail: |
@@ -368,22 +410,22 @@ sts:
         **Boot Dashboard** で `approval-app` を選んで **(Re)start**、またはプロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。
         **Console**(コンソール)に `Tomcat started on port 8080` と出たら、ブラウザで `http://localhost:8080/requests/new` を開きます。
 
-        1. **何も入力せずに「下書き保存」**:件名・種類・理由の横に赤いメッセージが出て、**種類のセレクトボックスの選択肢が残っている** こと
-        2. 種類を **経費精算**、金額を空にして送信:「経費精算・備品購入は金額が必須です」が出ること
+        1. **何も入力せずに「下書き保存」**:件名・種類・理由の横に赤いメッセージが出て、**種類のセレクトボックスの選択肢が残っている**こと
+        2. 種類を**経費精算**、金額を空にして送信:「経費精算・備品購入は金額が必須です」が出ること
         3. 金額に `0` を入れて送信:「金額は1円以上で入力してください」が出ること
         4. 件名に51文字入れて送信:「件名は50文字以内で入力してください」が出ること
     - title: 保存と PRG、一覧を確かめる
       detail: |
-        正しく入力して送信すると、アドレスバーが `/requests` に変わり、「下書きを保存しました(No.○)」と、状態が **下書き** の行が表示されます。
+        正しく入力して送信すると、アドレスバーが `/requests` に変わり、「下書きを保存しました(No.○)」と、状態が**下書き**の行が表示されます。
         ここで **F5** を押しても再送信の確認は出ず、行も増えません(PRG)。メッセージはフラッシュ属性なので消えます。
 
-        続けて種類を **休暇**、金額を空で登録し、一覧の金額が `-` になることを確認します。
+        続けて種類を**休暇**、金額を空で登録し、一覧の金額が `-` になることを確認します。
     - title: 「自分の申請だけ」になっているか確かめる
       detail: |
-        `RequestController` の `CURRENT_EMPLOYEE_ID` を一時的に、初期データの **別の社員の id**(例:`2L`)に変えて保存します
+        `RequestController` の `CURRENT_EMPLOYEE_ID` を一時的に、初期データの**別の社員の id**(例:`2L`)に変えて保存します
         (DevTools が入っていれば自動で再起動します。入っていなければ Boot Dashboard で **(Re)start**)。
 
-        `http://localhost:8080/requests` を開き、さっき登録した申請が **表示されない** ことを確認します(H2 をメモリで使っている場合は、再起動で登録した申請自体が消えるので、
+        `http://localhost:8080/requests` を開き、さっき登録した申請が**表示されない**ことを確認します(H2 をメモリで使っている場合は、再起動で登録した申請自体が消えるので、
         その場合は社員2で1件登録 → 定数を `1L` に戻して再起動、の順で確かめます)。確認できたら `1L` に戻しておきます。
 checklist:
   - key: enum-label

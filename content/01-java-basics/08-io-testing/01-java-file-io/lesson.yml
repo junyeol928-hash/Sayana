@@ -4,16 +4,17 @@ status: ready
 minutes: 15
 summary: Path と Files でファイルを読み書きする。文字コード(UTF-8 / MS932)・閉じ忘れ・相対パスの基準という三大地雷と、CSV 集計の定番パターン。
 goals:
-  - Path と Files(readString / writeString / readAllLines / write / lines / list)でファイルを読み書きできる
+  - "`Path` と `Files`(`readString` / `writeString` / `readAllLines` / `write` / `lines` / `list`)でファイルを読み書きできる"
   - 文字コードを明示する理由を説明でき、Windows 由来のファイルを MS932 で読める
-  - BufferedReader / BufferedWriter と Files.lines を try-with-resources で確実に閉じられる
+  - "`BufferedReader` / `BufferedWriter` と `Files.lines` を try-with-resources で確実に閉じられる"
   - 相対パスが作業ディレクトリ基準で解決されること、STS とコマンドラインで基準が違うことを説明できる
-  - IOException を握りつぶさずに扱い、CSV を読んで集計し別ファイルに書き出せる
+  - "`IOException` を握りつぶさずに扱い、CSV を読んで集計し別ファイルに書き出せる"
 samples:
   - title: 一時ファイルに書いて読み戻す
     description: |
       `Files.createTempFile` で一時ファイルを作り、`writeString` → `readString` / `readAllLines` で読み戻して、最後に削除します。
       `throws IOException` は「このメソッドはファイル操作の失敗を呼び出し元に任せる」という宣言です。
+      2 行を書いたファイルは、何バイトになるだろうか。
     code: |
       // 一時ファイルに書いて、読み戻す(最後に削除する)
       // ここを変えてみよう:書く文字列を変える / APPEND を外して上書きにしてみる
@@ -53,8 +54,8 @@ samples:
       }
   - title: ログから ERROR 行を数える(Files.lines と BufferedReader)
     description: |
-      `Files.lines` は裏でファイルを開いているので try-with-resources で閉じます。
-      `"[ERROR]"` を `"ERROR"` に変えると、WARN 行まで数えてしまうのを確かめてみましょう。
+      `Files.lines` は裏でファイルを開いているので、try-with-resources で閉じる。
+      ログの4行をよく見よう。`"[ERROR]"` を `"ERROR"` に変えると、件数はどう変わるだろうか。
     code: |
       // ログファイルから ERROR 行を数える
       // ここを変えてみよう:"[ERROR]" を "ERROR" にすると件数は?
@@ -96,7 +97,7 @@ samples:
       }
   - title: 売上CSVを集計して別ファイルに書き出す
     description: |
-      ヘッダーを読み捨て、空行を飛ばし、`Map.merge` で店舗ごとに合計します。出力先のフォルダは `createDirectories` で作ってから書き込みます。
+      ヘッダーを読み捨て、空行を飛ばし、`Map.merge` で店舗ごとに合計します。出力先のフォルダは `createDirectories` で作ってから書き込みます。渋谷の 2 日分を合わせると、合計はいくらと出るだろうか。
     code: |
       // 売上CSVを店舗別に集計して、別フォルダのファイルに書き出す
       // ここを変えてみよう:データ行を足す / 空行チェックを消すとどうなる?
@@ -150,8 +151,8 @@ samples:
       }
   - title: 文字コードが食い違うと何が起きるか
     description: |
-      Excel が保存する CSV と同じ MS932 で書いたファイルを、UTF-8 で読むと `MalformedInputException`、MS932 で読むと正しく読めます。
-      コメントのとおり `①` を入れて `Shift_JIS` に変えると、書き込みの時点で `UnmappableCharacterException`(その文字コードでは表せない文字)になります。
+      Excel が保存する CSV と同じ MS932 で書いたファイルを、UTF-8 と MS932 で読み分ける。あとでコメントのとおり `①` を入れて `Shift_JIS` に変えると、どこで何が起きるかも試してみよう。
+      UTF-8 と MS932 で読むと、それぞれどうなるだろうか。
     code: |
       // Excel が保存した CSV(MS932)を UTF-8 / MS932 で読む
       // ここを変えてみよう:"渋谷" を "①渋谷" にして、
@@ -186,10 +187,15 @@ quiz:
       System.out.println(p.getFileName());
       System.out.println(p.getParent().getFileName());
       ```
-    choices: ["data と 2026", "sales.csv と 2026", "sales.csv と data/2026", "NoSuchFileException が発生する"]
+    choices: ["data と 2026", "sales.csv と 2026", "sales.csv と data/2026", "`NoSuchFileException` が発生する"]
     answer: 1
+    why:
+      - "`getFileName()` がパスの先頭を返すと読んだ答え。返すのは最後の要素の `sales.csv`"
+      - ""
+      - "親のパスがそのまま出ると読んだ答え。`getParent()` の後の `getFileName()` で最後の `2026` だけになる"
+      - "`Path` を作るとファイルに触ると読んだ答え。作るだけでは触らない"
     explanation: |
-      `getFileName()` はパスの **最後の要素** を返すので `sales.csv`。`getParent()` は `data/2026` で、その最後の要素は `2026` です。
+      `getFileName()` はパスの**最後の要素**を返すので `sales.csv`。`getParent()` は `data/2026` で、その最後の要素は `2026` です。
       `Path` は「場所」を表す値にすぎず、作ったり分解したりするだけではファイルに触りません。だからフォルダが存在しなくても例外は出ません。存在を確かめたいときは `Files.exists(p)` を使います。
   - question: |
       次のコードについて正しい説明はどれ?
@@ -199,11 +205,16 @@ quiz:
           System.out.println(s);
       }
       ```
-    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ null が出力される", "コンパイルは通り、memo.txt が無いと NoSuchFileException で落ちる", "コンパイルエラーになる"]
+    choices: ["memo.txt が無ければ空文字が出力される", "memo.txt が無ければ `null` が出力される", "コンパイルは通り、memo.txt が無いと `NoSuchFileException` で落ちる", "コンパイルエラーになる"]
     answer: 3
+    why:
+      - "無いファイルは空として読まれると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
+      - "無いファイルで `null` が返ると読んだ答え。その前に `IOException` を扱っておらず、コンパイルが通らない"
+      - "readString を宣言なしで呼べると読んだ答え。実行の前にコンパイルで止まる"
+      - ""
     explanation: |
-      `Files.readString` は **チェック例外** の `IOException` を投げると宣言されています。チェック例外は `catch` するか `throws` で宣言しないと `unreported exception IOException; must be caught or declared to be thrown` というコンパイルエラーです。
-      `main` に `throws IOException` を付ければコンパイルが通り、そのときファイルが無ければ `NoSuchFileException`(`IOException` のサブクラス)で落ちます。空文字や `null` を返して黙っていることはありません。
+      `Files.readString` は**チェック例外**の `IOException` を投げると宣言されています。チェック例外は `catch` するか `throws` で宣言しないと `unreported exception IOException; must be caught or declared to be thrown` というコンパイルエラーです。
+      `main` に `throws IOException` を付ければコンパイルが通り、そのときファイルが無ければ `NoSuchFileException`(`IOException` のサブクラス)で落ちます。
   - question: |
       STS で、プロジェクトのフォルダが `C:\work\shop`、ソースが `C:\work\shop\src\Main.java` にあります。
       `Main` を **Run As > Java Application** で実行したとき、次のコードの出力は?
@@ -213,15 +224,25 @@ quiz:
       ```
     choices: ['C:\work\shop\src\data\sales.csv', 'C:\work\shop\bin\data\sales.csv', 'C:\work\shop\data\sales.csv', 'STS のインストールフォルダ\data\sales.csv']
     answer: 2
+    why:
+      - "ソースのある場所が基準と読んだ答え。src の場所は関係ない"
+      - ".class のある場所が基準と読んだ答え。bin の場所も関係ない"
+      - ""
+      - "STS 自体の場所が基準と読んだ答え。STS はプロジェクトのフォルダで JVM を起動する"
     explanation: |
-      相対パスは、ソースや .class の場所ではなく **JVM を起動したときの作業ディレクトリ** を基準に解決されます。STS(Eclipse)の実行構成は、既定で作業ディレクトリが **プロジェクトのフォルダ** なので `C:\work\shop\data\sales.csv` です(区切りは Windows 流の `\` で表示されます)。
-      コマンドプロンプトから `java` で起動した場合は `cd` していた場所が基準になるので、同じコードでも結果が変わります。`src` や `bin` は関係ありません。
+      相対パスは、ソースや .class の場所ではなく **JVM を起動したときの作業ディレクトリ**を基準に解決されます。STS(Eclipse)の実行構成は、既定で作業ディレクトリが**プロジェクトのフォルダ**なので `C:\work\shop\data\sales.csv` です(区切りは Windows 流の `\` で表示されます)。
+      コマンドプロンプトから `java` で起動した場合は `cd` していた場所が基準になるので、同じコードでも結果が変わります。
   - question: |
-      次のうち、try-with-resources で閉じる **必要がない** ものはどれ?
-    choices: ["Files.readAllLines(path) が返す List<String>", "Files.lines(path) が返す Stream<String>", "Files.list(dir) が返す Stream<Path>", "Files.newBufferedReader(path) が返す BufferedReader"]
+      次のうち、try-with-resources で閉じる**必要がない**ものはどれ?
+    choices: ["`Files.readAllLines(path)` が返す `List<String>`", "`Files.lines(path)` が返す `Stream<String>`", "`Files.list(dir)` が返す `Stream<Path>`", "`Files.newBufferedReader(path)` が返す `BufferedReader`"]
     answer: 0
+    why:
+      - ""
+      - "終端操作で自動的に閉じると読んだ答え。実際は閉じない"
+      - "`Stream<Path>` はフォルダを開いていないと読んだ答え。処理の間は開いたまま"
+      - "読み終われば自動で閉じると読んだ答え。`BufferedReader` は閉じるまでファイルを開いたまま"
     explanation: |
-      `readAllLines` は **メソッドの中でファイルを開いて全行を読み、閉じてから** `List` を返します。返ってくるのはただのリストなので閉じる必要はありません(`readString` も同じ)。
+      `readAllLines` は**メソッドの中でファイルを開いて全行を読み、閉じてから** `List` を返します。返ってくるのはただのリストなので閉じる必要はありません(`readString` も同じ)。
       `Files.lines` と `Files.list` は、Stream を処理している間ずっと裏でファイル(フォルダ)を開いたままにしています。終端操作(`count()` など)をしても自動では閉じないので、`BufferedReader` と同じく try-with-resources が必要です。
   - question: |
       次のコードを実行したときの出力は?
@@ -234,8 +255,13 @@ quiz:
       ```
     choices: ["A・B・C の3行", "B・C の2行", "C の1行だけ", "A・C の2行"]
     answer: 1
+    why:
+      - "`writeString` が追記すると読んだ答え。オプションなしは上書きで、2 回目で A が消える"
+      - ""
+      - "`APPEND` も上書きと読んだ答え。`APPEND` は追記なので、B の後ろに C が足される"
+      - "既にあるファイルには書き込まないと読んだ答え。2 回目も上書きする"
     explanation: |
-      `writeString` はオプションを付けないと **上書き**(既存の中身を消してから書く)です。2行目で `A` は消えて `B` だけになり、3行目は `APPEND`(追記)なので `B` の後ろに `C` が足されます。
+      `writeString` はオプションを付けないと**上書き**(既存の中身を消してから書く)です。2行目で `A` は消えて `B` だけになり、3行目は `APPEND`(追記)なので `B` の後ろに `C` が足されます。
       ログのように書き足していくファイルで `APPEND` を付け忘れると、毎回最後の1件しか残らない、という事故になります。
 columns:
   - type: genba
@@ -258,15 +284,15 @@ columns:
   - type: trivia
     title: Java 18 で「既定の文字コード」が UTF-8 になった
     body: |
-      Java 17 までは、`FileReader` や `FileWriter` などが使う **既定の文字コード** は OS 依存でした。日本語 Windows なら MS932、Linux や Mac なら UTF-8。同じプログラムが OS によって違うファイルを書いていたのです。
+      Java 17 までは、`FileReader` や `FileWriter` などが使う**既定の文字コード**は OS 依存でした。日本語 Windows なら MS932、Linux や Mac なら UTF-8。同じプログラムが OS によって違うファイルを書いていたのです。
 
-      Java 18 の **JEP 400** で、既定は OS に関係なく **UTF-8** に統一されました。一方 `Files` のメソッドは Java 7 で登場したときから「省略したら UTF-8」で、最初からこの問題を避ける設計でした。
+      Java 18 の **JEP 400** で、既定は OS に関係なく **UTF-8** に統一されました。一方 `Files` は、Java 7 で登場したときは文字を読み書きするメソッドに文字コードの指定が必須でした。Java 8 で増えた「文字コードを省略できる版」(`readAllLines(path)`・`newBufferedReader(path)`・`lines(path)` など。Java 11 の `readString` / `writeString` も同じ)は、最初から UTF-8 固定です。OS の既定に左右されない設計だったわけです。
 
       ただし `System.out` は今もコンソール側の文字コードに合わせますし、古い挙動に戻す `-Dfile.encoding=COMPAT` を付けて動かしている現場もあります。「JDK 21 だから大丈夫」とは言い切れません。`StandardCharsets.UTF_8` と書いておけば、誰がどこで動かしても同じ結果になります。
   - type: mistake
     title: 書いたはずのレポートが 0 バイト
     body: |
-      新人が作った日報出力バッチ。件数の少ない日に限って、出力ファイルが **0 バイト** になりました。
+      新人が作った日報出力バッチ。件数の少ない日に限って、出力ファイルが **0 バイト**になりました。
 
       ```java
       BufferedWriter w = Files.newBufferedWriter(out);

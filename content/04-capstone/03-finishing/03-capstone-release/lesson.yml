@@ -2,20 +2,19 @@ id: capstone-release
 title: 例外・ログ・プロファイルで仕上げ
 status: ready
 minutes: 15
-summary: 承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の @RestControllerAdvice を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。
+summary: 承認くんを「出せる」状態に仕上げる最終回。画面のエラーページと API の `@RestControllerAdvice` を使い分け、業務ログを個人情報なしで残し、dev / prod のプロファイルを分けて jar で起動する。最後に第1部〜第4部をふりかえる。
 goals:
-  - 画面向けのエラーページ(templates/error/404.html・500.html)と、API 向けの @RestControllerAdvice を使い分けられる
-  - "@RestControllerAdvice で BusinessRuleException → 409、存在しない申請 → 404、想定外の例外 → 500(中身を漏らさず errorId を返す)を共通形式で返せる"
+  - 画面向けのエラーページ(`templates/error/404.html`・`500.html`)と、API 向けの `@RestControllerAdvice` を使い分けられる
+  - "`@RestControllerAdvice` で `BusinessRuleException` → 409、存在しない申請 → 404、想定外の例外 → 500(中身を漏らさず `errorId` を返す)を共通形式で返せる"
   - 業務ログを INFO で「誰が・どの申請を・どうしたか」を ID で出し、個人情報を出さない理由を説明できる
-  - application-dev.yml / application-prod.yml を分け、prod で H2 コンソール無効・ddl-auto=validate・ファイルログにできる
-  - ./mvnw package で jar を作って java -jar で起動し、リリース前チェックリストで確認できる
+  - "`application-dev.yml` / `application-prod.yml` を分け、`prod` で H2 コンソール無効・`ddl-auto=validate`・ファイルログにできる"
+  - Maven の `package` で jar を作って `java -jar` で起動し、リリース前チェックリストで確認できる
 samples:
   - title: API のエラーを @RestControllerAdvice で1か所にまとめる
     libraries: [spring]
     description: |
-      承認済の申請の承認(409)、DB が落ちた想定の想定外の例外(500)、enum に変換できない値(400)、対応していない HTTP メソッド(405)を順に送ります。
-      500 の本文には例外のメッセージが出ず、`errorId` だけが返ること、ログ(ここでは `[ログ]` の行)には中身が全部出ることを確かめましょう。
-      `extends ResponseEntityExceptionHandler` を消して実行し直すと、400 と 405 まで 500 になります。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。
+      承認済の申請の承認、DB が落ちた想定の想定外の例外、enum に変換できない値、対応していない HTTP メソッドを順に送ります。最初に SLF4J や Hibernate Validator のログが出ることがありますが、無視して構いません。見終わったら `extends ResponseEntityExceptionHandler` を消して実行し直し、どの応答が変わるかも試しましょう。
+      4つの応答のステータスは、それぞれいくつになる? 想定外の例外のとき、本文とログ(ここでは `[ログ]` の行)には何が出る?
     code: |
       // API のエラーを @RestControllerAdvice で1か所にまとめる
       // ここを変えてみよう:extends ResponseEntityExceptionHandler を消すと
@@ -109,7 +108,7 @@ samples:
       show("DELETE /api/requests", delete("/api/requests"));
 quiz:
   - question: |
-      API 用に次のハンドラ **だけ** を書きました(`ResponseEntityExceptionHandler` は継承していない)。
+      API 用に次のハンドラ**だけ**を書きました(`ResponseEntityExceptionHandler` は継承していない)。
       `list` は `@RequestParam(required = false) RequestStatus status` を受け取ります。`GET /api/requests?status=submitted` のレスポンスは?
       ```java
       @RestControllerAdvice
@@ -124,10 +123,15 @@ quiz:
           }
       }
       ```
-    choices: ["400 Bad Request(Spring 標準の変換エラー)", "500 と「システムエラー」の ProblemDetail", "200 と全件(status が null 扱い)", "404 Not Found"]
+    choices: ["400 Bad Request(Spring 標準の変換エラー)", "500 と「システムエラー」の ProblemDetail", "200 と全件(status が `null` 扱い)", "404 Not Found"]
     answer: 1
+    why:
+      - "標準の処理が先に効くと読んだ答え。自作のハンドラのほうが先に試される"
+      - ""
+      - "変換できない値が `null` 扱いになると読んだ答え。変換に失敗して例外になる"
+      - "合う値が無いので 404 と読んだ答え。変換の失敗は例外になり、ここでは 500 で返る"
     explanation: |
-      `submitted` は enum に変換できないので `MethodArgumentTypeMismatchException` が起きます。`@ExceptionHandler` は Spring 標準のエラー処理より **先に** 試されるので、`Exception` を受けるハンドラがこれを横取りし、入力ミスなのに 500 とエラーログになります。
+      `submitted` は `enum` に変換できないので `MethodArgumentTypeMismatchException` が起きます。`@ExceptionHandler` は Spring 標準のエラー処理より**先に**試されるので、`Exception` を受けるハンドラがこれを横取りし、入力ミスなのに 500 とエラーログになります。
       `ResponseEntityExceptionHandler` を継承すると、型変換の失敗(`TypeMismatchException`)や 405 などを受け持つハンドラが加わり、例外の型がより近いそちらが選ばれて 400 のまま返ります。ハンドラが無ければ 400 でした。
   - question: |
       次の `@RestControllerAdvice` があるとき、Service が `BusinessRuleException`(`RuntimeException` のサブクラス)を投げました。どうなる?
@@ -149,16 +153,28 @@ quiz:
       ```
     choices: ["onRule が呼ばれ、409 になる", "先に書いてある onUnexpected が呼ばれ、500 になる", "両方が順に呼ばれ、後の 409 で上書きされる", "どちらにも当てはまるので、起動時に曖昧エラーになる"]
     answer: 0
+    why:
+      - ""
+      - "書いた順で選ばれると読んだ答え。例外の型に一番近いハンドラが選ばれる"
+      - "ハンドラが順に全部呼ばれると読んだ答え。呼ばれるのは1つだけ"
+      - "両方に当てはまると曖昧になると読んだ答え。曖昧になるのは同じ例外型を受けるハンドラが2つのとき"
     explanation: |
-      Spring は、投げられた例外に **型の継承関係が一番近い** ハンドラを1つだけ選びます(`ExceptionDepthComparator`)。`BusinessRuleException` にとっては、自分自身を受ける `onRule` が距離0、`Exception` は何段も上なので `onRule` が選ばれます。
-      メソッドを書いた順番は関係ありません。呼ばれるのは1つだけで、上書きもありません。起動時の曖昧エラーになるのは、**まったく同じ例外型** を受けるハンドラが2つあるときです。
+      Spring は、投げられた例外に**型の継承関係が一番近い**ハンドラを1つだけ選びます(`ExceptionDepthComparator`)。`BusinessRuleException` にとっては、自分自身を受ける `onRule` が距離0、`Exception` は何段も上なので `onRule` が選ばれます。
   - question: |
       `ApprovalService` で承認が終わったときのログとして、最もふさわしいのはどれ?(`request` は申請のエンティティ、`actor` は操作した社員)
-    choices: ["System.out.println(\"承認 \" + request.getId());", "log.error(\"承認しました: {}\", request);", "log.info(\"承認 requestId={} actorId={}\", request.getId(), actor.getId());", "log.info(\"承認 \" + actor.getName() + \" \" + actor.getEmail());"]
+    choices:
+      - '`System.out.println("承認 " + request.getId());`'
+      - '`log.error("承認しました: {}", request);`'
+      - '`log.info("承認 requestId={} actorId={}", request.getId(), actor.getId());`'
+      - '`log.info("承認 " + actor.getName() + " " + actor.getEmail());`'
     answer: 2
+    why:
+      - "出力できれば足りると読んだ答え。`System.out` はレベルも日時も付かず、ファイルにも残せない"
+      - "承認を error で残す答え。error は異常用で監視のアラートが鳴り、エンティティの中身には個人情報も入りうる"
+      - ""
+      - "名前とメールで人を残す答え。個人情報はログに出さず、ID で残す"
     explanation: |
       業務の出来事は **INFO** で、「誰が(actorId)・どの申請を(requestId)・どうしたか(承認)」を **ID** で残すのが定石です。ID があれば DB で引けるので、ログに個人情報を書く必要はありません。`{}` のプレースホルダなら、レベルが無効なときに文字列を組み立てる無駄もありません。
-      `System.out` はレベルも日時も付かず、ファイルにも残せません。`log.error` は「運用者が対応すべき異常」用で、正常な承認に使うと監視のアラートが鳴ります。しかもエンティティの `toString` には理由の本文などが入りえます。氏名やメールアドレスは個人情報なのでログに出しません。
   - question: |
       `application.yml` に次のように書いてあります。コマンドプロンプトで下のように起動すると、使われるプロファイルは?
       ```yaml
@@ -171,21 +187,31 @@ quiz:
       ```
     choices: ["prod", "prod と dev の両方", "プロファイルなし(application.yml だけ)", "dev"]
     answer: 3
+    why:
+      - "`--spring.profile.active` を正しい指定と読んだ答え。つづりをよく見ると違う"
+      - "指定と既定が両方効くと読んだ答え。既定は、指定が効いていないときの代わり"
+      - "既定のプロファイルを見落とした答え。何も有効でないときは `default: dev` が使われる"
+      - ""
     explanation: |
       よく見ると `--spring.profile.active`(**profiles の s が抜けている**)です。Spring Boot は知らないプロパティをエラーにしないので、この指定は黙って無視され、何もアクティブでないときの既定 `spring.profiles.default: dev` が使われます。
-      起動ログには `No active profile set, falling back to 1 default profile: "dev"` と出ます。本番で H2 コンソールが開いたまま……という事故になるので、起動ログのプロファイル名は必ず確認します。正しく `--spring.profiles.active=prod` なら prod だけが使われます。
+      起動ログには次の行が出ます: `No active profile set, falling back to 1 default profile: "dev"` 本番で H2 コンソールが開いたまま……という事故になるので、起動ログのプロファイル名は必ず確認します。正しく `--spring.profiles.active=prod` なら prod だけが使われます。
   - question: |
       `application-prod.yml` で `spring.jpa.hibernate.ddl-auto: validate` にしています。テーブルがまだ1つもない空の DB に向けて、prod で初めて起動するとどうなる?
     choices: ["足りないテーブルを自動で作って起動する", "Schema-validation のエラーで起動が止まる", "起動はするが、最初に申請を開いたときに SQL エラーになる", "dev の設定に切り替えて起動する"]
     answer: 1
+    why:
+      - "`validate` がテーブルを作ると読んだ答え。突き合わせて確かめるだけで、DB には手を加えない"
+      - ""
+      - "起動時は確かめないと読んだ答え。`validate` は起動の時点で突き合わせて止める"
+      - "失敗すると dev に切り替わると読んだ答え。プロファイルが勝手に変わることはない"
     explanation: |
-      `validate` は、起動時にエンティティとテーブルを突き合わせて **確認するだけ** で、DB には一切手を加えません。テーブルがなければ `Schema-validation: missing table [...]` で起動を止めます。おかしな状態で動き出さないための安全装置です。
-      テーブルを作るのは `create` / `update` ですが、`create` は起動のたびに作り直してデータを消し、`update` は列の削除や型変更を扱えないので、本番では使いません。本番のテーブルは Flyway などのマイグレーションで用意します。プロファイルが勝手に切り替わることもありません。
+      `validate` は、起動時にエンティティとテーブルを突き合わせて**確認するだけ**で、DB には一切手を加えません。テーブルがなければ `Schema-validation: missing table [...]` で起動を止めます。おかしな状態で動き出さないための安全装置です。
+      テーブルを作るのは `create` / `update` ですが、`create` は起動のたびに作り直してデータを消し、`update` は列の削除や型変更を扱えないので、本番では使いません。本番のテーブルは Flyway などのマイグレーションで用意します。
 columns:
   - type: trivia
     title: java -jar 1つで Web アプリが動く理由
     body: |
-      普通の jar には自分のクラスしか入っていませんが、`mvnw package` で作った承認くんの jar は数十MBあります。Boot の Maven プラグインが **依存ライブラリと組み込み Tomcat まで詰めた「fat jar」** に作り直すからです。
+      普通の jar には自分のクラスしか入っていませんが、`package` で作った承認くんの jar は数十MBあります。Boot の Maven プラグインが **依存ライブラリと組み込み Tomcat まで詰めた「fat jar」** に作り直すからです。
 
       jar を ZIP として開くと、`BOOT-INF/classes`(自分のクラス)と `BOOT-INF/lib`(依存の jar が数十個)が入っています。`META-INF/MANIFEST.MF` の `Main-Class` は自分のクラスではなく Spring Boot の `JarLauncher` で、これが jar の中の jar を読めるクラスローダーを作ってから、`Start-Class` に書かれた `ApprovalAppApplication` の main を呼びます。
 
@@ -203,7 +229,7 @@ columns:
     body: |
       ある社内システムの初回リリース。開発中の `application.properties` には `spring.jpa.hibernate.ddl-auto=create` が書いてあり、プロファイルは分けていませんでした。最初の1か月は何事もなく動きます。サーバーを再起動しなかったからです。
 
-      OS のアップデートで初めて再起動した朝、システムは起動し、ログにもエラーはなし。ところが申請が1件もありません。`create` は起動時にテーブルを **DROP して作り直す** 設定なので、1か月分の申請と承認の履歴が消えていました。バックアップから戻せたのは前週の分まででした。
+      OS のアップデートで初めて再起動した朝、システムは起動し、ログにもエラーはなし。ところが申請が1件もありません。`create` は起動時にテーブルを **DROP して作り直す**設定なので、1か月分の申請と承認の履歴が消えていました。バックアップから戻せたのは前週の分まででした。
 
       対策は今回のレッスンそのものです。dev と prod でファイルを分け、prod は `validate` にする。テーブルの変更は Flyway などで SQL として管理し、レビューを通してから流す。そしてリリース前チェックリストに「prod の ddl-auto は validate か」を入れておくことです。
 sts:
@@ -216,7 +242,8 @@ sts:
         Package Explorer(パッケージ・エクスプローラー)で `src/main/resources/templates` を右クリック → **New > Folder**(新規 > フォルダー)で `error` を作ります。
         `error` を右クリック → **New > File**(新規 > ファイル)で `404.html` と `500.html` を作り、解説のように「何が起きたか」と「一覧へ戻る」リンクだけを書きます(例外のメッセージは出さない)。
 
-        `RequestNotFoundException` に `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けて保存し、Boot Dashboard から再起動します。
+        `RequestNotFoundException` に `@ResponseStatus(HttpStatus.NOT_FOUND)` を付けて保存します。
+        続けて `RequestService.findById` の `orElseThrow(() -> new BusinessRuleException("申請が見つかりません"))` を `orElseThrow(() -> new RequestNotFoundException(id))` に変えます(画面の詳細はこちらを通るので、変えないと 404 ではなく 500 になります)。保存したら Boot Dashboard から再起動します。
         ログインして `http://localhost:8080/requests/9999` と `http://localhost:8080/no-such-page` を開き、どちらも自作の 404 ページが出れば成功です(白い Whitelabel Error Page が出たら、フォルダー名が `templates/error` になっているか確認)。
     - title: ApiExceptionHandler を作って Controller から移す
       detail: |
@@ -233,7 +260,7 @@ sts:
     - title: application-dev.yml と application-prod.yml を作る
       detail: |
         `src/main/resources` を右クリック → **New > File** で `application-dev.yml` と `application-prod.yml` を作ります。
-        これまでの `application.yml`(または `application.properties`)にある H2(`jdbc:h2:file:./data/approval`)・`ddl-auto: update`・`defer-datasource-initialization`・`sql.init.mode: always`・H2 コンソールの設定を `application-dev.yml` に **移し**、
+        これまでの `application.yml`(または `application.properties`)にある H2(`jdbc:h2:file:./data/approval`)・`ddl-auto: update`・`defer-datasource-initialization`・`sql.init.mode: always`・H2 コンソールの設定を `application-dev.yml` に**移し**、
         `application.yml` には `spring.application.name` と `spring.profiles.default: dev` など共通の設定だけを残します。`application-prod.yml` は解説のとおりです。
 
         `application.properties` と `application.yml` の両方が残っていると、同じキーは properties が優先されて混乱するので、どちらか一方にまとめます。
@@ -248,7 +275,7 @@ sts:
         プロジェクトを右クリック → **Run As > Maven build...**(実行 > Maven ビルド...)を選び、**Goals**(ゴール)に `package` と入力して **Run**(実行)。
         Console に `Tests run: …, Failures: 0, Errors: 0` と `BUILD SUCCESS` が出たら、プロジェクトを選んで **F5**(リフレッシュ)し、`target` フォルダーに `approval-app-0.0.1-SNAPSHOT.jar` ができていることを確かめます。
 
-        コマンドで作るなら、プロジェクトのフォルダーで PowerShell を開いて `.\mvnw package`(コマンドプロンプトなら `mvnw package`)です。テストが1本でも赤いと `BUILD FAILURE` になり、jar はできません。
+        承認くんは Maven プロジェクトとして作ったので `mvnw`(Maven Wrapper)はありません。コマンドで作るなら、Maven を入れてプロジェクトのフォルダーで `mvn package` です。テストが1本でも赤いと `BUILD FAILURE` になり、jar はできません。
     - title: java -jar で dev として起動する
       detail: |
         プロジェクトのフォルダー(例:`C:\work\approval-ws\approval-app`)でコマンドプロンプトを開き、次を実行します。
@@ -269,14 +296,15 @@ sts:
         1. `Schema-validation: missing table [...]` で起動が止まる(空の DB なので validate が止めた)
         2. 一度だけ末尾に `--spring.jpa.hibernate.ddl-auto=create` を足して起動し、`Started …` が出たら **Ctrl+C**(テーブルができる)
         3. 足したものを外し、`--spring.profiles.active=prod` だけで起動し直す → `The following 1 profile is active: "prod"` と `Started …` が出る
-        4. `http://localhost:8080/h2-console` が自作の 404 ページになる(H2 コンソール無効)
+        4. 起動ログに dev で出ていた `H2 console available at '/h2-console'` が出ない(H2 コンソール無効。ブラウザで開いてもログイン画面に回される)
         5. エクスプローラーで `logs\approval.log` と `data\approval-prod.mv.db` ができていることを確認する(dev の `data\approval.mv.db` とは別ファイル)
 
         prod の DB は空で、`DevPasswordInitializer` も動かないので、ログインできる社員はいません。本番の社員とパスワードは初期データとは別に投入するもので、これが正しい状態です。
     - title: リリース前チェックリストで確認し、Git にタグを打つ
       detail: |
-        解説の「リリース前チェックリスト」を1つずつ確認します。次に、プロジェクト直下の `.gitignore` を開いて `data/` と `logs/` の2行を足します(DB ファイルやログを Git に入れないため)。
+        解説の「リリース前チェックリスト」を1つずつ確認します。次に、プロジェクト直下の `.gitignore` を開いて `data/` と `logs/` の2行を足します(DB ファイルやログを Git に入れないため)。Package Explorer に見えないときは、ビューのメニュー(︙)の **Filters...** で `.*` resources のチェックを外します。まだ無ければ **New > File** で `.gitignore` を作り、`target/` も足します。
 
+        `approval-app` がまだ Git の管理下になければ、先にプロジェクトを右クリック → **Team > Share Project...**(チーム > プロジェクトの共有...)でリポジトリを作ります。
         **Git Staging**(Git ステージング)ビューで変更をコミットしたら、プロジェクトを右クリック → **Team > Advanced > Tag...**(チーム > 拡張 > タグ...)で `v1.0.0` というタグを作ります。
         「どのコミットをリリースしたか」がタグで残り、あとで不具合が出たときにそのときのコードへすぐ戻れます。承認くん、完成です。
 checklist:
@@ -291,7 +319,7 @@ checklist:
   - key: rel-dev-only
     text: DevPasswordInitializer に @Profile("dev") を付け、開発用パスワードが prod では設定されないようにした
   - key: rel-jar
-    text: Run As > Maven build(package)か mvnw package で BUILD SUCCESS になり、java -jar で起動してログインできた
+    text: Run As > Maven build(package)か mvn package で BUILD SUCCESS になり、java -jar で起動してログインできた
   - key: rel-prod
     text: prod で起動して validate で止まるのを見て、テーブル作成後は起動し、/h2-console が開けず logs\approval.log ができることを確認した
   - key: rel-release-check

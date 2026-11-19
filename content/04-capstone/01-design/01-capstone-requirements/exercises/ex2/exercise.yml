@@ -24,7 +24,7 @@ problem: |
 
   **2. `requiresAdmin(Integer amount)`**:その金額の申請を承認するのに `ADMIN` が必要なら `true`(業務ルール3)。
 
-  - 金額が **100,000円以上** なら `true`。99,999円なら `false`、100,000円ちょうどは `true`
+  - 金額が **100,000円以上**なら `true`。99,999円なら `false`、100,000円ちょうどは `true`
   - 休暇申請(`LEAVE`)は金額が `null`。このときは `false`(`NullPointerException` にしない)
   - 境界の金額は定数 `ADMIN_LIMIT` を使う(マジックナンバーを散らさない)
 

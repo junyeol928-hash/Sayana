@@ -6,9 +6,9 @@
 それだと「開発用DB」と「本番DB」を切り替えるたびにビルドし直しだね。値はコードの外、**設定ファイル**に出す。今日は Spring Boot の設定の仕組みを一通りやろう。
 :::
 
-前回の「例外ハンドリング」までで、アプリの中身は一通り書けるようになりました。今回は、同じ jar を **環境ごとに違う設定で動かす** 仕組みです。
+前回の「例外ハンドリング」までで、アプリの中身は一通り書けるようになりました。今回は、同じ jar を**環境ごとに違う設定で動かす**仕組みです。
 
-なぜ「同じ jar」にこだわるのか。テストで確かめた jar と本番に置く jar が別物だと、「テストでは動いたのに」の原因がビルドの差なのか設定の差なのか切り分けられないからです。**コード(jar)は1つ、違いは設定だけ** にしておけば、本番で起きた問題を手元で再現しやすくなります。
+なぜ「同じ jar」にこだわるのか。テストで確かめた jar と本番に置く jar が別物だと、「テストでは動いたのに」の原因がビルドの差なのか設定の差なのか切り分けられないからです。**コード(jar)は1つ、違いは設定だけ**にしておけば、本番で起きた問題を手元で再現しやすくなります。
 
 ## application.properties と application.yml
 
@@ -33,7 +33,7 @@ logging:
     com.sayana.dojo: DEBUG
 ```
 
-YAML は `.` 区切りを **インデント(スペース)の階層** で表します。共通の接頭辞をまとめられて読みやすいので、新規なら YAML が多数派です。同じ場所に両方あると `.properties` が優先されるので、混ぜないのが無難です。
+YAML は `.` 区切りを**インデント(スペース)の階層**で表します。共通の接頭辞をまとめられて読みやすいので、新規なら YAML が多数派です。同じ場所に両方あると `.properties` が優先されるので、混ぜないのが無難です。
 
 よく使うキーはこのあたりです。
 
@@ -43,9 +43,9 @@ YAML は `.` 区切りを **インデント(スペース)の階層** で表し�
 | `spring.datasource.*` | DB の URL・ユーザー・パスワード |
 | `logging.level.<パッケージ>` | ログの出し具合(次回) |
 
-このアプリ(Java道場)の `src/main/resources/application.yml` も開いてみてください。`server.address: 127.0.0.1`(PC自身からしか開けない)、H2 の保存先、それに `dojo.exec.timeout: 10s` のような **アプリ独自のキー** が並んでいます。独自キーも自由に作れます。
+このアプリ(Java道場)の `src/main/resources/application.yml` も開いてみてください。`server.address: 127.0.0.1`(PC自身からしか開けない)、H2 の保存先、それに `dojo.exec.timeout: 10s` のような**アプリ独自のキー**が並んでいます。独自キーも自由に作れます。
 
-## @Value と @ConfigurationProperties
+## `@Value` と `@ConfigurationProperties`
 
 設定値をコードで受け取る方法は2つあります。
 
@@ -61,9 +61,9 @@ public class ExecService {
 }
 ```
 
-`${キー:既定値}` は **プレースホルダ** で、キーが無ければ `:` の後ろが使われます。文字列 `"10s"` は Spring の型変換で `Duration` になります。
+`${キー:既定値}` は**プレースホルダ**で、キーが無ければ `:` の後ろが使われます。文字列 `"10s"` は Spring の型変換で `Duration` になります。
 
-キーが増えてきたら、`@ConfigurationProperties` で **接頭辞ごとにまとめて** 受けます。
+キーが増えてきたら、`@ConfigurationProperties` で**接頭辞ごとにまとめて**受けます。
 
 ```java
 @ConfigurationProperties("shop")
@@ -80,7 +80,7 @@ shop:
   free-threshold: 3000   # ケバブ記法でも freeThreshold に入る
 ```
 
-起動クラスに `@ConfigurationPropertiesScan`(または `@EnableConfigurationProperties(ShopProperties.class)`)を付けると Bean になり、コンストラクタで注入できます。record ならイミュータブルで、**型の付いた1つのオブジェクト** として扱えます。
+起動クラスに `@ConfigurationPropertiesScan`(または `@EnableConfigurationProperties(ShopProperties.class)`)を付けると Bean になり、コンストラクタで注入できます。record ならイミュータブルで、**型の付いた1つのオブジェクト**として扱えます。
 
 | | `@Value` | `@ConfigurationProperties` |
 |---|---|---|
@@ -96,7 +96,7 @@ shop:
 
 ## プロファイルで環境を切り替える
 
-**プロファイル** は「設定のセットに付けた名前」です。`application-{名前}.yml` を置き、起動時に有効にします。
+**プロファイル**は「設定のセットに付けた名前」です。`application-{名前}.yml` を置き、起動時に有効にします。
 
 ```text
 src/main/resources/
@@ -105,7 +105,7 @@ src/main/resources/
   application-prod.yml   … prod のときだけ上書き
 ```
 
-有効にする方法は `--spring.profiles.active=dev`(コマンドライン引数)や、環境変数 `SPRING_PROFILES_ACTIVE=dev` などです。プロファイル用のファイルは共通設定を **丸ごと置き換えるのではなく、書いたキーだけ上書き** します。
+有効にする方法は `--spring.profiles.active=dev`(コマンドライン引数)や、環境変数 `SPRING_PROFILES_ACTIVE=dev` などです。プロファイル用のファイルは共通設定を**丸ごと置き換えるのではなく、書いたキーだけ上書き**します。
 
 このアプリの `application-lan.yml` がまさにそれで、中身は2つだけです。
 
@@ -123,11 +123,11 @@ dojo:
 The following 1 profile is active: "lan"
 ```
 
-何も指定しないと `No active profile set, falling back to 1 default profile: "default"` です。
+何も指定しないと、代わりに次の行が出ます: `No active profile set, falling back to 1 default profile: "default"`
 
-### @Profile で Bean を切り替える
+### `@Profile` で Bean を切り替える
 
-設定値だけでなく **Bean そのもの** も切り替えられます。
+設定値だけでなく **Bean そのもの**も切り替えられます。
 
 ```java
 @Configuration
@@ -168,7 +168,7 @@ flowchart TD
 
 ### 秘密情報はファイルに書かない
 
-DB のパスワードや API キーを `application.yml` に書いて Git に push すると、履歴に永久に残ります。秘密は **環境変数で渡す** のが基本です。
+DB のパスワードや API キーを `application.yml` に書いて Git に push すると、履歴に永久に残ります。秘密は**環境変数で渡す**のが基本です。
 
 このアプリの AI 機能も、`application.yml` には「APIキーは環境変数 `ANTHROPIC_API_KEY` から読む」というコメントしかありません。実際には `AnthropicLlmClient` が `System.getenv("ANTHROPIC_API_KEY")` で読み、無ければ AI 機能だけ無効にして起動します。YAML 側で受けたいなら、プレースホルダで環境変数を参照できます。
 
@@ -179,7 +179,7 @@ spring:
 ```
 
 ::: warn 「とりあえず」でコミットしない
-GitHub 上の公開リポジトリは常にボットに走査されていて、API キーは push から数分で悪用されることがあります。消しても履歴に残るので、漏れたら **キーを無効化して作り直す** しかありません。
+GitHub 上の公開リポジトリは常にボットに走査されていて、API キーは push から数分で悪用されることがあります。消しても履歴に残るので、漏れたら**キーを無効化して作り直す**しかありません。
 :::
 
 ## よくあるミス
@@ -187,7 +187,8 @@ GitHub 上の公開リポジトリは常にボットに走査されていて、A
 **YAML にタブを使う**:YAML のインデントはスペースのみです。
 
 ```text
-found character '\t' that cannot start any token
+found character '\t(TAB)' that cannot start any token.
+(Do not use \t(TAB) for indentation)
 ```
 
 **`:` の後ろのスペース忘れ**:`port:8080` は「`port:8080` という1つの文字列」と解釈されます。`port: 8080` と書きます。
@@ -198,14 +199,14 @@ found character '\t' that cannot start any token
 Could not resolve placeholder 'shop.nmae' in value "${shop.nmae}"
 ```
 
-逆に既定値付きだと **黙って既定値で動く** ので、綴りミスに気づきにくくなります。
+逆に既定値付きだと**黙って既定値で動く**ので、綴りミスに気づきにくくなります。
 
-**プロファイル用ファイルの中で `spring.profiles.active` を書く**:「dev の中で prod を有効に」は矛盾するので、Boot 2.4 以降はエラーになります(`... is invalid in a profile specific resource`)。
+**プロファイル用ファイルの中で `spring.profiles.active` を書く**:「dev の中で prod を有効に」は矛盾するので、Boot 2.4 以降は `... is invalid in a profile specific resource` というエラーになります。
 
 ::: point まとめ
 - 設定は `application.yml`(または `.properties`)に出す。コードに直書きしない
 - 少数なら `@Value("${key:既定値}")`、束なら `@ConfigurationProperties` + record
-- `application-{profile}.yml` は **差分だけ上書き**。`spring.profiles.active` で有効にする
+- `application-{profile}.yml` は**差分だけ上書き**。`spring.profiles.active` で有効にする
 - 優先順位は コマンドライン引数 > システムプロパティ > 環境変数 > プロファイル用 > 共通
 - 環境変数名は `.`→`_`、`-`削除、大文字。**秘密情報は環境変数で渡す**
 - `@Profile("!prod")` で「本番以外の Bean」を切り替えられる

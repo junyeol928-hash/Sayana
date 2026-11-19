@@ -6,7 +6,7 @@ New を押したら「Java Project」「Maven Project」「Spring Starter Projec
 仕事で Spring Boot をやるなら、ほぼ毎回 Spring Starter Project。ただ、3つの違いが分かってないと、エラーが出たときに「どこを直せばいいか」が分からない。そこからいこう。
 :::
 
-前回は STS を入れて画面の見方を覚えました。今回は **プロジェクト**(STS が1つのまとまりとして扱うフォルダ。ソース・設定・ビルドのルールを持つ)を作る・取り込む・起動する、までやります。
+前回は STS を入れて画面の見方を覚えました。今回は**プロジェクト**(STS が1つのまとまりとして扱うフォルダ。ソース・設定・ビルドのルールを持つ)を作る・取り込む・起動する、までやります。
 
 ## 3種類のプロジェクトの違い
 
@@ -17,7 +17,7 @@ New を押したら「Java Project」「Maven Project」「Spring Starter Projec
 | Spring Starter Project | `pom.xml` + Boot の雛形 | Spring Boot アプリ |
 
 - **Java Project** は Eclipse 独自の設定だけで動きます。ライブラリ(jar)は手で追加し、コンパイル結果は `bin/` に出ます。STS の外ではビルドできません。
-- **Maven Project** は **Maven**(Java の定番ビルドツール)の約束に従います。`pom.xml` に「使うライブラリ」を書けば、Maven が **Maven Central**(公開ライブラリの倉庫)から取ってきます。コンパイル結果は `target/` です。STS がなくても `mvnw` でビルドできるので、チーム開発や CI の標準です。
+- **Maven Project** は **Maven**(Java の定番ビルドツール)の約束に従います。`pom.xml` に「使うライブラリ」を書けば、Maven が **Maven Central**(公開ライブラリの倉庫)から取ってきます。コンパイル結果は `target/` です。STS がなくても Maven のコマンド(`mvn`、Maven Wrapper を入れていれば `mvnw`)でビルドできるので、チーム開発や CI の標準です。**File > New > Maven Project** で作ったときは Wrapper が付かないので、必要なら自分で足します(`mvn wrapper:wrapper`)。
 - **Spring Starter Project** は、Spring Boot 用の Maven プロジェクトを **Spring Initializr**(`start.spring.io`)で生成して取り込むウィザードです。中身は「設定済みの Maven Project」です。
 
 ::: sensei
@@ -37,7 +37,9 @@ New を押したら「Java Project」「Maven Project」「Spring Starter Projec
 | Artifact | `demo` | 成果物(jar)の名前 |
 | Package | `com.example.demo` | メインクラスのパッケージ |
 
-次の画面で **依存(Dependencies)** を選びます。今回は **Web > Spring Web** にチェック。これで Web サーバ(Tomcat)入りの Spring MVC が使えるようになります。**Finish** を押すと、裏ではこう動いています。
+次の画面の **Spring Boot Version** は、`SNAPSHOT`・`M`・`RC` が付いていない正式版を選びます。start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
+
+同じ画面で **依存(Dependencies)** を選びます。今回は **Web > Spring Web** にチェック。これで Web サーバ(Tomcat)入りの Spring MVC が使えるようになります。**Finish** を押すと、裏ではこう動いています。
 
 ```mermaid
 flowchart LR
@@ -116,7 +118,7 @@ Git リポジトリから直接取り込む入口は **File > Import... > Git > 
 - `.classpath`:ソースフォルダの場所と、使う JRE・ライブラリの一覧
 - `.settings/`:プロジェクト単位の設定(コンパイラの Java 版、文字コードなど)
 
-どれも **m2e が `pom.xml` から生成** したものです。だから Git には入れません。設定の正解は `pom.xml` に1つだけあればよく、生成物を入れると「IntelliJ の人には不要」「PC ごとの差分が毎回出る」「`pom.xml` と食い違う」と、いいことがありません。Spring Initializr が作る `.gitignore` にも最初から書かれています。
+どれも **m2e が `pom.xml` から生成**したものです。だから Git には入れません。設定の正解は `pom.xml` に1つだけあればよく、生成物を入れると「IntelliJ の人には不要」「PC ごとの差分が毎回出る」「`pom.xml` と食い違う」と、いいことがありません。Spring Initializr が作る `.gitignore` にも最初から書かれています。
 
 ## エラーが消えないときの順番
 
@@ -138,7 +140,7 @@ Update Project は「設定の作り直し」、Clean は「ビルドのやり�
 
 ## Boot Dashboard で起動・停止、そして 8080
 
-**Boot Dashboard** の **local** の下に Spring Boot プロジェクトが並びます。選んで ▶(Start)で起動、■(Stop)で停止。Console に次の行が出れば起動成功です。
+**Boot Dashboard** の **local** の下に Spring Boot プロジェクトが並びます。選んで ▶(**(Re)start**)で起動、■(Stop)で停止。動いているアプリで ▶ を押すと、止めてから起動し直します。Console に次の行が出れば起動成功です。
 
 ```text
 Tomcat started on port 8080 (http) with context path '/'
@@ -155,7 +157,7 @@ Web server failed to start.
 Port 8080 was already in use.
 ```
 
-**ポート** は「PC の中で、どのプログラム宛ての通信かを区別する番号」で、1つの番号を同時に使えるのは1プロセスだけです。直し方は2つ。
+**ポート**は「PC の中で、どのプログラム宛ての通信かを区別する番号」で、1つの番号を同時に使えるのは1プロセスだけです。直し方は2つ。
 
 - 先に動いている方を止める(Boot Dashboard の ■、Console の赤い四角 **Terminate**)
 - 番号を変える:`src/main/resources/application.properties` に `server.port=8081`

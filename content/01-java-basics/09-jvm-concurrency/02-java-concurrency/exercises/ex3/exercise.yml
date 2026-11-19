@@ -11,8 +11,8 @@ problem: |
   **満たすこと**
 
   1. 結果は **`ids` と同じ順番** で返す(先に終わった順ではない)
-  2. `Executors.newFixedThreadPool(ids.size())` でプールを作り、全部の `lookup` を **同時に** 走らせる
-  3. 各 `Future` の結果は **1秒のタイムアウト付き** の `get(1, TimeUnit.SECONDS)` で受け取る。間に合わない・失敗したときは `IllegalStateException` を投げる
+  2. `Executors.newFixedThreadPool(ids.size())` でプールを作り、全部の `lookup` を**同時に**走らせる
+  3. 各 `Future` の結果は **1秒のタイムアウト付き**の `get(1, TimeUnit.SECONDS)` で受け取る。間に合わない・失敗したときは `IllegalStateException` を投げる
   4. 終わったら(例外のときも)**必ずプールを止める**(`finally` で `shutdownNow()`)
   5. `ids` が空なら、プールを作らずに空のリストを返す(`newFixedThreadPool(0)` は例外になるため)
 

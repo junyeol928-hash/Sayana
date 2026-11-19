@@ -1,0 +1,48 @@
+- after: HTTP を3分でおさらい
+  question: |
+    ①キーワードで商品を検索するフォーム、②会員登録のフォーム。POST で送るべきなのは?
+  choices: ["② だけ", "① だけ", "両方"]
+  answer: 0
+  why:
+    - ""
+    - "GET と POST の役目を逆に覚えた答え"
+    - "「フォームだから POST」と読んだ答え"
+  explanation: |
+    検索はデータを変えない「取得」で、何度送っても困らないので GET。会員登録はデータを作るので POST。何をしたいかで決める。
+- after: マッピングとパラメータの受け取り
+  question: |
+    `GET /list?page=`(`page` の値が空)を送ると、レスポンスは?
+    ```java
+    @GetMapping("/list")
+    public String list(@RequestParam(defaultValue = "1") int page) {
+        return "page=" + page;
+    }
+    ```
+  choices: ["`page=1`", "400 Bad Request", "`page=0`"]
+  answer: 0
+  why:
+    - ""
+    - "空文字を `int` に変換しようとして失敗すると読んだ答え"
+    - "空を `int` の初期値 0 と読んだ答え"
+  explanation: |
+    `defaultValue` を付けると、パラメータが無いときだけでなく、`?page=` のように空文字のときも既定値が使われる。だから `page=1`。
+- after: 戻り値いろいろ:JSON・ステータス・リダイレクト
+  question: |
+    `@RestController` の中の次のメソッドに `GET /p` を送った。レスポンスの本体は?
+    ```java
+    record Point(int x, int y) {}
+
+    @GetMapping("/p")
+    public Point p() { return new Point(3, 4); }
+    ```
+  choices:
+    - '`{"x":3,"y":4}`'
+    - '`Point[x=3, y=4]`'
+    - "テンプレート `p` を描画した HTML"
+  answer: 0
+  why:
+    - ""
+    - "`toString()` の結果が本体になると読んだ答え"
+    - "`@Controller` の動きと取り違えた答え。`@RestController` の戻り値は、ビュー名ではなく本体"
+  explanation: |
+    オブジェクトを返すと、HttpMessageConverter(中身は Jackson)が JSON に変換する。`record` のアクセサ名が JSON の項目名になる。

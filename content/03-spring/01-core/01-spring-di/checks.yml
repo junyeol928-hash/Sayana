@@ -1,0 +1,54 @@
+- after: 依存性注入(DI):まずは素の Java で
+  question: |
+    `OrderService` は `MailSender`、つまり `send(String body)` だけのインターフェースをコンストラクタで受け取り、`placeOrder` で「ご注文ありがとうございます: 品名」を送る。Spring は使っていない。何が起きる?
+    ```java
+    var s = new OrderService(
+        body -> System.out.println("[偽] " + body));
+    s.placeOrder("本");
+    ```
+  choices:
+    - "`[偽] ご注文ありがとうございます: 本` と出る"
+    - "本物の SMTP サーバーにメールが送られる"
+    - "Spring が無いので注入されず、`NullPointerException` になる"
+  answer: 0
+  why:
+    - ""
+    - "本物の `SmtpMailSender` を中で `new` する作りと取り違えた答え"
+    - "DI には Spring が要ると読んだ答え"
+  explanation: |
+    `OrderService` は `MailSender` インターフェースにだけ依存していて、コンストラクタで渡されたラムダが `send` として呼ばれる。DI は「外から渡す」設計の話で、Spring が無くても成り立つ。
+- after: コンストラクタインジェクションが推奨される理由
+  question: |
+    `@Autowired` がどこにも無い。`MailSender` の Bean が 1 つ登録されたコンテナから `OrderService` を取り出すと、`mail` は?
+    ```java
+    @Service
+    class OrderService {
+        private final MailSender mail;
+        OrderService(MailSender mail) { this.mail = mail; }
+    }
+    ```
+  choices: ["注入されている", "`null` のまま", "引数なしのコンストラクタが無いので、起動時にエラーになる"]
+  answer: 0
+  why:
+    - ""
+    - "`@Autowired` が無いと注入されないと読んだ答え。`null` のままになるのは、コンテナを通さず自分で `new` したとき"
+    - "コンテナは引数なしで `new` すると読んだ答え"
+  explanation: |
+    コンストラクタが 1 つだけなら `@Autowired` は省略でき(Spring 4.3 以降)、コンテナはそのコンストラクタに Bean を渡して作る。現場では省略が普通。
+- after: 同じ型の Bean が2つあるとき
+  question: |
+    次の Bean を、注入する側の `@Qualifier` で指定したい。書く名前は?
+    ```java
+    @Bean
+    MailSender fastMail() {
+        return new SmtpMailSender("smtp.example.com");
+    }
+    ```
+  choices: ["`fastMail`", "`smtpMailSender`", "`mailSender`"]
+  answer: 0
+  why:
+    - ""
+    - "`@Component` の決まり(クラス名の先頭を小文字)を当てはめた答え"
+    - "戻り値の型 `MailSender` から名前が付くと読んだ答え。型の名前は Bean 名に使われない"
+  explanation: |
+    `@Bean` の Bean 名は既定でメソッド名なので `fastMail`。注入する側には `@Qualifier("fastMail")` と書く。

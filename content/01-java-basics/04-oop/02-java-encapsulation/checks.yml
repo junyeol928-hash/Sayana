@@ -1,0 +1,39 @@
+- after: getter / setter と「本当のカプセル化」
+  question: |
+    注文を「キャンセル済み」にする操作を公開したい。カプセル化として良いのは?
+  choices: ["`cancel()` を用意する", "`setStatus(String status)` を用意する", "`status` フィールドを `public` にする"]
+  answer: 0
+  why:
+    - ""
+    - "getter / setter を付ければカプセル化と読んだ答え。`setStatus` は何でも入り、ルールを確かめる場所が無い"
+    - "直接書けるほうが手軽と選んだ答え。外から何でも入れられ、出荷後のキャンセルも止められない"
+  explanation: |
+    `cancel()` なら「出荷後はキャンセルできない」のようなルールをその中で確かめられ、メソッド名がそのまま業務の仕様になる。
+- after: コンストラクタで不正な値をはじく
+  question: |
+    `Account` のコンストラクタは、初期残高が負なら `IllegalArgumentException` を投げる。`new Account(-500)` を実行すると?
+  choices: ["例外で止まり、インスタンスは作られない", "残高 -500 の口座ができる", "残高 0 の口座ができる"]
+  answer: 0
+  why:
+    - ""
+    - "例外を投げても代入まで進むと読んだ答え。`throw` した時点で処理は中断する"
+    - "不正な値は 0 に直して作られると読んだ答え。`throw` すると、インスタンス自体が作られない"
+  explanation: |
+    `throw` した時点で処理は中断し、インスタンスは作られない。不正な値を抱えたオブジェクトが生まれないので、不変条件は作った瞬間から守られる(フェイルファスト)。
+- after: パッケージと equals
+  question: |
+    `Money` は `equals` をオーバーライドしていない。出力は?
+    ```java
+    Money a = new Money(100);
+    Money b = new Money(100);
+    Money c = a;
+    System.out.println(a.equals(b) + " " + a.equals(c));
+    ```
+  choices: ["`false true`", "`true true`", "`false false`"]
+  answer: 0
+  why:
+    - ""
+    - "`equals` は中身で比べると読んだ答え。オーバーライドしない `equals` は、同じインスタンスかを比べる"
+    - "`c = a` で別のインスタンスができると読んだ答え。`c` は `a` と同じインスタンスを指す"
+  explanation: |
+    オーバーライドしていない `equals` は `Object` から受け継いだもので、`==` と同じく「同じインスタンスか」を比べる。`b` は中身が同じでも別のインスタンスなので `false`、`c` は `a` と同じインスタンスなので `true`。

@@ -1,0 +1,40 @@
+- after: 認証と認可
+  question: |
+    まだログインしていない人が、ブラウザで `/mypage`(ログインが必要な画面)を開いた。どうなる?
+  choices: ["403 Forbidden", "ログイン画面へ自動で回される", "401 Unauthorized が返る"]
+  answer: 1
+  why:
+    - "権限不足のときと取り違えた答え。403 は、誰かは分かったが権限が足りないとき"
+    - ""
+    - "API のときと取り違えた答え"
+  explanation: |
+    まだ「誰か」が分からないので、認証の失敗としてログイン画面へ回す。
+- after: ユーザーとパスワード
+  question: |
+    依存を入れた直後は、`user` と起動ログの生成パスワードでログインできた。そこへ haru と mocha の `UserDetailsService` の Bean を定義して再起動すると、`user` でログインできる?
+  choices: ["できる(haru・mocha と並んで使える)", "できない(haru・mocha だけになる)", "起動時にエラーで止まる"]
+  answer: 1
+  why:
+    - "自動のユーザーに足されると読んだ答え"
+    - ""
+    - "自動の `user` と自分の Bean がぶつかると読んだ答え。ぶつかることはなく、そのまま起動する"
+  explanation: |
+    `user` と生成パスワードは、自分で `UserDetailsService` を定義していないときだけ用意される。定義すると自動の方は引っ込み、ログインできるのは haru と mocha だけになる。
+- after: メソッド単位の認可とログイン中のユーザー
+  question: |
+    `/orders` は `authenticated()` のルール。ログイン中の haru が `/orders?userId=6`(mocha の ID)に書き換えて開くと?
+    ```java
+    @GetMapping("/orders")
+    String orders(@RequestParam long userId, Model model) {
+        model.addAttribute("orders", service.findByUser(userId));
+        return "orders/list";
+    }
+    ```
+  choices: ["Spring Security が他人の ID だと見抜いて 403 にする", "mocha の注文が見えてしまう", "ログイン中の haru で自動で絞られ、haru の注文が出る"]
+  answer: 1
+  why:
+    - "URL のルールが中身まで見ると読んだ答え"
+    - ""
+    - "ログイン中のユーザーで自動で絞られると読んだ答え"
+  explanation: |
+    URL のルールが見るのは「ログイン済みか」だけで、送られてきた `userId` はそのまま使われる。「自分の注文」なら、ID はリクエストではなく `@AuthenticationPrincipal` で受け取ったログイン中のユーザーから取る。

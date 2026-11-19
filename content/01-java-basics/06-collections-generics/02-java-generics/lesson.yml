@@ -2,17 +2,17 @@ id: java-generics
 title: ジェネリクス
 status: ready
 minutes: 15
-summary: List<String> の <> の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。
+summary: "`List<String>` の `<>` の正体。型パラメータ付きクラスとメソッド、境界、ワイルドカードと PECS、型消去の制約、ラッパー型の注意点まで。"
 goals:
-  - raw 型の問題点(実行時の ClassCastException)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
-  - 型パラメータ付きクラス(Box<T>・Pair<K, V>)とジェネリックメソッドを書ける
-  - "<T extends Comparable<T>> で境界を付け、型パラメータのメソッドを呼べるようにできる"
-  - List<Integer> が List<Number> ではない理由を説明し、? extends / ? super を PECS で使い分けられる
-  - 型消去のために new T() や obj instanceof List<String> ができないこと、型引数にプリミティブを使えないことを説明できる
+  - raw 型の問題点(実行時の `ClassCastException`)と、ジェネリクスがそれをコンパイルエラーに前倒しする仕組みを説明できる
+  - 型パラメータ付きクラス(`Box<T>`・`Pair<K, V>`)とジェネリックメソッドを書ける
+  - "`<T extends Comparable<T>>` で境界を付け、型パラメータのメソッドを呼べるようにできる"
+  - "`List<Integer>` が `List<Number>` ではない理由を説明し、`? extends` / `? super` を PECS で使い分けられる"
+  - 型消去のために `new T()` や `obj instanceof List<String>` ができないこと、型引数にプリミティブを使えないことを説明できる
 samples:
   - title: raw 型の事故とジェネリクス
     description: |
-      raw 型のリストには何でも入り、取り出してキャストした瞬間に落ちます(JShell が unchecked の警告を出すのも確認しましょう)。ジェネリクス版では、同じミスがコンパイルエラーになります。
+      raw 型のリストに `42` を入れると、JShell は unchecked の警告を出す。ジェネリクス版では、同じミスがどこで見つかるかも比べよう。raw 型で問題が出るのは、`add` の行か、取り出してキャストする行か?
     code: |
       // raw 型(型引数なし)のリスト。何でも入ってしまう
       List raw = new ArrayList();
@@ -35,7 +35,7 @@ samples:
       System.out.println("ジェネリクス版: " + first);
   - title: Pair クラスとジェネリックメソッド
     description: |
-      自作の `Pair<K, V>` と、境界付きのジェネリックメソッド `max` です。`max` に渡すリストの型を変えて、どの型でも動くことを確かめましょう。
+      自作の `Pair<K, V>` と、境界付きのジェネリックメソッド `max` です。`max` に渡すリストの型を変えて、どの型でも動くことを確かめましょう。文字列のリストでは、`max` はどの果物を返すだろうか。
     code: |
       class Pair<K, V> {
           private final K key;
@@ -71,7 +71,7 @@ samples:
       System.out.println("最大値: " + max(List.of("kiwi", "apple", "melon")));
   - title: ワイルドカード(? extends と ? super)
     description: |
-      `sum` は値を **取り出す** だけなので `? extends Number`、`addSamples` は値を **入れる** だけなので `? super Integer`。PECS の実例です。
+      `sum` は値を**取り出す**だけなので `? extends Number`、`addSamples` は値を**入れる**だけなので `? super Integer`。PECS の実例です。`sum(ints)` の合計は `6` と `6.0` のどちらで表示される?
     code: |
       static double sum(List<? extends Number> list) {
           double total = 0;
@@ -99,7 +99,7 @@ samples:
       // ここを変えてみよう:sum の引数を List<Number> に変えると、sum(ints) はどうなる?
   - title: 型消去と Integer の比較
     description: |
-      実行時には `List<String>` も `List<Integer>` も同じクラスです。また、ラッパー型を `==` で比べると、値によって結果が変わってしまいます。
+      `List<String>` と `List<Integer>` の `getClass()` は同じだろうか。`Integer` の 1000 同士を `==` と `equals` で比べると、それぞれ何が出る?
     code: |
       List<String> a = new ArrayList<>();
       List<Integer> b = new ArrayList<>();
@@ -113,18 +113,22 @@ samples:
       System.out.println("x.equals(y) : " + x.equals(y));
 quiz:
   - question: |
-      次のうち、**コンパイルエラーになる** 行はどれ?
+      次のうち、**コンパイルエラーになる**行はどれ?
     choices:
-      - "List<Integer> a = new ArrayList<>();"
-      - "List<Number> b = new ArrayList<Integer>();"
-      - "List<? extends Number> c = new ArrayList<Integer>();"
-      - "List<? super Integer> d = new ArrayList<Number>();"
+      - "`List<Integer> a = new ArrayList<>();`"
+      - "`List<Number> b = new ArrayList<Integer>();`"
+      - "`List<? extends Number> c = new ArrayList<Integer>();`"
+      - "`List<? super Integer> d = new ArrayList<Number>();`"
     answer: 1
+    why:
+      - "ダイヤモンド `<>` では型が決まらないと読んだ答え。左辺の型から `Integer` と推論される"
+      - ""
+      - "ワイルドカードにも `Integer` のリストは入らないと読んだ答え。`? extends Number` は `Number` の子のリストを受け入れる"
+      - "`? super` の向きを逆に読んだ答え。`? super Integer` は親の型のリストを受け入れる"
     explanation: |
-      `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で Integer のリストに Double が混ざってしまうからです。
-      1つ目はダイヤモンドで型を推論するので OK。3つ目は「Number かその子のリスト」なので `ArrayList<Integer>` を受け入れられ、4つ目は「Integer かその親のリスト」なので `ArrayList<Number>` を受け入れられます。
+      `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で `Integer` のリストに `Double` が混ざってしまうからです。
   - question: |
-      次のコードで、**コンパイルエラーになる** のはどの行?
+      次のコードで、**コンパイルエラーになる**のはどの行?
       ```java
       List<Integer> ints = new ArrayList<>(List.of(1));
       List<? extends Number> list = ints;  // (A)
@@ -134,9 +138,14 @@ quiz:
       ```
     choices: ["(A)", "(B)", "(C)", "(D)"]
     answer: 3
+    why:
+      - "`List<Integer>` を `? extends Number` に入れられないと読んだ答え。Number の子のリストなので代入できる"
+      - "ワイルドカードのリストからは読めないと読んだ答え。少なくとも Number なので Number として読める"
+      - "`add` は全部だめと読んだ答え。`null` だけはどんな参照型のリストにも入れられる"
+      - ""
     explanation: |
-      `? extends Number` のリストは「Number の **何かの** 子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
-      (A) の代入は OK、(B) の読み出しは「少なくとも Number」と分かっているので OK。(C) の `null` だけは、どんな参照型のリストにも入れられるので例外的にコンパイルが通ります。値を **取り出す** なら extends、**入れる** なら super(PECS)です。
+      `? extends Number` のリストは「Number の**何かの**子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
+      値を**取り出す**なら `extends`、**入れる**なら `super`(PECS)です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -144,11 +153,15 @@ quiz:
       List<Integer> b = new ArrayList<>();
       System.out.println(a.getClass() == b.getClass());
       ```
-    choices: ["true", "false", "コンパイルエラー", "実行時に ClassCastException"]
+    choices: ["`true`", "`false`", "コンパイルエラー", "実行時に `ClassCastException`"]
     answer: 0
+    why:
+      - ""
+      - "型引数が実行時まで残ると読んだ答え。型消去でどちらもただの `ArrayList` になる"
+      - "型の違うリストのクラスは比べられないと読んだ答え。`getClass()` どうしの比較は合法"
+      - "比べるときにキャストが起きると読んだ答え。キャストしていないので例外は出ない"
     explanation: |
-      Java のジェネリクスは **型消去** で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
-      `getClass()` の比較自体は合法なのでコンパイルエラーにはならず、キャストもしていないので例外も出ません。
+      Java のジェネリクスは**型消去**で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -157,21 +170,31 @@ quiz:
       System.out.print(" ");
       System.out.print(ids.get(2) == ids.get(3));
       ```
-    choices: ["true true", "false false", "true false", "false true"]
+    choices: ["`true true`", "`false false`", "`true false`", "`false true`"]
     answer: 2
+    why:
+      - "`==` が値を比べると読んだ答え。実際は同じオブジェクトかを比べる"
+      - "`Integer` はいつも別オブジェクトと読んだ答え。小さい値はキャッシュが効く"
+      - ""
+      - "キャッシュの範囲を逆に読んだ答え。同じになるのは小さいほう"
     explanation: |
       `List<Integer>` の要素は `Integer` オブジェクトで、`==` は「同じオブジェクトか」の比較です。オートボクシングで使われる `Integer.valueOf` は **-128〜127 をキャッシュ** しているので、100 は同じオブジェクトになり `true`、200 は別々のオブジェクトになり `false` です。
       値によって結果が変わるので、テストの小さな値では気づけません。ラッパー型は `equals` で比べましょう。
   - question: |
-      `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる** 呼び出しはどれ?
+      `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる**呼び出しはどれ?
     choices:
-      - "max(List.of(3, 1, 2))"
-      - "max(List.of(new Object(), new Object()))"
-      - "max(List.of(\"b\", \"a\"))"
-      - "max(List.of(2.5, 1.0))"
+      - "`max(List.of(3, 1, 2))`"
+      - "`max(List.of(new Object()))`"
+      - "`max(List.of(\"kiwi\", \"fig\"))`"
+      - "`max(List.of(2.5, 1.0))`"
     answer: 1
+    why:
+      - "整数は `Comparable` ではないと読んだ答え。`Integer` は `Comparable` を実装していて通る"
+      - ""
+      - "文字列は比べられないと読んだ答え。`String` は `Comparable` を実装していて通る"
+      - "小数は比べられないと読んだ答え。`Double` も `Comparable` を実装していて通る"
     explanation: |
-      `T extends Comparable<T>` は「T は自分自身と比較できる型」という **境界** です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で T=Object に決まった時点で境界を満たさずコンパイルエラーになります。
+      `T extends Comparable<T>` は「T は自分自身と比較できる型」という**境界**です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で `T = Object` に決まった時点で境界を満たさずコンパイルエラーになります。
       境界がなければ `compareTo` を呼べない代わりに何でも渡せますが、境界を付けることで「比較できない型を渡すミス」を実行前に見つけられます。
 columns:
   - type: trivia
@@ -179,7 +202,7 @@ columns:
     body: |
       ジェネリクスは 2004 年の Java 5 で導入されました。土台は Martin Odersky(のちの Scala の作者)らが 1998 年に発表した「GJ(Generic Java)」です。
 
-      このとき最大の課題は、**既存の膨大なコードとライブラリを壊さないこと** でした。そこで「型引数はコンパイラがチェックしたら消し、バイトコードは昔と同じ `List` のまま」という **型消去** が選ばれました。おかげで Java 1.4 時代の jar と、新しいジェネリックなコードを混ぜて動かせたのです。
+      このとき最大の課題は、**既存の膨大なコードとライブラリを壊さないこと**でした。そこで「型引数はコンパイラがチェックしたら消し、バイトコードは昔と同じ `List` のまま」という**型消去**が選ばれました。おかげで Java 1.4 時代の jar と、新しいジェネリックなコードを混ぜて動かせたのです。
 
       一方、後発の C#(.NET 2.0)は実行環境ごと作り直し、実行時にも型引数を保持する方式(**reified generics**)にしました。C# では `new T()` 相当も書けますし、`List<int>` もボクシングなしで扱えます。
 
@@ -191,7 +214,7 @@ columns:
 
       ```java
       static void addDefault(List list) {   // raw 型
-          list.add(0);                     // 警告は出るがコンパイルは通る
+          list.add(0);                     // コンパイルは通る(unchecked の注記・警告が出るだけ)
       }
 
       List<String> names = new ArrayList<>(List.of("佐藤"));
@@ -216,4 +239,4 @@ columns:
 
       書いた本人も1週間後には読めません。`scores.get(a).get(b).get(2)` が何を意味するのか、型からは分からないからです。
 
-      現場では、入れ子が2段を超えたら **意味のある名前のクラスを作る** のが定石です。たとえば `Map<String, Department>` にして、`Department` クラスが社員の一覧を持つ形にすれば、`dept.findEmployee(id).getScore(month)` のように読めるコードになります。後で学ぶ `record` を使えば、こうした小さなクラスは1行で作れます。
+      現場では、入れ子が2段を超えたら**意味のある名前のクラスを作る**のが定石です。たとえば `Map<String, Department>` にして、`Department` クラスが社員の一覧を持つ形にすれば、`dept.findEmployee(id).getScore(month)` のように読めるコードになります。後で学ぶ `record` を使えば、こうした小さなクラスは1行で作れます。

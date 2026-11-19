@@ -4,16 +4,17 @@ status: ready
 minutes: 15
 summary: JDK 21 を入れて、javac・java・JShell・STS の4通りで Hello World を動かす。JDK/JRE/JVM の関係とエラーの読み方も押さえる。
 goals:
-  - JDK・JRE・JVM の違いと、javac → バイトコード → JVM という実行の流れを説明できる
-  - Windows に JDK 21 を入れ、JAVA_HOME と Path を設定して java -version / javac -version で確認できる
-  - Hello World の各行(public class とファイル名、main メソッド、System.out.println、セミコロン、波括弧)の意味を説明できる
-  - javac + java、java Hello.java、JShell、STS のそれぞれでプログラムを実行できる
+  - JDK・JRE・JVM の違いと、`javac` → バイトコード → JVM という実行の流れを説明できる
+  - Windows に JDK 21 を入れ、`JAVA_HOME` と `Path` を設定して `java -version` / `javac -version` で確認できる
+  - Hello World の各行(`public class` とファイル名、`main` メソッド、`System.out.println`、セミコロン、波括弧)の意味を説明できる
+  - "`javac` + `java`、`java Hello.java`、JShell、STS のそれぞれでプログラムを実行できる"
   - よくあるコンパイルエラー・実行時エラーのメッセージを読んで原因を特定できる
 
 samples:
   - title: はじめての出力
     description: |
       `System.out.println` は文字列を表示して改行します。文字列リテラルは `"` で囲みます。
+      3 回の `println` で、出力は何行になる?
     code: |
       // ここを変えてみよう:自分の名前やチーム名に書き換えて実行
       System.out.println("Hello, World!");
@@ -22,7 +23,7 @@ samples:
 
   - title: print と println の違い
     description: |
-      `print` は改行しない、`println` は最後に改行する。引数なしの `println()` は改行だけを出力します。
+      `print` と `println` が混ざると、どこで改行される? 引数なしの `println()` の行では何が出る?
     code: |
       System.out.print("ラーメン");
       System.out.print("と");
@@ -37,6 +38,7 @@ samples:
     description: |
       `public static void main(String[] args)` を持つクラスを宣言すると、この画面では `Hello.main(...)` が自動で呼ばれます。
       コマンドラインの `java Hello` と同じく、JVM が main から実行を始めるイメージです。
+      クラスを宣言しただけで、main の中の 2 行は表示される?
     code: |
       public class Hello {
           public static void main(String[] args) {
@@ -49,6 +51,7 @@ samples:
   - title: エスケープシーケンスとコメント
     description: |
       `\n`(改行)、`\t`(タブ)、`\"`(ダブルクォート)、`\\`(バックスラッシュ)。コメントは実行結果に影響しません。
+      1 つ目の `println` は、何行に分かれて表示される?
     code: |
       // 1行コメント:この行は無視される
       /* 複数行コメント:
@@ -75,10 +78,15 @@ quiz:
       - "1行目に AB、2行目に C、3行目に D"
       - "1行目に AB、2行目に C、3行目は空行、4行目に D"
     answer: 2
+    why:
+      - "`print` も `println` と同じく改行すると読んだ答え。`print` は改行しないので A と B は同じ行に並ぶ"
+      - "`println` も改行しないと読んだ答え。`println` は表示の後で改行する"
+      - ""
+      - "引数なしの `println()` が空行を作ると読んだ答え。C の行を終わらせる改行になるだけ"
     explanation: |
-      `print` は改行せず、`println` は表示の後に改行します。"A" の後に "B" が続いて改行 → 1行目は `AB`。
-      次に "C" を表示し、引数なしの `println()` が改行だけを出力 → 2行目は `C`。最後に `D` と改行 → 3行目は `D`。
-      引数なしの `println()` は「改行を1つ出す」だけなので、C の行を終わらせる役目になり、空行は生まれません(4つ目の選択肢の誤り)。
+      `print` は改行せず、`println` は表示の後に改行します。`A` の後に `B` が続いて改行 → 1行目は `AB`。
+      次に `C` を表示し、引数なしの `println()` が改行だけを出力 → 2行目は `C`。最後に `D` と改行 → 3行目は `D`。
+      引数なしの `println()` は「改行を1つ出す」だけなので、C の行を終わらせる役目になり、空行は生まれません。
 
   - question: |
       `Hello.java` に次のコードを書いて `javac Hello.java` を実行した。コンパイルエラーになる行はどれ?
@@ -97,10 +105,14 @@ quiz:
       - "2行目"
       - "4行目"
     answer: 0
+    why:
+      - ""
+      - "クラス名とファイル名の組み合わせを疑った答え。`Hello.java` に `public class Hello` で合っている"
+      - "`main` の書き方を疑った答え。`public static void main(String[] args)` で正しい"
+      - "文字列の中の日本語がエラーになると読んだ答え。リテラル内の日本語は問題なく、誤りは `printIn`"
     explanation: |
       3行目は `println`(エル)ではなく `printIn`(大文字のアイ)になっています。`PrintStream` に `printIn` というメソッドはないので
-      「シンボルを見つけられません」というコンパイルエラーになります。文字列リテラルの中の日本語(4行目の「こんにちは」など)は問題ありません。
-      1・2行目はクラス名とファイル名が一致し、main の形も正しいのでエラーにはなりません。
+      「シンボルを見つけられません」というコンパイルエラーになります。
 
   - question: |
       ファイル `Main.java` に次の内容を保存し、`javac Main.java` を実行した。どうなる?
@@ -116,11 +128,16 @@ quiz:
       - "Main.class が作られ、java Main で Hi が表示される"
       - "Hello.class が作られ、java Hello で Hi が表示される"
       - "コンパイルは成功するが、実行時に「メイン・メソッドが見つかりません」となる"
-      - "「クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります」というコンパイルエラーになる"
+      - "コンパイルエラーになり、.class は 1 つも作られない"
     answer: 3
+    why:
+      - "クラスファイルの名前がソースのファイル名で決まると読んだ答え"
+      - "ファイル名とクラス名の不一致を見落とした答え"
+      - "`javac` は通り、実行の段階で止まると読んだ答え"
+      - ""
     explanation: |
       `public` なクラスは、クラス名と同じ名前のファイルに書く必要があります。`public class Hello` は `Hello.java` に書かなければならず、
-      `javac` はコンパイルエラーにします(`.class` は1つも作られません)。
+      `javac` は `クラス Helloはpublicであり、ファイルHello.javaで宣言する必要があります` というコンパイルエラーにします(`.class` は1つも作られません)。
       なお `java Main.java` のような単一ファイル実行(Java 11+)ではこのルールが適用されず Hi が表示されますが、問題は `javac` の場合です。
 
   - question: |
@@ -131,6 +148,11 @@ quiz:
       - "JRE には javac が含まれるので、JRE だけで開発できる"
       - "バイトコードは Windows 用・Mac 用など OS ごとに別々に作る必要がある"
     answer: 1
+    why:
+      - "`java Hello.java` の手軽さから、JVM がソースを直接読むと取り違えた答え"
+      - ""
+      - "JRE と JDK を取り違えた答え。JRE は JVM と標準ライブラリだけで、`javac` は JDK にある"
+      - "バイトコードを OS 向けの機械語と取り違えた答え。1 つの `.class` が各 OS の JVM で動く"
     explanation: |
       `javac` は JDK の開発ツールで、`.java` を JVM 向けの命令列であるバイトコード(`.class`)に変換します。
       JVM が実行するのはバイトコードで、`.java` を直接ではありません(`java Hello.java` もメモリ上でコンパイルしてから実行しています)。
@@ -149,6 +171,11 @@ quiz:
       - "A /* B */ C"
       - "A /* B */ C と E の2行"
     answer: 2
+    why:
+      - "文字列リテラルの中の /* B */ もコメントになると読んだ答え。引用符の中はただの文字"
+      - "コメントの範囲を逆に読んだ答え。文字列内の /* B */ は文字で、行末の // D がコメント"
+      - ""
+      - "/* */ で囲んだ行も実行されると読んだ答え。2 行目は全体がコメントなので E は出ない"
     explanation: |
       `"` で囲まれた文字列リテラルの中にある `/* B */` はコメントではなく、ただの文字です。そのため `A /* B */ C` がそのまま表示されます。
       行末の `// D` は1行コメント、2行目は全体が `/* */` で囲まれたコメントなので、どちらも実行されません。
@@ -157,10 +184,9 @@ columns:
   - type: trivia
     title: class ファイルは「CAFEBABE」で始まる
     body: |
-      `.class` ファイルの先頭4バイトは必ず16進数で `CA FE BA BE`。JVM が「本当に class ファイルか」を確かめる
-      **マジックナンバー** で、Java の生みの親たちのカフェ好きに由来すると言われます。
+      `.class` ファイルの先頭4バイトは必ず16進数で `CA FE BA BE`。JVM が「本当に class ファイルか」を確かめる**マジックナンバー**で、Java の生みの親たちのカフェ好きに由来すると言われます。
 
-      直後には **class ファイルのバージョン** があり、JDK 21 なら `65`。古い Java で実行するとこう怒られます。
+      直後には **class ファイルのバージョン**があり、JDK 21 なら `65`。古い Java で実行するとこう怒られます。
 
       ```text
       java.lang.UnsupportedClassVersionError: Hello has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 61.0
@@ -172,7 +198,7 @@ columns:
     title: 「java -version が 17 のまま」問題
     body: |
       JDK 21 を入れたのに `java -version` が 17 や 1.8 と出る。現場の定番トラブルです。
-      原因はたいてい **Path の中で古い Java が先に見つかっている** こと。昔 Oracle の Java を入れた PC には、
+      原因はたいてい **Path の中で古い Java が先に見つかっている**こと。昔 Oracle の Java を入れた PC には、
       `C:\Program Files\Common Files\Oracle\Java\javapath` が Path の上位に残っていることがあります。
 
       調べ方は `where java`。見つかった順に表示されるので、**1行目が実際に使われる java** です。
@@ -183,19 +209,19 @@ columns:
       C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot\bin\java.exe
       ```
 
-      `%JAVA_HOME%\bin` を上へ移動するか古い Java をアンインストールし、**コマンドプロンプトを開き直して** 再確認しましょう。
+      `%JAVA_HOME%\bin` を上へ移動するか古い Java をアンインストールし、**コマンドプロンプトを開き直して**再確認しましょう。
 
   - type: mistake
     title: JAVA_HOME に bin まで書いてしまう
     body: |
-      `JAVA_HOME` に設定するのは **JDK のフォルダそのもの** で、`bin` の一つ上です。
+      `JAVA_HOME` に設定するのは **JDK のフォルダそのもの**で、`bin` の一つ上です。
 
       - 正:`C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot`
       - 誤:`C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot\bin`
 
       Maven などのツールは `JAVA_HOME` の後ろに `\bin\java.exe` を付け足して探すため、`bin` まで書くと
-      `...\bin\bin\java.exe` を探しに行って「JAVA_HOME が正しく設定されていません」と失敗します。
-      一方 Path 側は `%JAVA_HOME%\bin` と **bin まで** 書くのが正解。「JAVA_HOME は bin なし、Path は bin あり」とセットで覚えましょう。
+      `...\bin\bin\java.exe` を探しに行き、`The JAVA_HOME environment variable is not defined correctly`(JAVA_HOME が正しく設定されていない)と出て失敗します。
+      一方 Path 側は `%JAVA_HOME%\bin` と **bin まで**書くのが正解。「JAVA_HOME は bin なし、Path は bin あり」とセットで覚えましょう。
       設定後は `echo %JAVA_HOME%` で中身を確認し、そのパスに `bin` フォルダがあることをエクスプローラーでも確かめると確実です。
 
 sts:
@@ -212,7 +238,7 @@ sts:
       detail: |
         - **Project name**(プロジェクト名)に `hello-java` と入力
         - **JRE** 欄で **Use an execution environment JRE**(実行環境 JRE の使用)を選び、`JavaSE-21` を選択
-        - **Module** 欄の **Create module-info.java file**(module-info.java ファイルを作成)の **チェックを外す**
+        - **Module** 欄の **Create module-info.java file**(module-info.java ファイルを作成)の**チェックを外す**
 
         モジュール(module-info.java)は大規模開発向けの仕組みで、入門段階では不要です。チェックを入れたままだと余計なファイルができ、後の演習で混乱の元になります。
         JavaSE-21 が一覧に無い場合は、**Window > Preferences > Java > Installed JREs**(ウィンドウ > 設定 > Java > インストール済みの JRE)で、
@@ -227,7 +253,7 @@ sts:
         `src` フォルダを右クリックし、**New > Class**(新規 > クラス)を選びます。
         - **Name**(名前)に `Hello` と入力(ファイル名 `Hello.java` は自動で決まります)
         - **Package**(パッケージ)は空欄のままで OK。「The use of the default package is discouraged.」(デフォルト・パッケージの使用は推奨されません)という警告が出ますが、パッケージは後のレッスンで扱うので今は無視して構いません
-        - **Which method stubs would you like to create?**(どのメソッド・スタブを作成しますか?)で **public static void main(String[] args)** に **チェックを入れる**
+        - **Which method stubs would you like to create?**(どのメソッド・スタブを作成しますか?)で **public static void main(String[] args)** に**チェックを入れる**
 
         **Finish**(完了)を押すと、main メソッド付きの `Hello.java` がエディターに開きます。
     - title: コードを書いて保存する

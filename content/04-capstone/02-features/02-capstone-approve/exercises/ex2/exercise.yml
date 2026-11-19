@@ -15,7 +15,7 @@ problem: |
   どのメソッドも、次の順で処理して、状態を変えた申請を返します。
 
   1. `requests.findById` / `employees.findById` で申請と操作する社員を探す(無ければ `BusinessRuleException`)
-  2. **誰が操作してよいか** をチェックする。違反なら次のメッセージで `BusinessRuleException` を投げる
+  2. **誰が操作してよいか**をチェックする。違反なら次のメッセージで `BusinessRuleException` を投げる
 
      | ルール | メッセージ |
      |---|---|
@@ -24,12 +24,12 @@ problem: |
      | 2 自分の申請を承認しようとした | `自分の申請は承認できません` |
      | 3 10万円以上を ADMIN 以外が承認 | `100,000円以上の申請は管理者しか承認できません` |
 
-     承認のチェックは「役割 → 自分の申請 → 金額」の順です。金額の判定は `ApprovalFlow.requiresAdmin(amount)`(100,000円 **以上** で true、休暇の null は false)を使います。
+     承認のチェックは「役割 → 自分の申請 → 金額」の順です。金額の判定は `ApprovalFlow.requiresAdmin(amount)`(100,000円**以上**で true、休暇の null は false)を使います。
   3. `LocalDateTime now = LocalDateTime.now();` を1回だけ取り、エンティティのメソッドを呼ぶ。
-     状態のルール(ルール4:差戻しはコメント必須、ルール5:承認済・取下げは変更不可)は **エンティティが例外で守る** ので、Service で同じ if を書かない
-  4. 成功したら `histories.save(new ApprovalHistory(r.getId(), actor.id(), action, comment, now))` で **履歴を1件** 残す(ルール6。申請・取下げのコメントは `null`)
+     状態のルール(ルール4:差戻しはコメント必須、ルール5:承認済・取下げは変更不可)は**エンティティが例外で守る**ので、Service で同じ if を書かない
+  4. 成功したら `histories.save(new ApprovalHistory(r.getId(), actor.id(), action, comment, now))` で**履歴を1件**残す(ルール6。申請・取下げのコメントは `null`)
 
-  **ルール違反のときは、状態も履歴も変えない** こと。履歴の保存は、エンティティのメソッドが成功した **後** に書きます。
+  **ルール違反のときは、状態も履歴も変えない**こと。履歴の保存は、エンティティのメソッドが成功した**後**に書きます。
 
   ※ STS では `ApprovalService` は `com.example.approval.service` パッケージに置き、クラスに `@Service` と `@Transactional` を付けます。
   Repository は `com.example.approval.repository` の `JpaRepository` を継承したインターフェース、

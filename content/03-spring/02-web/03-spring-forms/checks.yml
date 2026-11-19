@@ -1,0 +1,51 @@
+- after: Bean Validation で入力ルールを宣言する
+  question: |
+    `a` にも `b` にも `"   "`(空白 3 つ)が入っている。検証でエラーになるのは?
+    ```java
+    @NotBlank String a;
+    @NotEmpty String b;
+    ```
+  choices: ["`a` だけ", "`b` だけ", "両方"]
+  answer: 0
+  why:
+    - ""
+    - "`@NotBlank` と `@NotEmpty` の役目を逆に覚えた答え"
+    - "空白だけなら長さ 0 と同じと読んだ答え"
+  explanation: |
+    `@NotEmpty` が見るのは「`null` でも長さ 0 でもない」ことだけで、空白 3 つは長さ 3 なので通る。`@NotBlank` は空白だけの文字列も NG にする。
+- after: "@Validated と BindingResult"
+  question: |
+    `MemberForm` の `name` には `@NotBlank` が付いている。`name` を空欄にして POST すると?
+    ```java
+    @PostMapping("/members")
+    public String register(@ModelAttribute MemberForm form,
+                           BindingResult result) {
+        if (result.hasErrors()) return "members/form";
+        return "redirect:/members/done";
+    }
+    ```
+  choices:
+    - "検証されず、`/members/done` へリダイレクトされる"
+    - "`hasErrors()` が `true` になり、`members/form` が出る"
+    - "400 Bad Request になる"
+  answer: 0
+  why:
+    - ""
+    - "`BindingResult` を置けば検証されると読んだ答え"
+    - "`@NotBlank` が効いて 400 になると読んだ答え"
+  explanation: |
+    引数に `@Validated`(か `@Valid`)が無いので、`@NotBlank` はただの飾りで検証されない。エラーは 0 件のまま登録処理へ進み、リダイレクトされる。
+- after: エンティティを直接フォームにしない
+  question: |
+    `name`・`email`・`role` を持つエンティティ `Member` を、プロフィール編集の POST で `@ModelAttribute Member member` として直接受けた。画面に `role` の入力欄は無い。誰かが送信に `role=ADMIN` を足すと?
+  choices:
+    - "`role` に `ADMIN` がバインドされる"
+    - "入力欄が無い `role` は無視される"
+    - "想定外のパラメータなので、400 Bad Request になる"
+  answer: 0
+  why:
+    - ""
+    - "バインドが画面の入力欄で決まると読んだ答え。サーバーは、どんな画面から送られたかを知らない"
+    - "想定外のパラメータは拒まれると読んだ答え"
+  explanation: |
+    バインドは届いたパラメータ名とプロパティ名で決まるので、入力欄が無くても `role` は詰められる(マスアサインメント脆弱性)。画面の項目だけを持つフォームクラスで受ければ、`role` は入らない。

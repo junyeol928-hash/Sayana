@@ -2,16 +2,16 @@ id: spring-di
 title: DIとIoCコンテナ
 status: ready
 minutes: 15
-summary: new だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、@Primary / @Qualifier、singleton スコープの落とし穴まで。
+summary: "`new` だらけのコードはなぜつらいのか。依存性注入(DI)を素の Java で体験してから、IoC コンテナが組み立てを肩代わりする仕組み、`@Primary` / `@Qualifier`、singleton スコープの落とし穴まで。"
 goals:
-  - 依存を自分で new するコードの問題点(テストしにくい・差し替えられない)を説明できる
+  - 依存を自分で `new` するコードの問題点(テストしにくい・差し替えられない)を説明できる
   - 素の Java でコンストラクタに依存を渡す「手動 DI」を書ける
-  - "@Component 系のアノテーションと @Configuration + @Bean で Bean を登録し、AnnotationConfigApplicationContext から取り出せる"
+  - "`@Component` 系のアノテーションと `@Configuration` + `@Bean` で Bean を登録し、`AnnotationConfigApplicationContext` から取り出せる"
   - コンストラクタインジェクションが推奨される理由を、フィールドインジェクションと比べて説明できる
-  - "同じ型の Bean が複数あるときに @Primary / @Qualifier で選べ、Bean が singleton であることの注意点を説明できる"
+  - "同じ型の Bean が複数あるときに `@Primary` / `@Qualifier` で選べ、Bean が singleton であることの注意点を説明できる"
 samples:
   - title: 手動 DI とコンテナ DI を見比べる
-    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。コンテナもコンストラクタを呼んでいることが出力で分かります。
+    description: 同じ `OrderService` を、①自分で `new` して組み立てる方法と、②IoC コンテナに任せる方法で動かします。② のコンテナ版でも、コンストラクタは呼ばれるだろうか。2 回目の `getBean` は同じものを返すだろうか。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -59,7 +59,7 @@ samples:
               + (s == ctx.getBean(OrderService.class)));
       ctx.close();
   - title: "@Configuration + @Bean と、@Primary / @Qualifier"
-    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`@Bean` の Bean 名はメソッド名です。
+    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの `Notifier` が入るだろうか。最後の行には、どの Bean 名が出るだろうか。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.annotation.*;
@@ -123,7 +123,7 @@ samples:
               + ctx.getBeansOfType(Notifier.class).keySet());
       ctx.close();
   - title: singleton の Bean に状態を持たせると事故る
-    description: Bean は既定で singleton(コンテナに1個)。フィールドに合計金額を持つと、別のユーザーの分まで足されてしまいます。`@Scope("prototype")` を付けると毎回別インスタンスになることも確かめましょう。
+    description: フィールドに合計金額を持つ `BadCartService` を、ハルとモカが別々に `getBean` して使います。見終わったら `@Scope("prototype")` を付けて、出力がどう変わるかも確かめよう。2 つは同じインスタンスだろうか。ハルの 2 回目の合計はいくらになるだろうか。
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.*;
@@ -180,11 +180,15 @@ quiz:
           }
       }
       ```
-    choices: ["@Autowired が効いて MailSender が自動で入り、正常に動く", "コンパイルエラーになる", "mail が null のままなので NullPointerException になる", "NoSuchBeanDefinitionException になる"]
+    choices: ["`@Autowired` が効いて `MailSender` が自動で入り、正常に動く", "コンパイルエラーになる", "`mail` が `null` で `NullPointerException` になる", "`NoSuchBeanDefinitionException` になる"]
     answer: 2
+    why:
+      - "`@Autowired` を書けば値が入ると読んだ答え。入れるのはコンテナで、自分で `new` すると `null` のまま"
+      - "フィールドが未初期化だとコンパイルが止まると読んだ答え。フィールドは `null` で始まり、コンパイルは通る"
+      - ""
+      - "コンテナが Bean を探して失敗すると読んだ答え。自分で `new` したのでコンテナは関わらない"
     explanation: |
-      `@Autowired` で値を入れるのは **IoC コンテナ** です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
-      コンパイルは問題なく通ります。`NoSuchBeanDefinitionException` はコンテナが Bean を探して見つからなかったときの例外で、コンテナを使っていないここでは出ません。
+      `@Autowired` で値を入れるのは **IoC コンテナ**です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
       コンストラクタインジェクションにしておけば、`new OrderService(偽物)` と依存を渡すしかないので、この事故は起きません。
   - question: |
       次の3クラスを `new AnnotationConfigApplicationContext(Smtp.class, Log.class, Shop.class)` で登録しました。どうなる?
@@ -202,10 +206,15 @@ quiz:
           Shop(Sender sender) { }
       }
       ```
-    choices: ["NoUniqueBeanDefinitionException(候補が2つ)で起動に失敗する", "先に登録した Smtp が注入される", "後に登録した Log が注入される", "sender に null が渡される"]
+    choices: ["`Shop` が作れず、起動に失敗する", "先に登録した `Smtp` が注入される", "後に登録した `Log` が注入される", "`sender` に `null` が渡される"]
     answer: 0
+    why:
+      - ""
+      - "登録した順で、先の Bean が選ばれると読んだ答え"
+      - "後から登録した Bean が前のものを上書きすると読んだ答え"
+      - "合う Bean を決められないと `null` が入ると読んだ答え。`null` にはせず、例外で起動に失敗する"
     explanation: |
-      `Sender` 型の Bean が2つあり、どちらを渡すべきかコンテナには決められないので、`expected single matching bean but found 2: smtp,log` というエラーで起動に失敗します。登録順で勝手に選ばれることはありません。
+      `Sender` 型の Bean が2つあり、どちらを渡すべきかコンテナには決められないので、`expected single matching bean but found 2: smtp,log` というエラー(`NoUniqueBeanDefinitionException`)で起動に失敗します。登録順で勝手に選ばれることはありません。
       解決するには、どちらかに `@Primary` を付けるか、`Shop` のコンストラクタ引数に `@Qualifier("smtp")` のように Bean 名を指定します。
   - question: |
       次のコードの出力は?
@@ -223,11 +232,16 @@ quiz:
       b.next();
       System.out.println(a.next() + " " + (a == b));
       ```
-    choices: ["2 false", "1 false", "2 true", "3 true"]
+    choices: ["`2 false`", "`1 false`", "`2 true`", "`3 true`"]
     answer: 3
+    why:
+      - "`getBean` のたびに新しいインスタンスができると読んだ答え。既定は singleton で `a` と `b` は同じ"
+      - "呼ぶたびに `count` が 0 から始まると読んだ答え。`count` は残り、`a` と `b` は同じなので 3 まで進む"
+      - "`a` と `b` が同じとは読めたが、`b.next()` の分を数え落とした答え。同じ `count` を3回増やすので 3"
+      - ""
     explanation: |
       Bean の既定スコープは **singleton** なので、`getBean` は何度呼んでも同じインスタンスを返します。`a` と `b` は同じオブジェクトで `a == b` は `true`。
-      `a.next()`(1)→ `b.next()`(2、同じ count を増やす)→ `a.next()`(3)なので `3 true` です。
+      `a.next()`(1)→ `b.next()`(2、同じ `count` を増やす)→ `a.next()`(3)なので `3 true` です。
       `@Scope("prototype")` を付けると毎回新しいインスタンスになり、`2 false` になります。Web アプリでこの「共有される状態」を持つと、他のユーザーのデータが混ざる事故になります。
   - question: |
       次の設定で、`AuditService` に注入されるのはどれ?
@@ -243,23 +257,33 @@ quiz:
           AuditService(@Qualifier("logSender") Sender sender) { ... }
       }
       ```
-    choices: ["SmtpSender(@Primary が最優先)", "LogSender(@Qualifier の指定が優先)", "候補が2つなので起動エラー", "両方が List で渡される"]
+    choices: ["`SmtpSender`(`@Primary` が最優先)", "`LogSender`(`@Qualifier` が優先)", "候補が2つなので起動エラー", "両方が `List` で渡される"]
     answer: 1
+    why:
+      - "`@Primary` が `@Qualifier` より強いと読んだ答え。`@Qualifier` で先に1つに絞られ、`@Primary` の出番はない"
+      - ""
+      - "`@Qualifier` があっても候補が2つ残ると読んだ答え。名前で1つに絞られるので起動する"
+      - "候補が複数あるとまとめて渡ると読んだ答え。まとめて受けるのは引数の型を `List<Sender>` にしたとき"
     explanation: |
       `@Qualifier` は注入する側で「この名前の Bean をくれ」と指定するもので、まず候補をその名前に絞り込みます。`@Primary` は「候補が複数残ったときの既定」なので、`@Qualifier` で1つに絞られた時点で出番はありません。よって `LogSender` です。
       `@Qualifier` が無い引数には `@Primary` の `SmtpSender` が入ります。複数まとめて欲しいときは、引数の型を `List<Sender>` や `Map<String, Sender>` にします。
   - question: |
       ライブラリが提供している `JsonMapper` クラス(ソースは変更できない)を、設定値を渡して作り、Bean として登録したい。最も適切な方法は?
-    choices: ["JsonMapper クラスに @Component を付ける", "使う側のフィールドに @Autowired を付ければ自動で作られる", "@Configuration クラスに、JsonMapper を new して返す @Bean メソッドを書く", "使う側のコンストラクタの中で new JsonMapper(...) する"]
+    choices: ["`JsonMapper` クラスに `@Component` を付ける", "使う側のフィールドに `@Autowired` を付ければ自動で作られる", "`@Configuration` の中の `@Bean` メソッドで `new` して返す", "使う側のコンストラクタの中で `new JsonMapper(...)` する"]
     answer: 2
+    why:
+      - "自分のクラスと同じく `@Component` を付ければよいと読んだ答え。ソースを変えられないので付けられない"
+      - "`@Autowired` が Bean を作ってくれると読んだ答え。登録済みの Bean を入れるだけで、無ければ例外"
+      - ""
+      - "使う側で作れば Bean になると読んだ答え。`new` しても Bean にはならず、`new` だらけの形に戻る"
     explanation: |
       ソースを変更できないクラスにはアノテーションを付けられません。`@Configuration` クラスの `@Bean` メソッドで `new` して返せば、その戻り値が Bean になります。設定値を渡すなど、作り方を自由に書けるのも利点です。
-      `@Autowired` は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(`NoSuchBeanDefinitionException`)。使う側で `new` するのは、まさに DI をやめて元の「new だらけ」に戻る書き方です。
+      `@Autowired` は「既に登録された Bean を注入する」だけで、登録されていない型は作ってくれません(起動時に `UnsatisfiedDependencyException` で止まり、原因に `NoSuchBeanDefinitionException` と出ます)。使う側で `new` するのは、まさに DI をやめて元の「`new` だらけ」に戻る書き方です。
 columns:
   - type: trivia
     title: IoC は「ハリウッドの原則」
     body: |
-      IoC(制御の反転)は、昔から **ハリウッドの原則**(Hollywood Principle)とも呼ばれます。オーディションに来た役者に言う決まり文句「Don't call us, we'll call you.(こちらから電話するから、そっちからはかけてこないで)」が由来です。
+      IoC(制御の反転)は、昔から**ハリウッドの原則**(Hollywood Principle)とも呼ばれます。オーディションに来た役者に言う決まり文句「Don't call us, we'll call you.(こちらから電話するから、そっちからはかけてこないで)」が由来です。
 
       普通のプログラムは「自分が」ライブラリを呼びます。フレームワークでは逆に「フレームワークが」あなたのコードを呼びます。JUnit もそうで、あなたは `@Test` メソッドを書くだけ。いつ `new` して、いつ呼ぶかは JUnit が決めています。
 
@@ -278,7 +302,7 @@ columns:
       }
       ```
 
-      コンパイル時にコンストラクタが生成されるので、中身は普通のコンストラクタインジェクションです。ただし「依存が増えても見た目が増えない」ので、気づいたら依存が10個…ということも。コンストラクタの引数が多すぎるのは **クラスが仕事を抱えすぎているサイン** です。Lombok を使っても、その感覚は持っておきましょう。
+      コンパイル時にコンストラクタが生成されるので、中身は普通のコンストラクタインジェクションです。ただし「依存が増えても見た目が増えない」ので、気づいたら依存が10個…ということも。コンストラクタの引数が多すぎるのは**クラスが仕事を抱えすぎているサイン**です。Lombok を使っても、その感覚は持っておきましょう。
   - type: mistake
     title: 「Bean が見つからない」で最初に確かめる 3 点
     body: |
@@ -300,6 +324,7 @@ sts:
   intro: |
     STS で Spring Boot のプロジェクトを作り、`@Service` と `CommandLineRunner` で DI を体験します。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    STS のウィザード(裏は start.spring.io)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
     `CommandLineRunner` は「アプリの起動が終わった直後に1回だけ実行される処理」を書くためのインターフェースです(詳しくは次のレッスン)。
   steps:
     - title: Spring Starter Project を作る
@@ -311,7 +336,7 @@ sts:
         - **Group**(グループ):`com.example`、**Artifact**(成果物):`di-demo`
         - **Package**(パッケージ):`com.example.didemo`
 
-        **Next**(次へ)を押すと依存関係(**Dependencies**)の選択画面になります。今回は **何も選ばず** に **Finish**(完了)。
+        **Next**(次へ)を押すと依存関係(**Dependencies**)の選択画面になります。今回は**何も選ばず**に **Finish**(完了)。
         初回は Maven が依存ライブラリをダウンロードするので、右下の進捗表示が消えるまで1〜2分待ちます。
         **Package Explorer**(パッケージ・エクスプローラー)に `di-demo` と `src/main/java` の下の `DiDemoApplication.java` が見えれば成功です。
     - title: インターフェースと @Service の実装クラスを作る

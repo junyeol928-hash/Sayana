@@ -20,18 +20,23 @@
     }
   question: "呼ばれるメソッドの順と、最終的な応答は?"
   choices:
-    - "issue → existsByCardIdAndStatus(true) → 例外 → 409"
-    - "issue → existsByCardIdAndStatus(false) → save → 201 + KeyIssueResponse"
-    - "issue → save → existsByCardIdAndStatus → 200"
+    - "`issue` → `existsByCardIdAndStatus(true)` → 例外 → 409"
+    - "`issue` → `existsByCardIdAndStatus(false)` → `save` → 201"
+    - "`issue` → `save` → `existsByCardIdAndStatus` → 200 + `KeyIssueResponse`"
     - "バリデーションで弾かれて 400"
   answer: 1
-  explanation: "cardId・keyVersion とも制約を満たすので @Valid は通過します。C100 に ACTIVE な鍵がまだないため existsByCardIdAndStatus は false を返し、if の中には入らず save が実行され、201 + KeyIssueResponse が返ります。"
+  why:
+    - "`C100` に有効な鍵があると読んだ答え。まだ無いので `false` が返り、`save` に進む"
+    - ""
+    - "保存してから重複を調べると読んだ答え。先に `exists` で調べ、成功時は `HttpStatus.CREATED` の 201"
+    - "入力が制約に違反すると読んだ答え。`cardId` は空でなく `keyVersion` は範囲内で、`@Valid` を通る"
+  explanation: "`cardId`・`keyVersion` とも制約を満たすので `@Valid` は通過します。`C100` に `ACTIVE` な鍵がまだないため `existsByCardIdAndStatus` は `false` を返し、`if` の中には入らず `save` が実行され、201 + `KeyIssueResponse` が返ります。"
   trace:
-    - "@Valid: cardId=\"C100\"(空でない)、keyVersion=1(1〜255の範囲内)→ 制約OK"
-    - "issue が呼ばれ、existsByCardIdAndStatus(\"C100\",\"ACTIVE\") → 該当なしなので false"
-    - "if (false) なので例外は投げられず、次に進む"
-    - "save が実行され、KeyEntity が保存される"
-    - "KeyIssueResponse が組み立てられ、Controller が 201 + そのオブジェクトを返す"
+    - "`@Valid`: `cardId = \"C100\"`(空でない)、`keyVersion = 1`(1〜255の範囲内)→ 制約OK"
+    - "`issue` が呼ばれ、`existsByCardIdAndStatus(\"C100\",\"ACTIVE\")` → 該当なしなので `false`"
+    - "`if (false)` なので例外は投げられず、次に進む"
+    - "`save` が実行され、`KeyEntity` が保存される"
+    - "`KeyIssueResponse` が組み立てられ、Controller が 201 + そのオブジェクトを返す"
 - title: "異常系:重複がある場合"
   level: 2
   code: |
@@ -56,18 +61,23 @@
     }
   question: "最終的な応答は?"
   choices:
-    - "201 + KeyIssueResponse"
+    - "201 + `KeyIssueResponse`"
     - "500 + 何もなし"
-    - "409 + ErrorResponse(\"E409\", ...)"
-    - "issueが2回呼ばれて201が返る"
+    - "409 + `ErrorResponse(\"E409\", ...)`"
+    - "`issue` が2回呼ばれて201が返る"
   answer: 2
-  explanation: "既に ACTIVE な鍵があるので existsByCardIdAndStatus は true を返し、if の中で KeyAlreadyExistsException が投げられます。save は実行されず、この例外は @RestControllerAdvice の handleDuplicate に届き、409 + ErrorResponse が返ります。"
+  why:
+    - "重複の判定(`existsByCardIdAndStatus`)を見落とした答え"
+    - "例外を誰も受けず、500 になると読んだ答え"
+    - ""
+    - "例外のあと処理がやり直されると読んだ答え。やり直しの仕組みは無い"
+  explanation: "既に `ACTIVE` な鍵があるので `existsByCardIdAndStatus` は `true` を返し、`if` の中で `KeyAlreadyExistsException` が投げられます。`save` は実行されず、この例外は `@RestControllerAdvice` の `handleDuplicate` に届き、409 + `ErrorResponse` が返ります。"
   trace:
-    - "existsByCardIdAndStatus(\"C001\",\"ACTIVE\") → 該当ありなので true"
-    - "if (true) → KeyAlreadyExistsException(\"C001\") が投げられる"
-    - "5〜9行目の save 以降は実行されない"
-    - "例外は Controller を素通りし、handleDuplicate が受け取る"
-    - "handleDuplicate が 409 + ErrorResponse(\"E409\", メッセージ) を返す"
+    - "`existsByCardIdAndStatus(\"C001\",\"ACTIVE\")` → 該当ありなので `true`"
+    - "`if (true)` → `KeyAlreadyExistsException(\"C001\")` が投げられる"
+    - "8〜10行目の `save` 以降は実行されない"
+    - "例外は Controller を素通りし、`handleDuplicate` が受け取る"
+    - "`handleDuplicate` が 409 + `ErrorResponse(\"E409\", メッセージ)` を返す"
 - title: "バリデーションで弾かれる場合"
   level: 1
   code: |
@@ -85,19 +95,24 @@
     public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
     }
-  question: "keyIssueService.issue(...) は呼ばれる?"
+  question: "`keyIssueService.issue(...)` は呼ばれる?"
   choices:
     - "呼ばれ、201が返る"
-    - "呼ばれない。@Valid の時点で弾かれ、issue メソッドの中身は実行されない"
-    - "呼ばれるが、cardId が null に置き換わって処理される"
+    - "呼ばれない"
+    - "呼ばれるが、`cardId` が `null` に置き換わって処理される"
     - "呼ばれるが、例外がその場でもみ消される"
   answer: 1
-  explanation: "cardId が空文字なので @NotBlank に違反し、@Valid のチェックで MethodArgumentNotValidException が発生します。issue メソッド(11行目)の中には一度も入らず、@RestControllerAdvice 側の対応するハンドラ(この例では図示していないが400を返すハンドラ)が応答します。"
+  why:
+    - "空文字でも通ると読んだ答え。`@NotBlank` は空文字を違反とし、本体に入る前に止まる"
+    - ""
+    - "違反した値が `null` に直されると読んだ答え。値は直されず、`@Valid` で止まって 400"
+    - "検証の例外がその場で消えると読んだ答え"
+  explanation: "`cardId` が空文字なので `@NotBlank` に違反し、`@Valid` のチェックで `MethodArgumentNotValidException` が発生します。`issue` メソッド(12〜14行目)の中には一度も入らず、400 が返ります。ハンドラが無くても Spring の既定で 400 になり、項目ごとのメッセージを返したいときに `@RestControllerAdvice` でハンドラを書きます。"
   trace:
-    - "リクエストボディが KeyIssueRequest に変換される。cardId=\"\""
-    - "@Valid が @NotBlank をチェック → 空文字なので違反"
-    - "MethodArgumentNotValidException が投げられ、issue(11〜12行目)のメソッド本体には入らない"
-    - "対応する @ExceptionHandler(この例では未掲載)が400系の応答を返す"
+    - "リクエストボディが `KeyIssueRequest` に変換される。`cardId = \"\"`"
+    - "`@Valid` が `@NotBlank` をチェック → 空文字なので違反"
+    - "`MethodArgumentNotValidException` が投げられ、`issue`(12〜14行目)のメソッド本体には入らない"
+    - "ハンドラが無くても Spring の既定で 400 になる(項目ごとの中身を返すなら `@ExceptionHandler` を書く)"
 - title: "Repository の継承元まで確認する"
   level: 2
   code: |
@@ -110,19 +125,24 @@
         return keyRepository.findById(keyId)
             .orElseThrow(() -> new KeyNotFoundException(keyId));
     }
-  question: "`findById` は KeyRepository のどこで定義されている?"
+  question: "`findById` は `KeyRepository` のどこで定義されている?"
   choices:
-    - "KeyRepository インターフェースの2行目"
-    - "KeyRepository インターフェースには書かれておらず、継承元の JpaRepository から来ている"
+    - "`KeyRepository` インターフェースの2行目"
+    - "継承元の `JpaRepository`"
     - "Service クラスの中で定義されている"
     - "存在しないのでコンパイルエラーになる"
   answer: 1
-  explanation: "KeyRepository インターフェースの中には existsByCardIdAndStatus しか宣言されていません。findById は継承元の JpaRepository が持つ基本 CRUD の1つで、extends の先まで確認しないと見つかりません。"
+  why:
+    - "`KeyRepository` の2行目に書いてあると読んだ答え。2行目は別のメソッド"
+    - ""
+    - "呼んでいる Service に定義があると読んだ答え"
+    - "見当たらないので無いと読んだ答え。コンパイルは通る"
+  explanation: "`KeyRepository` インターフェースの中には `existsByCardIdAndStatus` しか宣言されていません。`findById` は継承元が持つ基本 CRUD の1つで、`JpaRepository` のさらに親の `CrudRepository` が宣言しています。`extends` の先までたどらないと見つかりません。"
   trace:
-    - "1行目: KeyRepository は JpaRepository<KeyEntity, Long> を継承している"
-    - "2行目: このインターフェース自身が宣言しているのは existsByCardIdAndStatus だけ"
-    - "7行目: findById が呼ばれているが、KeyRepository 自身には定義がない"
-    - "継承元の JpaRepository まで確認すると、findById(ID) が Optional<Entity> を返すメソッドとして定義されている"
+    - "1行目: `KeyRepository` は `JpaRepository<KeyEntity, Long>` を継承している"
+    - "2行目: このインターフェース自身が宣言しているのは `existsByCardIdAndStatus` だけ"
+    - "7行目: `findById` が呼ばれているが、`KeyRepository` 自身には定義がない"
+    - "継承元の `JpaRepository` をたどると、その親の `CrudRepository` に `findById(ID)` が `Optional<T>` を返すメソッドとして宣言されている"
 - title: "@Transactional の範囲を追う"
   level: 3
   code: |
@@ -136,16 +156,21 @@
         notifyAsync(saved);  // 別スレッドで通知を送るだけの、@Transactional の付いていないメソッド
         return new KeyIssueResponse(saved.getKeyId().toString(), saved.getStatus());
     }
-  question: "@Transactional の範囲に含まれる処理は?"
+  question: "`@Transactional` の範囲に含まれる処理は?"
   choices:
-    - "issue メソッドと notifyAsync メソッドの両方"
-    - "issue メソッドの中身だけ(notifyAsync は別スレッドなので範囲外)"
+    - "`issue` メソッドと `notifyAsync` メソッドの両方"
+    - "`issue` メソッドの中身だけ"
     - "アプリ全体のすべての処理"
-    - "save のみ"
+    - "`save` のみ"
   answer: 1
-  explanation: "@Transactional はメソッド単位で範囲が決まり、issue メソッドの開始から終了まで(8行目の return まで)が対象です。notifyAsync が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
+  why:
+    - "中で呼んだメソッドなら、別スレッドでも同じトランザクションと読んだ答え"
+    - ""
+    - "`@Transactional` がアプリ全体に効くと読んだ答え。範囲はメソッド単位で、`issue` の開始から終了まで"
+    - "DB を書く行だけが範囲と読んだ答え。範囲はメソッド単位で、`exists` の確認も含む"
+  explanation: "`@Transactional` はメソッド単位で範囲が決まり、`issue` メソッドの開始から終了まで(9行目の `return` まで)が対象です。`notifyAsync` が別スレッドで動く処理であれば、そのスレッドの処理は元のトランザクションの外側で動くため、範囲には含まれません。"
   trace:
-    - "1行目: @Transactional の範囲は issue メソッドの本体(2〜9行目)"
-    - "3〜7行目: existsByCardIdAndStatus と save は同じトランザクション内"
-    - "8行目: notifyAsync は別スレッドで動くため、issue のトランザクションの外側で実行される"
-    - "9行目: return でメソッドが正常終了 → ここまでの変更(save)がコミットされる"
+    - "1行目: `@Transactional` の範囲は `issue` メソッドの本体(3〜9行目)"
+    - "3〜7行目: `existsByCardIdAndStatus` と `save` は同じトランザクション内"
+    - "8行目: `notifyAsync` は別スレッドで動くため、`issue` のトランザクションの外側で実行される"
+    - "9行目: `return` でメソッドが正常終了 → ここまでの変更(`save`)がコミットされる"

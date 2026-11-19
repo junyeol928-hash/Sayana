@@ -3,11 +3,11 @@ className: DeptRoster
 difficulty: 3
 problem: |
   人事システムから取り込んだ社員データ `List<Employee>` から、部署ごとの名簿を作ります。
-  取り込みミスで **同じ社員が二重に入っている** ことがあるので、それも取り除きます。
+  取り込みミスで**同じ社員が二重に入っている**ことがあるので、それも取り除きます。
 
   ### 1. `Employee` の `equals` と `hashCode`
   `Employee` は社員番号 `id`・氏名 `name`・部署 `dept` を持つクラスです(雛形に用意済み)。
-  **社員番号が同じなら同じ社員** とみなすように、`equals` と `hashCode` をオーバーライドしてください。
+  **社員番号が同じなら同じ社員**とみなすように、`equals` と `hashCode` をオーバーライドしてください。
 
   - 氏名や部署が違っても、`id` が同じなら `equals` は `true`(異動・改姓があってもその人はその人)
   - `equals` が `true` になる2つは、`hashCode` も必ず同じ値にする
@@ -16,8 +16,8 @@ problem: |
   ### 2. `Map<String, List<String>> groupByDept(List<Employee> employees)`
   部署名 → その部署の社員の氏名リスト、の Map を返します。
 
-  - 部署は **最初に出てきた順**、氏名もリストに **出てきた順** に並べる(`LinkedHashMap` を使う)
-  - 同じ社員(`equals` が `true`)が2回以上出てきたら、**最初の1件だけ** を使う
+  - 部署は**最初に出てきた順**、氏名もリストに**出てきた順**に並べる(`LinkedHashMap` を使う)
+  - 同じ社員(`equals` が `true`)が2回以上出てきたら、**最初の1件だけ**を使う
   - `employees` が空なら空の Map を返す
 
   ```text

@@ -2,19 +2,19 @@ id: capstone-api-test
 title: REST APIとテスト
 status: ready
 minutes: 15
-summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を ProblemDetail で返し分け、@WebMvcTest + @MockitoBean とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
+summary: 承認くんに REST API(一覧・詳細・承認)を足す。record の DTO で返し、404 / 409 / 403 を `ProblemDetail` で返し分け、`@WebMvcTest` + `@MockitoBean` とテーブル駆動の単体テストで約束を固めて、全テストを緑にする。
 goals:
-  - 承認くんの REST API(GET /api/requests?status=、GET /api/requests/{id}、POST /api/requests/{id}/approve)を Controller に実装できる
-  - エンティティではなく record の DTO(RequestSummary / RequestDetail)を返す理由を説明し、用途ごとに DTO を分けられる
-  - "404(ない)・409(今の状態ではできない)・403(権限がない)を区別し、BusinessRuleException を @ExceptionHandler で 409 の ProblemDetail にできる"
-  - "@WebMvcTest + @MockitoBean で Controller を、@ParameterizedTest のテーブル駆動テストで業務ルールを確かめられる"
-  - テストピラミッドの考え方で @SpringBootTest を少数に絞り、STS で全テストを流して緑にできる
+  - 承認くんの REST API(`GET /api/requests?status=`、`GET /api/requests/{id}`、`POST /api/requests/{id}/approve`)を Controller に実装できる
+  - エンティティではなく record の DTO(`RequestSummary` / `RequestDetail`)を返す理由を説明し、用途ごとに DTO を分けられる
+  - "404(ない)・409(今の状態ではできない)・403(権限がない)を区別し、`BusinessRuleException` を `@ExceptionHandler` で 409 の `ProblemDetail` にできる"
+  - "`@WebMvcTest` + `@MockitoBean` で Controller を、`@ParameterizedTest` のテーブル駆動テストで業務ルールを確かめられる"
+  - テストピラミッドの考え方で `@SpringBootTest` を少数に絞り、STS で全テストを流して緑にできる
 samples:
   - title: エンティティをそのまま JSON にすると何が出る?
     libraries: [spring]
     description: |
       Jackson(Spring MVC が JSON 変換に使うライブラリ)で、エンティティ風のクラスと DTO の record を JSON にして比べます。
-      エンティティのほうは、関連先の `Employee` の **email や role まで** 出てしまいます。
+      エンティティのほうの JSON には、関連先の `Employee` のどの項目まで入る?
     code: |
       // エンティティをそのまま JSON にすると何が出る? DTO なら?
       // ここを変えてみよう:Employee に password 項目を足す /
@@ -50,9 +50,8 @@ samples:
   - title: 承認 API を MockMvc で叩いて 200 / 409 / 404 を見る
     libraries: [spring]
     description: |
-      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。同じ申請を2回承認すると2回目は 409、存在しない ID は 404 になり、
-      どちらも `application/problem+json`(ProblemDetail)で返ります。`onRule` の `@ExceptionHandler` を消すと、例外が Controller の外まで飛び出す様子も見られます。
-      最初に Hibernate Validator のログが出ることがありますが、無視して構いません。
+      Web サーバーは起動せず、Spring MVC の仕組みだけで承認 API を呼びます。最初に Hibernate Validator のログが出ることがありますが、無視して構いません。見終わったら `onRule` の `@ExceptionHandler` を消して、2回目の承認がどうなるかも試しましょう。
+      申請 1 を2回、存在しない 99 を1回承認したとき、ステータスと Content-Type はそれぞれ何になる?
     code: |
       // 承認 API を MockMvc で叩く:200 / 409 / 404 を見比べる
       // ここを変えてみよう:ids の中身を変える・
@@ -153,12 +152,16 @@ quiz:
           return pd;
       }
       ```
-    choices: ["200 と application/json(本文は承認済の申請の詳細)", "409 と application/problem+json(detail に例外のメッセージ)", "500 と text/html(エラーページ)", "400 と application/json(本文なし)"]
+    choices: ["200 と `application/json`(本文は承認済の申請の詳細)", "409 と `application/problem+json`(`detail` に例外のメッセージ)", "500 と `text/html`(エラーページ)", "400 と `application/json`(本文なし)"]
     answer: 1
+    why:
+      - "例外が無視されると読んだ答え。例外で承認そのものが止まっている"
+      - ""
+      - "ハンドラが無いときの動きと取り違えた答え。500 になるのは例外が外まで出たとき"
+      - "業務ルール違反を 400 と読んだ答え。400 はリクエストの形が変なときに使う"
     explanation: |
       Controller の中で投げられた `BusinessRuleException` は、同じ Controller の `@ExceptionHandler(BusinessRuleException.class)` が受け取ります。
       `ProblemDetail` を返すと、ステータスは `ProblemDetail` の `status`(ここでは `CONFLICT` = 409)になり、Content-Type は `application/problem+json` になります。
-      ハンドラがなければ例外は外まで飛び出し、Spring Boot では 500 になります。400 は「リクエストの形が変」なときのコードで、状態による失敗には使いません。
   - question: |
       次のテストを実行したら、テストメソッドに入る前にエラーで止まりました。原因は?
       ```java
@@ -179,10 +182,14 @@ quiz:
       (`RequestApiController` のコンストラクタは `RequestQueryService` と `ApprovalService` を受け取る)
     choices: ["@WithMockUser の roles に ROLE_ を付けていない", "MockMvc は @Autowired できない", "get が MockMvcRequestBuilders ではなく別クラスの get になっている", "ApprovalService の Bean がなく、Controller を作れない"]
     answer: 3
+    why:
+      - "`roles` に `ROLE_` が要ると読んだ答え。自動で付くので、付けるとむしろエラー"
+      - "MockMvc は注入できないと読んだ答え。`@WebMvcTest` が用意するので `@Autowired` できる"
+      - "`import` の取り違えと読んだ答え。テストに入る前に止まるのは Bean が足りないから"
+      - ""
     explanation: |
-      `@WebMvcTest` は Controller などの Web 層の Bean **だけ** を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
+      `@WebMvcTest` は Controller などの Web 層の Bean **だけ**を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
       Controller のコンストラクタに渡すものがなく `No qualifying bean of type '...ApprovalService'` でコンテキストの起動に失敗します。`@MockitoBean ApprovalService approvalService;` を足せば直ります。
-      `@WithMockUser(roles = "APPROVER")` は自動で `ROLE_` を付けてくれるので正しい書き方です(`ROLE_` を付けるとむしろエラー)。MockMvc は `@WebMvcTest` が用意するので `@Autowired` できます。
   - question: |
       `list` が次のように書かれています。`GET /api/requests?status=submitted` を送ると、どうなる?
       ```java
@@ -194,19 +201,28 @@ quiz:
                   .map(RequestSummary::from).toList();
       }
       ```
-    choices: ["400 Bad Request になる", "status が null として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
+    choices: ["400 Bad Request になる", "status が `null` として扱われ、全件が返る", "SUBMITTED に変換され、申請中の申請が返る", "500 Internal Server Error になる"]
     answer: 0
+    why:
+      - ""
+      - "変換できない値は `null` になると読んだ答え。`required = false` は無いときに `null` にするだけ"
+      - "大文字小文字を無視して変換されると読んだ答え。`enum` への変換は区別する"
+      - "変換の失敗をサーバーの異常と読んだ答え。リクエストの形が変として 400 になる"
     explanation: |
-      文字列から enum への変換は `RequestStatus.valueOf` と同じく **大文字小文字を区別** します。`submitted` という定数はないので変換に失敗し、
-      Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。`required = false` は「パラメータが無いとき」に null にするだけで、変換に失敗した値を null にはしません。
-      Controller のコードまで届かないので 500 にもなりません。API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
+      文字列から `enum` への変換は `RequestStatus.valueOf` と同じく**大文字小文字を区別**します。`submitted` という定数はないので変換に失敗し、
+      Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。
+      API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
   - question: |
       業務ルール3「100,000円以上の承認は ADMIN だけ」の境界(99,999円と100,000円)を確かめるテストを足したい。テストピラミッドの考え方で、最もふさわしい場所は?
     choices: ["@SpringBootTest で H2 に申請を入れ、MockMvc で承認 API を呼ぶテスト", "@WebMvcTest で、ApprovalService を @MockitoBean にした Controller のテスト", "ApprovalService の単体テスト(テーブル駆動)に行を足す", "テストは書かず、リリース前にブラウザで手で確かめる"]
     answer: 2
+    why:
+      - "全体を通すテストが一番と読んだ答え。確かめられるが遅く、ルールの組み合わせは単体テストで回す"
+      - "Controller のテストでルールを確かめると読んだ答え。仕込んだ偽物の動きを確かめるだけになる"
+      - ""
+      - "手の確認で足りると読んだ答え。毎回はやらなくなるので、境界の守りにならない"
     explanation: |
-      金額と役割の組み合わせは **業務ルール** なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
-      `@WebMvcTest` では Service が偽物なので、ルールそのものは確かめられません(仕込んだ偽物の動きを確かめるだけになります)。`@SpringBootTest` でも確かめられますが遅く、組み合わせを増やすほど全体が重くなります。手での確認は毎回はやらなくなるので、境界の守りにはなりません。
+      金額と役割の組み合わせは**業務ルール**なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
   - question: |
       承認くんの方針(業務ルール違反は 409、ロールでの門前払いは Spring Security)どおりの組み合わせはどれ?
       - (ア)存在しない申請 99 番を承認しようとした
@@ -214,9 +230,14 @@ quiz:
       - (ウ)APPLICANT(申請者)ロールの社員が `GET /api/requests` を呼んだ(`/api/**` は APPROVER・ADMIN だけ)
     choices: ["ア 409 / イ 404 / ウ 403", "ア 404 / イ 409 / ウ 403", "ア 404 / イ 400 / ウ 401", "ア 400 / イ 409 / ウ 404"]
     answer: 1
+    why:
+      - "404 と 409 を逆に読んだ答え。申請が無いのは 404、状態で断るのは 409"
+      - ""
+      - "状態の失敗を 400、権限不足を 401 と読んだ答え。正しくは 409 と 403"
+      - "存在しない申請を 400、権限不足を 404 と読んだ答え。正しくは 404 と 403"
     explanation: |
       (ア)は「その申請がない」ので **404**(`RequestNotFoundException`)。(イ)は申請はあるが「今の状態ではできない」ので **409**(`BusinessRuleException`)。(ウ)はログインはしているがロールが足りないので **403** Forbidden です。
-      401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(enum に変換できない値など)に使います。
+      401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(`enum` に変換できない値など)に使います。
 columns:
   - type: mistake
     title: エンティティを返したら、JSON が終わらなくなった
@@ -235,7 +256,7 @@ columns:
       (1000, from `StreamWriteConstraints.getMaxNestingDepth()`)
       ```
 
-      (古い Jackson では `StackOverflowError`。)`@JsonIgnore` を付けて回るのは対症療法です。**API は DTO を返す** と決めておけば、エンティティに関連を足しても JSON は変わりません。
+      (古い Jackson では `StackOverflowError`。)`@JsonIgnore` を付けて回るのは対症療法です。**API は DTO を返す**と決めておけば、エンティティに関連を足しても JSON は変わりません。
   - type: trivia
     title: ProblemDetail と 409 / 422 の話
     body: |
@@ -243,13 +264,13 @@ columns:
       `type`・`title`・`status`・`detail`・`instance` が基本で、独自項目も足せます。Spring Framework 6(Boot 3)から `ProblemDetail` クラスで使えます。
 
       ステータスコードにも流派があります。「形は正しいが意味的に処理できない」には **422 Unprocessable Content**(もとは WebDAV 用、RFC 9110 で一般化)を使う API も多く、
-      「リソースの現在の状態と衝突する」には **409 Conflict** を使います。承認済の申請の再承認は「状態との衝突」なので 409、というのが承認くんの判断です。どちらを選ぶにせよ、**API 全体で揃っていること** のほうが大事です。
+      「リソースの現在の状態と衝突する」には **409 Conflict** を使います。承認済の申請の再承認は「状態との衝突」なので 409、というのが承認くんの判断です。どちらを選ぶにせよ、**API 全体で揃っていること**のほうが大事です。
   - type: genba
     title: テストが遅い本当の理由は「コンテキストの作り直し」
     body: |
-      Spring のテストは、一度作ったアプリケーションコンテキスト(Bean の集まり)を **キャッシュ** して、設定が同じテストクラスどうしで使い回します。`@SpringBootTest` が何本あっても、設定が同じなら起動は1回で済みます。
+      Spring のテストは、一度作ったアプリケーションコンテキスト(Bean の集まり)を**キャッシュ**して、設定が同じテストクラスどうしで使い回します。`@SpringBootTest` が何本あっても、設定が同じなら起動は1回で済みます。
 
-      ところが、テストクラスごとに `@MockitoBean` の組み合わせが違ったり、`@TestPropertySource` でプロパティを少し変えたりすると、それぞれ **別のコンテキスト** とみなされて毎回起動し直します。
+      ところが、テストクラスごとに `@MockitoBean` の組み合わせが違ったり、`@TestPropertySource` でプロパティを少し変えたりすると、それぞれ**別のコンテキスト**とみなされて毎回起動し直します。
       「テストが1本数秒なのに、全部流すと3分かかる」現場の多くはこれが原因です。
 
       対策は、`@SpringBootTest` を少数に絞る(テストピラミッド)、`@MockitoBean` の組み合わせを揃える、業務ルールは Spring を起動しない単体テストに寄せる、の3つ。ログに Spring Boot のバナーが何回出ているかを数えると、作り直しの回数が分かります。
@@ -282,9 +303,9 @@ sts:
         `@AuthenticationPrincipal` は `org.springframework.security.core.annotation`、`LoginUser` は `com.example.approval.config`、`ProblemDetail` と `HttpStatus` は `org.springframework.http` のものを import します。
     - title: SecurityConfig の /api/** と CSRF を確かめる
       detail: |
-        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より **前** にあることを確かめます(ルールは上から順に評価されます)。
+        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より**前**にあることを確かめます(ルールは上から順に評価されます)。
 
-        CSRF は **無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
+        CSRF は**無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
         画面の JavaScript から POST するなら、Thymeleaf で `<meta name="_csrf" th:content="${_csrf.token}">` を出しておき、その値を `X-CSRF-TOKEN` ヘッダに入れて送ります。
     - title: 起動してブラウザで GET を確かめる
       detail: |
@@ -301,7 +322,7 @@ sts:
         **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、**Source folder** を `approval-app/src/test/java` にして `RequestApiControllerTest` を作ります。
 
         解説の 409 と 403 のテストに、`queryService.get(99L)` が `RequestNotFoundException` を投げる 404 のテストを足し、エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。
-        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します。
+        JUnit ビューのバーが緑で、3本とも緑の印が付けば成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します(どちらも capstone-security で `pom.xml` に足した `spring-security-test` に入っています)。
 
         `@WithMockUser` が作るのは Spring の `User` なので、`@AuthenticationPrincipal LoginUser` の引数には **null** が入ります(`user.id()` で NullPointerException)。`LoginUser` が要る承認のテストは、必ず `.with(user(moka))` で本物の `LoginUser` を渡します。
         `.with(csrf())` を消して実行すると 403 になることも確かめておきましょう。
@@ -310,9 +331,12 @@ sts:
         `src/test/java` の `com.example.approval.service` に `ApprovalServiceTest` を作り、解説の `@ParameterizedTest` + `@CsvSource` と、`arrange` メソッドを書きます。
         `arrange` では、ID 2 で `role` の社員と、別の社員(ID 1)が出した申請(ID 1、`amount` と `status` は引数どおり)を作り、
         `employeeRepo.findById(2L)` と `requestRepo.findById(1L)` がそれを返すよう `when(...).thenReturn(Optional.of(...))` で仕込みます。
+        id は `@GeneratedValue` の項目で、コンストラクタでも setter でも入りません。`ReflectionTestUtils.setField(actor, "id", 2L)`(`org.springframework.test.util`)のように入れます(申請者と申請も同じ)。
+        入れ忘れると、`ApprovalService` の「自分の申請か」の比較で NullPointerException になります。
         状態は `setStatus` が無いので、`SUBMITTED` なら `submit(...)`、`APPROVED` なら `submit` の後に別の承認者で `approve(...)` を呼んで作ります。
+        capstone-security で `ApprovalService` が `AccessPolicy` も受け取るようにしたなら、`@Spy AccessPolicy accessPolicy = new AccessPolicy();` も足します(本物の判定を `@InjectMocks` に渡すため。足さないと `null` が渡ります)。
 
-        **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ** 結果が並びます。
+        **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ**結果が並びます。
         次に `ApprovalFlow.requiresAdmin` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。
     - title: 全テストを流して緑にする
       detail: |

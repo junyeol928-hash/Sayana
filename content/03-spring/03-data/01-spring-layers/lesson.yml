@@ -8,10 +8,10 @@ goals:
   - Controller・Service・Repository それぞれの責務と、依存を上から下への一方通行にする理由を説明できる
   - DTO とエンティティを分ける理由と、層別・機能別のパッケージ構成の違いを説明できる
   - Repository をインターフェースにして、メモリ実装に差し替えて Service をテストできる
-  - "@Controller / @Service / @Repository を付けたクラスを DI コンテナで組み立てられる"
+  - "`@Controller` / `@Service` / `@Repository` を付けたクラスを DI コンテナで組み立てられる"
 samples:
   - title: Service を Spring も DB も使わずにテストする
-    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。`toLowerCase()` を消すと、テストのつもりの ✔ が ✘ に変わります。
+    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ `✔` と `✘` のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。
     code: |
       // Service を Spring も DB も使わずにテストする:Repository をメモリ実装に差し替えるだけ
       interface MemberRepository {
@@ -62,7 +62,7 @@ samples:
       check("大文字・空白違いでも重複として弾く", rejected);
       check("登録件数は1件のまま", repo.emails.size() == 1);
   - title: 3層を DI コンテナで組み立てる
-    description: "`@Controller` / `@Service` / `@Repository` を付けたクラスをコンテナに登録し、Controller → Service → Repository の順に呼ばれることを確かめます。Repository の登録を消すと、起動(コンテナ作成)の時点でエラーになります。"
+    description: "`@Controller` / `@Service` / `@Repository` を付けたクラスをコンテナに登録し、Controller から呼び出します。空白だけの名前を渡した 2 回目は、何と返る?`同じ Service?` の行は `true` と `false` のどちらになる?"
     libraries: [spring]
     code: |
       import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -141,11 +141,15 @@ quiz:
           }
       }
       ```
-    choices: ["@Service ではなく @Component を付けるべき", "メソッド名が register なのが良くない", "Service が Model やビュー名という画面の都合を知っていて、バッチや REST API から再利用しにくい", "Service のメソッドは static にすべき"]
+    choices: ["`@Service` ではなく、汎用の `@Component` を付けるべき", "メソッド名が `register` なのが良くない", "Service が `Model` やビュー名という画面の都合を知っている", "Service のメソッドは `static` にすべき"]
     answer: 2
+    why:
+      - "付ける注釈の種類が問題と読んだ答え。`@Service` は `@Component` の特殊化で、付けて正しい"
+      - "名前の付け方が問題と読んだ答え。問題は Service が `Model` やビュー名を扱っていること"
+      - ""
+      - "Service は `static` で書くものと読んだ答え。`static` にすると DI できなくなる"
     explanation: |
-      `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合** です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
-      `@Service` は `@Component` の特殊化なので付けて正しく、static にすると DI できなくなります。
+      `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合**です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
   - question: |
       次のコードを実行するとどうなる?(`OrderService` はコンストラクタで `OrderRepository` を受け取る。`OrderRepository` の実装クラスはどこにも登録していない)
       ```java
@@ -154,11 +158,16 @@ quiz:
               OrderService.class);
       System.out.println("作成OK");
       ```
-    choices: ["コンテナを作る時点で例外(UnsatisfiedDependencyException)になり、「作成OK」は出ない", "「作成OK」と出て、注文するときに NullPointerException になる", "OrderRepository の実装を Spring が自動で作るので正常に動く", "コンパイルエラーになる"]
+    choices: ["コンテナを作る時点で例外になり、「作成OK」は出ない", "「作成OK」と出て、注文するときに `NullPointerException` になる", "`OrderRepository` の実装を Spring が自動で作るので正常に動く", "コンパイルエラーになる"]
     answer: 0
+    why:
+      - ""
+      - "依存が無くても `null` のまま作られると読んだ答え。引数に渡す Bean が無く、作成時に例外で止まる"
+      - "インターフェースから実装が作られると読んだ答え。それは Spring Data のリポジトリだけで、普通のインターフェースでは起きない"
+      - "Bean の有無をコンパイラが調べると読んだ答え。コンパイルは通り、コンテナを作るときに失敗する"
     explanation: |
       DI コンテナは作成時(refresh 時)にシングルトンの Bean をまとめて作り、コンストラクタの引数に渡す Bean を探します。`OrderRepository` 型の Bean が無いので `No qualifying bean of type 'OrderRepository' available` を原因とする `UnsatisfiedDependencyException` が発生し、次の行には進みません。
-      「起動時に失敗する」のはコンストラクタインジェクションの長所で、null のまま動き出して後で NPE、ということになりません。コンパイラは Bean の有無を知らないのでコンパイルは通ります。インターフェースだけから実装を作るのは Spring Data のリポジトリの場合で、普通のインターフェースでは起きません。
+      「起動時に失敗する」のはコンストラクタインジェクションの長所で、`null` のまま動き出して後で NPE、ということになりません。
   - question: |
       次の Controller の問題点として正しいものは?
       ```java
@@ -175,17 +184,25 @@ quiz:
           }
       }
       ```
-    choices: ["@PathVariable は long で受け取れない", "redirect: は Service で書くべき", "フィールドが2つあるとコンストラクタインジェクションできない", "層を飛ばして Repository を直接呼んでおり、キャンセルの業務ルール(発送済みは不可など)を通らない更新経路ができる"]
+    choices: ["`@PathVariable` は `long` で受け取れない", "`redirect:` は Controller ではなく Service で書くべき", "フィールドが2つあるとコンストラクタインジェクションできない", "Repository を直接呼び、業務ルールを通らない更新経路ができる"]
     answer: 3
+    why:
+      - "パスの値は文字列でしか受け取れないと読んだ答え。`long` に変換して受け取れる"
+      - "画面の行き先を業務ロジックと読んだ答え。リダイレクト先を決めるのは Controller の仕事"
+      - "依存が2つあると注入できないと読んだ答え。コンストラクタインジェクションは引数がいくつでもよい"
+      - ""
     explanation: |
       Controller が Repository を直接呼ぶ「層飛ばし」です。キャンセルには「発送済みならキャンセル不可」「在庫を戻す」といった業務ルールがあるはずで、それは Service にまとめておくべきもの。Controller から直接削除できる経路があると、ルールを素通りした更新が紛れ込みます。
-      `@PathVariable` は long に変換できます。リダイレクト先を決めるのは画面遷移の話なので Controller の仕事で正しい。コンストラクタインジェクションは引数がいくつでも可能です。
   - question: 昔の Spring プロジェクトで「`OrderService` インターフェース + `OrderServiceImpl` クラス」の組が定番だった理由として、もっとも適切なものは?
-    choices: ["Java の文法上、クラスに @Service を付けられなかったから", "@Transactional などを実現するプロキシを、インターフェースが必要な JDK の仕組みで作ることが多かったから", "インターフェースにしないと DI コンテナに登録できなかったから", "Impl という名前のクラスしか Spring がスキャンしなかったから"]
+    choices: ["Java の文法上、クラスに `@Service` を付けられなかったから", "プロキシを JDK の動的プロキシで作ることが多く、インターフェースが要ったから", "インターフェースにしないと DI コンテナに登録できなかったから", "`Impl` という名前のクラスしか Spring がスキャンしなかったから"]
     answer: 1
+    why:
+      - "クラスに注釈を付けられないと読んだ答え。クラスにも `@Service` は付けられる"
+      - ""
+      - "DI にインターフェースが要ると読んだ答え。クラスのままでも登録・注入できる"
+      - "スキャンが名前で選ぶと読んだ答え。スキャンは名前ではなく注釈で判断する"
     explanation: |
-      Spring は `@Transactional` などの機能を、Bean の前に **プロキシ** を挟んで実現します。昔はこのプロキシを JDK 標準の動的プロキシ(インターフェースが必須)で作ることが多く、インターフェースを用意するのが無難でした。今の Spring Boot は既定で CGLIB(クラスを継承して作るプロキシ)を使うので、インターフェースは必須ではありません。
-      クラスにも @Service は付けられ、DI にインターフェースは不要、スキャンは名前ではなく注釈で判断します。
+      Spring は `@Transactional` などの機能を、Bean の前に**プロキシ**を挟んで実現します。昔はこのプロキシを JDK 標準の動的プロキシ(インターフェースが必須)で作ることが多く、インターフェースを用意するのが無難でした。今の Spring Boot は既定で CGLIB(クラスを継承して作るプロキシ)を使うので、インターフェースは必須ではありません。
   - question: |
       次の Service を、DB を使わずにテストしにくい原因はどれ?
       ```java
@@ -199,21 +216,25 @@ quiz:
           }
       }
       ```
-    choices: ["StockRepository がインターフェースだから", "メソッドが public だから", "Service が自分で実装クラスを new しているので、テストでメモリ実装に差し替えられないから", "@Service が付いているクラスは new できないから"]
+    choices: ["`StockRepository` がインターフェースで、実体が見えないから", "メソッドが `public` だから", "実装クラスを自分で `new` していて、メモリ実装に差し替えられないから", "`@Service` が付いているクラスは `new` できないから"]
     answer: 2
+    why:
+      - "インターフェースが邪魔をしていると読んだ答え。差し替えのための良い設計で、問題は実装を `new` していること"
+      - "公開範囲が原因と読んだ答え。原因は実装を `new` で決め打ちし、差し替えられないこと"
+      - ""
+      - "`@Service` を付けると `new` できないと読んだ答え。注釈が付いていても普通に `new` できる"
     explanation: |
-      フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を **コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
-      インターフェースにしてあるのは差し替えのための良い設計で、問題はそれを活かしていないこと。`@Service` が付いていても普通に new できます。
+      フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を**コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
 columns:
   - type: mistake
     title: エンティティを JSON で返したら、無限ループとパスワード漏れ
     body: |
       「詰め替えが面倒」とエンティティをそのまま `@RestController` から返すと、よく2つの事故が起きます。
 
-      1つ目は **無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
-      `Could not write JSON: Infinite recursion (StackOverflowError)` で落ちます。
+      1つ目は**無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
+      次のエラーで落ちます: `Could not write JSON: Infinite recursion (StackOverflowError)`
 
-      2つ目は **見せてはいけない項目の漏れ**。`Member` に `passwordHash` や `deleted` フラグがあれば、それも JSON に出ます。後から列を足すと、**気づかないうちに API の応答が増える** のも厄介です。
+      2つ目は**見せてはいけない項目の漏れ**。`Member` に `passwordHash` や `deleted` フラグがあれば、それも JSON に出ます。後から列を足すと、**気づかないうちに API の応答が増える**のも厄介です。
 
       `@JsonIgnore` を付けて回るとエンティティが画面の都合で汚れます。応答専用の DTO(record)に詰め替えるのが、遠回りに見えて一番安全です。
   - type: genba
@@ -240,9 +261,9 @@ columns:
     body: |
       `@Service` は今のところ「ここは Service です」という目印でしかありませんが、`@Repository` には実際の機能があります。**例外の翻訳**(exception translation)です。
 
-      DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系** に変換してくれます。
+      DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系**に変換してくれます。
 
-      おかげで Service は「DB が何か」を知らずに `catch (DuplicateKeyException e)` と書けます。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
+      おかげで Service は「DB が何か」を知らずに `catch (DataIntegrityViolationException e)` と書けます(JPA/Hibernate の一意制約違反はこの型になります。子クラスの `DuplicateKeyException` は、JdbcTemplate が SQL のエラーコードから変換したときなどに出ます)。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
 sts:
   intro: |
     1つのクラスに全部書いた「Fat Controller」を、STS のリファクタリング機能を使って Controller・Service・Repository の3層に分けます。
@@ -285,7 +306,7 @@ sts:
         Package Explorer(パッケージ・エクスプローラー)で `com.example.shop` を右クリック > **New > Package**(新規 > パッケージ)で、
         `com.example.shop.controller`・`com.example.shop.service`・`com.example.shop.repository` の3つを作ります。
         ビューのメニュー(右上の **⋮** または **▽**)> **Package Presentation > Hierarchical**(パッケージの表示 > 階層)にすると、木構造で見やすくなります。
-        どのパッケージも **メインクラス(`ShopApplication`)のパッケージの配下** にあることが大事です。外に置くとコンポーネントスキャンで見つかりません。
+        どのパッケージも**メインクラス(`ShopApplication`)のパッケージの配下**にあることが大事です。外に置くとコンポーネントスキャンで見つかりません。
     - title: Controller を Move リファクタリングで移す
       detail: |
         `ShopController.java` を選んで右クリック > **Refactor > Move...**(リファクタリング > 移動)(**Alt+Shift+V**)を選び、
@@ -311,7 +332,7 @@ sts:
       detail: |
         **Ctrl+Shift+O**(インポートの編成)で import を整え、**Window > Show View > Problems**(ウィンドウ > ビューの表示 > 問題)でエラーが0件になったことを確認します。
         Controller に `ItemRepository` の import が残っていないこと(層飛ばしをしていないこと)も見ておきましょう。
-        再起動して手順1と同じ curl とブラウザ確認をし、**まったく同じ結果** になればリファクタリング成功です(リファクタリングは「動きを変えずに構造を変える」こと)。
+        再起動して手順1と同じ curl とブラウザ確認をし、**まったく同じ結果**になればリファクタリング成功です(リファクタリングは「動きを変えずに構造を変える」こと)。
     - title: "@Service を消して起動エラーを見る"
       detail: |
         `ShopService` の `@Service` をコメントアウトして再起動すると、Console に次のように出て起動が止まります。

@@ -3,8 +3,8 @@ className: Employee
 difficulty: 2
 libraries: [spring, jpa]
 problem: |
-  勤怠システムの社員テーブル・部署テーブルに対応する **エンティティ** を完成させてください。
-  コードはもうできていて、足りないのは **JPA のアノテーション** と **引数なしコンストラクタ** です。
+  勤怠システムの社員テーブル・部署テーブルに対応する**エンティティ**を完成させてください。
+  コードはもうできていて、足りないのは **JPA のアノテーション**と**引数なしコンストラクタ**です。
 
   作りたいテーブルはこうです。
 
@@ -23,11 +23,11 @@ problem: |
   3. `name` に `@Column(nullable = false, length = 50)`
   4. `email` に `@Column` で列名 `mail_address`・`unique = true`
   5. `department` に `@ManyToOne(fetch = FetchType.LAZY)` と `@JoinColumn(name = "department_id")`
-  6. `Department` の `employees` に `@OneToMany(mappedBy = ...)`。`mappedBy` には **Employee 側のフィールド名** を書きます
+  6. `Department` の `employees` に `@OneToMany(mappedBy = ...)`。`mappedBy` には **Employee 側のフィールド名**を書きます
   7. `Employee` に JPA 用の引数なしコンストラクタ `protected Employee() {}` を追加
 
   ヒント: `Department` は `@OneToMany` 以外が完成しているので、書き方の見本になります。
 
-  ※ 採点環境には DB がないので、テストは **リフレクション**(実行時にクラスのアノテーションやフィールドを調べる仕組み)で確認します。
+  ※ 採点環境には DB がないので、テストは**リフレクション**(実行時にクラスのアノテーションやフィールドを調べる仕組み)で確認します。
   STS で作るときは `com.example.demo.employee` パッケージに `Employee.java` と `Department.java` を別ファイルで置き、
   どちらも `public class` にします。

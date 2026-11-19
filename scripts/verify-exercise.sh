@@ -6,7 +6,12 @@ set -u
 DIR="$1"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 JUNIT=$(find ~/.m2/repository/org/junit/platform/junit-platform-console-standalone -name '*.jar' | head -1)
-read -r CLASS LIBS < <(python3 -c "
+# python3 が PyYAML の無い別物(Windows の WindowsApps の入口など)のときは python を使う
+PY=python3
+"$PY" -c "import yaml" 2>/dev/null || PY=python
+# JAVA_HOME があれば、その javac / java を使う(PATH の java は古い版のことがある)
+if [ -n "${JAVA_HOME:-}" ]; then PATH="$JAVA_HOME/bin:$PATH"; fi
+read -r CLASS LIBS < <("$PY" -c "
 import yaml,sys
 y=yaml.safe_load(open(sys.argv[1],encoding='utf-8'))
 print(y['className'], ','.join(y.get('libraries') or []) or '-')" "$DIR/exercise.yml")

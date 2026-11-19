@@ -20,17 +20,17 @@ problem: |
 
   **1. `static boolean matches(String pattern, String path)`**
 
-  パターンと URL を `/` で区切った **セグメント** ごとに比べます(空のセグメントは無視)。
+  パターンと URL を `/` で区切った**セグメント**ごとに比べます(空のセグメントは無視)。
 
   | パターンの書き方 | 意味 | 例 |
   |---|---|---|
   | 普通の文字列 | 同じ文字列のセグメントにだけ一致 | `/login` は `/login` だけ |
   | `*` | ちょうど1つのセグメントに一致 | `/requests/*/approve` は `/requests/5/approve` に一致、`/requests/approve` や `/requests/5/6/approve` には不一致 |
-  | 末尾の `**` | 残りの **0個以上** のセグメントに一致 | `/approvals/**` は `/approvals`、`/approvals/3/detail` に一致、`/approvalsX` には不一致 |
+  | 末尾の `**` | 残りの **0個以上**のセグメントに一致 | `/approvals/**` は `/approvals`、`/approvals/3/detail` に一致、`/approvalsX` には不一致 |
 
   **2. `Result decide(String path, Role role)`**(`role` が `null` なら未ログイン)
 
-  登録順にルールを見て、**最初に一致したルールだけ** で決めます。
+  登録順にルールを見て、**最初に一致したルールだけ**で決めます。
 
   - `permitAll` のルール → `ALLOW`(未ログインでも)
   - 未ログイン → `LOGIN_REQUIRED`(ログイン画面へリダイレクト)

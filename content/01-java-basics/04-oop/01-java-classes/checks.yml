@@ -1,0 +1,59 @@
+- after: クラスとインスタンス
+  question: |
+    次のコードはどうなる?
+    ```java
+    class Counter {
+        int n;
+        void show() {
+            int m;
+            System.out.println(n + m);
+        }
+    }
+    ```
+  choices: ["コンパイルエラー", "0 と表示される", "決まらない値が表示される"]
+  answer: 0
+  why:
+    - ""
+    - "ローカル変数にもフィールドと同じ既定値 0 が入ると読んだ答え。既定値があるのはフィールドだけ"
+    - "C 言語のように未初期化のゴミ値が読めると読んだ答え。Java は代入前に読むことをコンパイルで止める"
+  explanation: |
+    フィールド `n` には `new` のときに既定値 0 が入るが、ローカル変数 `m` には既定値がない。代入前に読んでいるので、次のコンパイルエラーになる: `variable m might not have been initialized`
+- after: 参照の代入と null
+  question: |
+    出力は?
+    ```java
+    static void rename(Employee e) {
+        e = new Employee("仮", 1);
+        e.name = "変更";
+    }
+    // main で
+    Employee a = new Employee("佐藤", 300000);
+    rename(a);
+    System.out.println(a.name);
+    ```
+  choices: ["佐藤", "変更", "仮"]
+  answer: 0
+  why:
+    - ""
+    - "`e` が最後まで `a` と同じ実体を指すと読んだ答え。先に `e` を新しいインスタンスに向け替えている"
+    - "`a` まで「仮」の新しいインスタンスに差し替わると読んだ答え。向き先が変わるのは引数 `e` だけ"
+  explanation: |
+    先に引数 `e` の向き先を新しいインスタンスに変えたので、`e.name = "変更"` が書き換えるのは新しい方。呼び出し元の `a` は元の佐藤を指したまま。
+- after: toString で中身を表示する
+  question: |
+    次のコードはどうなる?
+    ```java
+    class Item {
+        String name;
+        void Item(String name) { this.name = name; }
+    }
+    Item i = new Item("ペン");
+    ```
+  choices: ["コンパイルエラー", "name に「ペン」が入る", "name は `null` のまま"]
+  answer: 0
+  why:
+    - ""
+    - "`void Item(...)` をコンストラクタと読んだ答え。`void` を付けると、ただのメソッドになる"
+    - "引数を無視して既定のコンストラクタで作られると読んだ答え。引数のある `new` に合うコンストラクタが無い"
+  explanation: |
+    `void` を付けた `Item(...)` はコンストラクタではなく、ただのメソッド。コンストラクタを1つも書いていないので引数なしのデフォルトコンストラクタしかなく、`new Item("ペン")` に合うものがない。

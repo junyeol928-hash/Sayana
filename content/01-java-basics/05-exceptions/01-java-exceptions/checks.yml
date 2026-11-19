@@ -1,0 +1,59 @@
+- after: 例外とは:try / catch / finally
+  question: |
+    `System.out.print(f());` の出力は?
+    ```java
+    static String f() {
+        try {
+            return "T";
+        } finally {
+            System.out.print("F");
+        }
+    }
+    ```
+  choices: ["FT", "T", "TF"]
+  answer: 0
+  why:
+    - ""
+    - "`return` で `finally` が飛ばされると読んだ答え。`finally` は戻る前に必ず動く"
+    - "戻ってから `finally` が動くと読んだ答え。F は戻る前に出て、T は呼び出し側があとで出す"
+  explanation: |
+    `return "T"` で戻る前に `finally` が必ず実行され、先に F が出る。そのあと戻ってきた `"T"` を呼び出し側が出す。
+- after: スタックトレースの読み方
+  question: |
+    次のログ(一部省略)で、根本原因の例外と、最初に開く自分のコードの行は?
+    ```text
+    Exception in thread "main" AppException: 起動失敗
+        at App.start(App.java:26)
+    Caused by: ConfigException: ポート番号が不正: 80a
+        at App.readPort(App.java:19)
+    Caused by: java.lang.NumberFormatException: For input string: "80a"
+        at java.base/java.lang.Integer.parseInt(Integer.java:624)
+        at App.readPort(App.java:17)
+    ```
+  choices: ["`NumberFormatException` と `App.java:17`", "`AppException` と `App.java:26`", "`NumberFormatException` と `Integer.java:624`"]
+  answer: 0
+  why:
+    - ""
+    - "1 行目の例外を原因と読んだ答え。1 行目は最後に包んだ外側で、根本原因は一番下の Caused by"
+    - "一番上の at を開くと読んだ答え。そこは標準ライブラリの中"
+  explanation: |
+    `Caused by:` が複数あるときは一番下が根本原因。その中の `java.base/...` は標準ライブラリなので飛ばし、最初に出る自分のコード `App.java:17` を開く。
+- after: 独自例外と「ラップして再スロー」
+  question: |
+    独自例外を `RuntimeException` の子にした。`throws` の無い `ship` はコンパイルできる?
+    ```java
+    class StockShortageException extends RuntimeException {
+        StockShortageException(String m) { super(m); }
+    }
+    void ship(int qty) {   // throws なし
+        if (qty > stock) throw new StockShortageException("在庫不足");
+    }
+    ```
+  choices: ["できる", "コンパイルエラー", "ship はできるが、呼ぶ側が `catch` しないとコンパイルエラー"]
+  answer: 0
+  why:
+    - ""
+    - "独自例外ならどれも `throws` が要ると読んだ答え。`RuntimeException` の子は非検査例外で要らない"
+    - "呼ぶ側には対処が強制されると読んだ答え。非検査例外は、呼ぶ側にも `catch` を強制しない"
+  explanation: |
+    `RuntimeException` の子は非検査例外なので、`throws` を書かなくても投げられる。その代わり、呼ぶ側が対処を忘れてもコンパイラは何も言わない。必ず対処させたい業務エラーなら `Exception` を継承して検査例外にする。

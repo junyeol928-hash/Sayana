@@ -24,12 +24,12 @@
         }
     }
   notes:
-    3: "Lombok:LoggerFactory.getLogger(OrderService.class) の1行が生成される"
-    10: "決済APIを呼ぶ。失敗すると PaymentException(検査例外や外部ライブラリの例外であることが多い)"
-    12: "エラーログには必ず例外オブジェクト(e)を渡す。スタックトレースが残らないと原因調査ができない"
-    13: "業務エラーとしてラップして投げ直す。呼び出し元は OrderFailedException だけ気にすればよい"
+    3: "Lombok:`LoggerFactory.getLogger(OrderService.class)` の1行が生成される"
+    12: "決済APIを呼ぶ。失敗すると `PaymentException`(検査例外や外部ライブラリの例外であることが多い)"
+    14: "例外オブジェクト(`e`)を最後の引数に渡すのは正しい。ただし直後に投げ直しているので、上位(Advice など)でもログすると同じスタックトレースが2回出る(本文「ログして再スロー」)。どこでログするかはチームの方針を確認する"
+    15: "業務エラーとしてラップして投げ直す。呼び出し元は `OrderFailedException` だけ気にすればよい"
   points:
-    - "ERROR ログの行にどんな例外が渡っているか(catch した e を渡しているか)を確認する"
+    - "ERROR ログの行にどんな例外が渡っているか(catch した `e` を渡しているか)を確認する"
     - "INFO ログの開始/終了の行を追えば、正常系の処理の区切りが分かる"
-    - "このクラスのテスト(OrderServiceTest)を探し、@Mock にされている依存(ここでは OrderRepository、PaymentClient)を確認する"
-    - "テストの when(...).thenReturn(...) と、例外を投げるモック設定(thenThrow)の両方を見て、正常系・異常系の期待動作を読む"
+    - "このクラスのテスト(`OrderServiceTest`)を探し、`@Mock` にされている依存(ここでは `OrderRepository`、`PaymentClient`)を確認する"
+    - "テストの `when(...).thenReturn(...)` と、例外を投げるモック設定(`thenThrow`)の両方を見て、正常系・異常系の期待動作を読む"

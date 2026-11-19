@@ -3,7 +3,7 @@ className: OrderTestSupport
 difficulty: 2
 libraries: [spring]
 problem: |
-  今回は **テストを準備する側** です。完成済みの `OrderController` をテストするための「道具」を2つ作ります。
+  今回は**テストを準備する側**です。完成済みの `OrderController` をテストするための「道具」を2つ作ります。
   採点テストは、あなたの作った道具を使って Controller を検証します。
 
   `OrderController` は `OrderService` に頼って注文を探します。本物の Service は DB を見るので、テストでは
@@ -14,12 +14,12 @@ problem: |
 
   - `willReturn(customerId, orders...)` … その顧客で呼ばれたら `orders` を返すよう仕込む(Mockito の `when(...).thenReturn(...)` に相当)
   - `findByCustomer(customerId)` … 引数を `calledWith` に記録し(Mockito の `verify` に相当)、仕込んだ注文を返す。
-    仕込んでいない顧客は **空リスト**(`null` ではなく)
+    仕込んでいない顧客は**空リスト**(`null` ではなく)
 
   **2. `OrderTestSupport.mockMvc(OrderService service)`**
 
   `MockMvcBuilders.standaloneSetup(new OrderController(service))` で MockMvc を組み立てて返します。
-  Controller は日本語を返すので、**UTF-8 の設定** も必要です。
+  Controller は日本語を返すので、**UTF-8 の設定**も必要です。
 
   ```java
   .setMessageConverters(
@@ -41,7 +41,7 @@ problem: |
   ```
 
   ヒント:
-  - `OrderService` はメソッドが1つだけのインターフェースなので、`id -> List.of(...)` のような **ラムダでもスタブを書けます**(テストの最後で試しています)。
+  - `OrderService` はメソッドが1つだけのインターフェースなので、`id -> List.of(...)` のような**ラムダでもスタブを書けます**(テストの最後で試しています)。
   - UTF-8 の設定を忘れると、`合計 1,500円` が `?? 1,500?` のように化けます。Spring Boot(`@WebMvcTest`)では自動で UTF-8 になるので、`standaloneSetup` 特有の注意点です。
 
   ※ STS では、スタブと `OrderTestSupport` は `src/test/java` 側(例: `com.example.demo.web` パッケージ)に置きます。テスト用のコードを本番のコードに混ぜないためです。

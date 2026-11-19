@@ -1,0 +1,61 @@
+- after: if / else if / else の基本
+  question: |
+    `x` が `-1` のとき、何が出る?
+    ```java
+    if (x > 0)
+        if (x > 10)
+            System.out.println("A");
+    else
+        System.out.println("B");
+    ```
+  choices: ["B", "何も出ない", "A"]
+  answer: 1
+  why:
+    - "インデントのとおりに `else` を外側の `if` に結びつけた答え。`else` は一番近い `if` に付く"
+    - ""
+    - "A は `x` が 10 を超えるとき。`x` は -1 なので外側の `if` で止まる"
+  explanation: |
+    `else` は一番近い `if (x > 10)` に結びつく(ぶら下がり `else`)。外側の `x > 0` が `false` なので、内側の `if` も `else` も実行されず、何も出ない。
+- after: 従来の switch 文とフォールスルーの罠
+  question: |
+    `n` が `1` のとき、出力は?
+    ```java
+    switch (n) {
+        case 1:
+        case 2:
+            System.out.print("X");
+        case 3:
+            System.out.print("Y");
+            break;
+        default:
+            System.out.print("Z");
+    }
+    ```
+  choices: ["XY", "X", "XYZ"]
+  answer: 0
+  why:
+    - ""
+    - "`case 2` の処理で止まると読んだ答え。`break` が無いので `case 3` の Y まで落ちる"
+    - "`default` まで落ち続けると読んだ答え。`case 3` の `break` で `switch` を抜ける"
+  explanation: |
+    `case 1` に飛び、`break` が無いので `case 2` の X、`case 3` の Y と落ちていき、`case 3` の `break` で抜ける。
+- before: インデントだけ見ると
+  hides: 3
+  question: |
+    実行すると、何が出る?
+    ```java
+    int x = 7;
+    if (x > 5)
+        if (x > 10)
+            System.out.println("大きい");
+    else
+        System.out.println("5以下");
+    ```
+  choices: ["5以下", "何も出ない", "コンパイルエラー"]
+  answer: 0
+  why:
+    - ""
+    - "インデントのとおりに `else` を外側の `if` に結びつけた答え。`else` は一番近い `if (x > 10)` に付く"
+    - "波括弧のない `else` は結びつきがあいまいで止まると読んだ答え。一番近い `if` に付くと決まっていて通る"
+  explanation: |
+    `else` は一番近い `if (x > 10)` に結びつく。`x` は 7 なので外側の `x > 5` は通り、内側の `x > 10` が `false` になって、その `else` の「5以下」が出る。

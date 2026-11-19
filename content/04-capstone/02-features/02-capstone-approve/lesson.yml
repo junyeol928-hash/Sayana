@@ -2,18 +2,18 @@ id: capstone-approve
 title: 承認・差戻しフロー
 status: ready
 minutes: 15
-summary: 承認くんの心臓部。業務ルールをエンティティと ApprovalService に振り分け、@Transactional で状態と履歴を一緒に保存し、@Version で二重承認を防ぐ。
+summary: 承認くんの心臓部。業務ルールをエンティティと `ApprovalService` に振り分け、`@Transactional` で状態と履歴を一緒に保存し、`@Version` で二重承認を防ぐ。
 goals:
   - 業務ルール1〜7を「エンティティで守るもの」と「Service で守るもの」に分け、その理由を説明できる
-  - ApprovalService の submit / approve / returnBack / withdraw を、チェック → エンティティの操作 → 履歴の保存 の順で書ける
-  - "@Transactional で状態の変更と ApprovalHistory の保存を1つのトランザクションにし、RuntimeException でロールバックされる理由を説明できる"
-  - 承認待ち一覧(GET /approvals)と詳細画面のボタンを作り、ボタンの出し分けとルールのチェックを区別できる
-  - "@Version の楽観ロックで、同時に承認されたときの二重承認を防げる"
+  - "`ApprovalService` の `submit` / `approve` / `returnBack` / `withdraw` を、チェック → エンティティの操作 → 履歴の保存 の順で書ける"
+  - "`@Transactional` で状態の変更と `ApprovalHistory` の保存を1つのトランザクションにし、`RuntimeException` でロールバックされる理由を説明できる"
+  - 承認待ち一覧(`GET /approvals`)と詳細画面のボタンを作り、ボタンの出し分けとルールのチェックを区別できる
+  - "`@Version` の楽観ロックで、同時に承認されたときの二重承認を防げる"
 samples:
   - title: 「誰が」のルールは Service、状態のルールはエンティティ
     description: |
-      承認の流れを素の Java で再現します。最初は「承認者が10万円ちょうどを承認」なのでルール3で失敗し、状態も履歴も変わりません。
-      `amount` と `actor` を書き換えて、どのルールで止まるかを確かめましょう。
+      承認の流れを素の Java で再現します。見終わったら `amount` と `actor` を書き換えて、どのルールで止まるかを確かめましょう。
+      承認者の太郎が10万円ちょうどの申請を承認し、続けて部長が承認します。太郎と部長の承認は、それぞれ通る? 止まるならどのルールで、履歴は最後に何件残る?
     code: |
       // 承認の業務ルール(2・3・6)を Service でチェックする流れ
       // ここを変えてみよう:amount を 99_999 / 100_000 に、actor を taro / bucho / hanako に
@@ -79,8 +79,8 @@ samples:
       System.out.println("履歴 " + histories.size() + " 件: " + histories);
   - title: 楽観ロック(@Version)の仕組み
     description: |
-      2人が同じ申請を同時に読み込んで承認したときの動きを、メモリ上で再現します。JPA は UPDATE の WHERE に「読んだときの version」を付けるので、
-      後から来た方は更新0件で失敗します。`checkVersion` を `false` にすると、二重承認と履歴2件が起きることを確かめましょう。
+      2人が同じ申請を同時に読み込んで承認したときの動きを、メモリ上で再現します。JPA は UPDATE の WHERE に「読んだときの version」を付けます。見終わったら `checkVersion` を `false` にして、何が変わるかも確かめましょう。
+      後から来た部長の承認はどうなり、履歴は何件残る?
     code: |
       // 楽観ロック(@Version)の仕組みをメモリ上で再現する
       // ここを変えてみよう:checkVersion を false にすると、二重承認が通ってしまう
@@ -139,15 +139,19 @@ quiz:
           System.out.println(r.getStatus());
       }
       ```
-    choices: ["SUBMITTED", "RETURNED", "DRAFT", "何も出力されない(例外が catch されない)"]
+    choices: ["SUBMITTED", "RETURNED", "DRAFT", "何も出力されない(例外が `catch` されない)"]
     answer: 1
+    why:
+      - "例外で代入が巻き戻ると読んだ答え。代入はチェックより前に済んでいる"
+      - ""
+      - "差戻しで下書きに戻ると読んだ答え。差戻し(`RETURN`)の行き先は `RETURNED`"
+      - "例外が外へ抜けると読んだ答え。`BusinessRuleException` は `catch` され、状態が出力される"
     explanation: |
-      状態の代入がコメントのチェックより **先** にあるので、例外が投げられた時点で `status` はもう `RETURNED` です。例外は代入を巻き戻してくれません。
-      DB なら、例外が `@Transactional` の外まで出ればロールバックされますが、トランザクションの中で誰かが catch して処理を続けると、
+      状態の代入がコメントのチェックより**先**にあるので、例外が投げられた時点で `status` はもう `RETURNED` です。例外は代入を巻き戻してくれません。
+      DB なら、例外が `@Transactional` の外まで出ればロールバックされますが、トランザクションの中で誰かが `catch` して処理を続けると、
       「コメントなしで差し戻され、履歴も無い」状態でコミットされかねません。チェックを全部済ませてから代入するのが鉄則です。
-      `BusinessRuleException` は catch しているので、出力されないことはありません。
   - question: |
-      `BusinessRuleException` を **チェック例外**(`extends Exception`)にして、次のメソッドを実行しました。例外が外へ出たあと、DB はどうなっている?
+      `BusinessRuleException` を**チェック例外**(`extends Exception`)にして、次のメソッドを実行しました。例外が外へ出たあと、DB はどうなっている?
       ```java
       @Transactional
       public void approve(Long id, Long actorId, String comment)
@@ -163,52 +167,71 @@ quiz:
       ```
     choices: ["承認済への変更も履歴もコミットされる", "両方ロールバックされる", "履歴だけが保存される", "状態の変更だけが保存される"]
     answer: 0
+    why:
+      - ""
+      - "チェック例外でもロールバックされると読んだ答え。既定ではチェック例外では戻さない"
+      - "履歴だけ残ると読んだ答え。状態の変更も同じトランザクションの中にある"
+      - "状態だけ残ると読んだ答え。履歴の保存も同じトランザクションの中にある"
     explanation: |
-      Spring の `@Transactional` は、既定では **RuntimeException と Error のときだけ** ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、
-      **コミット** されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。
-      `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を RuntimeException で表します(ルール7)。
-      状態と履歴は同じトランザクションなので、片方だけ保存されることはありません(なお、チェックは状態を変える **前** に置くのが本来の順番です)。
+      Spring の `@Transactional` は、既定では **`RuntimeException` と `Error` のときだけ** ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、
+      **コミット**されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。
+      `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を `RuntimeException` で表します(ルール7)。
+      なお、チェックは状態を変える**前**に置くのが本来の順番です。
   - question: |
-      業務ルール2「自分の申請は承認できない」を守る場所として、レッスンの設計で **本体** になるのはどこ?
-    choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "RequestForm の Bean Validation", "ApprovalService の approve メソッド", "ApprovalHistory の保存処理"]
+      承認くんでは、`ApprovalController` が画面からの POST を受けて Service を呼ぶ。`RequestForm` の Bean Validation は新規申請の入力だけを確かめ、
+      `ApprovalService` が操作する人の ID を受け取って、承認・差戻しと履歴の保存をする。
+      業務ルール2「自分の申請は承認できない」を守る**本体**はどこ?
+    choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "`RequestForm` の Bean Validation", "`ApprovalService` の `approve` メソッド", "`ApprovalHistory` の保存処理"]
     answer: 2
+    why:
+      - "ボタンを隠せば守れると読んだ答え。画面を通らない送り方がある"
+      - "入力チェックで守れると読んだ答え。`RequestForm` は新規申請用で、操作する人を知らない"
+      - ""
+      - "履歴の保存でチェックすると読んだ答え。履歴はルールを守った結果の記録"
     explanation: |
-      「誰が操作したか」が要るルールなので、操作する人を受け取る **ApprovalService** で守ります。
+      「誰が操作したか」が要るルールなので、操作する人を受け取る **`ApprovalService`** で守ります。
       ボタンを出さないのは利用者への親切にすぎず、`POST /requests/5/approve` は curl や開発者ツールからでも送れます。
-      RequestForm は新規申請の入力チェック用で、承認の操作とは関係ありません。履歴はルールを守った **結果** を記録するもので、チェックする場所ではありません。
   - question: |
       `ApprovalRequest` に `@Version private Long version;` を付けました。太郎と部長のトランザクションが、ほぼ同時に version=3 の申請中の申請を読み込み、
       先に太郎が承認してコミットしました。その後、部長のトランザクションで起きることは?
-    choices: ["部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件になって例外が出て、部長の履歴の INSERT もロールバックされる"]
+    choices: ["部長の承認で上書きされ、承認の履歴が2件になる", "部長のトランザクションは太郎のコミットを待ってから、普通に成功する", "version が 5 になって、両方の承認が有効になる", "UPDATE が0件で例外になり、部長の履歴もロールバックされる"]
     answer: 3
+    why:
+      - "`@Version` が無いときの動きと取り違えた答え。付けると後の更新は弾かれる"
+      - "コミットを待ってから成功すると読んだ答え。`@Version` は待たずに、version の食い違いで失敗させる"
+      - "version が順に増えて両方通ると読んだ答え。部長が持つ version はもう古い"
+      - ""
     explanation: |
       JPA は UPDATE に `WHERE id=? AND version=3`(読んだときの値)を付けます。太郎のコミットで version は 4 になっているので、部長の UPDATE は **0件**。
       Hibernate がこれを検出し、Spring は `ObjectOptimisticLockingFailureException` を投げてトランザクションをロールバックします。同じトランザクションの履歴の INSERT も消えます。
-      上書きされて履歴2件になるのは `@Version` が **無い** ときの動きです。
   - question: |
-      金額の判定を次のように書きました。業務ルール3(100,000円 **以上** の承認は ADMIN だけ。休暇の金額は null)に照らして、正しい指摘は?
+      金額の判定を次のように書きました。業務ルール3(100,000円**以上**の承認は ADMIN だけ。休暇の金額は `null`)に照らして、正しい指摘は?
       ```java
       static boolean requiresAdmin(Integer amount) {
           return amount > 100_000;
       }
       ```
-    choices: ["100,000円ちょうどを承認者が承認でき、休暇(null)では NullPointerException になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(null)で NullPointerException になる点だけが問題", "Integer と int は比べられないのでコンパイルエラーになる"]
+    choices: ["100,000円ちょうどを承認者が承認でき、休暇では `NullPointerException` になる", "100,000円ちょうどを承認者が承認できてしまう点だけが問題", "休暇(`null`)で `NullPointerException` になる点だけが問題", "`Integer` と `int` は比べられないのでコンパイルエラーになる"]
     answer: 0
+    why:
+      - ""
+      - "`null` を見落とした答え。休暇の金額は `null` で来る"
+      - "境界を見落とした答え。`>` では境界ちょうどの金額が漏れる"
+      - "`Integer` と `int` は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない"
     explanation: |
       問題は2つあります。①「以上」なのに `>` なので、100,000円ちょうどが `false`(ADMIN 不要)になる。②`amount` が `null` のとき、
-      比較のために `Integer` から `int` への **アンボクシング** が起き、`NullPointerException` になる。
-      `Integer` と `int` の比較は自動でアンボクシングされるので、コンパイルは通ります(だから実行するまで気づけない)。
-      正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と null のテストを必ず書きます。
+      比較のために `Integer` から `int` への**アンボクシング**が起き、`NullPointerException` になる。
+      正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と `null` のテストを必ず書きます。
 columns:
   - type: genba
     title: 「承認したけど、やっぱり取り消して」と言われたら
     body: |
       承認くんでは `APPROVED` は以後変更できません(ルール5)。運用が始まると必ず「間違えて承認した、取り消してほしい」という相談が来ます。
-      ここで DB を直接 `UPDATE ... SET status = 'SUBMITTED'` するのは最悪手です。履歴には「承認した」が残っているのに状態は申請中、という **説明のつかないデータ** になり、監査で必ず指摘されます。
+      ここで DB を直接 `UPDATE ... SET status = 'SUBMITTED'` するのは最悪手です。履歴には「承認した」が残っているのに状態は申請中、という**説明のつかないデータ**になり、監査で必ず指摘されます。
 
-      会計の世界では、確定した伝票は直さず、**逆の内容の伝票(赤伝)を追加** して打ち消します。業務システムも同じ考え方で、
+      会計の世界では、確定した伝票は直さず、**逆の内容の伝票(赤伝)を追加**して打ち消します。業務システムも同じ考え方で、
 
-      - 「承認取消」という **新しい操作**(`Action`)と状態を設計に足す
+      - 「承認取消」という**新しい操作**(`Action`)と状態を設計に足す
       - 取消も履歴に残し、誰がなぜ取り消したかを記録する
       - 取消できる人と期限を決める(経理に回った後は不可、など)
 
@@ -251,7 +274,7 @@ sts:
   steps:
     - title: エンティティに状態を変えるメソッドと @Version を足す(domain)
       detail: |
-        `domain` の `ApprovalRequest.java` に次を足します。`ApprovalFlow`・`Action`・`BusinessRuleException` は capstone-requirements で作ったもの(同じ domain パッケージ)です。
+        `domain` の `ApprovalRequest.java` に次を足します。`ApprovalFlow`・`Action`・`BusinessRuleException` は capstone-setup で `domain` パッケージに作ったもの(中身は capstone-requirements の演習の答え)です。
 
         ```java
         @Version
@@ -286,19 +309,18 @@ sts:
         }
         ```
 
-        `@Version` は **`jakarta.persistence.Version`** を選びます。続けて `setStatus` を削除し、`status` フィールドを
-        `private RequestStatus status = RequestStatus.DRAFT;` にします。保存すると、前回の `RequestService.createDraft` の
-        `r.setStatus(RequestStatus.DRAFT);` が赤くなるので、その行を消します(初期値で DRAFT になります)。**Problems**(問題)ビューにエラーが残っていなければ OK。
+        `@Version` は **`jakarta.persistence.Version`** を選びます。`status` は capstone-setup から `private RequestStatus status = RequestStatus.DRAFT;` のままで、
+        `setStatus` は作りません。状態を変える入口は、上の4つのメソッドだけです。**Problems**(問題)ビューにエラーが残っていなければ OK。
 
-        初期データを `data.sql` の INSERT で入れている場合は、`approval_request` の INSERT に `version` 列(値は `0`)を足しておきます。
+        `ddl-auto: update` は `version` 列を足すだけなので、これまでに作った申請は `version` が NULL のままです。アプリを起動して列ができたら、H2 コンソールで
+        `UPDATE approval_request SET version = 0 WHERE version IS NULL;` を実行しておきます(しないと、その申請を操作したときに NullPointerException になります)。
+        初期データを `data.sql` の INSERT で入れている場合は、`approval_request` の INSERT に `version` 列(値は `0`)も足します。
     - title: 履歴と Repository を整える(domain・repository)
       detail: |
-        `domain` の `ApprovalHistory.java` に、履歴を1行で作れるコンストラクタを足します(JPA 用の引数なしコンストラクタは `protected` で残す)。
+        `domain` の `ApprovalHistory.java` に、日時も受け取るコンストラクタを足します。capstone-setup で作った JPA 用の `protected` の引数なしコンストラクタと、4つの引数のコンストラクタはそのまま残します。
+        Service で時刻を1回だけ取り、申請と履歴に同じ日時を入れるためです。
 
         ```java
-        protected ApprovalHistory() {
-        }
-
         public ApprovalHistory(ApprovalRequest request, Employee actor,
                                Action action, String comment, LocalDateTime at) {
             this.request = request;
@@ -309,13 +331,10 @@ sts:
         }
         ```
 
-        `repository` の2つのインターフェースに派生クエリを足します。
+        `ApprovalRequestRepository` には、capstone-setup で宣言した `findByStatusOrderBySubmittedAtAsc`(承認待ちは古い順)があることを確かめます(もう一度書くと重複でコンパイルエラーです)。
+        `ApprovalHistoryRepository` には、画面から申請の ID で履歴を引く派生クエリを1行足します。
 
         ```java
-        // ApprovalRequestRepository
-        List<ApprovalRequest> findByStatusOrderBySubmittedAtAsc(RequestStatus status);
-
-        // ApprovalHistoryRepository
         List<ApprovalHistory> findByRequestIdOrderByAtAsc(Long requestId);
         ```
     - title: ApprovalService を作る(service)
@@ -590,32 +609,32 @@ sts:
       detail: |
         **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動し、`http://localhost:8080/requests/new` で金額 12,000円の経費精算を下書き保存します。
 
-        1. 一覧の件名から詳細を開き **申請する**:状態が「申請中」になり、履歴に「申請」が1行
-        2. `http://localhost:8080/approvals` に表示されることを確認し、詳細でコメントを **空白だけ** にして **差戻し**:
+        1. 一覧の件名から詳細を開き**申請する**:状態が「申請中」になり、履歴に「申請」が1行
+        2. `http://localhost:8080/approvals` に表示されることを確認し、詳細でコメントを**空白だけ**にして**差戻し**:
            赤字で「差戻しにはコメントが必要です」、状態も履歴も変わらない
-        3. コメント「領収書を添付してください」で **差戻し** → **申請する**(再申請)→ **承認**
+        3. コメント「領収書を添付してください」で**差戻し** → **申請する**(再申請)→ **承認**
         4. 履歴が「申請・差戻し・申請・承認」の **4行**、状態が「承認済」で、ボタンが1つも出ていないこと
     - title: ルール2・3を画面で確かめる
       detail: |
         - `ApprovalController` の `CURRENT_APPROVER_ID` を一時的に `1L`(申請者本人)に変えて保存・再起動し、申請中の申請を承認 →「自分の申請は承認できません」
-        - `CURRENT_APPROVER_ID` を `2L` に戻し、**100,000円ちょうど** の申請を作って申請 → 承認 →「100,000円以上の申請は管理者しか承認できません」
+        - `CURRENT_APPROVER_ID` を `2L` に戻し、**100,000円ちょうど**の申請を作って申請 → 承認 →「100,000円以上の申請は管理者しか承認できません」
         - `CURRENT_APPROVER_ID` を初期データの **ADMIN の id** にして同じ申請を承認 → 承認できる
 
         確認が終わったら `CURRENT_APPROVER_ID` を承認者の id に戻します。
     - title: デバッガで「同時に承認」を再現する(楽観ロック)
       detail: |
         1. アプリを止め、プロジェクトを右クリック > **Debug As > Spring Boot App**(デバッグ > Spring Boot アプリケーション)で起動し直す
-        2. `ApprovalService.approve` の `requireApprover(actor);` の行の **左端(行番号の左)をダブルクリック** して、ブレークポイント(青い丸)を置く
-        3. 金額の小さい申請を「申請中」にし、ブラウザの **2つのタブ** で同じ詳細画面を開く
-        4. タブ1で **承認** → STS が止まる(**Confirm Perspective Switch**(パースペクティブ切り替えの確認)が出たら **Switch**(切り替え))。続けてタブ2でも **承認**
-        5. **Debug**(デバッグ)ビューに `http-nio-8080-exec-…` のスレッドが **2つ** 止まっているのを確認し、1つ目を選んで **Resume**(再開、F8)、次に2つ目を選んで F8
+        2. `ApprovalService.approve` の `requireApprover(actor);` の行の**左端(行番号の左)をダブルクリック**して、ブレークポイント(青い丸)を置く
+        3. 金額の小さい申請を「申請中」にし、ブラウザの **2つのタブ**で同じ詳細画面を開く
+        4. タブ1で**承認** → STS が止まる(**Confirm Perspective Switch**(パースペクティブ切り替えの確認)が出たら **Switch**(切り替え))。続けてタブ2でも**承認**
+        5. **Debug**(デバッグ)ビューに `http-nio-8080-exec-…` のスレッドが **2つ**止まっているのを確認し、1つ目を選んで **Resume**(再開、F8)、次に2つ目を選んで F8
 
-        タブ1は「承認しました」、タブ2は「他の人が先に操作しました。開き直してください」になり、履歴の「承認」は **1行だけ** です。
+        タブ1は「承認しました」、タブ2は「他の人が先に操作しました。開き直してください」になり、履歴の「承認」は **1行だけ**です。
         2つ目のスレッドは、1つ目がコミットする前に「申請中・version 0」を読んでいたので、ルールのチェックは通ったのに UPDATE が0件になったのです。
-        余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行** になることも確かめましょう(確認後は必ず戻す)。
+        余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行**になることも確かめましょう(確認後は必ず戻す)。
 checklist:
   - key: entity-methods
-    text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、setStatus を消してもコンパイルエラーが残っていない
+    text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、Problems ビューにコンパイルエラーが残っていない
   - key: full-flow
     text: 申請 → 差戻し → 再申請 → 承認 を画面で通し、履歴が4行表示された
   - key: blank-comment

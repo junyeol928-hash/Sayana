@@ -81,6 +81,39 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("復習は同じレッスンを続けて出さず、長く復習していないレッスンから交互に出す。今日の数と正解も数える")
+    void interleavesLessons() {
+        ReviewItem a1 = review.recordPractice(ReviewItem.Type.QUIZ, "java-if#0", "java-if", true);
+        ReviewItem a2 = review.recordPractice(ReviewItem.Type.QUIZ, "java-if#1", "java-if", true);
+        ReviewItem b1 = review.recordPractice(ReviewItem.Type.QUIZ, "java-loops#0", "java-loops", true);
+        clock.advanceDays(1);
+        assertThat(review.next(review.due())).get().extracting(ReviewItem::getId).isEqualTo(a1.getId());
+        review.recordReview(a1.getId(), true);
+        assertThat(review.next(review.due())).as("java-if を解いた直後は java-loops").get()
+                .extracting(ReviewItem::getId).isEqualTo(b1.getId());
+        review.recordReview(b1.getId(), false);
+        assertThat(review.next(review.due())).get().extracting(ReviewItem::getId).isEqualTo(a2.getId());
+        assertThat(review.todayTally()).containsExactly(2, 1);
+        assertThat(review.next(java.util.List.of())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("復習の選択肢の並びは入れ替わり、同じ日なら同じ並びのまま")
+    void choiceOrderIsStableForTheDay() {
+        ReviewItem item = review.recordPractice(ReviewItem.Type.QUIZ, "java-if#3", "java-if", true);
+        java.util.List<Integer> order = review.choiceOrder(item, 4);
+        assertThat(order).containsExactlyInAnyOrder(0, 1, 2, 3);
+        assertThat(review.choiceOrder(item, 4)).isEqualTo(order);
+        // 日が変われば並びも変わる(何日か進めれば、どこかで別の並びになる)
+        java.util.Set<java.util.List<Integer>> seen = new java.util.HashSet<>();
+        for (int d = 0; d < 10; d++) {
+            seen.add(review.choiceOrder(item, 4));
+            clock.advanceDays(1);
+        }
+        assertThat(seen).hasSizeGreaterThan(1);
+    }
+
+    @Test
     @DisplayName("連続学習日数は今日(まだなら昨日)から遡って数える")
     void streak() {
         assertThat(activity.currentStreak()).isZero();

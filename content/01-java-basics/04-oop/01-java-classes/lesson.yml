@@ -2,17 +2,17 @@ id: java-classes
 title: クラスとオブジェクト
 status: ready
 minutes: 15
-summary: バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・this・static、参照の代入と null、toString まで。
+summary: バラバラの配列を1つの型にまとめるクラス。インスタンス・フィールド・コンストラクタ・`this`・`static`、参照の代入と `null`、`toString` まで。
 goals:
-  - クラスとインスタンスの違いを説明し、new でインスタンスを作ってフィールドを読み書きできる
-  - コンストラクタを書き、this でフィールドと引数を区別できる。オーバーロードと this(...) を使える
+  - クラスとインスタンスの違いを説明し、`new` でインスタンスを作ってフィールドを読み書きできる
+  - コンストラクタを書き、`this` でフィールドと引数を区別できる。オーバーロードと `this(...)` を使える
   - コンストラクタを書くとデフォルトコンストラクタが消える理由と、そのときのエラーを説明できる
-  - インスタンスメソッドと static の違い(どこに属するか)を説明できる
-  - 参照の代入がエイリアスを作ること、null と NullPointerException の関係を説明できる
+  - インスタンスメソッドと `static` の違い(どこに属するか)を説明できる
+  - 参照の代入がエイリアスを作ること、`null` と `NullPointerException` の関係を説明できる
 samples:
   - title: 社員クラスを作ってインスタンスを2つ作る
     description: |
-      コンストラクタ・インスタンスメソッド・toString を持つ `Employee` クラスです。インスタンスごとにフィールドが別々なことを確かめましょう。
+      コンストラクタ・インスタンスメソッド・`toString` を持つ `Employee` クラス。`a` だけ `raise` したとき、`b` の給料はどうなる?
     code: |
       class Employee {
           String name;
@@ -40,10 +40,11 @@ samples:
 
       System.out.println(a);   // toString() が呼ばれる
       System.out.println(b);
-      // toString メソッドを消すと Employee@xxxx という表示になる
+      // toString メソッドを消すと Employee@xxxx のような表示になる(JShell では前に REPL.$JShell$.. が付く)
   - title: コンストラクタのオーバーロードと static
     description: |
-      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数えます。`count` は全インスタンスで1つだけです。
+      `this(...)` で別のコンストラクタに処理を任せ、`static` なフィールドで作った数を数える。消しゴムの税込価格は、いくらになるか。
+      最後の `Item.count` は、いくつになる?
     code: |
       class Item {
           static int count = 0;    // クラスに1つだけ(全インスタンスで共有)
@@ -76,7 +77,7 @@ samples:
       System.out.println("作った数: " + Item.count);
   - title: 参照の代入と null
     description: |
-      代入でコピーされるのは参照だけ。`b` を変えると `a` も変わります。オブジェクトの配列は作った直後は全部 `null` です。
+      `b = a` のあと `b` を書き換えたら、`a.value` はどうなるか。作った直後のオブジェクトの配列の `list[0]` には、何が入っている?
     code: |
       class Counter {
           int value;
@@ -112,9 +113,13 @@ quiz:
       ```
     choices: ["7 7", "3 7", "3 3", "0 7"]
     answer: 0
+    why:
+      - ""
+      - "`y = x` で別のインスタンスができると読んだ答え"
+      - "`y.size = 7` の行を見落とした答え"
+      - "代入で中身が `y` へ移り、`x` は空になると読んだ答え"
     explanation: |
-      `Box y = x;` でコピーされるのはインスタンスではなく **参照** です。`x` と `y` は同じインスタンスを指すエイリアスなので、`y.size = 7` は `x.size` も 7 にします。
-      `3 7` になるのは `Box y = new Box();` のように別のインスタンスを作った場合です。
+      `Box y = x;` でコピーされるのはインスタンスではなく**参照**です。`x` と `y` は同じインスタンスを指すエイリアスなので、`y.size = 7` は `x.size` も 7 にします。
   - question: |
       次のコードでコンパイルエラーになるのはどの行?
       ```java
@@ -128,9 +133,14 @@ quiz:
       ```
     choices: ["行3", "行4", "行7", "どこもエラーにならない"]
     answer: 2
+    why:
+      - "コンストラクタの書き方を疑った答え。クラス名と同じ名前で戻り値の型なしの正しい形"
+      - "`this.name = name` を疑った答え。引数の `name` をフィールドに入れる正しい書き方"
+      - ""
+      - "引数なしのコンストラクタが自動で作られると読んだ答え"
     explanation: |
-      コンストラクタを1つでも書くと、コンパイラは引数なしの **デフォルトコンストラクタを自動生成しなくなります**。`User(String)` しかないので、`new User()` は `constructor User in class User cannot be applied to given types` になります。
-      行3・行4は正しいコンストラクタです。`new User()` も使いたいなら `User() { this("名無し"); }` のように自分で書きます。
+      コンストラクタを1つでも書くと、コンパイラは引数なしの**デフォルトコンストラクタを自動生成しなくなります**。`User(String)` しかないので、`new User()` は次のコンパイルエラーになります: `constructor User in class User cannot be applied to given types`
+      `new User()` も使いたいなら `User() { this("名無し"); }` のように自分で書きます。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -143,13 +153,18 @@ quiz:
       Member m = new Member("ハル");
       System.out.println(m.name);
       ```
-    choices: ["ハル", "name", "null", "空文字(何も表示されない)"]
+    choices: ["`ハル`", "`name`", "`null`", "空文字(何も表示されない)"]
     answer: 2
+    why:
+      - "`name = name` でフィールドに入ると読んだ答え"
+      - "変数の名前が、値として入ると読んだ答え"
+      - ""
+      - "`String` フィールドの既定値を空文字と読んだ答え。参照型の既定値は `null`"
     explanation: |
-      コンストラクタの中で単に `name` と書くと、それは **引数の name** を指します(引数がフィールドを隠している)。`name = name;` は引数に引数を代入しているだけで、フィールドには何も入りません。フィールドは既定値の `null` のままなので `null` と出力されます。
+      コンストラクタの中で単に `name` と書くと、それは **引数の `name`** を指します(引数がフィールドを隠している)。`name = name;` は引数に引数を代入しているだけで、フィールドには何も入りません。フィールドは既定値の `null` のままなので `null` と出力されます。
       フィールドに入れるには `this.name = name;` と書きます。コンパイルエラーにはならないので気づきにくいミスです。
   - question: |
-      次のクラスについて、**コンパイルエラーになる** メソッドはどれ?
+      次のクラスについて、**コンパイルエラーになる**メソッドはどれ?
       ```java
       class Shop {
           int sales;
@@ -161,11 +176,15 @@ quiz:
           static void d() { sales++; }
       }
       ```
-    choices: ["a", "b", "c", "d"]
+    choices: ["`a`", "`b`", "`c`", "`d`"]
     answer: 3
+    why:
+      - "インスタンスメソッドからフィールドを使えないと読んだ答え。インスタンスメソッドは自分の `sales` を使える"
+      - "インスタンスメソッドから `static` フィールドは使えないと読んだ答え。共有の 1 つを触るだけで問題ない"
+      - "`static` メソッドから `static` フィールドを疑った答え。どちらもクラスに属するので使える"
+      - ""
     explanation: |
-      `static` メソッドはインスタンスではなくクラスに属するので、`this`(どのインスタンスか)がありません。そのため インスタンスのフィールド `sales` は直接使えず、`non-static variable sales cannot be referenced from a static context` になります。
-      逆に、インスタンスメソッド `b` から static フィールドを使うのは問題ありません(全インスタンスで共有している1つを触るだけ)。
+      `static` メソッドはインスタンスではなくクラスに属するので、`this`(どのインスタンスか)がありません。そのため インスタンスのフィールド `sales` は直接使えず、次のコンパイルエラーになります: `non-static variable sales cannot be referenced from a static context`
   - question: |
       次のコードを実行するとどうなる?
       ```java
@@ -176,10 +195,15 @@ quiz:
       System.out.println(tasks.length);
       System.out.println(tasks[0].title);
       ```
-    choices: ["2 と null が出力される", "2 が出力されたあと NullPointerException", "0 と null が出力される", "コンパイルエラー"]
+    choices: ["`2` と `null` が出力される", "`2` のあと `NullPointerException` が発生", "`0` と `null` が出力される", "コンパイルエラー(`null` かもしれない要素を読んでいる)"]
     answer: 1
+    why:
+      - "`new Task[2]` で `Task` のインスタンスもできると読んだ答え。要素は `null` で、`.title` で NPE になる"
+      - ""
+      - "要素を入れていない配列の長さを 0 と読んだ答え。長さは枠の数の 2 で、`tasks[0]` は `null`"
+      - "`null` の要素の読み出しをコンパイラが止めると読んだ答え。文法は正しく、実行して NPE になる"
     explanation: |
-      `new Task[2]` で作られるのは **Task を入れる枠が2つある配列** だけで、Task のインスタンスは作られません。要素は参照型の既定値 `null` です。`tasks.length` は 2 ですが、`tasks[0].title` は null のフィールドを読もうとして `NullPointerException` になります。
+      `new Task[2]` で作られるのは **`Task` を入れる枠が2つある配列** だけで、`Task` のインスタンスは作られません。要素は参照型の既定値 `null` です。`tasks.length` は 2 ですが、`tasks[0].title` は `null` のフィールドを読もうとして `NullPointerException` になります。
       `tasks[0]` を println するだけなら `null` と表示されますが、`null` に `.` を付けた時点で NPE です。各要素に `tasks[i] = new Task();` が必要です。
 columns:
   - type: trivia
@@ -187,9 +211,9 @@ columns:
     body: |
       toString を書かずにインスタンスを println すると `Employee@2a139a55` のように出ます。この16進数を「メモリアドレス」と書いた記事がありますが、不正確です。
 
-      これは `Object` クラスの toString が `getClass().getName() + "@" + Integer.toHexString(hashCode())` を返しているもので、数字は **ハッシュコード**(識別用の int 値)です。HotSpot JVM の既定では、アドレスではなく **スレッドごとの乱数** をもとに作られ、オブジェクトのヘッダーに保存されます。
+      これは `Object` クラスの toString が `getClass().getName() + "@" + Integer.toHexString(hashCode())` を返しているもので、数字は**ハッシュコード**(識別用の int 値)です。HotSpot JVM の既定では、アドレスではなく**スレッドごとの乱数**をもとに作られ、オブジェクトのヘッダーに保存されます。
 
-      そもそも JVM の GC(ガベージコレクション)は、生きているオブジェクトをヒープ内で **移動** させます。アドレスをそのまま使ったら、移動のたびに値が変わってしまいます。一度決まったハッシュコードは移動しても変わらない、というのが仕様上の約束です。
+      そもそも JVM の GC(ガベージコレクション)は、生きているオブジェクトをヒープ内で**移動**させます。アドレスをそのまま使ったら、移動のたびに値が変わってしまいます。一度決まったハッシュコードは移動しても変わらない、というのが仕様上の約束です。
 
       配列の `[I@1b6d3586` も同じ仕組みで、`[I` は「int の配列」の内部名です。
   - type: mistake
@@ -204,14 +228,14 @@ columns:
       }
       ```
 
-      コンパイルは通り、部署は入るので画面確認では気づかれず、帳票を出した段階で「氏名欄が全員 null」と発覚しました。引数とフィールドが同名のとき、素の `name` は **引数** を指すので、引数に引数を入れているだけだったのです。
+      コンパイルは通り、部署は入るので画面確認では気づかれず、帳票を出した段階で「氏名欄が全員 null」と発覚しました。引数とフィールドが同名のとき、素の `name` は**引数**を指すので、引数に引数を入れているだけだったのです。
 
-      対策は3つ。①フィールドへの代入は必ず `this.` を付ける。②STS(Eclipse)の警告 `The assignment to variable name has no effect` を無視しない。③引数を `final` にする(`Staff(final String name, ...)`)と、`name = name` が **コンパイルエラー** になって機械的に防げます。STS の「ソース → フィールドを使用してコンストラクターを生成」も便利です。
+      対策は3つ。①フィールドへの代入は必ず `this.` を付ける。②STS(Eclipse)の警告 `The assignment to variable name has no effect` を無視しない。③引数を `final` にする(`Staff(final String name, ...)`)と、`name = name` が**コンパイルエラー**になって機械的に防げます。STS の「ソース → フィールドを使用してコンストラクターを生成」も便利です。
   - type: genba
     title: 「とりあえず static」は後で泣く
     body: |
       `main` から呼ぶと「non-static ... from a static context」と怒られるので、エラーを消すためにフィールドもメソッドも全部 `static` にしてしまう――新人のコードで本当によく見ます。
 
-      動くことは動きます。でも static フィールドは **アプリ全体で1つ** です。Spring Boot のような Web アプリでは、1つのクラスを複数のリクエスト(複数のユーザー)が同時に使います。そこで「ログイン中のユーザー名」を static フィールドに入れたら、**Aさんの画面にBさんの名前が出る** 事故が起きます。実際に個人情報の表示事故として報告される典型パターンです。
+      動くことは動きます。でも static フィールドは**アプリ全体で1つ**です。Spring Boot のような Web アプリでは、1つのクラスを複数のリクエスト(複数のユーザー)が同時に使います。そこで「ログイン中のユーザー名」を static フィールドに入れたら、**Aさんの画面にBさんの名前が出る**事故が起きます。実際に個人情報の表示事故として報告される典型パターンです。
 
       static にしてよいのは、①定数(`static final`)、②状態を持たない計算(`Math.max` のようなユーティリティ)くらい。データを持つならインスタンスを `new` して、インスタンスメソッドで扱うのが基本です。

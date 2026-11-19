@@ -1,0 +1,45 @@
+- after: まず覚える12個
+  question: |
+    JDK に入っている `String` クラスのソースを開いて読みたい。押すのは?
+  choices: ["`Ctrl+Shift+T`(型を開く)", "`Ctrl+Shift+R`(リソースを開く)", "どちらでも開ける"]
+  answer: 0
+  why:
+    - ""
+    - "ファイル名なら何でも探せる R と読んだ答え。R はワークスペースのファイルが対象で、JDK の中は探さない"
+    - "R もライブラリの中まで探すと読んだ答え。JDK やライブラリの中まで探すのは T だけ"
+  explanation: |
+    **T**(Type)は Java の型を、JDK や Maven で取ってきたライブラリの中まで含めて探す。
+- after: リファクタリング機能
+  question: |
+    `int sum = 0;` から `for` の行までの 3 行を選んで **Alt+Shift+M**(メソッド抽出)を押した。どうなる?
+    ```java
+    int sum = 0;
+    int count = 0;
+    for (int p : prices) { sum += p; count++; }
+    System.out.println(sum / count);
+    ```
+  choices:
+    - "抽出できない(`Ambiguous return value`)"
+    - "`int` を返すメソッドができる"
+    - "`void` のメソッドができる"
+  answer: 0
+  why:
+    - ""
+    - "後ろで使う変数を `sum` だけと読んだ答え。`count` も後ろの `println` で使うので、戻り値が 2 つ要る"
+    - "値を返さなくても済むと読んだ答え。`sum` と `count` は後ろで使うので、捨てるメソッドにはできない"
+  explanation: |
+    選択範囲の中で値が決まり、後ろの `println` でも使う変数が `sum` と `count` の 2 つある。Java のメソッドは戻り値を 1 つしか返せないので、抽出できない。
+- after: 保存時アクション(Save Actions)
+  question: |
+    古いプロジェクトで、保存時のフォーマット(Format source code)を有効にした。1 行だけ直して保存したら、差分が数百行になった。どう設定すればよかった?
+  choices:
+    - "フォーマットを編集した行だけ(Format edited lines)にする"
+    - "Organize imports のチェックを外す"
+    - "フォーマッタの最大行幅(Maximum line width)を広げる"
+  answer: 0
+  why:
+    - ""
+    - "差分の原因をインポート整理と取り違えた答え。インポート整理が変えるのは `import` 文だけで、数百行にはならない"
+    - "差分の原因を折り返しの幅と取り違えた答え。幅を変えても、古い行がまとめてそろえ直されるのは同じ"
+  explanation: |
+    ファイル全体をフォーマットすると、直していない古い行の書き方までまとめて変わる。既存コードでは、編集した行だけに絞るのが無難。

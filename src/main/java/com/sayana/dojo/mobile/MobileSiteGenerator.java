@@ -31,6 +31,8 @@ import com.sayana.dojo.content.ExerciseDef;
 import com.sayana.dojo.content.Lesson;
 import com.sayana.dojo.content.MarkdownRenderer;
 import com.sayana.dojo.content.Part;
+import com.sayana.dojo.exec.ExecutionGate;
+import com.sayana.dojo.exec.JShellRunner;
 
 /**
  * スマホ版(オフライン対応の静的サイト)を m/ に書き出す。
@@ -55,12 +57,23 @@ public final class MobileSiteGenerator {
     /** AI 機能のプロンプト。 */
     static final List<String> PROMPTS = List.of("tutor", "hint", "review", "explain-error");
 
+    /** サンプルの実行結果の控え(build のたびに読み直す)。 */
+    private Map<String, SampleOutputs.Entry> sampleOutputs = Map.of();
+
     // 改行は OS によらず LF に固定する(Windows で作り直しても差分が出ないように)
     private final ObjectWriter json = new ObjectMapper().writer(new DefaultPrettyPrinter()
             .withObjectIndenter(new DefaultIndenter("  ", "\n")));
 
     public static void main(String[] args) throws IOException {
         Path out = Path.of(args.length > 0 ? args[0] : "m");
+        // サンプルの実行結果の控えを先に作る(書き換えたサンプルだけ JShell で実行し直す)
+        DojoProperties props = new DojoProperties();
+        props.setContentDir(Path.of("content"));
+        ContentRepository content = new ContentRepository(props, new MarkdownRenderer());
+        int ran = SampleOutputs.refresh(content, new JShellRunner(props, new ExecutionGate(props)), SampleOutputs.FILE);
+        if (ran > 0) {
+            System.out.println("サンプルを " + ran + " 件実行して、結果を " + SampleOutputs.FILE + " に控えました");
+        }
         Map<String, byte[]> files = new MobileSiteGenerator().build(Path.of("content"));
         write(out, files);
         System.out.println("スマホ版を書き出しました: " + out.toAbsolutePath() + "(" + files.size() + "ファイル)");
@@ -72,6 +85,7 @@ public final class MobileSiteGenerator {
         props.setContentDir(contentDir);
         ContentRepository content = new ContentRepository(props, new MarkdownRenderer());
         PromptLibrary prompts = new PromptLibrary();
+        sampleOutputs = SampleOutputs.load(SampleOutputs.FILE).entries();
 
         Map<String, byte[]> files = new TreeMap<>();
         for (String name : STATIC_FILES) {
@@ -171,6 +185,12 @@ public final class MobileSiteGenerator {
             x.put("title", s.title());
             x.put("descriptionHtml", s.descriptionHtml());
             x.put("code", s.code());
+            SampleOutputs.Entry r = sampleOutputs.get(SampleOutputs.key(s));
+            if (r == null) {
+                throw new IllegalStateException("サンプルの実行結果の控えがありません(" + l.id() + " / " + s.title()
+                        + ")。./mvnw -q compile exec:java で作り直してください");
+            }
+            x.put("result", r);
             return x;
         }).toList());
         m.put("exercises", l.exercises().stream().map(this::exercise).toList());
@@ -180,8 +200,12 @@ public final class MobileSiteGenerator {
             x.put("choicesHtml", q.choicesHtml());
             x.put("answer", q.answer());
             x.put("explanationHtml", q.explanationHtml());
+            x.put("whyHtml", q.whyHtml());
             return x;
         }).toList());
+        // 手を止めて(本文の HTML には描画済み。復習で出すために中身も持つ)
+        m.put("checks", l.checks().stream().map(c -> ordered("questionHtml", c.questionHtml(), "choicesHtml", c.choicesHtml(),
+                "answer", c.answer(), "explanationHtml", c.explanationHtml(), "whyHtml", c.whyHtml())).toList());
         m.put("columns", l.columns().stream().map(c -> {
             Map<String, Object> x = new LinkedHashMap<>();
             x.put("type", c.type());
@@ -208,6 +232,7 @@ public final class MobileSiteGenerator {
             x.put("answer", r.answer());
             x.put("explanationHtml", r.explanationHtml());
             x.put("traceHtml", r.traceHtml());
+            x.put("whyHtml", r.whyHtml());
             return x;
         }).toList());
         m.put("atWork", l.atWork().stream().map(a -> {

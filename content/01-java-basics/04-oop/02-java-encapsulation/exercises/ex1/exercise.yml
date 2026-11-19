@@ -3,7 +3,7 @@ className: SafeAccount
 difficulty: 1
 problem: |
   前回の口座クラスは `acc.balance = -1000000;` と外から書けてしまいました。
-  **残高が絶対にマイナスにならない** 口座クラス `SafeAccount` を作ってください。
+  **残高が絶対にマイナスにならない**口座クラス `SafeAccount` を作ってください。
 
   **ルール**
 

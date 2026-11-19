@@ -5,9 +5,9 @@ minutes: 15
 summary: Java Project・Maven Project・Spring Starter Project の違いを知り、Spring Boot の雛形を作って Boot Dashboard で起動する。既存プロジェクトのインポート、エラーが消えないときの対処、ポート 8080 の衝突まで。
 goals:
   - Java Project・Maven Project・Spring Starter Project の違いを、ビルドと依存管理の観点で説明できる
-  - Spring Starter Project を Java 21・Maven・Spring Web で作成し、生成されたフォルダ構成(src/main/java・src/main/resources・pom.xml・mvnw)を読める
+  - Spring Starter Project を Java 21・Maven・Spring Web で作成し、生成されたフォルダ構成(`src/main/java`・`src/main/resources`・`pom.xml`・`mvnw`)を読める
   - 既存の Maven プロジェクトを Existing Maven Projects でインポートできる
-  - .project / .classpath / .settings が何かを知り、Git に入れない理由を説明できる
+  - "`.project` / `.classpath` / `.settings` が何かを知り、Git に入れない理由を説明できる"
   - Maven > Update Project と Project > Clean を使い分け、Boot Dashboard での起動・停止とポート衝突に対処できる
 
 quiz:
@@ -25,16 +25,19 @@ quiz:
       Web server failed to start. Port 8080 was already in use.
       ```
     choices:
-      - "pom.xml から spring-boot-starter-web を削除する"
-      - "demo の application.properties に server.port=8081 と書いて、起動し直す"
+      - "`pom.xml` から `spring-boot-starter-web` を削除する"
+      - "demo 側で `server.port=8081` にして起動し直す"
       - "Project > Clean... を実行してから起動し直す"
       - "Maven > Update Project... を実行してから起動し直す"
     answer: 1
+    why:
+      - "エラーを消せば直ると読んだ答え。starter-web を消すと Web サーバごと無くなり、Web アプリとして動かない"
+      - ""
+      - "ビルドの問題と読んだ答え。Clean はコンパイルのやり直しで、ポートの取り合いは解けない"
+      - "設定の問題と読んだ答え。Update Project は `pom.xml` の読み直しで、ポートの取り合いは解けない"
     explanation: |
-      ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo 側の番号を `server.port=8081` で変えるか、
+      ポート番号は同時に1つのプロセスしか使えません。8080 は道場アプリが使っているので、demo の `application.properties` に `server.port=8081` と書いて番号を変えるか、
       道場アプリを止めれば起動できます。
-      Clean や Update Project はビルドや設定の作り直しで、ポートの取り合いとは無関係です。starter-web を消すと Web サーバ自体が無くなり、
-      エラーは消えますが Web アプリとして動かなくなるので本末転倒です。
 
   - question: |
       Git から取ってきた Maven プロジェクト(`pom.xml` はあるが `.project` は無い)を、
@@ -44,13 +47,17 @@ quiz:
       - "JDK 21 が登録されていないので、Installed JREs に登録してからやり直す"
       - "インターネットに繋がっていないので、依存ライブラリを取得できていない"
       - "pom.xml が壊れているので、作り直す必要がある"
-      - "Existing Projects into Workspace は .project があるフォルダ用。Maven > Existing Maven Projects で取り込む"
+      - ".project が無いので、Existing Maven Projects で取り込む"
     answer: 3
+    why:
+      - "JDK の未登録が原因と読んだ答え。それなら取り込んだ後のビルドエラーとして出る"
+      - "ネット接続が原因と読んだ答え。依存の取得は取り込んだ後の話で、見つからないのは `.project` が無いから"
+      - "`pom.xml` が壊れていると読んだ答え。この取り込み方は `.project` を探していて、`pom.xml` を見ていない"
+      - ""
     explanation: |
       **Existing Projects into Workspace** は、Eclipse の `.project` ファイルを探して取り込む機能です。`.project` は Git に入れないのが普通なので、
       Git から取ってきた Maven プロジェクトでは「見つからない」になります。
       **Maven > Existing Maven Projects** なら `pom.xml` を読んで、m2e が `.project` や `.classpath` を生成しながら取り込みます。
-      JDK やネット接続の問題なら、取り込んだ後にビルドエラーとして現れます。
 
   - question: |
       Spring Starter Project で作ったプロジェクトに、次の場所でクラスを作った。ファイルの1行目に書くべき宣言はどれ?
@@ -59,25 +66,34 @@ quiz:
       demo/src/main/java/com/example/shop/OrderService.java
       ```
     choices:
-      - "package src.main.java.com.example.shop;"
-      - "package com.example.shop.OrderService;"
-      - "package com.example.shop;"
-      - "package com/example/shop;"
+      - "`package src.main.java.com.example.shop;`"
+      - "`package com.example.shop.OrderService;`"
+      - "`package com.example.shop;`"
+      - "`package com/example/shop;`"
     answer: 2
+    why:
+      - "`src/main/java` もパッケージに含めた答え。パッケージは `src/main/java` の下から数える"
+      - "クラス名までパッケージに入れた答え。パッケージ宣言はフォルダまでで、クラス名は入れない"
+      - ""
+      - "フォルダの区切りの `/` をそのまま使った答え。パッケージの区切りは `.`"
     explanation: |
       Maven のプロジェクトでは `src/main/java` が **ソースフォルダ(パッケージの根元)** です。その下のフォルダ階層 `com/example/shop` が
       パッケージ `com.example.shop` に対応します。
-      `src.main.java` はパッケージ名に含めません。パッケージ宣言にクラス名は入れず、区切りは `/` ではなく `.` です。
       パッケージとフォルダが食い違うと、STS は `The declared package "..." does not match the expected package "..."` というエラーを出します。
 
   - question: |
-      Spring Starter Project で作ったプロジェクトを Git で管理する。次のうち **コミットすべき** ものはどれ?
+      Spring Starter Project で作ったプロジェクトを Git で管理する。次のうち**コミットすべき**ものはどれ?
     choices:
       - "mvnw・mvnw.cmd と .mvn/wrapper/ フォルダ"
       - ".classpath"
       - "target/demo-0.0.1-SNAPSHOT.jar"
       - ".settings/org.eclipse.jdt.core.prefs"
     answer: 0
+    why:
+      - ""
+      - "`.classpath` を共有すべき設定と読んだ答え。m2e が `pom.xml` から作り直す IDE 用のファイル"
+      - "ビルド結果の jar もコミットすると読んだ答え。`target/` はビルドのたびに作り直すのでコミットしない"
+      - "`.settings/` を共有すべき設定と読んだ答え。m2e が `pom.xml` から作り直す IDE 用のファイル"
     explanation: |
       `mvnw` と `.mvn/wrapper/` は **Maven Wrapper** で、Maven を入れていない人や CI でも同じ版の Maven でビルドできるようにするものです。コミットします。
       `.classpath` と `.settings/` は STS(m2e)が `pom.xml` から生成する IDE 用のファイル、`target/` はビルド結果なので、どれもコミットしません。
@@ -95,12 +111,16 @@ quiz:
       - "Project > Clean... を実行する"
       - "STS を再インストールする"
       - "pom.xml の <java.version> を 17 に戻す"
-      - "プロジェクトを右クリック > Maven > Update Project... を実行する"
+      - "Maven > Update Project... を実行する"
     answer: 3
+    why:
+      - "コンパイルし直せば直ると読んだ答え。古いのは STS 側の設定なので、Clean では反映されない"
+      - "STS が壊れたと読んだ答え。設定の反映が追いついていないだけ"
+      - "エラーを消すために変更を戻した答え。Java 21 にしたいという目的と逆になる"
+      - ""
     explanation: |
       メッセージのとおり、`pom.xml` の変更が STS 側の設定(`.classpath` や `.settings` の Java の版)にまだ反映されていない状態です。
-      **Maven > Update Project...** で `pom.xml` を読み直すと、JRE System Library が `JavaSE-21` に変わり、エラーが消えます。
-      **Project > Clean** は「コンパイルのやり直し」なので、設定そのものが古いままでは直りません。17 に戻すのは目的と逆です。
+      プロジェクトの右クリックメニューの **Maven > Update Project...** で `pom.xml` を読み直すと、JRE System Library が `JavaSE-21` に変わり、エラーが消えます。
 
 columns:
   - type: trivia
@@ -118,19 +138,19 @@ columns:
 
       (実際は1行で入力。PowerShell では `curl` が別コマンドの別名のことがあるので `curl.exe` と書きます。)
 
-      IntelliJ IDEA や VS Code のウィザードも同じ Initializr を使うので、**どの IDE で作っても同じ雛形** になります。
+      IntelliJ IDEA や VS Code のウィザードも同じ Initializr を使うので、**どの IDE で作っても同じ雛形**になります。
 
   - type: genba
     title: 「.settings はコミットする派」との静かな戦い
     body: |
-      `.project`・`.classpath`・`.settings` を Git に入れない、というのが今の主流ですが、古いプロジェクトでは **全部コミットされている** ことがよくあります。
+      `.project`・`.classpath`・`.settings` を Git に入れない、というのが今の主流ですが、古いプロジェクトでは**全部コミットされている**ことがよくあります。
       「全員 Eclipse だし、フォーマッタの設定(`.settings/org.eclipse.jdt.core.prefs`)を共有したい」という理由です。
 
-      ところが、誰かが STS の版を上げたり、Update Project を実行したりするたびに、これらのファイルに **関係ない差分** が出ます。
+      ところが、誰かが STS の版を上げたり、Update Project を実行したりするたびに、これらのファイルに**関係ない差分**が出ます。
       プルリクエストに `.classpath` の変更が毎回混ざり、マージで衝突し、「誰の設定が正しいの?」と揉めるのが定番の流れです。
 
       いまどきは、Java の版や文字コードは `pom.xml` に、フォーマットのルールは Maven のプラグインや `.editorconfig` に書き、
-      **IDE に依存しない場所を正解にする** のが現場の落としどころです(管理対象から外す手順は Git の回で扱います)。
+      **IDE に依存しない場所を正解にする**のが現場の落としどころです(管理対象から外す手順は Git の回で扱います)。
 
   - type: mistake
     title: Spring Boot Version で SNAPSHOT を選んでしまう
@@ -142,7 +162,8 @@ columns:
       - M や RC は正式リリース前の版で、ネット上の情報や書籍と挙動が合わないことがあります
 
       `pom.xml` に `<repository>` として `https://repo.spring.io/snapshot` などが追加されていたら、うっかり選んだサインです。
-      学習でも仕事でも、**何も付いていない正式版** を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
+      学習でも仕事でも、**何も付いていない正式版**を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
+      ただし start.spring.io(STS のウィザードも裏で同じ)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
 
 sts:
   intro: |
@@ -170,6 +191,7 @@ sts:
     - title: 依存に Spring Web を選んで作成する
       detail: |
         2ページ目の **Spring Boot Version** は、`SNAPSHOT`・`M`・`RC` が付いていない正式版を選びます。
+        start.spring.io はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
         **Available**(使用可能)の検索欄に `web` と入力し、**Web > Spring Web** にチェックを入れます。右側の **Selected**(選択済み)に Spring Web が出れば OK。
         **Finish**(完了)を押します。
 
@@ -188,18 +210,18 @@ sts:
       detail: |
         道場アプリを STS で動かしている場合は、先に止めておきます(次の手順で衝突を体験するなら、動かしたままで構いません)。
 
-        **Boot Dashboard**(見当たらなければ **Window > Show View > Other... > Spring > Boot Dashboard**)の **local** を開き、`demo` を選んで **▶(Start)** を押します。
+        **Boot Dashboard**(見当たらなければ **Window > Show View > Other... > Spring > Boot Dashboard**)の **local** を開き、`demo` を選んで **▶((Re)start)** を押します。
         Console に `Tomcat started on port 8080 (http)` と `Started DemoApplication in ...` が出たら起動成功です。
 
         ブラウザで `http://localhost:8080` を開き、**Whitelabel Error Page**(`status=404`)が出れば OK。まだ画面を作っていないので 404 で正解です。
     - title: ポート 8080 の衝突を体験して直す
       detail: |
-        demo を起動したまま、Package Explorer で `DemoApplication.java` を右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選び、**同じアプリをもう1つ** 起動します。
+        demo を起動したまま、Package Explorer で `DemoApplication.java` を右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選び、**同じアプリをもう1つ**起動します。
         Console に `Web server failed to start. Port 8080 was already in use.` が出るのを確認します。
 
         1. Console ビューの赤い四角 **Terminate**(終了)で、失敗した方を止める(すでに止まっていれば不要)
         2. `src/main/resources/application.properties` に `server.port=8081` を1行追加して保存
-        3. Boot Dashboard で `demo` を選び、**Restart**(再始動)ボタン(または ■ で止めて ▶)を押す
+        3. Boot Dashboard で `demo` を選び、▶(**(Re)start**)ボタンを押す(動いているアプリは止めてから起動し直されます)
         4. Console に `Tomcat started on port 8081` と出て、`http://localhost:8081` で Whitelabel Error Page が出れば成功
 
         終わったら Boot Dashboard の **■(Stop)** で demo を止めます。

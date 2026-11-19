@@ -6,7 +6,7 @@
 「勝手に」の中身を知らないと、動かなくなったとき手も足も出ない。今日はその1行の裏側を全部開けるよ。
 :::
 
-## @SpringBootApplication の中身
+## `@SpringBootApplication` の中身
 
 Spring Starter Project が作るメインクラスはこれだけです。
 
@@ -19,7 +19,7 @@ public class DemoApplication {
 }
 ```
 
-`@SpringBootApplication` は、3つのアノテーションをまとめた **合成アノテーション** です。
+`@SpringBootApplication` は、3つのアノテーションをまとめた**合成アノテーション**です。
 
 | アノテーション | 役割 |
 |---|---|
@@ -27,9 +27,9 @@ public class DemoApplication {
 | `@EnableAutoConfiguration` | 自動設定を有効にする |
 | `@ComponentScan` | このクラスのパッケージ以下から `@Component` 系を探す |
 
-前回の `AnnotationConfigApplicationContext(A.class, B.class)` ではクラスを手で登録しました。Boot ではそれを **コンポーネントスキャン** が、ライブラリ側の Bean 定義を **自動設定** が肩代わりしています。
+前回の `AnnotationConfigApplicationContext(A.class, B.class)` ではクラスを手で登録しました。Boot ではそれを**コンポーネントスキャン**が、ライブラリ側の Bean 定義を**自動設定**が肩代わりしています。
 
-## SpringApplication.run で何が起きるか
+## `SpringApplication.run` で何が起きるか
 
 ```mermaid
 flowchart TD
@@ -43,15 +43,15 @@ flowchart TD
   H --> I["CommandLineRunner 実行"]
 ```
 
-ポイントは **D(自分のクラス)が E(自動設定)より先** なことです。これが次の「自分で定義したら自動設定は引っ込む」仕組みの前提になります。
+ポイントは **D(自分のクラス)が E(自動設定)より先**なことです。これが次の「自分で定義したら自動設定は引っ込む」仕組みの前提になります。
 
-`CommandLineRunner` は、この起動処理が **全部終わった直後に1回だけ** 呼ばれます(`Started` のログより後)。DI 済みの Bean が使えるので、初期データの投入や動作確認に便利です。
+`CommandLineRunner` は、この起動処理が**全部終わった直後に1回だけ**呼ばれます(`Started` のログより後)。DI 済みの Bean が使えるので、初期データの投入や動作確認に便利です。
 
 ## 自動設定:starter を入れると Bean が用意される理由
 
 `spring-boot-starter-web` のような **starter** は、それ自体にはほぼコードがなく、「Web アプリに必要なライブラリ一式」をまとめて引っぱってくる依存関係のセットです。
 
-では、誰が Tomcat や JSON 変換の Bean を作るのか。それが `spring-boot-autoconfigure` という jar に入っている150個以上の **自動設定クラス** です。中身はただの `@Configuration` で、条件が付いています。一覧は jar 内の `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` というファイルに書かれていて、`@EnableAutoConfiguration` がこれを読み込みます。Jackson(JSON ライブラリ)用を簡略化するとこうです。
+では、誰が Tomcat や JSON 変換の Bean を作るのか。それが `spring-boot-autoconfigure` という jar に入っている150個以上の**自動設定クラス**です。中身はただの `@Configuration` で、条件が付いています。一覧は jar 内の `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` というファイルに書かれていて、`@EnableAutoConfiguration` がこれを読み込みます。Jackson(JSON ライブラリ)用を簡略化するとこうです。
 
 ```java
 @AutoConfiguration
@@ -66,8 +66,8 @@ public class JacksonAutoConfiguration {
 }
 ```
 
-- `@ConditionalOnClass`:**そのクラスがクラスパスにあれば** この設定を使う。starter で jar を入れた瞬間に条件が成立します。
-- `@ConditionalOnMissingBean`:**同じ型の Bean がまだ無ければ** 作る。
+- `@ConditionalOnClass`:**そのクラスがクラスパスにあれば**この設定を使う。starter で jar を入れた瞬間に条件が成立します。
+- `@ConditionalOnMissingBean`:**同じ型の Bean がまだ無ければ**作る。
 
 つまり「ライブラリを入れたら既定の Bean が用意され、自分で `@Bean ObjectMapper` を書けばそちらが優先されて既定は作られない」。この **後ろに引っ込む(back off)** 動きが自動設定の基本思想です。自分の Bean 定義が先に処理されるのは、まさにこの判定のためです。
 
@@ -77,7 +77,7 @@ public class JacksonAutoConfiguration {
 
 ## コンポーネントスキャンの範囲
 
-`@ComponentScan` は、**付いているクラス(メインクラス)のパッケージと、そのサブパッケージ** だけを探します。
+`@ComponentScan` は、**付いているクラス(メインクラス)のパッケージと、そのサブパッケージ**だけを探します。
 
 ```text
 src/main/java
@@ -89,7 +89,7 @@ src/main/java
     └─ AuditLogger.java            × 見つからない
 ```
 
-`com.example.common` は `com.example.demo` の **下ではない** ので、`@Component` を付けても Bean になりません。使おうとすると起動時にこう言われます。
+`com.example.common` は `com.example.demo` の**下ではない**ので、`@Component` を付けても Bean になりません。使おうとすると起動時にこう言われます。
 
 ```text
 Parameter 0 of constructor in
@@ -98,15 +98,15 @@ of type 'com.example.common.AuditLogger'
 that could not be found.
 ```
 
-直し方は、**クラスをメインクラスの下のパッケージへ移す** のが第一選択です。`@SpringBootApplication(scanBasePackages = "com.example")` で範囲を広げることもできますが、「メインクラスはパッケージの一番上に置く」が Spring Boot の推奨構成です。
+直し方は、**クラスをメインクラスの下のパッケージへ移す**のが第一選択です。`@SpringBootApplication(scanBasePackages = "com.example")` で範囲を広げることもできますが、「メインクラスはパッケージの一番上に置く」が Spring Boot の推奨構成です。
 
 ::: warn メインクラスを default package に置かない
-パッケージなしの場所にメインクラスを置くと、クラスパス上の **全 jar** をスキャンしようとして起動が遅くなったり失敗したりします。STS のウィザードは必ずパッケージを作るので、勝手に移動しないこと。
+パッケージなしの場所にメインクラスを置くと、クラスパス上の**全 jar** をスキャンしようとして起動が遅くなったり失敗したりします。STS のウィザードは必ずパッケージを作るので、勝手に移動しないこと。
 :::
 
 ## 組み込み Tomcat:サーバにデプロイしない
 
-昔の Java Web アプリは、Tomcat などの **アプリケーションサーバ** を別にインストールし、そこに WAR ファイルを配置(デプロイ)して動かしていました。
+昔の Java Web アプリは、Tomcat などの**アプリケーションサーバ**を別にインストールし、そこに WAR ファイルを配置(デプロイ)して動かしていました。
 
 Spring Boot は逆で、**Tomcat をライブラリとしてアプリの中に持っています**(組み込み Tomcat)。`spring-boot-starter-web` を入れると、自動設定が Tomcat を起動してポート 8080 で待ち受けます。だから `main` を実行するだけで Web サーバが立ち上がり、本番も `java -jar app.jar` で動きます。ポートは `application.properties` の `server.port=8081` で変えられます。
 
@@ -139,7 +139,7 @@ Started DemoApplication in 1.873 seconds
 
 `Started` が出たら起動完了。止まったときは `APPLICATION FAILED TO START` の下の **Description(原因)と Action(対処)** を読みます。定番は `Port 8080 was already in use`(前に起動したアプリが動きっぱなし)です。
 
-その形で出ずに例外のスタックトレースが長々と続くときは、ログを **下から上へ** 読んで、いちばん下の `Caused by:` を探します。そこが根本の原因です。たとえば `Could not resolve placeholder 'app.mail.host'` なら、コードが読もうとした設定キーが `application.properties` に無い、という意味です(設定値の読み方は第5章「設定ファイルとプロファイル」で扱います)。
+その形で出ずに例外のスタックトレースが長々と続くときは、ログを**下から上へ**読んで、いちばん下の `Caused by:` を探します。そこが根本の原因です。たとえば `Could not resolve placeholder 'app.mail.host'` なら、コードが読もうとした設定キーが `application.properties` に無い、という意味です(設定値の読み方は第5章「設定ファイルとプロファイル」で扱います)。
 
 ## --debug で自動設定レポートを見る
 
@@ -161,7 +161,7 @@ Negative matches:
 
 ## devtools の自動再起動
 
-依存に **Spring Boot DevTools** を入れると、クラスパス上のファイルが変わるたびにアプリが **自動で再起動** します。STS では保存すると自動ビルドされるので、「保存 → 数秒後に反映」になります。
+依存に **Spring Boot DevTools** を入れると、クラスパス上のファイルが変わるたびにアプリが**自動で再起動**します。STS では保存すると自動ビルドされるので、「保存 → 数秒後に反映」になります。
 
 速い理由は、クラスローダーを2つに分けているからです。変わらない jar は **base** クラスローダーに置いたまま、自分のクラスだけを **restart** クラスローダーごと作り直します。DevTools 使用時はスレッド名が `[restartedMain]` になるので、ログで見分けられます。`java -jar` で動かす本番では自動で無効になります。
 
@@ -175,7 +175,7 @@ Negative matches:
 記事が古いだけだね。Spring Boot は「系列」ごとに中身もサポート期間も違う。調べものをする前に、バージョンの見方を押さえておこう。
 :::
 
-Spring Boot は `3.5` や `4.0` のように、2つ目の数字までを1つの **系列** として、系列ごとにサポート期間が決まっています。**OSS サポート**は無償で修正版が出る期間で、これが終わるとセキュリティの修正も無償では出なくなります。**商用サポート**は、有償契約をした場合に延長される期間です。
+Spring Boot は `3.5` や `4.0` のように、2つ目の数字までを1つの**系列**として、系列ごとにサポート期間が決まっています。**OSS サポート**は無償で修正版が出る期間で、これが終わるとセキュリティの修正も無償では出なくなります。**商用サポート**は、有償契約をした場合に延長される期間です。
 
 | 系列 | 初回リリース | OSS サポート終了 | 商用サポート終了 |
 |---|---|---|---|
@@ -188,7 +188,7 @@ Spring Boot は `3.5` や `4.0` のように、2つ目の数字までを1つの 
 
 この時点の最新の正式版(GA)は **4.1.2** で、Java 17 以上(27 まで対応)で動きます。次の 4.2 は 2026年11月の予定で、いまはリリース候補(RC)の段階です。自分のプロジェクトの系列は、`pom.xml` の `spring-boot-starter-parent` の `<version>` で分かります。
 
-ハルが踏んだのは、**Spring Boot 3.0 で起きた大きな引っ越し** です。3.0 から土台が Jakarta EE 9 になり、`javax.*` で始まっていたパッケージが `jakarta.*` に変わりました。
+ハルが踏んだのは、**Spring Boot 3.0 で起きた大きな引っ越し**です。3.0 から土台が Jakarta EE 9 になり、`javax.*` で始まっていたパッケージが `jakarta.*` に変わりました。
 
 | 2系の記事 | 3系以降 |
 |---|---|
@@ -199,7 +199,7 @@ Spring Boot は `3.5` や `4.0` のように、2つ目の数字までを1つの 
 ネットの古い記事(2系)のコードは、この読み替えが要ります。ただし `javax.crypto` や `javax.sql` のように **JDK 自体に入っている** `javax` パッケージは変わりません。変わったのは、もともと Java EE(サーバ向けの仕様)から来ていたものです。
 
 ::: genba この道場のアプリ自体は 3.5 系
-正直に言うと、この道場アプリは 3.5 系(`spring-boot-starter-parent` 3.5.16)で動いていて、3.5 の OSS サポートは 2026-06-30 に終わっています。第3部で習うアノテーションや書き方は 4.x でもほぼ同じですが、新しくプロジェクトを始めるなら、OSS サポート中の系列を選ぶのが基本です。現場でも「いまの系列のサポートはいつまでか」は、定期的に確かめる習慣にしておきましょう。
+正直に言うと、この道場アプリは 3.5 系(`spring-boot-starter-parent` 3.5.16)で動いていて、3.5 の OSS サポートは 2026-06-30 に終わっています。第3部で習うアノテーションや書き方は 4.x でもほぼ同じですが、新しくプロジェクトを始めるなら、OSS サポート中の系列を選ぶのが基本です。start.spring.io(STS のウィザードも裏で同じ)も、サポート中の 4.x しか出しません。STS で作る練習用のプロジェクトは 4.x になるので、細かい所が本教材と違うことがあります。現場でも「いまの系列のサポートはいつまでか」は、定期的に確かめる習慣にしておきましょう。
 :::
 
 ::: point まとめ

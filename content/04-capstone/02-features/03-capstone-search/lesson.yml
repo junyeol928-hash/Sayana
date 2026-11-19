@@ -2,18 +2,18 @@ id: capstone-search
 title: 検索とページング
 status: ready
 minutes: 15
-summary: 承認くんに検索画面 GET /requests/search を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
+summary: 承認くんに検索画面 `GET /requests/search` を付ける。任意条件は Specification で組み立て、Pageable・Page・Sort で安全にページングし、条件を URL に残す。
 goals:
-  - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、Specification の部品を allOf でつないで検索できる
-  - Pageable(要求)と Page(結果)の違い、page が 0 始まりであること、size の上限と sort の許可制が必要な理由を説明できる
-  - クエリパラメータの文字列から、不正値に強い PageRequest と Sort(新しい順+id)を組み立てられる
+  - 任意の検索条件を派生クエリで書くと組み合わせ爆発することを説明し、`Specification` の部品を `allOf` でつないで検索できる
+  - "`Pageable`(要求)と `Page`(結果)の違い、`page` が 0 始まりであること、`size` の上限と `sort` の許可制が必要な理由を説明できる"
+  - クエリパラメータの文字列から、不正値に強い `PageRequest` と `Sort`(新しい順+`id`)を組み立てられる
   - Thymeleaf で「全 N 件中 X〜Y 件目」と前へ/次へを表示し、検索条件をリンクと URL に引き継げる
-  - 一覧の N+1 を @EntityGraph で避け、コレクションの fetch とページングを混ぜてはいけない理由を説明できる
+  - 一覧の N+1 を `@EntityGraph` で避け、コレクションの fetch とページングを混ぜてはいけない理由を説明できる
 samples:
   - title: PageRequest と Page の数字を確かめる
     description: |
       45件の結果を20件ずつに分けたとき、`Pageable`(要求)と `Page`(結果)がそれぞれ何を持っているかを見ます。DB の代わりに `subList` で切り出しています。
-      最後に、負の page を `PageRequest.of` に渡すと例外になることも確かめます(だから URL の値はそのまま渡せません)。
+      page=1 のとき OFFSET はいくつで、中身は何件目から? 最後に負の page を `PageRequest.of` に渡したらどうなる?
     libraries: [spring, jpa]
     code: |
       import org.springframework.data.domain.*;
@@ -50,8 +50,8 @@ samples:
       }
   - title: 任意条件は「値があるときだけ部品を足す」
     description: |
-      Specification と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。
-      最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+      `Specification` と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+      今の条件(`type` だけ null)では、部品は何個使われ、どの申請が残る?
     code: |
       import java.util.function.Predicate;
 
@@ -89,8 +89,8 @@ samples:
       }
   - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
     description: |
-      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。日本語・空白・`%`・`&` は URL エンコードされ、URL だけで条件を復元できます。
-      Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
+      「次へ」のリンクを、今の条件を全部引き継いで `page` だけ変えて作ります。Thymeleaf の `@{...(名前=値)}` も中で同じことをしています。
+      指定なし(null)の `type` はリンクに入る? 日本語と空白はどう書かれる?
     libraries: [spring]
     code: |
       import org.springframework.web.util.UriComponentsBuilder;
@@ -134,9 +134,14 @@ quiz:
       - "40〜59件目(足りない分は空)"
       - "2件目から20件"
     answer: 1
+    why:
+      - "page を 1 始まりと読んだ答え。page は 0 始まりで、2 は3ページ目"
+      - ""
+      - "OFFSET 40 を「40件目から」と数えた答え。41件目からで、45件より先は返らない"
+      - "page を開始位置と読んだ答え。page は何ページ目かを表す"
     explanation: |
-      page は **0 始まり** です。page=2 は「3ページ目」なので OFFSET は 2 × 20 = 40、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
-      「21〜40件目」は page=1 のとき。page を 1 始まりと思い込むと、画面の「2ページ目」リンクで3ページ目が出る、というズレが起きます。
+      page は **0 始まり**です。`page = 2` は「3ページ目」なので OFFSET は `2 × 20 = 40`、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
+      page を 1 始まりと思い込むと、画面の「2ページ目」リンクで3ページ目が出る、というズレが起きます。
   - question: |
       次の検索で、Specification が作る WHERE 句に含まれる条件はどれ?
       ```java
@@ -151,16 +156,21 @@ quiz:
       if (c.hasKeyword()) specs.add(keywordContains(c.getKeyword()));
       repo.findAll(Specification.allOf(specs), pageable);
       ```
-      (`hasKeyword()` は「null でも空白だけでもない」なら true)
+      (`hasKeyword()` は「`null` でも空白だけでもない」なら `true`)
     choices:
-      - "status is null and type = 'EXPENSE' and title like '%   %'"
+      - "`status is null and type = 'EXPENSE' and title like '%   %'`"
       - "条件なし(全件)"
-      - "type = 'EXPENSE' だけ"
-      - "type = 'EXPENSE' と、件名か理由の like '%%'"
+      - "`type = 'EXPENSE'` だけ"
+      - "`type = 'EXPENSE'` と、件名か理由の `like '%%'`"
     answer: 2
+    why:
+      - "`null` や空白の条件もそのまま足すと読んだ答え。部品を足すのは値がある条件だけ"
+      - "type の条件を見落とした答え。EXPENSE は値があるので `typeIs` が足される"
+      - ""
+      - "空白だけのキーワードも足されると読んだ答え。`hasKeyword()` が `false` なので足されない"
     explanation: |
-      値がある条件だけ部品を足すので、`status` は null で足されず、キーワードは空白だけなので `hasKeyword()` が false で足されません。残るのは `typeIs` の1つだけです。
-      「status is null」になるのは、null をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白のキーワードで like をすると、空白を含む申請だけに絞られてしまいます。
+      値がある条件だけ部品を足すので、`status` は `null` で足されず、キーワードは空白だけなので `hasKeyword()` が `false` で足されません。残るのは `typeIs` の1つだけです。
+      `status is null` になるのは、`null` をそのまま `cb.equal` に渡してしまった場合のよくあるバグです(「状態が未設定の申請」を探す意味になり、0件になります)。空白だけのキーワードで部品を足すと、`keywordContains` の `strip()` で空になって `like '%%'` になり、絞り込みの意味がなくなります(`strip()` しない実装なら、逆に空白を含む申請だけに絞られます)。
   - question: |
       検索結果の「次へ」リンクを次のように書きました。`/requests/search?status=SUBMITTED&keyword=出張` で検索してから「次へ」を押すと、どうなる?
       ```html
@@ -172,9 +182,14 @@ quiz:
       - "Thymeleaf のエラーになる"
       - "ブラウザが前の URL の条件を自動で付け足すので、問題なく動く"
     answer: 0
+    why:
+      - ""
+      - "前の検索条件が引き継がれると読んだ答え。引き継ぐには自分で書き足す"
+      - "書き方の誤りと読んだ答え。文法は正しく、条件だけが黙って落ちる"
+      - "ブラウザが条件を覚えていると読んだ答え。ブラウザはリンクの URL をそのまま開く"
     explanation: |
       リンクの URL に付くのは `page` だけです。HTTP はリクエストごとに独立していて、前の URL の条件をサーバーもブラウザも覚えていないので、`status` と `keyword` は「指定なし」になり、全件の2ページ目が出ます。
-      `status`・`type`・`keyword`・`size`・`sort` をすべて `@{...}` の引数に書いて引き継ぐ必要があります。テンプレートとしては正しいのでエラーにはなりません。
+      `status`・`type`・`keyword`・`size`・`sort` をすべて `@{...}` の引数に書いて引き継ぐ必要があります。
   - question: |
       並び順を `createdAt` の降順だけにしていたところ、「2ページ目に1ページ目と同じ申請が出て、ある申請はどのページにも出ない」と報告されました。もっとも適切な対策は?
     choices:
@@ -183,9 +198,14 @@ quiz:
       - "ページ送りのたびに count クエリをやめる"
       - "並び順の2番目のキーに id を足して、順番を一意にする"
     answer: 3
+    why:
+      - "ページを無くして避けた答え。上限を決めた意味がなくなり、順番の揺れそのものは直らない"
+      - "並びの向きの問題と読んだ答え。昇順でも、同じ `createdAt` の行同士の順番は決まらない"
+      - "count が並び順を乱すと読んだ答え。count は総件数を数えるだけで、並び順と関係ない"
+      - ""
     explanation: |
       SQL の `ORDER BY` は、並べ替えのキーが同じ値の行同士の順番を保証しません。初期データの一括登録などで `createdAt` が同じ行があると、ページを取るたびに順番が入れ替わり、OFFSET で切った境目で重複や抜けが起きます。
-      一意な `id` を最後のキーに足せば、順番が毎回同じに決まります。昇順にしても同じ値の問題は残り、size を大きくするのは上限を決めた意味がなくなります。count クエリは総件数を数えるもので、並び順とは関係ありません。
+      一意な `id` を最後のキーに足せば、順番が毎回同じに決まります。
   - question: |
       `applicant` が `@ManyToOne(fetch = FetchType.LAZY)` で、`@EntityGraph` は付けていません。全45件の検索で1ページ目(20件、申請者は全員別人)を表示し、Thymeleaf で `${r.applicant.name}` を出しました。発行される SELECT 文は合計何回?
       ```java
@@ -194,8 +214,13 @@ quiz:
       ```
     choices: ["2回", "21回", "22回", "40回"]
     answer: 2
+    why:
+      - "LAZY の申請者の読み込みを見落とした答え。表示のときに追加の SELECT が走る"
+      - "総件数の数え上げを見落とした答え。`Page` は件数も別に数える"
+      - ""
+      - "申請も1件ずつ取ると読んだ答え。申請20件は1回の SELECT でまとめて取る"
     explanation: |
-      申請20件を取る SELECT が1回、`Page` の総件数を数える count の SELECT が1回、そして LAZY の `applicant` を画面で触るたびに1回ずつで20回。合計 1 + 1 + 20 = 22回です(N+1 問題に count が1回加わった形)。
+      申請20件を取る SELECT が1回、`Page` の総件数を数える count の SELECT が1回、そして LAZY の `applicant` を画面で触るたびに1回ずつで20回。合計 `1 + 1 + 20 = 22` 回です(N+1 問題に count が1回加わった形)。
       `@EntityGraph(attributePaths = "applicant")` を付けると申請者を JOIN して一緒に取るので、2回(本体+count)になります。なお、最後のページなどで「取得件数 < size」のときは総件数が計算で分かるので、count は省略されます。
 columns:
   - type: trivia
@@ -208,7 +233,7 @@ columns:
       ```
 
       ところが Spring Boot 3.5(Spring Data JPA 3.5)で書くと、STS では `where` に取り消し線が付き、
-      「... has been deprecated and marked for removal」と警告が出ます。3.5 で **削除予定の非推奨** になったからです。代わりに、条件なしを表す `Specification.unrestricted()` から `.and(...)` でつなぐか、
+      「... has been deprecated and marked for removal」と警告が出ます。3.5 で**削除予定の非推奨**になったからです。代わりに、条件なしを表す `Specification.unrestricted()` から `.and(...)` でつなぐか、
       この教材のように部品のリストを `Specification.allOf(...)` に渡します。
 
       `where(null)` が「条件なし」を意味する、という null 頼みの書き方をやめるためです。
@@ -234,7 +259,7 @@ columns:
       しかも一覧が N+1 で、1リクエストに2,000本以上の SELECT が飛んでいた……というのは、よく聞く話です。
 
       対策は2つ。上限を業務に合わせて下げる(`spring.data.web.pageable.max-page-size=50`)か、承認くんのように `PagingParams` で自分で検査します。
-      `sort` も同じで、`Pageable` の自動解決は **存在しない項目名をそのまま通す** ので、`sort=foo` で 500 エラーになります。
+      `sort` も同じで、`Pageable` の自動解決は**存在しない項目名をそのまま通す**ので、`sort=foo` で 500 エラーになります。
       URL は誰でも書き換えられる入力です。フォームの値と同じように、ページングのパラメータも疑ってかかりましょう。
 sts:
   intro: |
@@ -251,7 +276,7 @@ sts:
     - title: 条件の部品 ApprovalRequestSpecs を作る
       detail: |
         `repository` パッケージを右クリック > **New > Class**(新規 > クラス)で `ApprovalRequestSpecs` を作り、解説の `statusIs`・`typeIs`・`keywordContains` と `escape` を書きます。
-        `root.get("title")` の文字列は **エンティティのフィールド名** です(列名の `title` ではなく、たとえば `createdAt` なら `"createdAt"`)。つづりを間違えると、検索したときに `Unable to locate Attribute with the given name [titel]` で落ちます。
+        `root.get("title")` の文字列は**エンティティのフィールド名**です(列名の `title` ではなく、たとえば `createdAt` なら `"createdAt"`)。つづりを間違えると、検索したときに次のエラーで落ちます: `Unable to locate Attribute with the given name [titel]`
     - title: SearchCondition と RequestSearchService を作る
       detail: |
         `service` パッケージに `SearchCondition`(`RequestStatus status`・`RequestType type`・`String keyword` と getter/setter、`hasKeyword()`)を作ります。
@@ -370,18 +395,18 @@ sts:
         検索フォームには `page` を入れていないので、条件を変えて検索し直すと自動で先頭ページに戻ります(3ページ目のまま条件を変えて「0件」に見える事故を防げます)。
     - title: 起動して検索とページングを確かめる
       detail: |
-        `application.properties` に `spring.jpa.show-sql=true` が無ければ足し、**Boot Dashboard** で `approval-app` を選んで **(Re)start** するか、
+        `application.yml` に `spring.jpa.show-sql: true`(capstone-setup で設定済み)があることを確かめ、**Boot Dashboard** で `approval-app` を選んで **(Re)start** するか、
         プロジェクトを右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動します。
 
         ブラウザで次の URL を順に開きます。初期データが少ないときは `size=2` にするとページングを確かめやすくなります。
         1. `http://localhost:8080/requests/search?size=2` … 新しい順に2件、「全 N 件中 1〜2 件目」と「次へ」が出る
-        2. 「次へ」を押す … URL に `page=1&size=2` が付き、「3〜4 件目」になる。ブラウザの **戻る** で1ページ目に戻れる
+        2. 「次へ」を押す … URL に `page=1&size=2` が付き、「3〜4 件目」になる。ブラウザの**戻る**で1ページ目に戻れる
         3. 状態を `SUBMITTED` にして検索 … **Console**(コンソール)の SQL の where に `status=?` だけが入っている
         4. `?size=100000&page=-1&sort=password` … エラーにならず、先頭ページを最大50件で表示する
         5. `?status=FOO` … 400 エラーにならず、状態は「すべて」で検索される
     - title: N+1 と LIKE の落とし穴を体験する
       detail: |
-        1. Repository の `@EntityGraph` 行を `//` でコメントアウトして再起動し、検索画面を開きます。Console に社員テーブルへの `select ... where e1_0.id=?` が **申請者の人数分** 並ぶのが N+1 です。元に戻すと、本体の SELECT に社員テーブルとの `join` が入り、申請者ごとの SELECT が消えます
+        1. Repository の `@EntityGraph` 行を `//` でコメントアウトして再起動し、検索画面を開きます。Console に社員テーブルへの `select ... where e1_0.id=?` が**申請者の人数分**並ぶのが N+1 です。元に戻すと、本体の SELECT に社員テーブルとの `join` が入り、申請者ごとの SELECT が消えます
         2. 件名に `50%` を含む申請を1件作り、キーワード `50%` で検索します。`escape` を外すと `50` を含むものが全部ヒットし、付けると `50%` を含むものだけになることを確かめます
         3. `次へ` リンクから `sort=${param.sort}` を消して `?sort=amount,desc` で検索し、「次へ」を押すと並び順が新しい順に戻ってしまうことを確認します(確認したら元に戻す)
 checklist:

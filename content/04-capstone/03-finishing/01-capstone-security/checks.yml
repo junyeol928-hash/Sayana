@@ -1,0 +1,33 @@
+- after: 設計:関所は2段構え
+  question: |
+    ログインしていない人が、ブラウザで `/approvals`(承認者以上)を開いた。どうなる?
+  choices: ["ログイン画面(/login)に飛ばされる", "403 になる", "承認待ち一覧が出る"]
+  answer: 0
+  why:
+    - ""
+    - "ロール不足と同じ扱いと考えた答え。403 はログイン済みでロールが足りないとき"
+    - "リンクを隠せば守れると考えた答え。URL のルールが、Controller より先にログインを求める"
+  explanation: |
+    まだ「誰か」が分からないので、URL の段はまずログイン(認証)を求めて `/login` へ回す。
+- after: STS での実装
+  question: |
+    申請者のハル(ログイン済み)が、`GET /requests/5/approve` を URL 欄に打って開いた。どうなる?
+  choices: ["403 になる", "ルールが締めているのは POST だけなので、通る", "ログイン画面に飛ばされる"]
+  answer: 0
+  why:
+    - ""
+    - "ルールが POST だけに効くと読んだ答え。このルールは送り方を問わない"
+    - "未ログインと同じ扱いと考えた答え。ハルはログイン済みなので、`/login` ではなくロール不足の 403"
+  explanation: |
+    `requestMatchers("/requests/*/approve")` は HTTP メソッドを指定していないので、GET にも効く。ハルは APPROVER でも ADMIN でもないので 403。
+- after: よくあるミス
+  question: |
+    `LoginUserDetailsService` を、Spring 標準の `User`(`User.withUsername(...)...build()`)を返すように書き換えた。ログインして承認を押すと?
+  choices: ["ログインはできるが、`user` が `null` で `user.id()` が `NullPointerException` になる", "Spring が `User` を `LoginUser` に詰め替えるので、普通に承認できる", "ログインの時点で失敗する"]
+  answer: 0
+  why:
+    - ""
+    - "型を自動でそろえてくれると考えた答え。詰め替えはしない"
+    - "`User` では認証できないと考えた答え。標準の `User` でも、ログインの仕組みには乗る"
+  explanation: |
+    `User` も UserDetails なのでログインは通る。ただ `@AuthenticationPrincipal LoginUser user` は型が合わないと黙って `null` を入れるので、`user.id()` で落ちる。

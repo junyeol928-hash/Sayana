@@ -3,25 +3,25 @@ Controller のテストって、アプリを起動してブラウザで叩けば
 :::
 
 ::: sensei
-それを画面50個 × 修正のたびにやる? 第1部の JUnit を、Web の世界に持ち込む道具が **MockMvc** だ。
+それを画面50個 × 修正のたびにやる? 第1部の JUnit を、Web の世界に持ち込む道具が **`MockMvc`** だ。
 :::
 
-前回の「Spring Security入門」で、URL ごとに鍵をかけました。今回は「この URL を叩くと、この結果が返る」を **自動テスト** で守ります。
+前回の「Spring Security入門」で、URL ごとに鍵をかけました。今回は「この URL を叩くと、この結果が返る」を**自動テスト**で守ります。
 
 ## Controller のテスト、どれを選ぶ?
 
-Controller のテスト方法は大きく4つ。**速さと範囲のトレードオフ** です。
+Controller のテスト方法は大きく4つ。**速さと範囲のトレードオフ**です。
 
 | 方式 | 動くもの | 速さ |
 |---|---|---|
 | 素の単体テスト | `new` した Controller だけ | 一瞬 |
-| MockMvc standaloneSetup | 指定した Controller + Spring MVC | 速い |
+| `MockMvc` の `standaloneSetup` | 指定した Controller + Spring MVC | 速い |
 | `@WebMvcTest` | Web 層の Bean だけ(Service は偽物) | 数秒 |
 | `@SpringBootTest` | アプリ全部(DB も) | 遅い |
 
-素の単体テストでは `@GetMapping` の URL、`@RequestParam` の変換、JSON 化、ステータスコードが確かめられません。そこを確かめたいときの主役が **MockMvc** です。
+素の単体テストでは `@GetMapping` の URL、`@RequestParam` の変換、JSON 化、ステータスコードが確かめられません。そこを確かめたいときの主役が **`MockMvc`** です。
 
-MockMvc は **Tomcat を起動しません**。偽物のリクエスト/レスポンス(`MockHttpServletRequest` など)を作って、DispatcherServlet に直接渡します。ネットワークもポートも使わないので速いのです。
+`MockMvc` は **Tomcat を起動しません**。偽物のリクエスト/レスポンス(`MockHttpServletRequest` など)を作って、DispatcherServlet に直接渡します。ネットワークもポートも使わないので速いのです。
 
 ```mermaid
 flowchart LR
@@ -32,7 +32,7 @@ flowchart LR
     D -- "結果" --> E["andExpect で検証"]
 ```
 
-## MockMvc の基本:perform → andExpect
+## `MockMvc` の基本:`perform` → `andExpect`
 
 形は「**リクエストを投げて(perform)、結果を期待する(andExpect)**」の一択です。
 
@@ -59,11 +59,11 @@ mvc.perform(post("/stocks/A001/ship")
 | `model().attribute("total", 1500)` | Model の中身 |
 | `redirectedUrl("/orders")` | リダイレクト先 |
 
-`get` / `post` は `MockMvcRequestBuilders` の static import です。STS の補完で別クラスの `get` を選ぶと、コンパイルは通るのに型が合わず混乱するので注意。
+`get` / `post` は `MockMvcRequestBuilders` の static import です。STS の補完で別クラスの `get`(`RequestEntity.get` など)を選ぶと、`perform` に渡せずコンパイルエラーになって戸惑うので注意。
 
-## standaloneSetup と @WebMvcTest
+## `standaloneSetup` と `@WebMvcTest`
 
-**standaloneSetup** は Spring の DI を使わず、自分で `new` した Controller を MockMvc に載せます。
+**`standaloneSetup`** は Spring の DI を使わず、自分で `new` した Controller を `MockMvc` に載せます。
 
 ```java
 MockMvc mvc = MockMvcBuilders
@@ -73,7 +73,7 @@ MockMvc mvc = MockMvcBuilders
 
 依存(Service)は手で渡すので、**決まった値を返す偽物(スタブ)** を自分で書いて渡せます。速くて仕組みが丸見えなのが長所です。
 
-**@WebMvcTest** は Spring Boot のテスト用アノテーションで、Web 層の Bean(Controller・`@ControllerAdvice`・フィルタなど)**だけ** で小さなアプリを起動します。`@Service` や `@Repository` は作られないので、偽物を `@MockitoBean` で差し込みます。
+**`@WebMvcTest`** は Spring Boot のテスト用アノテーションで、Web 層の Bean(Controller・`@ControllerAdvice`・フィルタなど)**だけ**で小さなアプリを起動します。`@Service` や `@Repository` は作られないので、偽物を `@MockitoBean` で差し込みます。
 
 ```java
 @WebMvcTest(OrderController.class)
@@ -104,7 +104,7 @@ class OrderControllerTest {
 `@MockitoBean` は Spring Framework 6.2(Spring Boot 3.4 以降)の書き方です。古い記事の **`@MockBean` は 3.4 で非推奨** になりました。
 
 ::: sensei
-`@WebMvcTest` は Security のフィルタも載る。前回のルールがそのまま効くから、ログイン前提の画面は `@WithMockUser`(spring-security-test)で「ログイン済みの人」を用意するんだ。
+`@WebMvcTest` には Security のフィルタも載る。ただし前回の `SecurityConfig` のような `@Configuration` クラスは自動では読み込まれない(スライステストは `@Configuration` をスキャンしない)。自分のルールで試すならテストに `@Import(SecurityConfig.class)` を付ける。付けないと Spring Boot 既定の「全 URL ログイン必須」で動くよ。ログイン前提の画面は `@WithMockUser`(spring-security-test)で「ログイン済みの人」を用意するんだ。
 :::
 
 ## テストデータは「意図が読める最小限」
@@ -115,13 +115,13 @@ private static Order pen() {
 }
 ```
 
-- テストに関係ない項目まで毎回並べない。**名前付きのメソッド** やビルダーにまとめる
+- テストに関係ない項目まで毎回並べない。**名前付きのメソッド**やビルダーにまとめる
 - 境界値(在庫ちょうど・0件・5000円ちょうど)を必ず入れる
 - テスト同士で状態を共有しない(`@BeforeEach` で毎回作り直す)
 
 ## 日本語が「??」になる
 
-standaloneSetup で日本語の文字列を返すと、こうなります。
+`standaloneSetup` で日本語の文字列を返すと、こうなります。
 
 ```text
 Response content expected:<合計 1,500円>
@@ -141,20 +141,20 @@ Spring Boot(`@WebMvcTest` や本番)では自動設定が UTF-8 にしてくれ�
 
 ## このアプリ自身のテストを読もう
 
-このアプリ(Java道場)の `src/test/java/com/sayana/dojo/web/WebFlowTest.java` は、`@SpringBootTest` + `@AutoConfigureMockMvc` で **アプリ全体** を起動して MockMvc を使っています。
+このアプリ(Java道場)の `src/test/java/com/sayana/dojo/web/WebFlowTest.java` は、`@SpringBootTest` + `@AutoConfigureMockMvc` で**アプリ全体**を起動して `MockMvc` を使っています。
 
 ```java
 mvc.perform(get("/lessons/no-such-lesson"))
    .andExpect(status().isNotFound());
 ```
 
-「読む → 動かす → 書く → 確かめる → 復習」を1本のテストで通しています。復習の「1日後」は `@Import(TestClockConfig.class)` で差し込んだ **時計の偽物**(`MutableClock`)を `advanceDays(1)` して作っています。現在時刻も「差し替えられる依存」にしておくと、テストで時間を操れるのです。
+「読む → 動かす → 書く → 確かめる → 復習」を1本のテストで通しています。復習の「1日後」は `@Import(TestClockConfig.class)` で差し込んだ**時計の偽物**(`MutableClock`)を `advanceDays(1)` して作っています。現在時刻も「差し替えられる依存」にしておくと、テストで時間を操れるのです。
 
 ## テストが遅くなる原因とコンテキストキャッシュ
 
 `@SpringBootTest` の起動は数秒〜数十秒。毎回やったら日が暮れます。そこで Spring のテスト基盤は、**同じ設定のテストクラス同士で ApplicationContext を使い回します**(コンテキストキャッシュ)。
 
-ところが、次のどれかがクラスごとに違うと、**別の設定** とみなされて作り直しになります。
+ところが、次のどれかがクラスごとに違うと、**別の設定**とみなされて作り直しになります。
 
 - `@MockitoBean` の組み合わせ
 - `@ActiveProfiles` / `@TestPropertySource`
@@ -164,17 +164,17 @@ mvc.perform(get("/lessons/no-such-lesson"))
 
 ## よくあるミス
 
-- **`Circular view path [orders]`**:standaloneSetup で、URL `/orders` の Controller が画面名 `"orders"` を返すと、自分自身に転送しようとして例外。画面名を `"orders/list"` にするか ViewResolver を設定する
+- **`Circular view path [orders]`**:`standaloneSetup` で、URL `/orders` の Controller が画面名 `"orders"` を返すと、自分自身に転送しようとして例外。画面名を `"orders/list"` にするか ViewResolver を設定する
 - **`@WebMvcTest` で `No qualifying bean of type 'OrderService'`**:Service は作られないので `@MockitoBean` を忘れずに
 - **正常系だけテスト**:バグは境界と異常系に潜む。404・400・ちょうどの値を書く
 
 ::: point まとめ
-- Controller のテストは **単体 / standaloneSetup / @WebMvcTest / @SpringBootTest**。速さと範囲で選ぶ
-- MockMvc は Tomcat なしで DispatcherServlet を呼ぶ。**perform → andExpect**
+- Controller のテストは **単体 / `standaloneSetup` / `@WebMvcTest` / `@SpringBootTest`**。速さと範囲で選ぶ
+- `MockMvc` は Tomcat なしで DispatcherServlet を呼ぶ。**`perform` → `andExpect`**
 - `status` / `content` / `jsonPath` / `view` / `model` / `redirectedUrl` で検証
 - `@WebMvcTest` では Service を **`@MockitoBean`**(旧 `@MockBean`)で偽物に。`when/thenReturn` で仕込み `verify` で確認
-- standaloneSetup で日本語を返すなら **UTF-8 を明示**
-- 設定がバラバラだと **コンテキストキャッシュ** が効かず遅くなる
+- `standaloneSetup` で日本語を返すなら **UTF-8 を明示**
+- 設定がバラバラだと**コンテキストキャッシュ**が効かず遅くなる
 :::
 
 ::: sensei

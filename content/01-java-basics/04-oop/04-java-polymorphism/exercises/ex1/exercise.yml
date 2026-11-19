@@ -6,7 +6,7 @@ problem: |
   これらが混ざった `Shape[]` を受け取る、次の2つのメソッドを `AreaCalculator` に完成させてください。
 
   1. `totalArea(Shape[] shapes)` … すべての図形の面積の合計を返す。配列が空なら `0.0`
-  2. `countLargerThan(Shape[] shapes, double limit)` … 面積が `limit` **より大きい** 図形の個数を返す(ちょうど `limit` は数えない)
+  2. `countLargerThan(Shape[] shapes, double limit)` … 面積が `limit` **より大きい**図形の個数を返す(ちょうど `limit` は数えない)
 
   | 呼び出し | 結果 |
   |---|---|

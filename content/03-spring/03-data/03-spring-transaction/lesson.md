@@ -8,7 +8,7 @@
 
 ## トランザクションとは
 
-**トランザクション** は「全部成功するか、全部なかったことにするか」の、ひとまとまりの処理単位です。確定することを **コミット**、開始前の状態に戻すことを **ロールバック** と呼びます。
+**トランザクション**は「全部成功するか、全部なかったことにするか」の、ひとまとまりの処理単位です。確定することを**コミット**、開始前の状態に戻すことを**ロールバック**と呼びます。
 
 ```mermaid
 sequenceDiagram
@@ -31,7 +31,7 @@ sequenceDiagram
 | 独立性(Isolation) | 同時に走る他の処理と干渉しない |
 | 永続性(Durability) | コミットした結果は障害後も消えない |
 
-## @Transactional を Service に付ける
+## `@Transactional` を Service に付ける
 
 Spring では、メソッドに `@Transactional` を付けるだけです。
 
@@ -53,11 +53,11 @@ public class TransferService {
 
 `save` を呼んでいないのに更新されるのは、トランザクション中に読んだエンティティの変更を JPA が覚えていて、コミット時に UPDATE を発行するからです(**変更検知**、dirty checking)。
 
-付ける場所は **Service** です。前回の Repository のメソッドも1つずつはトランザクションになっていますが(`JpaRepository` の実装に `@Transactional` が付いている)、それでは `save` ごとにコミットされてしまいます。「振込」という **業務の単位** を知っているのは Service なので、そこで囲みます。
+付ける場所は **Service** です。前回の Repository のメソッドも1つずつはトランザクションになっていますが(`JpaRepository` の実装に `@Transactional` が付いている)、それでは `save` ごとにコミットされてしまいます。「振込」という**業務の単位**を知っているのは Service なので、そこで囲みます。
 
-## ロールバックの条件:既定は RuntimeException だけ
+## ロールバックの条件:既定は `RuntimeException` だけ
 
-`@Transactional` が既定でロールバックするのは、**RuntimeException(とその子)と Error が投げられたとき** だけです。検査例外(`Exception` の子で RuntimeException でないもの)では **コミットされます**。
+`@Transactional` が既定でロールバックするのは、**`RuntimeException`(とその子)と `Error` が投げられたとき** だけです。検査例外(`Exception` の子で `RuntimeException` でないもの)では**コミットされます**。
 
 ```java
 @Transactional
@@ -79,7 +79,7 @@ public void order(Order o) throws PaymentException {
 
 ## プロキシの仕組みと2つの罠
 
-`@Transactional` は、DI のときに Spring が Bean を **プロキシ**(本物を包んだ代理オブジェクト。CGLIB でサブクラスを動的生成)に差し替えることで実現しています。
+`@Transactional` は、DI のときに Spring が Bean を**プロキシ**(本物を包んだ代理オブジェクト。CGLIB でサブクラスを動的生成)に差し替えることで実現しています。
 
 ```mermaid
 flowchart LR
@@ -106,7 +106,9 @@ public void order(Order o) { ... }
 
 **罠2:private メソッドに付けても効かない**
 
-プロキシはメソッドをオーバーライドして割り込むので、オーバーライドできない `private`(や `final`)メソッドには割り込めません。エラーも出ず、黙って無視されます。
+プロキシはメソッドをオーバーライドして割り込むので、オーバーライドできない `private` メソッドには割り込めません。エラーも出ず、黙って無視されます。
+
+`final` メソッドも割り込めないうえ、呼ぶと本体ではなくプロキシ自身(DI したフィールドが空のまま)の上で動きます。中で Repository などを使っていると `NullPointerException` で落ちます。
 
 ### 効いているかはログで確かめる
 
@@ -126,7 +128,7 @@ Initiating transaction rollback
 
 罠1を踏んでいると、`OrderService.order` の名前が出ず、代わりに `SimpleJpaRepository.save` のような Repository のメソッド名が `save` のたびに並びます。1件ずつ別々にコミットされている証拠です。
 
-## readOnly と伝播
+## `readOnly` と伝播
 
 参照だけのメソッドには `@Transactional(readOnly = true)` を付けます。Hibernate が変更検知を省略するので速くなり、「ここは書き込まない」という意図もコードに残ります。
 
@@ -141,14 +143,14 @@ Initiating transaction rollback
 
 ## トランザクションの中でやってはいけないこと
 
-ロールバックで戻るのは **DB だけ** です。トランザクションの中で外部 API を呼んだりメールを送ったりすると、
+ロールバックで戻るのは **DB だけ**です。トランザクションの中で外部 API を呼んだりメールを送ったりすると、
 
 - 後続の処理で失敗してロールバックしても、送ったメールは取り消せない(「ご注文ありがとうございます」が届くのに注文が無い)
 - 外部 API の応答待ちの間、DB 接続とロックを握り続けて、混雑時に全体が詰まる
 
 という事故が起きます。外部への通知は、コミットが終わってから行います(`@TransactionalEventListener` で「コミット後」に動かす方法があります)。
 
-## 楽観ロック(@Version)の入口
+## 楽観ロック(`@Version`)の入口
 
 トランザクションは同時更新までは防いでくれません。AさんとBさんが同じ商品を同時に編集すると、後から保存した方が黙って上書きします(**ロストアップデート**)。エンティティに `@Version` を足すと防げます。
 
@@ -157,7 +159,7 @@ Initiating transaction rollback
 private Integer version;
 ```
 
-JPA は `update ... where id = ? and version = ?` のようにバージョンを条件にして更新し、0件なら(誰かが先に更新していたら)`ObjectOptimisticLockingFailureException` を投げます。「ロックを取らずに、ぶつかったら検知する」ので **楽観ロック** と呼びます。画面には「他の人が更新しました。読み込み直してください」と出すのが定番です。
+JPA は `update ... where id = ? and version = ?` のようにバージョンを条件にして更新し、0件なら(誰かが先に更新していたら)`ObjectOptimisticLockingFailureException` を投げます。「ロックを取らずに、ぶつかったら検知する」ので**楽観ロック**と呼びます。画面には「他の人が更新しました。読み込み直してください」と出すのが定番です。
 
 ::: sensei
 `@Transactional` は付けるのは一瞬、効いてるかの確認は一生。ログで開始とコミットが出ているか、一度は自分の目で見ておけ。
@@ -165,7 +167,7 @@ JPA は `update ... where id = ? and version = ?` のようにバージョンを
 
 ::: point まとめ
 - トランザクションは「全部成功か全部取り消し」。業務の単位を知る Service に `@Transactional`
-- 既定のロールバックは RuntimeException と Error だけ。検査例外は `rollbackFor`
+- 既定のロールバックは `RuntimeException` と `Error` だけ。検査例外は `rollbackFor`
 - プロキシ経由なので、同じクラス内の呼び出しと private メソッドには効かない
 - 参照は `readOnly = true`。伝播は REQUIRED(参加)と REQUIRES_NEW(別建て)
 - 外部 API・メールはコミット後に。同時更新は `@Version` で楽観ロック

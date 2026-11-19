@@ -16,15 +16,15 @@ problem: |
   **やること**
 
   1. 3つのクラスに、層に合った注釈(`@Controller` / `@Service` / `@Repository`)を付ける
-  2. **コンストラクタインジェクション** にする
+  2. **コンストラクタインジェクション**にする
      - `InventoryController` は `InventoryService` を受け取る(Repository は知らない)
      - `InventoryService` は **`StockRepository`(インターフェース)** を受け取る
   3. `InventoryService` の業務ロジックを書く
      - `receive(sku, quantity)`(入荷):`quantity` が 1 未満なら `IllegalArgumentException("数量は1以上にしてください")`。
-       今の在庫に足して保存し、**入荷後の在庫数** を返す
+       今の在庫に足して保存し、**入荷後の在庫数**を返す
      - `ship(sku, quantity)`(出荷):`quantity` が 1 未満なら同じく `IllegalArgumentException`。
        在庫が足りなければ `IllegalStateException(sku + " の在庫が足りません(在庫 " + 今の在庫 + " 個)")`。
-       足りれば減らして保存し、**出荷後の在庫数** を返す(在庫ちょうどの出荷は OK で、残り 0 個)
+       足りれば減らして保存し、**出荷後の在庫数**を返す(在庫ちょうどの出荷は OK で、残り 0 個)
   4. `InventoryApp.createContext()` で、3つのクラスを登録した `AnnotationConfigApplicationContext` を作って返す
 
   ```java

@@ -26,17 +26,17 @@ try (Connection con = dataSource.getConnection();
 
 SQL の文字列、`?` への値詰め、`ResultSet` から1列ずつ取り出す詰め替え。テーブルが20個あれば、これが20セット要ります。列を1つ足すと SQL と詰め替えを全部直すことになります。
 
-そこで、**クラスとテーブルを対応づけて、詰め替えを自動化する** 仕組みが生まれました。これを **ORM(Object-Relational Mapping)** と呼びます。登場人物は3つです。
+そこで、**クラスとテーブルを対応づけて、詰め替えを自動化する**仕組みが生まれました。これを **ORM(Object-Relational Mapping)** と呼びます。登場人物は3つです。
 
 | 名前 | 正体 |
 |---|---|
-| JPA(Jakarta Persistence) | ORM の **仕様**(アノテーションと API の決まり) |
-| Hibernate | JPA の **実装**。実際に SQL を作って投げる |
-| Spring Data JPA | JPA の上に乗り、Repository を **自動生成** する |
+| JPA(Jakarta Persistence) | ORM の**仕様**(アノテーションと API の決まり) |
+| Hibernate | JPA の**実装**。実際に SQL を作って投げる |
+| Spring Data JPA | JPA の上に乗り、Repository を**自動生成**する |
 
 ## エンティティ:クラスをテーブルに対応づける
 
-テーブルの1行に対応するクラスを **エンティティ** と呼びます。
+テーブルの1行に対応するクラスを**エンティティ**と呼びます。
 
 ```mermaid
 erDiagram
@@ -49,6 +49,7 @@ erDiagram
         bigint id PK
         varchar name
         varchar mail_address
+        int age
         bigint department_id FK
     }
 ```
@@ -66,6 +67,8 @@ public class Employee {
 
     @Column(name = "mail_address", unique = true)
     private String email;
+
+    private int age;   // @Column なしでも age 列になる
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
@@ -88,11 +91,11 @@ public class Employee {
 private List<Employee> employees = new ArrayList<>();
 ```
 
-`mappedBy` は「外部キーを持っているのは向こう(Employee の `department` フィールド)だよ」という宣言です。列名ではなく **フィールド名** を書きます。
+`mappedBy` は「外部キーを持っているのは向こう(`Employee` の `department` フィールド)だよ」という宣言です。列名ではなく**フィールド名**を書きます。
 
 **引数なしコンストラクタが要る理由**:Hibernate は DB の行を読むと、まず引数なしコンストラクタで空のオブジェクトを作り、リフレクションでフィールドに値を詰めます。JPA の仕様で public か protected と決まっています。
 
-## JpaRepository:継承するだけで CRUD
+## `JpaRepository`:継承するだけで CRUD
 
 ```java
 public interface EmployeeRepository
@@ -100,7 +103,7 @@ public interface EmployeeRepository
 }
 ```
 
-型引数は「エンティティ, 主キーの型」。これだけで `save`、`findById`(戻り値は `Optional`)、`findAll`、`deleteById`、`count` などが使えます。実装クラスは、起動時に Spring Data が **プロキシ**(インターフェースを実装したオブジェクト)として自動生成し、Bean として登録します。DI で受け取って使うだけです。
+型引数は「エンティティ, 主キーの型」。これだけで `save`、`findById`(戻り値は `Optional`)、`findAll`、`deleteById`、`count` などが使えます。実装クラスは、起動時に Spring Data が**プロキシ**(インターフェースを実装したオブジェクト)として自動生成し、Bean として登録します。DI で受け取って使うだけです。
 
 <figure class="figure"><svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="spring-data-jpa-ar29a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="10" y="65" width="110" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="65" y="90" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">EmployeeService</text><text x="65" y="108" font-size="11" text-anchor="middle" fill="var(--ink-muted)">@Service</text><path d="M120 95 L140 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-data-jpa-ar29a)"/><rect x="145" y="65" width="135" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="212" y="90" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">EmployeeRepository</text><text x="212" y="108" font-size="11" text-anchor="middle" fill="var(--ink-muted)">interface(自分で書く)</text><path d="M280 95 L300 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-data-jpa-ar29a)"/><rect x="305" y="55" width="120" height="80" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 3"/><text x="365" y="83" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">プロキシ</text><text x="365" y="101" font-size="11" text-anchor="middle" fill="var(--ink-muted)">Spring Data が</text><text x="365" y="117" font-size="11" text-anchor="middle" fill="var(--ink-muted)">起動時に生成</text><path d="M425 95 L445 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-data-jpa-ar29a)"/><rect x="450" y="55" width="105" height="80" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 3"/><text x="502" y="83" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">Hibernate</text><text x="502" y="101" font-size="11" text-anchor="middle" fill="var(--ink-muted)">SQL を作って</text><text x="502" y="117" font-size="11" text-anchor="middle" fill="var(--ink-muted)">投げる</text><path d="M555 95 L575 95" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#spring-data-jpa-ar29a)"/><rect x="580" y="65" width="50" height="60" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="605" y="100" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">DB</text><text x="320" y="165" font-size="12" text-anchor="middle" fill="var(--ink-muted)">ソースに出てくるのは interface だけ。点線の部分は起動後に裏で動く</text></svg><figcaption>Service はインターフェースだけを見て呼ぶ。実装(プロキシ)と SQL は Spring Data と Hibernate が受け持つ</figcaption></figure>
 
@@ -108,7 +111,7 @@ public interface EmployeeRepository
 
 ## 派生クエリ:メソッド名が SQL になる
 
-メソッド名を規則どおりに付けると、名前を解析して条件を作ってくれます。これを **派生クエリ** と呼びます。
+メソッド名を規則どおりに付けると、名前を解析して条件を作ってくれます。これを**派生クエリ**と呼びます。
 
 ```java
 List<Employee> findByNameAndAge(String name, int age);
@@ -127,14 +130,14 @@ List<Employee> findTop3ByDepartmentNameOrderByAgeDesc(
 | Top3 / First | `findTop3By...` | 先頭3件だけ |
 | count | `countByAge` | 件数を返す |
 
-`DepartmentName` は `department.name` とたどって JOIN してくれます。プロパティ名を間違えると **起動時に** 落ちます。
+`DepartmentName` は `department.name` とたどって JOIN してくれます。プロパティ名を間違えると**起動時に**落ちます。
 
 ```text
 No property 'nmae' found for type 'Employee';
 Did you mean 'name'
 ```
 
-実行時ではなく起動時に気づけるのが派生クエリの良い所です。ただし名前が長くなったら、`@Query` で **JPQL**(エンティティに対して書く SQL 風の言語)を書きます。テーブル名ではなく **クラス名とフィールド名** を使います。
+実行時ではなく起動時に気づけるのが派生クエリの良い所です。ただし名前が長くなったら、`@Query` で **JPQL**(エンティティに対して書く SQL 風の言語)を書きます。テーブル名ではなく**クラス名とフィールド名**を使います。
 
 ```java
 @Query("select e from Employee e "
@@ -169,7 +172,7 @@ spring.jpa.show-sql=true
 
 `jdbc:h2:file:` はファイルに保存するので再起動してもデータが残ります(`jdbc:h2:mem:` はメモリ上で、止めると消える)。`/h2-console` をブラウザで開くと中身を SQL で見られます。
 
-`ddl-auto` は、エンティティから **テーブル定義(DDL)を自動で作るか** の設定です。
+`ddl-auto` は、エンティティから**テーブル定義(DDL)を自動で作るか**の設定です。
 
 | 値 | 動き | 使い所 |
 |---|---|---|
@@ -178,7 +181,7 @@ spring.jpa.show-sql=true
 | update | 足りない列や表を追加する | 個人の学習 |
 | validate / none | 検証だけ / 何もしない | **本番** |
 
-本番で `update` を使わないのは、**列の削除や型の変更はしてくれず、何をしたかの記録も残らない** からです。`create` は論外(起動のたびに全データ消失)。本番のテーブル変更は Flyway などのマイグレーションツールで SQL ファイルとして管理し、レビューを通すのが現場の常識です。
+本番で `update` を使わないのは、**列の削除や型の変更はしてくれず、何をしたかの記録も残らない**からです。`create` は論外(起動のたびに全データ消失)。本番のテーブル変更は Flyway などのマイグレーションツールで SQL ファイルとして管理し、レビューを通すのが現場の常識です。
 
 ## 現場の三大落とし穴
 
@@ -198,16 +201,18 @@ select ... from departments where id=?
 ... (部署の数だけ続く)
 ```
 
-一覧の1回 + 関連の N 回で **N+1 問題** です。手元の10件では気づかず、本番の1万件で画面が固まります。必要な所だけ `join fetch` で一緒に取ります。
+一覧の1回 + 関連の N 回で **N+1 問題**です。手元の10件では気づかず、本番の1万件で画面が固まります。必要な所だけ `join fetch` で一緒に取ります。
 
 ```java
 @Query("select e from Employee e join fetch e.department")
 List<Employee> findAllWithDepartment();
 ```
 
+`join fetch` は内部結合なので、部署が未設定(`department_id` が `null`)の社員は結果から消えます。全員を出したいなら `left join fetch` にします。
+
 ### 遅延ロードと LazyInitializationException
 
-`FetchType.LAZY` の関連は、最初は中身が空の **プロキシ** で、触った瞬間に SQL を投げます(**遅延ロード**)。ところが DB との会話(セッション)が閉じた後に触ると、こう落ちます。
+`FetchType.LAZY` の関連は、最初は中身が空の**プロキシ**で、触った瞬間に SQL を投げます(**遅延ロード**)。ところが DB との会話(セッション)が閉じた後に触ると、こう落ちます。
 
 ```text
 org.hibernate.LazyInitializationException:

@@ -3,7 +3,7 @@ className: ApiExceptionHandler
 difficulty: 3
 libraries: [spring]
 problem: |
-  承認くんの API(`RequestApiController`、完成済み)で起きた例外を、**1か所** でまとめて HTTP のエラーに翻訳する
+  承認くんの API(`RequestApiController`、完成済み)で起きた例外を、**1か所**でまとめて HTTP のエラーに翻訳する
   `ApiExceptionHandler` を完成させてください。どのエラーも共通形式(RFC 9457 の **ProblemDetail**、`application/problem+json`)で返します。
 
   | 起きた例外 | ステータス | title | detail |
@@ -28,7 +28,7 @@ problem: |
 
   **なぜ継承が要るのか**:`@ExceptionHandler(Exception.class)` だけだと、`?status=submitted`(enum に変換できない)の 400 や、
   `DELETE` を送ったときの 405 のような **Spring 標準のエラーまで横取りして 500** にしてしまいます。
-  `ResponseEntityExceptionHandler` はそれらを受け持つハンドラを持っていて、Spring は **例外の型がより近いハンドラ** を選ぶので、標準のエラーは元のステータスのまま返ります。
+  `ResponseEntityExceptionHandler` はそれらを受け持つハンドラを持っていて、Spring は**例外の型がより近いハンドラ**を選ぶので、標準のエラーは元のステータスのまま返ります。
   `BusinessRuleException` が `Exception` のほうに吸い込まれないのも同じ理由です。
 
   テストは `MockMvcBuilders.standaloneSetup(...).setControllerAdvice(new ApiExceptionHandler())` で確かめます。

@@ -28,7 +28,7 @@
 - term: "main メソッド"
   read: "メイン"
   en: "main method"
-  def: "プログラムのスタート地点。public static void main(String[] args) の形で書く。"
+  def: "プログラムのスタート地点。`public static void main(String[] args)` の形で書く。"
   lesson: java-hello
 - term: "コメント"
   en: "comment"
@@ -39,20 +39,20 @@
   en: "Javadoc"
   def: "/** で始めるコメント。クラスやメソッドの説明書として IDE やドキュメントに表示される。"
   lesson: java-hello
-- term: "AP サーバ"
+- term: "AP サーバ(アプリケーションサーバ)"
   read: "エーピーサーバ"
   en: "application server"
   def: "Java のプログラムが動くサーバ。Web サーバから受けたリクエストを処理し、DB とやり取りする。"
-  lesson: java-hello
-- term: "フロントエンド / バックエンド"
+  lesson: spring-boot-startup
+- term: "フロントエンド / バックエンド(画面側 / サーバー側)"
   en: "frontend / backend"
   def: "ユーザーが直接触る画面側(HTML/CSS/JS)と、見えないサーバ側(Java)のこと。"
-  lesson: java-hello
+  lesson: spring-thymeleaf
 - term: "MVC"
   read: "エムブイシー"
   en: "Model-View-Controller"
   def: "サーバ側のコードを、データと業務ルール(M)、見た目(V)、受付(C)の3役に分ける設計の型。"
-  lesson: java-hello
+  lesson: spring-controller
 - term: "変数"
   read: "へんすう"
   en: "variable"
@@ -61,7 +61,7 @@
 - term: "型"
   read: "かた"
   en: "type"
-  def: "変数に入れられる値の種類。int(整数)、String(文字列)など。"
+  def: "変数に入れられる値の種類。`int`(整数)、`String`(文字列)など。"
   lesson: java-variables
 - term: "宣言"
   read: "せんげん"
@@ -76,7 +76,7 @@
 - term: "初期化"
   read: "しょきか"
   en: "initialization"
-  def: "宣言と同時に最初の値を入れること。int a = 1; の形。"
+  def: "宣言と同時に最初の値を入れること。`int a = 1;` の形。"
   lesson: java-variables
 - term: "基本データ型"
   read: "きほんデータがた"
@@ -86,7 +86,7 @@
 - term: "参照型"
   read: "さんしょうがた"
   en: "reference type"
-  def: "箱には値の置き場所(住所)が入る型。String、配列、自分で作ったクラスなど。"
+  def: "箱には値の置き場所(住所)が入る型。`String`、配列、自分で作ったクラスなど。"
   lesson: java-variables
 - term: "キャスト"
   en: "cast"
@@ -99,21 +99,21 @@
   lesson: java-variables
 - term: "リテラル"
   en: "literal"
-  def: "コードに直接書いた値そのもの。100、\"abc\"、true など。"
+  def: "コードに直接書いた値そのもの。`100`、`\"abc\"`、`true` など。"
   lesson: java-variables
 - term: "null"
   read: "ヌル"
   en: "null"
-  def: "参照型の変数が「どこも指していない」状態。null のまま使うと NullPointerException。"
+  def: "参照型の変数が「どこも指していない」状態。`null` のまま使うと `NullPointerException`。"
   lesson: java-variables
 - term: "ラッパークラス"
   en: "wrapper class"
-  def: "基本データ型に対応する参照型。int→Integer、double→Double。変換メソッドを持つ。"
+  def: "基本データ型に対応する参照型。`int`→`Integer`、`double`→`Double`。変換メソッドを持つ。"
   lesson: java-variables
 - term: "演算子"
   read: "えんざんし"
   en: "operator"
-  def: "計算や比較を行う記号。+ - * / % = == && など。"
+  def: "計算や比較を行う記号。`+` `-` `*` `/` `%` `=` `==` `&&` など。"
   lesson: java-operators
 - term: "オペランド"
   en: "operand"
@@ -127,11 +127,11 @@
 - term: "複合代入演算子"
   read: "ふくごうだいにゅうえんざんし"
   en: "compound assignment"
-  def: "+= -= *= /= %= のこと。x += y は x = x + y の短縮形。"
+  def: "`+=` `-=` `*=` `/=` `%=` のこと。`x += y` は `x = x + y` の短縮形。"
   lesson: java-operators
 - term: "インクリメント / デクリメント"
   en: "increment / decrement"
-  def: "++ で 1 増やす、-- で 1 減らす。前置(++x)は増やしてから値を使い、後置(x++)は使ってから増やす。"
+  def: "`++` で 1 増やす、`--` で 1 減らす。前置(`++x`)は増やしてから値を使い、後置(`x++`)は使ってから増やす。"
   lesson: java-operators
 - term: "キャスト"
   en: "cast"
@@ -141,30 +141,30 @@
   en: "overflow"
   def: "型の上限を超えて、値が壊れること。int で約 21 億を超えると負の数になる。例外は出ない。"
   lesson: java-operators
-- term: "関係演算子"
+- term: "関係演算子(比較演算子)"
   read: "かんけいえんざんし"
   en: "relational operator"
-  def: "== !=  = のこと。2 つの値を比べて boolean を返す。"
+  def: "`==` `!=` `<` `>` `<=` `>=` のこと。2 つの値を比べて boolean を返す。"
   lesson: java-operators
 - term: "論理演算子"
   read: "ろんりえんざんし"
   en: "logical operator"
-  def: "&& (かつ) || (または) ! (でない)。boolean どうしを組み合わせる。"
+  def: "`&&`(かつ) `||`(または) `!`(でない)。boolean どうしを組み合わせる。"
   lesson: java-operators
 - term: "短絡評価"
   read: "たんらくひょうか"
   en: "short-circuit evaluation"
-  def: "&& の左が false、|| の左が true のとき、右側を実行せずに結果を確定すること。null チェックを左に書く根拠。"
+  def: "`&&` の左が `false`、`||` の左が `true` のとき、右側を実行せずに結果を確定すること。`null` チェックを左に書く根拠。"
   lesson: java-operators
 - term: "三項演算子"
   read: "さんこうえんざんし"
   en: "ternary operator"
-  def: "条件 ? A : B の形。条件が true なら A、false なら B の値になる。1 行の if-else。"
+  def: "`条件 ? A : B` の形。条件が `true` なら A、`false` なら B の値になる。1 行の if-else。"
   lesson: java-operators
 - term: "優先順位"
   read: "ゆうせんじゅんい"
   en: "operator precedence"
-  def: "どの演算子から先に計算するかの決まり。カッコ > 単項 > * / % > + - > 比較 > && > || > ?: > 代入。"
+  def: "どの演算子から先に計算するかの決まり。カッコ > 単項 > `*` `/` `%` > `+` `-` > 比較 > `&&` > `||` > `?:` > 代入。"
   lesson: java-operators
 - term: "配列"
   read: "はいれつ"
@@ -174,9 +174,9 @@
 - term: "要素"
   read: "ようそ"
   en: "element"
-  def: "配列や List に入っている 1 つ 1 つの値。"
+  def: "配列や `List` に入っている 1 つ 1 つの値。"
   lesson: java-arrays
-- term: "添え字"
+- term: "添え字(インデックス)"
   read: "そえじ"
   en: "index"
   def: "要素の位置を表す番号。0 から始まり、最後は「要素数 - 1」。"
@@ -184,16 +184,16 @@
 - term: "length"
   read: "レングス"
   en: "length"
-  def: "配列の要素数。a.length のように () を付けない。List は size()。"
+  def: "配列の要素数。`a.length` のように `()` を付けない。`List` は `size()`。"
   lesson: java-arrays
 - term: "デフォルト値"
   en: "default value"
-  def: "new で配列を作ったときに入る初期値。数値は 0、boolean は false、参照型は null。"
+  def: "new で配列を作ったときに入る初期値。数値は 0、boolean は `false`、参照型は `null`。"
   lesson: java-arrays
 - term: "ArrayIndexOutOfBoundsException"
   def: "配列の範囲外の添え字を使ったときに起きる実行時例外。"
   lesson: java-arrays
-- term: "多次元配列"
+- term: "多次元配列(二次元配列)"
   read: "たじげんはいれつ"
   en: "multidimensional array"
   def: "配列の配列。int[][] で表のようなデータを持つ。外側が行、内側が列。"
@@ -206,24 +206,22 @@
 - term: "List"
   read: "リスト"
   en: "List"
-  def: "「順番付きの集まり」として最低限できることを決めたインターフェース。ArrayList はその実物。変数の型は List で書く。"
+  def: "「順番付きの集まり」として最低限できることを決めたインターフェース。`ArrayList` はその実物。変数の型は `List` で書く。"
   lesson: java-arrays
 - term: "ジェネリクス"
   en: "generics"
-  def: "List の  の部分。「この型だけを入れる」と決める仕組み。"
-  lesson: java-arrays
+  def: "`List<String>` の `<String>` の部分。「この型だけを入れる」と決める仕組み。"
 - term: "ラッパークラス"
   en: "wrapper class"
-  def: "基本データ型に対応する参照型。int → Integer など。List には基本データ型を入れられないので使う。"
-  lesson: java-arrays
+  def: "基本データ型に対応する参照型。`int` → `Integer` など。`List` には基本データ型を入れられないので使う。"
 - term: "オートボクシング"
   en: "autoboxing"
-  def: "int と Integer などを Java が自動で相互変換すること。Integer が null だと変換時に NullPointerException。"
-  lesson: java-arrays
+  def: "`int` と `Integer` などを Java が自動で相互変換すること。`Integer` が `null` だと変換時に `NullPointerException`。"
+  lesson: java-variables
 - term: "List.of"
   read: "リストオブ"
   en: "List.of"
-  def: "変更できないリストを 1 行で作る書き方。add / remove / set すると UnsupportedOperationException。"
+  def: "変更できないリストを 1 行で作る書き方。add / remove / set すると `UnsupportedOperationException`。"
   lesson: java-arrays
 - term: "順次構造"
   read: "じゅんじこうぞう"
@@ -238,13 +236,12 @@
 - term: "条件式"
   read: "じょうけんしき"
   en: "condition"
-  def: "true か false のどちらかになる式。if の ( ) の中に書く。"
+  def: "`true` か `false` のどちらかになる式。if の ( ) の中に書く。"
   lesson: java-if
 - term: "短絡評価"
   read: "たんらくひょうか"
   en: "short-circuit evaluation"
-  def: "&& や || で、左側の結果だけで全体が確定するとき右側を評価しない仕組み。"
-  lesson: java-if
+  def: "`&&` や `||` で、左側の結果だけで全体が確定するとき右側を評価しない仕組み。"
 - term: "ガード節"
   read: "ガードせつ"
   en: "guard clause"
@@ -257,16 +254,16 @@
 - term: "switch 式"
   read: "スイッチしき"
   en: "switch expression"
-  def: "Java 14 以降の -> を使う switch。値をそのまま返せ、break が不要。"
+  def: "Java 14 で正式になった、値を返す switch。`case X -> 値` の形がよく使われ、break が要らない(`case X: yield 値;` とも書ける)。"
   lesson: java-if
 - term: "equals"
   read: "イコールズ"
   en: "equals"
-  def: "オブジェクトの中身が等しいかを比較するメソッド。String の比較では == の代わりに使う。"
+  def: "オブジェクトの中身が等しいかを比較するメソッド。`String` の比較では `==` の代わりに使う。"
   lesson: java-if
 - term: "参照型の同一性"
   en: "reference equality"
-  def: "== が参照型どうしで比較するのは「同じインスタンスを指しているか」であり、中身の一致ではない。"
+  def: "`==` が参照型どうしで比較するのは「同じインスタンスを指しているか」であり、中身の一致ではない。"
   lesson: java-if
 - term: "while 文"
   read: "ホワイルぶん"
@@ -306,7 +303,7 @@
   en: "continue"
   def: "その周の残りをスキップし、次の周の条件判定に戻る命令。"
   lesson: java-loops
-- term: "二重ループ"
+- term: "二重ループ(多重ループ)"
   read: "にじゅうループ"
   en: "nested loop"
   def: "for 文の中にさらに for 文がある、入れ子になったくり返し。"
@@ -314,12 +311,11 @@
 - term: "拡張 for 文"
   read: "かくちょうフォーぶん"
   en: "enhanced for / for-each"
-  def: "配列や List の要素を順番に取り出すだけの、簡潔なくり返し構文。"
-  lesson: java-loops
+  def: "配列や `List` の要素を順番に取り出すだけの、簡潔なくり返し構文。"
+  lesson: java-arrays
 - term: "ConcurrentModificationException"
   en: "ConcurrentModificationException"
-  def: "拡張 for や Iterator でくり返し中のコレクションを直接変更すると発生する実行時例外。"
-  lesson: java-loops
+  def: "拡張 for や `Iterator` でくり返し中のコレクションを直接変更すると発生する実行時例外。"
 - term: "メソッド"
   en: "method"
   def: "ひとまとまりの処理に名前を付けたもの。名前で呼び出して実行する。"
@@ -365,7 +361,7 @@
 - term: "static メソッド"
   read: "スタティックメソッド"
   en: "static method"
-  def: "インスタンスを作らずに「クラス名.メソッド名()」で呼べるメソッド。Math.max など。"
+  def: "インスタンスを作らずに「クラス名.メソッド名()」で呼べるメソッド。`Math.max` など。"
   lesson: java-methods
 - term: "クラス"
   en: "class"
@@ -388,7 +384,7 @@
   read: "アクセスしゅうしょくし"
   en: "access modifier"
   def: "private / (なし) / protected / public。フィールドやメソッドに誰から触れるかを決める。"
-  lesson: java-classes
+  lesson: java-encapsulation
 - term: "カプセル化"
   read: "カプセルか"
   en: "encapsulation"
@@ -397,7 +393,7 @@
 - term: "getter / setter"
   read: "ゲッター / セッター"
   en: "getter / setter"
-  def: "フィールドの値を読む/書くための公開メソッド。getName() / setName(v) の形。"
+  def: "フィールドの値を読む/書くための公開メソッド。`getName()` / `setName(v)` の形。"
   lesson: java-classes
 - term: "this"
   read: "ディス"
@@ -411,17 +407,17 @@
   lesson: java-classes
 - term: "ユーティリティクラス"
   en: "utility class"
-  def: "static メソッドだけを集めた道具箱クラス。Math や自作の XxxUtils。new しない。"
+  def: "static メソッドだけを集めた道具箱クラス。`Math` や自作の `XxxUtils`。new しない。"
   lesson: java-classes
 - term: "スコープ"
   en: "scope"
   def: "変数が使える範囲。宣言した { } の中だけ。フィールドはクラス全体。"
-  lesson: java-classes
-- term: "標準クラス(API)"
+  lesson: java-methods
+- term: "標準クラス(API、標準ライブラリ)"
   read: "ひょうじゅんクラス"
   en: "standard API"
-  def: "Java が最初から用意しているクラス群。String、Math、List など。Javadoc で仕様を調べる。"
-  lesson: java-classes
+  def: "Java が最初から用意しているクラス群。`String`、`Math`、`List` など。Javadoc で仕様を調べる。"
+  lesson: java-hello
 - term: "コンストラクタ"
   en: "constructor"
   def: "new のときに自動で1回呼ばれる初期化処理。戻り値の型を書かず、名前はクラス名と同じ。"
@@ -443,7 +439,7 @@
 - term: "既定値"
   read: "きていち"
   en: "default value"
-  def: "何も入れていないフィールドの初期値。int は 0、boolean は false、参照型は null。"
+  def: "何も入れていないフィールドの初期値。int は 0、boolean は `false`、参照型は `null`。"
   lesson: java-classes
 - term: "コンストラクタ注入"
   read: "コンストラクタちゅうにゅう"
@@ -457,7 +453,7 @@
   def: "Lombok。全フィールドを宣言順に引数に取るコンストラクタを生成する。"
   lesson: java-classes
 - term: "@NoArgsConstructor"
-  def: "Lombok。引数なしコンストラクタを生成する。JPA の Entity に必須。"
+  def: "Lombok。引数なしコンストラクタを生成する。JPA の Entity には引数なしコンストラクタが必須なので、よく付ける。"
   lesson: java-classes
 - term: "静的ファクトリメソッド"
   read: "せいてきファクトリメソッド"
@@ -494,14 +490,14 @@
 - term: "NullPointerException"
   read: "ヌルポインターエクセプション"
   en: "NullPointerException"
-  def: "null の変数に対してメソッド呼び出しやフィールドアクセスをしたときに発生する実行時エラー。"
+  def: "`null` の変数に対してメソッド呼び出しやフィールドアクセスをしたときに発生する実行時エラー。"
   lesson: java-jvm-memory
 - term: "文字列プール"
   read: "もじれつプール"
   en: "string pool"
   def: "同じ内容の文字列リテラルを複数回作らず使い回すための、JVM 内の共有領域。"
-  lesson: java-jvm-memory
-- term: "static 領域"
+  lesson: java-strings
+- term: "static 領域(メソッド領域)"
   en: "method area"
   def: "クラスの情報や static フィールドなど、クラスに1つだけ存在する情報が置かれる領域。"
   lesson: java-jvm-memory
@@ -538,7 +534,7 @@
 - term: "super"
   read: "スーパー"
   en: "super"
-  def: "親を指す言葉。super(...) は親のコンストラクタ、super.m() は親の版のメソッド。"
+  def: "親を指す言葉。`super(...)` は親のコンストラクタ、`super.m()` は親の版のメソッド。"
   lesson: java-inheritance
 - term: "オーバーライド"
   en: "override"
@@ -599,30 +595,30 @@
 - term: "アップキャスト"
   en: "upcast"
   def: "子の実体を親(またはインターフェース)型の変数に入れること。自動で行われる。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "ダウンキャスト"
   en: "downcast"
-  def: "親型の変数を (子型) で子の型に戻すこと。実体が違うと ClassCastException。instanceof で確認してから行う。"
-  lesson: java-abstract-interface
+  def: "親型の変数を `(子型)` で子の型に戻すこと。実体が違うと `ClassCastException`。instanceof で確認してから行う。"
+  lesson: java-polymorphism
 - term: "動的ディスパッチ"
   read: "どうてきディスパッチ"
   en: "dynamic dispatch"
   def: "実行時に実体の型を見て、どのオーバーライド版を動かすか決める仕組み。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "instanceof"
   read: "インスタンスオブ"
   en: "instanceof"
-  def: "変数の実体がある型(またはその子)かどうかを true / false で返す演算子。Java 16+ では判定と同時に変数宣言できる。"
-  lesson: java-abstract-interface
+  def: "変数の実体がある型(またはその子)かどうかを `true` / `false` で返す演算子。Java 16+ では判定と同時に変数宣言できる。"
+  lesson: java-polymorphism
 - term: "DI(依存性注入)"
   read: "ディーアイ"
   en: "dependency injection"
-  def: "Spring が、インターフェース型のフィールドに実装クラスの実体を起動時に入れてくれる仕組み。"
+  def: "部品が使う相手を自分で new せず、外から渡してもらう設計。Spring では起動時にコンストラクタの引数などへ Bean を入れてくれる。型をインターフェースにしておくと実装を差し替えられる。"
   lesson: java-abstract-interface
 - term: "実装クラス"
   read: "じっそうクラス"
   en: "implementation class"
-  def: "インターフェースを implements したクラス。XxxServiceImpl の命名が多い。"
+  def: "インターフェースを implements したクラス。`XxxServiceImpl` の命名が多い。"
   lesson: java-abstract-interface
 - term: "ネストしたクラス"
   en: "nested class"
@@ -630,14 +626,14 @@
   lesson: java-nested-classes
 - term: "static ネストクラス"
   en: "static nested class"
-  def: "static を付けて外側のクラスの直下に書くクラス。外側のインスタンスがなくても Outer.Inner の形でそのまま new できる。"
+  def: "static を付けて外側のクラスの直下に書くクラス。外側のインスタンスがなくても `Outer.Inner` の形でそのまま new できる。"
   lesson: java-nested-classes
 - term: "内部クラス"
   read: "ないぶクラス"
   en: "inner class"
   def: "static を付けずに外側のクラスの直下に書くクラス。1つの外側インスタンスに結び付き、そのフィールドに直接アクセスできる。"
   lesson: java-nested-classes
-- term: "Outer.this"
+- term: "Outer.this(外側クラス名.this)"
   read: "アウター・ディス"
   en: "Outer.this"
   def: "内部クラスや匿名クラスの中から、結び付いている外側のインスタンス自身を指す書き方。"
@@ -651,24 +647,23 @@
   en: "anonymous class"
   def: "インターフェースや抽象クラスの実装を、名前を付けずに new と同時にその場で書く方法。"
   lesson: java-nested-classes
-- term: "実質的final"
-  read: "じっしつファイナル"
+- term: "実質的 final(effectively final)"
+  read: "じっしつてきファイナル"
   en: "effectively final"
   def: "final と書いていないが、一度代入した後に値を変えていない変数。匿名クラスやラムダから使える条件。"
   lesson: java-nested-classes
 - term: "初期化ブロック"
   read: "しょきかブロック"
   en: "instance initializer block"
-  def: "クラスの直下に { } だけで書くコード。コンストラクタの直前、インスタンスが作られるたびに実行される。"
+  def: "クラスの直下に `{ }` だけで書くコード。インスタンスが作られるたびに、コンストラクタの `super(...)` の後・本体の前に実行される。"
   lesson: java-nested-classes
-- term: "static初期化ブロック"
+- term: "static 初期化ブロック"
   en: "static initializer block"
   def: "static { } の形で書くコード。そのクラスが最初に読み込まれたときに1回だけ実行される。"
   lesson: java-nested-classes
 - term: "ユーティリティクラス"
   en: "utility class"
   def: "static メソッドだけを集めた道具箱クラス。private コンストラクタで new できないようにするのが定石。"
-  lesson: java-nested-classes
 - term: "パッケージ"
   en: "package"
   def: "関連するクラスをまとめる入れ物。フォルダ階層と対応し、名前の衝突を防ぐ名前空間にもなる。"
@@ -686,7 +681,7 @@
 - term: "完全修飾名"
   read: "かんぜんしゅうしょくめい"
   en: "fully qualified class name"
-  def: "パッケージ名 + クラス名の正式名称。java.util.List のように書く。"
+  def: "パッケージ名 + クラス名の正式名称。`java.util.List` のように書く。"
   lesson: java-encapsulation
 - term: "名前空間"
   read: "なまえくうかん"
@@ -696,17 +691,16 @@
 - term: "java.lang"
   read: "ジャバ・ラング"
   en: "java.lang"
-  def: "String や Math など言語の基本クラスが入るパッケージ。自動で import される。"
+  def: "`String` や `Math` など言語の基本クラスが入るパッケージ。自動で import される。"
   lesson: java-encapsulation
 - term: "ワイルドカード import"
   en: "wildcard import"
   def: "import java.util.*; のように、パッケージ直下の全クラスをまとめて import する書き方。サブパッケージは含まない。"
-  lesson: java-encapsulation
 - term: "static import"
   read: "スタティック・インポート"
   en: "static import"
   def: "クラスの static メソッドや定数を、クラス名なしで使えるようにする import。"
-  lesson: java-encapsulation
+  lesson: spring-mockmvc
 - term: "パッケージプライベート"
   en: "package-private"
   def: "アクセス修飾子を何も付けない状態。同じパッケージからだけ見える。"
@@ -719,7 +713,7 @@
 - term: "コンポーネントスキャン"
   en: "component scan"
   def: "Spring が起動時にパッケージ以下を走査し、@Service などの付いたクラスを自動登録する仕組み。"
-  lesson: java-encapsulation
+  lesson: spring-boot-startup
 - term: "例外"
   read: "れいがい"
   en: "exception"
@@ -727,7 +721,7 @@
   lesson: java-exceptions
 - term: "スロー"
   en: "throw"
-  def: "例外を発生させること。throw new XxxException(...) と書く。"
+  def: "例外を発生させること。`throw new XxxException(...)` と書く。"
   lesson: java-exceptions
 - term: "キャッチ"
   en: "catch"
@@ -736,12 +730,12 @@
 - term: "検査例外"
   read: "けんされいがい"
   en: "checked exception"
-  def: "catch か throws を書かないとコンパイルエラーになる例外。IOException、SQLException など。"
+  def: "catch か throws を書かないとコンパイルエラーになる例外。`IOException`、`SQLException` など。"
   lesson: java-exceptions
 - term: "非検査例外"
   read: "ひけんされいがい"
   en: "unchecked exception"
-  def: "RuntimeException とその子。throws を書かなくてよい。NullPointerException など。"
+  def: "`RuntimeException` とその子(と `Error` とその子)。throws を書かなくてよい。`NullPointerException` など。"
   lesson: java-exceptions
 - term: "throws 宣言"
   read: "スローズせんげん"
@@ -759,12 +753,12 @@
   lesson: java-exceptions
 - term: "AutoCloseable"
   en: "AutoCloseable"
-  def: "close() メソッドを持つことを約束するインターフェース。これを実装したクラスが try-with-resources に使える。"
+  def: "`close()` メソッドを持つことを約束するインターフェース。これを実装したクラスが try-with-resources に使える。"
   lesson: java-exceptions
-- term: "ユーザー定義例外"
+- term: "ユーザー定義例外(独自例外)"
   read: "ユーザーていぎれいがい"
   en: "custom exception"
-  def: "Exception や RuntimeException を継承して自分で作る例外クラス。業務の失敗を型で表す。"
+  def: "`Exception` や `RuntimeException` を継承して自分で作る例外クラス。業務の失敗を型で表す。"
   lesson: java-exceptions
 - term: "伝播"
   read: "でんぱ"
@@ -777,59 +771,58 @@
   lesson: java-exceptions
 - term: "コレクション"
   en: "collection"
-  def: "要素をあとから追加・削除できる入れ物の総称。java.util にある。List / Set / Map が代表。"
+  def: "要素をあとから追加・削除できる入れ物の総称。java.util にある。`List` / `Set` / `Map` が代表。"
   lesson: java-collections
 - term: "List"
   read: "リスト"
   en: "List"
-  def: "順序を保ち、添字で取り出せ、重複を許すコレクション。実装は ArrayList が標準。"
+  def: "順序を保ち、添字で取り出せ、重複を許すコレクション。実装は `ArrayList` が標準。"
   lesson: java-collections
 - term: "Set"
   read: "セット"
   en: "Set"
-  def: "重複を許さないコレクション。HashSet は順序なし、LinkedHashSet は挿入順、TreeSet は整列。"
+  def: "重複を許さないコレクション。`HashSet` は順序なし、`LinkedHashSet` は挿入順、`TreeSet` は整列。"
   lesson: java-collections
 - term: "Map"
   read: "マップ"
   en: "Map"
-  def: "キーと値のペアを持つ対応表。キーは重複せず、同じキーの put は上書き。get は無いと null。"
+  def: "キーと値のペアを持つ対応表。キーは重複せず、同じキーの put は上書き。get は無いと `null`。"
   lesson: java-collections
 - term: "実装クラス"
   read: "じっそうクラス"
   en: "implementation class"
-  def: "インターフェースの約束を実際に動くコードにしたクラス。ArrayList、HashMap など。new するときに書く。"
+  def: "インターフェースの約束を実際に動くコードにしたクラス。`ArrayList`、`HashMap` など。new するときに書く。"
   lesson: java-collections
 - term: "ジェネリクスの型引数"
   read: "かたひきすう"
   en: "type argument"
-  def: "List の  の部分。「中に入れる要素の型」を指定する。"
+  def: "`List<String>` の `<String>` の部分。「中に入れる要素の型」を指定する。"
   lesson: java-collections
 - term: "ラッパークラス"
   en: "wrapper class"
-  def: "int → Integer のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。"
-  lesson: java-collections
+  def: "`int` → `Integer` のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。"
 - term: "オートボクシング"
   en: "autoboxing"
-  def: "int と Integer を自動で相互変換する仕組み。null を int にしようとすると NullPointerException。"
+  def: "`int` と `Integer` を自動で相互変換する仕組み。`null` を `int` にしようとすると `NullPointerException`。"
   lesson: java-collections
 - term: "Iterator"
   read: "イテレータ"
   en: "Iterator"
-  def: "要素を順にたどる係。hasNext() と next() を持つ。拡張 for の裏で動いている。"
+  def: "要素を順にたどる係。`hasNext()` と `next()` を持つ。拡張 for の裏で動いている。"
   lesson: java-collections
 - term: "Entry"
   read: "エントリ"
   en: "Map.Entry"
-  def: "Map のキーと値のペア1組。getKey() と getValue() を持つ。entrySet() のループで使う。"
+  def: "`Map` のキーと値のペア1組。`getKey()` と `getValue()` を持つ。`entrySet()` のループで使う。"
   lesson: java-collections
 - term: "不変コレクション"
   read: "ふへんコレクション"
   en: "immutable collection"
-  def: "List.of などで作る変更不可のコレクション。add すると UnsupportedOperationException。null 不可。"
+  def: "`List.of` などで作る変更不可のコレクション。add すると `UnsupportedOperationException`。`null` 不可。"
   lesson: java-collections
 - term: "ConcurrentModificationException"
   en: "ConcurrentModificationException"
-  def: "ループ中にそのコレクションを add / remove したときに起きる例外。Iterator.remove や removeIf で回避。"
+  def: "ループ中にそのコレクションを add / remove したときに起きる例外。`Iterator.remove` や `removeIf` で回避。"
   lesson: java-collections
 - term: "UML"
   read: "ユーエムエル"
@@ -883,7 +876,6 @@
   read: "じっこうしよう"
   en: "execution specification"
   def: "ライフライン上で、そのオブジェクトが処理を実行している期間を表す細長い箱。"
-  lesson: java-polymorphism
 - term: "複合フラグメント"
   read: "ふくごうフラグメント"
   en: "combined fragment"
@@ -897,7 +889,7 @@
   en: "breakpoint"
   def: "指定した行でプログラムの実行を一時停止させる目印。"
   lesson: sts-debugger
-- term: "ステップオーバー"
+- term: "ステップオーバー(Step Over)"
   en: "step over"
   def: "現在の行を実行して次の行へ進む操作。呼び出し先のメソッドの中には入らない。"
   lesson: sts-debugger
@@ -905,11 +897,11 @@
   en: "step into"
   def: "呼び出しているメソッドの中へ実行位置を移動させる操作。"
   lesson: sts-debugger
-- term: "ステップリターン"
+- term: "ステップリターン(Step Return)"
   en: "step return"
   def: "今のメソッドの残りをすべて実行し、呼び出し元に戻る操作。"
   lesson: sts-debugger
-- term: "変数ビュー"
+- term: "変数ビュー(Variables ビュー)"
   read: "へんすうビュー"
   en: "variables view"
   def: "ブレークポイントで停止中に、変数の現在の値を確認できる IDE の画面。"
@@ -934,27 +926,27 @@
 - term: "不変"
   read: "ふへん"
   en: "immutable"
-  def: "作った後に中身を変更できない性質。String は不変で、操作のたびに新しい文字列が作られる。"
+  def: "作った後に中身を変更できない性質。`String` は不変で、操作のたびに新しい文字列が作られる。"
   lesson: java-strings
-- term: "定数プール"
+- term: "定数プール(文字列プール)"
   read: "ていすうプール"
   en: "string pool"
-  def: "同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組み。リテラルどうしは同じオブジェクトになる。"
+  def: "ここでは文字列の定数プール(文字列プール)のこと。同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組みで、リテラルどうしは同じオブジェクトになる。JVM 仕様でいう定数プール(クラスファイルの定数の表)とは別物。"
   lesson: java-strings
 - term: "equals"
   read: "イコールズ"
   en: "equals"
-  def: "中身が同じかを比べるメソッド。文字列の比較はこちらを使う(== は住所の比較)。"
+  def: "中身が同じかを比べるメソッド。文字列の比較はこちらを使う(`==` は住所の比較)。"
   lesson: java-strings
 - term: "StringBuilder"
   read: "ストリングビルダー"
   en: "StringBuilder"
-  def: "変更できる文字列の箱。append で追記し、最後に toString で String にする。ループでの連結に使う。"
+  def: "変更できる文字列の箱。`append` で追記し、最後に `toString` で `String` にする。ループでの連結に使う。"
   lesson: java-strings
 - term: "書式文字列"
   read: "しょしきもじれつ"
   en: "format string"
-  def: "%s や %d などの穴に値を埋め込むテンプレート。String.format や formatted で使う。"
+  def: "%s や %d などの穴に値を埋め込むテンプレート。`String.format` や `formatted` で使う。"
   lesson: java-strings
 - term: "テキストブロック"
   en: "text block"
@@ -979,11 +971,11 @@
   read: "じゅうろくしんもじれつ"
   en: "hex string"
   def: "バイト列を 0〜9 と a〜f で表した文字列。1バイト = 2文字。ハッシュ値の表示によく使う。"
-  lesson: java-strings
+  lesson: java-datetime
 - term: "正規表現"
   read: "せいきひょうげん"
   en: "regular expression"
-  def: "文字列のパターンを表す記法。matches や Pattern で入力チェックに使う。"
+  def: "文字列のパターンを表す記法。`matches` や `Pattern` で入力チェックに使う。"
   lesson: java-strings
 - term: "NumberFormatException"
   en: "NumberFormatException"
@@ -991,30 +983,30 @@
   lesson: java-strings
 - term: "ジェネリクス"
   en: "generics"
-  def: "クラスやメソッドが扱う型を、使う側が  で後から指定できる仕組み。List など。"
+  def: "クラスやメソッドが扱う型を、使う側が `<>` で後から指定できる仕組み。`List<String>` など。"
   lesson: java-generics
 - term: "型パラメータ"
   read: "かたパラメータ"
   en: "type parameter"
-  def: "の中に書く型の仮の名前。T、E、K、V、R などの1文字が慣習。"
+  def: "`class Box<T>` の `<T>` の中に書く型の仮の名前。T、E、K、V、R などの1文字が慣習。"
   lesson: java-generics
 - term: "型安全"
   read: "かたあんぜん"
   en: "type safety"
   def: "間違った型の値を入れるとコンパイル時にエラーになること。実行してから気づくバグを減らせる。"
   lesson: java-generics
-- term: "ジェネリッククラス"
+- term: "ジェネリッククラス(型パラメータ付きクラス)"
   en: "generic class"
-  def: "class Box のように型パラメータを持つクラス。Box のように使う側が型を決める。"
+  def: "`class Box<T>` のように型パラメータを持つクラス。`Box<String>` のように使う側が型を決める。"
   lesson: java-generics
 - term: "ジェネリックメソッド"
   en: "generic method"
-  def: "戻り値の前に  を書き、そのメソッドだけで型パラメータを使うメソッド。引数から T が推論される。"
+  def: "戻り値の前に `<T>` を書き、そのメソッドだけで型パラメータを使うメソッド。引数から T が推論される。"
   lesson: java-generics
 - term: "境界"
   read: "きょうかい"
   en: "bound"
-  def: "のように T に付ける条件。T をその型かサブクラスに限定する。"
+  def: "`<T extends Number>` のように T に付ける条件。T をその型かサブクラス(実装クラス)に限定する。"
   lesson: java-generics
 - term: "ワイルドカード"
   en: "wildcard"
@@ -1023,11 +1015,11 @@
 - term: "型消去"
   read: "かたしょうきょ"
   en: "type erasure"
-  def: "ジェネリクスの型情報が実行時には消える仕組み。そのため new T() や instanceof T は書けない。"
+  def: "ジェネリクスの型情報が実行時には消える仕組み。そのため `new T()` や `instanceof T` は書けない。"
   lesson: java-generics
 - term: "ダイヤモンド演算子"
   en: "diamond operator"
-  def: "new ArrayList<>() の空の <>。左辺の型から中身の型を推論してくれる。"
+  def: "`new ArrayList<>()` の空の `<>`。左辺の型から中身の型を推論してくれる。"
   lesson: java-generics
 - term: "型推論"
   read: "かたすいろん"
@@ -1037,17 +1029,17 @@
 - term: "Class<T>"
   read: "クラス"
   en: "Class object"
-  def: "型そのものを表すオブジェクト。UserDto.class のように書き、型消去で失われた型情報を実行時に渡すために使う。"
+  def: "型そのものを表すオブジェクト。`UserDto.class` のように書き、型消去で失われた型情報を実行時に渡すために使う。"
   lesson: java-generics
 - term: "ラムダ式"
   read: "ラムダしき"
   en: "lambda expression"
-  def: "(引数) -> 処理 の形で書く、名前のない小さな処理。値のように変数に入れたり引数に渡したりできる。"
+  def: "`(引数) -> 処理` の形で書く、名前のない小さな処理。値のように変数に入れたり引数に渡したりできる。"
   lesson: java-lambda-stream
 - term: "関数型インターフェース"
   read: "かんすうがたインターフェース"
   en: "functional interface"
-  def: "抽象メソッドが1つだけのインターフェース。ラムダ式の型になる。@FunctionalInterface を付ける。"
+  def: "抽象メソッドが1つだけのインターフェース。ラムダ式の型になる。@FunctionalInterface は付けなくてもよいが、付けると条件を外れたときにコンパイルエラーで教えてくれる。"
   lesson: java-lambda-stream
 - term: "匿名クラス"
   read: "とくめいクラス"
@@ -1057,7 +1049,7 @@
 - term: "メソッド参照"
   read: "メソッドさんしょう"
   en: "method reference"
-  def: "クラス::メソッド の形で既存のメソッドをラムダの代わりに渡す書き方。User::getName は u -> u.getName() と同じ。"
+  def: "`クラス::メソッド` の形で既存のメソッドをラムダの代わりに渡す書き方。`User::getName` は `u -> u.getName()` と同じ。"
   lesson: java-lambda-stream
 - term: "Function"
   read: "ファンクション"
@@ -1082,7 +1074,7 @@
 - term: "Comparator"
   read: "コンパレータ"
   en: "Comparator<T>"
-  def: "2つの T を比べて順序(負・0・正)を返すインターフェース。Comparator.comparing で組み立てる。"
+  def: "2つの T を比べて順序(負・0・正)を返すインターフェース。`Comparator.comparing` で組み立てる。"
   lesson: java-lambda-stream
 - term: "キャプチャ"
   en: "capture"
@@ -1104,17 +1096,17 @@
   lesson: java-lambda-stream
 - term: "パイプライン"
   en: "pipeline"
-  def: "生成 → 中間操作 → 終端操作 とつながった Stream の一連の処理。"
+  def: "生成 → 中間操作 → 終端操作 とつながった `Stream` の一連の処理。"
   lesson: java-lambda-stream
 - term: "中間操作"
   read: "ちゅうかんそうさ"
   en: "intermediate operation"
-  def: "Stream を受け取って Stream を返す操作。filter、map、sorted など。何段でもつなげられる。"
+  def: "`Stream` を受け取って `Stream` を返す操作。filter、map、sorted など。何段でもつなげられる。"
   lesson: java-lambda-stream
 - term: "終端操作"
   read: "しゅうたんそうさ"
   en: "terminal operation"
-  def: "Stream を結果(List、数値、boolean など)に変える最後の操作。これを呼ぶまで Stream は動かない。"
+  def: "`Stream` を結果(`List`、数値、`boolean` など)に変える最後の操作。これを呼ぶまで `Stream` は動かない。"
   lesson: java-lambda-stream
 - term: "遅延評価"
   read: "ちえんひょうか"
@@ -1124,79 +1116,77 @@
 - term: "filter"
   read: "フィルター"
   en: "filter"
-  def: "条件が true の要素だけを残す中間操作。要素の数は減るが型は変わらない。"
+  def: "条件が `true` の要素だけを残す中間操作。要素の数は減るが型は変わらない。"
   lesson: java-lambda-stream
 - term: "map"
   read: "マップ"
   en: "map"
-  def: "各要素を別の値に置き換える中間操作。型が変わることが多い(User → String など)。"
+  def: "各要素を別の値に置き換える中間操作。型が変わることが多い(`User` → `String` など)。"
   lesson: java-lambda-stream
 - term: "flatMap"
   read: "フラットマップ"
   en: "flatMap"
-  def: "各要素を Stream に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどす。"
-  lesson: java-lambda-stream
+  def: "各要素を `Stream` に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。"
 - term: "Collectors"
   read: "コレクターズ"
   en: "Collectors"
-  def: "collect() に渡す「まとめ方」の部品集。toList、toMap、groupingBy、joining、counting など。"
+  def: "`collect()` に渡す「まとめ方」の部品集。`toList`、`toMap`、`groupingBy`、`joining`、`counting` など。"
   lesson: java-lambda-stream
 - term: "groupingBy"
   read: "グルーピングバイ"
   en: "groupingBy"
-  def: "キー関数の結果ごとに要素をグループ分けする Collector。結果は Map>。SQL の GROUP BY に相当。"
+  def: "キー関数の結果ごとに要素をグループ分けする `Collector`。結果は `Map<K, List<T>>`。SQL の GROUP BY に相当。"
   lesson: java-lambda-stream
 - term: "副作用"
   read: "ふくさよう"
   en: "side effect"
-  def: "処理の中で外側の変数や状態を書き換えること。Stream の forEach の中で行うと読みにくく、バグの元になる。"
+  def: "処理の中で外側の変数や状態を書き換えること。`Stream` の `forEach` の中で行うと読みにくく、バグの元になる。"
   lesson: java-lambda-stream
 - term: "reduce"
   read: "リデュース"
   en: "reduce"
-  def: "要素を先頭から順に1つの値へ畳み込む終端操作。reduce(0, Integer::sum) は合計。"
-  lesson: java-lambda-stream
+  def: "要素を先頭から順に1つの値へ畳み込む終端操作。`reduce(0, Integer::sum)` は合計。"
 - term: "Optional"
   read: "オプショナル"
   en: "Optional"
-  def: "値が1個あるか、まったく無いかを表すクラス。null の代わりに戻り値として使う。"
+  def: "値が1個あるか、まったく無いかを表すクラス。`null` の代わりに戻り値として使う。"
   lesson: java-optional
 - term: "NullPointerException"
   read: "ヌルポインタエクセプション"
   en: "NullPointerException"
-  def: "null の変数経由でメソッドやフィールドにアクセスしたときに起きる実行時例外。通称「ぬるぽ」。"
+  def: "`null` の変数経由でメソッドやフィールドにアクセスしたときに起きる実行時例外。通称「ぬるぽ」。"
   lesson: java-optional
 - term: "orElseThrow"
   read: "オアエルスロー"
   en: "orElseThrow"
-  def: "中身があればそれを返し、無ければ指定した例外(省略時は NoSuchElementException)を投げる Optional のメソッド。"
+  def: "中身があればそれを返し、無ければ指定した例外(省略時は `NoSuchElementException`)を投げる `Optional` のメソッド。"
   lesson: java-optional
 - term: "orElseGet"
   read: "オアエルスゲット"
   en: "orElseGet"
-  def: "中身が無いときだけラムダを実行して既定値を作る Optional のメソッド。orElse と違い無駄な計算をしない。"
+  def: "中身が無いときだけラムダを実行して既定値を作る `Optional` のメソッド。orElse と違い無駄な計算をしない。"
   lesson: java-optional
 - term: "ifPresentOrElse"
   en: "ifPresentOrElse"
-  def: "中身がある場合とない場合、それぞれの処理を1つの式で書ける Optional のメソッド(Java 9 以降)。"
+  def: "中身がある場合とない場合、それぞれの処理を1つの式で書ける `Optional` のメソッド(Java 9 以降)。"
   lesson: java-optional
 - term: "flatMap(Optional)"
   read: "フラットマップ"
   en: "flatMap"
-  def: "渡した関数が Optional を返すとき、二重になった Optional を1段ほどいて平らにする中間操作。"
+  def: "渡した関数が `Optional` を返すとき、二重になった `Optional` を1段ほどいて平らにする `Optional` のメソッド。"
   lesson: java-optional
 - term: "Objects.requireNonNull"
   en: "Objects.requireNonNull"
-  def: "引数が null なら即座に NullPointerException を投げるユーティリティ。フェイルファストに使う。"
+  def: "引数が `null` なら即座に `NullPointerException` を投げるユーティリティ。フェイルファストに使う。"
   lesson: java-optional
 - term: "フェイルファスト"
   en: "fail fast"
   def: "問題があったらできるだけ早い段階で例外を出して止めるという設計方針。原因調査が楽になる。"
-  lesson: java-optional
+  lesson: java-encapsulation
 - term: "@Nullable / @NonNull"
   read: "ナラブル / ノンナル"
   en: "@Nullable / @NonNull"
-  def: "値が null になり得るか(Nullable)、なってはいけないか(NonNull)を示す注釈。強制力はないことが多いが読解の手がかりになる。"
+  def: "値が `null` になり得るか(Nullable)、なってはいけないか(NonNull)を示す注釈。強制力はないことが多いが読解の手がかりになる。"
   lesson: java-optional
 - term: "var"
   en: "local variable type inference"
@@ -1224,17 +1214,17 @@
 - term: "switch 式"
   read: "スイッチしき"
   en: "switch expression"
-  def: "値を返す switch。矢印 case で break が不要になり、フォールスルーが起きない。"
+  def: "値を返す switch。矢印の case(`->`)ならフォールスルーが起きず break も要らない。"
   lesson: java-record-enum
 - term: "yield"
   read: "イールド"
   en: "yield"
   def: "switch 式のブロック内で値を返すキーワード。return とは別物。"
-  lesson: java-record-enum
+  lesson: java-if
 - term: "パターンマッチング"
   en: "pattern matching"
   def: "instanceof や switch で、型の判定と変数への取り出しを同時に行う書き方。"
-  lesson: java-record-enum
+  lesson: java-polymorphism
 - term: "sealed"
   read: "シールド"
   en: "sealed class"
@@ -1243,19 +1233,17 @@
 - term: "テキストブロック"
   en: "text block"
   def: "\"\"\" で囲む複数行の文字列リテラル。SQL や JSON を書きやすい。"
-  lesson: java-record-enum
 - term: "LTS"
   read: "エルティーエス"
   en: "Long-Term Support"
-  def: "長期サポート版の Java。8 / 11 / 17 / 21 が該当し、業務システムはこれを使う。"
-  lesson: java-record-enum
+  def: "長期サポート版の Java。8 / 11 / 17 / 21 / 25 が該当し(17 以降は 2 年ごと)、業務システムはこれを使う。"
+  lesson: java-hello
 - term: "フォールスルー"
   en: "fall-through"
   def: "古い switch 文で break を書かないと次の case まで実行される動き。バグの原因になる。"
-  lesson: java-record-enum
 - term: "java.time"
   en: "java.time"
-  def: "Java 8 で導入された日付時刻 API。LocalDate、Instant などすべて不変でスレッドセーフ。"
+  def: "Java 8 で導入された日付時刻 API。`LocalDate`、`Instant` などすべて不変でスレッドセーフ。"
   lesson: java-datetime
 - term: "LocalDateTime"
   en: "LocalDateTime"
@@ -1273,7 +1261,7 @@
   lesson: java-datetime
 - term: "DateTimeFormatter"
   en: "DateTimeFormatter"
-  def: "日付時刻と文字列を相互変換するクラス。ofPattern(\"yyyy/MM/dd\") で形式を指定する。不変。"
+  def: "日付時刻と文字列を相互変換するクラス。`ofPattern(\"yyyy/MM/dd\")` で形式を指定する。不変。"
   lesson: java-datetime
 - term: "ChronoUnit"
   read: "クロノユニット"
@@ -1292,12 +1280,12 @@
 - term: "オーバーフロー"
   en: "overflow"
   def: "整数が型の上限を超えて、エラーにならず負の値などに折り返すこと。int の上限は約 21 億。"
-  lesson: java-datetime
+  lesson: java-variables
 - term: "ビット演算"
   read: "ビットえんざん"
   en: "bitwise operation"
-  def: "整数を 0/1 の並びとして扱う演算。& | ^ ~ > がある。フラグ管理やバイト操作で使う。"
-  lesson: java-datetime
+  def: "整数を 0/1 の並びとして扱う演算。`&` `|` `^` `~` `<<` `>>` `>>>` がある。フラグ管理やバイト操作で使う。"
+  lesson: java-operators
 - term: "16進表記"
   read: "じゅうろくしんひょうき"
   en: "hexadecimal"
@@ -1307,36 +1295,36 @@
   read: "もじコード"
   en: "charset"
   def: "文字と byte の対応表。UTF-8 と Shift_JIS が業務で混在し、取り違えると文字化けする。"
-  lesson: java-datetime
+  lesson: java-file-io
 - term: "ストリーム"
   en: "stream"
-  def: "データが順番に流れる通り道。java.util.stream の Stream とは別物。"
+  def: "データが順番に流れる通り道。`java.util.stream` の `Stream` とは別物。"
   lesson: java-file-io
 - term: "バイトストリーム"
   en: "byte stream"
-  def: "byte(8ビットの数)を単位に流れる InputStream / OutputStream 系のストリーム。"
+  def: "byte(8ビットの数)を単位に流れる `InputStream` / `OutputStream` 系のストリーム。"
   lesson: java-file-io
 - term: "文字ストリーム"
   en: "character stream"
-  def: "文字(char)を単位に流れる Reader / Writer 系のストリーム。"
+  def: "文字(char)を単位に流れる `Reader` / `Writer` 系のストリーム。"
   lesson: java-file-io
 - term: "デコレータ"
   en: "decorator"
-  def: "既存のオブジェクトを別のオブジェクトで包んで機能を足していく作り方。BufferedReader が InputStreamReader を包む形など。"
+  def: "既存のオブジェクトを別のオブジェクトで包んで機能を足していく作り方。`BufferedReader` が `InputStreamReader` を包む形など。"
   lesson: java-file-io
 - term: "Path"
   read: "パス"
   en: "path"
-  def: "ファイルやディレクトリの場所を表す java.nio.file のオブジェクト。Path.of で作る。"
+  def: "ファイルやディレクトリの場所を表す java.nio.file のオブジェクト。`Path.of` で作る。"
   lesson: java-file-io
 - term: "Files"
   en: "Files"
-  def: "Path を使ってファイルを読み書きするための静的メソッド集(java.nio.file.Files)。"
+  def: "`Path` を使ってファイルを読み書きするための静的メソッド集(`java.nio.file.Files`)。"
   lesson: java-file-io
-- term: "EOF"
+- term: "EOF(終端)"
   read: "イーオーエフ"
   en: "end of file"
-  def: "ファイル(ストリーム)の終わり。byte 版の read() が -1 を返すことで分かる。"
+  def: "ファイル(ストリーム)の終わり。byte 版の `read()` が `-1` を返すことで分かる。"
   lesson: java-file-io
 - term: "クラスパス"
   read: "くらすぱす"
@@ -1350,12 +1338,10 @@
 - term: "直列化"
   read: "ちょくれつか"
   en: "serialization"
-  def: "オブジェクトを byte 列に変換して保存・送信できる形にすること。ObjectOutputStream で行う古い仕組み。"
-  lesson: java-file-io
+  def: "オブジェクトを byte 列に変換して保存・送信できる形にすること。`ObjectOutputStream` で行う古い仕組み。"
 - term: "バッファリング"
   en: "buffering"
-  def: "小さい読み書きをまとめて処理することで速度を上げる仕組み。BufferedReader などが行う。"
-  lesson: java-file-io
+  def: "小さい読み書きをまとめて処理することで速度を上げる仕組み。`BufferedReader` などが行う。"
 - term: "アノテーション"
   en: "annotation"
   def: "クラス・メソッド・フィールドなどに付ける目印(メタデータ)。それ自体は処理をせず、読む側が意味を決める。"
@@ -1391,7 +1377,7 @@
 - term: "Class オブジェクト"
   read: "クラスオブジェクト"
   en: "Class object"
-  def: "型そのものを表すオブジェクト。Foo.class や obj.getClass() で得られ、リフレクションの入口になる。"
+  def: "型そのものを表すオブジェクト。`Foo.class` や `obj.getClass()` で得られ、リフレクションの入口になる。"
   lesson: java-annotations
 - term: "アノテーションプロセッサ"
   en: "annotation processor"
@@ -1423,7 +1409,7 @@
   lesson: spring-logging
 - term: "ログレベル"
   en: "log level"
-  def: "ログの重要度。TRACE < DEBUG < INFO < WARN < ERROR の順に重要になる。設定した基準以上だけ出力される。"
+  def: "ログの重要度。`TRACE < DEBUG < INFO < WARN < ERROR` の順に重要になる。設定した基準以上だけ出力される。"
   lesson: spring-logging
 - term: "プレースホルダ"
   en: "placeholder"
@@ -1437,25 +1423,25 @@
 - term: "JUnit"
   read: "ジェイユニット"
   en: "JUnit"
-  def: "Java で最も使われるテスト用フレームワーク。現行バージョンは JUnit 5。"
-  lesson: spring-logging
+  def: "Java で最も使われるテスト用フレームワーク。2025 年 9 月に JUnit 6 が出たが、この教材(Spring Boot 3.5)は JUnit 5(Jupiter)を使う。書き方はほぼ同じ。"
+  lesson: java-junit
 - term: "アサーション"
   en: "assertion"
   def: "テストの中で「期待通りか」を確認する呼び出し。assertEquals や assertThrows など。"
-  lesson: spring-logging
-- term: "モック"
+  lesson: java-junit
+- term: "モック(偽物)"
   en: "mock"
   def: "本物の代わりに使う、決められた通りにしか動かない偽物のオブジェクト。Mockito で作る。"
-  lesson: spring-logging
+  lesson: spring-mockmvc
 - term: "スタブ"
   en: "stub"
-  def: "モックのうち「呼ばれたら決まった値を返す」設定をしたもの。when(...).thenReturn(...) はスタブを作る操作。"
-  lesson: spring-logging
+  def: "モックのうち「呼ばれたら決まった値を返す」設定をしたもの。`when(...).thenReturn(...)` はスタブを作る操作。"
+  lesson: spring-mockmvc
 - term: "MockMvc"
   read: "モックエムブイシー"
   en: "MockMvc"
   def: "Spring MVC の Controller を、実サーバーを起動せずに HTTP リクエストを模擬してテストするための道具。"
-  lesson: spring-logging
+  lesson: spring-mockmvc
 - term: "スレッド"
   en: "thread"
   def: "プログラムの中の1本の実行の流れ。1つのプロセス内で複数のスレッドが同時に動ける。"
@@ -1487,22 +1473,22 @@
 - term: "ExecutorService"
   read: "エグゼキューターサービス"
   en: "ExecutorService"
-  def: "スレッドを使い回す作業員プール。submit() で処理を投げ、Future で結果を受け取る。"
+  def: "スレッドを使い回す作業員プール。`submit()` で処理を投げ、`Future` で結果を受け取る。"
   lesson: java-concurrency
 - term: "Future"
   read: "フューチャー"
   en: "Future"
-  def: "非同期処理の「あとで返ってくる結果」の引換券。get() で完了を待って取り出す。"
+  def: "非同期処理の「あとで返ってくる結果」の引換券。`get()` で完了を待って取り出す。"
   lesson: java-concurrency
 - term: "CompletableFuture"
   read: "コンプリータブルフューチャー"
   en: "CompletableFuture"
-  def: "非同期処理をthenApply/thenComposeなどでつなげて書ける、より柔軟なFuture。"
+  def: "非同期処理をthenApply/thenComposeなどでつなげて書ける、より柔軟な `Future`。"
   lesson: java-concurrency
 - term: "ThreadLocal"
   read: "スレッドローカル"
   en: "ThreadLocal"
-  def: "スレッドごとに別々の値を持てる仕組み。MDCやSecurityContextの実装に使われる。"
+  def: "スレッドごとに別々の値を持てる仕組み。`MDC` や `SecurityContext` の実装に使われる。"
   lesson: java-concurrency
 - term: "デッドロック"
   en: "deadlock"
@@ -1532,11 +1518,11 @@
   en: "component scan"
   def: "起動時にパッケージ以下を走査して @Component 系のクラスを見つけ、Bean として登録すること。"
   lesson: spring-di
-- term: "コンストラクタ注入"
+- term: "コンストラクタ注入(コンストラクタインジェクション)"
   en: "constructor injection"
   def: "コンストラクタの引数で部品を受け取る注入方式。final にできるので推奨。"
   lesson: spring-di
-- term: "フィールド注入"
+- term: "フィールド注入(フィールドインジェクション)"
   en: "field injection"
   def: "フィールドに @Autowired を付けて直接入れてもらう方式。古いコードで見る。"
   lesson: spring-di
@@ -1579,7 +1565,7 @@
   lesson: spring-boot-startup
 - term: "application.yml"
   def: "設定値を書くファイル。src/main/resources にある。.properties 形式のこともある。"
-  lesson: spring-boot-startup
+  lesson: spring-config
 - term: "プロファイル"
   en: "profile"
   def: "dev / stg / prod のような環境の名札。application-{名前}.yml がその環境でだけ読まれる。"
@@ -1587,15 +1573,14 @@
 - term: "@Value"
   read: "バリュー"
   def: "${キー} で設定値を1個ずつフィールドに入れる。${キー:既定値} で既定値も指定できる。"
-  lesson: spring-boot-startup
+  lesson: spring-config
 - term: "@ConfigurationProperties"
   def: "prefix 以下の設定値をまとめて1つのクラスのフィールドに入れる。フィールド名 = キー名。"
   lesson: spring-boot-startup
 - term: "@PostConstruct"
   read: "ポストコンストラクト"
   def: "注入がすべて終わった直後に Spring が1回だけ呼ぶメソッドの印。初期化処理に使う。"
-  lesson: spring-boot-startup
-- term: "組み込みサーバ"
+- term: "組み込みサーバ(組み込み Tomcat)"
   read: "くみこみサーバ"
   en: "embedded server"
   def: "jar の中に Tomcat が入っていて、java -jar だけで Web サーバが立つ仕組み。"
@@ -1603,10 +1588,10 @@
 - term: "Actuator"
   read: "アクチュエータ"
   def: "/actuator/health などの監視用 URL を自動で用意する starter。ヘルスチェックに使う。"
-  lesson: spring-boot-startup
+  lesson: capstone-release
 - term: "ログレベル"
   en: "log level"
-  def: "TRACE < DEBUG < INFO < WARN < ERROR。設定したレベル以上のログだけが出る。"
+  def: "`TRACE < DEBUG < INFO < WARN < ERROR`。設定したレベル以上のログだけが出る。"
   lesson: spring-boot-startup
 - term: "HTTP メソッド"
   en: "HTTP method"
@@ -1642,7 +1627,7 @@
 - term: "DTO"
   read: "ディーティーオー"
   en: "Data Transfer Object"
-  def: "データを運ぶためだけのクラス。JSON の形に対応する。XxxRequest / XxxResponse。"
+  def: "データを運ぶためだけのクラス。JSON の形に対応する。`XxxRequest` / `XxxResponse`。"
   lesson: spring-controller
 - term: "Jackson"
   read: "ジャクソン"
@@ -1654,7 +1639,7 @@
   lesson: spring-controller
 - term: "@RestControllerAdvice"
   def: "全 Controller の例外を受け取り、共通のエラー応答に変換するクラスの印。中に @ExceptionHandler を書く。"
-  lesson: spring-controller
+  lesson: spring-exception-handling
 - term: "認証"
   read: "にんしょう"
   en: "authentication"
@@ -1672,7 +1657,7 @@
   def: "URL パターンごとに認可条件を指定するメソッド。上から順にマッチしたものが使われる。"
   lesson: spring-security
 - term: "SecurityContextHolder"
-  def: "今のリクエストの認証情報(SecurityContext)を保管している入れ物。"
+  def: "今のリクエストの認証情報(`SecurityContext`)を保管している入れ物。"
   lesson: spring-security
 - term: "Authentication"
   def: "認証済みの情報(誰か・権限一覧)を表すオブジェクト。Controller の引数として受け取れる。"
@@ -1684,18 +1669,17 @@
   def: "ユーザー名からユーザー情報(パスワードハッシュ・権限)を探してくる仕組み。ログイン時に呼ばれる。"
   lesson: spring-security
 - term: "PasswordEncoder"
-  def: "パスワードをハッシュ化・照合するための部品。実務ではほぼ BCryptPasswordEncoder を使う。"
+  def: "パスワードをハッシュ化・照合するための部品。実務ではほぼ `BCryptPasswordEncoder` を使う。"
   lesson: spring-security
 - term: "@PreAuthorize"
   read: "プリオーソライズ"
   def: "メソッド呼び出し前に権限条件を評価するアノテーション。AOP のプロキシ経由でのみ効く。"
   lesson: spring-security
 - term: "OncePerRequestFilter"
-  def: "1リクエストにつき1回だけ実行される Filter の親クラス。自作フィルタでよく使う。"
-  lesson: spring-security
+  def: "1リクエストにつき1回だけ実行される `Filter` の親クラス。自作フィルタでよく使う。"
+  lesson: spring-reading-code
 - term: "AuthenticationEntryPoint / AccessDeniedHandler"
   def: "前者は未認証(401)、後者は権限不足(403)のときに呼ばれる処理を差し替える仕組み。"
-  lesson: spring-security
 - term: "Repository"
   read: "リポジトリ"
   en: "repository"
@@ -1703,7 +1687,7 @@
   lesson: spring-data-jpa
 - term: "JPA"
   read: "ジェーピーエー"
-  en: "Java Persistence API"
+  en: "Jakarta Persistence(旧 Java Persistence API)"
   def: "Java のオブジェクトとテーブルの行を対応付けるための標準仕様。"
   lesson: spring-data-jpa
 - term: "Hibernate"
@@ -1727,13 +1711,13 @@
   lesson: spring-data-jpa
 - term: "JPQL"
   read: "ジェーピーキューエル"
-  en: "Java Persistence Query Language"
+  en: "Jakarta Persistence Query Language"
   def: "Entity のクラス名・フィールド名を使って書くクエリ言語。@Query に書く。"
   lesson: spring-data-jpa
 - term: "RowMapper"
   read: "ロウマッパー"
-  def: "SQL の実行結果(1行)を Java のオブジェクトに変換する処理。JdbcTemplate で使う。"
-  lesson: spring-data-jpa
+  def: "SQL の実行結果(1行)を Java のオブジェクトに変換する処理。`JdbcTemplate` で使う。"
+  lesson: java-nested-classes
 - term: "トランザクション"
   en: "transaction"
   def: "複数の DB 操作を「全部成功か全部取り消しか」でまとめる単位。@Transactional で範囲を指定する。"
@@ -1742,7 +1726,7 @@
   en: "rollback"
   def: "トランザクション内の変更をすべて取り消し、なかったことにすること。"
   lesson: spring-data-jpa
-- term: "N+1問題"
+- term: "N+1 問題"
   read: "エヌプラスイチもんだい"
   en: "N+1 problem"
   def: "一覧を取得した後、各行の関連データを1件ずつ追加で取得してしまい、SQL の回数が増えすぎる問題。"
@@ -1756,16 +1740,13 @@
   read: "デロンボック"
   en: "delombok"
   def: "Lombok が展開した後の実際の Java コードを出力する機能。確認用。"
-  lesson: java-encapsulation
 - term: "@Getter / @Setter"
   def: "フィールドの getter / setter メソッドを生成する。"
   lesson: java-encapsulation
 - term: "@ToString"
-  def: "全フィールドの値を含む toString() メソッドを生成する。"
-  lesson: java-encapsulation
+  def: "全フィールドの値を含む `toString()` メソッドを生成する。"
 - term: "@EqualsAndHashCode"
-  def: "全フィールドを比較する equals() と hashCode() を生成する。"
-  lesson: java-encapsulation
+  def: "全フィールドを比較する `equals()` と `hashCode()` を生成する。"
 - term: "@RequiredArgsConstructor"
   def: "final(または @NonNull)のフィールドだけを引数にとるコンストラクタを生成する。DI でよく使う。"
   lesson: java-encapsulation
@@ -1773,17 +1754,15 @@
   def: "@Getter, @Setter, @ToString, @EqualsAndHashCode, @RequiredArgsConstructor をまとめて付けたもの。"
   lesson: java-encapsulation
 - term: "@Value"
-  def: "@Data の不変版。全フィールドが final になり setter は生成されない。"
-  lesson: java-encapsulation
+  def: "Lombok。@Data の不変版。全フィールドが private final になり setter は生成されない(Spring の @Value とは別物)。"
 - term: "@Builder"
   def: "フィールド名のメソッドで1つずつ値を積み上げて生成する Builder を自動生成する。"
   lesson: java-encapsulation
 - term: "@Slf4j"
-  def: "SLF4J の Logger を持つ log フィールドを生成する。"
+  def: "SLF4J の `Logger` を持つ `log` フィールドを生成する。"
   lesson: java-encapsulation
 - term: "@SneakyThrows"
   def: "検査例外を throws 宣言なしで投げられるようにする。呼び出し側から例外の存在が見えなくなる。"
-  lesson: java-encapsulation
 - term: "レイヤードアーキテクチャ"
   en: "layered architecture"
   def: "Controller / Service / Repository のように役割ごとに層を分けてコードを組み立てる設計の考え方。"
@@ -1810,12 +1789,12 @@
   read: "ていぎへいどう"
   en: "Go to Definition"
   def: "IDE の機能。クリックしたクラス・メソッドの宣言元(実体)にジャンプする。"
-  lesson: spring-reading-code
-- term: "相関ID"
+  lesson: sts-shortcuts
+- term: "相関ID(リクエストID)"
   read: "そうかんアイディー"
   en: "correlation ID / request ID"
   def: "1つのリクエストに紐づけて全ログに残す識別子。複数のログ行を1つの処理としてつなげて追える。"
-  lesson: spring-reading-code
+  lesson: spring-logging
 - term: "見えない処理"
   read: "みえないしょり"
   def: "ソースの見た目からは分からないが実際に動いている処理。Lombok の生成物、DI の実装、AOP、Jackson の変換など。"

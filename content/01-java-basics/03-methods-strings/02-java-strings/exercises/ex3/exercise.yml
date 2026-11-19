@@ -6,14 +6,14 @@ problem: |
 
   | メソッド | 返す値 |
   |---|---|
-  | `String padRight(String s, int width)` | `s` を **左寄せ** して、右側を半角スペースで埋めた幅 `width` の文字列 |
-  | `String padLeft(String s, int width)` | `s` を **右寄せ** して、左側を半角スペースで埋めた幅 `width` の文字列 |
+  | `String padRight(String s, int width)` | `s` を**左寄せ**して、右側を半角スペースで埋めた幅 `width` の文字列 |
+  | `String padLeft(String s, int width)` | `s` を**右寄せ**して、左側を半角スペースで埋めた幅 `width` の文字列 |
   | `String formatLine(String name, int qty, int amount)` | 帳票の1行 |
 
   ### padRight / padLeft のルール
   - `s` が `null` なら `""`(空文字)として扱う。
-  - `padRight` は、`s` が `width` より長ければ **先頭 `width` 文字に切り詰める**(商品名が長すぎて列がずれるのを防ぐ)。
-  - `padLeft` は、`s` が `width` より長くても **切り詰めずにそのまま返す**(数値を切ると金額が変わってしまうため)。
+  - `padRight` は、`s` が `width` より長ければ**先頭 `width` 文字に切り詰める**(商品名が長すぎて列がずれるのを防ぐ)。
+  - `padLeft` は、`s` が `width` より長くても**切り詰めずにそのまま返す**(数値を切ると金額が変わってしまうため)。
 
   | 呼び出し | 結果 |
   |---|---|
@@ -27,7 +27,7 @@ problem: |
 
   1. 商品名を `padRight` で幅 **12**
   2. 数量を `padLeft` で幅 **5**
-  3. 金額を **3桁カンマ区切り** にして `padLeft` で幅 **11**
+  3. 金額を **3桁カンマ区切り**にして `padLeft` で幅 **11**
 
   ```text
   formatLine("Coffee", 3, 3600)

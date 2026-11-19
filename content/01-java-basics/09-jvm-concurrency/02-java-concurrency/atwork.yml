@@ -1,6 +1,6 @@
 # ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
 - title: "スレッドと並行処理の基礎"
-  intro: "業務コードでは、外部装置や外部APIへのアクセスを直列化するコード、タイムアウト付きの Future、CompletableFuture のチェーンがよく登場します。「誰と誰が同時に動き得るか」を意識して読みます。"
+  intro: "業務コードでは、外部装置や外部APIへのアクセスを直列化するコード、タイムアウト付きの `Future`、`CompletableFuture` のチェーンがよく登場します。「誰と誰が同時に動き得るか」を意識して読みます。"
   code: |
     @Service
     @RequiredArgsConstructor
@@ -9,6 +9,7 @@
 
         private final ExecutorService cryptoExecutor = Executors.newSingleThreadExecutor();
         private final CryptoClient cryptoClient;
+        private final NotificationClient notificationClient;
 
         public String issueKey(String userId) {
             Future<String> future = cryptoExecutor.submit(() -> cryptoClient.generateKey(userId));
@@ -32,13 +33,13 @@
         }
     }
   notes:
-    6: "単一スレッドの ExecutorService。暗号装置(仕事では HSM)へのアクセスを常に1つずつに直列化する意図の目印。CryptoKeyService・CryptoClient は仕事では HsmKeyService・HsmClient"
-    9: "実際の装置アクセスは cryptoExecutor の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる"
-    11: "タイムアウト付きの get。5秒で応答が無ければ諦める"
-    21: "通知は失敗しても本処理を止めたくないので、非同期(CompletableFuture)で別スレッドに任せている"
-    22: "exceptionally は「失敗したときだけ」処理をつなぐ。Optional の orElseGet に近い発想"
+    6: "単一スレッドの `ExecutorService`。暗号装置(仕事では HSM)へのアクセスを常に1つずつに直列化する意図の目印。`CryptoKeyService`・`CryptoClient` は仕事では `HsmKeyService`・`HsmClient`"
+    11: "実際の装置アクセスは `cryptoExecutor` の1本のスレッドだけで行われる。複数リクエストが来ても順番待ちになる"
+    13: "タイムアウト付きの `get`。5秒で応答が無ければ諦める"
+    24: "通知は失敗しても本処理を止めたくないので、非同期(`CompletableFuture`)で別スレッドに任せている"
+    25: "`exceptionally` は「失敗したときだけ」処理をつなぐ。Optional の `orElseGet` に近い発想"
   points:
-    - "ExecutorService が newSingleThreadExecutor かどうかで「直列化の意図があるか」を判断する"
-    - "Future.get() / CompletableFuture.join() にタイムアウトの引数があるかを確認する"
-    - "@Service のフィールドのうち、ExecutorService や Map などが final で final ならスレッドセーフか(直列化やConcurrent系か)を確認する"
-    - "非同期(@Async や CompletableFuture)にしている処理は「失敗しても本処理に影響してよいか」で意図を判断する"
+    - "`ExecutorService` が `newSingleThreadExecutor` かどうかで「直列化の意図があるか」を判断する"
+    - "`Future.get()` / `CompletableFuture.join()` にタイムアウトの引数があるかを確認する"
+    - "`@Service` のフィールドのうち `ExecutorService` や `Map` などは、`final` か、中身がスレッドセーフか(直列化しているか・Concurrent 系か)を確認する"
+    - "非同期(`@Async` や `CompletableFuture`)にしている処理は「失敗しても本処理に影響してよいか」で意図を判断する"

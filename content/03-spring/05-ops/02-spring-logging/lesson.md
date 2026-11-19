@@ -3,12 +3,12 @@
 :::
 
 ::: sensei
-で、次に起きたとき「いつ・どのリクエストで・どこで」が分かる? println には時刻もスレッドも残らないし、本番では止められもしない。今日は **ロガー** を使ったログの出し方をやろう。
+で、次に起きたとき「いつ・どのリクエストで・どこで」が分かる? println には時刻もスレッドも残らないし、本番では止められもしない。今日は**ロガー**を使ったログの出し方をやろう。
 :::
 
 前回の「設定ファイルとプロファイル」で覚えた `logging.level` を、今回は中身から理解します。
 
-## なぜ System.out.println ではダメなのか
+## なぜ `System.out.println` ではダメなのか
 
 Spring Boot アプリを起動すると、Console にこんな行が流れます。
 
@@ -17,7 +17,7 @@ Spring Boot アプリを起動すると、Console にこんな行が流れます
   [nio-8080-exec-1] com.sayana.dojo.exec.Grader : 採点開始
 ```
 
-(実際は1行)。**日時・レベル・プロセスID・アプリ名・スレッド名・ロガー名・メッセージ** が自動で付きます。これがロガーを使う理由の半分です。
+(実際は1行)。**日時・レベル・プロセスID・アプリ名・スレッド名・ロガー名・メッセージ**が自動で付きます。これがロガーを使う理由の半分です。
 
 | | println | ロガー |
 |---|---|---|
@@ -33,7 +33,7 @@ Spring Boot アプリを起動すると、Console にこんな行が流れます
 Java のログには「API」と「実装」の2層があります。
 
 - **SLF4J**(Simple Logging Facade for Java):コードが呼ぶ **API(窓口)**。`Logger` インターフェースなど
-- **Logback**:実際に整形して書き出す **実装**。Spring Boot の既定(`spring-boot-starter-logging` に入っている)
+- **Logback**:実際に整形して書き出す**実装**。Spring Boot の既定(`spring-boot-starter-logging` に入っている)
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,7 @@ public class GradeService {
 }
 ```
 
-`getLogger(GradeService.class)` で作ったロガーの **名前は完全修飾クラス名**(`com.example.GradeService`)になります。この名前が、あとで `logging.level` で絞り込むときの鍵です。Java道場の `AnthropicLlmClient` も、この形で「AI 機能が有効です」と起動時に出しています。
+`getLogger(GradeService.class)` で作ったロガーの**名前は完全修飾クラス名**(`com.example.GradeService`)になります。この名前が、あとで `logging.level` で絞り込むときの鍵です。Java道場の `AnthropicLlmClient` も、この形で「AI 機能が有効です」と起動時に出しています。
 
 ::: sensei
 `static final` で1つだけ持つのが定番。インスタンスごとに作る意味はないし、`private` にして他のクラスのロガーを借りないこと。借りると、ログの出どころが嘘になる。
@@ -71,7 +71,7 @@ public class GradeService {
 
 ## ログレベルの使い分け
 
-レベルは5段階。設定したレベル **以上** だけが出力されます(Spring Boot の既定は INFO)。
+レベルは5段階。設定したレベル**以上**だけが出力されます(Spring Boot の既定は INFO)。
 
 | レベル | 使いどころ | 例 |
 |---|---|---|
@@ -105,7 +105,7 @@ if (log.isDebugEnabled()) {
 }
 ```
 
-**例外は最後の引数に** 渡します。これでスタックトレースまで出ます。
+**例外は最後の引数に**渡します。これでスタックトレースまで出ます。
 
 ```java
 log.error("採点に失敗 id={}", id, e);
@@ -130,7 +130,7 @@ ERROR ... 採点に失敗: java.lang.IllegalStateException: 応答なし
 
 ## 設定で絞る・ファイルに出す
 
-`logging.level.<ロガー名>` でレベルを変えます。名前はパッケージの **前方一致**(ドット区切り)で、一番長く一致した設定が勝ちます。
+`logging.level.<ロガー名>` でレベルを変えます。名前はパッケージの**前方一致**(ドット区切り)で、一番長く一致した設定が勝ちます。
 
 ```yaml
 logging:
@@ -159,7 +159,7 @@ log.info("ログイン: {}", form);
 //         password=himitsu123]   ← 丸見え!
 ```
 
-record の `toString()` は **全フィールドを出す** ので、オブジェクトを丸ごと渡すと漏れます。出す項目を選ぶか、マスクします。
+record の `toString()` は**全フィールドを出す**ので、オブジェクトを丸ごと渡すと漏れます。出す項目を選ぶか、マスクします。
 
 ```java
 // t***@example.com のように出す
@@ -208,7 +208,7 @@ logging:
 - `System.out.println` ではなく SLF4J の `Logger` を使う。日時・スレッド・レベルが付き、設定で出し分けられる
 - Spring Boot の既定は SLF4J(API)+ Logback(実装)。ロガーは `LoggerFactory.getLogger(自クラス.class)` を `private static final` で
 - レベルは ERROR > WARN > INFO > DEBUG > TRACE。設定したレベル以上が出る
-- メッセージは `{}` で組み立てる(連結しない)。**例外は最後の引数** でスタックトレースを残す
+- メッセージは `{}` で組み立てる(連結しない)。**例外は最後の引数**でスタックトレースを残す
 - `logging.level.<パッケージ>` は前方一致・一番長い一致が勝つ。`logging.file.name` でファイル出力
 - パスワード・個人情報は出さない。record の丸ごと出力に注意。MDC でリクエストIDを付ける
 :::

@@ -2,16 +2,16 @@ id: spring-forms
 title: フォームとバリデーション
 status: ready
 minutes: 15
-summary: フォームクラスと @ModelAttribute で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。
+summary: フォームクラスと `@ModelAttribute` で入力を受け取り、Bean Validation で検証、エラーなら同じ画面・成功なら PRG でリダイレクト。
 goals:
-  - フォームクラスと @ModelAttribute で入力を受け取り、th:object / th:field で画面と結びつけられる
-  - "Bean Validation の注釈(@NotBlank・@Size・@Email・@Min・@Max・@Pattern)を、null の扱いの違いを踏まえて使い分けられる"
-  - "@Validated と直後の BindingResult で検証し、エラー時は同じ画面を返して th:errors で表示できる"
-  - PRG パターンで二重送信を防ぎ、RedirectAttributes のフラッシュ属性でメッセージを渡せる
-  - エンティティを直接フォームにしない理由と、@AssertTrue による相関チェックを説明できる
+  - フォームクラスと `@ModelAttribute` で入力を受け取り、`th:object` / `th:field` で画面と結びつけられる
+  - "Bean Validation の注釈(`@NotBlank`・`@Size`・`@Email`・`@Min`・`@Max`・`@Pattern`)を、`null` の扱いの違いを踏まえて使い分けられる"
+  - "`@Validated` と直後の `BindingResult` で検証し、エラー時は同じ画面を返して `th:errors` で表示できる"
+  - PRG パターンで二重送信を防ぎ、`RedirectAttributes` のフラッシュ属性でメッセージを渡せる
+  - エンティティを直接フォームにしない理由と、`@AssertTrue` による相関チェックを説明できる
 samples:
   - title: Validator で注釈のチェックを確かめる
-    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。
+    description: Spring の画面を通さずに、Bean Validation だけを動かします。どの注釈が null を見逃すかに注目。3 人目の `age`(null)には、どのメッセージが出る?
     libraries: [spring]
     code: |
       import jakarta.validation.*;
@@ -55,7 +55,7 @@ samples:
       check(new MemberForm("   ", "taro", 17));
       check(new MemberForm("あ".repeat(21), "", null));
   - title: "@ModelAttribute の裏側:バインド → 検証 → BindingResult"
-    description: Controller の引数で Spring がやっていることを DataBinder で再現します。数値に変換できない値(typeMismatch)、@AssertTrue の相関チェック、rejectValue で足したエラーが BindingResult に並びます。
+    description: Controller の引数で Spring がやっていることを `DataBinder` で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。`BindingResult` には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値はどうなる?
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -125,7 +125,7 @@ samples:
       }
       System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
   - title: MockMvc で PRG の流れを見る
-    description: フォームの POST を MockMvc で送り、エラー時は同じビュー名、成功時は 302 リダイレクト + フラッシュ属性になることを確かめます(数秒かかります)。
+    description: フォームの POST を `MockMvc` で送ります(実行に数秒かかります)。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -210,11 +210,16 @@ quiz:
           String code;   // ← null のまま
       }
       ```
-    choices: ["0件", "1件(@Size の違反)", "2件(@Size と @Pattern の違反)", "NullPointerException が発生する"]
+    choices: ["0件(`@Size` も `@Pattern` も通る)", "1件(`@Size` の違反)", "2件(`@Size` と `@Pattern` の違反)", "`NullPointerException` が発生する"]
     answer: 0
+    why:
+      - ""
+      - "`null` を長さの違反と読んだ答え。`@Size` は `null` を OK とみなす"
+      - "`null` を両方の違反と読んだ答え。`@Size` も `@Pattern` も `null` は素通しする"
+      - "`null` の長さや形を調べて落ちると読んだ答え。各チェックは最初に `null` を判定して `true` を返す"
     explanation: |
-      `@Size` や `@Pattern`、`@Email`、`@Min` などは **null を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
-      したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。NPE にならないのも、各チェックが最初に null を判定して true を返すからです。
+      `@Size` や `@Pattern`、`@Email`、`@Min` などは **`null` を「OK」とみなす** 決まりです。「値が入っているなら、この形であること」だけをチェックし、「入っているかどうか」は `@NotNull` / `@NotEmpty` / `@NotBlank` の担当、という役割分担になっています。
+      したがってエラーは0件。必須にしたいなら `@NotBlank` を足します。
   - question: |
       `name` を空欄にして POST したとき、どうなる?(`MemberForm` の `name` には `@NotBlank` が付いている)
       ```java
@@ -229,14 +234,24 @@ quiz:
           return "redirect:/members/done";
       }
       ```
-    choices: ["hasErrors() が true になり members/form が表示される", "メソッドは呼ばれず 400 Bad Request になる", "コンパイルエラーになる", "検証されずに /members/done へリダイレクトされる"]
+    choices: ["`hasErrors()` が `true` になり `members/form` が表示される", "メソッドは呼ばれず 400 Bad Request になる", "コンパイルエラーになる", "検証されずに `/members/done` へリダイレクトされる"]
     answer: 1
+    why:
+      - "`BindingResult` がどこにあっても受け取れると読んだ答え。検証する引数の直後にないので、例外で 400 になる"
+      - ""
+      - "引数の並びの誤りをコンパイラが見つけると読んだ答え。並びの意味は Spring の決まりで、コンパイルは通る"
+      - "検証されないと読んだ答え。`@Validated` があるので検証され、エラーは例外になる"
     explanation: |
       Spring は **検証対象の引数の「直後」** が `BindingResult`(または `Errors`)かどうかでエラーの受け取り先を判断します。ここでは直後が `Model` なので「受け取り先なし」とみなされ、検証エラーは `MethodArgumentNotValidException` として投げられ、メソッドは呼ばれずに 400 Bad Request になります。
       コンパイラは引数の並びの意味を知らないのでコンパイルは通ります。`@Validated` は付いているので検証はされます。直すには `BindingResult result` を `form` のすぐ後ろへ移します。
   - question: 登録処理が成功した後、テンプレートを直接返さずに `redirect:` する(PRG パターン)一番の理由は?
-    choices: ["テンプレートの描画が速くなるから", "Bean Validation はリダイレクト後にしか動かないから", "フラッシュ属性はリダイレクトしないと作れないから", "F5(再読み込み)で同じ POST が再送信され、二重登録になるのを防ぐため"]
+    choices: ["テンプレートの描画が速くなるから", "Bean Validation はリダイレクト後にしか動かないから", "フラッシュ属性はリダイレクトしないと作れないから", "再読み込み(F5)で POST が再送され、二重登録になるのを防ぐため"]
     answer: 3
+    why:
+      - "描画の速さのためと読んだ答え。狙いは F5 で POST が再送されるのを防ぐこと"
+      - "検証がリダイレクト後に動くと読んだ答え。検証は POST を受けたときに動き、PRG とは関係ない"
+      - "理由と結果を逆に読んだ答え。フラッシュ属性は PRG を採った結果として使うもの"
+      - ""
     explanation: |
       POST の応答で画面を直接返すと、ブラウザの「最後のリクエスト」は POST のままなので、再読み込みすると同じ内容がもう一度送信されます(二重送信)。リダイレクトを挟むと最後のリクエストが GET になり、何度再読み込みしても完了画面を取り直すだけになります。
       描画速度や検証のタイミングとは無関係です。フラッシュ属性は「リダイレクトの間だけ値を運ぶ」ための仕組みで、PRG を採用した結果として必要になるもの。理由と結果が逆です。
@@ -249,11 +264,16 @@ quiz:
           // getter / setter 省略
       }
       ```
-    choices: ["@NotBlank は付けられない場所なのでコンパイルエラーになる", "数値の 0 だけがエラーになる", "コンパイルは通るが、検証したときに UnexpectedTypeException が発生する", "null のときだけエラーになり、問題なく動く"]
+    choices: ["`@NotBlank` は付けられない場所なのでコンパイルエラーになる", "数値の 0 だけがエラーになる", "コンパイルは通るが、検証時に `UnexpectedTypeException` になる", "`null` のときだけエラーになり、問題なく動く"]
     answer: 2
+    why:
+      - "付けられる型をコンパイラが調べると読んだ答え。どの型にも付けられ、検証のときに失敗する"
+      - "数値の空を 0 と読んだ答え。`Integer` を `@NotBlank` で調べる実装が無く、検証時に例外になる"
+      - ""
+      - "`@NotBlank` を `@NotNull` と同じと読んだ答え。文字列専用なので、`Integer` では検証時に例外になる"
     explanation: |
-      `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「Integer を @NotBlank でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
-      `@NotBlank` は文字列(CharSequence)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
+      `@NotBlank` の定義自体はどんな型のフィールドにも付けられるので、**コンパイルは通ります**。しかし Hibernate Validator には「`Integer` を `@NotBlank` でチェックする実装」がないため、実際に検証した瞬間に `HV000030: No validator could be found for constraint ... validating type 'java.lang.Integer'` という `UnexpectedTypeException` になります。
+      `@NotBlank` は文字列(`CharSequence`)専用。数値の必須チェックは `@NotNull`、範囲は `@Min` / `@Max` を使います。
   - question: |
       次の処理の後、ブラウザが移動する URL は?
       ```java
@@ -261,18 +281,23 @@ quiz:
       ra.addFlashAttribute("message", "登録しました");
       return "redirect:/members/done";
       ```
-    choices: ["/members/done", "/members/done?id=5", "/members/done?id=5&message=登録しました", "/members/done?message=登録しました"]
+    choices: ["`/members/done`", "`/members/done?id=5`", "`/members/done?id=5&message=登録しました`", "`/members/done?message=登録しました`"]
     answer: 1
+    why:
+      - "`addAttribute` も URL に出ないと読んだ答え。`addAttribute` の値はクエリになる"
+      - ""
+      - "フラッシュ属性も URL に付くと読んだ答え。`addFlashAttribute` の値はセッションで運ばれ、URL に出ない"
+      - "2つの役目を逆に読んだ答え。クエリになるのは `addAttribute` の `id` のほう"
     explanation: |
-      `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の **クエリパラメータ** になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
+      `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の**クエリパラメータ**になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
       そのため移動先は `/members/done?id=5`。ID のように URL に残ってよい値は `addAttribute`、「登録しました」のような一度きりのメッセージや URL に出したくない値は `addFlashAttribute` と使い分けます。
 columns:
   - type: mistake
     title: エンティティを直接バインドして、管理者になれてしまった話
     body: |
-      2012年3月、ある開発者が GitHub の Rails リポジトリに、権限の無い自分のアカウントからコミットしてみせる事件がありました。原因は **マスアサインメント**。リクエストパラメータを、モデル(エンティティ)の全項目にそのまま流し込む仕組みを悪用し、画面には無い項目(公開鍵の持ち主の ID)を勝手に送り込んだのです。
+      2012年3月、ある開発者が GitHub の Rails リポジトリに、権限の無い自分のアカウントからコミットしてみせる事件がありました。原因は**マスアサインメント**。リクエストパラメータを、モデル(エンティティ)の全項目にそのまま流し込む仕組みを悪用し、画面には無い項目(公開鍵の持ち主の ID)を勝手に送り込んだのです。
 
-      Spring でも同じことが起きます。`@ModelAttribute User user` のように **エンティティを直接受け取る** と、`User` に `role` や `point` があれば、ブラウザの開発者ツールで `role=ADMIN` を足して送るだけでバインドされます。画面に入力欄が無いことは、何の防御にもなりません。
+      Spring でも同じことが起きます。`@ModelAttribute User user` のように**エンティティを直接受け取る**と、`User` に `role` や `point` があれば、ブラウザの開発者ツールで `role=ADMIN` を足して送るだけでバインドされます。画面に入力欄が無いことは、何の防御にもなりません。
 
       対策は「**画面に出す項目だけを持つフォームクラスを作り、Service で必要な項目だけをエンティティへ詰め替える**」こと。`@InitBinder` で `setAllowedFields` を指定する方法もありますが、項目を足すたびに更新が必要で漏れやすいので、現場ではフォームクラスを分けるのが基本です。
   - type: genba
@@ -284,13 +309,13 @@ columns:
       2. **ボタン連打**:回線が遅く、反応が無いので「注文確定」を2回クリック
       3. **戻るボタン**:完了画面から戻って、もう一度「確定」
 
-      1 は PRG パターンで防げます。しかし 2 と 3 は PRG では防げません。現場では、JavaScript で送信後にボタンを無効化する(見た目の対策)に加え、**フォーム表示時にワンタイムトークンを発行し、POST 時に「未使用のトークンか」をサーバ側で確かめる** のが定番です。決済のように絶対に二重にしてはいけない処理では、DB の一意制約で最後の砦を作ります。
+      1 は PRG パターンで防げます。しかし 2 と 3 は PRG では防げません。現場では、JavaScript で送信後にボタンを無効化する(見た目の対策)に加え、**フォーム表示時にワンタイムトークンを発行し、POST 時に「未使用のトークンか」をサーバ側で確かめる**のが定番です。決済のように絶対に二重にしてはいけない処理では、DB の一意制約で最後の砦を作ります。
 
       「PRG にしたから二重送信対策は完了」と思い込まないこと。PRG はあくまで F5 対策です。
   - type: trivia
     title: エラーメッセージはどこから来る? 4つのエラーコード
     body: |
-      検証エラーが BindingResult に入るとき、Spring は1つのエラーに **4つのコード** を付けます。`MemberForm` の `name` が `@NotBlank` に違反したなら、次の順です。
+      検証エラーが BindingResult に入るとき、Spring は1つのエラーに **4つのコード**を付けます。`MemberForm` の `name` が `@NotBlank` に違反したなら、次の順です。
 
       ```text
       NotBlank.memberForm.name
@@ -299,7 +324,7 @@ columns:
       NotBlank
       ```
 
-      `th:errors` は、MessageSource(Spring Boot なら `messages.properties`)を **上から順に** 探し、最初に見つかったメッセージを表示します。どれも無ければ注釈の `message` か既定メッセージです。
+      `th:errors` は、MessageSource(Spring Boot なら `messages.properties`)を**上から順に**探し、最初に見つかったメッセージを表示します。どれも無ければ注釈の `message` か既定メッセージです。
 
       ```properties
       NotBlank=必須項目です
@@ -309,8 +334,9 @@ columns:
       全画面の必須エラーを揃えつつ、特定の項目だけ文言を変えられます。数値変換に失敗したときの英語の長いメッセージも、`typeMismatch` のコードで差し替えられます。
 sts:
   intro: |
-    STS で会員登録フォームを作り、**わざと空欄で送ってエラーが出る** こと、成功したら PRG でリダイレクトされることを確かめます。
+    STS で会員登録フォームを作り、**わざと空欄で送ってエラーが出る**こと、成功したら PRG でリダイレクトされることを確かめます。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
+    STS のウィザード(裏は start.spring.io)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
   steps:
     - title: Validation 入りのプロジェクトを用意する
       detail: |
@@ -319,7 +345,7 @@ sts:
         依存関係の画面で **Spring Web**、**Thymeleaf**、**Validation**(I/O の中)にチェックを入れて **Finish**(完了)。
 
         前のレッスンのプロジェクトを使い回す場合は、プロジェクトを右クリックして **Spring > Add Starters**(Spring > スターターの追加)から
-        **Validation** を足します。`pom.xml` に `spring-boot-starter-validation` が入れば OK。これが無いと注釈を付けても **何もチェックされません**。
+        **Validation** を足します。`pom.xml` に `spring-boot-starter-validation` が入れば OK。これが無いと注釈を付けても**何もチェックされません**。
     - title: フォームクラスを作る
       detail: |
         `src/main/java` の `com.example.member` を右クリック > **New > Package**(新規 > パッケージ)で `com.example.member.web` を作り、
@@ -406,11 +432,11 @@ sts:
         **Console**(コンソール)に `Tomcat started on port 8080` と出たら、ブラウザで `http://localhost:8080/members/new` を開きます。
 
         **何も入力せずに「登録」** を押してください。同じ画面のまま、各項目の横に赤いエラーメッセージが出れば成功です。
-        氏名は自分で書いた「氏名を入力してください」、メールなどは既定のメッセージ(日本語の Windows なら「空白は許可されていません」など)になります。
+        氏名は自分で書いた「氏名を入力してください」、メールなどは既定のメッセージ(ブラウザの言語が日本語なら「空白は許可されていません」など)になります。
         アドレスバーが `/members` に変わっていること(POST の応答で画面を返している)も確認しましょう。
     - title: 入力値が残ること・typeMismatch を確かめる
       detail: |
-        氏名に `山田太郎`、年齢に `abc` を入れて送ります。氏名は **入力したまま残り**、年齢には
+        氏名に `山田太郎`、年齢に `abc` を入れて送ります。氏名は**入力したまま残り**、年齢には
         `Failed to convert property value of type 'java.lang.String' to required type 'java.lang.Integer'...` という英語の長いメッセージが出ます。
         数値に変換できない値は例外ではなく `typeMismatch` エラーとして BindingResult に入るためです。
         (余裕があれば `src/main/resources/messages.properties` に `typeMismatch.memberForm.age=年齢は数字で入力してください` と書き、アプリを再起動して文言が変わるのを確かめましょう)

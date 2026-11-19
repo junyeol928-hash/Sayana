@@ -1,0 +1,50 @@
+- after: 自動設定:starter を入れると Bean が用意される理由
+  question: |
+    クラスパスに Jackson の jar が無い(`ObjectMapper` クラスが無い)アプリ。Spring Boot の `JacksonAutoConfiguration`(クラスに `@ConditionalOnClass(ObjectMapper.class)`、Bean を作るメソッドに `@ConditionalOnMissingBean`)はどうなる?
+  choices:
+    - "設定ごと使われず、`ObjectMapper` の Bean はできない"
+    - "`ObjectMapper` の Bean がまだ無いので、既定の `jacksonObjectMapper` が作られる"
+    - "`ObjectMapper` クラスが無いので、起動時に `ClassNotFoundException` で止まる"
+  answer: 0
+  why:
+    - ""
+    - "メソッドの `@ConditionalOnMissingBean` だけを見た答え"
+    - "無いクラスを読み込んで落ちると考えた答え"
+  explanation: |
+    クラスに付いた `@ConditionalOnClass(ObjectMapper.class)` が成り立たないので、この自動設定は丸ごと使われない。中の `@ConditionalOnMissingBean` が見られるのは、設定が使われたあと。
+- after: 起動ログの読み方
+  question: |
+    起動時に、長いスタックトレースの最後がこうなっていた。根本の原因は?
+    ```text
+    BeanCreationException: Error creating bean with name
+      'shopService': Injection of autowired dependencies failed
+      …(数十行)
+    Caused by: PlaceholderResolutionException: Could not resolve
+      placeholder 'shop.tax-rate' in value "${shop.tax-rate}"
+    ```
+  choices:
+    - "`application.properties` に `shop.tax-rate` のキーが無い"
+    - "`shopService` に注入する型の Bean が 2 つある"
+    - "ポート 8080 を別のアプリが使っている"
+  answer: 0
+  why:
+    - ""
+    - "上の行の Bean の話から推した答え。同じ型が 2 つなら `NoUniqueBeanDefinitionException` と出る"
+    - "起動失敗の定番から推した答え。ポートなら `Port 8080 was already in use` と出る"
+  explanation: |
+    スタックトレースは下から読み、いちばん下の `Caused by:` が根本の原因。上の `BeanCreationException` は「Bean を作れなかった」という結果で、作れなかった理由が設定キー `shop.tax-rate` の不足。
+- after: Spring Boot のバージョンと javax → jakarta
+  question: |
+    Spring Boot 3.5 のプロジェクトに、2 系の記事のコードを写した。`jakarta` に書き換えが要るのは?
+    ```java
+    import javax.servlet.http.HttpServletRequest;
+    import javax.crypto.Cipher;
+    ```
+  choices: ["`javax.servlet` の行だけ", "両方", "`javax.crypto` の行だけ"]
+  answer: 0
+  why:
+    - ""
+    - "`javax` を全部 `jakarta` に変えると読んだ答え"
+    - "変わった側と変わらない側を逆に覚えた答え"
+  explanation: |
+    3.0 から `jakarta.*` に変わったのは、Java EE(サーバー向けの仕様)から来たパッケージ。`javax.servlet` は `jakarta.servlet` に書き換え、JDK 自体に入っている `javax.crypto` はそのまま使う。
