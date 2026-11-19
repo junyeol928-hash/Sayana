@@ -61,6 +61,48 @@ class JShellRunnerTest {
     }
 
     @Test
+    void 実行時例外は編集欄の行番号で示しJShellの中の名前を出さない() {
+        // JShell は文ごとに別のスニペットにするので、スタックトレースの行番号はスニペットの頭からの数になる
+        // (どこで落ちても「1行目付近」と出ていた。29 回目の審査)
+        RunResult r = runner.run("""
+                // 1 行目はコメント
+                String input = null;
+
+                void check() {
+                    System.out.println("長さ: " + input.length());
+                }
+                check();
+                """);
+        assertThat(r.status()).isEqualTo(RunResult.Status.EXCEPTION);
+        assertThat(r.exception()).as(r.exception())
+                .startsWith("例外が発生しました: java.lang.NullPointerException:")
+                .contains("because \"input\" is null")
+                .contains("at check(5行目)")
+                .contains("at (7行目)")
+                .doesNotContain("REPL").doesNotContain("$JShell").doesNotContain("付近");
+    }
+
+    @Test
+    void 自分で作った例外のクラス名と自動で呼んだmainの中の行も編集欄に合わせる() {
+        RunResult r = runner.run("""
+                class Boom extends RuntimeException {
+                    Boom(String m) { super(m); }
+                }
+                public class Main {
+                    public static void main(String[] args) {
+                        System.out.println("はじめ");
+                        throw new Boom("ばくはつ");
+                    }
+                }
+                """);
+        assertThat(r.status()).isEqualTo(RunResult.Status.EXCEPTION);
+        assertThat(r.output()).contains("はじめ");
+        // 編集欄に無い「Main.main(new String[0]);」の呼び出しの行は出さない
+        assertThat(r.exception()).as(r.exception())
+                .isEqualTo("例外が発生しました: Boom: ばくはつ\n    at Main.main(7行目)");
+    }
+
+    @Test
     void 無限ループはタイムアウトして本体は固まらない() {
         long start = System.nanoTime();
         RunResult r = runner.run("while (true) { }", Duration.ofSeconds(2));
