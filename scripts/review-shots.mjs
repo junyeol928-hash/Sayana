@@ -305,10 +305,11 @@ await js(`window.scrollTo(0, 0);`);
 await shot("pc-lesson-top");
 await scrollTo("#atwork .notes-toggle", 190);
 await shot("pc-lesson-atwork");
-// 本文の軸(28 回目): 1280px 以上・AI の欄が無い 1 列では、冒頭の藍の軸が本文の終わりまで続き、段ごとの縦の運針が縫い進む。
-// 読み進めた途中(読むの 45%)を 1440・1280px の明るい・暗い表示で撮る
+// 本文の軸(28 回目): 冒頭の藍の軸が本文の終わりまで続き、段ごとの縦の運針が縫い進む。1360px 以上・AI の欄が無い 1 列は
+// 段の名前つきの軸、1024〜1359px と AI の欄があるときは細い軸(30 回目のあと)。読み進めた途中(読むの 45%)を撮る
 const PC1280 = { w: 1280, h: 800, dpr: 1, mobile: false };
-for (const [name, size] of [["pc-rail-1440", DESK], ["pc-rail-1440-dark", { ...DESK, dark: true }], ["pc-rail-1280", PC1280], ["pc-rail-1280-dark", { ...PC1280, dark: true }]]) {
+const PC1024 = { w: 1024, h: 768, dpr: 1, mobile: false };
+for (const [name, size] of [["pc-rail-1440", DESK], ["pc-rail-1440-dark", { ...DESK, dark: true }], ["pc-rail-1280", PC1280], ["pc-rail-1280-dark", { ...PC1280, dark: true }], ["pc-rail-1024", PC1024]]) {
   await view(size);
   await open(pcArg + "lessons/spring-di");
   await js(`const s = document.getElementById("read"); window.scrollTo(0, s.offsetTop + s.offsetHeight * 0.45); await new Promise((r) => setTimeout(r, 600));`);
@@ -396,25 +397,29 @@ await shot("pc-sample-exception");
 await view(DESK);
 // 全レッスンを 1280px で開き、軸が出ない・段の数が帯と違う・段の名前が画面の左へ出る・横にはみ出す数(目標はどれも 0)と、
 // 横に送られる編集欄の数(28 回目: 736px の幅で 149 本のうち 96 本。コードだけ右へ張り出して、目標は 30 本以下)
-// サンプルと演習の編集欄を分けて [サンプルの横送り, サンプル, 演習の横送り, 演習, 右で切れる TODO の行, TODO の行] を返す
+// サンプルと演習の編集欄を分けて [サンプルの横送り, サンプル, 演習の横送り, 演習, 右で切れる TODO の行, TODO の行,
+// 右で切れる雛形の行, 雛形の行] を返す(30 回目: 雛形のメソッドの宣言が 1280px で 21 本、右で切れた。目標 0)
 // (29 回目: 演習の TODO の指示が 1440px で 28 行、1280px で 54 行、右で切れた。コメントを 72 列までに折って目標 0。
 // CodeMirror は画面の近くの行しか描かないので、編集欄ごとに画面の中ほどへ送ってから数える)
 const cmCount = `const ov = (s) => s.scrollWidth > s.clientWidth + 1; const sm = [...document.querySelectorAll(".sample .cm-scroller")], ex = [...document.querySelectorAll(".exercise .cm-scroller")];
-  let cut = 0, todo = 0;
+  let cut = 0, todo = 0, cutAll = 0, all = 0;
   for (const s of ex) {
     s.scrollIntoView({ block: "center" }); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const right = s.getBoundingClientRect().right;
     for (const l of s.querySelectorAll(".cm-line")) {
+      const r = document.createRange(); r.selectNodeContents(l); const over = r.getBoundingClientRect().right > right + 1;
+      all++; if (over) cutAll++;
       if (!l.textContent.includes("TODO")) continue;
-      todo++; const r = document.createRange(); r.selectNodeContents(l); if (r.getBoundingClientRect().right > right + 1) cut++;
+      todo++; if (over) cut++;
     }
   }
-  return [sm.filter(ov).length, sm.length, ex.filter(ov).length, ex.length, cut, todo];`;
+  return [sm.filter(ov).length, sm.length, ex.filter(ov).length, ex.length, cut, todo, cutAll, all];`;
 const addCount = (acc, c) => c.forEach((n, i) => { acc[i] += n; });
 await view(PC1280);
 const railBad = [];
-const cm1280 = [0, 0, 0, 0, 0, 0];
+const cm1280 = [0, 0, 0, 0, 0, 0, 0, 0];
 const summaryOrphan = [];
+const summaryParticle = [];
 for (const id of ids) {
   await send("Page.navigate", { url: pcArg + "lessons/" + id });
   await sleep(1200);
@@ -429,10 +434,22 @@ for (const id of ids) {
     // コードのチップの矩形は上端が数 px ずれるので、上端の差が 8px 以内なら同じ行にまとめる
     const rows = []; for (const q of [...r.getClientRects()].sort((a, b) => a.top - b.top)) { const row = rows.find((w) => Math.abs(w.top - q.top) < 8); if (row) row.w += q.width; else rows.push({ top: q.top, w: q.width }); }
     return rows.length > 1 && rows[rows.length - 1].w <= 40;`)) summaryOrphan.push(id);
+  // 冒頭の要約で、英字の名前・チップ・閉じ括弧の直後の助詞が行頭に来るか(30 回目: 「素の Java / で体験してから」が 7 / 55。目標 0)
+  if (await js(`const s = document.querySelector(".lesson-hero .summary"); if (!s) return false; const w = document.createTreeWalker(s, NodeFilter.SHOW_TEXT);
+    let lastTop = null, last = "", lastCode = false;
+    for (let n = w.nextNode(); n; n = w.nextNode()) for (let i = 0; i < n.data.length; i++) {
+      const ch = n.data[i]; if (/[\\s\\u00a0\\u2060]/.test(ch)) continue;
+      const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1); const q = r.getClientRects()[0]; if (!q) continue;
+      const code = !!n.parentElement.closest("code");
+      if (lastTop != null && q.top > lastTop + 8 && /[ぁ-ゖ]/.test(ch) && !code && (lastCode || /[A-Za-z0-9_.)\\]」』）]/.test(last))) return true;
+      lastTop = q.top; last = ch; lastCode = code;
+    }
+    return false;`)) summaryParticle.push(id);
 }
 console.log("1280px で冒頭の要約の最後の行が 2 字以下:", summaryOrphan.length, "/", ids.length, summaryOrphan.join(" "));
+console.log("1280px で冒頭の要約の行頭が英字・チップの直後の助詞:", summaryParticle.length, "/", ids.length, summaryParticle.join(" "));
 console.log("1280px の本文の軸の不具合:", railBad.length, "/", ids.length, railBad.join(" "));
-console.log("1280px で横に送られる編集欄: サンプル", cm1280[0], "/", cm1280[1], "・演習", cm1280[2], "/", cm1280[3], "・右で切れる TODO の行", cm1280[4], "/", cm1280[5]);
+console.log("1280px で横に送られる編集欄: サンプル", cm1280[0], "/", cm1280[1], "・演習", cm1280[2], "/", cm1280[3], "・右で切れる TODO の行", cm1280[4], "/", cm1280[5], "・右で切れる雛形の行", cm1280[6], "/", cm1280[7]);
 // 1280px の演習の雛形(29 回目: java-exceptions の 11・13・17・18 行目の TODO が右で切れた)
 await open(pcArg + "lessons/java-exceptions");
 await scrollTo("#write .exercise .cm-editor", 120);
@@ -441,7 +458,7 @@ await shot("pc1280-exercise-todo");
 // 伸び、55 本のうち 10 本で問いが画面の外へ流された。目標 0)と、横に送られる編集欄の数
 await view(DESK);
 const driftBad = [], hashBad = [];
-const cm1440 = [0, 0, 0, 0, 0, 0];
+const cm1440 = [0, 0, 0, 0, 0, 0, 0, 0];
 for (const id of ids) {
   await send("Page.navigate", { url: pcArg + "lessons/" + id + "?from=review#quiz-q1" });
   await sleep(3000);
@@ -456,7 +473,7 @@ for (const id of ids) {
 }
 console.log("1440px の読み直すで問いが画面の上半分にない:", driftBad.length, "/", ids.length, driftBad.join(" "));
 console.log("1440px の #write で演習の見出しが 230±12px にない:", hashBad.length, hashBad.join(" "));
-console.log("1440px で横に送られる編集欄: サンプル", cm1440[0], "/", cm1440[1], "・演習", cm1440[2], "/", cm1440[3], "・右で切れる TODO の行", cm1440[4], "/", cm1440[5]);
+console.log("1440px で横に送られる編集欄: サンプル", cm1440[0], "/", cm1440[1], "・演習", cm1440[2], "/", cm1440[3], "・右で切れる TODO の行", cm1440[4], "/", cm1440[5], "・右で切れる雛形の行", cm1440[6], "/", cm1440[7]);
 // ホームの「続きから」で開いたとき(28 回目: 前回の続きのクイズではなく、1 画面上のサンプルに着いた)。3 秒後の前回の段の頭の位置
 await open(pcArg);
 await js(`localStorage.setItem("javadojo-pc-last", JSON.stringify({ id: "spring-di", title: "DIとIoCコンテナ", section: "quiz", off: 40, end: false })); location.reload();`);
