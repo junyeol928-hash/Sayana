@@ -5,7 +5,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 ## 現状
 - 公開中(`main`)は、教材の総点検と学びやすさの作り直し([PR #11](https://github.com/junyeol928-hash/Sayana/pull/11)、2026-11-19 に `main` へマージ。マージコミット 98ad483)。スマホ版は GitHub Pages の https://junyeol928-hash.github.io/Sayana/m/ (Pages は `main` の直下から配信。`main` に入れば公開される)
 - PC の本文の画面に藍の軸と運針を通す作り直し(ブランチ `claude/lesson-axis`)は、[PR #12](https://github.com/junyeol928-hash/Sayana/pull/12) で `main` にマージ済み(2026-11-19。マージコミット 0996f06)。審査は 28 回目 8.55 / 8.50、29 回目 8.65 / 8.50
-- 29 回目に見送った直し(雛形とサンプルのコメントの幅・サンプルの実行時例外の行番号・撮影の台本)は、ブランチ `claude/lesson-axis-followup`(`main` の 0996f06 から切ったもの)。PR は `main` 向けで、マージ(= Pages への公開)はユーザーの判断待ち。中身は下の「変更内容(ブランチ claude/lesson-axis-followup)」。30 回目の審査の結果は design-review.md の末尾
+- 29 回目に見送った直し(雛形とサンプルのコメントの幅・サンプルの実行時例外の行番号・撮影の台本)は、ブランチ `claude/lesson-axis-followup`(`main` の 0996f06 から切ったもの)。PR は `main` 向けで、マージ(= Pages への公開)はユーザーの判断待ち。中身は下の「変更内容(ブランチ claude/lesson-axis-followup)」。**30 回目の審査は 9.00 と 8.65(学びやすさ 9.0 と 9.0)で、2 人とも合格の線を越えた**(合格したので完成。ユーザーの判断)。点数と見送りは design-review.md の末尾、全文は `reviews/round30-*.md`
 - 動いているもの: PC 版(`./mvnw spring-boot:run`)、スマホ版(`m/`。オフラインで全 55 レッスン・図・読解・用語集が開ける。`scripts/offline-check.mjs` で 2026-11-19 に確認)、`./mvnw test`(489 件、2026-11-19 に `claude/lesson-axis` で全部通過)
 - 相互レビュー: 18 回目から目標を Awwwards の Site of the Day にした(物差しは [review-rubric.md](review-rubric.md) の「18 回目から」。合格の線は加重平均 8.5・どの軸も 8.0・学びやすさ 8.5)。点数の移り変わりと直したことは [design-review.md](design-review.md) の末尾、全文は `reviews/`、撮影は `screenshots/roundN/`
   - Codex は 18〜21 回目のどれも利用上限で審査できていない(次に使えるのは 2026-11-20 00:51)。代わりに独立の Claude 2 人(2 人目は学びやすさに厳しい審査員)で採点している
@@ -15,7 +15,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 
 ## 変更内容(ブランチ claude/lesson-axis-followup。30 回目)
 - 演習の雛形とサンプルのコメント: コメントだけの行を 72 列(和字は 2 列)までに意味の切れ目で折った(417 か所)。行末のコメントが 80 列を超える行は、コメントを上の行へ移した(74 組。雛形の期待出力は「出力: 」)。PC の編集欄は 1280px で 82 列。`CurriculumTest#commentsFitEditor` が落とす。折るのに使った使い捨ての Python(自動で折る規則と、手で決めた 90 か所ほどの折り方)は残していない。教材を足すときは [CONTENT_FORMAT.md](CONTENT_FORMAT.md) の決まりどおり手で折る
-- サンプルの実行時例外: JShell のスタックトレースは「#スニペット」の頭からの行番号なので、`JShellRunner` がスニペットの始まりの行を覚えて編集欄の行番号にする(「at check(5行目)」)。頭に改行を残して JShell に渡すと行番号そのものが狂うので、頭の空白を除いてから `eval` する。`REPL.$JShell$N.`・`REPL.$JShell$N$` は実行する側で外す(`RunResult.displayException` は消した)。スマホ版の控え `sample-outputs.json` の例外の文も同じ形に変わった(1 本)。控えはコードのハッシュが鍵なので、実行する側の出し方を変えたときは、変わる控え(ここでは例外の 1 本)を消してから `./mvnw -q compile exec:java` で作り直す(古いままなら `CurriculumTest#sampleRuns` が落ちる)
+- サンプルの実行時例外: JShell のスタックトレースは「#スニペット」の頭からの行番号なので、`JShellRunner` がスニペットの始まりの行を覚えて編集欄の行番号にする(「at check(5行目)」)。頭に改行を残して JShell に渡すと行番号そのものが狂い、代入・複合代入・`++` の文はコメントを除いた式の頭から数える(コメントの真下で落ちるとコメントの行を指した。30 回目の 2 人目)ので、頭の空白とコメントを除いてから `eval` する(`JShellRunner.leadingComments`)。`REPL.$JShell$N.`・`REPL.$JShell$N$` は実行する側で外す(`RunResult.displayException` は消した)。スマホ版の控え `sample-outputs.json` の例外の文も同じ形に変わった(1 本)。控えはコードのハッシュが鍵なので、実行する側の出し方を変えたときは、変わる控え(ここでは例外の 1 本)を消してから `./mvnw -q compile exec:java` で作り直す(古いままなら `CurriculumTest#sampleRuns` が落ちる)
 - 撮影の台本: 演習の合格は、縹で演習が残り、STS の段が無いか済んだレッスンを選ぶ(藍に染まる瞬間を写す)。全レッスンで、演習の編集欄で右に切れる TODO の行を数える。1280px の演習の雛形(java-exceptions)を撮る
 
 ## 変更内容(ブランチ claude/lesson-axis。28〜29 回目。PR #12 で main にマージ済み)
@@ -62,6 +62,7 @@ Claude Code と Codex で作業を引き継ぐときのメモ。作業の前に�
 - 用語集の語は、どれもその lesson の本文・仕事のコード・サンプルに出る(`CurriculumTest#glossaryTermsLand`)。語を足すときは、本文での言い方を括弧に足すか、扱うレッスンに付ける
 - PC の読む画面に軸と運針を続ける案と、PC のサンプルの編集欄(CodeMirror)の配色をコードの面にそろえる案は、ブランチ `claude/lesson-axis` で作った(28 回目)。AI の欄があるとき(2 列)と 1279px 以下は、今までの段の帯のまま。2 列と 1024〜1279px にも軸を出す案(28 回目の 1 人目の 4 の 3)は見送り(欄の幅と本文の幅の決め直しになるので、別の作業として)
 - 復習・読解・用語集からレッスンを開くと「のぞき見」(前回の続きを書き換えない。冒頭に「〇〇へ戻る」)。PC はリンクの `?from=` で見分ける。新しい入口を足すときは `data-peek`(スマホ)か `?from=`(PC)を付け、戻り先の位置(スマホは `data-resume`)も渡す
+- 30 回目の見送り(一覧は design-review.md の「30 回目」の表): スマホのサンプルの実行時例外がサーモン色の箱のまま(スマホの CSS を変えるので判断待ち)、例外の 1 行目の朱が `::first-line` で折り返しの途中で切れる、雛形のメソッドの宣言が 1280px で右に切れる(21 本。1280px の演習の編集欄は 78 列で 80 列の決まりより狭い)、冒頭の要約で英字・チップの直後の助詞が行頭に来る(7 / 55)、ラムダの中の例外と JDK の行で 6 行の上限が埋まる・main の中の `"<local1>"`、「読了。次は下のサンプルを動かしてみよう」が次の段と合わない(36 / 55)、撮影の pc-review-retry-end が上書きの `?r=100` で「ホームへ」2 つになる
 - 次の候補: AI の欄がある 2 列(1360px 以上)と 1024〜1279px の軸(案: 2 列は AI の欄を 340px にして軸を出し、1024〜1359px は段の名前を隠した 24px の細い軸と読み上げだけ。欄と本文の幅の決め直しになるので、ユーザーの判断を待つ)、模範解答のコメントの幅(提出の前から畳んだ欄で開ける。72 列を超える行が 71)、コメントでないコードの行の長さ(80 列を超える行がサンプル 38・雛形 32。横に送って読む)
 - `claude/lesson-axis-followup` の PR(`main` 向け)のマージはユーザーの判断待ち。マージすると Pages に出る。マージの前に `./mvnw test`(10 分ほど)と `node scripts/offline-check.mjs . <出力フォルダ>` を通す
 - 相互レビューを続けるなら、2026-11-20 00:51 以降に Codex にも審査を頼む(そのときの HEAD を `git worktree add --detach ../Sayana-r22 HEAD` で凍結し、`docs/screenshots/` の最新の回の撮影と `docs/review-rubric.md` を渡す)
