@@ -44,7 +44,8 @@ public class ShippingLabel {
     }
 
     public static void main(String[] args) {
-        Customer ok = new Customer("佐藤", new Address(" 100-0001 ", "千代田区"));
+        Customer ok = new Customer("佐藤",
+                new Address(" 100-0001 ", "千代田区"));
         Customer noAddr = new Customer("鈴木", null);
         System.out.println(zipOf(ok));                       // 100-0001
         System.out.println(zipOf(noAddr));                   // 未登録

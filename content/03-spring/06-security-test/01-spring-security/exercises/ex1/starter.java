@@ -67,7 +67,8 @@ public class UrlAuthorizer {
                 .hasRole("/admin/**", "ADMIN")
                 .authenticated("/**");
         LoginUser haru = new LoginUser("haru", Set.of("ROLE_USER"));
-        LoginUser mocha = new LoginUser("mocha", Set.of("ROLE_USER", "ROLE_ADMIN"));
+        LoginUser mocha = new LoginUser("mocha",
+                Set.of("ROLE_USER", "ROLE_ADMIN"));
         System.out.println(auth.check("/css/app.css", null)); // ALLOW
         System.out.println(auth.check("/orders", null));      // LOGIN_REQUIRED
         System.out.println(auth.check("/admin/users", haru)); // FORBIDDEN

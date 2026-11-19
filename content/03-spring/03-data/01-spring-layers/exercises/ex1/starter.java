@@ -86,7 +86,8 @@ class OrderController {
         }
         int subtotal = unitPrice * quantity;
         int shipping = subtotal >= 5000 ? 0 : 500;
-        Order order = new Order(nextId++, customer, subtotal, shipping, subtotal + shipping);
+        Order order = new Order(
+                nextId++, customer, subtotal, shipping, subtotal + shipping);
         orders.add(order);
         return "注文番号 " + order.id() + ":合計 " + order.total() + " 円";
     }

@@ -25,7 +25,8 @@ class InventoryController {
 
     String receive(String sku, int quantity) {
         try {
-            return "入荷:" + sku + " 在庫 " + service.receive(sku, quantity) + " 個";
+            return "入荷:" + sku + " 在庫 "
+                    + service.receive(sku, quantity) + " 個";
         } catch (IllegalArgumentException e) {
             return "エラー:" + e.getMessage();
         }
@@ -33,7 +34,8 @@ class InventoryController {
 
     String ship(String sku, int quantity) {
         try {
-            return "出荷:" + sku + " 残り " + service.ship(sku, quantity) + " 個";
+            return "出荷:" + sku + " 残り "
+                    + service.ship(sku, quantity) + " 個";
         } catch (IllegalArgumentException | IllegalStateException e) {
             return "エラー:" + e.getMessage();
         }

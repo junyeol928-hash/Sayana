@@ -12,7 +12,8 @@ public class LogLevelResolver {
     }
 
     /** loggerName のロガーで level のログが出力されるなら true */
-    public static boolean isEnabled(Map<String, Level> config, String loggerName, Level level) {
+    public static boolean isEnabled(
+            Map<String, Level> config, String loggerName, Level level) {
         // TODO: level が resolve(...) の結果「以上」なら true
         //       (compareTo を使う)
         return false; // ← ダミー。書き換えてください

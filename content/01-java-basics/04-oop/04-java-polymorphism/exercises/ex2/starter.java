@@ -13,7 +13,11 @@ public class Checkout {
     }
 
     public static void main(String[] args) {
-        Payment[] payments = { new CashPayment(), new CardPayment(), new PointPayment() };
+        Payment[] payments = {
+            new CashPayment(),
+            new CardPayment(),
+            new PointPayment()
+        };
         for (Payment p : payments) {
             System.out.println(receipt(p, 800));
         }

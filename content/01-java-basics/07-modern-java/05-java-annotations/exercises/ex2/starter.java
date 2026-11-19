@@ -31,14 +31,14 @@ public class LogMasker {
         // TODO: @Mask が付いていれば mask(値, keep) を、
         //       付いていなければ値をそのまま "名前=値" にして
         //       parts に追加
-        return obj.getClass().getSimpleName() + "{" + String.join(", ", parts) + "}";
+        return obj.getClass().getSimpleName()
+                + "{" + String.join(", ", parts) + "}";
     }
 
     public static void main(String[] args) {
         System.out.println(mask("4111222233334444", 4)); // ************4444
         System.out.println(toLog(new LoginForm()));
-        // LoginForm{cardNo=************4444, password=***,
-        //           retry=2, userId=haru}
+        // 出力: LoginForm{cardNo=************4444, password=***, …}
     }
 }
 

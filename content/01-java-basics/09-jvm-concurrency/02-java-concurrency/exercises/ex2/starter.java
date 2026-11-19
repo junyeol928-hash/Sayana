@@ -22,7 +22,8 @@ public class CartService {
     }
 
     public static void main(String[] args) {
-        java.util.Map<String, Integer> prices = java.util.Map.of("ペン", 120, "ノート", 250);
+        java.util.Map<String, Integer> prices = java.util.Map.of(
+                "ペン", 120, "ノート", 250);
         CartService service = new CartService(prices::get);
         // 出力: 490
         System.out.println(service.total(List.of("ペン", "ノート", "ペン")));

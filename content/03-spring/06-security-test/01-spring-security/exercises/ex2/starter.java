@@ -35,7 +35,8 @@ public class PasswordHasher {
      */
     static String encode(String raw, byte[] salt) {
         Base64.Encoder b64 = Base64.getEncoder();
-        return b64.encodeToString(salt) + "$" + b64.encodeToString(digest(raw, salt));
+        return b64.encodeToString(salt) + "$"
+                + b64.encodeToString(digest(raw, salt));
     }
 
     /**

@@ -22,9 +22,9 @@ record Employee(Long id, String name, String email) {
  * 採点用に record で簡略化している
  */
 record ApprovalRequest(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, Employee applicant, Employee approver,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, Employee applicant,
+        Employee approver, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 }
 
 // ===== service(用意済み。テスト側でメモリ実装を作って渡す) =====
@@ -47,9 +47,9 @@ record RequestSummary(Long id, String title, RequestType type, Integer amount,
 }
 
 record RequestDetail(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, String applicantName, String approverName,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, String applicantName,
+        String approverName, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 
     static RequestDetail from(ApprovalRequest r) {
         // TODO: r から詳細用の項目を詰め替える

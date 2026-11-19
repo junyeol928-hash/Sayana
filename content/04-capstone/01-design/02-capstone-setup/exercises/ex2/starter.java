@@ -88,7 +88,8 @@ interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // TODO: 1. メールアドレスが一致する社員(Optional<Employee>)
 }
 
-interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest, Long> {
+interface ApprovalRequestRepository
+        extends JpaRepository<ApprovalRequest, Long> {
 
     // TODO: 2. 申請者が一致する申請を、作成日時の新しい順に
     //          (引数は Employee)
@@ -99,7 +100,8 @@ interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest, Long>
     // TODO: 4. 状態が一致する申請の件数(long)
 }
 
-interface ApprovalHistoryRepository extends JpaRepository<ApprovalHistory, Long> {
+interface ApprovalHistoryRepository
+        extends JpaRepository<ApprovalHistory, Long> {
 
     // TODO: 5. 申請が一致する履歴を、日時 at の古い順に
     //          (引数は ApprovalRequest)

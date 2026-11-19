@@ -9,7 +9,8 @@ import java.util.function.Function;
 
 public class PriceFetcher {
 
-    static List<Integer> fetchAll(List<String> ids, Function<String, Integer> lookup) {
+    static List<Integer> fetchAll(
+            List<String> ids, Function<String, Integer> lookup) {
         // TODO: 空なら空のリストを返す
         // TODO: newFixedThreadPool(ids.size()) を作り、
         //       全部の id を submit して Future をリストにためる

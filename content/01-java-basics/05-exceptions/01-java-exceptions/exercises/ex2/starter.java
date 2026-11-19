@@ -7,7 +7,8 @@ class InvalidOrderException extends Exception {
 
 public class OrderValidator {
 
-    static void validate(String itemCode, int quantity) throws InvalidOrderException {
+    static void validate(
+            String itemCode, int quantity) throws InvalidOrderException {
         // TODO: itemCode が null または空白だけなら
         //       "商品コードが空です" で例外を投げる
 

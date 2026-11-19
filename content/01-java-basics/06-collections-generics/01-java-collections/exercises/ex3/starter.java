@@ -9,7 +9,8 @@ import java.util.Set;
 
 public class DeptRoster {
 
-    public static Map<String, List<String>> groupByDept(List<Employee> employees) {
+    public static Map<String, List<String>> groupByDept(
+            List<Employee> employees) {
         // TODO: 結果用の LinkedHashMap と、
         //       処理済みの社員を覚える HashSet を用意する
 

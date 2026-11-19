@@ -25,8 +25,10 @@ public class KeyIssueController {
     }
 
     @PostMapping
-    public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+    public ResponseEntity<KeyIssueResponse> issue(
+            @Valid @RequestBody KeyIssueRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(keyIssueService.issue(request));
     }
 }
 
@@ -50,7 +52,8 @@ class KeyIssueService {
         //   「at ...KeyIssueService.issue(KeyIssueService.java:31)」
         int version = request.keyVersion();
         KeyIssueResponse res = new KeyIssueResponse(
-                String.format("K-%04d", issued.size() + 1), request.cardId(), version);
+                String.format("K-%04d", issued.size() + 1),
+                request.cardId(), version);
         issued.add(res);
         return res;
     }

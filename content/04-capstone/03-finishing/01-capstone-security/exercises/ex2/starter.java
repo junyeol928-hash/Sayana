@@ -51,7 +51,9 @@ public class UrlAccessTable {
 
     /** "/requests/5" → ["requests", "5"](空のセグメントは捨てる) */
     static String[] segments(String s) {
-        return Arrays.stream(s.split("/")).filter(x -> !x.isEmpty()).toArray(String[]::new);
+        return Arrays.stream(s.split("/"))
+                .filter(x -> !x.isEmpty())
+                .toArray(String[]::new);
     }
 
     static boolean matches(String pattern, String path) {

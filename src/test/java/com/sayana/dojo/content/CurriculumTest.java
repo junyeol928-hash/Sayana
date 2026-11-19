@@ -920,6 +920,29 @@ class CurriculumTest {
         assertThat(problems).as("編集欄で右が切れるコメント(折るか、行末のコメントを上の行へ移す)").isEmpty();
     }
 
+    @Test
+    void starterCodeFitsEditor() {
+        // 演習の編集欄はいちばん狭い 1024px で 1 行 80 列。雛形のメソッドの宣言(書く人が最初に読む「何を受け取るか」)が
+        // 1280px で 21 本、右で切れて横に送って読んでいた(30 回目の審査)。コードの行も 80 列までに折る(引数の前で改行して 8 字下げる)。
+        // import の行は折れないので数えない
+        List<String> problems = new java.util.ArrayList<>();
+        CONTENT.allExercises().forEach(e -> {
+            String[] lines = e.starter().split("\n", -1);
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i].stripTrailing();
+                String s = line.strip();
+                if (s.startsWith("//") || s.startsWith("/*") || s.startsWith("*") || s.startsWith("import ")) {
+                    continue;
+                }
+                int w = displayWidth(line);
+                if (w > 80) {
+                    problems.add(e.key() + " の雛形の " + (i + 1) + " 行目(" + w + " 列): " + s);
+                }
+            }
+        });
+        assertThat(problems).as("編集欄で右が切れる雛形のコードの行(引数や + の前で折る)").isEmpty();
+    }
+
     private static void commentWidthProblems(String where, String code, List<String> problems) {
         boolean[] textBlock = { false };
         String[] lines = code.split("\n", -1);

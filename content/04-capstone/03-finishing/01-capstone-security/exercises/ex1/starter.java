@@ -36,7 +36,8 @@ public class AccessPolicy {
     static final String OWN_REQUEST = "自分の申請は承認できません";
     static final String FINAL_STATUS = "承認済・取下げ済の申請は変更できません";
     static final String BAD_STATUS = "今の状態ではこの操作はできません";
-    static final String HIGH_AMOUNT = "100,000円以上の申請は管理者しか承認できません";
+    static final String HIGH_AMOUNT =
+            "100,000円以上の申請は管理者しか承認できません";
 
     static final int HIGH_AMOUNT_THRESHOLD = 100_000;
 

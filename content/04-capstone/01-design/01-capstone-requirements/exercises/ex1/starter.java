@@ -41,7 +41,8 @@ public class StatusTable {
         for (RequestStatus from : RequestStatus.values()) {
             System.out.printf("%-10s", from);
             for (RequestStatus to : RequestStatus.values()) {
-                System.out.printf("%-10s", from.canTransitionTo(to) ? "○" : "-");
+                System.out.printf("%-10s",
+                        from.canTransitionTo(to) ? "○" : "-");
             }
             System.out.println(from.isFinal() ? " (確定)" : "");
         }

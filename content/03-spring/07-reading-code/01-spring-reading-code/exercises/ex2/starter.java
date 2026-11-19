@@ -74,8 +74,9 @@ class KeyStore {
     }
 
     void revokeActive(String cardId) {
-        rows.replaceAll(r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE")
-                ? new KeyRow(r.keyId(), r.cardId(), "REVOKED") : r);
+        rows.replaceAll(
+                r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE")
+                        ? new KeyRow(r.keyId(), r.cardId(), "REVOKED") : r);
     }
 
     void saveActive(String cardId, String keyId) {
@@ -83,7 +84,9 @@ class KeyStore {
     }
 
     Optional<String> activeKeyOf(String cardId) {
-        return rows.stream().filter(r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE"))
+        return rows.stream()
+                .filter(r -> r.cardId().equals(cardId)
+                        && r.status().equals("ACTIVE"))
                 .map(KeyRow::keyId).findFirst();
     }
 

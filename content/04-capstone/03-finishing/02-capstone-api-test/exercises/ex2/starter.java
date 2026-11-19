@@ -23,9 +23,9 @@ record Employee(Long id, String name, String email) {
  * 採点用に record で簡略化している
  */
 record ApprovalRequest(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, Employee applicant, Employee approver,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, Employee applicant,
+        Employee approver, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 }
 
 /** 業務ルール違反(業務ルール7) */
@@ -56,15 +56,15 @@ interface RequestService {
 
 // ===== web.api の DTO(用意済み) =====
 record RequestDetail(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, String applicantName, String approverName,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, String applicantName,
+        String approverName, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 
     static RequestDetail from(ApprovalRequest r) {
         String approverName = r.approver() == null ? null : r.approver().name();
-        return new RequestDetail(r.id(), r.title(), r.type(), r.amount(), r.reason(),
-                r.status(), r.applicant().name(), approverName, r.comment(),
-                r.createdAt(), r.submittedAt(), r.decidedAt());
+        return new RequestDetail(r.id(), r.title(), r.type(), r.amount(),
+                r.reason(), r.status(), r.applicant().name(), approverName,
+                r.comment(), r.createdAt(), r.submittedAt(), r.decidedAt());
     }
 }
 

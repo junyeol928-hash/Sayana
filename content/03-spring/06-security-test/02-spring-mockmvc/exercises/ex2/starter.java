@@ -88,6 +88,7 @@ class OrderController {
     public String total(@PathVariable("id") String id) {
         List<Order> orders = service.findByCustomer(id);
         int sum = orders.stream().mapToInt(Order::amount).sum();
-        return String.format(Locale.JAPAN, "合計 %,d円(%d件)", sum, orders.size());
+        return String.format(Locale.JAPAN, "合計 %,d円(%d件)",
+                sum, orders.size());
     }
 }

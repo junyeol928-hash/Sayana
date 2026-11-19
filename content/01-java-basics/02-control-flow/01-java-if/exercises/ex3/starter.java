@@ -1,6 +1,7 @@
 public class HourlyRate {
 
-    public static int rate(int dayOfWeek, boolean publicHoliday, boolean night) {
+    public static int rate(
+            int dayOfWeek, boolean publicHoliday, boolean night) {
         // TODO: dayOfWeek が 1〜7 以外なら -1 を返す(ガード節)
 
         int base = 0;

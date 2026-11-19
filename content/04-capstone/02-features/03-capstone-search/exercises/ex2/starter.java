@@ -1,7 +1,8 @@
 import java.util.List;
 
 // 検索結果の1ページ分と、ページ送りの表示に必要な情報
-public record PageView<T>(List<T> content, int number, int size, long totalElements) {
+public record PageView<T>(
+        List<T> content, int number, int size, long totalElements) {
 
     public static <T> PageView<T> of(List<T> all, int page, int size) {
         // TODO: page < 0 か size < 1 なら IllegalArgumentException

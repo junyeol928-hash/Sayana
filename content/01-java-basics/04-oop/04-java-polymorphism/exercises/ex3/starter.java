@@ -16,7 +16,8 @@ public class NotificationSender {
 
     public static void main(String[] args) {
         Notification[] list = {
-            new EmailNotification("hal@example.com", "面談のご案内", "明日10時に伺います"),
+            new EmailNotification("hal@example.com", "面談のご案内",
+                    "明日10時に伺います"),
             new SmsNotification("090-1111-2222", "明日10時に伺います"),
         };
         for (String text : renderAll(list)) {

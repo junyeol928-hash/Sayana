@@ -47,7 +47,8 @@ class OrderService {
     Order cancel(long id) {
         Order o = find(id);
         if ("SHIPPED".equals(o.status())) {
-            throw new OrderStateException("注文 " + id + " は発送済みのためキャンセルできません");
+            throw new OrderStateException(
+                    "注文 " + id + " は発送済みのためキャンセルできません");
         }
         Order canceled = new Order(o.id(), o.item(), "CANCELED");
         orders.put(id, canceled);
@@ -57,7 +58,8 @@ class OrderService {
     String issueReceipt(long id) {
         find(id);
         // 外部の領収書サービスにつながらなかった、という想定
-        throw new IllegalStateException("receipt-service timeout: http://10.0.3.7:8080/receipts");
+        throw new IllegalStateException(
+                "receipt-service timeout: http://10.0.3.7:8080/receipts");
     }
 }
 
@@ -95,14 +97,16 @@ record ErrorResponse(String code, String message) {
 public class ApiExceptionHandler {
 
     // TODO: @ExceptionHandler(OrderNotFoundException.class) を付ける
-    public ResponseEntity<ErrorResponse> handleNotFound(OrderNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            OrderNotFoundException ex) {
         // TODO: 404 + new ErrorResponse("ORDER_NOT_FOUND",
         //       ex.getMessage()) を返す
         return null; // ← ダミー
     }
 
     // TODO: @ExceptionHandler(OrderStateException.class) を付ける
-    public ResponseEntity<ErrorResponse> handleConflict(OrderStateException ex) {
+    public ResponseEntity<ErrorResponse> handleConflict(
+            OrderStateException ex) {
         // TODO: 409 + new ErrorResponse("ORDER_STATE_CONFLICT",
         //       ex.getMessage()) を返す
         return null; // ← ダミー

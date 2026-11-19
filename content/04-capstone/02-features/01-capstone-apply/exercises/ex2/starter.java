@@ -121,7 +121,8 @@ enum RequestType {
 
 /** 申請の状態(完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -156,7 +157,9 @@ class ApprovalRequest {
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
     public Long getApplicantId() { return applicantId; }
-    public void setApplicantId(Long applicantId) { this.applicantId = applicantId; }
+    public void setApplicantId(Long applicantId) {
+        this.applicantId = applicantId;
+    }
 }
 
 /** 申請の登録と検索(完成済み) */
@@ -175,7 +178,8 @@ class InMemoryRequestService implements RequestService {
     private final List<ApprovalRequest> store = new ArrayList<>();
 
     @Override
-    public ApprovalRequest createDraft(Long applicantId, ApprovalRequest request) {
+    public ApprovalRequest createDraft(
+            Long applicantId, ApprovalRequest request) {
         request.setId((long) store.size() + 1);
         request.setApplicantId(applicantId);
         request.setStatus(RequestStatus.DRAFT);

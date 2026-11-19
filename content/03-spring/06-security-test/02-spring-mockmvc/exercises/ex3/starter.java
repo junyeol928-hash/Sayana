@@ -30,7 +30,8 @@ public class ShipApiCheck {
     }
 
     public static void main(String[] args) throws Exception {
-        MockMvc mvc = MockMvcBuilders.standaloneSetup(new FeeController()).build();
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new FeeController())
+                .build();
         check(mvc);
         System.out.println("検証OK:FeeController は仕様どおりです");
     }
@@ -45,7 +46,8 @@ class FeeController {
 
     @GetMapping("/shipping-fee")
     public ResponseEntity<FeeResult> fee(@RequestParam("amount") int amount,
-            @RequestParam(value = "rank", defaultValue = "NORMAL") String rank) {
+            @RequestParam(value = "rank", defaultValue = "NORMAL")
+            String rank) {
         if (amount <= 0) {
             return ResponseEntity.badRequest().build();
         }

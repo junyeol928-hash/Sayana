@@ -27,14 +27,17 @@ class KeyIssueController {
     }
 
     @PostMapping
-    ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+    ResponseEntity<KeyIssueResponse> issue(
+            @Valid @RequestBody KeyIssueRequest request) {
         KeyIssueResponse response = keyIssueService.issue(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
 
 // ===== dto =====
-record KeyIssueRequest(@NotBlank String cardId, @NotNull @Min(1) @Max(255) Integer keyVersion) {
+record KeyIssueRequest(
+        @NotBlank String cardId,
+        @NotNull @Min(1) @Max(255) Integer keyVersion) {
 }
 
 record KeyIssueResponse(String keyId, String status) {
@@ -55,11 +58,13 @@ public class KeyIssueService {
     //       食い違っている所を直す(2か所)
     public KeyIssueResponse issue(KeyIssueRequest request) {
         KeyEntity saved = keyRepository.save(
-                new KeyEntity(null, request.cardId(), request.keyVersion(), "ACTIVE"));
+                new KeyEntity(null, request.cardId(), request.keyVersion(),
+                        "ACTIVE"));
         boolean duplicated = keyRepository
                 .existsByCardIdAndStatus(request.cardId(), "ACTIVE");
         if (duplicated) {
-            throw new IllegalStateException("カード " + request.cardId() + " には有効な鍵がすでにあります");
+            throw new IllegalStateException("カード " + request.cardId()
+                    + " には有効な鍵がすでにあります");
         }
         return new KeyIssueResponse(saved.keyId(), saved.status());
     }
@@ -79,13 +84,16 @@ class InMemoryKeyRepository implements KeyRepository {
 
     @Override
     public boolean existsByCardIdAndStatus(String cardId, String status) {
-        return rows.stream().anyMatch(r -> r.cardId().equals(cardId) && r.status().equals(status));
+        return rows.stream().anyMatch(
+                r -> r.cardId().equals(cardId) && r.status().equals(status));
     }
 
     @Override
     public KeyEntity save(KeyEntity entity) {
-        String keyId = entity.keyId() != null ? entity.keyId() : String.format("K-%04d", rows.size() + 1);
-        KeyEntity saved = new KeyEntity(keyId, entity.cardId(), entity.keyVersion(), entity.status());
+        String keyId = entity.keyId() != null ? entity.keyId()
+                : String.format("K-%04d", rows.size() + 1);
+        KeyEntity saved = new KeyEntity(
+                keyId, entity.cardId(), entity.keyVersion(), entity.status());
         rows.add(saved);
         return saved;
     }
@@ -97,7 +105,8 @@ class InMemoryKeyRepository implements KeyRepository {
 }
 
 // ===== entity =====
-record KeyEntity(String keyId, String cardId, Integer keyVersion, String status) {
+record KeyEntity(
+        String keyId, String cardId, Integer keyVersion, String status) {
 }
 
 // ===== exception(直さなくてよい) =====
@@ -111,6 +120,7 @@ class KeyAlreadyExistsException extends RuntimeException {
 class ApiExceptionHandler {
     @ExceptionHandler(KeyAlreadyExistsException.class)
     ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("E409", e.getMessage()));
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("E409", e.getMessage()));
     }
 }

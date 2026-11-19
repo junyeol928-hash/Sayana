@@ -10,7 +10,8 @@ public class PagingParams {
 
     static final int DEFAULT_SIZE = 20;
     static final int MAX_SIZE = 50;
-    static final Set<String> SORTABLE = Set.of("createdAt", "submittedAt", "amount");
+    static final Set<String> SORTABLE = Set.of(
+            "createdAt", "submittedAt", "amount");
     static final Sort.Order DEFAULT_ORDER = Sort.Order.desc("createdAt");
     static final Sort.Order TIE_BREAKER = Sort.Order.desc("id");
 

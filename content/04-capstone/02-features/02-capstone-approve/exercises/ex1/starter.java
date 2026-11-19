@@ -14,7 +14,8 @@ public class ApprovalRequest {
     private LocalDateTime submittedAt;
     private LocalDateTime decidedAt;
 
-    public ApprovalRequest(Long id, String title, Integer amount, Employee applicant) {
+    public ApprovalRequest(
+            Long id, String title, Integer amount, Employee applicant) {
         this.id = id;
         this.title = title;
         this.amount = amount;
@@ -34,7 +35,8 @@ public class ApprovalRequest {
     }
 
     /** 差し戻す。コメント必須(業務ルール4) */
-    public void returnBack(Employee approver, String comment, LocalDateTime now) {
+    public void returnBack(
+            Employee approver, String comment, LocalDateTime now) {
         // TODO: comment が null か空白だけなら
         //       BusinessRuleException("差戻しにはコメントが必要です")
         // TODO: 状態を RETURN 後の状態にし、
@@ -72,7 +74,8 @@ record Employee(Long id, String name, Role role) {}
 
 /** 申請の状態(capstone-requirements の答え。完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -122,11 +125,13 @@ class ApprovalFlow {
      */
     static RequestStatus next(RequestStatus current, Action action) {
         if (current.isFinal()) {
-            throw new BusinessRuleException(current.label() + "の申請は変更できません");
+            throw new BusinessRuleException(current.label()
+                    + "の申請は変更できません");
         }
         RequestStatus to = action.target();
         if (!current.canTransitionTo(to)) {
-            throw new BusinessRuleException(current.label() + "の申請は「" + action.label() + "」できません");
+            throw new BusinessRuleException(current.label() + "の申請は「"
+                    + action.label() + "」できません");
         }
         return to;
     }

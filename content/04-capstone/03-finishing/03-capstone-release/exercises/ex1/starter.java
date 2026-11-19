@@ -59,7 +59,8 @@ class RequestApiController {
     }
 
     @GetMapping
-    List<RequestDetail> list(@RequestParam(required = false) RequestStatus status) {
+    List<RequestDetail> list(
+            @RequestParam(required = false) RequestStatus status) {
         return service.findByStatus(status);
     }
 
@@ -79,7 +80,8 @@ class RequestApiController {
 //       ResponseEntityExceptionHandler を継承する
 public class ApiExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     // TODO: BusinessRuleException → 409・
     //       title「業務ルール違反」・detail に例外メッセージ

@@ -46,7 +46,8 @@ public class TypedCache<K, V> {
         c.put("C", 3);
         System.out.println(c.get("A"));  // null
         System.out.println(c.get("C"));  // 3
-        System.out.println("件数=" + c.size() + " ヒット=" + c.hits() + " ミス=" + c.misses());
+        System.out.println("件数=" + c.size() + " ヒット=" + c.hits()
+                + " ミス=" + c.misses());
         // 件数=2 ヒット=1 ミス=1
     }
 }
