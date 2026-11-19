@@ -249,7 +249,7 @@ async function missedList(refs, shown = 3) {
     const r = retry?.day === today() ? retry.results?.[ref] : undefined;
     const tag = r === true ? `<span class="missed-basted">仮縫いできた</span>` : r === false ? `<span class="missed-again">まだ</span>` : "";
     stillFlags.push(r === false);
-    rows.push(`<li><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b>${esc(L.title)}${tag}</b><span class="missed-read">${why ? `<span class="missed-why">あなたの読み</span>` : ""}${body}</span></span><a class="missed-link" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}">読み直す</a></li>`);
+    rows.push(`<li><span class="missed-mark" aria-hidden="true"></span><span class="missed-body"><b>${esc(L.title)}${tag}</b><span class="missed-read">${why ? `<span class="missed-why">あなたの読み</span>` : ""}${body}</span></span><a class="missed-link" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}" data-peek="review">読み直す</a></li>`);
   }
   if (!rows.length) return "";
   const more = rows.slice(shown);
@@ -501,7 +501,8 @@ async function render() {
     view().innerHTML = `<div class="ai-error">読み込めませんでした: ${esc(e.message)}<br>
       電波が無いときは、一度電波のある所で開いてから使ってください(最初の1回で全レッスンが保存されます)。</div>`;
   }
-  document.querySelectorAll(".today-title a, main h1:not(.today-title)").forEach(phraseWrap);
+  // サンプルの見出しも語の途中・助詞の前で折らない(「@Bean / と、@Primary」と助詞で行が始まっていた)
+  document.querySelectorAll(".today-title a, main h1:not(.today-title), .sample > h3").forEach(phraseWrap);
   updateHeader();
 }
 
@@ -645,9 +646,15 @@ async function renderHome() {
 
 let pendingSection = null;
 // 「読み直す」などの data-resume は、どの画面から押してもレッスンのその段(手を止めては問い)へ飛ぶ
+// 復習・読解・用語集からレッスンを開くのは「のぞき見」。前回の続き(ホームの主役)を書き換えず、戻り先を段の帯に出す
+// (「読み直す」で古いレッスンへ行くと、ホームの主役がそのレッスンに変わり、いま習っている章へ戻れなかった。25 回目の審査)
+let pendingPeek = null;
+const PEEK_BACK = { review: ["#/review", "復習へ戻る"], reading: ["#/reading", "読解へ戻る"], terms: ["#/terms", "用語集へ戻る"] };
 document.addEventListener("click", (ev) => {
   const a = ev.target.closest?.("[data-resume]");
   if (a && a.dataset.resume) pendingSection = a.dataset.resume;
+  const link = ev.target.closest?.("a[href^='#/']");
+  if (link) pendingPeek = PEEK_BACK[link.dataset.peek] ? link.dataset.peek : null;
 }, true);
 // 図の部品の URL を数えるので、読み込みの記録を多めに残す
 performance.setResourceTimingBufferSize?.(1000);
@@ -696,6 +703,8 @@ async function lessonMeta(id) {
 }
 
 async function renderLesson(id) {
+  const peek = pendingPeek;
+  pendingPeek = null;
   const [L, meta, terms] = await Promise.all([lesson(id), lessonMeta(id), glossary().catch(() => [])]);
   const myTerms = terms.filter((t) => t.lesson === id);
   const checked = S.checklist[id] || [];
@@ -739,11 +748,12 @@ async function renderLesson(id) {
       </nav>
       <details class="step-menu"><summary><span class="visually-hidden">段の一覧。いまの段は</span><span id="step-count">${steps.length}段中1</span><span id="step-now">${steps[0][1]}</span></summary>
         <ol>${steps.map(([key, label, done, pcOnly, part]) => `<li class="${done ? "is-done" : ""}" data-menu-step="${key}"><a href="#${key}" data-scroll="${key}">${label}${!done && part ? ` <small>${part}/${total[key]}</small>` : ""}${pcOnly ? ` <span class="pc-only">PC</span>` : ""}${done ? `<span class="visually-hidden">(済み)</span>` : ""}</a></li>`).join("")}</ol></details>
+      ${peek ? `<a class="peek-back" href="${PEEK_BACK[peek][0]}">${PEEK_BACK[peek][1]}</a>` : ""}
       <button class="ask" type="button" data-action="tutor" aria-label="AIチューターに質問する">${icon("chat")}<span>質問</span></button>
       </div>
       <div class="sew" aria-hidden="true"></div>
     </div>
-    ${L.goals.length ? `<details class="goals"${S.seen?.[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g)}</li>`).join("")}</ul></details>` : ""}
+    ${L.goals.length ? `<details class="goals"${S.seen?.[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g).replace(/`([^`]+)`/g, "<code>$1</code>")}</li>`).join("")}</ul></details>` : ""}
     <section id="read" class="lesson-section" aria-labelledby="read-title">
       <h2 class="visually-hidden" id="read-title">解説</h2>
       <article class="lesson-body md">${L.bodyHtml}</article>
@@ -812,14 +822,14 @@ async function renderLesson(id) {
     ${tutorSheet(L)}`;
   bindLesson(L, meta);
   decorate(view());
-  trackLesson(id, steps.map(([key]) => key));
+  trackLesson(id, steps.map(([key]) => key), !!peek);
 }
 
 const seenSection = (id, key) => !!S.sections?.[id]?.includes(key);
 
 /** 読んでいる段を段の並びに示し、縫い線を進め、「前回の続き」を覚える */
 let lessonTracker = null;
-function trackLesson(id, keys) {
+function trackLesson(id, keys, peek = false) {
   lessonTracker?.disconnect();
   const sections = keys.map((k) => document.getElementById(k)).filter(Boolean);
   const stepper = $(".stepper");
@@ -831,7 +841,8 @@ function trackLesson(id, keys) {
   watchOverflow(stepper, wrap);
   // 前回の位置へ戻るのは、前回いた段を指して開いたときだけ(次の段を指したときは、その段の先頭へ)
   const resume = S.last?.id === id && pendingSection && pendingSection === S.last.section ? { section: S.last.section, off: S.last.off } : null;
-  S.last = { id, section: S.last?.id === id ? S.last.section : "read", off: S.last?.id === id ? S.last.off || 0 : 0 };
+  // のぞき見で別のレッスンを開いたときは、前回の続きを書き換えない(下の段と位置の記録も、S.last.id が違うので書かない)
+  if (!peek || S.last?.id === id) S.last = { id, section: S.last?.id === id ? S.last.section : "read", off: S.last?.id === id ? S.last.off || 0 : 0 };
   S.seen = Object.assign(S.seen || {}, { [id]: true });
   save();
   let saveTimer = null;
@@ -1078,8 +1089,8 @@ function readingCard(r, ref, from, order) {
     <form data-action="reading">
       <fieldset style="border:0;padding:0;margin:0"><legend class="reading-question">${r.questionHtml}</legend>
       ${(order || choiceOrder(r.choicesHtml.length, ref)).map((j) => `<label class="choice"><input type="radio" name="c" value="${j}" required><span>${r.choicesHtml[j]}</span></label>`).join("")}</fieldset>
-      <button class="btn" type="submit">答え合わせ</button>
-      ${done ? `<span class="small muted" style="margin-left:8px">前回: ${done.ok ? "正解" : "不正解"}</span>` : ""}
+      <button class="btn primary arm-submit" type="submit" disabled>選んでから答え合わせ</button>
+      ${done ? `<span class="small muted reading-last">前回: ${done.ok ? "正解" : "不正解"}</span>` : ""}
     </form>
     <div class="reading-answer" hidden aria-live="polite"></div>
   </li>`;
@@ -1187,6 +1198,7 @@ function lockAnswer(form, answer, choice, onReset) {
     form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = false; x.checked = false; });
     form.querySelectorAll("label.choice").forEach((l) => { l.classList.remove("is-answer", "is-wrong"); l.querySelector(".choice-tag")?.remove(); });
     submit.hidden = false;
+    if (submit.classList.contains("arm-submit")) { submit.disabled = true; submit.textContent = "選んでから答え合わせ"; }
     again.hidden = true;
     onReset();
   };
@@ -1194,6 +1206,12 @@ function lockAnswer(form, answer, choice, onReset) {
 
 function bindReading(root, findQuestion) {
   root.querySelectorAll("form[data-action=reading]").forEach((form) => {
+    // 復習の帯と同じく、選ぶまでは押せない「選んでから答え合わせ」、選んだら藍の「答え合わせ」(枠だけの小さなボタンで、
+    // 選んでも変わらず、押し忘れて次のカードへ送れた。25 回目の審査)
+    form.addEventListener("change", () => {
+      const b = form.querySelector(".arm-submit");
+      if (b && b.disabled) { b.disabled = false; b.textContent = "答え合わせ"; }
+    });
     form.onsubmit = (ev) => {
       ev.preventDefault();
       const li = form.closest(".reading-q");
@@ -1220,7 +1238,7 @@ function bindReading(root, findQuestion) {
 function termItem(t, withLesson, lessonTitle) {
   return `<li class="term"><p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${t.en ? `<small lang="en">${esc(t.en)}</small>` : ""}</p>
     <p class="term-def">${t.defHtml}</p>
-    ${withLesson && t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}">${esc(lessonTitle || t.lesson)}</a>` : ""}</li>`;
+    ${withLesson && t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}" data-peek="terms">${esc(lessonTitle || t.lesson)}</a>` : ""}</li>`;
 }
 
 /** 用語集の 1 枚。同じ語がいくつかのレッスンで出るときは、レッスンごとの説明を 1 枚の中に並べる */
@@ -1231,8 +1249,8 @@ function termCard(g, titles) {
   const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase() && e.toLowerCase() !== base);
   const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
   // どの語も「〇〇 で」(レッスン名)を説明の前に置く
-  if (g.length === 1) return `<li class="term">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
-  return `<li class="term">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : ""}
+  if (g.length === 1) return `<li class="term">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}" data-peek="terms">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
+  return `<li class="term">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}" data-peek="terms">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : ""}
     <p class="term-def">${x.defHtml}</p></li>`).join("")}</ul></li>`;
 }
 
@@ -1587,7 +1605,7 @@ async function renderReadingPage() {
   const showMore = () => {
     const chunk = shown.slice(count, count + PAGE);
     const tmp = document.createElement("ol");
-    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
+    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}" data-peek="reading">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
     bindReading(tmp, (ref) => byRef[ref]);
     decorate(tmp);
     list.append(...tmp.children);
@@ -1758,7 +1776,14 @@ async function renderReview() {
     let pick = first;
     for (let pass = 1; pass <= (retry.pass || 1); pass++) {
       const tries = Array.from({ length: 12 }, (_, k) => choiceOrder(n, `${ref}|${today()}|retry${pass > 1 ? `${pass}-` : ""}${k + 1}`));
-      pick = tries.find((o) => !used.includes(o.indexOf(answer))) || tries.find((o) => o.indexOf(answer) !== used.at(-1)) || pick.slice().reverse();
+      // 12 の候補に使っていない位置が無いときは、並びを回して正解を使っていない位置へ(無ければ前の回と違う位置へ)
+      const unused = Array.from({ length: n }, (_, i) => i).filter((i) => !used.includes(i));
+      const target = unused.length ? unused[0] : (used.at(-1) + 1) % n;
+      pick = tries.find((o) => !used.includes(o.indexOf(answer))) || (() => {
+        const o = tries[0].slice();
+        const shift = ((target - o.indexOf(answer)) % n + n) % n;
+        return o.slice(n - shift).concat(o.slice(0, n - shift));
+      })();
       used.push(pick.indexOf(answer));
     }
     return pick;
@@ -1775,7 +1800,7 @@ async function renderReview() {
   // 判定 → 選んだ誤答への 1 文 → 刺し子の線 → 解説(レッスンのクイズ・手を止めて・読解と同じ形)
   const after = (it, ok, explanationHtml, whyHtml) => `<div class="q-explain ${ok ? "correct" : "wrong"}" tabindex="-1"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : "不正解"}</span>
       ${whyHtml || ""}${explanationHtml ? `<div class="explanation md">${explanationHtml}</div>` : ""}</div>
-    <a class="review-source" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}"><span>出どころ: <b>${esc(L.title)}</b></span><span class="review-source-go">読み直す</span></a>
+    <a class="review-source" href="#/lesson/${esc(L.id)}" data-resume="${reviewSpot(it, ref)}" data-peek="review"><span>出どころ: <b>${esc(L.title)}</b></span><span class="review-source-go">読み直す</span></a>
     <div class="review-next"><p class="review-note">${inRetry ? "明日の復習で、もう一度" : nextLabel(it)}</p><button class="btn primary" id="next">${inRetry ? (retry.i + 1 < retry.refs.length ? "次の解き直しへ" : "おわりの画面へ") : "次の復習へ"}</button></div>`;
   // 「答え合わせ」は最初から下に出しておき、選ぶまでは押せない形に(選んだ瞬間に出すと、押した選択肢の上にかぶさった)
   const armSubmit = (form) => {
@@ -2258,6 +2283,9 @@ function fitFigures(nodes) {
 const JAVA_WORDS = new Set(("public private protected static final abstract void int long double float boolean byte char short var new "
   + "return if else for while do switch case default try catch finally throw throws class interface record enum extends implements "
   + "super this null true false instanceof import package").split(" "));
+// 1 行のブロックにするメッセージらしいもの: 24 字以上で空白を含み、文や宣言の記号(; { } = && || ->)が無い。
+// 呼び出しの括弧があるものは、英語の文らしいときだけ
+const msgLike = (t) => t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t));
 function proseLike(t) {
   const words = t.trim().split(/\s+/);
   const plain = (w) => /^[A-Za-z][a-z]+(?:-[a-z]+)*$/.test(w) && !JAVA_WORDS.has(w);
@@ -2293,7 +2321,8 @@ async function decorate(root) {
   root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre, .check pre").forEach((pre) => pre.classList.add("code-lines"));
   root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
-  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 12) c.classList.add("nb"); });
+  // 16 字までのチップは折らない(「javac App.java」が空白で 2 行に割れていた)
+  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 16) c.classList.add("nb"); });
   inlineNotes(root);
   // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
   // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
@@ -2313,7 +2342,16 @@ async function decorate(root) {
     // コードの式・宣言・呼び出し(; { } = や「名前(」、&& || ->)はチップのまま(段落にすると、文が 3 つに割れた。24 回目の審査)。
     // ただし英語の文らしいもの(`Cannot invoke "String.hashCode()"`・`method calc(int) is already defined`)は、
     // 呼び出しの括弧があってもメッセージ
-    if (t.length >= 24 && /\s/.test(t.trim()) && !/[;{}=]|&&|\|\||->/.test(t) && (!/\w\(/.test(t) || proseLike(t))) c.classList.add("code-msg");
+    if (msgLike(t)) c.classList.add("code-msg");
+  });
+  // 本文の段落・箇条書きの長いメッセージ(起動に失敗したときの文など)も同じく 1 行のブロックに(チップのまま 3〜5 本の帯に割れていた。
+  // 25 回目の審査)。括弧の中の補足はチップのまま(ブロックにすると「(」が行末に残る)。表の中もチップのまま
+  root.querySelectorAll(".md p > code:not(.code-msg), .md li > code:not(.code-msg)").forEach((c) => {
+    if (!msgLike(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice")) return;
+    let before = "";
+    for (let n = c.previousSibling; n; n = n.previousSibling) before = n.textContent + before;
+    const open = (before.match(/[(（]/g) || []).length - (before.match(/[)）]/g) || []).length;
+    if (open <= 0) c.classList.add("code-msg");
   });
   // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
   // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
@@ -2328,6 +2366,7 @@ async function decorate(root) {
     if (next?.nodeType === 3 && /^[、。，．,.)）」』】\]:;!?]/.test(next.data)) {
       if (/^[）」』】]/.test(next.data)) c.classList.add("before-close");
       else if (/^\)/.test(next.data)) c.classList.add("before-paren");
+      else if (/^[、。，．]/.test(next.data)) c.classList.add("before-punct"); // 「`true` 。」と句点の前が 1 字近く空いていた
       next.data = "\u2060" + next.data;
     }
     if (next?.nodeType === 3 && /^[(（「『【]/.test(next.data)) c.after(document.createElement("wbr"));
@@ -2345,8 +2384,11 @@ async function decorate(root) {
     table.querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => { if (heads[i]) td.dataset.th = heads[i]; }));
   });
   root.querySelectorAll(".choice span, :not(pre) > code").forEach(softBreaks);
+  mendSplitChips(root);
   if (window.hljs) {
     root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
+      // 仕事のコードの行の説明(コードの中に差し込んだ文)のチップは色付けしない(塊になり、説明が全幅の切れ端に割れた。25 回目の審査)
+      if (el.closest(".ln-note")) return;
       if (!el.className.includes("language-")) el.classList.add("language-java");
       if (!el.classList.contains("language-text")) window.hljs.highlightElement(el);
     });
@@ -2393,14 +2435,29 @@ function numberLines(code) {
 function softBreaks(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
-  const LONG = /[@A-Za-z0-9_.(,]{20,}|[A-Za-z_]\w*(?:\.\w+){2,}/g;
+  // 長い連なり(式・パス・URL・定数)と、ドットを 2 つ以上持つ名前と、パス(/a/b/c)。
+  // 「)」「:」「/」「?」「"」などで区切られた式やパスは、20 字に届かず候補が入らなかった(語の途中で割れた。25 回目の審査)
+  const LONG = /[@A-Za-z0-9_.(,):\/?&="'<>\[\]-]{20,}|[A-Za-z_]\w*(?:\.\w+){2,}|\/[\w.{}-]+(?:\/[\w.{}-]+){1,}/g;
+  const MARK = "\u0001";
   for (let n = walker.nextNode(); n; n = walker.nextNode()) if (new RegExp(LONG.source).test(n.data)) nodes.push(n);
   for (const n of nodes) {
     const span = document.createElement("span");
-    span.innerHTML = esc(n.data).replace(LONG, (w) =>
-      w.replace(/[^.(,]{28,}/g, (seg) => seg.replace(/([a-z])([A-Z])/g, "$1<wbr>$2")).replace(/([.(,])(?=.)/g, "$1<wbr>"));
+    // 候補は . ( , / ? & :: の後ろと、大文字の定数の _ の後ろ。28 字以上の区切りの無い所だけ、小文字 → 大文字の境目にも
+    const marked = n.data.replace(LONG, (w) =>
+      w.replace(/[^.(,\/?&:_]{28,}/g, (seg) => seg.replace(/([a-z])([A-Z])/g, `$1${MARK}$2`))
+        .replace(/([.(,?&]|(?<=[^\/])\/(?!\/)|::|(?<=[A-Z0-9])_(?=[A-Z0-9]))(?=.)/g, `$1${MARK}`));
+    span.innerHTML = esc(marked).replaceAll(MARK, "<wbr>");
     n.replaceWith(...span.childNodes);
   }
+}
+
+/** 組んだあとで、候補の無いまま語の途中で割れたチップ(行の幅に入らない 28 字未満の名前)にだけ、小文字 → 大文字の境目の候補を足す。
+ *  初めから境目に候補を入れると、収まる名前まで境目で割れた(23 回目)ので、割れたものだけ */
+function mendSplitChips(root) {
+  requestAnimationFrame(() => root.querySelectorAll(":not(pre) > code:not(.code-msg)").forEach((c) => {
+    if (c.querySelector("wbr") || /\s/.test(c.textContent) || !/[a-z][A-Z]/.test(c.textContent) || c.getClientRects().length < 2) return;
+    c.innerHTML = esc(c.textContent).replace(/([a-z])([A-Z])/g, "$1<wbr>$2");
+  }));
 }
 
 /** 仕事のコードの説明を、その行の直後に挟む(下の説明まで往復しないように)。「説明をたたむ」でコードだけ通して読める */
