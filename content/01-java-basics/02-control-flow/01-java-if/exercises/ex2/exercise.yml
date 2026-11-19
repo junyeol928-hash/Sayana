@@ -26,5 +26,5 @@ problem: |
   - `rank` が `null` でも `NullPointerException` にならないようにしてください。`"GOLD".equals(rank)` の向きで書くのがコツです。
   - `switch` を使う場合は、`null` を渡すと NPE になる点に注意。
 
-  ※ `public static int calc(...)` は **メソッド** の書き方です。メソッドは「メソッド」のレッスンで詳しくやります。
+  ※ `public static int calc(...)` は**メソッド**の書き方です。メソッドは「メソッド」のレッスンで詳しくやります。
   今は `// TODO:` の部分だけ書けばOK。

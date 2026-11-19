@@ -71,7 +71,7 @@ samples:
       // System.out.println(TaxCategory.valueOf("reduced"));
   - title: EnumMap でステータス別に集計する
     description: |
-      enum をキーにするなら EnumMap。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。
+      enum をキーにするなら `EnumMap`。注文は SHIPPED から入っていくが、集計の表示はどの順に並ぶだろうか。
     code: |
       // 注文一覧をステータス別に数える
       // ここを変えてみよう:orders に注文を足す / EnumMap を HashMap に変えて並び順を比べる
@@ -115,13 +115,13 @@ quiz:
     answer: 2
     why:
       - "`==` が値を比べ、`toString` も自動では作られないと読んだ答え。どちらも逆"
-      - "`equals` も参照の比較と読んだ答え。record では値の比較になる"
+      - "`equals` も参照の比較と読んだ答え。`record` では値の比較になる"
       - ""
       - "`toString` は自動で作られないと読んだ答え。その形は普通のクラスの出力"
     explanation: |
-      `==` は参照型では「同じオブジェクトか」を比べるので、`new` を2回した `a` と `b` は `false`。record は **全コンポーネントの値で比べる `equals`** を自動生成するので `equals` は `true`。`toString` も自動生成され、`Point[x=1, y=2]` の形式になります。
+      `==` は参照型では「同じオブジェクトか」を比べるので、`new` を2回した `a` と `b` は `false`。`record` は **全コンポーネントの値で比べる `equals`** を自動生成するので `equals` は `true`。`toString` も自動生成され、`Point[x=1, y=2]` の形式になります。
   - question: |
-      次のうち、**コンパイルエラーになる** record はどれ?
+      次のうち、**コンパイルエラーになる** `record` はどれ?
     choices:
       - "`record R(int x) { void set(int v) { this.x = v; } }`"
       - "`record R(int x) { static int count = 0; }`"
@@ -130,12 +130,12 @@ quiz:
     answer: 0
     why:
       - ""
-      - "record には `static` フィールドも置けないと読んだ答え。`static` なら置ける"
-      - "record にメソッドを足せないと読んだ答え。インスタンスメソッドは自由に足せる"
-      - "record はインターフェースも実装できないと読んだ答え。`implements` は書ける"
+      - "`record` には `static` フィールドも置けないと読んだ答え。`static` なら置ける"
+      - "`record` にメソッドを足せないと読んだ答え。インスタンスメソッドは自由に足せる"
+      - "`record` はインターフェースも実装できないと読んだ答え。`implements` は書ける"
     explanation: |
-      record のフィールドは暗黙に `private final` なので、メソッド内で再代入すると `cannot assign a value to final variable x` になります。値を変えたいなら、新しい record を作って返すのが流儀です。
-      record で禁止されているのは **インスタンスフィールドの追加** と、**クラスの継承**(record は暗黙に `final` で、`extends` も書けない)です。インスタンスフィールドを足すと次のメッセージが出ます: `field declaration must be static`
+      `record` のフィールドは暗黙に `private final` なので、メソッド内で再代入すると、次のコンパイルエラーになります: `cannot assign a value to final variable x` 値を変えたいなら、新しい `record` を作って返すのが流儀です。
+      `record` で禁止されているのは**インスタンスフィールドの追加**と、**クラスの継承**(`record` は暗黙に `final` で、`extends` も書けない)です。インスタンスフィールドを足すと次のメッセージが出ます: `field declaration must be static`
   - question: |
       注文ステータスを `ordinal()` の値で DB に保存していました。
       ```java
@@ -158,8 +158,8 @@ quiz:
       - "保存値が配列の外に出ると読んだ答え。値は 1 で範囲内なので、例外なく `PAID` に化ける"
       - "コンパイラがずれに気づくと読んだ答え。DB の中身はコンパイラに見えない"
     explanation: |
-      保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。**黙ってデータが壊れる** のが `ordinal` で永続化する怖さです。
-      永続化には `name()`(`"SHIPPED"`)か、enum に持たせた業務上のコード値を使います。
+      保存時の `SHIPPED.ordinal()` は `1` でした。現在の宣言では添字 1 は `PAID` なので、発送済みの注文が「支払済み」に化けます。**黙ってデータが壊れる**のが `ordinal` で永続化する怖さです。
+      永続化には `name()`(`"SHIPPED"`)か、`enum` に持たせた業務上のコード値を使います。
   - question: |
       次のコードを実行したときの結果は?
       ```java
@@ -179,8 +179,8 @@ quiz:
       - "見つからないと `null` が返ると読んだ答え。`valueOf` は `IllegalArgumentException` を投げる"
       - ""
     explanation: |
-      `valueOf` は定数名と **大文字小文字まで完全一致** する定数を探し、なければ `IllegalArgumentException: No enum constant Rank.gold` を投げます。
-      画面やファイルから来た文字列は `input.strip().toUpperCase()` で整えてから渡し、例外を捕まえて「不正な入力」として扱うのが定番です。なお `null` を渡すと `NullPointerException: Name is null` です。
+      `valueOf` は定数名と**大文字小文字まで完全一致**する定数を探し、なければ次の例外を投げます: `IllegalArgumentException: No enum constant Rank.gold`
+      画面やファイルから来た文字列は `input.strip().toUpperCase()` で整えてから渡し、例外を捕まえて「不正な入力」として扱うのが定番です。なお `null` を渡すと、次の例外になります: `NullPointerException: Name is null`
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -197,21 +197,21 @@ quiz:
       - "コンパイルは通り、`price(Size.L)` を呼ぶと 0 が返る"
       - "`L` を網羅していないので、コンパイルエラーになる"
       - "コンパイルは通り、`price(Size.L)` を呼ぶと例外が発生する"
-      - "enum の `switch` 式には必ず `default` が必要なので、コンパイルエラーになる"
+      - "`enum` の `switch` 式には必ず `default` が必要なので、コンパイルエラーになる"
     answer: 1
     why:
       - "書いていない定数は 0 になると読んだ答え。`switch` 式は全定数か `default` が要り、コンパイルエラー"
       - ""
       - "漏れが実行時に分かると読んだ答え。`switch` 式の網羅はコンパイル時に確かめられる"
-      - "enum の `switch` 式に `default` が必須と読んだ答え。全定数を書けば `default` なしで通る"
+      - "`enum` の `switch` 式に `default` が必須と読んだ答え。全定数を書けば `default` なしで通る"
     explanation: |
-      `switch` 式は必ず値を返す必要があるので、enum の **全定数** を `case` に書くか `default` を書かないと `the switch expression does not cover all possible input values` になります。`case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
+      `switch` 式は必ず値を返す必要があるので、`enum` の**全定数**を `case` に書くか `default` を書かないと、次のコンパイルエラーになります: `the switch expression does not cover all possible input values` `case L -> 500;` を足せば、`default` なしでコンパイルが通ります。
       全定数を書いて `default` を省くと、後から定数を追加したときにこの `switch` がコンパイルエラーになって対応漏れを教えてくれる、というのが現場で `default` を書かない理由です。
 columns:
   - type: genba
     title: JPA の @Enumerated はデフォルトが ORDINAL
     body: |
-      Spring Boot でよく使う JPA(Hibernate)では、エンティティの enum フィールドに何も指定しないと **ordinal(数値)で DB に保存** されます。
+      Spring Boot でよく使う JPA(Hibernate)では、エンティティの enum フィールドに何も指定しないと **ordinal(数値)で DB に保存**されます。
 
       ```java
       @Enumerated            // 省略時は EnumType.ORDINAL
@@ -220,7 +220,7 @@ columns:
 
       開発中は問題なく動くので誰も気づかず、運用に入ってから「ステータスを1つ追加したい」と定数を途中に足した瞬間、過去データの意味が全部ずれます。しかも例外は出ないので、発覚はたいてい「発送済みのはずの注文が支払待ちに戻っている」という問い合わせからです。
 
-      現場のルールは `@Enumerated(EnumType.STRING)` を **必ず** 書くこと。さらに名前の変更にも耐えたいなら、enum に `code` フィールドを持たせて変換クラス(`AttributeConverter`)で保存する設計にします。レビューで `@Enumerated` だけの行を見かけたら、即コメントしましょう。
+      現場のルールは `@Enumerated(EnumType.STRING)` を**必ず**書くこと。さらに名前の変更にも耐えたいなら、enum に `code` フィールドを持たせて変換クラス(`AttributeConverter`)で保存する設計にします。レビューで `@Enumerated` だけの行を見かけたら、即コメントしましょう。
   - type: trivia
     title: enum の正体は「インスタンスが決まっている final クラス」
     body: |
@@ -235,7 +235,7 @@ columns:
       }
       ```
 
-      各定数は **クラス初期化時に1回だけ作られる static final なインスタンス**。リフレクションでも `new` できず、シリアライズから戻しても同じインスタンスになるよう特別扱いされているので、`==` で比べて安全です。
+      各定数は**クラス初期化時に1回だけ作られる static final なインスタンス**。リフレクションでも `new` できず、シリアライズから戻しても同じインスタンスになるよう特別扱いされているので、`==` で比べて安全です。
 
       この性質から、『Effective Java』では「要素が1つの enum」がシングルトンの最良の実装とされています。なお `values()` は呼ぶたびに配列をコピーして返すので、大量ループの内側で呼ぶのは避けましょう。
   - type: mistake
@@ -253,7 +253,7 @@ columns:
       System.out.println(inv.lines().size());   // 2 !
       ```
 
-      `final` なのは「別の List に差し替えられない」ことだけ。**List の中身** は呼び出し元と共有なので、外で `add` すれば明細も増えます(浅い不変)。対策はコンパクトコンストラクタでの防御コピーです。
+      `final` なのは「別の List に差し替えられない」ことだけ。**List の中身**は呼び出し元と共有なので、外で `add` すれば明細も増えます(浅い不変)。対策はコンパクトコンストラクタでの防御コピーです。
 
       ```java
       record Invoice(String no, List<String> lines) {

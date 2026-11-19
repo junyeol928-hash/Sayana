@@ -50,7 +50,7 @@ samples:
       }
   - title: 任意条件は「値があるときだけ部品を足す」
     description: |
-      Specification と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
+      `Specification` と同じ考え方を、素の Java の `Predicate` で体験します。条件(null = 指定なし)を変えると、使う部品の数と結果が変わります。最後の表示は、同じことを派生クエリでやろうとしたときに必要なメソッドの本数です。
       今の条件(`type` だけ null)では、部品は何個使われ、どの申請が残る?
     code: |
       import java.util.function.Predicate;
@@ -140,7 +140,7 @@ quiz:
       - "OFFSET 40 を「40件目から」と数えた答え。41件目からで、45件より先は返らない"
       - "page を開始位置と読んだ答え。page は何ページ目かを表す"
     explanation: |
-      page は **0 始まり** です。`page = 2` は「3ページ目」なので OFFSET は `2 × 20 = 40`、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
+      page は **0 始まり**です。`page = 2` は「3ページ目」なので OFFSET は `2 × 20 = 40`、41件目からになります。全45件なので、返るのは残りの 41〜45件目の5件だけです(LIMIT 20 でも足りない分は返りません)。
       page を 1 始まりと思い込むと、画面の「2ページ目」リンクで3ページ目が出る、というズレが起きます。
   - question: |
       次の検索で、Specification が作る WHERE 句に含まれる条件はどれ?
@@ -233,7 +233,7 @@ columns:
       ```
 
       ところが Spring Boot 3.5(Spring Data JPA 3.5)で書くと、STS では `where` に取り消し線が付き、
-      「... has been deprecated and marked for removal」と警告が出ます。3.5 で **削除予定の非推奨** になったからです。代わりに、条件なしを表す `Specification.unrestricted()` から `.and(...)` でつなぐか、
+      「... has been deprecated and marked for removal」と警告が出ます。3.5 で**削除予定の非推奨**になったからです。代わりに、条件なしを表す `Specification.unrestricted()` から `.and(...)` でつなぐか、
       この教材のように部品のリストを `Specification.allOf(...)` に渡します。
 
       `where(null)` が「条件なし」を意味する、という null 頼みの書き方をやめるためです。
@@ -259,7 +259,7 @@ columns:
       しかも一覧が N+1 で、1リクエストに2,000本以上の SELECT が飛んでいた……というのは、よく聞く話です。
 
       対策は2つ。上限を業務に合わせて下げる(`spring.data.web.pageable.max-page-size=50`)か、承認くんのように `PagingParams` で自分で検査します。
-      `sort` も同じで、`Pageable` の自動解決は **存在しない項目名をそのまま通す** ので、`sort=foo` で 500 エラーになります。
+      `sort` も同じで、`Pageable` の自動解決は**存在しない項目名をそのまま通す**ので、`sort=foo` で 500 エラーになります。
       URL は誰でも書き換えられる入力です。フォームの値と同じように、ページングのパラメータも疑ってかかりましょう。
 sts:
   intro: |
@@ -276,7 +276,7 @@ sts:
     - title: 条件の部品 ApprovalRequestSpecs を作る
       detail: |
         `repository` パッケージを右クリック > **New > Class**(新規 > クラス)で `ApprovalRequestSpecs` を作り、解説の `statusIs`・`typeIs`・`keywordContains` と `escape` を書きます。
-        `root.get("title")` の文字列は **エンティティのフィールド名** です(列名の `title` ではなく、たとえば `createdAt` なら `"createdAt"`)。つづりを間違えると、検索したときに `Unable to locate Attribute with the given name [titel]` で落ちます。
+        `root.get("title")` の文字列は**エンティティのフィールド名**です(列名の `title` ではなく、たとえば `createdAt` なら `"createdAt"`)。つづりを間違えると、検索したときに次のエラーで落ちます: `Unable to locate Attribute with the given name [titel]`
     - title: SearchCondition と RequestSearchService を作る
       detail: |
         `service` パッケージに `SearchCondition`(`RequestStatus status`・`RequestType type`・`String keyword` と getter/setter、`hasKeyword()`)を作ります。
@@ -400,13 +400,13 @@ sts:
 
         ブラウザで次の URL を順に開きます。初期データが少ないときは `size=2` にするとページングを確かめやすくなります。
         1. `http://localhost:8080/requests/search?size=2` … 新しい順に2件、「全 N 件中 1〜2 件目」と「次へ」が出る
-        2. 「次へ」を押す … URL に `page=1&size=2` が付き、「3〜4 件目」になる。ブラウザの **戻る** で1ページ目に戻れる
+        2. 「次へ」を押す … URL に `page=1&size=2` が付き、「3〜4 件目」になる。ブラウザの**戻る**で1ページ目に戻れる
         3. 状態を `SUBMITTED` にして検索 … **Console**(コンソール)の SQL の where に `status=?` だけが入っている
         4. `?size=100000&page=-1&sort=password` … エラーにならず、先頭ページを最大50件で表示する
         5. `?status=FOO` … 400 エラーにならず、状態は「すべて」で検索される
     - title: N+1 と LIKE の落とし穴を体験する
       detail: |
-        1. Repository の `@EntityGraph` 行を `//` でコメントアウトして再起動し、検索画面を開きます。Console に社員テーブルへの `select ... where e1_0.id=?` が **申請者の人数分** 並ぶのが N+1 です。元に戻すと、本体の SELECT に社員テーブルとの `join` が入り、申請者ごとの SELECT が消えます
+        1. Repository の `@EntityGraph` 行を `//` でコメントアウトして再起動し、検索画面を開きます。Console に社員テーブルへの `select ... where e1_0.id=?` が**申請者の人数分**並ぶのが N+1 です。元に戻すと、本体の SELECT に社員テーブルとの `join` が入り、申請者ごとの SELECT が消えます
         2. 件名に `50%` を含む申請を1件作り、キーワード `50%` で検索します。`escape` を外すと `50` を含むものが全部ヒットし、付けると `50%` を含むものだけになることを確かめます
         3. `次へ` リンクから `sort=${param.sort}` を消して `?sort=amount,desc` で検索し、「次へ」を押すと並び順が新しい順に戻ってしまうことを確認します(確認したら元に戻す)
 checklist:

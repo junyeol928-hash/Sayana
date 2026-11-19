@@ -16,7 +16,7 @@
     - "`this` を返さなくても、同じ Builder のまま続くと読んだ答え。`void` の結果には `.` で続けられない"
     - "`void` を「`null` が返る」と読んだ答え。実行する前に、コンパイルの時点で止まる"
   explanation: |
-    メソッドチェーンは、各メソッドが自分(`this`)を返すからつながる。`to(...)` が何も返さないと、その結果に `.subject(...)` を呼べず `void cannot be dereferenced` になる。
+    メソッドチェーンは、各メソッドが自分(`this`)を返すからつながる。`to(...)` が何も返さないと、その結果に `.subject(...)` を呼べず、次のコンパイルエラーになる: `void cannot be dereferenced`
 - after: 内部クラス:外側のインスタンスに結び付く
   question: |
     `FuelGauge` は `Car` の内部クラス(`static` なし)。`Car` の外でこう書くと?
@@ -30,10 +30,10 @@
     - "`static` ネストクラスと同じく、外側なしで作れると読んだ答え。内部クラスは外側の `Car` が要る"
     - "外側の `Car` が `null` のまま作られると読んだ答え。作る前に、コンパイルの時点で止まる"
   explanation: |
-    内部クラスのインスタンスは、外側のインスタンス1つとセットでしか作れない。外側の `Car` が無いので `an enclosing instance that contains Car.FuelGauge is required` になる。
+    内部クラスのインスタンスは、外側のインスタンス1つとセットでしか作れない。外側の `Car` が無いので、次のコンパイルエラーになる: `an enclosing instance that contains Car.FuelGauge is required`
 - after: ローカルクラスと匿名クラス:その場限りの部品
   question: |
-    `label` はローカル変数ではなく **フィールド**。`new Handler().build().run()` を実行すると?
+    `label` はローカル変数ではなく**フィールド**。`new Handler().build().run()` を実行すると?
     ```java
     class Handler {
         String label = "通常";
@@ -52,4 +52,4 @@
     - "フィールドにもローカル変数と同じ制限がかかると読んだ答え。制限はローカル変数だけ"
     - "初期値の `通常` がコピーされると読んだ答え。フィールドは `run()` のときに今の値を読む"
   explanation: |
-    実質的 `final` の制限がかかるのは、外側の **ローカル変数** だけ。フィールドは値をコピーせず外側のインスタンス経由で読むので、再代入していても使える。
+    実質的 `final` の制限がかかるのは、外側の**ローカル変数**だけ。フィールドは値をコピーせず外側のインスタンス経由で読むので、再代入していても使える。

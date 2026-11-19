@@ -59,7 +59,7 @@ samples:
               + (s == ctx.getBean(OrderService.class)));
       ctx.close();
   - title: "@Configuration + @Bean と、@Primary / @Qualifier"
-    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの Notifier が入るだろうか。最後の行には、どの Bean 名が出るだろうか。
+    description: アノテーションを付けられないクラスを `@Bean` メソッドで Bean にし、同じ型が2つあるときに `@Primary`(既定)と `@Qualifier`(名前指定)で選び分けます。`ReportService` と `AlertService` には、それぞれどちらの `Notifier` が入るだろうか。最後の行には、どの Bean 名が出るだろうか。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.annotation.*;
@@ -188,7 +188,7 @@ quiz:
       - ""
       - "コンテナが Bean を探して失敗すると読んだ答え。自分で `new` したのでコンテナは関わらない"
     explanation: |
-      `@Autowired` で値を入れるのは **IoC コンテナ** です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
+      `@Autowired` で値を入れるのは **IoC コンテナ**です。自分で `new` したオブジェクトはコンテナを通っていないので、フィールドは初期値の `null` のまま。`mail.send(...)` で `NullPointerException` になります。
       コンストラクタインジェクションにしておけば、`new OrderService(偽物)` と依存を渡すしかないので、この事故は起きません。
   - question: |
       次の3クラスを `new AnnotationConfigApplicationContext(Smtp.class, Log.class, Shop.class)` で登録しました。どうなる?
@@ -283,7 +283,7 @@ columns:
   - type: trivia
     title: IoC は「ハリウッドの原則」
     body: |
-      IoC(制御の反転)は、昔から **ハリウッドの原則**(Hollywood Principle)とも呼ばれます。オーディションに来た役者に言う決まり文句「Don't call us, we'll call you.(こちらから電話するから、そっちからはかけてこないで)」が由来です。
+      IoC(制御の反転)は、昔から**ハリウッドの原則**(Hollywood Principle)とも呼ばれます。オーディションに来た役者に言う決まり文句「Don't call us, we'll call you.(こちらから電話するから、そっちからはかけてこないで)」が由来です。
 
       普通のプログラムは「自分が」ライブラリを呼びます。フレームワークでは逆に「フレームワークが」あなたのコードを呼びます。JUnit もそうで、あなたは `@Test` メソッドを書くだけ。いつ `new` して、いつ呼ぶかは JUnit が決めています。
 
@@ -302,7 +302,7 @@ columns:
       }
       ```
 
-      コンパイル時にコンストラクタが生成されるので、中身は普通のコンストラクタインジェクションです。ただし「依存が増えても見た目が増えない」ので、気づいたら依存が10個…ということも。コンストラクタの引数が多すぎるのは **クラスが仕事を抱えすぎているサイン** です。Lombok を使っても、その感覚は持っておきましょう。
+      コンパイル時にコンストラクタが生成されるので、中身は普通のコンストラクタインジェクションです。ただし「依存が増えても見た目が増えない」ので、気づいたら依存が10個…ということも。コンストラクタの引数が多すぎるのは**クラスが仕事を抱えすぎているサイン**です。Lombok を使っても、その感覚は持っておきましょう。
   - type: mistake
     title: 「Bean が見つからない」で最初に確かめる 3 点
     body: |
@@ -336,7 +336,7 @@ sts:
         - **Group**(グループ):`com.example`、**Artifact**(成果物):`di-demo`
         - **Package**(パッケージ):`com.example.didemo`
 
-        **Next**(次へ)を押すと依存関係(**Dependencies**)の選択画面になります。今回は **何も選ばず** に **Finish**(完了)。
+        **Next**(次へ)を押すと依存関係(**Dependencies**)の選択画面になります。今回は**何も選ばず**に **Finish**(完了)。
         初回は Maven が依存ライブラリをダウンロードするので、右下の進捗表示が消えるまで1〜2分待ちます。
         **Package Explorer**(パッケージ・エクスプローラー)に `di-demo` と `src/main/java` の下の `DiDemoApplication.java` が見えれば成功です。
     - title: インターフェースと @Service の実装クラスを作る

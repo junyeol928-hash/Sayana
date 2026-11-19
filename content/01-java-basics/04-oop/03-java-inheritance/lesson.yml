@@ -127,7 +127,7 @@ quiz:
       - "子の本体が先に動くと読んだ答え"
       - "`super()` を書かないとエラーと読んだ答え"
     explanation: |
-      `Q()` に `super()` は書かれていませんが、コンパイラが先頭に **引数なしの `super()` を自動挿入** します。そのため親の `P()` が先に実行されて `1`、続いて `2` が出力され、`12` です。
+      `Q()` に `super()` は書かれていませんが、コンパイラが先頭に**引数なしの `super()` を自動挿入**します。そのため親の `P()` が先に実行されて `1`、続いて `2` が出力され、`12` です。
   - question: |
       次のコードについて正しい説明はどれ?
       ```java
@@ -146,9 +146,9 @@ quiz:
       - "自動で入る `super()` を見落とした答え"
       - "`private` フィールドがあると継承できないと読んだ答え。継承はでき、子から直接触れないだけ"
       - ""
-      - "`final` フィールドが原因と読んだ答え。r はコンストラクタで初期化しているので問題ない"
+      - "`final` フィールドが原因と読んだ答え。`r` はコンストラクタで初期化しているので問題ない"
     explanation: |
-      `Circle(double r)` には `super(...)` がないので、コンパイラが `super()` を自動挿入します。ところが `Shape` には `Shape(String)` しかなく、引数なしのコンストラクタがないため `constructor Shape in class Shape cannot be applied to given types` になります。`super("円");` を先頭に書けば直ります。
+      `Circle(double r)` には `super(...)` がないので、コンパイラが `super()` を自動挿入します。ところが `Shape` には `Shape(String)` しかなく、引数なしのコンストラクタがないため、次のコンパイルエラーになります: `constructor Shape in class Shape cannot be applied to given types` `super("円");` を先頭に書けば直ります。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -169,7 +169,7 @@ quiz:
       - "名前の違うメソッドの追加をエラーと読んだ答え。`@Override` が無いので気づかれずに通る"
       - "親と子のメソッドの結果が足されると読んだ答え"
     explanation: |
-      `pai` は `pay` の typo なので **オーバーライドではなく、新しいメソッドの追加** です。`p.pay()` は親から引き継いだ `pay()` を呼ぶので `100` が出力されます。コンパイルエラーにもならないのが怖いところです。
+      `pai` は `pay` の typo なので**オーバーライドではなく、新しいメソッドの追加**です。`p.pay()` は親から引き継いだ `pay()` を呼ぶので `100` が出力されます。コンパイルエラーにもならないのが怖いところです。
       `pai()` に `@Override` を付けていれば `method does not override or implement a method from a supertype` でコンパイル時に気づけました。だから現場では `@Override` を必ず付けます。
   - question: |
       次のコードを実行したときの出力は?
@@ -191,10 +191,10 @@ quiz:
       - "`super.hello()` が自分自身を呼ぶと読んだ答え"
       - ""
     explanation: |
-      `super.hello()` は **親クラス側の実装** を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。
+      `super.hello()` は**親クラス側の実装**を呼ぶので `"Base"` が返り、そこに `"+Sub"` を連結して `Base+Sub` です。
       もし `super.` を付け忘れて `hello() + "+Sub"` と書くと、自分自身を無限に呼び続けて `StackOverflowError` になります。
   - question: |
-      継承(`extends`)の使い方として **最も適切** なのはどれ?
+      継承(`extends`)の使い方として**最も適切**なのはどれ?
     choices: ["注文クラスでログ出力を使いたいので、`OrderService extends Logger` にする", "自社の社員クラス階層で、パート社員を社員の一種として `PartTimer extends Employee` にする", "String に便利メソッドを足したいので、`MyString extends String` にする", "2つのクラスの機能を両方使いたいので、`extends A, B` と書く"]
     answer: 1
     why:
@@ -203,7 +203,7 @@ quiz:
       - "どのクラスでも継承できると読んだ答え。String は `final` クラスなので継承できない"
       - "クラスを 2 つ継承できると読んだ答え。Java のクラスは単一継承で `extends A, B` はエラー"
     explanation: |
-      「パート社員は社員の一種」という **is-a 関係** が自然に成り立ち、自分たちで管理しているクラス階層なので継承の好例です。
+      「パート社員は社員の一種」という **is-a 関係**が自然に成り立ち、自分たちで管理しているクラス階層なので継承の好例です。
       is-a が成り立たず、機能だけを使いたいなら、継承ではなくフィールドに **持って任せる(委譲)** のが基本です。
 columns:
   - type: trivia
@@ -236,7 +236,7 @@ columns:
       label=null
       ```
 
-      実体が Sub なので、`Base()` の中の `describe()` は **Sub 側** が呼ばれます。しかし Sub のフィールド初期化(`label = "sub"`)は **親のコンストラクタが終わった後**。だから `null` です。
+      実体が Sub なので、`Base()` の中の `describe()` は **Sub 側**が呼ばれます。しかし Sub のフィールド初期化(`label = "sub"`)は**親のコンストラクタが終わった後**。だから `null` です。
 
       「親→子」の初期化順の副作用です。コンストラクタからはオーバーライド可能なメソッドを呼ばない(呼ぶなら `private` か `final` だけ)のが鉄則です。
   - type: genba

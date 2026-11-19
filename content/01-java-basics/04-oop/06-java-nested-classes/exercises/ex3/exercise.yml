@@ -2,8 +2,8 @@ title: 内部クラスで整理券を発行する
 className: TicketMachine
 difficulty: 2
 problem: |
-  役所の窓口の **整理券発行機** `TicketMachine` を作ります。発行した整理券 `Ticket` は **内部クラス**(static なし)で、
-  自分を発行した発行機の **窓口名** と **最新の発行枚数** を、外側のフィールドから直接読みます。
+  役所の窓口の**整理券発行機** `TicketMachine` を作ります。発行した整理券 `Ticket` は**内部クラス**(static なし)で、
+  自分を発行した発行機の**窓口名**と**最新の発行枚数**を、外側のフィールドから直接読みます。
 
   ```java
   TicketMachine a = new TicketMachine("A窓口");

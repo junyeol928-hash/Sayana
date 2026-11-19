@@ -124,10 +124,10 @@ quiz:
       - ""
       - "`@SpringBootTest` と同じと読んだ答え。`@WebMvcTest` では `@Service` も DB も使われない"
     explanation: |
-      `@WebMvcTest` は Controller・`@ControllerAdvice`・フィルタなど **Web 層の Bean だけ** でアプリを組み立てます。`@Service` は作られないので、`OrderController` に渡す `OrderService` が見つからず `No qualifying bean of type 'OrderService'`(Failed to load ApplicationContext)で失敗します。
+      `@WebMvcTest` は Controller・`@ControllerAdvice`・フィルタなど **Web 層の Bean だけ**でアプリを組み立てます。`@Service` は作られないので、`OrderController` に渡す `OrderService` が見つからず `No qualifying bean of type 'OrderService'`(Failed to load ApplicationContext)で失敗します。
       `@MockitoBean OrderService service;` を足して偽物を差し込むのが正解です。本物の Service や DB まで使いたいなら `@SpringBootTest` を選びます。
   - question: |
-      standaloneSetup(UTF-8 の設定なし)で次の Controller をテストした。結果は?
+      `standaloneSetup`(UTF-8 の設定なし)で次の Controller をテストした。結果は?
       ```java
       @GetMapping("/hello")
       public String hello() { return "こんにちは"; }
@@ -162,10 +162,10 @@ quiz:
       - "仕込んでいない呼び出しは `null` と読んだ答え。戻り値が `List` なら空のリストが返る"
       - "仕込み忘れが例外になると読んだ答え。例外にならず、既定値の空のリストが返る"
     explanation: |
-      `when(...).thenReturn(...)` は **その引数で呼ばれたとき** だけ効きます。仕込んでいない引数 `"C002"` では Mockito の既定値が返り、戻り値が `List` などのコレクションなら **空のコレクション**、`int` なら `0`、普通のオブジェクトなら `null` です。
+      `when(...).thenReturn(...)` は**その引数で呼ばれたとき**だけ効きます。仕込んでいない引数 `"C002"` では Mockito の既定値が返り、戻り値が `List` などのコレクションなら**空のコレクション**、`int` なら `0`、普通のオブジェクトなら `null` です。
       「仕込み忘れても例外にならず空が返る」ので、テストが意図せず通ってしまうことがあります。`verify(service).findByCustomer("C001")` で「本当にその引数で呼ばれたか」も確かめるのが定石です。
   - question: |
-      standaloneSetup でこの Controller をテストしたら、`ServletException` が発生した。原因は?
+      `standaloneSetup` でこの Controller をテストしたら、`ServletException` が発生した。原因は?
       ```java
       @Controller
       public class OrderController {
@@ -184,7 +184,7 @@ quiz:
       - "テンプレートが描画されると読んだ答え。`orders.html` があっても無くても同じ結果になる"
       - ""
     explanation: |
-      standaloneSetup は ViewResolver を設定しないと、画面名をそのまま転送先(forward)として扱います。画面名 `orders` は今の URL `/orders` と同じになるので `Circular view path [orders]: would dispatch back to the current handler URL [/orders] again.` で失敗します。
+      `standaloneSetup` は ViewResolver を設定しないと、画面名をそのまま転送先(forward)として扱います。画面名 `orders` は今の URL `/orders` と同じになるので `Circular view path [orders]: would dispatch back to the current handler URL [/orders] again.` で失敗します。
       画面名を `orders/list` のようにフォルダで分けるのが定番の回避策です(`view().name("orders/list")` で検証できます)。
   - question: |
       テストクラスが10個ある。全部 `@SpringBootTest` だが、クラスごとに `@MockitoBean` で差し替える Bean がバラバラ。テスト全体がとても遅い。主な原因として最も適切なのは?
@@ -196,13 +196,13 @@ quiz:
       - "Mockito そのものが遅いと読んだ答え"
       - "並列で動かないことが主な原因と読んだ答え"
     explanation: |
-      Spring のテスト基盤は、**設定が同じ** テストクラス同士で `ApplicationContext` を使い回します(コンテキストキャッシュ)。`@MockitoBean` の組み合わせ、`@ActiveProfiles`、`@TestPropertySource` が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。`@DirtiesContext` も強制的に作り直します。
+      Spring のテスト基盤は、**設定が同じ**テストクラス同士で `ApplicationContext` を使い回します(コンテキストキャッシュ)。`@MockitoBean` の組み合わせ、`@ActiveProfiles`、`@TestPropertySource` が違うと別の設定とみなされ、クラスごとにアプリの起動をやり直すことになります。`@DirtiesContext` も強制的に作り直します。
       対策は、差し替える Bean を共通の親クラスなどに揃えてキャッシュを効かせることです。
 columns:
   - type: trivia
     title: "@MockBean から @MockitoBean へ ― 引っ越しの理由"
     body: |
-      長年使われてきた `@MockBean` は **Spring Boot** の機能(`org.springframework.boot.test.mock.mockito`)でした。Spring Framework 6.2 で、同じことをする `@MockitoBean`(`org.springframework.test.context.bean.override.mockito`)が **Spring Framework 本体** に入り、Spring Boot 3.4 で `@MockBean` は非推奨になりました。
+      長年使われてきた `@MockBean` は **Spring Boot** の機能(`org.springframework.boot.test.mock.mockito`)でした。Spring Framework 6.2 で、同じことをする `@MockitoBean`(`org.springframework.test.context.bean.override.mockito`)が **Spring Framework 本体**に入り、Spring Boot 3.4 で `@MockBean` は非推奨になりました。
 
       理由は「Bean の差し替え」を Boot 専用ではなく Spring のテスト基盤の標準にするため。本物を包んで一部だけ偽物にする `@MockitoSpyBean` もあります。
 
@@ -234,7 +234,7 @@ columns:
 
       どちらも通ります。8000 も 1000 も境界から遠い「よくある値」だからです。5000 円ちょうどのお客様からの問い合わせで発覚しました。
 
-      テストが守ってくれるのは **書いたケースだけ**。境界値(4999 / 5000)と異常系(0 円・マイナス・存在しない ID → 404)を書いて初めて、テストは「バグを見つける道具」になります。演習3はまさにこれを体験する問題です。
+      テストが守ってくれるのは**書いたケースだけ**。境界値(4999 / 5000)と異常系(0 円・マイナス・存在しない ID → 404)を書いて初めて、テストは「バグを見つける道具」になります。演習3はまさにこれを体験する問題です。
 sts:
   intro: |
     STS で Controller のテストを JUnit で作り、`@WebMvcTest` + MockMvc で検証して、緑のバーを確認します。Service は `@MockitoBean` で偽物に差し替えます。
@@ -258,10 +258,10 @@ sts:
     - title: Run As > JUnit Test で緑のバーを確認する
       detail: |
         エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。**Alt+Shift+X, T** でも実行できます。
-        **JUnit** ビューが開き、上部のバーが **緑** で `Runs: 1/1  Errors: 0  Failures: 0` と出れば成功です。Console にはテスト用に起動した Spring Boot のバナーが表示されます。
+        **JUnit** ビューが開き、上部のバーが**緑**で `Runs: 1/1  Errors: 0  Failures: 0` と出れば成功です。Console にはテスト用に起動した Spring Boot のバナーが表示されます。
     - title: わざと失敗させて赤いバーを読む
       detail: |
-        `jsonPath("$[0].item").value("ペン")` の期待値を `"ノート"` に変えて、もう一度実行します。バーが **赤** になり、**Failure Trace**(障害トレース)に `JSON path "$[0].item" expected:<ノート> but was:<ペン>` と出ることを確認します。
+        `jsonPath("$[0].item").value("ペン")` の期待値を `"ノート"` に変えて、もう一度実行します。バーが**赤**になり、**Failure Trace**(障害トレース)に `JSON path "$[0].item" expected:<ノート> but was:<ペン>` と出ることを確認します。
         Failure Trace の行をダブルクリックすると、失敗した行にジャンプできます。確認できたら元に戻します。
     - title: "@MockitoBean を外して、起動失敗を見る"
       detail: |

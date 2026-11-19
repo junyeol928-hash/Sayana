@@ -2,12 +2,12 @@ title: 商品クラスに toString と equals を実装する
 className: Product
 difficulty: 3
 problem: |
-  在庫管理システムの商品クラス `Product` に、`Object` から引き継いだメソッドを **オーバーライド** して実装します。
+  在庫管理システムの商品クラス `Product` に、`Object` から引き継いだメソッドを**オーバーライド**して実装します。
   さらに、値引き商品 `DiscountProduct` を `Product` の子クラスとして完成させてください。
 
   **`Product(String code, String name, int price)`**
   1. `toString()` … `"[商品コード] 商品名 価格円"` を返す。例: `"[A001] りんご 120円"`
-  2. `equals(Object o)` … **商品コードが同じなら同じ商品** とみなして `true`。
+  2. `equals(Object o)` … **商品コードが同じなら同じ商品**とみなして `true`。
      商品名や価格が違っても、コードが同じなら `true`。`null` や `Product` 以外のオブジェクトなら `false`
   3. `hashCode()` … `equals` が `true` になる2つの商品で同じ値を返す(`code.hashCode()` を返せばOK)
 
@@ -27,4 +27,4 @@ problem: |
   注意:
   - `equals` の引数は必ず **`Object` 型**。`equals(Product o)` にするとオーバーライドにならず、テストが落ちます。
   - 文字列のコードは `==` ではなく `equals` で比べましょう。
-  - `DiscountProduct` の `toString()` は、親の書式を **コピペせず** `super.toString()` を使ってください。
+  - `DiscountProduct` の `toString()` は、親の書式を**コピペせず** `super.toString()` を使ってください。

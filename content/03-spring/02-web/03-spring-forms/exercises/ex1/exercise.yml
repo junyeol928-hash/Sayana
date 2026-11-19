@@ -21,6 +21,6 @@ problem: |
   - メッセージ(`message = ...`)は自由です。テストは「どの項目でエラーになったか」だけを見ます。
 
   テストは `jakarta.validation.Validation` で作った `Validator` で、いろいろな入力を検証します。
-  `@Size` や `@Pattern` は null を OK とみなすので、**必須チェックの注釈と組み合わせる** のを忘れずに。
+  `@Size` や `@Pattern` は null を OK とみなすので、**必須チェックの注釈と組み合わせる**のを忘れずに。
 
   ※ STS では `com.example.member.web` パッケージの `SignupForm.java` に置くクラスです(採点用にパッケージなしにしています)。

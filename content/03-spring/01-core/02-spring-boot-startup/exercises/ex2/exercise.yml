@@ -23,7 +23,7 @@ problem: |
   4. `accessLogger(LogSink sink)` に `@Bean` を付ける(どちらの `LogSink` が来ても動く)
   5. `AccessLogger.log(method, path, status)` で `"GET /orders 200"` のような1行を `sink.write(...)` に渡す
 
-  採点では次のようにコンテナを作ります。**利用者の設定を先に** 登録しているのがポイントです
+  採点では次のようにコンテナを作ります。**利用者の設定を先に**登録しているのがポイントです
   (条件は登録の順に判定されるため。Spring Boot も自動設定を利用者の設定より後に処理します)。
   ```java
   new AnnotationConfigApplicationContext(LoggingAutoConfig.class);

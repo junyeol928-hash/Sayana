@@ -37,7 +37,7 @@
     `super.` の無い `salary()` は Manager 自身を呼ぶので、終わりなく自分を呼び続けてスタックがあふれる。親の計算を使うなら `super.salary() + 50_000`。
 - after: protected / final / Object
   question: |
-    `Employee` の `protected` メソッドを、**同じパッケージ** にある(子クラスではない)`Report` クラスから呼ぶと?
+    `Employee` の `protected` メソッドを、**同じパッケージ**にある(子クラスではない)`Report` クラスから呼ぶと?
   choices: ["呼べる", "コンパイルエラー", "コンパイルは通り、実行時にエラー"]
   answer: 0
   why:

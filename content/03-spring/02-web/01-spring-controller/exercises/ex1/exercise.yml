@@ -12,7 +12,7 @@ problem: |
   | `GET /members/42` | `会員番号: 42` |
 
   - クラスには `@RestController` を付けます(戻り値をそのままレスポンス本体にするため)。
-  - `/hello` は `@GetMapping` と `@RequestParam` で。name が **無いときや空文字のとき** は `ゲスト` にします(`defaultValue` を使うと両方まとめて対応できます)。
+  - `/hello` は `@GetMapping` と `@RequestParam` で。name が**無いときや空文字のとき**は `ゲスト` にします(`defaultValue` を使うと両方まとめて対応できます)。
   - `/members/{id}` は `@PathVariable` で受け取り、`id` は `int` にします。`/members/abc` のように数値でないと、Spring が自動で **400** を返すことも確かめられます。
   - `/hello` に POST すると **405** になることもテストしています(`@GetMapping` で書けば自動でそうなります)。
 

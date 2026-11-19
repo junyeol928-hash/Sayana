@@ -17,7 +17,7 @@
 - after: 例外とトランザクションの境界
   question: |
     `@Transactional` の付いた `KeyService.revoke` を、Controller(トランザクションなし)が 2 回続けて呼んだ。2 回目で RuntimeException が出ると、1 回目の失効は?
-  choices: ["2 回目と一緒にロールバックされる", "コミット済みで残る", "例外が Controller に届き、全部取り消される"]
+  choices: ["2 回目と一緒にロールバックされる", "1 回目が戻った時点でコミット済みなので残る", "例外が Controller に届き、全部取り消される"]
   answer: 1
   why:
     - "2 回の呼び出しが 1 つのトランザクションと読んだ答え"

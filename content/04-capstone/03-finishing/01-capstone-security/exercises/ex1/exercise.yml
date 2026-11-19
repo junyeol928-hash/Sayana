@@ -4,9 +4,9 @@ difficulty: 2
 problem: |
   承認くんの画面とサービスの両方から使う、権限判定のクラス `AccessPolicy` を作ります。
   ログイン中の社員 `Actor`(社員ID とロール)・操作 `Operation`・申請 `RequestInfo`(申請者ID・状態・金額)を受け取り、
-  **許可か拒否か** と **拒否の理由** を `Decision` で返します。理由の文言は定数として用意してあります。
+  **許可か拒否か**と**拒否の理由**を `Decision` で返します。理由の文言は定数として用意してあります。
 
-  **`Decision check(Actor actor, Operation op, RequestInfo req)`** を、次の順番で判定してください(**最初に引っかかった理由** を返す)。
+  **`Decision check(Actor actor, Operation op, RequestInfo req)`** を、次の順番で判定してください(**最初に引っかかった理由**を返す)。
 
   | 順 | 判定 | 拒否の理由(定数) |
   |---|---|---|
@@ -37,7 +37,7 @@ problem: |
   ```
 
   - 休暇(`LEAVE`)の申請は金額が `null` です。ルール3の対象外として扱います(`null` のまま比較すると `NullPointerException`)。
-  - ルール2が禁じているのは自分の申請の **承認** です。差戻し(`RETURN`)は本人チェックをしません。
+  - ルール2が禁じているのは自分の申請の**承認**です。差戻し(`RETURN`)は本人チェックをしません。
   - 「誰が」を先に、「状態」を後に判定するのは、権限のない人に申請の状態を教えないためです。
 
   ※ STS では `com.example.approval.service` パッケージに `AccessPolicy.java`(`@Component`)、`Operation.java`、`Decision.java` を置き、

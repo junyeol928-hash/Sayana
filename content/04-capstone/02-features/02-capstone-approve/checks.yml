@@ -30,7 +30,7 @@
     - "ボタンはフォームの送り先に送ると読んだ答え。`th:formaction` のボタンは、押したときだけ送り先を差戻しに変える"
     - "空の comment が入口で弾かれると考えた答え。`required = false` なので、Controller までは届く"
   explanation: |
-    `th:formaction` のボタンは、送り先を `/requests/{id}/return` に変える。空のコメントはエンティティの `returnBack` が例外で拒否し、承認と同じく catch してメッセージを出す。
+    `th:formaction` のボタンは、送り先を `/requests/{id}/return` に変える。空のコメントはエンティティの `returnBack` が例外で拒否し、承認と同じく `catch` してメッセージを出す。
 - before: 太郎と部長が同じ申請を同時に
   hides: 1
   question: |

@@ -16,11 +16,11 @@ javac -d target/classes -cp "spring-web-6.2.19.jar;
   …(あと60個以上)" src/main/java/com/sayana/dojo/…
 ```
 
-- 必要な jar を **全部探してきてダウンロード** する
-- jar が使っている jar(依存の依存)も **漏れなく** 集める
-- コンパイル → テスト → jar にまとめる、を **毎回同じ順番で** 実行する
+- 必要な jar を**全部探してきてダウンロード**する
+- jar が使っている jar(依存の依存)も**漏れなく**集める
+- コンパイル → テスト → jar にまとめる、を**毎回同じ順番で**実行する
 
-これを自動化するのが **ビルドツール** です。Java では **Maven** と **Gradle** が二大勢力で、業務システムでは今も Maven が多数派です。Maven は「何を作るか」を `pom.xml`(**POM** = Project Object Model)に **宣言** するだけで、手順は Maven が知っている、という設計です。
+これを自動化するのが**ビルドツール**です。Java では **Maven** と **Gradle** が二大勢力で、業務システムでは今も Maven が多数派です。Maven は「何を作るか」を `pom.xml`(**POM** = Project Object Model)に**宣言**するだけで、手順は Maven が知っている、という設計です。
 
 ## pom.xml を読む(このアプリ自身が教材)
 
@@ -38,7 +38,7 @@ javac -d target/classes -cp "spring-web-6.2.19.jar;
 
 - **groupId**:組織名。ドメインを逆にした形が慣例(パッケージ名と同じ発想)
 - **artifactId**:成果物の名前。jar のファイル名になる
-- **version**:`-SNAPSHOT` 付きは「開発中で中身が変わりうる版」。付かない版(`1.0.0`)は **一度公開したら中身を変えない** 約束
+- **version**:`-SNAPSHOT` 付きは「開発中で中身が変わりうる版」。付かない版(`1.0.0`)は**一度公開したら中身を変えない**約束
 
 ### parent と properties
 
@@ -55,7 +55,7 @@ javac -d target/classes -cp "spring-web-6.2.19.jar;
 </properties>
 ```
 
-**parent** は「親 POM の設定を継承する」指定です。Spring Boot の親 POM には、文字コードやコンパイラ設定、そして **数百のライブラリの推奨バージョン表** が入っています(`<relativePath/>` は「親を近くのフォルダではなくリポジトリから取れ」の意味)。
+**parent** は「親 POM の設定を継承する」指定です。Spring Boot の親 POM には、文字コードやコンパイラ設定、そして**数百のライブラリの推奨バージョン表**が入っています(`<relativePath/>` は「親を近くのフォルダではなくリポジトリから取れ」の意味)。
 
 **properties** は変数です。`${commonmark.version}` のように参照でき、同じバージョンを複数箇所で使うときに1か所で管理できます。`java.version` は Boot の親 POM が読み取って、コンパイラに「Java 21 でコンパイル」と伝えるための約束の名前です。
 
@@ -81,7 +81,7 @@ javac -d target/classes -cp "spring-web-6.2.19.jar;
 わざと。親 POM の **dependencyManagement**(バージョン表)に載っているライブラリは、version を省略するとそこから補われる。Boot が「この組み合わせなら動く」と検証済みの版がそろうんだ。
 :::
 
-Boot の表に載っていない `anthropic-java` や `commonmark` は、自分で version を書く必要があります。**表にあるものは書かない、無いものだけ書く** のが現場の作法です。表にあるのに version を書くと、検証済みの組み合わせから外れて相性問題の原因になります。
+Boot の表に載っていない `anthropic-java` や `commonmark` は、自分で version を書く必要があります。**表にあるものは書かない、無いものだけ書く**のが現場の作法です。表にあるのに version を書くと、検証済みの組み合わせから外れて相性問題の原因になります。
 
 ### build / plugins
 
@@ -96,13 +96,13 @@ Boot の表に載っていない `anthropic-java` や `commonmark` は、自分�
 </build>
 ```
 
-Maven 本体は「段取り役」にすぎず、コンパイルもテストも実際の仕事は **プラグイン** がします(`maven-compiler-plugin`、`maven-surefire-plugin` など)。よく使うものは書かなくても組み込まれていて、ここに書くのは **追加するか設定を変えたい** ものだけです。`spring-boot-maven-plugin` は `spring-boot:run` や、依存を全部詰め込んだ実行可能 jar 作りを担当します。
+Maven 本体は「段取り役」にすぎず、コンパイルもテストも実際の仕事は**プラグイン**がします(`maven-compiler-plugin`、`maven-surefire-plugin` など)。よく使うものは書かなくても組み込まれていて、ここに書くのは**追加するか設定を変えたい**ものだけです。`spring-boot-maven-plugin` は `spring-boot:run` や、依存を全部詰め込んだ実行可能 jar 作りを担当します。
 
 ## 依存関係とスコープ
 
 新しいライブラリが欲しくなったら、**Maven Central**(https://central.sonatype.com)で検索し、表示される `<dependency>` 断片を貼るのが基本です。ダウンロードは Maven が自動でやります。
 
-`<scope>` は「その jar を **いつ** クラスパスに載せるか」です。
+`<scope>` は「その jar を**いつ**クラスパスに載せるか」です。
 
 | scope | コンパイル | テスト | 実行時 |
 |---|---|---|---|
@@ -129,11 +129,11 @@ Maven 本体は「段取り役」にすぎず、コンパイルもテストも�
 +- com.h2database:h2:jar:2.3.232:runtime
 ```
 
-同じライブラリが別々のバージョンで要求されたら、Maven は **木の根に近い方(nearest wins)**、同じ深さなら **先に宣言した方** を採用します。「新しい方」ではない点が要注意です。dependencyManagement に載っているものは、その表の版が優先されます。
+同じライブラリが別々のバージョンで要求されたら、Maven は **木の根に近い方(nearest wins)**、同じ深さなら**先に宣言した方**を採用します。「新しい方」ではない点が要注意です。dependencyManagement に載っているものは、その表の版が優先されます。
 
 ## ライフサイクルとよく使うコマンド
 
-Maven の処理は **ライフサイクル** という決まった段階(**フェーズ**)の列になっています。代表的なフェーズはこの順です。
+Maven の処理は**ライフサイクル**という決まった段階(**フェーズ**)の列になっています。代表的なフェーズはこの順です。
 
 ```mermaid
 flowchart LR
@@ -154,13 +154,13 @@ flowchart LR
 | `./mvnw spring-boot:run` | アプリを起動 |
 | `./mvnw dependency:tree` | 依存の木を表示 |
 
-`spring-boot:run` や `dependency:tree` のような `プラグイン:ゴール` の形は、フェーズではなくプラグインの **ゴール**(個別の仕事)を直接呼ぶ書き方です。
+`spring-boot:run` や `dependency:tree` のような `プラグイン:ゴール` の形は、フェーズではなくプラグインの**ゴール**(個別の仕事)を直接呼ぶ書き方です。
 
 ### Maven Wrapper と ~/.m2
 
-`mvnw`(Windows 用は `mvnw.cmd`。PowerShell では `./mvnw`、コマンドプロンプトでは `mvnw` と打つ)は **Maven Wrapper** です。`.mvn/wrapper/maven-wrapper.properties` に書かれた版(このアプリは Maven 3.9.11)を初回に自動ダウンロードして使います。Maven をインストールしなくてよく、**全員が同じ版の Maven でビルドできる** のが現場で好まれる理由です。
+`mvnw`(Windows 用は `mvnw.cmd`。PowerShell では `./mvnw`、コマンドプロンプトでは `mvnw` と打つ)は **Maven Wrapper** です。`.mvn/wrapper/maven-wrapper.properties` に書かれた版(このアプリは Maven 3.9.11)を初回に自動ダウンロードして使います。Maven をインストールしなくてよく、**全員が同じ版の Maven でビルドできる**のが現場で好まれる理由です。
 
-ダウンロードした jar は **ローカルリポジトリ**(Windows なら `C:\Users\<名前>\.m2\repository`)にためられ、2回目からはそこから使われます。座標がそのままフォルダ構成になっています(`com/h2database/h2/2.3.232/h2-2.3.232.jar`)。
+ダウンロードした jar は**ローカルリポジトリ**(Windows なら `C:\Users\<名前>\.m2\repository`)にためられ、2回目からはそこから使われます。座標がそのままフォルダ構成になっています(`com/h2database/h2/2.3.232/h2-2.3.232.jar`)。
 
 ## STS での Maven
 
@@ -183,18 +183,18 @@ Could not transfer artifact com.h2database:h2:jar:2.3.232
   from/to central (https://repo.maven.apache.org/maven2)
 ```
 
-会社のネットワークでは **プロキシ** 経由でないと外に出られないことが多く、`~/.m2/settings.xml` の `<proxies>` にプロキシを設定します。また一度失敗すると `.lastUpdated` という印が残り、しばらく再試行されません。このときは `was cached in the local repository, resolution will not be reattempted…` と出ます。`./mvnw -U …`(STS なら Update Project の **Force Update**)で強制的に取り直します。
+会社のネットワークでは**プロキシ**経由でないと外に出られないことが多く、`~/.m2/settings.xml` の `<proxies>` にプロキシを設定します。また一度失敗すると `.lastUpdated` という印が残り、しばらく再試行されません。このときは次のメッセージが出ます: `was cached in the local repository, resolution will not be reattempted…` `./mvnw -U …`(STS なら Update Project の **Force Update**)で強制的に取り直します。
 
 ### バージョン衝突
 
-コンパイルは通るのに、実行時に `NoSuchMethodError` や `ClassNotFoundException`。推移的依存で **古い版が勝った** 典型例です。`dependency:tree` で誰が持ち込んだかを調べ、`<dependencyManagement>` で版を固定するか、`<exclusions>` で不要な依存を外します。
+コンパイルは通るのに、実行時に `NoSuchMethodError` や `ClassNotFoundException`。推移的依存で**古い版が勝った**典型例です。`dependency:tree` で誰が持ち込んだかを調べ、`<dependencyManagement>` で版を固定するか、`<exclusions>` で不要な依存を外します。
 
 ::: point まとめ
-- `pom.xml` は **座標(groupId / artifactId / version)・parent・properties・dependencies・build** でできている
-- Boot の **parent が推奨バージョン表を持つ** ので、表にあるライブラリは version を書かない
+- `pom.xml` は**座標(groupId / artifactId / version)・parent・properties・dependencies・build** でできている
+- Boot の **parent が推奨バージョン表を持つ**ので、表にあるライブラリは version を書かない
 - scope は「いつクラスパスに載るか」。**compile / runtime / test / provided** の違いを表で覚える
-- 依存の依存も自動で集まる(推移的依存)。中身は **`dependency:tree`**、衝突は **近い方が勝つ**
-- フェーズを指定すると **それより前が全部走る**。`clean` は別ライフサイクル
+- 依存の依存も自動で集まる(推移的依存)。中身は **`dependency:tree`**、衝突は**近い方が勝つ**
+- フェーズを指定すると**それより前が全部走る**。`clean` は別ライフサイクル
 - **mvnw** で Maven の版をそろえ、jar は **`~/.m2/repository`** にキャッシュされる
 :::
 

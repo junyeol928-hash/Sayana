@@ -21,12 +21,12 @@
 | `pom.xml` | Security と Thymeleaf 連携を追加 |
 | `domain/Employee.java` | `password`(BCrypt のハッシュ)を追加 |
 | `config/SecurityConfig.java` | URL ルール・ログイン・BCrypt |
-| `config/LoginUser.java` | ログイン中の社員(UserDetails) |
+| `config/LoginUser.java` | ログイン中の社員(`UserDetails`) |
 | `config/LoginUserDetailsService.java` | メールアドレスで社員を探す |
 | `web/LoginController.java` + `templates/login.html` | ログイン画面 |
 | `service/AccessPolicy.java` | 申請ごとの権限判定(演習1) |
 
-ログイン ID はメールアドレス、パスワードは `Employee` に足す `password` 列に **BCrypt のハッシュ** で持ちます。
+ログイン ID はメールアドレス、パスワードは `Employee` に足す `password` 列に **BCrypt のハッシュ**で持ちます。
 
 ## 設計:関所は2段構え
 
@@ -47,7 +47,7 @@ flowchart LR
 | URL(Filter) | ロールだけ | `/approvals/**` は承認者以上 |
 | Service | 申請の中身 | 自分の申請は承認不可、10万円以上は ADMIN |
 
-「この申請の申請者は誰か」「金額はいくらか」は URL からは分かりません。業務ルール1〜3は **申請を読み込んだ後の Service でしか判定できない** のです。
+「この申請の申請者は誰か」「金額はいくらか」は URL からは分かりません。業務ルール1〜3は**申請を読み込んだ後の Service でしか判定できない**のです。
 
 ## STS での実装
 
@@ -90,12 +90,12 @@ public class SecurityConfig {
 }
 ```
 
-- ルールは **上から順に、最初に一致したもの** で決まります。細かい URL を上に、`anyRequest()` を最後に
+- ルールは**上から順に、最初に一致したもの**で決まります。細かい URL を上に、`anyRequest()` を最後に
 - `/requests/*/approve` の `*` は「1階層ぶん」。承認・差戻しは HTTP メソッドで絞らず URL で締めます(後から誰かが GET の承認を足しても穴にならない)
 - `/error` を開けておかないと、未ログインでエラーになったときにエラー画面ではなくログイン画面へ飛ばされます
 - `hasAnyRole("ADMIN")` は権限 `ROLE_ADMIN` を探します。`ROLE_` は自動で付きます
 
-### ログイン中の社員:UserDetails
+### ログイン中の社員:`UserDetails`
 
 ```java
 // config/LoginUser.java
@@ -138,11 +138,11 @@ public class LoginUserDetailsService
 }
 ```
 
-`Employee` エンティティそのものをセッションに入れないのは、LAZY の関連や古いデータを抱えたまま何時間も残るからです。ログイン中に要る **ID・名前・ロールだけの小さな不変オブジェクト** にします。
+`Employee` エンティティそのものをセッションに入れないのは、LAZY の関連や古いデータを抱えたまま何時間も残るからです。ログイン中に要る **ID・名前・ロールだけの小さな不変オブジェクト**にします。
 
-BCrypt のハッシュは `$2a$10$` + ソルト22文字 + ハッシュ31文字の60文字です。`10` は **コスト**(2¹⁰ 回の繰り返し)で、ソルトもハッシュ値の中に入っているので、照合は `passwordEncoder.matches(入力, 保存値)` だけで済みます。
+BCrypt のハッシュは `$2a$10$` + ソルト22文字 + ハッシュ31文字の60文字です。`10` は**コスト**(2¹⁰ 回の繰り返し)で、ソルトもハッシュ値の中に入っているので、照合は `passwordEncoder.matches(入力, 保存値)` だけで済みます。
 
-### 固定の社員ID を @AuthenticationPrincipal に置き換える
+### 固定の社員ID を `@AuthenticationPrincipal` に置き換える
 
 capstone-apply・approve では定数 `CURRENT_EMPLOYEE_ID`・`CURRENT_APPROVER_ID` で「誰が」を代用していました。ログイン中の `LoginUser` は引数で受け取れます。
 
@@ -173,11 +173,11 @@ public String approve(@PathVariable Long id,
 </form>
 ```
 
-`th:action` を使ったフォームには、Thymeleaf が **CSRF トークン** の hidden を自動で入れます。
+`th:action` を使ったフォームには、Thymeleaf が **CSRF トークン**の hidden を自動で入れます。
 
 ## 画面で隠すだけではダメな理由
 
-ボタンを隠しても、`POST /requests/5/approve` は curl でも開発者ツールでも送れます。しかも URL ルールはロールしか見ないので、**承認者が自分の申請を承認する** リクエストは Filter を素通りします。
+ボタンを隠しても、`POST /requests/5/approve` は curl でも開発者ツールでも送れます。しかも URL ルールはロールしか見ないので、**承認者が自分の申請を承認する**リクエストは Filter を素通りします。
 
 だから業務ルール1〜3は Service で必ず判定します。演習1の `AccessPolicy` は、その判定を1か所に集めたクラスです。
 

@@ -15,8 +15,8 @@ problem: |
   - 空のバイト列 → `true`、`decode` は `""`
 
   ヒント:
-  - `new String(data, StandardCharsets.UTF_8)` は **読めないバイトを `�` に置き換えて黙って続行** するので、判定には使えません。
-  - 判定には、読めないバイトを見つけたら例外を投げる **デコーダ** を使います。雛形に用意してある `strictUtf8()` の
+  - `new String(data, StandardCharsets.UTF_8)` は**読めないバイトを `�` に置き換えて黙って続行**するので、判定には使えません。
+  - 判定には、読めないバイトを見つけたら例外を投げる**デコーダ**を使います。雛形に用意してある `strictUtf8()` の
     `decode(ByteBuffer.wrap(data))` は、UTF-8 として不正なら `CharacterCodingException`(検査例外)を投げます。try-catch で受け止めましょう。
   - MS932 は `Charset.forName("MS932")` で取得できます(Shift_JIS では `①` などの機種依存文字が読めません)。
 

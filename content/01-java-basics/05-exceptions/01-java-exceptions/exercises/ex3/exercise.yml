@@ -2,7 +2,7 @@ title: リソースのクローズ順と例外のラップを確かめる
 className: BatchJob
 difficulty: 3
 problem: |
-  夜間バッチの処理を題材に、**try-with-resources のクローズ順** と **ラップして再スロー** を確かめます。
+  夜間バッチの処理を題材に、**try-with-resources のクローズ順**と**ラップして再スロー**を確かめます。
   画面に出す代わりに、何が起きたかを `StringBuilder log` に記録していきます。
 
   **1. `TrackedResource.close()`**

@@ -4,7 +4,7 @@ difficulty: 3
 libraries: [spring]
 problem: |
   タスクの保存用クラス `TaskEntity`(本物のアプリなら JPA のエンティティ)には、社内向けのメモ `internalMemo` が入っています。
-  これを **そのまま JSON で返すとメモが外部に漏れる** ので、返す用の record `TaskResponse` に詰め替えて返すようにします。
+  これを**そのまま JSON で返すとメモが外部に漏れる**ので、返す用の record `TaskResponse` に詰め替えて返すようにします。
   あわせて、一部の項目だけを書き換える `PATCH` を実装してください。
 
   **1. `TaskResponse.from(TaskEntity e)` を完成させる**
@@ -18,7 +18,7 @@ problem: |
 
   **2. `PATCH /api/tasks/{id}` を完成させる**
 
-  本文は `UpdateTaskRequest`(`title` / `done` / `dueDate`)。**JSON に含まれていた項目だけ** を書き換えます。
+  本文は `UpdateTaskRequest`(`title` / `done` / `dueDate`)。**JSON に含まれていた項目だけ**を書き換えます。
   含まれていない項目は record では `null` になるので、`null` の項目は「変更しない」と判断します。
 
   | リクエスト本文 | 結果 |

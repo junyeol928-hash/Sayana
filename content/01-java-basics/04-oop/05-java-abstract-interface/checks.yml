@@ -17,7 +17,7 @@
     - "未実装は、呼んだときに初めて分かると読んだ答え"
     - "書いていないメソッドは 0 を返すと読んだ答え"
   explanation: |
-    abstract でないクラスは、抽象メソッドを全部実装しないといけない。`perimeter()` が無いので、呼ぶ前のコンパイルの時点で `Square is not abstract and does not override abstract method perimeter()` になる。
+    `abstract` でないクラスは、抽象メソッドを全部実装しないといけない。`perimeter()` が無いので、呼ぶ前のコンパイルの時点で次のエラーになる: `Square is not abstract and does not override abstract method perimeter()`
 - after: インターフェース:「できること」の約束
   question: |
     次のコードはどうなる?

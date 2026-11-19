@@ -27,7 +27,7 @@ problem: |
   ```
 
   - ヘッダーは自分で書かず、`th:replace="~{layout :: header('注文詳細')}"` で `LAYOUT` のフラグメントを使う
-  - `<section>` に `th:object="${order}"` を付け、中では `*{id}` のような **選択変数式** で値を出す
+  - `<section>` に `th:object="${order}"` を付け、中では `*{id}` のような**選択変数式**で値を出す
   - 注文日時は `#temporals.format(…, 'yyyy/MM/dd HH:mm')`、合計は `#numbers.formatInteger(…, 1, 'COMMA')`
   - キャンセルのリンクは、注文がキャンセルできるとき(`Order` の `cancellable()` が true)だけ出す。URL は `@{/orders/{id}/cancel(id=…)}` で組み立てる
   - 戻るリンクは `@{/orders(page=${page})}` で、`?page=2` のようなクエリを付ける

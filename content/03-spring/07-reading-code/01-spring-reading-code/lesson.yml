@@ -96,7 +96,7 @@ samples:
   - title: 1本の API を通しで動かして、呼ばれる順番を確かめる
     libraries: [spring]
     description: |
-      解説の鍵発行 API を、MockMvc(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー** の3通りで、どこまで処理が進んだかが分かります。入力エラーのとき、どの層の名乗りまで出る?
+      解説の鍵発行 API を、`MockMvc`(`standaloneSetup`)で動かします。各層が `[Controller]` `[Service]` `[Repository]` `[Advice]` と名乗るので、**正常系・重複・入力エラー**の3通りで、どこまで処理が進んだかが分かります。入力エラーのとき、どの層の名乗りまで出る?
       3 通りそれぞれで、最後のステータスは何番になるだろうか。
     code: |
       // 1本の API を、Controller → Service → Repository → 例外ハンドラの順に通しで動かす
@@ -270,7 +270,7 @@ quiz:
       - "例外の行き先を先に押さえようとした答え。流れる順に追わないと、どの例外がどこへ行くかがつながらない"
       - "全体を先に読もうとした答え。頼まれた API に関係ない所まで読み、時間がかかるだけ"
     explanation: |
-      リクエストが **実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
+      リクエストが**実際に流れる順**(URL に到達 → 入力の形 → 業務ロジック → DB → 応答)に沿って追うのが基本です。この順なら、途中の分岐や呼び出し先を見落としにくく、「どこで何が決まるか」を1本の線として理解できます。
   - question: |
       Service が次の例外を投げている。Controller にも Service にも try-catch は無い。プロジェクトには下の Advice がある。`C001` に有効な鍵がすでにあるとき、応答はどうなる?
       ```java
@@ -289,7 +289,7 @@ quiz:
           }
       }
       ```
-    choices: ["誰も catch していないので 500", "Advice が受け取り、409 + `ErrorResponse`", "例外は無視され、201 が返る", "コンパイルエラーになる(`throws` 宣言が無い)"]
+    choices: ["誰も `catch` していないので 500", "Advice が受け取り、409 + `ErrorResponse`", "例外は無視され、201 が返る", "コンパイルエラーになる(`throws` 宣言が無い)"]
     answer: 1
     why:
       - "try-catch が無いので処理されないと読んだ答え。Advice の `@ExceptionHandler` が受けて 409 を返す"
@@ -319,7 +319,7 @@ quiz:
       - "見当たらないので無いと読んだ答え。コンパイルは通る"
     explanation: |
       `KeyRepository` 自身が宣言しているのは `existsByCardIdAndStatus` だけです。`findById`・`save`・`deleteById` などの基本的な操作は、`extends` している **`JpaRepository` 側**(正確にはその親の `CrudRepository`)で宣言されていて、実装は Spring Data が起動時に用意します。
-      Repository を読むときは、インターフェースの中身が短くても **継承元まで見る** のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
+      Repository を読むときは、インターフェースの中身が短くても**継承元まで見る**のが基本です。IDE で `findById` の上で F3(定義を開く)を押すと、継承元のインターフェースへジャンプできます。
   - question: |
       次の Service で、`crypto.generateKey` が `CryptoException`(仕事では HsmException。`Exception` を継承した検査例外)を投げた。DB はどうなる?
       ```java
@@ -342,13 +342,13 @@ quiz:
       - "`@Transactional` が例外を自動で投げ直し、500 になる"
     answer: 1
     why:
-      - "例外が起きればロールバックされると読んだ答え。catch して普通に `return` したので、コミットされる"
+      - "例外が起きればロールバックされると読んだ答え。`catch` して普通に `return` したので、コミットされる"
       - ""
-      - "検査例外の扱いが足りないと読んだ答え。catch しているのでコンパイルは通る"
-      - "`@Transactional` が例外を投げ直すと読んだ答え。catch した例外はそこで終わり、`null` が返る"
+      - "検査例外の扱いが足りないと読んだ答え。`catch` しているのでコンパイルは通る"
+      - "`@Transactional` が例外を投げ直すと読んだ答え。`catch` した例外はそこで終わり、`null` が返る"
     explanation: |
-      ロールバックが決まるのは **例外が `@Transactional` のプロキシの外へ出たとき** です。ここでは catch して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
-      直すなら、catch の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。
+      ロールバックが決まるのは**例外が `@Transactional` のプロキシの外へ出たとき**です。ここでは `catch` して `return null` しているので、プロキシから見れば「正常に終わった」ことになり、`revokeActive` の UPDATE はコミットされます。結果、有効な鍵が1つも無いカードが残ります。
+      直すなら、`catch` の中で `RuntimeException`(原因付き)に包んで投げ直します。`CryptoException` をそのまま投げても、検査例外は既定ではロールバックされない(`rollbackFor` の指定が要る)ことにも注意してください。
   - question: |
       エラーログに次のスタックトレースがあった(一部省略)。原因を調べるために、まず開くべき場所はどれ?
       ```text
@@ -375,14 +375,14 @@ quiz:
       - ""
       - "プロキシの行を失敗した場所と読んだ答え。`$$SpringCGLIB$$` は Spring が作ったプロキシで、ソースが無い"
     explanation: |
-      根本原因は **一番下の `Caused by`** にあり、その中で **最初に出てくる自分たちのパッケージ(`com.example.keys`)の行** が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
+      根本原因は **一番下の `Caused by`** にあり、その中で**最初に出てくる自分たちのパッケージ(`com.example.keys`)の行**が、実際に失敗した場所です。ここでは `CryptoClient.java:57` を開き、次にそれを呼んだ `KeyIssueService.java:38` へ戻ります。
 columns:
   - type: mistake
     title: 「try-catch が無い = エラー処理が抜けている」とレビューに書いてしまう
     body: |
-      新人のレビューコメントで多いのが「この Service、例外を投げっぱなしで catch していません」。でも Spring の業務アプリでは、業務例外を **投げっぱなしにして `@RestControllerAdvice` で受ける** のが普通の形です。Controller や Service に try-catch を書かないこと自体が設計です。
+      新人のレビューコメントで多いのが「この Service、例外を投げっぱなしで catch していません」。でも Spring の業務アプリでは、業務例外を**投げっぱなしにして `@RestControllerAdvice` で受ける**のが普通の形です。Controller や Service に try-catch を書かないこと自体が設計です。
 
-      逆に、本当に危ないのは **catch して何もしない** コードです。
+      逆に、本当に危ないのは **catch して何もしない**コードです。
 
       ```java
       } catch (CryptoException e) {
@@ -404,7 +404,7 @@ columns:
   - type: trivia
     title: スタックトレースに出る「$$SpringCGLIB$$0」と「<generated>」の正体
     body: |
-      `KeyIssueService$$SpringCGLIB$$0.issue(<generated>)` という行は、Spring が起動時に作った **プロキシのクラス** です。`@Transactional` などの AOP を効かせるために、元のクラスを継承したクラスを CGLIB というライブラリで実行時に生成しています。ソースファイルが無いので、行番号の代わりに `<generated>` と表示されます。
+      `KeyIssueService$$SpringCGLIB$$0.issue(<generated>)` という行は、Spring が起動時に作った**プロキシのクラス**です。`@Transactional` などの AOP を効かせるために、元のクラスを継承したクラスを CGLIB というライブラリで実行時に生成しています。ソースファイルが無いので、行番号の代わりに `<generated>` と表示されます。
 
       Spring Framework 6.0 より前は `$$EnhancerBySpringCGLIB$$1a2b3c` のような名前でした。古いブログ記事のスタックトレースと見た目が違うのはそのためです。
 

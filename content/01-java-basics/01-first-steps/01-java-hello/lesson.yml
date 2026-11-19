@@ -184,10 +184,9 @@ columns:
   - type: trivia
     title: class ファイルは「CAFEBABE」で始まる
     body: |
-      `.class` ファイルの先頭4バイトは必ず16進数で `CA FE BA BE`。JVM が「本当に class ファイルか」を確かめる
-      **マジックナンバー** で、Java の生みの親たちのカフェ好きに由来すると言われます。
+      `.class` ファイルの先頭4バイトは必ず16進数で `CA FE BA BE`。JVM が「本当に class ファイルか」を確かめる**マジックナンバー**で、Java の生みの親たちのカフェ好きに由来すると言われます。
 
-      直後には **class ファイルのバージョン** があり、JDK 21 なら `65`。古い Java で実行するとこう怒られます。
+      直後には **class ファイルのバージョン**があり、JDK 21 なら `65`。古い Java で実行するとこう怒られます。
 
       ```text
       java.lang.UnsupportedClassVersionError: Hello has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 61.0
@@ -199,7 +198,7 @@ columns:
     title: 「java -version が 17 のまま」問題
     body: |
       JDK 21 を入れたのに `java -version` が 17 や 1.8 と出る。現場の定番トラブルです。
-      原因はたいてい **Path の中で古い Java が先に見つかっている** こと。昔 Oracle の Java を入れた PC には、
+      原因はたいてい **Path の中で古い Java が先に見つかっている**こと。昔 Oracle の Java を入れた PC には、
       `C:\Program Files\Common Files\Oracle\Java\javapath` が Path の上位に残っていることがあります。
 
       調べ方は `where java`。見つかった順に表示されるので、**1行目が実際に使われる java** です。
@@ -210,19 +209,19 @@ columns:
       C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot\bin\java.exe
       ```
 
-      `%JAVA_HOME%\bin` を上へ移動するか古い Java をアンインストールし、**コマンドプロンプトを開き直して** 再確認しましょう。
+      `%JAVA_HOME%\bin` を上へ移動するか古い Java をアンインストールし、**コマンドプロンプトを開き直して**再確認しましょう。
 
   - type: mistake
     title: JAVA_HOME に bin まで書いてしまう
     body: |
-      `JAVA_HOME` に設定するのは **JDK のフォルダそのもの** で、`bin` の一つ上です。
+      `JAVA_HOME` に設定するのは **JDK のフォルダそのもの**で、`bin` の一つ上です。
 
       - 正:`C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot`
       - 誤:`C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot\bin`
 
       Maven などのツールは `JAVA_HOME` の後ろに `\bin\java.exe` を付け足して探すため、`bin` まで書くと
       `...\bin\bin\java.exe` を探しに行き、`The JAVA_HOME environment variable is not defined correctly`(JAVA_HOME が正しく設定されていない)と出て失敗します。
-      一方 Path 側は `%JAVA_HOME%\bin` と **bin まで** 書くのが正解。「JAVA_HOME は bin なし、Path は bin あり」とセットで覚えましょう。
+      一方 Path 側は `%JAVA_HOME%\bin` と **bin まで**書くのが正解。「JAVA_HOME は bin なし、Path は bin あり」とセットで覚えましょう。
       設定後は `echo %JAVA_HOME%` で中身を確認し、そのパスに `bin` フォルダがあることをエクスプローラーでも確かめると確実です。
 
 sts:
@@ -239,7 +238,7 @@ sts:
       detail: |
         - **Project name**(プロジェクト名)に `hello-java` と入力
         - **JRE** 欄で **Use an execution environment JRE**(実行環境 JRE の使用)を選び、`JavaSE-21` を選択
-        - **Module** 欄の **Create module-info.java file**(module-info.java ファイルを作成)の **チェックを外す**
+        - **Module** 欄の **Create module-info.java file**(module-info.java ファイルを作成)の**チェックを外す**
 
         モジュール(module-info.java)は大規模開発向けの仕組みで、入門段階では不要です。チェックを入れたままだと余計なファイルができ、後の演習で混乱の元になります。
         JavaSE-21 が一覧に無い場合は、**Window > Preferences > Java > Installed JREs**(ウィンドウ > 設定 > Java > インストール済みの JRE)で、
@@ -254,7 +253,7 @@ sts:
         `src` フォルダを右クリックし、**New > Class**(新規 > クラス)を選びます。
         - **Name**(名前)に `Hello` と入力(ファイル名 `Hello.java` は自動で決まります)
         - **Package**(パッケージ)は空欄のままで OK。「The use of the default package is discouraged.」(デフォルト・パッケージの使用は推奨されません)という警告が出ますが、パッケージは後のレッスンで扱うので今は無視して構いません
-        - **Which method stubs would you like to create?**(どのメソッド・スタブを作成しますか?)で **public static void main(String[] args)** に **チェックを入れる**
+        - **Which method stubs would you like to create?**(どのメソッド・スタブを作成しますか?)で **public static void main(String[] args)** に**チェックを入れる**
 
         **Finish**(完了)を押すと、main メソッド付きの `Hello.java` がエディターに開きます。
     - title: コードを書いて保存する

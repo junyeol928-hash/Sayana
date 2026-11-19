@@ -26,7 +26,7 @@ problem: |
 
   - メソッドに `@GetMapping("/{code}")` / `@PostMapping("/{code}/ship")` を付けて URL に対応付けます(クラスの `@RequestMapping("/stocks")` と連結されます)。
   - ステータスは `ResponseEntity.ok(...)`、`ResponseEntity.notFound().build()`、`ResponseEntity.badRequest().body(...)`、`ResponseEntity.status(HttpStatus.CONFLICT).body(...)` で返します。
-  - `Stock` は record なので値を書き換えられません。出荷したら数量を減らした **新しい Stock** を `put` し直します。
+  - `Stock` は record なので値を書き換えられません。出荷したら数量を減らした**新しい Stock** を `put` し直します。
   - 在庫ちょうどの数量は出荷できます(残り 0)。
 
   ※ `@PathVariable("code")` のように名前を明示しているのは、コンパイル時に `-parameters` が付いていない環境でも動くようにするためです(Spring Boot の Maven 設定では自動で付きます)。

@@ -10,12 +10,12 @@ problem: |
   | `getStatus()` | 状態(`"PAID"` 支払済み / `"PENDING"` 未払い / `"CANCELLED"` キャンセル) |
   | `getAmount()` | 金額(円、0以上) |
 
-  次の2つのメソッドを **Stream で** 完成させてください。
+  次の2つのメソッドを **Stream で**完成させてください。
 
   | メソッド | 返す値 |
   |---|---|
-  | `int totalByStatus(List<Order> orders, String status)` | 状態が `status` と一致する注文の **金額の合計** |
-  | `long countAtLeast(List<Order> orders, int min)` | 金額が `min` **以上** の注文の **件数**(状態は問わない) |
+  | `int totalByStatus(List<Order> orders, String status)` | 状態が `status` と一致する注文の**金額の合計** |
+  | `long countAtLeast(List<Order> orders, int min)` | 金額が `min` **以上**の注文の**件数**(状態は問わない) |
 
   ### 例
   ```text

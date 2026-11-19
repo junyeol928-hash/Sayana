@@ -49,11 +49,11 @@
         if (qty > stock) throw new StockShortageException("在庫不足");
     }
     ```
-  choices: ["できる", "コンパイルエラー", "ship はできるが、呼ぶ側が catch しないとコンパイルエラー"]
+  choices: ["できる", "コンパイルエラー", "ship はできるが、呼ぶ側が `catch` しないとコンパイルエラー"]
   answer: 0
   why:
     - ""
     - "独自例外ならどれも `throws` が要ると読んだ答え。`RuntimeException` の子は非検査例外で要らない"
-    - "呼ぶ側には対処が強制されると読んだ答え。非検査例外は、呼ぶ側にも catch を強制しない"
+    - "呼ぶ側には対処が強制されると読んだ答え。非検査例外は、呼ぶ側にも `catch` を強制しない"
   explanation: |
     `RuntimeException` の子は非検査例外なので、`throws` を書かなくても投げられる。その代わり、呼ぶ側が対処を忘れてもコンパイラは何も言わない。必ず対処させたい業務エラーなら `Exception` を継承して検査例外にする。

@@ -14,7 +14,7 @@
 | GET /api/requests/{id} | 200 詳細 | 404 |
 | POST /api/requests/{id}/approve | 200 承認後の詳細 | 404 / 409 / 403 |
 
-★が今回作るファイルです。
+`★` が今回作るファイルです。
 
 ```text
 src/main/java/com/example/approval
@@ -54,7 +54,7 @@ public record RequestSummary(
 }
 ```
 
-`RequestDetail` も同じ形で、`reason`・`approverName`(未承認なら `null`)・`comment`・`createdAt`・`decidedAt` を足します。一覧は軽く詳細は全部。**用途ごとに DTO を分ける** のが現場流です。
+`RequestDetail` も同じ形で、`reason`・`approverName`(未承認なら `null`)・`comment`・`createdAt`・`decidedAt` を足します。一覧は軽く詳細は全部。**用途ごとに DTO を分ける**のが現場流です。
 
 ### ステータスコードは「何がダメか」で決める
 
@@ -62,8 +62,8 @@ public record RequestSummary(
 |---|---|---|
 | 400 | リクエストの形が変 | Spring 標準 |
 | 403 | API を使う権限がない | Spring Security |
-| 404 | その申請がない | RequestNotFoundException |
-| 409 | 今の状態ではできない | BusinessRuleException |
+| 404 | その申請がない | `RequestNotFoundException` |
+| 409 | 今の状態ではできない | `BusinessRuleException` |
 
 409 Conflict は「リソースの現在の状態と衝突した」という意味で、承認済の申請をもう一度承認するのが典型です。承認くんでは、業務ルール違反(自分の申請・10万円以上など)はすべて `BusinessRuleException` → 409、ロールでの門前払いは Security → 403、と線を引きます。
 
@@ -166,7 +166,7 @@ public class RequestApiController {
 
 `ProblemDetail` は RFC 9457 のエラー形式で、`Content-Type: application/problem+json` になります。本文は `{"title":"業務ルール違反","status":409,"detail":"承認済の申請は変更できません",...}` です。
 
-## Controller のテスト:@WebMvcTest + @MockitoBean
+## Controller のテスト:`@WebMvcTest` + `@MockitoBean`
 
 `@WebMvcTest` は Web 層の Bean だけで小さく起動し、Service は `@MockitoBean`(Mockito の偽物)で差し替えます。Security のフィルタも載るので、本物の URL ルールで 403 まで確かめられます。`LoginUser` が要る操作は `.with(user(...))` で渡します。
 
@@ -206,11 +206,11 @@ class RequestApiControllerTest {
 
 ### API と CSRF
 
-CSRF は「ブラウザが Cookie を自動で送る」ことを悪用する攻撃です。承認くんの API は画面と同じ **セッション Cookie** で認証するので、`/api/**` でも CSRF 対策は外しません。JavaScript から POST するならトークンを `X-CSRF-TOKEN` ヘッダで送り、テストでは `.with(csrf())` を付けます(忘れると 403)。無効化してよいのは、Cookie を使わず `Authorization` ヘッダのトークンで認証する API にしたときです。
+CSRF は「ブラウザが Cookie を自動で送る」ことを悪用する攻撃です。承認くんの API は画面と同じ**セッション Cookie** で認証するので、`/api/**` でも CSRF 対策は外しません。JavaScript から POST するならトークンを `X-CSRF-TOKEN` ヘッダで送り、テストでは `.with(csrf())` を付けます(忘れると 403)。無効化してよいのは、Cookie を使わず `Authorization` ヘッダのトークンで認証する API にしたときです。
 
 ## Service は単体テストで、ルールを表にする
 
-業務ルールの組み合わせは Spring を起動せずに確かめます。JUnit の `@ParameterizedTest` + `@CsvSource` で **1行=1ケースの表** にするのがテーブル駆動テストです。
+業務ルールの組み合わせは Spring を起動せずに確かめます。JUnit の `@ParameterizedTest` + `@CsvSource` で **1行=1ケースの表**にするのがテーブル駆動テストです。
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -248,7 +248,7 @@ class ApprovalServiceTest {
 
 境界の `99999` と `100000` が並び、ケースの追加も1行です。
 
-## テストピラミッド:@SpringBootTest は少数精鋭
+## テストピラミッド:`@SpringBootTest` は少数精鋭
 
 ```mermaid
 flowchart TB
@@ -264,13 +264,13 @@ flowchart TB
 
 1. Package Explorer で `src/test/java` を右クリック → **Run As > JUnit Test**。JUnit ビューが緑で `Errors: 0  Failures: 0` なら成功
 2. Boot Dashboard から起動し、承認者でログインしてブラウザで `http://localhost:8080/api/requests?status=SUBMITTED` を開く → JSON の配列
-3. `/api/requests/9999` → 404 の ProblemDetail。申請者でログインし直すと 403
+3. `/api/requests/9999` → 404 の `ProblemDetail`。申請者でログインし直すと 403
 
 
 ## よくあるミス
 
 ::: warn ?status=submitted で 400
-enum への変換は大文字小文字を区別します。ログには `Failed to convert value of type 'java.lang.String' to required type '...RequestStatus'` と出ます。
+enum への変換は大文字小文字を区別します。ログには次の行が出ます: `Failed to convert value of type 'java.lang.String' to required type '...RequestStatus'`
 :::
 
 ::: warn @WebMvcTest で No qualifying bean

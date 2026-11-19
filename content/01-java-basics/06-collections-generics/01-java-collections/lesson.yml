@@ -29,9 +29,9 @@ samples:
       System.out.println("田中はいる? " + members.contains("田中"));
   - title: Set の3兄弟と Map の集計
     description: |
-      同じデータを HashSet / LinkedHashSet / TreeSet に入れて並び順を比べ、TreeMap で出現回数を数えます。
-      HashSet の並びは保証されていない(実装やデータ次第で変わる)点に注意。
-      TreeSet は、4 つのタグをどんな順に並べるだろうか。
+      同じデータを `HashSet` / `LinkedHashSet` / `TreeSet` に入れて並び順を比べ、`TreeMap` で出現回数を数えます。
+      `HashSet` の並びは保証されていない(実装やデータ次第で変わる)点に注意。
+      `TreeSet` は、4 つのタグをどんな順に並べるだろうか。
     code: |
       // ここを変えてみよう:tags に要素を足す / 重複を増やす
       List<String> tags = List.of("spring", "java", "sql", "java", "docker", "sql");
@@ -116,10 +116,10 @@ quiz:
       - "末尾が消えると読んだ答え。`remove(1)` は添字 1 の要素(5)を消す"
       - "値の 1 と添字 1 の要素の両方が消えると読んだ答え。消えるのは添字 1 の 5 だけ"
     explanation: |
-      `List` には `remove(int index)` と `remove(Object o)` の2つがあり、`int` の `1` を渡すと **添字版** が選ばれます。添字1の要素(値 `5`)が消えて `[1, 3]` です。
+      `List` には `remove(int index)` と `remove(Object o)` の2つがあり、`int` の `1` を渡すと**添字版**が選ばれます。添字1の要素(値 `5`)が消えて `[1, 3]` です。
       値の `1` を消したいなら `nums.remove(Integer.valueOf(1))` と書きます。
   - question: |
-      次のうち、**実行時に例外が発生する** のはどれ?
+      次のうち、**実行時に例外が発生する**のはどれ?
     choices:
       - "`List<String> a = new ArrayList<>(List.of(\"x\")); a.add(\"y\");`"
       - "`Set<String> b = new HashSet<>(); b.add(\"x\"); b.add(\"x\");`"
@@ -132,7 +132,7 @@ quiz:
       - "Map の同じキーへの put を例外と読んだ答え。値が上書きされるだけ"
       - ""
     explanation: |
-      `List.of` で作ったリストは **不変** なので、`add` すると `UnsupportedOperationException` になります。型は普通の `List` なので、コンパイルは通ってしまう点が厄介です。
+      `List.of` で作ったリストは**不変**なので、`add` すると `UnsupportedOperationException` になります。型は普通の `List` なので、コンパイルは通ってしまう点が厄介です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -151,7 +151,7 @@ quiz:
       - "Set に重複が入ると読んだ答え。2 回目の banana は入らない"
       - "小文字が大文字より前と読んだ答え。文字コードでは大文字の `A`(65)が小文字の `b`(98)より前"
     explanation: |
-      `TreeSet` は要素を **自然な順序**(String なら文字コード順)で並べ、重複は持ちません。大文字 `A`(65)は小文字 `b`(98)より前なので `Apple` が先頭で、`[Apple, banana, cherry]` です。
+      `TreeSet` は要素を**自然な順序**(String なら文字コード順)で並べ、重複は持ちません。大文字 `A`(65)は小文字 `b`(98)より前なので `Apple` が先頭で、`[Apple, banana, cherry]` です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -170,7 +170,7 @@ quiz:
       - ""
       - "`getOrDefault` も無いキーで `null` を返すと読んだ答え。`null` になるのは `get` のほう"
     explanation: |
-      同じキー `"A"` への2回目の `put` は **上書き** なので、エントリは A と B の2つ、`get("A")` は後から入れた `3` です。キー `"C"` は存在しないので `getOrDefault` は第2引数の `0` を返します。
+      同じキー `"A"` への2回目の `put` は**上書き**なので、エントリは A と B の2つ、`get("A")` は後から入れた `3` です。キー `"C"` は存在しないので `getOrDefault` は第2引数の `0` を返します。
   - question: |
       `Emp` クラスで `equals` だけを「社員番号が同じなら `true`」になるようオーバーライドし、`hashCode` はオーバーライドしなかった。次のコードの結果として最も適切なのは?
       ```java
@@ -192,7 +192,7 @@ columns:
   - type: mistake
     title: 「最後から2番目」を消すと例外が出ない
     body: |
-      ループ中の `remove` は例外……のはずが、これは **例外が出ません**。
+      ループ中の `remove` は例外……のはずが、これは**例外が出ません**。
 
       ```java
       List<String> list = new ArrayList<>(List.of("A", "B", "C"));
@@ -205,21 +205,21 @@ columns:
       // 出力: A B   ← C が一度も処理されない!
       ```
 
-      Iterator は「次があるか」を `カーソル位置 != size()` で判定します。B を消した時点でカーソルも size も2なので、ループが **静かに終わる** のです。変更検知は `next()` の中なので、そこまで行きません。
+      Iterator は「次があるか」を `カーソル位置 != size()` で判定します。B を消した時点でカーソルも size も2なので、ループが**静かに終わる**のです。変更検知は `next()` の中なので、そこまで行きません。
 
-      例外が出ない代わりに **データが黙って処理漏れ** します。ループ中の削除は、例外の有無に関係なく `removeIf` か `Iterator.remove` に統一しましょう。
+      例外が出ない代わりに**データが黙って処理漏れ**します。ループ中の削除は、例外の有無に関係なく `removeIf` か `Iterator.remove` に統一しましょう。
   - type: trivia
     title: HashMap の中で木が育つ
     body: |
       HashMap の中身は「バケット」と呼ばれる配列で、`hashCode()` から計算した位置に要素を入れます。違うキーが同じ位置に来る(**衝突**)と、そのバケットにリストでつないで並べます。衝突が多いと、そこだけリストを先頭から `equals` で順番に調べることになり遅くなります。
 
-      Java 8 からは、1つのバケットの要素が **8個を超え**(かつ配列が64以上)ると、リストを **赤黒木**(バランスの取れた二分探索木)に変換するようになりました。最悪でも探索が対数時間で済みます。
+      Java 8 からは、1つのバケットの要素が **8個を超え**(かつ配列が64以上)ると、リストを**赤黒木**(バランスの取れた二分探索木)に変換するようになりました。最悪でも探索が対数時間で済みます。
 
       この改良のきっかけの一つが、2011年に話題になった **Hash DoS 攻撃**。わざと同じハッシュ値になる大量のキー(HTTP のパラメータ名など)を送りつけて、サーバーの HashMap をリスト地獄にして CPU を食いつぶす攻撃です。`hashCode` の質は、性能だけでなくセキュリティにも関わっているのです。
   - type: genba
     title: Arrays.asList は「半分だけ」変更できる
     body: |
-      古いコードでよく見る `Arrays.asList("A", "B")` は、`List.of` とも `ArrayList` とも違う **固定長リスト** を返します。
+      古いコードでよく見る `Arrays.asList("A", "B")` は、`List.of` とも `ArrayList` とも違う**固定長リスト**を返します。
 
       - `set(0, "X")` → **できる**(元の配列を書き換える)
       - `add("C")` / `remove(0)` → `UnsupportedOperationException`

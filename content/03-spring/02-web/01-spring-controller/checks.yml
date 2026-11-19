@@ -45,4 +45,4 @@
     - "`toString()` の結果が本体になると読んだ答え"
     - "`@Controller` の動きと取り違えた答え。`@RestController` の戻り値は、ビュー名ではなく本体"
   explanation: |
-    オブジェクトを返すと、HttpMessageConverter(中身は Jackson)が JSON に変換する。record のアクセサ名が JSON の項目名になる。
+    オブジェクトを返すと、HttpMessageConverter(中身は Jackson)が JSON に変換する。`record` のアクセサ名が JSON の項目名になる。

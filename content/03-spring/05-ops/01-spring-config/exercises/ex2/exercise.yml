@@ -9,9 +9,9 @@ problem: |
   `NotifierConfig` の2つの `@Bean` メソッドを完成させてください。
 
   1. `smtpNotifier(...)`:`prod` のときだけ登録する。SMTP サーバ名を設定 `mail.host` から受け取り(既定値 `localhost`)、`new SmtpNotifier(host)` を返す
-  2. `consoleNotifier()`:`prod` **以外** のときだけ登録する。`new ConsoleNotifier()` を返す
+  2. `consoleNotifier()`:`prod` **以外**のときだけ登録する。`new ConsoleNotifier()` を返す
 
-  どの場合も、`Notifier` 型の Bean が **ちょうど1つ** だけ登録されるようにします。
+  どの場合も、`Notifier` 型の Bean が**ちょうど1つ**だけ登録されるようにします。
 
   | 有効なプロファイル | 使われる Notifier |
   |---|---|

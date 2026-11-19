@@ -16,7 +16,7 @@
     - "同じクラスの中なら `static` でなくても呼べると読んだ答え"
     - "呼べないことは実行して初めて分かると読んだ答え。`static` かどうかの食い違いはコンパイル時に分かる"
   explanation: |
-    `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く `static` の main からは直接呼べず、`non-static method greet() cannot be referenced from a static context` になる。
+    `greet` には `static` がないので、オブジェクトに属するインスタンスメソッドになる。オブジェクトなしで動く `static` の main からは直接呼べず、次のコンパイルエラーになる: `non-static method greet() cannot be referenced from a static context`
 - after: return と早期 return
   question: |
     次のメソッドはどうなる?
@@ -47,4 +47,4 @@
     - "可変長引数も、ほかの引数と同じくどこに置いてもよいと読んだ答え"
     - "どこまでが tags か困るのは呼ぶときと読んだ答え。最後に置かない定義そのものがエラーになる"
   explanation: |
-    可変長引数は1つだけ、しかも **最後** の引数にしか置けない。`log(String msg, String... tags)` の順なら通る。
+    可変長引数は1つだけ、しかも**最後**の引数にしか置けない。`log(String msg, String... tags)` の順なら通る。

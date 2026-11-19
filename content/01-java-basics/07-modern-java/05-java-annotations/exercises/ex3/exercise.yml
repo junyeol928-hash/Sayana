@@ -27,7 +27,7 @@ problem: |
 
   **2. `dispatch(Object controller, String path)` … パスに対応するメソッドを呼ぶ**
 
-  - `controller` のクラスから、`@Get` の `value` が `path` と一致するメソッドを探し、`m.invoke(controller)` で **引数なしで** 呼んで、戻り値を `String` にして返す
+  - `controller` のクラスから、`@Get` の `value` が `path` と一致するメソッドを探し、`m.invoke(controller)` で**引数なしで**呼んで、戻り値を `String` にして返す
   - 見つからなければ `"404 Not Found"` を返す(`@Get` の付いていない `secret` も、URL からは呼べないので 404)
   - `invoke` は `IllegalAccessException` と `InvocationTargetException` を投げます(どちらもチェック例外)。`IllegalStateException` に包んで投げ直してください
 

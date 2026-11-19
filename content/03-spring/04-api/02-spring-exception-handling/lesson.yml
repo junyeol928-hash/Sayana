@@ -202,10 +202,10 @@ quiz:
       - ""
       - "同じ例外を受けるハンドラが重複すると読んだ答え。別々のクラスにあるので衝突しない"
     explanation: |
-      Spring はまず **例外が起きた Controller 自身の @ExceptionHandler** を探し、そこで見つかればそれを使います。`RuntimeException` 用のハンドラは `TaskNotFoundException` も受けられるので、400 / `controller` です。
-      「一番近い型が選ばれる」のは **同じクラスの中** で複数の候補があるときのルールです。Controller 内で見つからなかったときに初めて Advice が探されます。
+      Spring はまず**例外が起きた Controller 自身の @ExceptionHandler** を探し、そこで見つかればそれを使います。`RuntimeException` 用のハンドラは `TaskNotFoundException` も受けられるので、400 / `controller` です。
+      「一番近い型が選ばれる」のは**同じクラスの中**で複数の候補があるときのルールです。Controller 内で見つからなかったときに初めて Advice が探されます。
   - question: |
-      Advice には次のハンドラ **だけ** があります。`@RequestBody` で JSON を受け取る API に、Content-Type を付けずに POST するとステータスは?
+      Advice には次のハンドラ**だけ**があります。`@RequestBody` で JSON を受け取る API に、Content-Type を付けずに POST するとステータスは?
       ```java
       @RestControllerAdvice
       class ApiExceptionHandler {
@@ -224,7 +224,7 @@ quiz:
       - "URL が見つからないと読んだ答え。URL は合っている"
       - ""
     explanation: |
-      Content-Type の付け忘れは本来 415 です。しかしその正体は Spring MVC が投げる `HttpMediaTypeNotSupportedException` という **例外** なので、`Exception.class` のハンドラに捕まって 500 になります。
+      Content-Type の付け忘れは本来 415 です。しかしその正体は Spring MVC が投げる `HttpMediaTypeNotSupportedException` という**例外**なので、`Exception.class` のハンドラに捕まって 500 になります。
       405・壊れた JSON(400)なども同じく 500 に化けます。Advice を `ResponseEntityExceptionHandler` の継承にすると、これらは親クラスのより近い型のハンドラで正しく処理されます(サンプル②)。
   - question: |
       次のハンドラが呼ばれたとき、レスポンスとして正しいのは?
@@ -247,7 +247,7 @@ quiz:
       - "`detail` の文字列だけが、そのまま返ると読んだ答え"
       - "設定を有効にしないと使えないと読んだ答え"
     explanation: |
-      `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は **その `status` をレスポンスのステータス** にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。本文は `type`・`title`・`status`・`detail`・`instance` の JSON で、`instance` にはリクエストのパスが自動で入ります。
+      `@ExceptionHandler` が `ProblemDetail` を返すと、Spring は**その `status` をレスポンスのステータス**にし、Content-Type を `application/problem+json`(RFC 9457 の形式)にします。本文は `type`・`title`・`status`・`detail`・`instance` の JSON で、`instance` にはリクエストのパスが自動で入ります。
       `spring.mvc.problemdetails.enabled` は「Spring MVC 自身の例外を `ProblemDetail` にするか」の設定で、自分のハンドラで `ProblemDetail` を返すだけなら不要です。
   - question: |
       次の Advice を書いてアプリを起動すると、どうなる?
@@ -274,10 +274,10 @@ quiz:
       - "親クラスのハンドラが優先されると読んだ答え。どちらとも決められず、起動時に失敗する"
       - "ハンドラの重複をコンパイラが見つけると読んだ答え。文法は正しく、失敗するのは起動時"
     explanation: |
-      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず **起動時に** `IllegalStateException` で失敗します。メッセージは次のとおりです: `Ambiguous @ExceptionHandler method mapped for ...`
+      `ResponseEntityExceptionHandler` は `MethodArgumentNotValidException` を含む Spring MVC の例外を、すでに `@ExceptionHandler` で受けています。同じ例外に同じクラス階層で2つのハンドラがあるので、どちらを使うか決められず**起動時に** `IllegalStateException` で失敗します。メッセージは次のとおりです: `Ambiguous @ExceptionHandler method mapped for ...`
       継承している場合は、`@ExceptionHandler` を書かずに `handleMethodArgumentNotValid(...)` を `@Override` するのが正解です。Java の文法としては正しいのでコンパイルは通ります。
   - question: |
-      Thymeleaf を使った画面アプリで、**404 のときだけ** 独自のエラー画面を出したい。Spring Boot が自動で使ってくれるファイルの置き場所は?
+      Thymeleaf を使った画面アプリで、**404 のときだけ**独自のエラー画面を出したい。Spring Boot が自動で使ってくれるファイルの置き場所は?
     choices:
       - "`src/main/resources/templates/404.html`"
       - "`src/main/resources/templates/errors/not-found.html`"
@@ -298,12 +298,12 @@ columns:
     title: エラー画面に SQL が丸見え
     body: |
       ある社内システムで、検索欄に `'`(シングルクォート)を1文字入れると、エラー画面に
-      `You have an error in your SQL syntax ... near ''' AND deleted = 0'` と **実行した SQL の断片** が表示されていました。
+      `You have an error in your SQL syntax ... near ''' AND deleted = 0'` と**実行した SQL の断片**が表示されていました。
       Controller の catch で `e.getMessage()` をそのまま画面に出していたのが原因です。
 
       攻撃者にとっては、テーブル名や SQL の組み立て方を教えてくれる親切なヒント。SQL インジェクションの穴を、エラーを見ながら探せてしまいます。
 
-      Spring Boot も 2.3 から、既定のエラーレスポンスに例外メッセージやバリデーションの詳細を **含めない** 設定(`server.error.include-message=never` など)に変わりました。
+      Spring Boot も 2.3 から、既定のエラーレスポンスに例外メッセージやバリデーションの詳細を**含めない**設定(`server.error.include-message=never` など)に変わりました。
       現場の原則は「**詳細はログへ、利用者には固定の文言と問い合わせ用の ID**」。リクエストごとの ID(トレース ID)をレスポンスとログの両方に入れておくと、問い合わせ対応がぐっと楽になります。
   - type: trivia
     title: RFC 7807 から RFC 9457 へ
@@ -333,10 +333,10 @@ columns:
       }
       ```
 
-      例外がメソッドの外に出ないので、`@Transactional` は正常終了と判断して **コミット** します。在庫だけ引き当てられて注文が無い、中途半端なデータが残ります。
+      例外がメソッドの外に出ないので、`@Transactional` は正常終了と判断して**コミット**します。在庫だけ引き当てられて注文が無い、中途半端なデータが残ります。
       しかも API は 200 で空の本文を返します。
 
-      例外は **握りつぶさず投げる**(必要なら業務例外に包み直す)。ステータスへの変換は `@RestControllerAdvice` に任せる、が正しい分担です。
+      例外は**握りつぶさず投げる**(必要なら業務例外に包み直す)。ステータスへの変換は `@RestControllerAdvice` に任せる、が正しい分担です。
 sts:
   intro: |
     「REST API」のレッスンで作った `todo-api` を使います。存在しない ID にアクセスしてわざと 500 を出し、
@@ -438,7 +438,7 @@ sts:
         } catch { $_.ErrorDetails.Message }
         ```
 
-        `"status":400,"error":"Bad Request"` だけで、**どの項目がなぜダメなのかが分からない** ことを確認します。
+        `"status":400,"error":"Bad Request"` だけで、**どの項目がなぜダメなのかが分からない**ことを確認します。
     - title: ResponseEntityExceptionHandler を継承して完成させる
       detail: |
         `ApiExceptionHandler` を次のように書き換えます(import は **Ctrl+Shift+O**。`Logger` は `org.slf4j.Logger` を選ぶ)。

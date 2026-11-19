@@ -10,9 +10,9 @@
 踏ませるんすか……。
 :::
 
-前回の「演算子」で、比較演算子・論理演算子・三項演算子を覚えました。今回はそれらが作る **boolean の値** を使って、プログラムの流れを分ける方法を学びます。
+前回の「演算子」で、比較演算子・論理演算子・三項演算子を覚えました。今回はそれらが作る **boolean の値**を使って、プログラムの流れを分ける方法を学びます。
 
-<figure class="figure"><svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="60" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">順次構造</text><rect x="10" y="36" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">処理1</text><rect x="10" y="78" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="100" font-size="13" text-anchor="middle" fill="var(--ink)">処理2</text><text x="270" y="24" font-size="14" text-anchor="middle" fill="var(--accent)">選択構造(今回)</text><rect x="230" y="36" width="80" height="34" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="270" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">条件</text><rect x="190" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="225" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理A</text><rect x="280" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="315" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理B</text><path d="M245 70 L225 90" stroke="var(--ink)" stroke-width="2" fill="none"/><path d="M295 70 L315 90" stroke="var(--ink)" stroke-width="2" fill="none"/><text x="460" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">反復構造(次回)</text><rect x="420" y="36" width="80" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">終了条件</text><rect x="420" y="90" width="80" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理</text><path d="M500 105 L510 105 L510 53 L500 53" stroke="var(--ink-muted)" stroke-width="2" fill="none"/></svg><figcaption>3つの基本構造。今回は「選択」、次回のループで「反復」を扱う</figcaption></figure>
+<figure class="figure"><svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><text x="60" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">順次構造</text><rect x="10" y="36" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">処理1</text><rect x="10" y="78" width="100" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="60" y="100" font-size="13" text-anchor="middle" fill="var(--ink)">処理2</text><text x="270" y="24" font-size="14" text-anchor="middle" fill="var(--accent)">選択構造(今回)</text><rect x="230" y="36" width="80" height="34" rx="6" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="270" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">条件</text><rect x="190" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="225" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理A</text><rect x="280" y="90" width="70" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="315" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理B</text><path d="M245 70 L225 90" stroke="var(--ink)" stroke-width="2" fill="none"/><path d="M295 70 L315 90" stroke="var(--ink)" stroke-width="2" fill="none"/><text x="460" y="24" font-size="14" text-anchor="middle" fill="var(--ink-muted)">反復構造(次回)</text><rect x="420" y="36" width="80" height="34" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="58" font-size="13" text-anchor="middle" fill="var(--ink)">終了条件</text><rect x="420" y="90" width="80" height="30" rx="6" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="110" font-size="12" text-anchor="middle" fill="var(--ink)">処理</text><path d="M500 105 L510 105 L510 53 L500 53" stroke="var(--ink-muted)" stroke-width="2" fill="none"/></svg><figcaption>3つの基本構造(順次構造・選択構造・反復構造)。今回は「選択」、次回のループで「反復」を扱う</figcaption></figure>
 
 ## if / else if / else の基本
 
@@ -31,11 +31,11 @@ if (stock == 0) {
 // 出力: 残りわずか!
 ```
 
-- `if (条件式)` の **条件式は必ず `boolean` 型** でなければなりません。C や JavaScript のように「0 は偽、それ以外は真」という暗黙の変換は **Java には一切ありません**。`if (count)` と書くとコンパイルエラーです。
-- `else if` は何個でも続けられます。上から順に評価し、**最初に `true` になった1つだけ** が実行され、残りは評価すらされません。
+- `if (条件式)` の**条件式は必ず `boolean` 型**でなければなりません。C や JavaScript のように「0 は偽、それ以外は真」という暗黙の変換は **Java には一切ありません**。`if (count)` と書くとコンパイルエラーです。
+- `else if` は何個でも続けられます。上から順に評価し、**最初に `true` になった1つだけ**が実行され、残りは評価すらされません。
 - `else` は「どれにも当てはまらなかったとき」の受け皿です。省略可能です。
 
-`{ }` で囲まれた部分を **ブロック** と呼びます。ブロックの中で宣言した変数は、そのブロックの中でしか使えません(変数の **スコープ**)。`if` の中で作った変数を `if` の外で使おうとすると `シンボルを見つけられません` というコンパイルエラーになります。
+`{ }` で囲まれた部分を**ブロック**と呼びます。ブロックの中で宣言した変数は、そのブロックの中でしか使えません(変数の**スコープ**)。`if` の中で作った変数を `if` の外で使おうとすると `シンボルを見つけられません` というコンパイルエラーになります。
 
 ### 波括弧は省略しない(現場ルール)
 
@@ -74,7 +74,7 @@ else
 
 ### 範囲判定は「端から順に」
 
-点数から成績を出すような **範囲判定** では、条件を並べる順番が命です。
+点数から成績を出すような**範囲判定**では、条件を並べる順番が命です。
 
 ```java
 int score = 95;
@@ -89,7 +89,7 @@ if (score >= 60) {
 System.out.println(rank); // 出力: C  ← 95点なのに!
 ```
 
-95 は `score >= 60` にも当てはまるので、そこで決まってしまい、`score >= 90` は評価すらされません。`else if` は「上で外れたものだけが下に来る」構造なので、**大きい方から(`>=` で)順に** か、**小さい方から(`<` で)順に** か、どちらかに揃えて並べます。
+95 は `score >= 60` にも当てはまるので、そこで決まってしまい、`score >= 90` は評価すらされません。`else if` は「上で外れたものだけが下に来る」構造なので、**大きい方から(`>=` で)順に**か、**小さい方から(`<` で)順に**か、どちらかに揃えて並べます。
 
 ```java
 if (score >= 90) {
@@ -144,7 +144,7 @@ static String grade(int score) {
 }
 ```
 
-ネスト(入れ子)が深くなると、「今どの条件の中にいるのか」を頭で追い続ける必要があり、読むのも直すのも大変です。そこで現場では **ガード節(guard clause)** を使います。異常系・例外的なケースを **先に `return` で追い返してしまう** 書き方です。
+ネスト(入れ子)が深くなると、「今どの条件の中にいるのか」を頭で追い続ける必要があり、読むのも直すのも大変です。そこで現場では **ガード節(guard clause)** を使います。異常系・例外的なケースを**先に `return` で追い返してしまう**書き方です。
 
 ```java
 static String grade(int score) {
@@ -162,7 +162,7 @@ static String grade(int score) {
 }
 ```
 
-`return` は「メソッドの処理をそこで終えて、値を呼び出し元に返す」命令です(メソッド自体は「メソッド」のレッスンで詳しくやります)。`return` した時点で処理が終わるので、`else` を書かなくても後ろには来ません。結果として **インデントが1段で済み、「本筋」が左端にまっすぐ並ぶ** のがガード節の効果です。
+`return` は「メソッドの処理をそこで終えて、値を呼び出し元に返す」命令です(メソッド自体は「メソッド」のレッスンで詳しくやります)。`return` した時点で処理が終わるので、`else` を書かなくても後ろには来ません。結果として**インデントが1段で済み、「本筋」が左端にまっすぐ並ぶ**のがガード節の効果です。
 
 ::: haru
 `else` が消えるだけで、こんなにスッキリするんすね。
@@ -174,7 +174,7 @@ static String grade(int score) {
 
 ## 従来の switch 文とフォールスルーの罠
 
-1つの値が「どれと等しいか」で分岐するなら `switch` が使えます。まず Java 1.0 からある **従来の switch 文** から。
+1つの値が「どれと等しいか」で分岐するなら `switch` が使えます。まず Java 1.0 からある**従来の switch 文**から。
 
 ```java
 int day = 6; // 1=月 … 7=日
@@ -192,7 +192,7 @@ switch (day) {
 // 出力: 土曜日
 ```
 
-- `switch (式)` の値と一致する `case` に **ジャンプ** し、そこから下を実行します。
+- `switch (式)` の値と一致する `case` に**ジャンプ**し、そこから下を実行します。
 - `break` で switch を抜けます。
 - どの `case` にも一致しなければ `default` に飛びます。
 - `case` に値を書く switch で使える型は `byte` / `short` / `char` / `int`(とそのラッパー型)、`String`(Java 7〜)、`enum` です。`long`・`float`・`double`・`boolean` は使えません。`long` を渡すと `selector type long is not allowed` というエラーになります。なお Java 21 からは、後で学ぶパターンマッチングを使えば `Object` など任意の参照型でも switch できます。
@@ -217,7 +217,7 @@ switch (day) {
 日曜日
 ```
 
-土曜日なのに「日曜日」まで出ました。従来の switch は `case` を **ジャンプ先のラベル** として扱うだけなので、`break` がなければ **次の case の処理にそのまま落ちていきます**。これを **フォールスルー(fall-through)** と呼びます。C 言語から受け継いだ仕様です。
+土曜日なのに「日曜日」まで出ました。従来の switch は `case` を**ジャンプ先のラベル**として扱うだけなので、`break` がなければ**次の case の処理にそのまま落ちていきます**。これを **フォールスルー(fall-through)** と呼びます。C 言語から受け継いだ仕様です。
 
 意図的に使う場面もあります(`case 6: case 7:` と並べて「6 か 7 なら」を表すなど)が、`break` の書き忘れによるバグのほうがはるかに多いのが実情です。`javac -Xlint:fallthrough` を付けると `warning: [fallthrough] possible fall-through into case` と警告してくれますが、デフォルトでは無言です。
 
@@ -240,7 +240,7 @@ System.out.println(type); // 出力: 休日
 1. **アロー構文 `case X ->`**:矢印の右側だけが実行され、**フォールスルーしません**。`break` は不要です。
 2. **複数ラベル `case 1, 2, 3 ->`**:カンマで並べて「どれかに一致したら」を表せます。フォールスルーを使う必要がなくなりました。
 3. **値を返す「式」である**:`switch` 全体が1つの値になるので、変数に代入したり `return` したりできます。最後の `};` のセミコロンを忘れずに(代入文の終わりだからです)。
-4. **網羅性(exhaustiveness)のチェック**:switch 式は **必ず何かの値を返さなければならない** ので、すべての入力をカバーしていないとコンパイルエラーになります。
+4. **網羅性(exhaustiveness)のチェック**:switch 式は**必ず何かの値を返さなければならない**ので、すべての入力をカバーしていないとコンパイルエラーになります。
 
 ```java
 String type = switch (day) {
@@ -274,7 +274,7 @@ String rank = switch (score / 10) {
 
 `return` ではなく `yield` なのは、`return` だと「メソッドから抜ける」意味と区別がつかないからです。`yield` は「この switch 式の値はこれ」という専用のキーワードです。
 
-なお、アロー構文は値を返さない **switch 文** でも使えます(`case 6 -> System.out.println("土曜");`)。ただし1つの switch の中で `->` と `:` を混ぜることはできません。混ぜると `different case kinds used in the switch` というエラーになります。
+なお、アロー構文は値を返さない **switch 文**でも使えます(`case 6 -> System.out.println("土曜");`)。ただし1つの switch の中で `->` と `:` を混ぜることはできません。混ぜると `different case kinds used in the switch` というエラーになります。
 
 ::: haru
 じゃあもう、昔の `case X:` + `break` は使わなくていいんすか?
@@ -284,7 +284,7 @@ String rank = switch (score / 10) {
 新規コードなら「アロー構文、値が欲しいなら switch 式」が現場の推奨。break 忘れが構造的に起きないし、default 漏れはコンパイラが見つけてくれる。ただ古いコードは `case:` だらけだから、読めるようにはしておくこと。
 :::
 
-## 文字列の分岐:equals と `null` に注意
+## 文字列の分岐:`equals` と `null` に注意
 
 ### 文字列を == で比べてはいけない
 
@@ -297,13 +297,13 @@ System.out.println(rank == "GOLD");      // false !?
 System.out.println(rank.equals("GOLD")); // true
 ```
 
-`String` は **参照型** です。`==` は参照型に対しては「**同じオブジェクトを指しているか**」を比べるだけで、中身の文字列が同じかどうかは見ません。中身を比べるのは **`equals` メソッド** です。
+`String` は**参照型**です。`==` は参照型に対しては「**同じオブジェクトを指しているか**」(参照型の同一性)を比べるだけで、中身の文字列が同じかどうかは見ません。中身を比べるのは **`equals` メソッド** です。
 
-厄介なのは、ソースに直接書いた文字列リテラル同士(`"GOLD" == "GOLD"`)は、JVM が同じオブジェクトを使い回すので(文字列の **インターン**)`true` になることです。だから簡単なテストでは通ってしまい、ユーザー入力やDBの値が来た本番で初めて壊れます。**文字列は必ず `equals`**、と体に叩き込んでください。
+厄介なのは、ソースに直接書いた文字列リテラル同士(`"GOLD" == "GOLD"`)は、JVM が同じオブジェクトを使い回すので(文字列の**インターン**)`true` になることです。だから簡単なテストでは通ってしまい、ユーザー入力やDBの値が来た本番で初めて壊れます。**文字列は必ず `equals`**、と体に叩き込んでください。
 
 さらに現場では、`rank.equals("GOLD")` ではなく **`"GOLD".equals(rank)`** と書くことがよくあります。`rank` が `null` だと前者は `NullPointerException` ですが、後者はリテラル側のメソッドを呼ぶので、単に `false` が返るだけです。
 
-### String の switch と `null`
+### `String` の switch と `null`
 
 `switch` は内部で `equals` 相当の比較をしてくれるので、文字列の分岐を安全に書けます。
 
@@ -323,15 +323,15 @@ Exception in thread "main" java.lang.NullPointerException:
   Cannot invoke "String.hashCode()" because "<local3>" is null
 ```
 
-`<local3>` はコンパイラが裏で作った一時変数の名前です(番号は場合によって変わります)。メッセージに `hashCode()` が出ているのは、String の switch が内部で `hashCode()` を使ってジャンプ先を絞り込んでいるからです(コラム参照)。`null` の可能性があるなら、switch の前にガード節で `null` チェックをしておきます。
+`<local3>` はコンパイラが裏で作った一時変数の名前です(番号は場合によって変わります)。メッセージに `hashCode()` が出ているのは、`String` の switch が内部で `hashCode()` を使ってジャンプ先を絞り込んでいるからです(コラム参照)。`null` の可能性があるなら、switch の前にガード節で `null` チェックをしておきます。
 
 ::: trivia Java 21 なら switch で NPE を防げる
 Java 21 で正式になった「switch のパターンマッチング」では、`case null -> "未入力";` のように **`null` 専用の case** を書けるようになりました。`case null` を書いた switch だけは `null` で NPE になりません。パターンマッチングは「モダンJava」の章で詳しくやります。
 :::
 
 ::: point if と switch の使い分け
-- **switch**:決まった値(数値・文字列・enum)の **どれと一致するか** で分ける。注文ステータスや会員ランクの振り分けなど。case が並ぶだけで見通しがよい
-- **if**:**範囲**(`score >= 70`)、`&&` / `||` の **組み合わせ**、**`null` チェック** など、値の一致では書けない条件。入力チェックや境界の判定
+- **switch**:決まった値(数値・文字列・enum)の**どれと一致するか**で分ける。注文ステータスや会員ランクの振り分けなど。case が並ぶだけで見通しがよい
+- **if**:**範囲**(`score >= 70`)、`&&` / `||` の**組み合わせ**、**`null` チェック** など、値の一致では書けない条件。入力チェックや境界の判定
 - 迷ったら「等しいかどうかだけで分けられるなら switch、それ以外は if」
 :::
 
@@ -349,7 +349,7 @@ error: incompatible types: int cannot be converted to boolean
 (日本語環境: 不適合な型: intをbooleanに変換できません)
 ```
 
-`=` は代入演算子で、`x = 5` という式の値は代入された `5`(`int`)です。C 言語では「0 以外は真」なので通ってしまい、「比較のつもりが代入」という有名なバグの温床でした。Java は **条件に `boolean` 以外を許さない** という言語設計で、このミスをコンパイル時に止めてくれます。
+`=` は代入演算子で、`x = 5` という式の値は代入された `5`(`int`)です。C 言語では「0 以外は真」なので通ってしまい、「比較のつもりが代入」という有名なバグの温床でした。Java は**条件に `boolean` 以外を許さない**という言語設計で、このミスをコンパイル時に止めてくれます。
 
 ただし、**変数が `boolean` だと止まりません**。
 
@@ -368,7 +368,7 @@ if (done) { ... }           // 現場ではこう書く
 if (!done) { ... }          // false の判定は ! で
 ```
 
-`done` はすでに `boolean` なので、`== true` と比べても同じ値が出るだけです。冗長なうえ、上のように `=` を1つ打ち間違えると「常に `true`」の代入になるのに **コンパイルが通ってしまいます**。`if (done)` と書けば、そもそもこの事故は起こりません。変数名を `isEmpty` `hasStock` `canShip` のように「はい/いいえ」で読める名前にすると、`if (hasStock)` が英文のように読めて一石二鳥です。
+`done` はすでに `boolean` なので、`== true` と比べても同じ値が出るだけです。冗長なうえ、上のように `=` を1つ打ち間違えると「常に `true`」の代入になるのに**コンパイルが通ってしまいます**。`if (done)` と書けば、そもそもこの事故は起こりません。変数名を `isEmpty` `hasStock` `canShip` のように「はい/いいえ」で読める名前にすると、`if (hasStock)` が英文のように読めて一石二鳥です。
 
 ### if の後ろにセミコロン
 
@@ -383,8 +383,8 @@ if (stock == 0); {
 ::: point まとめ
 - `if` の条件は **必ず `boolean`**。`if (x = 5)` がエラーになるのは「0 は偽」のような変換が Java にないから
 - **波括弧は1行でも省略しない**。`else` は一番近い `if` に結びつく(ぶら下がり else)
-- 範囲判定は **大きい方から/小さい方から順に**。異常系は **ガード節で先に return** してネストを浅く
-- 従来の switch 文は `break` を忘れると **フォールスルー**。新規コードは **アロー構文・switch 式** が推奨
+- 範囲判定は**大きい方から/小さい方から順に**。異常系は**ガード節で先に return** してネストを浅く
+- 従来の switch 文は `break` を忘れると**フォールスルー**。新規コードは**アロー構文・switch 式**が推奨
 - switch 式は `case 1, 2 ->` の複数ラベル、ブロックでは `yield`、**網羅していないとコンパイルエラー**
 - 文字列は **`equals`** で比較(`"GOLD".equals(rank)` で `null` 安全に)。**`null` を switch に渡すと NPE**
 - boolean は `== true` と書かず `if (done)` / `if (!done)`

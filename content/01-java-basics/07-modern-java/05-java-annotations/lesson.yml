@@ -204,7 +204,7 @@ quiz:
       - "`SOURCE` と `RUNTIME` の残り方を逆に読んだ答え。実行時まで残るのは `RUNTIME` の `@Stable`"
       - "アノテーションは実行時に読めないと読んだ答え。`RUNTIME` の `@Stable` は `getAnnotation` で取れる"
     explanation: |
-      `@Draft` は `SOURCE` なので、コンパイルした時点で消えて class ファイルに残りません。実行時に `getAnnotation` すると `null` になり、`false` です。`@Stable` は `RUNTIME` なので実行時まで残り、`true` です。
+      `@Draft` は `SOURCE` なので、コンパイルした時点で消えて `.class` ファイルに残りません。実行時に `getAnnotation` すると `null` になり、`false` です。`@Stable` は `RUNTIME` なので実行時まで残り、`true` です。
       ソース上は両方付いていても、実行時に読めるのは `RUNTIME` だけ。Spring や JUnit が読むアノテーションがすべて `RUNTIME` なのはこのためです。
   - question: |
       `@Audited("X")` のように、要素の名前を書かずに値だけ渡せるのは、`@interface Audited` にどの要素があるから?
@@ -261,7 +261,7 @@ quiz:
       - ""
       - "処理が付いたメソッドの中にあると読んだ答え。本体の外で動くので、本体には書かれていない"
     explanation: |
-      アノテーションの定義には要素の宣言しかなく、処理は書かれていません。処理があるのは、`getAnnotation(RequiresRole.class)` などで **読んでいる側** です。`RequiresRole.class` で検索するのが早道です。
+      アノテーションの定義には要素の宣言しかなく、処理は書かれていません。処理があるのは、`getAnnotation(RequiresRole.class)` などで**読んでいる側**です。`RequiresRole.class` で検索するのが早道です。
 columns:
   - type: mistake
     title: "@Retention を書き忘れて、ずっと null"
@@ -275,7 +275,7 @@ columns:
       m.getAnnotation(Audited.class);          // いつも null
       ```
 
-      `@Retention` を省略すると既定値の `CLASS` になり、class ファイルには残っても **実行時には読めません**。エラーも警告も出ないので、「付け方が悪いのか」「読み方が悪いのか」と延々悩むことになります。
+      `@Retention` を省略すると既定値の `CLASS` になり、`.class` ファイルには残っても**実行時には読めません**。エラーも警告も出ないので、「付け方が悪いのか」「読み方が悪いのか」と延々悩むことになります。
 
       実行時に読むアノテーションには、必ず `@Retention(RetentionPolicy.RUNTIME)` を書きましょう。もう一つの定番は、`getMethod`(public だけ)で private メソッドを探して `NoSuchMethodException` になるミスです。全部見たいなら `getDeclaredMethods` です。
   - type: genba
@@ -297,7 +297,7 @@ columns:
       }
       ```
 
-      `@Transactional` を付けたのに、トランザクションが効いていない。理由は、Spring がアノテーションを読んで処理を挟むのが **外から呼ばれたとき** だけだからです。Spring は Bean を代理のオブジェクト(プロキシ)で包み、外からの呼び出しを横取りして前後に処理を挟みます。`this.place()` は代理を通らないので、目印があっても何も起きません。
+      `@Transactional` を付けたのに、トランザクションが効いていない。理由は、Spring がアノテーションを読んで処理を挟むのが**外から呼ばれたとき**だけだからです。Spring は Bean を代理のオブジェクト(プロキシ)で包み、外からの呼び出しを横取りして前後に処理を挟みます。`this.place()` は代理を通らないので、目印があっても何も起きません。
 
       詳しくは第3部でやりますが、「アノテーションは読む側がいて初めて動く。**読む側を通らなければ、ただの飾り**」と覚えておくと、こういうバグの原因に早く気づけます。
   - type: trivia
@@ -315,6 +315,6 @@ columns:
       }
       ```
 
-      `RUNTIME` で、クラス(`TYPE`)に付ける目印。そして **アノテーションの上に `@Component` が付いています**。Spring は「`@Component` が付いたアノテーションが付いたクラス」もたどって Bean にするので、`@Service` も `@Repository` も `@Controller` も、根っこは同じ `@Component` です。名前を分けているのは、読む人に役割を伝えるためです。
+      `RUNTIME` で、クラス(`TYPE`)に付ける目印。そして**アノテーションの上に `@Component` が付いています**。Spring は「`@Component` が付いたアノテーションが付いたクラス」もたどって Bean にするので、`@Service` も `@Repository` も `@Controller` も、根っこは同じ `@Component` です。名前を分けているのは、読む人に役割を伝えるためです。
 
       ちなみに、アノテーションが Java に入ったのは 2004年の Java 5 から。Spring でアノテーションによる Bean の登録が使えるようになったのは 2007年の Spring 2.5 からで、それまでは「このクラスを Bean にする」を XML ファイルにずらりと書いていました。アノテーションは「設定をコードのすぐそばに置く」ための仕組みでもあるのです。

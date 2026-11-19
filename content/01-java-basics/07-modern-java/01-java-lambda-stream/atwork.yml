@@ -48,7 +48,7 @@
     - "ラムダの `{ }` の中は「後で、受け取った側が呼ぶ処理」。書いてある順に即実行されるとは限らない"
     - "`TransactionTemplate.execute` や `WebClient` のコールバックは「この処理をトランザクションの中で / 応答が来たら 実行してね」の依頼"
 - title: "Stream API"
-  intro: "Spring Boot の Service では、Repository から取った Entity のリストを DTO に変換したり、集計したりする場面で Stream が毎日出てきます。「Entity → DTO」「`groupingBy` で集計」「`toMap` で辞書化」の3つの形を覚えれば、ほとんど読めます。"
+  intro: "Spring Boot の Service では、Repository から取った Entity のリストを DTO に変換したり、集計したりする場面で `Stream` が毎日出てきます。「Entity → DTO」「`groupingBy` で集計」「`toMap` で辞書化」の3つの形を覚えれば、ほとんど読めます。"
   code: |
     @Service
     @RequiredArgsConstructor
@@ -77,7 +77,7 @@
     }
   notes:
     2: "Lombok:`final` フィールドを引数に取るコンストラクタを自動生成(Lombok 章で詳しく)"
-    8: "Repository が返す `List<User>` を Stream にして流し始める。DB アクセスはこの `findAll()` の1回だけ"
+    8: "Repository が返す `List<User>` を `Stream` にして流し始める。DB アクセスはこの `findAll()` の1回だけ"
     10: "作成日時の降順。`comparing(...)` で並べ替えのキー、`reversed()` で逆順"
     11: "Entity(`User`)→ DTO(`UserDto`)への変換。`UserDto.from(User)` という `static` メソッドをメソッド参照で渡している"
     12: "終端操作。Java 16 以降の `toList()`。古いコードでは `collect(Collectors.toList())`"

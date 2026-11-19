@@ -56,7 +56,7 @@
     - "`default` の値が使われると読んだ答え。そもそもアノテーションを取り出せていない"
     - "取れないときは `null` と出ると読んだ答え。`r` 自体が `null` なので、呼び出しで落ちる"
     - ""
-  explanation: "`@Retention` を書かないと保持期間は `CLASS` で、class ファイルには残っても実行時には読めません。`getAnnotation` は `null` を返し、`r.times()` で `NullPointerException` になります。実行時に読むアノテーションには `@Retention(RetentionPolicy.RUNTIME)` が要ります。"
+  explanation: "`@Retention` を書かないと保持期間は `CLASS` で、`.class` ファイルには残っても実行時には読めません。`getAnnotation` は `null` を返し、`r.times()` で `NullPointerException` になります。実行時に読むアノテーションには `@Retention(RetentionPolicy.RUNTIME)` が要ります。"
   trace:
     - "1行目: `@Retention` が無いので、保持期間は既定の `CLASS`"
     - "11〜12行目: 実行時には `@Retry` が見えず、`getAnnotation` は `null` を返す"
@@ -90,7 +90,7 @@
   explanation: "`@Draft` は `SOURCE` なのでコンパイル後には消え、実行時には `null`。`@Stable` は `RUNTIME` なので取れます。フレームワークが読むアノテーションが必ず `RUNTIME` なのはこのためです。"
   trace:
     - "7行目: 両方のアノテーションを付ける(ソース上は両方ある)"
-    - "10行目: `Draft` は class ファイルに残っていない → `null` → `false`"
+    - "10行目: `Draft` は `.class` ファイルに残っていない → `null` → `false`"
     - "11行目: `Stable` は実行時まで残る → 取れる → `true`"
 - title: "Aspect の proceed()"
   level: 3
@@ -116,7 +116,7 @@
   choices:
     - "`revoked` がログに出て正常終了"
     - "`AccessDeniedException` が投げられる"
-    - "`@RequiresAdmin` は何もしないので普通に実行される"
+    - "`@RequiresAdmin` は効かず普通に実行される"
     - "コンパイルエラー"
   answer: 1
   why:

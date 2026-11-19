@@ -65,7 +65,7 @@
     1: "`@Data` なので `getCardId`/`getKeyVersion` が生成される。フィールドがどちらも `final` なので setter は生成されない(`@Data` の setter は `final` でないフィールドにだけ付く)"
     2: "`@Builder` なので `KeyIssueRequest.builder().cardId(...).keyVersion(...).build()` の形で呼べる"
     9: "`final` フィールド(`keyRepository`)を引数にとるコンストラクタが生成される = DI"
-    10: "`log` フィールドが生成される。ソースに宣言はない"
+    10: "`@Slf4j` なので `log` フィールドが生成される。ソースに宣言はない"
     16: "生成された `getCardId()` 経由で値を取り出している"
   points:
     - "クラス先頭のアノテーション一覧を先に確認し、どのメソッド群が生成されるか予測してから本文を読む"

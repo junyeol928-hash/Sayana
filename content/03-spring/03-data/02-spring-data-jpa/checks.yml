@@ -13,7 +13,7 @@
     - ""
     - "相手の型 `Department` から名前が決まると読んだ答え"
   explanation: |
-    `mappedBy` には、外部キーを持つ側(`Employee`)の **フィールド名** を書く。ここでは `belongsTo`。
+    `mappedBy` には、外部キーを持つ側(`Employee`)の**フィールド名**を書く。ここでは `belongsTo`。
 - after: JpaRepository:継承するだけで CRUD
   question: |
     `findById(5L)` で読んだ社員の名前を `setName` で変えて、`save` に渡した。DB の行はどうなる?

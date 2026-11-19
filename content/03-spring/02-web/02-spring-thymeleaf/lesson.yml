@@ -60,7 +60,7 @@ samples:
   - title: Controller → Model → Thymeleaf をつなげる
     libraries: [spring, thymeleaf]
     description: |
-      `@Controller` が Model に値を入れてビュー名を返し、ThymeleafViewResolver がテンプレートを描画する、本物と同じ流れを MockMvc で動かします。
+      `@Controller` が `Model` に値を入れてビュー名を返し、`ThymeleafViewResolver` がテンプレートを描画する、本物と同じ流れを `MockMvc` で動かします。
       `templates/` フォルダの代わりに `Map` からテンプレートを探しています。共通ヘッダーのフラグメントはどう差し込まれ、`@{...}` のリンクにコンテキストパス `/shop` は付くだろうか。
     code: |
       // Controller → Model → ビュー名 → Thymeleaf の流れを MockMvc で動かす
@@ -155,7 +155,7 @@ quiz:
       - "タグの中のダミー文字が残ると読んだ答え。描画すると `th:text` の値に置き換わる"
       - "式が文字のまま出ると読んだ答え。`${msg}` は評価され、エスケープした値が入る"
     explanation: |
-      `th:text` は値を **エスケープ** して出すので、`<` は `&lt;`、`>` は `&gt;` になり、ブラウザには `<b>重要</b>` という文字がそのまま表示されます。太字として解釈されるのは `th:utext` を使った場合です。
+      `th:text` は値を**エスケープ**して出すので、`<` は `&lt;`、`>` は `&gt;` になり、ブラウザには `<b>重要</b>` という文字がそのまま表示されます。太字として解釈されるのは `th:utext` を使った場合です。
       `メッセージ` はブラウザで直接開いたときのダミー文字で、描画すると置き換えられます。`${msg}` が文字として残ることはありません。
   - question: |
       `colors` が `List.of("赤", "青")` のとき、次のテンプレートの出力は?
@@ -171,7 +171,7 @@ quiz:
       - "1つの `<li>` の中で繰り返すと読んだ答え。`th:each` は付けたタグごと繰り返す"
       - "`index` が増えないと読んだ答え。回るたびに 0、1 と増える"
     explanation: |
-      `th:each` は **付けたタグごと** 要素の数だけ繰り返すので、`<li>` が2つできます。ステータス変数の `index` は **0始まり** なので `0:赤`、`1:青` です。
+      `th:each` は**付けたタグごと**要素の数だけ繰り返すので、`<li>` が2つできます。ステータス変数の `index` は **0始まり**なので `0:赤`、`1:青` です。
       1始まりにしたいときは `count` を使います。`0:赤 1:青` のように1つの `<li>` にまとまることはありません。
   - question: |
       Spring Boot(Thymeleaf の既定の設定)で、Controller が次の値を返しました。描画されるファイルはどれ?
@@ -200,7 +200,7 @@ quiz:
       - ""
       - "余った引数がパスに続くと読んだ答え。パスに無い `sort` はクエリの `?sort=new` になる"
     explanation: |
-      `@{...}` はパスの `{id}` を同名の引数で埋め、**余った引数(`sort`)をクエリ** にします。さらに `/` で始まるパスには **コンテキストパス** `/shop` を自動で付けます。よって `/shop/items/5?sort=new` です。
+      `@{...}` はパスの `{id}` を同名の引数で埋め、**余った引数(`sort`)をクエリ**にします。さらに `/` で始まるパスには**コンテキストパス** `/shop` を自動で付けます。よって `/shop/items/5?sort=new` です。
       `/items/5?sort=new` は `href="/items/..."` と直書きしたときの結果で、`/shop` で公開されているとリンク切れになります。
   - question: |
       `templates/layout.html` に次のフラグメントがあります。
@@ -219,7 +219,7 @@ quiz:
       - "フラグメントをタグの中身だけと読んだ答え。`th:fragment` を付けた `<footer>` ごと差し込まれる"
       - "別ファイルのフラグメントは読めないと読んだ答え。`~{layout :: foot}` で `layout.html` の `foot` が入る"
     explanation: |
-      `th:insert` は、自分のタグ(`<div>`)を残したまま、その **中に** フラグメント(`<footer>` ごと)を差し込みます。
+      `th:insert` は、自分のタグ(`<div>`)を残したまま、その**中に**フラグメント(`<footer>` ごと)を差し込みます。
       `<div>` ごとフラグメントに置き換わって `<footer>...</footer>` だけになるのは `th:replace` のときです。フラグメントは `th:fragment` を付けたタグ全体なので、`<footer>` が消えることはありません。
 columns:
   - type: mistake
@@ -233,9 +233,9 @@ columns:
       configured Template Resolvers
       ```
 
-      原因は **大文字小文字** です。Controller は `"orders/orderList"` を返していましたが、ファイル名は `orderlist.html` でした。Windows は大文字小文字を区別しないので、STS から動かすと見つかってしまいます。ところが Linux や **jar の中** は区別するので、本番で初めて見つからなくなります。
+      原因は**大文字小文字**です。Controller は `"orders/orderList"` を返していましたが、ファイル名は `orderlist.html` でした。Windows は大文字小文字を区別しないので、STS から動かすと見つかってしまいます。ところが Linux や **jar の中**は区別するので、本番で初めて見つからなくなります。
 
-      対策は、ファイル名とビュー名を **小文字+ハイフン**(`order-list.html`)などの命名規則で揃えることと、jar をビルドして動かす確認を CI で行うことです。
+      対策は、ファイル名とビュー名を**小文字+ハイフン**(`order-list.html`)などの命名規則で揃えることと、jar をビルドして動かす確認を CI で行うことです。
   - type: genba
     title: 「改行を出したいから th:utext」が XSS の入口
     body: |
@@ -250,15 +250,15 @@ columns:
 
       改行は `<br>` になりますが、`th:utext` なので、ユーザーが `<script>` を書けばそのまま実行されます。管理画面を開いたスタッフのブラウザでスクリプトが動けば、ログイン中のセッションを盗まれるかもしれません。
 
-      改行を見せたいだけなら、`th:text` のまま CSS で `white-space: pre-wrap;` を指定すれば十分です。どうしても HTML を許すなら、許可するタグだけを残す **サニタイズ**(OWASP Java HTML Sanitizer などのライブラリ)を Java 側で通してから出します。「`th:utext` を見たらレビューで必ず止める」というチームも多いです。
+      改行を見せたいだけなら、`th:text` のまま CSS で `white-space: pre-wrap;` を指定すれば十分です。どうしても HTML を許すなら、許可するタグだけを残す**サニタイズ**(OWASP Java HTML Sanitizer などのライブラリ)を Java 側で通してから出します。「`th:utext` を見たらレビューで必ず止める」というチームも多いです。
   - type: trivia
     title: Spring Boot ではなぜ JSP より Thymeleaf?
     body: |
       Java の画面といえば、昔は **JSP**(JavaServer Pages)が定番でした。`.jsp` をサーブレットの Java コードに変換・コンパイルして動かす仕組みで、`src/main/webapp` に置くのが決まりでした。
 
-      ところが Spring Boot の主流である **実行可能 jar**(`java -jar app.jar` で動く形)では、組み込み Tomcat の制約で JSP がうまく動きません。公式ドキュメントも JSP はできるだけ避けるよう書いています。
+      ところが Spring Boot の主流である**実行可能 jar**(`java -jar app.jar` で動く形)では、組み込み Tomcat の制約で JSP がうまく動きません。公式ドキュメントも JSP はできるだけ避けるよう書いています。
 
-      一方 Thymeleaf のテンプレートは、jar の中の `templates/` から普通のファイルとして読めます。ナチュラルテンプレートでブラウザから直接プレビューできる点も好まれ、Spring Boot の画面開発では Thymeleaf がほぼ標準になりました。古いシステムの保守で JSP に出会ったら、「`<c:out value="${...}"/>` が `th:text`(エスケープあり)に当たり、そのまま書いた `${...}`(EL 式)や `<%= %>` は **エスケープされない** ので `th:utext` に近い」と読み替えましょう。古い JSP の画面には XSS の穴が残っていることが多いので要注意です。
+      一方 Thymeleaf のテンプレートは、jar の中の `templates/` から普通のファイルとして読めます。ナチュラルテンプレートでブラウザから直接プレビューできる点も好まれ、Spring Boot の画面開発では Thymeleaf がほぼ標準になりました。古いシステムの保守で JSP に出会ったら、「`<c:out value="${...}"/>` が `th:text`(エスケープあり)に当たり、そのまま書いた `${...}`(EL 式)や `<%= %>` は**エスケープされない**ので `th:utext` に近い」と読み替えましょう。古い JSP の画面には XSS の穴が残っていることが多いので要注意です。
 sts:
   intro: |
     前のレッスンで作った Spring Web のプロジェクトに Thymeleaf を追加し、Controller から渡した一覧を HTML のページとして表示します。
@@ -349,7 +349,7 @@ sts:
         ブラウザで右クリック > **ページのソースを表示**(**Ctrl+U**)すると、`th:` の属性が消え、`&lt;b&gt;` になっているのが見えます。
     - title: th:utext に変えて違いを見る
       detail: |
-        商品名の `th:text` を `th:utext` に変えて保存し、ブラウザを再読み込みします。今度は「特価」が **太字** になります。
+        商品名の `th:text` を `th:utext` に変えて保存し、ブラウザを再読み込みします。今度は「特価」が**太字**になります。
         これが「HTML として解釈される」ということです。ユーザー入力でこれをやると XSS になるので、確認したら `th:text` に戻してください。
     - title: 共通ヘッダーをフラグメントにする
       detail: |
@@ -376,7 +376,7 @@ sts:
     - title: テンプレートを直接ブラウザで開く
       detail: |
         Windows のエクスプローラーで、ワークスペースの `src/main/resources/templates/items/list.html` をダブルクリックして(サーバーを通さずに)開いてみましょう。
-        `商品名` や `価格` といったダミーの文字で表が表示されます。これが **ナチュラルテンプレート** です。
+        `商品名` や `価格` といったダミーの文字で表が表示されます。これが**ナチュラルテンプレート**です。
 checklist:
   - key: add-thymeleaf
     text: プロジェクトに Thymeleaf のスターターを追加し、spring.thymeleaf.cache=false を設定した

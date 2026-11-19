@@ -4,13 +4,13 @@ difficulty: 2
 libraries: [spring]
 problem: |
   勤怠の締め忘れを知らせる `ReminderService` があります。通知手段(`Notifier`)は、
-  本番ではメール、開発中はコンソール出力に **設定クラスを差し替えるだけで** 切り替えたい、という要件です。
+  本番ではメール、開発中はコンソール出力に**設定クラスを差し替えるだけで**切り替えたい、という要件です。
 
   `Notifier`・`MailNotifier`・`ConsoleNotifier` は用意済みです(アノテーションの付いていない、
   ライブラリのクラスのつもり)。次を完成させてください。
 
   1. `ReminderService` の `remind(members, message)`:
-     `members` の各宛先に `notifier.send(宛先, message)` を呼び、戻り値を **順番どおりに** List にして返す。
+     `members` の各宛先に `notifier.send(宛先, message)` を呼び、戻り値を**順番どおりに** List にして返す。
      `members` が空なら空の List を返す。
   2. 本番用の設定 `AppConfig`(`@Configuration` を付ける)に、2つの `@Bean` メソッドを書く
      - `notifier()`:`new MailNotifier("noreply@example.com")` を返す
@@ -19,7 +19,7 @@ problem: |
      - `notifier()`:`new ConsoleNotifier()` を返す
      - `reminderService(Notifier notifier)`:引数で受け取った Bean を使って `new ReminderService(notifier)` を返す
 
-  採点では次のように、**設定クラスだけを替えて** コンテナを作ります。
+  採点では次のように、**設定クラスだけを替えて**コンテナを作ります。
   ```java
   var prod = new AnnotationConfigApplicationContext(AppConfig.class);
   var dev  = new AnnotationConfigApplicationContext(DevConfig.class);

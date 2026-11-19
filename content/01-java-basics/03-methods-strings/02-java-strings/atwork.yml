@@ -1,6 +1,6 @@
 # ローカル版 Java道場から移した教材(scripts/import-local-dojo.mjs で生成。以後は手で直してよい)
 - title: "String を極める"
-  intro: "Spring Boot の Service では、ログメッセージの組み立て、ID の生成、鍵の Base64 変換、`null` と空文字の区別が、String の知識の見せ場です。次のコードは鍵発行サービスの一部です。"
+  intro: "Spring Boot の Service では、ログメッセージの組み立て、ID の生成、鍵の `Base64` 変換、`null` と空文字の区別が、`String` の知識の見せ場です。次のコードは鍵発行サービスの一部です。"
   code: |
     @Service
     @RequiredArgsConstructor
@@ -28,7 +28,7 @@
     6: "入力チェック用の正規表現。クラスに1つだけ作って使い回す"
     11: "`StringUtils.isBlank` は Apache Commons Lang。`null`・空文字・空白だけ、を一度に判定できる"
     14: "ID の生成。`UUID.randomUUID()` は重複しにくいランダムな UUID を返し、`+` で連結すると文字列(`toString()` の結果)になる"
-    15: "`byte[]` の鍵を Base64 の文字列にして DB に保存できる形にする"
+    15: "`byte[]` の鍵を `Base64` の文字列にして DB に保存できる形にする"
     16: "`{}` はプレースホルダ。`+` で連結せずに引数で渡すのが SLF4J の作法(ログレベルが低いとき無駄な連結を避ける)"
     19: "`substring` で先頭8文字だけを見せて `\"...\"`。秘密情報をそのまま返さない配慮"
   points:

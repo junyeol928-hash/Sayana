@@ -12,10 +12,10 @@
   answer: 0
   why:
     - ""
-    - "record に渡すと中身ごと写し取られると読んだ答え。写しは作られない"
-    - "record の中の List は変更できないと読んだ答え。add したのは外の ArrayList で、そのまま足せる"
+    - "`record` に渡すと中身ごと写し取られると読んだ答え。写しは作られない"
+    - "`record` の中の List は変更できないと読んだ答え。add したのは外の ArrayList で、そのまま足せる"
   explanation: |
-    record の不変は浅い。フィールド `items` は付け替えられないが、外の `list` と同じ List を指しているので、外で足した B が見える。コンパクトコンストラクタで `items = List.copyOf(items);` としておけば `[A]` のまま。
+    `record` の不変は浅い。フィールド `items` は付け替えられないが、外の `list` と同じ List を指しているので、外で足した B が見える。コンパクトコンストラクタで `items = List.copyOf(items);` としておけば `[A]` のまま。
 - after: フィールド・メソッドを持つ enum
   question: |
     次の呼び出しはどうなる?
@@ -48,7 +48,7 @@
   answer: 0
   why:
     - ""
-    - "if 文の並びのように、届かない `case` も黙って通ると読んだ答え。javac はそれをエラーにする"
+    - "`if` 文の並びのように、届かない `case` も黙って通ると読んだ答え。javac はそれをエラーにする"
     - "`when` 付きの `case` が優先されると読んだ答え。`case` は上から照合し、下の `when` には届かない"
   explanation: |
     条件なしの `case Card c` がすべての `Card` を先に受け止めるので、下の `when` 付きの `case` には絶対に届かない。javac はこれを `dominated` のコンパイルエラーにする。`when` 付きを上に書けば通る。

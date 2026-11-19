@@ -139,19 +139,19 @@ quiz:
           System.out.println(r.getStatus());
       }
       ```
-    choices: ["SUBMITTED", "RETURNED", "DRAFT", "何も出力されない(例外が catch されない)"]
+    choices: ["SUBMITTED", "RETURNED", "DRAFT", "何も出力されない(例外が `catch` されない)"]
     answer: 1
     why:
       - "例外で代入が巻き戻ると読んだ答え。代入はチェックより前に済んでいる"
       - ""
       - "差戻しで下書きに戻ると読んだ答え。差戻し(`RETURN`)の行き先は `RETURNED`"
-      - "例外が外へ抜けると読んだ答え。`BusinessRuleException` は catch され、状態が出力される"
+      - "例外が外へ抜けると読んだ答え。`BusinessRuleException` は `catch` され、状態が出力される"
     explanation: |
-      状態の代入がコメントのチェックより **先** にあるので、例外が投げられた時点で `status` はもう `RETURNED` です。例外は代入を巻き戻してくれません。
-      DB なら、例外が `@Transactional` の外まで出ればロールバックされますが、トランザクションの中で誰かが catch して処理を続けると、
+      状態の代入がコメントのチェックより**先**にあるので、例外が投げられた時点で `status` はもう `RETURNED` です。例外は代入を巻き戻してくれません。
+      DB なら、例外が `@Transactional` の外まで出ればロールバックされますが、トランザクションの中で誰かが `catch` して処理を続けると、
       「コメントなしで差し戻され、履歴も無い」状態でコミットされかねません。チェックを全部済ませてから代入するのが鉄則です。
   - question: |
-      `BusinessRuleException` を **チェック例外**(`extends Exception`)にして、次のメソッドを実行しました。例外が外へ出たあと、DB はどうなっている?
+      `BusinessRuleException` を**チェック例外**(`extends Exception`)にして、次のメソッドを実行しました。例外が外へ出たあと、DB はどうなっている?
       ```java
       @Transactional
       public void approve(Long id, Long actorId, String comment)
@@ -173,14 +173,14 @@ quiz:
       - "履歴だけ残ると読んだ答え。状態の変更も同じトランザクションの中にある"
       - "状態だけ残ると読んだ答え。履歴の保存も同じトランザクションの中にある"
     explanation: |
-      Spring の `@Transactional` は、既定では **RuntimeException と Error のときだけ** ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、
-      **コミット** されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。
-      `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を RuntimeException で表します(ルール7)。
-      なお、チェックは状態を変える **前** に置くのが本来の順番です。
+      Spring の `@Transactional` は、既定では **`RuntimeException` と `Error` のときだけ** ロールバックします。チェック例外は「呼び出し元が対処する想定内の結果」とみなされ、
+      **コミット**されます。つまり、例外で「承認できません」と言いながら、DB では承認済み+履歴ありになります。
+      `rollbackFor = BusinessRuleException.class` を書けば防げますが、付け忘れが怖いので、承認くんでは業務ルール違反を `RuntimeException` で表します(ルール7)。
+      なお、チェックは状態を変える**前**に置くのが本来の順番です。
   - question: |
       承認くんでは、`ApprovalController` が画面からの POST を受けて Service を呼ぶ。`RequestForm` の Bean Validation は新規申請の入力だけを確かめ、
       `ApprovalService` が操作する人の ID を受け取って、承認・差戻しと履歴の保存をする。
-      業務ルール2「自分の申請は承認できない」を守る **本体** はどこ?
+      業務ルール2「自分の申請は承認できない」を守る**本体**はどこ?
     choices: ["詳細画面のテンプレート(自分の申請には承認ボタンを出さない)", "`RequestForm` の Bean Validation", "`ApprovalService` の `approve` メソッド", "`ApprovalHistory` の保存処理"]
     answer: 2
     why:
@@ -205,7 +205,7 @@ quiz:
       JPA は UPDATE に `WHERE id=? AND version=3`(読んだときの値)を付けます。太郎のコミットで version は 4 になっているので、部長の UPDATE は **0件**。
       Hibernate がこれを検出し、Spring は `ObjectOptimisticLockingFailureException` を投げてトランザクションをロールバックします。同じトランザクションの履歴の INSERT も消えます。
   - question: |
-      金額の判定を次のように書きました。業務ルール3(100,000円 **以上** の承認は ADMIN だけ。休暇の金額は `null`)に照らして、正しい指摘は?
+      金額の判定を次のように書きました。業務ルール3(100,000円**以上**の承認は ADMIN だけ。休暇の金額は `null`)に照らして、正しい指摘は?
       ```java
       static boolean requiresAdmin(Integer amount) {
           return amount > 100_000;
@@ -220,18 +220,18 @@ quiz:
       - "`Integer` と `int` は比べられないと読んだ答え。コンパイルは通るので、実行するまで気づけない"
     explanation: |
       問題は2つあります。①「以上」なのに `>` なので、100,000円ちょうどが `false`(ADMIN 不要)になる。②`amount` が `null` のとき、
-      比較のために `Integer` から `int` への **アンボクシング** が起き、`NullPointerException` になる。
+      比較のために `Integer` から `int` への**アンボクシング**が起き、`NullPointerException` になる。
       正しくは `amount != null && amount >= ADMIN_LIMIT`。境界値(99,999 / 100,000)と `null` のテストを必ず書きます。
 columns:
   - type: genba
     title: 「承認したけど、やっぱり取り消して」と言われたら
     body: |
       承認くんでは `APPROVED` は以後変更できません(ルール5)。運用が始まると必ず「間違えて承認した、取り消してほしい」という相談が来ます。
-      ここで DB を直接 `UPDATE ... SET status = 'SUBMITTED'` するのは最悪手です。履歴には「承認した」が残っているのに状態は申請中、という **説明のつかないデータ** になり、監査で必ず指摘されます。
+      ここで DB を直接 `UPDATE ... SET status = 'SUBMITTED'` するのは最悪手です。履歴には「承認した」が残っているのに状態は申請中、という**説明のつかないデータ**になり、監査で必ず指摘されます。
 
-      会計の世界では、確定した伝票は直さず、**逆の内容の伝票(赤伝)を追加** して打ち消します。業務システムも同じ考え方で、
+      会計の世界では、確定した伝票は直さず、**逆の内容の伝票(赤伝)を追加**して打ち消します。業務システムも同じ考え方で、
 
-      - 「承認取消」という **新しい操作**(`Action`)と状態を設計に足す
+      - 「承認取消」という**新しい操作**(`Action`)と状態を設計に足す
       - 取消も履歴に残し、誰がなぜ取り消したかを記録する
       - 取消できる人と期限を決める(経理に回った後は不可、など)
 
@@ -609,29 +609,29 @@ sts:
       detail: |
         **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)で起動し、`http://localhost:8080/requests/new` で金額 12,000円の経費精算を下書き保存します。
 
-        1. 一覧の件名から詳細を開き **申請する**:状態が「申請中」になり、履歴に「申請」が1行
-        2. `http://localhost:8080/approvals` に表示されることを確認し、詳細でコメントを **空白だけ** にして **差戻し**:
+        1. 一覧の件名から詳細を開き**申請する**:状態が「申請中」になり、履歴に「申請」が1行
+        2. `http://localhost:8080/approvals` に表示されることを確認し、詳細でコメントを**空白だけ**にして**差戻し**:
            赤字で「差戻しにはコメントが必要です」、状態も履歴も変わらない
-        3. コメント「領収書を添付してください」で **差戻し** → **申請する**(再申請)→ **承認**
+        3. コメント「領収書を添付してください」で**差戻し** → **申請する**(再申請)→ **承認**
         4. 履歴が「申請・差戻し・申請・承認」の **4行**、状態が「承認済」で、ボタンが1つも出ていないこと
     - title: ルール2・3を画面で確かめる
       detail: |
         - `ApprovalController` の `CURRENT_APPROVER_ID` を一時的に `1L`(申請者本人)に変えて保存・再起動し、申請中の申請を承認 →「自分の申請は承認できません」
-        - `CURRENT_APPROVER_ID` を `2L` に戻し、**100,000円ちょうど** の申請を作って申請 → 承認 →「100,000円以上の申請は管理者しか承認できません」
+        - `CURRENT_APPROVER_ID` を `2L` に戻し、**100,000円ちょうど**の申請を作って申請 → 承認 →「100,000円以上の申請は管理者しか承認できません」
         - `CURRENT_APPROVER_ID` を初期データの **ADMIN の id** にして同じ申請を承認 → 承認できる
 
         確認が終わったら `CURRENT_APPROVER_ID` を承認者の id に戻します。
     - title: デバッガで「同時に承認」を再現する(楽観ロック)
       detail: |
         1. アプリを止め、プロジェクトを右クリック > **Debug As > Spring Boot App**(デバッグ > Spring Boot アプリケーション)で起動し直す
-        2. `ApprovalService.approve` の `requireApprover(actor);` の行の **左端(行番号の左)をダブルクリック** して、ブレークポイント(青い丸)を置く
-        3. 金額の小さい申請を「申請中」にし、ブラウザの **2つのタブ** で同じ詳細画面を開く
-        4. タブ1で **承認** → STS が止まる(**Confirm Perspective Switch**(パースペクティブ切り替えの確認)が出たら **Switch**(切り替え))。続けてタブ2でも **承認**
-        5. **Debug**(デバッグ)ビューに `http-nio-8080-exec-…` のスレッドが **2つ** 止まっているのを確認し、1つ目を選んで **Resume**(再開、F8)、次に2つ目を選んで F8
+        2. `ApprovalService.approve` の `requireApprover(actor);` の行の**左端(行番号の左)をダブルクリック**して、ブレークポイント(青い丸)を置く
+        3. 金額の小さい申請を「申請中」にし、ブラウザの **2つのタブ**で同じ詳細画面を開く
+        4. タブ1で**承認** → STS が止まる(**Confirm Perspective Switch**(パースペクティブ切り替えの確認)が出たら **Switch**(切り替え))。続けてタブ2でも**承認**
+        5. **Debug**(デバッグ)ビューに `http-nio-8080-exec-…` のスレッドが **2つ**止まっているのを確認し、1つ目を選んで **Resume**(再開、F8)、次に2つ目を選んで F8
 
-        タブ1は「承認しました」、タブ2は「他の人が先に操作しました。開き直してください」になり、履歴の「承認」は **1行だけ** です。
+        タブ1は「承認しました」、タブ2は「他の人が先に操作しました。開き直してください」になり、履歴の「承認」は **1行だけ**です。
         2つ目のスレッドは、1つ目がコミットする前に「申請中・version 0」を読んでいたので、ルールのチェックは通ったのに UPDATE が0件になったのです。
-        余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行** になることも確かめましょう(確認後は必ず戻す)。
+        余裕があれば `@Version` を一時的にコメントアウトして同じことをやり、承認の履歴が **2行**になることも確かめましょう(確認後は必ず戻す)。
 checklist:
   - key: entity-methods
     text: ApprovalRequest に submit / approve / returnBack / withdraw を足し、Problems ビューにコンパイルエラーが残っていない

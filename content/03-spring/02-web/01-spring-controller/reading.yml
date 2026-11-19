@@ -171,8 +171,8 @@
   question: "(予習:`restTemplate.postForObject(URL, 送るオブジェクト, 戻りの型)` は、別のサーバーへ JSON を POST し、返ってきた JSON を指定した型に変換する呼び出しです。受け取る側の `@RequestBody` は JSON のボディをオブジェクトにする注釈(第4章「REST API」))受付サーバの `requestChallenge(\"C001\")` の結果は?"
   choices:
     - "`ChallengeResponse` が返る"
-    - "業務サーバで 400 になり受付サーバで例外"
-    - "パスが `/challenge` だけになり 404"
+    - "業務サーバで 400、受付サーバで例外"
+    - "パスが `/challenge` だけで 404"
     - "受付サーバで JSON 変換に失敗"
   answer: 0
   why:

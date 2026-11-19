@@ -185,10 +185,10 @@ quiz:
     why:
       - "`roles` に `ROLE_` が要ると読んだ答え。自動で付くので、付けるとむしろエラー"
       - "MockMvc は注入できないと読んだ答え。`@WebMvcTest` が用意するので `@Autowired` できる"
-      - "import の取り違えと読んだ答え。テストに入る前に止まるのは Bean が足りないから"
+      - "`import` の取り違えと読んだ答え。テストに入る前に止まるのは Bean が足りないから"
       - ""
     explanation: |
-      `@WebMvcTest` は Controller などの Web 層の Bean **だけ** を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
+      `@WebMvcTest` は Controller などの Web 層の Bean **だけ**を作り、`@Service` は作りません。`ApprovalService` を `@MockitoBean` で用意していないので、
       Controller のコンストラクタに渡すものがなく `No qualifying bean of type '...ApprovalService'` でコンテキストの起動に失敗します。`@MockitoBean ApprovalService approvalService;` を足せば直ります。
   - question: |
       `list` が次のように書かれています。`GET /api/requests?status=submitted` を送ると、どうなる?
@@ -206,10 +206,10 @@ quiz:
     why:
       - ""
       - "変換できない値は `null` になると読んだ答え。`required = false` は無いときに `null` にするだけ"
-      - "大文字小文字を無視して変換されると読んだ答え。enum への変換は区別する"
+      - "大文字小文字を無視して変換されると読んだ答え。`enum` への変換は区別する"
       - "変換の失敗をサーバーの異常と読んだ答え。リクエストの形が変として 400 になる"
     explanation: |
-      文字列から enum への変換は `RequestStatus.valueOf` と同じく **大文字小文字を区別** します。`submitted` という定数はないので変換に失敗し、
+      文字列から `enum` への変換は `RequestStatus.valueOf` と同じく**大文字小文字を区別**します。`submitted` という定数はないので変換に失敗し、
       Spring MVC は `MethodArgumentTypeMismatchException` を「リクエストの形が変」として **400** にします。
       API の仕様書に「大文字で指定」と書くか、小文字も受けたいなら Converter を自作します。
   - question: |
@@ -222,7 +222,7 @@ quiz:
       - ""
       - "手の確認で足りると読んだ答え。毎回はやらなくなるので、境界の守りにならない"
     explanation: |
-      金額と役割の組み合わせは **業務ルール** なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
+      金額と役割の組み合わせは**業務ルール**なので、ルールを持っている `ApprovalService` の単体テストで確かめるのが一番速く、壊れたときの原因もすぐ分かります。テーブル駆動なら `"APPROVER, 99999, SUBMITTED, OK"` のように1行足すだけです。
   - question: |
       承認くんの方針(業務ルール違反は 409、ロールでの門前払いは Spring Security)どおりの組み合わせはどれ?
       - (ア)存在しない申請 99 番を承認しようとした
@@ -237,7 +237,7 @@ quiz:
       - "存在しない申請を 400、権限不足を 404 と読んだ答え。正しくは 404 と 403"
     explanation: |
       (ア)は「その申請がない」ので **404**(`RequestNotFoundException`)。(イ)は申請はあるが「今の状態ではできない」ので **409**(`BusinessRuleException`)。(ウ)はログインはしているがロールが足りないので **403** Forbidden です。
-      401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(enum に変換できない値など)に使います。
+      401 Unauthorized は「ログインしていない(認証されていない)」ときのコードで、ログイン済みの権限不足は 403。400 はリクエストの形が変なとき(`enum` に変換できない値など)に使います。
 columns:
   - type: mistake
     title: エンティティを返したら、JSON が終わらなくなった
@@ -256,7 +256,7 @@ columns:
       (1000, from `StreamWriteConstraints.getMaxNestingDepth()`)
       ```
 
-      (古い Jackson では `StackOverflowError`。)`@JsonIgnore` を付けて回るのは対症療法です。**API は DTO を返す** と決めておけば、エンティティに関連を足しても JSON は変わりません。
+      (古い Jackson では `StackOverflowError`。)`@JsonIgnore` を付けて回るのは対症療法です。**API は DTO を返す**と決めておけば、エンティティに関連を足しても JSON は変わりません。
   - type: trivia
     title: ProblemDetail と 409 / 422 の話
     body: |
@@ -264,13 +264,13 @@ columns:
       `type`・`title`・`status`・`detail`・`instance` が基本で、独自項目も足せます。Spring Framework 6(Boot 3)から `ProblemDetail` クラスで使えます。
 
       ステータスコードにも流派があります。「形は正しいが意味的に処理できない」には **422 Unprocessable Content**(もとは WebDAV 用、RFC 9110 で一般化)を使う API も多く、
-      「リソースの現在の状態と衝突する」には **409 Conflict** を使います。承認済の申請の再承認は「状態との衝突」なので 409、というのが承認くんの判断です。どちらを選ぶにせよ、**API 全体で揃っていること** のほうが大事です。
+      「リソースの現在の状態と衝突する」には **409 Conflict** を使います。承認済の申請の再承認は「状態との衝突」なので 409、というのが承認くんの判断です。どちらを選ぶにせよ、**API 全体で揃っていること**のほうが大事です。
   - type: genba
     title: テストが遅い本当の理由は「コンテキストの作り直し」
     body: |
-      Spring のテストは、一度作ったアプリケーションコンテキスト(Bean の集まり)を **キャッシュ** して、設定が同じテストクラスどうしで使い回します。`@SpringBootTest` が何本あっても、設定が同じなら起動は1回で済みます。
+      Spring のテストは、一度作ったアプリケーションコンテキスト(Bean の集まり)を**キャッシュ**して、設定が同じテストクラスどうしで使い回します。`@SpringBootTest` が何本あっても、設定が同じなら起動は1回で済みます。
 
-      ところが、テストクラスごとに `@MockitoBean` の組み合わせが違ったり、`@TestPropertySource` でプロパティを少し変えたりすると、それぞれ **別のコンテキスト** とみなされて毎回起動し直します。
+      ところが、テストクラスごとに `@MockitoBean` の組み合わせが違ったり、`@TestPropertySource` でプロパティを少し変えたりすると、それぞれ**別のコンテキスト**とみなされて毎回起動し直します。
       「テストが1本数秒なのに、全部流すと3分かかる」現場の多くはこれが原因です。
 
       対策は、`@SpringBootTest` を少数に絞る(テストピラミッド)、`@MockitoBean` の組み合わせを揃える、業務ルールは Spring を起動しない単体テストに寄せる、の3つ。ログに Spring Boot のバナーが何回出ているかを数えると、作り直しの回数が分かります。
@@ -303,9 +303,9 @@ sts:
         `@AuthenticationPrincipal` は `org.springframework.security.core.annotation`、`LoginUser` は `com.example.approval.config`、`ProblemDetail` と `HttpStatus` は `org.springframework.http` のものを import します。
     - title: SecurityConfig の /api/** と CSRF を確かめる
       detail: |
-        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より **前** にあることを確かめます(ルールは上から順に評価されます)。
+        `com.example.approval.config.SecurityConfig` を開き、capstone-security で書いた `requestMatchers(...)` の中に `"/api/**"` があり、`.hasAnyRole("APPROVER", "ADMIN")` が `anyRequest()` より**前**にあることを確かめます(ルールは上から順に評価されます)。
 
-        CSRF は **無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
+        CSRF は**無効化しません**(`csrf(c -> c.disable())` や `ignoringRequestMatchers("/api/**")` を足さない)。承認くんの API は画面と同じセッション Cookie で認証するので、外すと「罠サイトを開いただけで承認される」穴になります。
         画面の JavaScript から POST するなら、Thymeleaf で `<meta name="_csrf" th:content="${_csrf.token}">` を出しておき、その値を `X-CSRF-TOKEN` ヘッダに入れて送ります。
     - title: 起動してブラウザで GET を確かめる
       detail: |
@@ -322,7 +322,7 @@ sts:
         **New > Other... > Java > JUnit > JUnit Test Case**(新規 > その他 > Java > JUnit > JUnit テスト・ケース)で、**Source folder** を `approval-app/src/test/java` にして `RequestApiControllerTest` を作ります。
 
         解説の 409 と 403 のテストに、`queryService.get(99L)` が `RequestNotFoundException` を投げる 404 のテストを足し、エディター上で右クリック → **Run As > JUnit Test**(実行 > JUnit テスト)。
-        JUnit ビューのバーが緑で、3本とも ✔ なら成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します(どちらも capstone-security で `pom.xml` に足した `spring-security-test` に入っています)。
+        JUnit ビューのバーが緑で、3本とも緑の印が付けば成功です。`user(...)` と `csrf()` は `SecurityMockMvcRequestPostProcessors`、`@WithMockUser` は `org.springframework.security.test.context.support` から import します(どちらも capstone-security で `pom.xml` に足した `spring-security-test` に入っています)。
 
         `@WithMockUser` が作るのは Spring の `User` なので、`@AuthenticationPrincipal LoginUser` の引数には **null** が入ります(`user.id()` で NullPointerException)。`LoginUser` が要る承認のテストは、必ず `.with(user(moka))` で本物の `LoginUser` を渡します。
         `.with(csrf())` を消して実行すると 403 になることも確かめておきましょう。
@@ -336,7 +336,7 @@ sts:
         状態は `setStatus` が無いので、`SUBMITTED` なら `submit(...)`、`APPROVED` なら `submit` の後に別の承認者で `approve(...)` を呼んで作ります。
         capstone-security で `ApprovalService` が `AccessPolicy` も受け取るようにしたなら、`@Spy AccessPolicy accessPolicy = new AccessPolicy();` も足します(本物の判定を `@InjectMocks` に渡すため。足さないと `null` が渡ります)。
 
-        **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ** 結果が並びます。
+        **Run As > JUnit Test** で実行し、JUnit ビューでテストを展開すると、`APPROVERが100000円のSUBMITTEDを承認→NG` のように **1行ずつ**結果が並びます。
         次に `ApprovalFlow.requiresAdmin` の金額の比較 `>=` を `>` に書き換えて保存し、もう一度実行します。`100000` の行だけが赤くなることを確かめたら、元に戻します。
     - title: 全テストを流して緑にする
       detail: |

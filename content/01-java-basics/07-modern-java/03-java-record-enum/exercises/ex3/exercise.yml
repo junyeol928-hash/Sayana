@@ -26,7 +26,7 @@ problem: |
 
   - 同じ状態への遷移(`DRAFT` → `DRAFT`)も `false`
   - `next` が `null` なら `false`
-  - `switch (this)` の **switch 式** で書き、`default` は書かないこと(全定数を case に書けば網羅性チェックが効きます)
+  - `switch (this)` の **switch 式**で書き、`default` は書かないこと(全定数を case に書けば網羅性チェックが効きます)
 
   **2. `ApplicationFlow.countByStatus(List<Status> statuses)` を完成させる**
 

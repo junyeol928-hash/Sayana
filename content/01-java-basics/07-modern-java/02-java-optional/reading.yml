@@ -70,7 +70,7 @@
     String city1 = Optional.ofNullable(p1.address()).map(Address::city).orElse("unknown");
     String city2 = Optional.ofNullable(p2.address()).map(Address::city).orElse("unknown");
     System.out.println(city1 + " " + city2);
-  question: "`record Address(...)` などは、値を持つクラスを1行で書く書き方です(次の「recordとenum」で習います)。値は `p1.address()` のように取り出します。出力は?"
+  question: "`record Address(...)` などは、値を持つクラスを1行で書く書き方です(次の「`record` と `enum`」で習います)。値は `p1.address()` のように取り出します。出力は?"
   choices:
     - "`Tokyo unknown`"
     - "`Tokyo null`"

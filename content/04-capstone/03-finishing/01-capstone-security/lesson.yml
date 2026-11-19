@@ -103,7 +103,7 @@ quiz:
       - ""
       - "順番の矛盾を起動時に見抜くと読んだ答え。起動で落ちるのは `anyRequest()` の後ろに書いたときだけ"
     explanation: |
-      ルールは上から順に評価され、**最初に一致したもの** で決まります。`/requests/search` は先に書いた `/requests/**` に一致するので、「ログインしていれば誰でも」で通ってしまいます。3行目の `hasAnyRole` は一度も使われません。
+      ルールは上から順に評価され、**最初に一致したもの**で決まります。`/requests/search` は先に書いた `/requests/**` に一致するので、「ログインしていれば誰でも」で通ってしまいます。3行目の `hasAnyRole` は一度も使われません。
       細かい URL(`/requests/search`)を広いパターン(`/requests/**`)より上に書くのが正解です。
   - question: |
       ログインはできるのに、承認者の社員が `/approvals` を開くと 403 になります。`LoginUser` の次の部分が原因です。正しい直し方は?
@@ -155,7 +155,7 @@ quiz:
       hidden の値も、ブラウザの開発者ツールや curl で自由に書き換えて送れます。`employeeId=3` に変えれば、部長の名前で申請できてしまいます。
       「誰が」は画面から受け取らず、サーバー側のセッションにあるログイン情報を `@AuthenticationPrincipal LoginUser user` で受け取って `user.id()` を使います。
   - question: |
-      ロール `APPROVER` のモカさんが、**自分が出した** 申請(5,000円・申請中)の承認を、curl で `POST /requests/8/approve` に直接送りました(ログイン済みのセッションと CSRF トークン付き)。承認くんではどうなるのが正しい?
+      ロール `APPROVER` のモカさんが、**自分が出した**申請(5,000円・申請中)の承認を、curl で `POST /requests/8/approve` に直接送りました(ログイン済みのセッションと CSRF トークン付き)。承認くんではどうなるのが正しい?
     choices:
       - "画面に承認ボタンが表示されないので、リクエストは届かない"
       - "SecurityFilterChain は通るが、Service の判定で拒否される"
@@ -200,9 +200,9 @@ columns:
       数年後に BCrypt から Argon2 へ移るとき、全員のパスワードを一度に作り直す必要がないのです(ログインのたびに新しい方式で保存し直せる)。
 
       承認くんは `BCryptPasswordEncoder` を直接 Bean にしているので、`{bcrypt}` は付けません。
-      逆に、`PasswordEncoder` の Bean を定義し忘れると Delegating が使われ、`{ }` の無いハッシュに対して
-      `Given that there is no default password encoder configured, each password must have a password encoding prefix.` で始まる例外になります
-      (Spring Security 5 系では `There is no PasswordEncoder mapped for the id "null"` でした。ネットの記事はこちらが多い)。
+      逆に、`PasswordEncoder` の Bean を定義し忘れると Delegating が使われ、`{ }` の無いハッシュに対して、次のメッセージで始まる例外になります:
+      `Given that there is no default password encoder configured, each password must have a password encoding prefix.`
+      Spring Security 5 系では次のメッセージでした(ネットの記事はこちらが多い): `There is no PasswordEncoder mapped for the id "null"`
   - type: genba
     title: "「そのユーザーは存在しません」と言ってはいけない"
     body: |
@@ -211,19 +211,21 @@ columns:
       承認くんのように `UsernameNotFoundException` を投げても、Spring Security は既定でそれを「パスワード違い」と同じ `BadCredentialsException` に変えるので、
       どちらでも `/login?error` になり、画面には同じ「メールアドレスかパスワードが違います」が出ます。
 
-      さらに `DaoAuthenticationProvider` は、存在しないユーザーのときも **ダミーのパスワードで BCrypt を1回計算** します。
+      さらに `DaoAuthenticationProvider` は、存在しないユーザーのときも**ダミーのパスワードで BCrypt を1回計算**します。
       存在するユーザーだけ BCrypt の計算時間(数十ミリ秒)がかかると、応答時間の差で見分けられてしまうからです。
       「エラーは詳しく」が正義の業務画面でも、ログインだけは例外。現場のセキュリティ診断で必ず見られるポイントです。
   - type: mistake
     title: "Role が「あいまい」と言われてコンパイルできない"
     body: |
-      `SecurityConfig` や初期データのクラスで import を `*` でまとめると、次のコンパイルエラーに出会うことがあります(Maven でビルドしたときの javac の表示。STS のエディターでは `The type Role is ambiguous` と出ます)。
+      `SecurityConfig` や初期データのクラスで import を `*` でまとめると、次のコンパイルエラーに出会うことがあります(Maven でビルドしたときの javac の表示)。
 
       ```text
       reference to Role is ambiguous
         both enum com.example.approval.domain.Role in com.example.approval.domain
         and class org.springframework.context.annotation.Role in org.springframework.context.annotation match
       ```
+
+      STS のエディターでは、次のメッセージが出ます: `The type Role is ambiguous`
 
       Spring にも `@Role` アノテーションがあり、`org.springframework.context.annotation.*` と `com.example.approval.domain.*` を
       両方 `*` で import すると、どちらの `Role` か決められないのです。

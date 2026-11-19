@@ -10,13 +10,13 @@ problem: |
 
   1. `GET /members/new` … Model に空の `MemberForm` を `"memberForm"` という名前で入れて、ビュー名 `"members/form"` を返す
   2. `POST /members` … フォームを受け取って検証する
-     - 入力エラーがあれば、**登録せずに** 同じビュー名 `"members/form"` を返す
+     - 入力エラーがあれば、**登録せずに**同じビュー名 `"members/form"` を返す
      - エラーが無ければ `store.add(form.getName(), form.getEmail())` で登録し、
        フラッシュ属性 `"message"` に `"登録しました"` を入れて、`"redirect:/members/done"` を返す(PRG パターン)
 
   **ヒント**
 
-  - POST のメソッドは `@Validated @ModelAttribute MemberForm form` で受け取り、**その直後の引数** に `BindingResult` を置きます。
+  - POST のメソッドは `@Validated @ModelAttribute MemberForm form` で受け取り、**その直後の引数**に `BindingResult` を置きます。
     `BindingResult` を置き忘れると、エラー時にメソッドが呼ばれず 400 Bad Request になります。
   - フラッシュ属性は引数に `RedirectAttributes ra` を足して `ra.addFlashAttribute(...)` です。
   - 雛形の `register` は検証もせずにリダイレクトしているので、空欄でも登録されてしまいます。

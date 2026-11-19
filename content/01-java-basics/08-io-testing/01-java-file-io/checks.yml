@@ -38,6 +38,6 @@
   why:
     - ""
     - "`main` の `throws` がラムダの中にも効くと読んだ答え。ラムダの中身は `Consumer` の `accept` の中"
-    - "`UncheckedIOException` に自動で包まれると読んだ答え。包むのは自分で書く catch の仕事"
+    - "`UncheckedIOException` に自動で包まれると読んだ答え。包むのは自分で書く `catch` の仕事"
   explanation: |
-    `forEach` に渡すラムダは `Consumer` の実装で、その `accept` はチェック例外を投げられない。外側の `main` の `throws` はラムダの中には効かない。ラムダの中で catch して `new UncheckedIOException(e)` で包むか、for 文で書く。
+    `forEach` に渡すラムダは `Consumer` の実装で、その `accept` はチェック例外を投げられない。外側の `main` の `throws` はラムダの中には効かない。ラムダの中で `catch` して `new UncheckedIOException(e)` で包むか、`for` 文で書く。

@@ -30,7 +30,7 @@ problem: |
   1. `@ExceptionHandler(MethodArgumentNotValidException.class)` を付けたメソッドで `ProblemDetail` を返す
   2. `ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "入力内容を確認してください")` で作り、`setTitle("入力エラー")`
   3. `ex.getBindingResult().getFieldErrors()` を回して、`項目名(getField())→ メッセージ(getDefaultMessage())` の `Map` を作る。
-     同じ項目にエラーが2つ以上あったら **最初の1つ** だけ入れる(`putIfAbsent`)。順番を保つなら `LinkedHashMap`
+     同じ項目にエラーが2つ以上あったら**最初の1つ**だけ入れる(`putIfAbsent`)。順番を保つなら `LinkedHashMap`
   4. `setProperty("errors", map)` で追加する(JSON では `type` や `title` と同じ階層に出ます)
 
   `type` と `instance` は Spring が埋めてくれるので、自分で設定しなくて構いません。

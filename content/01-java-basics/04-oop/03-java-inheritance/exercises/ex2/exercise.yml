@@ -3,7 +3,7 @@ className: Employee
 difficulty: 2
 problem: |
   給与システムの社員クラスを、継承を使って作ります。親クラス `Employee` は用意済みです。
-  子クラスで `monthlyPay()`(月給)を **オーバーライド** してください。
+  子クラスで `monthlyPay()`(月給)を**オーバーライド**してください。
 
   ```text
   Employee(社員)
@@ -17,7 +17,7 @@ problem: |
   1. `FullTimeEmployee(name, baseSalary, overtimeHours)` … 正社員。
      月給 = 基本給 + 残業時間 × `2500`
   2. `PartTimeEmployee(name, hourlyWage, hours)` … パート。
-     月給 = 時給 × 勤務時間。ただし **160 時間を超えた分** は時給の 1.25 倍(`時給 × 125 / 100`、小数切り捨て)
+     月給 = 時給 × 勤務時間。ただし **160 時間を超えた分**は時給の 1.25 倍(`時給 × 125 / 100`、小数切り捨て)
   3. `Manager(name, baseSalary)` … マネージャー。`FullTimeEmployee` を継承し、**残業代は出ない**(残業時間 0 として親に渡す)。
      月給 = 正社員としての月給(`super.monthlyPay()`)+ 役職手当 `50000`
 
@@ -32,5 +32,5 @@ problem: |
 
   注意:
   - 各コンストラクタでは `super(...)` で親に値を渡してください。
-  - `Manager` の月給は、正社員の計算を **コピペせず** `super.monthlyPay()` で再利用してください。
+  - `Manager` の月給は、正社員の計算を**コピペせず** `super.monthlyPay()` で再利用してください。
   - オーバーライドするメソッドには `@Override` を付けましょう。

@@ -55,7 +55,7 @@ samples:
       check(new MemberForm("   ", "taro", 17));
       check(new MemberForm("あ".repeat(21), "", null));
   - title: "@ModelAttribute の裏側:バインド → 検証 → BindingResult"
-    description: Controller の引数で Spring がやっていることを DataBinder で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。BindingResult には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値はどうなる?
+    description: Controller の引数で Spring がやっていることを `DataBinder` で再現します。`age` に数値でない `"abc"` を、確認用に違うパスワードを送り、さらに重複を見つけたつもりで `rejectValue` します。`BindingResult` には、どの項目のエラーが何件並ぶだろうか。`form.getAge()` の値はどうなる?
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -125,7 +125,7 @@ samples:
       }
       System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
   - title: MockMvc で PRG の流れを見る
-    description: フォームの POST を MockMvc で送ります(実行に数秒かかります)。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。
+    description: フォームの POST を `MockMvc` で送ります(実行に数秒かかります)。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。
     libraries: [spring]
     code: |
       import jakarta.validation.constraints.*;
@@ -289,15 +289,15 @@ quiz:
       - "フラッシュ属性も URL に付くと読んだ答え。`addFlashAttribute` の値はセッションで運ばれ、URL に出ない"
       - "2つの役目を逆に読んだ答え。クエリになるのは `addAttribute` の `id` のほう"
     explanation: |
-      `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の **クエリパラメータ** になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
+      `RedirectAttributes.addAttribute` で入れた値は、リダイレクト先 URL の**クエリパラメータ**になります。一方 `addFlashAttribute` の値はセッションに一時保存され、リダイレクト先の1回の表示で Model に入ってから自動で消えるので、**URL には出ません**。
       そのため移動先は `/members/done?id=5`。ID のように URL に残ってよい値は `addAttribute`、「登録しました」のような一度きりのメッセージや URL に出したくない値は `addFlashAttribute` と使い分けます。
 columns:
   - type: mistake
     title: エンティティを直接バインドして、管理者になれてしまった話
     body: |
-      2012年3月、ある開発者が GitHub の Rails リポジトリに、権限の無い自分のアカウントからコミットしてみせる事件がありました。原因は **マスアサインメント**。リクエストパラメータを、モデル(エンティティ)の全項目にそのまま流し込む仕組みを悪用し、画面には無い項目(公開鍵の持ち主の ID)を勝手に送り込んだのです。
+      2012年3月、ある開発者が GitHub の Rails リポジトリに、権限の無い自分のアカウントからコミットしてみせる事件がありました。原因は**マスアサインメント**。リクエストパラメータを、モデル(エンティティ)の全項目にそのまま流し込む仕組みを悪用し、画面には無い項目(公開鍵の持ち主の ID)を勝手に送り込んだのです。
 
-      Spring でも同じことが起きます。`@ModelAttribute User user` のように **エンティティを直接受け取る** と、`User` に `role` や `point` があれば、ブラウザの開発者ツールで `role=ADMIN` を足して送るだけでバインドされます。画面に入力欄が無いことは、何の防御にもなりません。
+      Spring でも同じことが起きます。`@ModelAttribute User user` のように**エンティティを直接受け取る**と、`User` に `role` や `point` があれば、ブラウザの開発者ツールで `role=ADMIN` を足して送るだけでバインドされます。画面に入力欄が無いことは、何の防御にもなりません。
 
       対策は「**画面に出す項目だけを持つフォームクラスを作り、Service で必要な項目だけをエンティティへ詰め替える**」こと。`@InitBinder` で `setAllowedFields` を指定する方法もありますが、項目を足すたびに更新が必要で漏れやすいので、現場ではフォームクラスを分けるのが基本です。
   - type: genba
@@ -309,13 +309,13 @@ columns:
       2. **ボタン連打**:回線が遅く、反応が無いので「注文確定」を2回クリック
       3. **戻るボタン**:完了画面から戻って、もう一度「確定」
 
-      1 は PRG パターンで防げます。しかし 2 と 3 は PRG では防げません。現場では、JavaScript で送信後にボタンを無効化する(見た目の対策)に加え、**フォーム表示時にワンタイムトークンを発行し、POST 時に「未使用のトークンか」をサーバ側で確かめる** のが定番です。決済のように絶対に二重にしてはいけない処理では、DB の一意制約で最後の砦を作ります。
+      1 は PRG パターンで防げます。しかし 2 と 3 は PRG では防げません。現場では、JavaScript で送信後にボタンを無効化する(見た目の対策)に加え、**フォーム表示時にワンタイムトークンを発行し、POST 時に「未使用のトークンか」をサーバ側で確かめる**のが定番です。決済のように絶対に二重にしてはいけない処理では、DB の一意制約で最後の砦を作ります。
 
       「PRG にしたから二重送信対策は完了」と思い込まないこと。PRG はあくまで F5 対策です。
   - type: trivia
     title: エラーメッセージはどこから来る? 4つのエラーコード
     body: |
-      検証エラーが BindingResult に入るとき、Spring は1つのエラーに **4つのコード** を付けます。`MemberForm` の `name` が `@NotBlank` に違反したなら、次の順です。
+      検証エラーが BindingResult に入るとき、Spring は1つのエラーに **4つのコード**を付けます。`MemberForm` の `name` が `@NotBlank` に違反したなら、次の順です。
 
       ```text
       NotBlank.memberForm.name
@@ -324,7 +324,7 @@ columns:
       NotBlank
       ```
 
-      `th:errors` は、MessageSource(Spring Boot なら `messages.properties`)を **上から順に** 探し、最初に見つかったメッセージを表示します。どれも無ければ注釈の `message` か既定メッセージです。
+      `th:errors` は、MessageSource(Spring Boot なら `messages.properties`)を**上から順に**探し、最初に見つかったメッセージを表示します。どれも無ければ注釈の `message` か既定メッセージです。
 
       ```properties
       NotBlank=必須項目です
@@ -334,7 +334,7 @@ columns:
       全画面の必須エラーを揃えつつ、特定の項目だけ文言を変えられます。数値変換に失敗したときの英語の長いメッセージも、`typeMismatch` のコードで差し替えられます。
 sts:
   intro: |
-    STS で会員登録フォームを作り、**わざと空欄で送ってエラーが出る** こと、成功したら PRG でリダイレクトされることを確かめます。
+    STS で会員登録フォームを作り、**わざと空欄で送ってエラーが出る**こと、成功したら PRG でリダイレクトされることを確かめます。
     メニュー名は英語 UI 表記で、日本語化(Pleiades など)している場合の表記を括弧で併記しています。
     STS のウィザード(裏は start.spring.io)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
   steps:
@@ -345,7 +345,7 @@ sts:
         依存関係の画面で **Spring Web**、**Thymeleaf**、**Validation**(I/O の中)にチェックを入れて **Finish**(完了)。
 
         前のレッスンのプロジェクトを使い回す場合は、プロジェクトを右クリックして **Spring > Add Starters**(Spring > スターターの追加)から
-        **Validation** を足します。`pom.xml` に `spring-boot-starter-validation` が入れば OK。これが無いと注釈を付けても **何もチェックされません**。
+        **Validation** を足します。`pom.xml` に `spring-boot-starter-validation` が入れば OK。これが無いと注釈を付けても**何もチェックされません**。
     - title: フォームクラスを作る
       detail: |
         `src/main/java` の `com.example.member` を右クリック > **New > Package**(新規 > パッケージ)で `com.example.member.web` を作り、
@@ -436,7 +436,7 @@ sts:
         アドレスバーが `/members` に変わっていること(POST の応答で画面を返している)も確認しましょう。
     - title: 入力値が残ること・typeMismatch を確かめる
       detail: |
-        氏名に `山田太郎`、年齢に `abc` を入れて送ります。氏名は **入力したまま残り**、年齢には
+        氏名に `山田太郎`、年齢に `abc` を入れて送ります。氏名は**入力したまま残り**、年齢には
         `Failed to convert property value of type 'java.lang.String' to required type 'java.lang.Integer'...` という英語の長いメッセージが出ます。
         数値に変換できない値は例外ではなく `typeMismatch` エラーとして BindingResult に入るためです。
         (余裕があれば `src/main/resources/messages.properties` に `typeMismatch.memberForm.age=年齢は数字で入力してください` と書き、アプリを再起動して文言が変わるのを確かめましょう)

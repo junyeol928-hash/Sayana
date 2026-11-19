@@ -3,18 +3,18 @@
 :::
 
 ::: sensei
-画面を描くのは向こうの仕事。こっちは **データだけを HTTP で渡す API** を作る。その定番の設計スタイルが REST だ。
+画面を描くのは向こうの仕事。こっちは**データだけを HTTP で渡す API** を作る。その定番の設計スタイルが REST だ。
 :::
 
-前回の「トランザクション」までで、DB に安全に読み書きする層ができました。今回はその上に、画面ではなく **JSON を返す入り口** を作ります。
+前回の「トランザクション」までで、DB に安全に読み書きする層ができました。今回はその上に、画面ではなく **JSON を返す入り口**を作ります。
 
 ## REST の考え方:URL は名詞、操作は HTTP メソッド
 
 **REST**(Representational State Transfer)は、Web の仕組みに素直に乗る API 設計のスタイルです。中心になる考え方は3つ。
 
-- 扱う対象を **リソース** と呼び、URL で表す(`/api/tasks` = タスクの集まり、`/api/tasks/3` = ID 3 のタスク)
-- 「何をするか」は URL ではなく **HTTP メソッド** で表す
-- 結果は **ステータスコード** で伝える
+- 扱う対象を**リソース**と呼び、URL で表す(`/api/tasks` = タスクの集まり、`/api/tasks/3` = ID 3 のタスク)
+- 「何をするか」は URL ではなく **HTTP メソッド**で表す
+- 結果は**ステータスコード**で伝える
 
 | メソッド | 意味 | 例 |
 |---|---|---|
@@ -40,7 +40,7 @@ flowchart TD
     F -- "取得・更新" --> S200["200 OK + 本文"]
 ```
 
-## @RestController と JSON 変換
+## `@RestController` と JSON 変換
 
 ```java
 public record TaskResponse(long id, String title,
@@ -68,11 +68,11 @@ public class TaskController {
 }
 ```
 
-「Controller とルーティング」で見たとおり、`@RestController`(= `@Controller` + `@ResponseBody`)の戻り値は **レスポンス本文そのもの** になります。
+「Controller とルーティング」で見たとおり、`@RestController`(= `@Controller` + `@ResponseBody`)の戻り値は**レスポンス本文そのもの**になります。
 変換するのは **HttpMessageConverter** で、クラスパスに Jackson があれば `MappingJackson2HttpMessageConverter` がオブジェクト ⇔ JSON を変換します(spring-boot-starter-web に Jackson は同梱)。どの変換器を使うかは、リクエストの `Content-Type`(送る形式)と `Accept`(欲しい形式)で決まります。
 record は「アクセサ名 = JSON の項目名」になり、受け取るときは正準コンストラクタで作られるので、API の入出力にぴったりです。
 
-`ResponseEntity<T>` は **ステータス・ヘッダ・本文** をまとめて指定するための型です。`T` を直接返すと(メソッドに `@ResponseStatus` を付けない限り)200 になるので、404 などを返し分けたいときに使います。
+`ResponseEntity<T>` は**ステータス・ヘッダ・本文**をまとめて指定するための型です。`T` を直接返すと(メソッドに `@ResponseStatus` を付けない限り)200 になるので、404 などを返し分けたいときに使います。
 
 ## POST で作成:201 Created + Location
 
@@ -102,12 +102,12 @@ Content-Type: application/json
 ```
 
 `@RequestBody` は「リクエスト本文の JSON を引数の型に変換して」という指示です。作成成功は 200 ではなく **201**、そして **Location ヘッダに新しいリソースの URL** を入れるのが HTTP の作法です(RFC 9110)。クライアントは本文を解析しなくても次に GET すべき URL が分かります。
-受け取る型(`CreateTaskRequest`)に `id` や `done` を **持たせない** のもポイント。クライアントに ID を決めさせない設計を、型で強制しています。
+受け取る型(`CreateTaskRequest`)に `id` や `done` を**持たせない**のもポイント。クライアントに ID を決めさせない設計を、型で強制しています。
 
 ## PUT と PATCH の違い
 
-- **PUT** … 送った内容で **丸ごと置き換え** る。送らなかった項目は「空にする」意味になる。同じリクエストを何度送っても結果が同じ(**冪等**)
-- **PATCH** … 送った項目 **だけ** 変える
+- **PUT** … 送った内容で**丸ごと置き換え**る。送らなかった項目は「空にする」意味になる。同じリクエストを何度送っても結果が同じ(**冪等**)
+- **PATCH** … 送った項目**だけ**変える
 
 PATCH を record で受けるなら、項目は `Boolean` や `LocalDate` のような **`null` になれる型** にします。`boolean` だと「送られてこなかった」が `false` に化け、勝手に未完了へ戻る事故になります。
 
@@ -122,7 +122,7 @@ if (req.done() != null) { entity.setDone(req.done()); }
 
 JPA のエンティティをそのまま返すのは、現場ではほぼ NG です。
 
-- 内部用の項目(パスワードハッシュ、社内メモ)まで **全部 JSON に出る**
+- 内部用の項目(パスワードハッシュ、社内メモ)まで**全部 JSON に出る**
 - 双方向の関連があると `Infinite recursion (StackOverflowError)` で落ちる
 - テーブルを変えると API の形まで変わり、スマホアプリが壊れる
 
@@ -130,7 +130,7 @@ JPA のエンティティをそのまま返すのは、現場ではほぼ NG で
 
 ### 日時は ISO-8601 で
 
-`LocalDate` などの java.time 型は、Jackson 本体だけでは変換できず、**JavaTimeModule**(jackson-datatype-jsr310)が必要です。Spring Boot はこれを自動登録し、さらに日時を `"2026-10-31"` のような **ISO-8601 文字列** で出す設定にしてくれます。JavaTimeModule を登録しただけの Jackson(Boot を使わない Spring MVC の既定もこの状態)では `[2026,10,31]` という配列になり、モジュールすら無い素の Jackson では例外になるので、Boot なしで動かすときは要注意(サンプル②の①②で確かめられます)。形式を変えたいときは項目に `@JsonFormat(pattern = "yyyy/MM/dd")` を付けます。
+`LocalDate` などの `java.time` 型は、Jackson 本体だけでは変換できず、**`JavaTimeModule`**(jackson-datatype-jsr310)が必要です。Spring Boot はこれを自動登録し、さらに日時を `"2026-10-31"` のような **ISO-8601 文字列**で出す設定にしてくれます。`JavaTimeModule` を登録しただけの Jackson(Boot を使わない Spring MVC の既定もこの状態)では `[2026,10,31]` という配列になり、モジュールすら無い素の Jackson では例外になるので、Boot なしで動かすときは要注意(サンプル②の①②で確かめられます)。形式を変えたいときは項目に `@JsonFormat(pattern = "yyyy/MM/dd")` を付けます。
 
 ::: trivia Spring Boot 4 では Jackson 3
 Spring Boot 4(Spring Framework 7)は Jackson 3 が標準です。パッケージが `tools.jackson` に変わり、java.time 対応が本体に入って、日時は最初から ISO-8601 文字列になります。`@JsonFormat` などのアノテーションのパッケージは変わりません。
@@ -145,9 +145,9 @@ Spring Boot 4(Spring Framework 7)は Jackson 3 が標準です。パッケージ
 | `POST /api/deleteTask?id=3` | `DELETE /api/tasks/3` |
 | `/api/taskItems` | `/api/task-items` |
 
-- リソース名は **複数形の名詞**。**動詞は URL に入れない**(動詞はメソッドが担う)
+- リソース名は**複数形の名詞**。**動詞は URL に入れない**(動詞はメソッドが担う)
 - 単語の区切りは小文字のハイフン(kebab-case)
-- 互換性のない変更に備えて `/api/v1/tasks` のように **バージョン** を入れるチームが多い(ヘッダで切り替える流派もある)
+- 互換性のない変更に備えて `/api/v1/tasks` のように**バージョン**を入れるチームが多い(ヘッダで切り替える流派もある)
 - どうしても名詞にならない操作は `POST /api/orders/3/cancel` のようにサブリソースで表す
 
 ::: sensei
@@ -170,7 +170,7 @@ PowerShell 5.1 の `curl` は `Invoke-WebRequest` の別名なので、本物の
 
 ## よくあるミス
 
-**Content-Type の付け忘れ** で 415 になります。curl の `-d` は既定で `application/x-www-form-urlencoded` を送るためです。
+**Content-Type の付け忘れ**で 415 になります。curl の `-d` は既定で `application/x-www-form-urlencoded` を送るためです。
 
 ```text
 Resolved [org.springframework.web.
@@ -194,7 +194,7 @@ Ensure that the compiler uses the '-parameters' flag.
 - `@RestController` の戻り値は本文。Jackson が record ⇔ JSON を変換する
 - 作成は **201 + Location**(`ResponseEntity.created`)、見つからなければ **404**(`ResponseEntity.of(Optional)`)
 - PUT は丸ごと置き換え、PATCH は一部変更。PATCH の項目は `null` になれる型で
-- エンティティではなく **DTO(record)** を返す。日時は JavaTimeModule で **ISO-8601**
+- エンティティではなく **DTO(record)** を返す。日時は `JavaTimeModule` で **ISO-8601**
 :::
 
 ::: sensei

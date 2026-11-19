@@ -39,7 +39,7 @@
     - "空の箱から取ると `null` が出ると読んだ答え。`get()` は `null` を返さず、例外を投げる"
     - "空の Optional の中身を `null` と読んだ答え。投げられるのは `NoSuchElementException`"
   explanation: |
-    空の Optional に `get()` を呼ぶと `NoSuchElementException: No value present`。NPE が別の例外に変わっただけなので、取り出すなら `orElse` 系や `ifPresent` を使う。
+    空の Optional に `get()` を呼ぶと、次の例外になる: `NoSuchElementException: No value present` NPE が別の例外に変わっただけなので、取り出すなら `orElse` 系や `ifPresent` を使う。
 - before: "java.lang.NullPointerException: Cannot invoke"
   hides: 2
   question: |

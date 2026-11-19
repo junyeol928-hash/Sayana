@@ -6,13 +6,13 @@
 `@` の書き方は Java の文法。でも、`@Service` そのものは何もしないんだ。今日はその「何もしない目印」が、どうやって仕事をしているのかを覗くぞ。
 :::
 
-前回の日付API では、`Clock` を外から渡すと「今」を差し替えられる、という話の最後に Spring の名前が出てきました。今回はその Spring を読むときに避けて通れない **アノテーション** です。
+前回の日付API では、`Clock` を外から渡すと「今」を差し替えられる、という話の最後に Spring の名前が出てきました。今回はその Spring を読むときに避けて通れない**アノテーション**です。
 
 ## @ の正体:コードに貼る目印
 
-`@Override` や `@Service` のような `@〜` を **アノテーション**(annotation:注釈)と呼びます。正体は、クラス・メソッド・フィールドなどに貼る **目印(メタデータ)** です。
+`@Override` や `@Service` のような `@〜` を**アノテーション**(annotation:注釈)と呼びます。正体は、クラス・メソッド・フィールドなどに貼る **目印(メタデータ)** です。
 
-大事なのは、**アノテーションそれ自体は一切の処理をしない** ことです。「この目印が付いていたら、こう扱う」と決めている **別の誰か** が読んで、初めて意味を持ちます。
+大事なのは、**アノテーションそれ自体は一切の処理をしない**ことです。「この目印が付いていたら、こう扱う」と決めている**別の誰か**が読んで、初めて意味を持ちます。
 
 <figure class="figure"><svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><rect x="20" y="40" width="220" height="150" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="130" y="30" font-size="14" text-anchor="middle" fill="var(--ink-muted)">あなたのクラス</text><rect x="36" y="56" width="90" height="26" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="81" y="74" font-size="13" text-anchor="middle" fill="var(--ink)">@Service</text><text x="36" y="106" font-size="13" fill="var(--ink)">public class OrderService {</text><rect x="52" y="118" width="110" height="26" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="107" y="136" font-size="13" text-anchor="middle" fill="var(--ink)">@Transactional</text><text x="52" y="166" font-size="13" fill="var(--ink)">public void place(...) {}</text><text x="36" y="184" font-size="13" fill="var(--ink)">}</text><defs><marker id="java-annotations-arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker></defs><rect x="340" y="40" width="240" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="64" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">コンパイラ(javac)</text><text x="460" y="86" font-size="12" text-anchor="middle" fill="var(--ink)">@Override を検査 / Lombok がコード生成</text><rect x="340" y="130" width="240" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="460" y="154" font-size="14" font-weight="700" text-anchor="middle" fill="var(--ink)">実行時のフレームワーク(Spring)</text><text x="460" y="176" font-size="12" text-anchor="middle" fill="var(--ink)">リフレクションで目印を探して Bean 登録・AOP</text><path d="M250 70 L335 70" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-annotations-arr)"/><path d="M250 150 L335 150" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-annotations-arr)"/><text x="292" y="60" font-size="12" text-anchor="middle" fill="var(--ink-muted)">読む</text><text x="292" y="140" font-size="12" text-anchor="middle" fill="var(--ink-muted)">読む</text><text x="300" y="212" font-size="13" text-anchor="middle" fill="var(--ink)">目印そのものは何もしない。読む側が「付いていたらこうする」と決めている</text></svg><figcaption>アノテーションは付箋のようなもの。付箋を見て動くのは「読む側」</figcaption></figure>
 
@@ -20,7 +20,7 @@
 
 | 読む側 | いつ読む | 例 |
 |---|---|---|
-| コンパイラ(と、その拡張) | コンパイルするとき | `@Override` の検査、Lombok の `@Getter` がメソッドを生成 |
+| コンパイラ(と、その拡張のアノテーションプロセッサ) | コンパイルするとき | `@Override` の検査、Lombok の `@Getter` がメソッドを生成 |
 | 実行時のプログラム | 動いているとき | Spring の `@Service`、JUnit の `@Test`、JPA の `@Entity` |
 
 ::: haru
@@ -33,7 +33,7 @@ JUnit の `@Test` って、演習の採点テストに毎回付いてるやつ�
 
 ## Java 標準のアノテーション
 
-まずは Java に最初から入っているものから、よく見る4つです。どれも読むのは主に **コンパイラ** です。
+まずは Java に最初から入っているものから、よく見る4つです。どれも読むのは主に**コンパイラ**です。
 
 ```java
 public class CsvExporter implements Exporter {
@@ -56,7 +56,7 @@ interface RowMapper { Row map(String line); }
 
 | アノテーション | 意味 | コンパイラがすること |
 |---|---|---|
-| `@Override` | 親のメソッドを上書きしている | 上書きになっていなければ **コンパイルエラー** |
+| `@Override` | 親のメソッドを上書きしている | 上書きになっていなければ**コンパイルエラー** |
 | `@Deprecated` | 非推奨。いずれ消すかも | 呼んでいる側に警告を出す |
 | `@SuppressWarnings` | この警告は承知の上 | 指定した種類の警告を出さない |
 | `@FunctionalInterface` | ラムダの受け皿 | 抽象メソッドが1つでなければエラー |
@@ -76,7 +76,7 @@ class Child extends Base {
 実務のコードを読むとき、`@Override` が付いたメソッドは「親クラスかインターフェースに同名のメソッドがある」という意味です。定義元を探す手がかりにしましょう。
 :::
 
-## アノテーションを自作する:@interface
+## アノテーションを自作する:`@interface`
 
 アノテーションは自分でも作れます。`interface` の前に `@` を付けた **`@interface`** で定義します。Spring の `@Service` も、ソースを開けば同じ形で書かれています。
 
@@ -91,7 +91,7 @@ public @interface Audited {
 }
 ```
 
-中に並んでいるのは **要素**(element)です。メソッドのような形で書き、戻り値の型が「値の型」になります。使える型は、プリミティブ型・`String`・`Class`・enum・アノテーション、それらの配列だけです。
+中に並んでいるのは**要素**(element)です。メソッドのような形で書き、戻り値の型が「値の型」になります。使える型は、プリミティブ型・`String`・`Class`・enum・アノテーション、それらの配列だけです。
 
 使う側はこうなります。
 
@@ -103,7 +103,7 @@ public Key issue(String userId) { ... }
 public void revoke(String keyId) { ... }
 ```
 
-- `default` が無い要素は、使うときに **必ず** 指定する(指定しないとコンパイルエラー)
+- `default` が無い要素は、使うときに**必ず**指定する(指定しないとコンパイルエラー)
 - **`value` という名前の要素だけ** は、それしか指定しないとき `value =` を省略できる
 - 要素が1つも無いアノテーション(`@interface Draft {}`)は、`@Draft` とだけ書く
 
@@ -113,23 +113,23 @@ Spring の `@GetMapping("/users")` や `@Qualifier("main")` が名前なしで�
 `@Audited` の定義には要素の宣言しかなく、「監査ログを書く」処理はどこにもありません。**処理は必ず、このアノテーションを読む別のクラスにあります。**
 :::
 
-## @Retention と @Target
+## `@Retention` と `@Target`
 
 アノテーションの定義に付いていた `@Retention` と `@Target` は、「アノテーションに付けるアノテーション」(**メタアノテーション**)です。
 
-**`@Retention`** は、目印を **いつまで残すか** を決めます。
+**`@Retention`** は、目印を**いつまで残すか**を決めます。
 
-| RetentionPolicy | 残る範囲 | 読める人 |
+| `RetentionPolicy` | 残る範囲 | 読める人 |
 |---|---|---|
-| `SOURCE` | ソースコードだけ。class ファイルには残らない | コンパイラ(`@Override`、Lombok) |
-| `CLASS`(省略時の既定) | class ファイルには残るが、実行時は読めない | バイトコードを調べるツール |
+| `SOURCE` | ソースコードだけ。`.class` ファイルには残らない | コンパイラ(`@Override`、Lombok) |
+| `CLASS`(省略時の既定) | `.class` ファイルには残るが、実行時は読めない | バイトコードを調べるツール |
 | `RUNTIME` | 実行時まで残る | リフレクション(Spring、JPA、JUnit) |
 
 注意したいのは、`@Retention` を **書かなかったときは `CLASS`** になることです。自作のアノテーションを実行時に読みたいなら、`RUNTIME` を明示しないと絶対に読めません。
 
-**`@Target`** は、目印を **どこに付けられるか** を決めます。
+**`@Target`** は、目印を**どこに付けられるか**を決めます。
 
-| ElementType | 付けられる場所 |
+| `ElementType` | 付けられる場所 |
 |---|---|
 | `TYPE` | クラス・インターフェース・enum・record |
 | `METHOD` | メソッド |
@@ -141,7 +141,7 @@ Spring の `@GetMapping("/users")` や `@Qualifier("main")` が名前なしで�
 
 ## リフレクションで読む
 
-実行時にアノテーションを読む道具が **リフレクション**(reflection:内省)です。「動いているプログラムが、**自分自身のクラスの構造を調べる** 仕組み」で、入口は `Class` オブジェクトです。
+実行時にアノテーションを読む道具が**リフレクション**(reflection:内省)です。「動いているプログラムが、**自分自身のクラスの構造を調べる**仕組み」で、入口は `Class` オブジェクトです。
 
 ```java
 Class<?> c1 = KeyService.class;         // クラス名から
@@ -172,9 +172,9 @@ for (Method m : methods) {
 // revoke -> REVOKE_KEY / security
 ```
 
-要素の値は `a.value()` のように **メソッド呼び出しの形** で取り出します。省略した `category` には `default` の値が入っています。
+要素の値は `a.value()` のように**メソッド呼び出しの形**で取り出します。省略した `category` には `default` の値が入っています。
 
-`getDeclaredMethods()` が返す配列は **並び順が決まっていません**(Javadoc にそう書いてあります)。結果を毎回同じ順で出したいなら、名前などで並べ替えてから使いましょう。
+`getDeclaredMethods()` が返す配列は**並び順が決まっていません**(Javadoc にそう書いてあります)。結果を毎回同じ順で出したいなら、名前などで並べ替えてから使いましょう。
 
 ### 目印を見て、前後に処理を挟む
 
@@ -196,7 +196,7 @@ Object call(Object target, String name, String arg) throws Exception {
 フィールドに付けた目印も同じように読めます。`private` フィールドの値を読むには `f.setAccessible(true)` してから `f.get(obj)` です。入力チェック(`@NotBlank`)や JSON 変換(`@JsonIgnore`)のライブラリは、こうしてフィールドの目印を読んでいます。
 
 ::: warn リフレクションは「最後の手段」
-リフレクションは、名前を文字列で指定するのでタイプミスがコンパイル時に見つからず、`private` も覗けてしまい、普通の呼び出しより遅くなります。業務ロジックで多用するものではありません。**フレームワークの中身を理解するための道具** と考えてください。
+リフレクションは、名前を文字列で指定するのでタイプミスがコンパイル時に見つからず、`private` も覗けてしまい、普通の呼び出しより遅くなります。業務ロジックで多用するものではありません。**フレームワークの中身を理解するための道具**と考えてください。
 :::
 
 ## Spring は裏でこう読んでいる(予告)
@@ -223,13 +223,13 @@ flowchart LR
 ```
 
 - **`@Service`**:起動時にクラスを調べ、この目印が付いたクラスのインスタンスを作って管理します。必要な場所に自動で渡す(DI)のも Spring の仕事です
-- **`@Transactional`**:サンプルの `call` と同じ発想で、メソッドの前に「トランザクション開始」、後に「コミット(失敗ならロールバック)」を挟みます
+- **`@Transactional`**:サンプルの `call` と同じ発想で、Bean を代理オブジェクト(**プロキシ**)で包み、メソッドの前に「トランザクション開始」、後に「コミット(失敗ならロールバック)」を挟みます
 - **`@GetMapping("/users")`**:`value` に書いた URL と、このメソッドを結び付けます(演習3がその縮小版)
 
 どれも定義は `@Retention(RetentionPolicy.RUNTIME)` です。実行時に読まなければ仕事ができないからです。
 
 ::: sensei
-仕組みの詳細は第3部でやる。今日覚えてほしいのは一つ。「アノテーションが何をしているか知りたければ、**誰がそれを読んでいるか** を探せ」だ。
+仕組みの詳細は第3部でやる。今日覚えてほしいのは一つ。「アノテーションが何をしているか知りたければ、**誰がそれを読んでいるか**を探せ」だ。
 :::
 
 ::: haru
@@ -238,7 +238,7 @@ flowchart LR
 
 ## import でライブラリを見分ける
 
-業務コードには、いろいろなライブラリのアノテーションが同居しています。見たらまず **import 行** を確かめましょう。
+業務コードには、いろいろなライブラリのアノテーションが同居しています。見たらまず **import 行**を確かめましょう。
 
 | import の先頭 | ライブラリ | 読む側 |
 |---|---|---|
@@ -249,10 +249,10 @@ flowchart LR
 | `com.fasterxml.jackson` | Jackson(JSON) | 実行時 |
 | `org.junit.jupiter` | JUnit 5 | 実行時 |
 
-Lombok だけは仕組みが違い、**コンパイル時** に getter やコンストラクタを書き足します。「ソースに `getName()` が無いのに呼べている」ときは Lombok を疑いましょう。
+Lombok だけは仕組みが違い、**コンパイル時**に getter やコンストラクタを書き足します。「ソースに `getName()` が無いのに呼べている」ときは Lombok を疑いましょう。
 
 ::: point まとめ
-- アノテーションはコードに貼る **目印(メタデータ)**。それ自体は何もせず、**読む側** が意味と処理を決める
+- アノテーションはコードに貼る **目印(メタデータ)**。それ自体は何もせず、**読む側**が意味と処理を決める
 - 標準の `@Override` / `@Deprecated` / `@SuppressWarnings` / `@FunctionalInterface` は主にコンパイラが読む
 - 定義は `@interface`。要素はメソッドの形で書き、`default` で既定値。**`value` だけは名前を省略できる**
 - `@Retention` は残る範囲(`SOURCE` / `CLASS` / `RUNTIME`)、`@Target` は付けられる場所。**実行時に読むなら `RUNTIME`**(省略すると `CLASS`)

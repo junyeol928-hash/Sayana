@@ -171,7 +171,7 @@
 
     // 別の場所で:
     new KeyIssueService(repo, clock);
-  question: "`@RequiredArgsConstructor` は、**初期化していない `final` のフィールド** を宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(第3部で詳しく)。この呼び出しはコンパイルできる?"
+  question: "`@RequiredArgsConstructor` は、**初期化していない `final` のフィールド**を宣言順に引数に取るコンストラクタを自動で作る Lombok の注釈です(第3部で詳しく)。この呼び出しはコンパイルできる?"
   choices:
     - "できる。`final` の2つを引数にとるコンストラクタが生成されているため"
     - "できない。3引数のコンストラクタしか生成されないため"

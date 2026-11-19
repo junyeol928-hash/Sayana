@@ -14,7 +14,7 @@ problem: |
   - `amounts` が `null` または空なら `0.0`
 
   ### 2. `int collectLarge(List<? extends Number> src, double threshold, List<? super Double> dest)`
-  `src` の中で **`threshold` 以上** の金額を、`double` に変換して `dest` の **末尾に追加** し、追加した件数を返します。
+  `src` の中で **`threshold` 以上** の金額を、`double` に変換して `dest` の**末尾に追加**し、追加した件数を返します。
   監査担当がチェックする「高額経費」の抽出です。
 
   - `dest` は `List<Double>` でも `List<Number>` でも `List<Object>` でもよい

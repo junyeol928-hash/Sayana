@@ -9,7 +9,7 @@
     log.error("step4");
   question: "出力されるのはどれ?"
   choices:
-    - "step1〜step4 すべて"
+    - "step1〜4 すべて"
     - "step3 と step4 のみ"
     - "step4 のみ"
     - "何も出力されない"

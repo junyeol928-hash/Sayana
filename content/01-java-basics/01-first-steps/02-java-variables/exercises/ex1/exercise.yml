@@ -2,7 +2,7 @@ title: 税込価格を計算する
 className: TaxCalculator
 difficulty: 1
 problem: |
-  ネットショップの請求画面に出す **税込価格** を計算します。
+  ネットショップの請求画面に出す**税込価格**を計算します。
 
   `priceWithTax(int price, double taxRate)` を完成させてください。
 
@@ -18,7 +18,7 @@ problem: |
 
   **ヒント**
   - `int` と `double` を掛けると結果は `double` になる(拡大変換)
-  - `Math.floor(x)` は x 以下で最大の整数を **double で** 返す(`Math.floor(105.84)` は `105.0`)
+  - `Math.floor(x)` は x 以下で最大の整数を **double で**返す(`Math.floor(105.84)` は `105.0`)
   - 戻り値は `int` なので、最後に `(int)` でキャスト(縮小変換)が必要
 
   メソッドの書き方は「メソッド」のレッスンで詳しくやります。今は `// TODO:` の部分だけ書けばOKです。

@@ -14,15 +14,15 @@ problem: |
   | 2 | 書名に keyword を含む本(部分一致) | `List<Book>` | keyword |
   | 3 | 価格が min 以上 max 以下の本を、安い順に | `List<Book>` | min, max |
   | 4 | 指定カテゴリで、発行年が新しい上位3冊 | `List<Book>` | カテゴリ |
-  | 5 | 在庫数が threshold **未満** の本の冊数 | `long` | threshold |
-  | 6 | 著者名が一致し、**かつ** 発行年が year 以降 | `List<Book>` | 著者名, year |
+  | 5 | 在庫数が threshold **未満**の本の冊数 | `long` | threshold |
+  | 6 | 著者名が一致し、**かつ**発行年が year 以降 | `List<Book>` | 著者名, year |
 
   例:`findByAuthor("山田太郎")` → 山田太郎さんの本の一覧
 
   ヒント:
   - 解説の「命名規則の表」を見ながら、`find` / `count` + `Top3` + `By` + 条件 + `OrderBy...` の順に組み立てます。
   - 「未満」は `LessThan`、「以上」は `GreaterThanEqual` です。`Equal` の有無で境界値の結果が変わります。
-  - プロパティ名のつづりを間違えると、アプリ起動時に `No property 'xxx' found for type 'Book'` で落ちます。テストでも同じエラーを表示します。
+  - プロパティ名のつづりを間違えると、アプリ起動時に次のエラーで落ちます: `No property 'xxx' found for type 'Book'` テストでも同じエラーを表示します。
 
   ※ 採点環境には DB がないので、テストは Spring Data 本体がメソッド名の解析に使う `PartTree` で、条件・並び順・件数制限を確認します。
   同じ意味なら別の書き方(`Containing` の代わりに `Contains` など)でも合格です。

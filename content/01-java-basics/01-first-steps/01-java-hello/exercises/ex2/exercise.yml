@@ -3,7 +3,7 @@ className: SelfIntro
 difficulty: 2
 problem: |
   新しく入ったメンバーの自己紹介文を、社内チャットに自動投稿する機能を作ります。
-  名前・所属・Java 歴(年数)を受け取って、自己紹介文の **文字列を組み立てて返す** メソッド `buildIntro` を完成させてください。
+  名前・所属・Java 歴(年数)を受け取って、自己紹介文の**文字列を組み立てて返す**メソッド `buildIntro` を完成させてください。
 
   ```java
   public static String buildIntro(String name, String team, int years)

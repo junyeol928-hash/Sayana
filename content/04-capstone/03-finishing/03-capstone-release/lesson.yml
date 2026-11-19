@@ -108,7 +108,7 @@ samples:
       show("DELETE /api/requests", delete("/api/requests"));
 quiz:
   - question: |
-      API 用に次のハンドラ **だけ** を書きました(`ResponseEntityExceptionHandler` は継承していない)。
+      API 用に次のハンドラ**だけ**を書きました(`ResponseEntityExceptionHandler` は継承していない)。
       `list` は `@RequestParam(required = false) RequestStatus status` を受け取ります。`GET /api/requests?status=submitted` のレスポンスは?
       ```java
       @RestControllerAdvice
@@ -131,7 +131,7 @@ quiz:
       - "変換できない値が `null` 扱いになると読んだ答え。変換に失敗して例外になる"
       - "合う値が無いので 404 と読んだ答え。変換の失敗は例外になり、ここでは 500 で返る"
     explanation: |
-      `submitted` は enum に変換できないので `MethodArgumentTypeMismatchException` が起きます。`@ExceptionHandler` は Spring 標準のエラー処理より **先に** 試されるので、`Exception` を受けるハンドラがこれを横取りし、入力ミスなのに 500 とエラーログになります。
+      `submitted` は `enum` に変換できないので `MethodArgumentTypeMismatchException` が起きます。`@ExceptionHandler` は Spring 標準のエラー処理より**先に**試されるので、`Exception` を受けるハンドラがこれを横取りし、入力ミスなのに 500 とエラーログになります。
       `ResponseEntityExceptionHandler` を継承すると、型変換の失敗(`TypeMismatchException`)や 405 などを受け持つハンドラが加わり、例外の型がより近いそちらが選ばれて 400 のまま返ります。ハンドラが無ければ 400 でした。
   - question: |
       次の `@RestControllerAdvice` があるとき、Service が `BusinessRuleException`(`RuntimeException` のサブクラス)を投げました。どうなる?
@@ -159,7 +159,7 @@ quiz:
       - "ハンドラが順に全部呼ばれると読んだ答え。呼ばれるのは1つだけ"
       - "両方に当てはまると曖昧になると読んだ答え。曖昧になるのは同じ例外型を受けるハンドラが2つのとき"
     explanation: |
-      Spring は、投げられた例外に **型の継承関係が一番近い** ハンドラを1つだけ選びます(`ExceptionDepthComparator`)。`BusinessRuleException` にとっては、自分自身を受ける `onRule` が距離0、`Exception` は何段も上なので `onRule` が選ばれます。
+      Spring は、投げられた例外に**型の継承関係が一番近い**ハンドラを1つだけ選びます(`ExceptionDepthComparator`)。`BusinessRuleException` にとっては、自分自身を受ける `onRule` が距離0、`Exception` は何段も上なので `onRule` が選ばれます。
   - question: |
       `ApprovalService` で承認が終わったときのログとして、最もふさわしいのはどれ?(`request` は申請のエンティティ、`actor` は操作した社員)
     choices:
@@ -194,7 +194,7 @@ quiz:
       - ""
     explanation: |
       よく見ると `--spring.profile.active`(**profiles の s が抜けている**)です。Spring Boot は知らないプロパティをエラーにしないので、この指定は黙って無視され、何もアクティブでないときの既定 `spring.profiles.default: dev` が使われます。
-      起動ログには `No active profile set, falling back to 1 default profile: "dev"` と出ます。本番で H2 コンソールが開いたまま……という事故になるので、起動ログのプロファイル名は必ず確認します。正しく `--spring.profiles.active=prod` なら prod だけが使われます。
+      起動ログには次の行が出ます: `No active profile set, falling back to 1 default profile: "dev"` 本番で H2 コンソールが開いたまま……という事故になるので、起動ログのプロファイル名は必ず確認します。正しく `--spring.profiles.active=prod` なら prod だけが使われます。
   - question: |
       `application-prod.yml` で `spring.jpa.hibernate.ddl-auto: validate` にしています。テーブルがまだ1つもない空の DB に向けて、prod で初めて起動するとどうなる?
     choices: ["足りないテーブルを自動で作って起動する", "Schema-validation のエラーで起動が止まる", "起動はするが、最初に申請を開いたときに SQL エラーになる", "dev の設定に切り替えて起動する"]
@@ -205,7 +205,7 @@ quiz:
       - "起動時は確かめないと読んだ答え。`validate` は起動の時点で突き合わせて止める"
       - "失敗すると dev に切り替わると読んだ答え。プロファイルが勝手に変わることはない"
     explanation: |
-      `validate` は、起動時にエンティティとテーブルを突き合わせて **確認するだけ** で、DB には一切手を加えません。テーブルがなければ `Schema-validation: missing table [...]` で起動を止めます。おかしな状態で動き出さないための安全装置です。
+      `validate` は、起動時にエンティティとテーブルを突き合わせて**確認するだけ**で、DB には一切手を加えません。テーブルがなければ `Schema-validation: missing table [...]` で起動を止めます。おかしな状態で動き出さないための安全装置です。
       テーブルを作るのは `create` / `update` ですが、`create` は起動のたびに作り直してデータを消し、`update` は列の削除や型変更を扱えないので、本番では使いません。本番のテーブルは Flyway などのマイグレーションで用意します。
 columns:
   - type: trivia
@@ -229,7 +229,7 @@ columns:
     body: |
       ある社内システムの初回リリース。開発中の `application.properties` には `spring.jpa.hibernate.ddl-auto=create` が書いてあり、プロファイルは分けていませんでした。最初の1か月は何事もなく動きます。サーバーを再起動しなかったからです。
 
-      OS のアップデートで初めて再起動した朝、システムは起動し、ログにもエラーはなし。ところが申請が1件もありません。`create` は起動時にテーブルを **DROP して作り直す** 設定なので、1か月分の申請と承認の履歴が消えていました。バックアップから戻せたのは前週の分まででした。
+      OS のアップデートで初めて再起動した朝、システムは起動し、ログにもエラーはなし。ところが申請が1件もありません。`create` は起動時にテーブルを **DROP して作り直す**設定なので、1か月分の申請と承認の履歴が消えていました。バックアップから戻せたのは前週の分まででした。
 
       対策は今回のレッスンそのものです。dev と prod でファイルを分け、prod は `validate` にする。テーブルの変更は Flyway などで SQL として管理し、レビューを通してから流す。そしてリリース前チェックリストに「prod の ddl-auto は validate か」を入れておくことです。
 sts:
@@ -260,7 +260,7 @@ sts:
     - title: application-dev.yml と application-prod.yml を作る
       detail: |
         `src/main/resources` を右クリック → **New > File** で `application-dev.yml` と `application-prod.yml` を作ります。
-        これまでの `application.yml`(または `application.properties`)にある H2(`jdbc:h2:file:./data/approval`)・`ddl-auto: update`・`defer-datasource-initialization`・`sql.init.mode: always`・H2 コンソールの設定を `application-dev.yml` に **移し**、
+        これまでの `application.yml`(または `application.properties`)にある H2(`jdbc:h2:file:./data/approval`)・`ddl-auto: update`・`defer-datasource-initialization`・`sql.init.mode: always`・H2 コンソールの設定を `application-dev.yml` に**移し**、
         `application.yml` には `spring.application.name` と `spring.profiles.default: dev` など共通の設定だけを残します。`application-prod.yml` は解説のとおりです。
 
         `application.properties` と `application.yml` の両方が残っていると、同じキーは properties が優先されて混乱するので、どちらか一方にまとめます。

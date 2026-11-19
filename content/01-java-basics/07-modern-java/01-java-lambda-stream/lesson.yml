@@ -110,7 +110,7 @@ samples:
           }
       }
   - title: collect で集計する(groupingBy / toMap / joining)
-    description: 社員リストを部署ごとにまとめたり、Map にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。開発の 2 人の平均給与は、何万円と出るだろうか。
+    description: 社員リストを部署ごとにまとめたり、`Map` にしたり、カンマ区切りにしたりします。`average()` は空のときに備えて `orElse` で既定値を決めます。開発の 2 人の平均給与は、何万円と出るだろうか。
     code: |
       import java.util.*;
       import java.util.stream.*;
@@ -261,7 +261,7 @@ quiz:
       - ""
       - "使わない Stream の式は書けないと読んだ答え。文法的に正しい式文で、コンパイルは通る"
     explanation: |
-      `map` は中間操作で、**遅延評価** されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
+      `map` は中間操作で、**遅延評価**されます。`toList()` や `count()` などの終端操作を呼んでいないので、要素は一度も流れず、ラムダの中の `print` は実行されません。出力は `!` だけです。
       「Stream を書いたのに何も起きない」ときは、まず終端操作を忘れていないか確認しましょう。
   - question: |
       メソッド参照 `String::length` と同じ意味のラムダ式はどれ?
@@ -273,10 +273,10 @@ quiz:
       - "`static` メソッドの呼び出しと取り違えた答え。`length()` は各文字列に対して呼ぶ"
       - "引数を 2 つ取ると読んだ答え。受け取るのは 1 つで、その `length()` を返す"
     explanation: |
-      `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの** の `length()` を呼びます。つまり `s -> s.length()` です。
+      `String::length` は「任意オブジェクトのインスタンスメソッド」型のメソッド参照で、**受け取った引数そのもの**の `length()` を呼びます。つまり `s -> s.length()` です。
       `static` メソッドの参照(`Integer::parseInt` など)と形が同じなので混同しやすいところです。
   - question: |
-      次のコードのうち、**コンパイルエラーになる行** はどれ?
+      次のコードのうち、**コンパイルエラーになる行**はどれ?
       ```java
       int count = 0;                              // (A)
       List<String> list = List.of("x", "y");
@@ -292,7 +292,7 @@ quiz:
       - ""
       - "`count` という変数名とぶつかると読んだ答え。`count()` は `Stream` のメソッドで、変数とは別"
     explanation: |
-      ラムダ式から参照できるローカル変数は、`final` か **実質 `final`**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので `local variables referenced from a lambda expression must be final or effectively final` になります。
+      ラムダ式から参照できるローカル変数は、`final` か **実質 `final`**(一度決まったら二度と代入されない変数)だけです。(C) はラムダの中で `count` を書き換えようとしているので、次のコンパイルエラーになります: `local variables referenced from a lambda expression must be final or effectively final`
       数えたいなら (D) のように `count()` を使うのが正解です。
   - question: |
       次のコードを実行するとどうなる?
@@ -309,7 +309,7 @@ quiz:
       - "使用済みかをコンパイラが見ると読んだ答え。追跡されないので通り、実行時に例外になる"
       - ""
     explanation: |
-      Stream は **一度終端操作を呼んだら使い切り** です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
+      Stream は**一度終端操作を呼んだら使い切り**です。`count()` で消費したあと同じ `s` に `toList()` を呼ぶと、`IllegalStateException: stream has already been operated upon or closed` が発生します。
       もう一度処理したいなら、元のコレクションから `stream()` を作り直します。
 columns:
   - type: trivia
@@ -317,9 +317,9 @@ columns:
     body: |
       ラムダ式は匿名クラスを短く書いただけ……と思われがちですが、中身は別物です。
 
-      匿名クラスを書くと、コンパイル時に `Main$1.class` のようなクラスファイルが1つずつ作られます。一方ラムダ式はクラスファイルを作らず、`invokedynamic` という JVM 命令に置き換えられ、**実行時に初めて** 実装オブジェクトが組み立てられます(`LambdaMetafactory` が担当)。ラムダを大量に書いてもクラスファイル(jar の中身)が増えないのはこのためです。ただし実装は初めて実行されたときに組み立てるので、その1回目には少し手間がかかります。
+      匿名クラスを書くと、コンパイル時に `Main$1.class` のようなクラスファイルが1つずつ作られます。一方ラムダ式はクラスファイルを作らず、`invokedynamic` という JVM 命令に置き換えられ、**実行時に初めて**実装オブジェクトが組み立てられます(`LambdaMetafactory` が担当)。ラムダを大量に書いてもクラスファイル(jar の中身)が増えないのはこのためです。ただし実装は初めて実行されたときに組み立てるので、その1回目には少し手間がかかります。
 
-      もう1つの違いは `this` の意味です。匿名クラスの中の `this` は「匿名クラス自身」ですが、ラムダの中の `this` は **外側のクラスのインスタンス** を指します。ラムダは新しいスコープを作らないので、外と同じ名前のローカル変数をラムダの引数に使うこともできません(`variable x is already defined`)。
+      もう1つの違いは `this` の意味です。匿名クラスの中の `this` は「匿名クラス自身」ですが、ラムダの中の `this` は**外側のクラスのインスタンス**を指します。ラムダは新しいスコープを作らないので、外と同じ名前のローカル変数をラムダの引数に使うこともできず、次のコンパイルエラーになります: `variable x is already defined`
   - type: mistake
     title: "comparing(...).reversed() でいきなりコンパイルエラー"
     body: |

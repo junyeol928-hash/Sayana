@@ -82,11 +82,11 @@ samples:
       }
 quiz:
   - question: |
-      `status` に `@Enumerated` を付けずに(既定の ORDINAL で)運用していました。DB には次の enum の時代に保存した `SUBMITTED` の行があります。
+      `status` に `@Enumerated` を付けずに(既定の ORDINAL で)運用していました。DB には次の `enum` の時代に保存した `SUBMITTED` の行があります。
       ```java
       enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
       ```
-      その後、enum を次のように変えてアプリを再起動しました。この行の `status` は何として読まれる?
+      その後、`enum` を次のように変えてアプリを再起動しました。この行の `status` は何として読まれる?
       ```java
       enum RequestStatus {
           DRAFT, CHECKING, SUBMITTED, APPROVED, RETURNED, WITHDRAWN
@@ -96,12 +96,12 @@ quiz:
     answer: 2
     why:
       - "名前で保存されていると読んだ答え。既定の ORDINAL は番号で保存する"
-      - "enum を変えると起動で弾かれると読んだ答え。起動時に番号の意味までは確かめない"
+      - "`enum` を変えると起動で弾かれると読んだ答え。起動時に番号の意味までは確かめない"
       - ""
-      - "合わない値は `null` になると読んだ答え。番号 1 は新しい enum にもある"
+      - "合わない値は `null` になると読んだ答え。番号 1 は新しい `enum` にもある"
     explanation: |
-      ORDINAL は宣言順の番号で保存します。保存時の `SUBMITTED` は 0 始まりで **1** です。新しい enum では 1 番が `CHECKING` なので、データは1バイトも変わっていないのに「確認中」として読まれます。
-      番号の範囲内なのでエラーにも `null` にもならず、**黙って意味がずれる** のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
+      ORDINAL は宣言順の番号で保存します。保存時の `SUBMITTED` は 0 始まりで **1** です。新しい `enum` では 1 番が `CHECKING` なので、データは1バイトも変わっていないのに「確認中」として読まれます。
+      番号の範囲内なのでエラーにも `null` にもならず、**黙って意味がずれる**のが一番怖いところです。`@Enumerated(EnumType.STRING)` なら `'SUBMITTED'` という名前で保存されるので、並びを変えても `SUBMITTED` のまま読めます。
   - question: |
       次の application.yml で起動すると、どうなる?(`data.sql` には社員3人の MERGE 文があり、CommandLineRunner で `findByEmail("haru@example.com").orElseThrow()` を呼んでいる)
       ```yaml
@@ -128,7 +128,7 @@ quiz:
       Spring Boot は既定(`spring.sql.init.mode` が `embedded`)では、**メモリモードの組み込み DB にしか** `data.sql` を流しません。`jdbc:h2:file:` は対象外なので、`data.sql` は黙って無視されます。
       テーブル自体は `ddl-auto: update` で作られるので「テーブルがない」エラーにはならず、社員0人のまま `orElseThrow()` が `NoSuchElementException` を投げます。`sql.init.mode: always` を足せば流れます。
   - question: |
-      `ApprovalRequest` のフィールドは `title`・`status`・`applicant`(Employee)・`createdAt`・`submittedAt` です。次の Repository メソッドのうち、**アプリの起動時にエラーになる** のはどれ?
+      `ApprovalRequest` のフィールドは `title`・`status`・`applicant`(Employee)・`createdAt`・`submittedAt` です。次の Repository メソッドのうち、**アプリの起動時にエラーになる**のはどれ?
     choices: ["`List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);`", "`long countByStatus(RequestStatus status);`", "`List<ApprovalRequest> findByApplicantNameAndStatus(String name, RequestStatus status);`", "`List<ApprovalRequest> findByStatusOrderBySubmitedAtAsc(RequestStatus status);`"]
     answer: 3
     why:
@@ -152,12 +152,12 @@ quiz:
       - "どのパッケージでもスキャンされると読んだ答え。探すのは起動クラスのパッケージとその下だけ"
       - ""
       - "Bean が無くても起動はすると読んだ答え。注入する所で Bean が見つからず、起動で止まる"
-      - "パッケージ違いでコンパイルが止まると読んだ答え。import すれば通り、問題はスキャンの範囲"
+      - "パッケージ違いでコンパイルが止まると読んだ答え。`import` すれば通り、問題はスキャンの範囲"
     explanation: |
-      `@SpringBootApplication` は、**起動クラスのパッケージ(`com.example.approval`)とその下** だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
+      `@SpringBootApplication` は、**起動クラスのパッケージ(`com.example.approval`)とその下**だけをスキャンします。Spring Data の Repository 探索も同じ範囲です。`com.example.repository` は兄弟パッケージなので対象外で、Repository の Bean が作られません。
       その結果、CommandLineRunner など `EmployeeRepository` を注入したい所で `required a bean of type ... that could not be found` になり、起動に失敗します。
   - question: |
-      `data.sql` を次のように書き、H2 ファイルモード(`sql.init.mode: always`)で使っています。**2回目の起動** で何が起きる?
+      `data.sql` を次のように書き、H2 ファイルモード(`sql.init.mode: always`)で使っています。**2回目の起動**で何が起きる?
       ```sql
       INSERT INTO employee (id, name, email, role)
         VALUES (1, 'ハル', 'haru@example.com', 'APPLICANT');
@@ -176,7 +176,7 @@ columns:
   - type: trivia
     title: JPA がエンティティに「引数なしコンストラクタ」と「final 禁止」を求める理由
     body: |
-      JPA の仕様は、エンティティに **public か protected の引数なしコンストラクタ** があること、クラスが **final でない** ことを求めています。
+      JPA の仕様は、エンティティに **public か protected の引数なしコンストラクタ**があること、クラスが **final でない**ことを求めています。
 
       1. **DB から読むとき**:Hibernate はまず引数なしコンストラクタで空のオブジェクトを作り、リフレクションでフィールドに値を詰めます。
       2. **LAZY のとき**:`@ManyToOne(fetch = LAZY)` の `applicant` には、本物の `Employee` ではなく、実行時に生成された **Employee のサブクラス(プロキシ)** が入ります。最初に `getName()` を呼んだ瞬間に SELECT が飛ぶ仕組みです。サブクラスを作るので、final クラスや private コンストラクタだと作れません。
@@ -185,7 +185,7 @@ columns:
   - type: genba
     title: テストデータのメールアドレスは example.com で
     body: |
-      承認くんの初期データは `haru@example.com` のように `example.com` を使っています。これは適当に選んだのではなく、**RFC 2606 で例示用に予約されたドメイン** です(`example.net`・`example.org` も同様)。誰も取得できないので、間違ってメールが送られても実在の誰かに届きません。
+      承認くんの初期データは `haru@example.com` のように `example.com` を使っています。これは適当に選んだのではなく、**RFC 2606 で例示用に予約されたドメイン**です(`example.net`・`example.org` も同様)。誰も取得できないので、間違ってメールが送られても実在の誰かに届きません。
 
       現場では、テストデータに `test@gmail.com` や `taro@test.co.jp` のような「それっぽい」アドレスを使い、開発環境のメール送信が本番の SMTP に繋がっていて……という事故が後を絶ちません。実在するドメインは、たいてい誰かが使っています。
 
@@ -350,7 +350,7 @@ sts:
         `RequestStatus` と `Action` は、前回の演習の答え(`canTransitionTo`・`isFinal`・`label`・`target` 付き)を使います。
         続けて **New > Class** で、同じ前回の答えの `ApprovalFlow`(`next`・`requiresAdmin`)と `BusinessRuleException`(`RuntimeException` のサブクラス)も `domain` に作ります。
 
-        演習の答えは1ファイルにまとめるため、メソッドやコンストラクタに `public` が付いていません。ここでは、enum・クラスと、`label()`・`target()`・`canTransitionTo`・`isFinal`・`next`・`requiresAdmin`・`BusinessRuleException` のコンストラクタに **すべて `public` を付けます**。
+        演習の答えは1ファイルにまとめるため、メソッドやコンストラクタに `public` が付いていません。ここでは、enum・クラスと、`label()`・`target()`・`canTransitionTo`・`isFinal`・`next`・`requiresAdmin`・`BusinessRuleException` のコンストラクタに**すべて `public` を付けます**。
         画面のテンプレート(`${h.action.label()}` など)や `service` パッケージから呼ぶからです。Thymeleaf の式は `public` のメソッドしか呼べず、付け忘れると `EL1004E: Method call: Method label() cannot be found` で画面が 500 になります。
     - title: Employee エンティティを作る
       detail: |
@@ -477,7 +477,7 @@ sts:
     - title: application.yml と data.sql を書く
       detail: |
         `src/main/resources` を右クリックして **New > File**(新規 > ファイル)で `application.yml` を作り、解説の内容を書きます(Maven プロジェクトとして作ったので `application.properties` はありません)。
-        YAML はインデントが命です。**タブではなく半角スペース2つ** で揃えてください。
+        YAML はインデントが命です。**タブではなく半角スペース2つ**で揃えてください。
 
         続けて `src/main/resources` を右クリックして **New > File**(新規 > ファイル)で `data.sql` を作り、解説の `MERGE INTO employee ...` を書きます。
     - title: CommandLineRunner で動作確認のコードを書く
@@ -528,7 +528,7 @@ sts:
           JOIN EMPLOYEE e ON e.ID = r.APPLICANT_ID;
         ```
 
-        `ROLE` と `STATUS` に `APPLICANT` や `DRAFT` が **文字列で** 入っていること、2つ目の結果に申請者名 `ハル` が出ることを確認します。
+        `ROLE` と `STATUS` に `APPLICANT` や `DRAFT` が**文字列で**入っていること、2つ目の結果に申請者名 `ハル` が出ることを確認します。
         `SHOW COLUMNS FROM APPROVAL_REQUEST;` を実行すると、`STATUS` 列の型が `ENUM('APPROVED', 'DRAFT', ...)` になっているのも見られます。
     - title: 落とし穴を体験する
       detail: |

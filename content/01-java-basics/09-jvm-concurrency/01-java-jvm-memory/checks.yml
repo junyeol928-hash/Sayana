@@ -29,7 +29,7 @@
   why:
     - ""
     - "`null` を入れると実体まで消えると読んだ答え。外れるのは矢印だけで、消すのは JVM の GC"
-    - "実体もフレームと一緒に消えると読んだ答え。消えるのは変数 u で、実体は GC を待つ"
+    - "実体もフレームと一緒に消えると読んだ答え。消えるのは変数 `u` で、実体は GC を待つ"
   explanation: |
     辿れなくなったのは「回収される資格ができた」だけ。GC は JVM が必要だと判断したときに動くので、いつ回収されるかはプログラムから決められない。
 - after: OutOfMemoryError と StackOverflowError
@@ -46,7 +46,7 @@
   answer: 0
   why:
     - ""
-    - "`StackOverflowError` を `Exception` の子と読んだ答え。`Error` は `Exception` の catch を素通りする"
+    - "`StackOverflowError` を `Exception` の子と読んだ答え。`Error` は `Exception` の `catch` を素通りする"
     - "止まらない再帰をコンパイラが見抜くと読んだ答え。コンパイルは通り、実行してから落ちる"
   explanation: |
-    `StackOverflowError` は `Exception` ではなく `Error` の仲間なので、`catch (Exception e)` では捕まらない。`Error` は catch して続行するものではなく、再帰をループに直すなど原因を直す。
+    `StackOverflowError` は `Exception` ではなく `Error` の仲間なので、`catch (Exception e)` では捕まらない。`Error` は `catch` して続行するものではなく、再帰をループに直すなど原因を直す。

@@ -34,7 +34,7 @@ flowchart TD
 
 人が見る画面には HTML のエラーページを、プログラムが読む API には JSON を返します。
 
-### 画面向け:templates/error に置くだけ
+### 画面向け:`templates/error` に置くだけ
 
 Spring Boot は例外を `/error` に回し、ステータスに合わせて `templates/error/404.html` や `500.html` を探します(なければ `4xx.html` / `5xx.html`、それもなければ白い「Whitelabel Error Page」)。
 
@@ -57,9 +57,9 @@ Spring Boot は例外を `/error` に回し、ステータスに合わせて `te
 
 あわせて、画面の詳細が通る `RequestService.findById` も、見つからないときは `BusinessRuleException` ではなく `RequestNotFoundException` を投げるように変えます(capstone-api-test で変えたのは `ApprovalService` の方だけです)。変えないと「ない」が業務ルール違反の扱いのまま 500 になります。
 
-### API 向け:@RestControllerAdvice で1か所に
+### API 向け:`@RestControllerAdvice` で1か所に
 
-前回 Controller の中に書いた `@ExceptionHandler` を、`web.api` 専用の **@RestControllerAdvice** に集めます(Controller からは消します)。
+前回 Controller の中に書いた `@ExceptionHandler` を、`web.api` 専用の **`@RestControllerAdvice`** に集めます(Controller からは消します)。
 
 ```java
 @RestControllerAdvice(basePackageClasses =
@@ -106,8 +106,8 @@ public class ApiExceptionHandler
 
 硬派ポイントは3つです。
 
-- **basePackageClasses**:範囲を `web.api` に絞る。絞らないと画面の例外まで JSON になる
-- **ResponseEntityExceptionHandler を継承**:`Exception` を受けるハンドラだけを書くと、Spring 標準の 400(型変換の失敗)や 405 まで横取りして 500 にしてしまう。継承すると、それらは専用のハンドラが受ける(例外の型が近いほうが選ばれる)
+- **`basePackageClasses`**:範囲を `web.api` に絞る。絞らないと画面の例外まで JSON になる
+- **`ResponseEntityExceptionHandler` を継承**:`Exception` を受けるハンドラだけを書くと、Spring 標準の 400(型変換の失敗)や 405 まで横取りして 500 にしてしまう。継承すると、それらは専用のハンドラが受ける(例外の型が近いほうが選ばれる)
 - **500 は中身を返さず、ログに全部**:例外メッセージには SQL や接続先が入りうる。利用者には `errorId` だけ返し、問い合わせが来たらログを `errorId` で検索する
 
 ## 業務ログ:誰が・どの申請を・どうしたか
@@ -130,7 +130,7 @@ INFO 4242 --- [approval-app] [nio-8080-exec-3]
 - ルール違反は INFO(利用者の操作ミスで、運用者の対応は不要)。想定外の例外だけ ERROR とスタックトレース
 - 文字列連結でなく `{}` のプレースホルダで書く
 
-厳密には、このログはコミットの **前** に出ます。コミットが失敗するとログと DB がずれるので、気になるなら `@TransactionalEventListener`(既定でコミット後に動く)で出します。
+厳密には、このログはコミットの**前**に出ます。コミットが失敗するとログと DB がずれるので、気になるなら `@TransactionalEventListener`(既定でコミット後に動く)で出します。
 
 ## プロファイル:dev と prod
 
@@ -180,7 +180,7 @@ public class DevPasswordInitializer { ... }
 | ddl-auto | update | **validate** |
 | ログ | コンソール | **ファイル** |
 
-- **H2 コンソール** はブラウザから DB を直接操作できる画面です。本番で開いていたら、データを丸ごと見られます
+- **H2 コンソール**はブラウザから DB を直接操作できる画面です。本番で開いていたら、データを丸ごと見られます
 - **validate** は起動時にエンティティとテーブルを突き合わせ、合わなければ起動を止めるだけで、DB には一切触りません。`create` は起動のたびにテーブルを作り直す(=データが消える)ので本番では禁止。dev の `update` も、列の削除や型の変更は扱えません
 - ログファイルは Logback が既定で 10MB ごとに切り替え、7日分残します
 
@@ -268,5 +268,5 @@ flowchart LR
 :::
 
 ::: sensei
-仕様を疑い、テストで守り、安全に出す。それができればもう立派な現場の人だ。次は君が誰かに教える番だね。コーヒーでも淹れようか ☕
+仕様を疑い、テストで守り、安全に出す。それができればもう立派な現場の人だ。次は君が誰かに教える番だね。コーヒーでも淹れようか。
 :::

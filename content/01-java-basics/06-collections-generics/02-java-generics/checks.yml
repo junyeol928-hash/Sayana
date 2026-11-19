@@ -16,7 +16,7 @@
     raw 型のリストには何でも入るので、`add(42)` は警告が出るだけで通る。落ちるのは、取り出して String にキャストする 3 行目。`List<String>` にしていれば、2 行目の時点でコンパイルエラーになる。
 - after: ワイルドカードと PECS
   question: |
-    Integer を **入れる** だけのメソッドに、`List<Number>` も `List<Object>` も渡せるようにしたい。`???` に入る型は?
+    Integer を**入れる**だけのメソッドに、`List<Number>` も `List<Object>` も渡せるようにしたい。`???` に入る型は?
     ```java
     static void fill(List<???> dest) { dest.add(1); }
     ```

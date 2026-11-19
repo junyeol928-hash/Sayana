@@ -13,7 +13,7 @@ samples:
   - title: 設定値を @Value で受け取る(既定値つき)
     libraries: [spring]
     description: |
-      `MapPropertySource` は「キーと値の Map」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。1 行目の税率は、8% と 10% のどちらで出る?
+      `MapPropertySource` は「キーと値の `Map`」を設定の置き場所として `Environment` に足すクラスです。Spring Boot ならここに `application.yml` の中身が入ります。1 行目の税率は、8% と 10% のどちらで出る?
       1 行目の店名と、`server.port` の行に出る値は何だろうか。そのあと `shop.name` の行を消したら、何が出る?
     code: |
       import org.springframework.beans.factory.annotation.Value;
@@ -121,7 +121,7 @@ quiz:
       - "`dev` 側のファイルが、共通の設定を丸ごと置き換えると読んだ答え"
       - "同じキーが2か所にあると衝突すると読んだ答え。優先順位の高いほうが採用されるだけ"
     explanation: |
-      プロファイル用のファイルは共通の `application.yml` を **丸ごと置き換えるのではなく、書いたキーだけを上書き** します。`server.port` は `dev` 側の 8081 が勝ち、`dev` 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
+      プロファイル用のファイルは共通の `application.yml` を**丸ごと置き換えるのではなく、書いたキーだけを上書き**します。`server.port` は `dev` 側の 8081 が勝ち、`dev` 側に書いていない `spring.datasource.url` は共通設定の値がそのまま使われます。
   - question: |
       設定キー `dojo.exec.max-heap` を環境変数で上書きしたいとき、Spring Boot が正しく対応づける環境変数名は?
     choices: ["`dojo.exec.max-heap`", "`DOJO.EXEC.MAX-HEAP`", "`DOJO_EXEC_MAXHEAP`", "`DOJOEXECMAXHEAP`"]
@@ -174,7 +174,7 @@ quiz:
     explanation: |
       YAML のキーと値の区切りは「コロン + スペース」です。`port:9090` はスペースが無いので区切りとみなされず、`server` の値が `"port:9090"` という文字列になります。`server.port` というキーは存在しないことになり、既定の 8080 で黙って起動します。
   - question: |
-      次の Bean 定義で、**プロファイルを何も指定せずに** 起動したとき、登録される `PaymentGateway` の Bean はどれ?
+      次の Bean 定義で、**プロファイルを何も指定せずに**起動したとき、登録される `PaymentGateway` の Bean はどれ?
       ```java
       @Bean @Profile("prod")
       PaymentGateway realGateway() { ... }
@@ -207,7 +207,7 @@ columns:
 
       実際に読むと `{pin=83, country=false, pw=0123}` です。国コード `NO` が `false` になるので「Norway problem」と呼ばれます。
 
-      特に危ないのが、数字だけのパスワードや社員番号・郵便番号・電話番号です。起動はするのに値だけが変わるので、原因に気づきにくい不具合になります。**数字で始まる文字列や、yes/no/on/off は引用符で囲む** と覚えておきましょう(`.properties` 形式ならこの問題は起きません)。
+      特に危ないのが、数字だけのパスワードや社員番号・郵便番号・電話番号です。起動はするのに値だけが変わるので、原因に気づきにくい不具合になります。**数字で始まる文字列や、yes/no/on/off は引用符で囲む**と覚えておきましょう(`.properties` 形式ならこの問題は起きません)。
   - type: genba
     title: 開発PCから本番DBを消した話
     body: |
@@ -215,11 +215,11 @@ columns:
 
       再発防止で決まったルールはこうでした。
 
-      - 共通の `application.yml` には **ローカル用の安全な値** だけを書く(H2 やローカルの Docker など)
-      - 本番の接続先・パスワードは **本番サーバの環境変数** でだけ渡す(`SPRING_DATASOURCE_URL` など)。開発PCには本番の認証情報を置かない
+      - 共通の `application.yml` には**ローカル用の安全な値**だけを書く(H2 やローカルの Docker など)
+      - 本番の接続先・パスワードは**本番サーバの環境変数**でだけ渡す(`SPRING_DATASOURCE_URL` など)。開発PCには本番の認証情報を置かない
       - 危ない処理(全削除・メール一斉送信)の Bean には `@Profile("!prod")` や `@Profile("prod")` を付けて、取り違えても動かない構造にする
 
-      「人間は間違える」前提で、**間違えても事故にならない仕組み** を設定で作るのが現場の知恵です。
+      「人間は間違える」前提で、**間違えても事故にならない仕組み**を設定で作るのが現場の知恵です。
   - type: trivia
     title: 「設定は環境変数に」の元ネタ ―― The Twelve-Factor App
     body: |
@@ -249,7 +249,7 @@ sts:
           greeting: 共通設定です
         ```
 
-        YAML エディタで `ser` と打って **Ctrl+Space** を押すと、`server.port` などのキーが説明つきで補完されます。インデントは **スペース2つ**(Tab キーを押してもスペースが入る設定になっています)。
+        YAML エディタで `ser` と打って **Ctrl+Space** を押すと、`server.port` などのキーが説明つきで補完されます。インデントは**スペース2つ**(Tab キーを押してもスペースが入る設定になっています)。
     - title: application-dev.yml と application-prod.yml を作る
       detail: |
         `src/main/resources` を右クリックし、**New > File**(新規 > ファイル)で `application-dev.yml` を作ります。同じように `application-prod.yml` も作ります。
@@ -317,7 +317,7 @@ sts:
     - title: 環境変数で上書きして優先順位を確かめる
       detail: |
         同じ実行構成の **Environment**(環境)タブで **Add...**(追加...)を押し、名前 `SERVER_PORT`、値 `9090` を追加して **Run**。
-        prod のまま起動しても `Tomcat started on port 9090` になり、**環境変数が application-prod.yml より優先される** ことが分かります。
+        prod のまま起動しても `Tomcat started on port 9090` になり、**環境変数が application-prod.yml より優先される**ことが分かります。
         さらに Program arguments に `--server.port=7070` を足すと 7070 になり、コマンドライン引数が一番強いことも確かめられます。
         終わったら環境変数と引数を消して **Apply** しておきましょう(残っていると、後で「なぜかポートが違う」と悩みます)。
     - title: Java道場の設定ファイルを読む

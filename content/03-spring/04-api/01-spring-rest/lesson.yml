@@ -86,7 +86,7 @@ samples:
   - title: Jackson で record ⇔ JSON(日時の扱い)
     libraries: [spring]
     description: |
-      `LocalDate` を含む record を、素の ObjectMapper(①)、JavaTimeModule を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。③が Spring Boot の既定と同じ設定です。② の `dueDate` は、文字列・数値・配列のどれで出る?
+      `LocalDate` を含む record を、素の `ObjectMapper`(①)、`JavaTimeModule` を足したもの(②)、さらに `WRITE_DATES_AS_TIMESTAMPS` を無効にしたもの(③)の 3 通りで JSON にします。③が Spring Boot の既定と同じ設定です。② の `dueDate` は、文字列・数値・配列のどれで出る?
       ① と ③ では、`dueDate` はどう出るだろうか。そもそも変換できるだろうか。
     code: |
       // Jackson で record ⇔ JSON。LocalDate の扱いに注目
@@ -161,11 +161,11 @@ quiz:
       - ""
       - "変換できないのをサーバー側の故障と読んだ答え。形式が合わないのは送る側の誤りで 415"
     explanation: |
-      curl の `-d` は、何も指定しないと `Content-Type: application/x-www-form-urlencoded` で送ります。`@RequestBody` の引数をその形式から変換できる HttpMessageConverter が無いので、
+      curl の `-d` は、何も指定しないと次の形式で送ります: `Content-Type: application/x-www-form-urlencoded` `@RequestBody` の引数をその形式から変換できる HttpMessageConverter が無いので、
       Spring は `HttpMediaTypeNotSupportedException` を投げ、**415 Unsupported Media Type** になります。
-      JSON を送るときは `-H "Content-Type: application/json"` を付けます。400 は「形式は合っているが中身(JSON の構文や値)がおかしい」とき、404 は URL が無いときです。
+      JSON を送るときは、次の指定を付けます: `-H "Content-Type: application/json"` 400 は「形式は合っているが中身(JSON の構文や値)がおかしい」とき、404 は URL が無いときです。
   - question: |
-      Spring Boot アプリで、次の record を `@RestController` から返しました。レスポンスの JSON は?
+      Spring Boot アプリで、次の `record` を `@RestController` から返しました。レスポンスの JSON は?
       ```java
       record TaskResponse(long id, LocalDate dueDate) {}
       // new TaskResponse(1, LocalDate.of(2026, 10, 31)) を返す
@@ -193,7 +193,7 @@ quiz:
       - "単数形でもよいと読んだ答え。動きは正しいが、一覧・作成の `/api/tasks` と形が揃わない"
       - ""
     explanation: |
-      操作は HTTP メソッド(DELETE)で表し、URL はリソースを **複数形の名詞** で表すので `DELETE /api/tasks/3` です。
+      操作は HTTP メソッド(DELETE)で表し、URL はリソースを**複数形の名詞**で表すので `DELETE /api/tasks/3` です。
       `deleteTask` のように URL に動詞を入れるのは NG。`GET` で削除できる URL は特に危険で、リンクの先読みやクローラーが踏んだだけでデータが消えます(`GET` は「状態を変えない」約束のメソッド)。
       `DELETE /api/task/3` は動き自体は正しいですが、単数形なので `/api/tasks`(一覧・作成)と URL の形が揃いません。
   - question: |
@@ -216,7 +216,7 @@ quiz:
       - "項目が足りないと 400 になると読んだ答え。Jackson は足りない項目を既定値で埋め、エラーにしない"
       - "項目の不足で変換が失敗すると読んだ答え。足りない `done` には `false` が入り、例外にならない"
     explanation: |
-      JSON に無い項目は、record の引数に **その型のデフォルト値** が入ります。`boolean` なら `false` なので、`req.done()` は `false` になり、完了済みのタスクが未完了に戻ります。
+      JSON に無い項目は、`record` の引数に**その型のデフォルト値**が入ります。`boolean` なら `false` なので、`req.done()` は `false` になり、完了済みのタスクが未完了に戻ります。
       Jackson は項目が足りないだけではエラーにしません(400 にも例外にもならない)。PATCH の項目は `Boolean` のような **`null` になれる型** にして、`null` なら変更しない、と書き分けます。
 columns:
   - type: trivia
@@ -228,16 +228,16 @@ columns:
 
       論文の REST はかなり厳格で、レスポンスに「次に取れる操作へのリンク」を含める **HATEOAS** まで求めています。
       現場の「REST API」はたいてい「URL でリソースを表し、メソッドとステータスを正しく使う」までで、Fielding 本人が「それは REST ではない」とブログで苦言を呈したこともあります。
-      この段階分けは Leonard Richardson の **成熟度モデル**(レベル0〜3)として知られていて、多くの API はレベル2(メソッドとステータスを使い分ける)を目標にしています。
+      この段階分けは Leonard Richardson の**成熟度モデル**(レベル0〜3)として知られていて、多くの API はレベル2(メソッドとステータスを使い分ける)を目標にしています。
   - type: genba
     title: 「全部 200 OK」の API
     body: |
       古いシステムで今も見かけるのが、エラーでもステータスは 200 で、本文に `{"result":"NG","message":"該当データなし"}` を返す API です。
       人間が読む分には困らないのですが、周りの道具が全部だまされます。
 
-      - 監視ツールは 5xx の割合でアラートを出すので、障害が起きても **ダッシュボードは真っ緑**
+      - 監視ツールは 5xx の割合でアラートを出すので、障害が起きても**ダッシュボードは真っ緑**
       - HTTP クライアントのライブラリは 4xx/5xx で例外を投げる前提なので、呼ぶ側が毎回 `result` を見る if 文を書く羽目になる
-      - 途中のプロキシや CDN が「200 だから」とエラー応答を **キャッシュ** してしまう
+      - 途中のプロキシや CDN が「200 だから」とエラー応答を**キャッシュ**してしまう
 
       ステータスコードは HTTP の世界の共通語です。「見つからない」は 404、「状態が矛盾」は 409、と正しく返すだけで、監視・リトライ・キャッシュがすべて正しく動きます。
       エラーの詳しい中身は、次のレッスンで扱う ProblemDetail で本文に添えればよいのです。
@@ -248,7 +248,7 @@ columns:
       「削除」リンクを `<a href="/items/3/delete">` のような **GET** で作っていた Web アプリで、ユーザーが何もしていないのにデータが消える騒ぎが起きました。
       ツールはページ上のリンクを「読むだけなら安全」と信じて GET していただけです。
 
-      HTTP の仕様では、GET は **安全(safe)なメソッド** で「サーバーの状態を変えない」ことになっています。クローラー、リンクの先読み、
+      HTTP の仕様では、GET は**安全(safe)なメソッド**で「サーバーの状態を変えない」ことになっています。クローラー、リンクの先読み、
       ブラウザの再読み込み、プロキシのリトライなど、世の中の仕組みはこの約束を前提に GET を気軽に送ってきます。
 
       状態を変える操作は POST / PUT / PATCH / DELETE で。API なら `DELETE /api/items/3`、画面ならフォームの POST にします。

@@ -71,7 +71,7 @@ samples:
       System.out.println("最大値: " + max(List.of("kiwi", "apple", "melon")));
   - title: ワイルドカード(? extends と ? super)
     description: |
-      `sum` は値を **取り出す** だけなので `? extends Number`、`addSamples` は値を **入れる** だけなので `? super Integer`。PECS の実例です。`sum(ints)` の合計は `6` と `6.0` のどちらで表示される?
+      `sum` は値を**取り出す**だけなので `? extends Number`、`addSamples` は値を**入れる**だけなので `? super Integer`。PECS の実例です。`sum(ints)` の合計は `6` と `6.0` のどちらで表示される?
     code: |
       static double sum(List<? extends Number> list) {
           double total = 0;
@@ -113,7 +113,7 @@ samples:
       System.out.println("x.equals(y) : " + x.equals(y));
 quiz:
   - question: |
-      次のうち、**コンパイルエラーになる** 行はどれ?
+      次のうち、**コンパイルエラーになる**行はどれ?
     choices:
       - "`List<Integer> a = new ArrayList<>();`"
       - "`List<Number> b = new ArrayList<Integer>();`"
@@ -128,7 +128,7 @@ quiz:
     explanation: |
       `Integer` は `Number` の子ですが、**`ArrayList<Integer>` は `List<Number>` の子ではありません**(ジェネリクスは不変)。もし代入できると、`b.add(3.14)` で `Integer` のリストに `Double` が混ざってしまうからです。
   - question: |
-      次のコードで、**コンパイルエラーになる** のはどの行?
+      次のコードで、**コンパイルエラーになる**のはどの行?
       ```java
       List<Integer> ints = new ArrayList<>(List.of(1));
       List<? extends Number> list = ints;  // (A)
@@ -144,8 +144,8 @@ quiz:
       - "`add` は全部だめと読んだ答え。`null` だけはどんな参照型のリストにも入れられる"
       - ""
     explanation: |
-      `? extends Number` のリストは「Number の **何かの** 子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
-      値を **取り出す** なら `extends`、**入れる** なら `super`(PECS)です。
+      `? extends Number` のリストは「Number の**何かの**子のリスト」です。実体が `List<Double>` かもしれないので、コンパイラは `Integer` の `add` を許しません。だから (D) がエラーです。
+      値を**取り出す**なら `extends`、**入れる**なら `super`(PECS)です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -161,7 +161,7 @@ quiz:
       - "型の違うリストのクラスは比べられないと読んだ答え。`getClass()` どうしの比較は合法"
       - "比べるときにキャストが起きると読んだ答え。キャストしていないので例外は出ない"
     explanation: |
-      Java のジェネリクスは **型消去** で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
+      Java のジェネリクスは**型消去**で実装されていて、型引数はコンパイル時のチェックにだけ使われ、実行時には消えています。`a` も `b` も実行時はただの `ArrayList` なので、`getClass()` は同じ `Class` オブジェクトを返し `true` です。
   - question: |
       次のコードを実行したときの出力は?
       ```java
@@ -181,7 +181,7 @@ quiz:
       `List<Integer>` の要素は `Integer` オブジェクトで、`==` は「同じオブジェクトか」の比較です。オートボクシングで使われる `Integer.valueOf` は **-128〜127 をキャッシュ** しているので、100 は同じオブジェクトになり `true`、200 は別々のオブジェクトになり `false` です。
       値によって結果が変わるので、テストの小さな値では気づけません。ラッパー型は `equals` で比べましょう。
   - question: |
-      `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる** 呼び出しはどれ?
+      `static <T extends Comparable<T>> T max(List<T> list)` が定義されているとき、**コンパイルエラーになる**呼び出しはどれ?
     choices:
       - "`max(List.of(3, 1, 2))`"
       - "`max(List.of(new Object()))`"
@@ -194,7 +194,7 @@ quiz:
       - "文字列は比べられないと読んだ答え。`String` は `Comparable` を実装していて通る"
       - "小数は比べられないと読んだ答え。`Double` も `Comparable` を実装していて通る"
     explanation: |
-      `T extends Comparable<T>` は「T は自分自身と比較できる型」という **境界** です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で `T = Object` に決まった時点で境界を満たさずコンパイルエラーになります。
+      `T extends Comparable<T>` は「T は自分自身と比較できる型」という**境界**です。`Integer`・`String`・`Double` はどれも `Comparable` を実装しているので OK。`Object` は `Comparable` を実装していないので、型推論で `T = Object` に決まった時点で境界を満たさずコンパイルエラーになります。
       境界がなければ `compareTo` を呼べない代わりに何でも渡せますが、境界を付けることで「比較できない型を渡すミス」を実行前に見つけられます。
 columns:
   - type: trivia
@@ -202,7 +202,7 @@ columns:
     body: |
       ジェネリクスは 2004 年の Java 5 で導入されました。土台は Martin Odersky(のちの Scala の作者)らが 1998 年に発表した「GJ(Generic Java)」です。
 
-      このとき最大の課題は、**既存の膨大なコードとライブラリを壊さないこと** でした。そこで「型引数はコンパイラがチェックしたら消し、バイトコードは昔と同じ `List` のまま」という **型消去** が選ばれました。おかげで Java 1.4 時代の jar と、新しいジェネリックなコードを混ぜて動かせたのです。
+      このとき最大の課題は、**既存の膨大なコードとライブラリを壊さないこと**でした。そこで「型引数はコンパイラがチェックしたら消し、バイトコードは昔と同じ `List` のまま」という**型消去**が選ばれました。おかげで Java 1.4 時代の jar と、新しいジェネリックなコードを混ぜて動かせたのです。
 
       一方、後発の C#(.NET 2.0)は実行環境ごと作り直し、実行時にも型引数を保持する方式(**reified generics**)にしました。C# では `new T()` 相当も書けますし、`List<int>` もボクシングなしで扱えます。
 
@@ -239,4 +239,4 @@ columns:
 
       書いた本人も1週間後には読めません。`scores.get(a).get(b).get(2)` が何を意味するのか、型からは分からないからです。
 
-      現場では、入れ子が2段を超えたら **意味のある名前のクラスを作る** のが定石です。たとえば `Map<String, Department>` にして、`Department` クラスが社員の一覧を持つ形にすれば、`dept.findEmployee(id).getScore(month)` のように読めるコードになります。後で学ぶ `record` を使えば、こうした小さなクラスは1行で作れます。
+      現場では、入れ子が2段を超えたら**意味のある名前のクラスを作る**のが定石です。たとえば `Map<String, Department>` にして、`Department` クラスが社員の一覧を持つ形にすれば、`dept.findEmployee(id).getScore(month)` のように読めるコードになります。後で学ぶ `record` を使えば、こうした小さなクラスは1行で作れます。

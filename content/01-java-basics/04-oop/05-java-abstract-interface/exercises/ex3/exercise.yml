@@ -20,7 +20,7 @@ problem: |
   作るもの:
 
   1. `Ticket.compareTo(Ticket other)`:上のルールで、自分が前なら負、同じなら 0、後なら正を返す
-  2. `TicketQueue.order(Ticket[] tickets)`:対応する順に並べた **チケット番号の配列** を返す
+  2. `TicketQueue.order(Ticket[] tickets)`:対応する順に並べた**チケット番号の配列**を返す
      - **引数の配列そのものは並べ替えないこと**(呼び出し元の画面表示が崩れるため)。
        `Arrays.copyOf(tickets, tickets.length)` でコピーしてから並べ替えてください
      - 空配列なら空配列を返す

@@ -2,12 +2,12 @@ title: 溜め込まない「最近のログ」
 className: RecentLog
 difficulty: 2
 problem: |
-  画面に「最近の操作ログ」を出すための `RecentLog` クラスを完成させてください。雛形は動きますが、**ログを無限に溜め込む**(メモリリークの元)うえに、**中のリストをそのまま外に渡している** ので、テストに落ちます。
+  画面に「最近の操作ログ」を出すための `RecentLog` クラスを完成させてください。雛形は動きますが、**ログを無限に溜め込む**(メモリリークの元)うえに、**中のリストをそのまま外に渡している**ので、テストに落ちます。
 
   | メンバー | 動き |
   |---|---|
   | `RecentLog(int capacity)` | 最大何件まで覚えるかを受け取る。`capacity` が 0 以下なら `IllegalArgumentException` を投げる |
-  | `void add(String message)` | ログを末尾に追加する。件数が `capacity` を超えたら **いちばん古いもの(先頭)から消して** `capacity` 件に収める |
+  | `void add(String message)` | ログを末尾に追加する。件数が `capacity` を超えたら**いちばん古いもの(先頭)から消して** `capacity` 件に収める |
   | `List<String> recent()` | 覚えているログを古い順に並べた **新しいリスト(コピー)** を返す。返したリストを呼び出し側が書き換えても、`RecentLog` の中身は変わらない |
   | `int size()` | いま覚えている件数(雛形のままで正しい) |
 
@@ -24,4 +24,4 @@ problem: |
 
   ヒント:
   - 先頭の要素を消すのは `messages.remove(0)` です。
-  - コピーは `new ArrayList<>(messages)` で作れます。`return messages;` だと、呼び出し側が **同じリストを指す矢印** を手に入れてしまいます。
+  - コピーは `new ArrayList<>(messages)` で作れます。`return messages;` だと、呼び出し側が**同じリストを指す矢印**を手に入れてしまいます。

@@ -11,7 +11,7 @@ goals:
   - "`@Controller` / `@Service` / `@Repository` を付けたクラスを DI コンテナで組み立てられる"
 samples:
   - title: Service を Spring も DB も使わずにテストする
-    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ ✔ と ✘ のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。
+    description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ `✔` と `✘` のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。
     code: |
       // Service を Spring も DB も使わずにテストする:Repository をメモリ実装に差し替えるだけ
       interface MemberRepository {
@@ -149,7 +149,7 @@ quiz:
       - ""
       - "Service は `static` で書くものと読んだ答え。`static` にすると DI できなくなる"
     explanation: |
-      `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合** です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
+      `Model` やビュー名(`"members/done"`)は **Controller(入出力)の都合**です。Service がそれを受け取ったり返したりすると、画面の無い夜間バッチや REST API から同じ業務ロジックを呼べなくなり、依存の向きも「Service → Web」と逆向きになります。Service は業務の結果(登録した会員など)を返し、画面に何を出すかは Controller が決めます。
   - question: |
       次のコードを実行するとどうなる?(`OrderService` はコンストラクタで `OrderRepository` を受け取る。`OrderRepository` の実装クラスはどこにも登録していない)
       ```java
@@ -202,7 +202,7 @@ quiz:
       - "DI にインターフェースが要ると読んだ答え。クラスのままでも登録・注入できる"
       - "スキャンが名前で選ぶと読んだ答え。スキャンは名前ではなく注釈で判断する"
     explanation: |
-      Spring は `@Transactional` などの機能を、Bean の前に **プロキシ** を挟んで実現します。昔はこのプロキシを JDK 標準の動的プロキシ(インターフェースが必須)で作ることが多く、インターフェースを用意するのが無難でした。今の Spring Boot は既定で CGLIB(クラスを継承して作るプロキシ)を使うので、インターフェースは必須ではありません。
+      Spring は `@Transactional` などの機能を、Bean の前に**プロキシ**を挟んで実現します。昔はこのプロキシを JDK 標準の動的プロキシ(インターフェースが必須)で作ることが多く、インターフェースを用意するのが無難でした。今の Spring Boot は既定で CGLIB(クラスを継承して作るプロキシ)を使うので、インターフェースは必須ではありません。
   - question: |
       次の Service を、DB を使わずにテストしにくい原因はどれ?
       ```java
@@ -224,17 +224,17 @@ quiz:
       - ""
       - "`@Service` を付けると `new` できないと読んだ答え。注釈が付いていても普通に `new` できる"
     explanation: |
-      フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を **コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
+      フィールドで `new JdbcStockRepository()` と実装を決め打ちしているので、テストからメモリ実装を渡す方法がありません。`StockRepository` を**コンストラクタで受け取る**(コンストラクタインジェクション)形にすれば、本番では Spring が JDBC 版を、テストでは自分でメモリ版を渡せます。
 columns:
   - type: mistake
     title: エンティティを JSON で返したら、無限ループとパスワード漏れ
     body: |
       「詰め替えが面倒」とエンティティをそのまま `@RestController` から返すと、よく2つの事故が起きます。
 
-      1つ目は **無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
-      `Could not write JSON: Infinite recursion (StackOverflowError)` で落ちます。
+      1つ目は**無限ループ**。`Order` が `Customer` を持ち、`Customer` が `List<Order>` を持つような双方向の関連があると、JSON に変換するライブラリ(Jackson)が Order → Customer → Order → … とたどり続け、
+      次のエラーで落ちます: `Could not write JSON: Infinite recursion (StackOverflowError)`
 
-      2つ目は **見せてはいけない項目の漏れ**。`Member` に `passwordHash` や `deleted` フラグがあれば、それも JSON に出ます。後から列を足すと、**気づかないうちに API の応答が増える** のも厄介です。
+      2つ目は**見せてはいけない項目の漏れ**。`Member` に `passwordHash` や `deleted` フラグがあれば、それも JSON に出ます。後から列を足すと、**気づかないうちに API の応答が増える**のも厄介です。
 
       `@JsonIgnore` を付けて回るとエンティティが画面の都合で汚れます。応答専用の DTO(record)に詰め替えるのが、遠回りに見えて一番安全です。
   - type: genba
@@ -261,7 +261,7 @@ columns:
     body: |
       `@Service` は今のところ「ここは Service です」という目印でしかありませんが、`@Repository` には実際の機能があります。**例外の翻訳**(exception translation)です。
 
-      DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系** に変換してくれます。
+      DB の一意制約違反は、本来 DB 製品ごとに違う例外やエラーコードで届きます(H2・PostgreSQL・MySQL でバラバラ)。`@Repository` を付けた Bean で起きた例外は、Spring がプロキシ越しに捕まえて、`DuplicateKeyException` や `DataIntegrityViolationException` のような **Spring 共通の `DataAccessException` 系**に変換してくれます。
 
       おかげで Service は「DB が何か」を知らずに `catch (DataIntegrityViolationException e)` と書けます(JPA/Hibernate の一意制約違反はこの型になります。子クラスの `DuplicateKeyException` は、JdbcTemplate が SQL のエラーコードから変換したときなどに出ます)。下の層の事情(DB 製品)を上の層に漏らさない、という層分けの考え方そのものです。
 sts:
@@ -306,7 +306,7 @@ sts:
         Package Explorer(パッケージ・エクスプローラー)で `com.example.shop` を右クリック > **New > Package**(新規 > パッケージ)で、
         `com.example.shop.controller`・`com.example.shop.service`・`com.example.shop.repository` の3つを作ります。
         ビューのメニュー(右上の **⋮** または **▽**)> **Package Presentation > Hierarchical**(パッケージの表示 > 階層)にすると、木構造で見やすくなります。
-        どのパッケージも **メインクラス(`ShopApplication`)のパッケージの配下** にあることが大事です。外に置くとコンポーネントスキャンで見つかりません。
+        どのパッケージも**メインクラス(`ShopApplication`)のパッケージの配下**にあることが大事です。外に置くとコンポーネントスキャンで見つかりません。
     - title: Controller を Move リファクタリングで移す
       detail: |
         `ShopController.java` を選んで右クリック > **Refactor > Move...**(リファクタリング > 移動)(**Alt+Shift+V**)を選び、
@@ -332,7 +332,7 @@ sts:
       detail: |
         **Ctrl+Shift+O**(インポートの編成)で import を整え、**Window > Show View > Problems**(ウィンドウ > ビューの表示 > 問題)でエラーが0件になったことを確認します。
         Controller に `ItemRepository` の import が残っていないこと(層飛ばしをしていないこと)も見ておきましょう。
-        再起動して手順1と同じ curl とブラウザ確認をし、**まったく同じ結果** になればリファクタリング成功です(リファクタリングは「動きを変えずに構造を変える」こと)。
+        再起動して手順1と同じ curl とブラウザ確認をし、**まったく同じ結果**になればリファクタリング成功です(リファクタリングは「動きを変えずに構造を変える」こと)。
     - title: "@Service を消して起動エラーを見る"
       detail: |
         `ShopService` の `@Service` をコメントアウトして再起動すると、Console に次のように出て起動が止まります。

@@ -1,7 +1,7 @@
 - after: 認証と認可
   question: |
     まだログインしていない人が、ブラウザで `/mypage`(ログインが必要な画面)を開いた。どうなる?
-  choices: ["403 Forbidden", "ログイン画面へ回される", "401 Unauthorized が返る"]
+  choices: ["403 Forbidden", "ログイン画面へ自動で回される", "401 Unauthorized が返る"]
   answer: 1
   why:
     - "権限不足のときと取り違えた答え。403 は、誰かは分かったが権限が足りないとき"
@@ -12,7 +12,7 @@
 - after: ユーザーとパスワード
   question: |
     依存を入れた直後は、`user` と起動ログの生成パスワードでログインできた。そこへ haru と mocha の `UserDetailsService` の Bean を定義して再起動すると、`user` でログインできる?
-  choices: ["できる(haru・mocha と並んで使える)", "できない", "起動時にエラーで止まる"]
+  choices: ["できる(haru・mocha と並んで使える)", "できない(haru・mocha だけになる)", "起動時にエラーで止まる"]
   answer: 1
   why:
     - "自動のユーザーに足されると読んだ答え"

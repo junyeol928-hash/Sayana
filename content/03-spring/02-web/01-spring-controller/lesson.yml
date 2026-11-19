@@ -237,7 +237,7 @@ quiz:
       - "戻り値が JSON に変換されると読んだ答え。それは `@ResponseBody` が付いたときで、`@Controller` ではビュー名"
       - ""
     explanation: |
-      `@Controller` の String の戻り値は **ビュー名** です。ViewResolver がテンプレート(Thymeleaf なら `templates/hello.html`)を探して HTML を作ります。テンプレートが無ければ、次のエラーになります: `Error resolving template [hello]` Thymeleaf が入っていないときは、次のエラーです: `Circular view path [hello]`
+      `@Controller` の String の戻り値は**ビュー名**です。ViewResolver がテンプレート(Thymeleaf なら `templates/hello.html`)を探して HTML を作ります。テンプレートが無ければ、次のエラーになります: `Error resolving template [hello]` Thymeleaf が入っていないときは、次のエラーです: `Circular view path [hello]`
       文字列をそのまま返したいなら `@RestController`(= `@Controller` + `@ResponseBody`)を使います。
   - question: |
       別々のクラスに、次の2つのメソッドを書いてしまいました。何が起きる?
@@ -258,7 +258,7 @@ quiz:
       - "対応表がアクセス時に作られると読んだ答え。対応表は起動時に作られ、そこで失敗する"
       - "重複していても片方が選ばれると読んだ答え。起動時に Ambiguous mapping で止まる"
     explanation: |
-      URL とメソッドの対応表(HandlerMapping)は **起動時に** 全 Controller を読んで作られます。同じ「GET + /items」が2つあると、その時点で `IllegalStateException: Ambiguous mapping` になり、アプリが起動しません。
+      URL とメソッドの対応表(HandlerMapping)は**起動時に**全 Controller を読んで作られます。同じ「GET + /items」が2つあると、その時点で `IllegalStateException: Ambiguous mapping` になり、アプリが起動しません。
       アノテーションの値はコンパイラから見ればただの文字列なので、コンパイルは通ります。ランダムに選ばれるような曖昧な動きはしません。
   - question: |
       注文フォームを POST すると、Controller が注文を登録して「注文完了」画面のビュー名を直接返しています。
@@ -271,7 +271,7 @@ quiz:
       - ""
       - "キャッシュが二重登録の原因と読んだ答え。F5 は最後の POST を送り直すので、キャッシュの設定では防げない"
     explanation: |
-      **PRG(Post/Redirect/Get)パターン** です。POST の処理後に 302 でリダイレクトすると、ブラウザは完了画面を GET し直します。F5 で再送されるのは最後の GET だけなので、注文は増えません。
+      **PRG(Post/Redirect/Get)パターン**です。POST の処理後に 302 でリダイレクトすると、ブラウザは完了画面を GET し直します。F5 で再送されるのは最後の GET だけなので、注文は増えません。
 columns:
   - type: trivia
     title: "@RequestParam は引数名をどうやって知っている?"
@@ -293,7 +293,7 @@ columns:
     body: |
       PRG パターンにすると、完了画面で F5 を押しても POST は再送されません(PRG にしていないと、ブラウザに「フォームの再送信の確認」というダイアログが出ます。ここで「続行」を押されると二重登録です)。
 
-      ところが現場では、PRG にしたのに二重注文が起きることがあります。原因は **送信ボタンの連打**。リダイレクトが返ってくる前に2回クリックされると、POST が2回飛びます。PRG は「再読み込み」対策であって、「連打」は防げません。
+      ところが現場では、PRG にしたのに二重注文が起きることがあります。原因は**送信ボタンの連打**。リダイレクトが返ってくる前に2回クリックされると、POST が2回飛びます。PRG は「再読み込み」対策であって、「連打」は防げません。
 
       現場ではいくつかを組み合わせます。
 
@@ -312,7 +312,7 @@ columns:
       handler URL [/hello] again. Check your ViewResolver setup!
       ```
 
-      `@Controller` なので `"hello"` は **ビュー名** です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば `Error resolving template [hello]` になります。
+      `@Controller` なので `"hello"` は**ビュー名**です。テンプレートエンジンが無いと、Spring は `hello` というページへ内部転送しようとしますが、その転送先が **今のメソッド自身(/hello)** なので、無限ループを防ぐために止めています。Thymeleaf が入っていれば、次のエラーになります: `Error resolving template [hello]`
 
       文字列や JSON を返したいなら `@RestController`(またはメソッドに `@ResponseBody`)。
 sts:
@@ -354,7 +354,7 @@ sts:
         }
         ```
 
-        `@SpringBootApplication` のクラス(`HelloWebApplication`)と **同じパッケージかその下** に置くのがポイントです。別のパッケージに置くとコンポーネントスキャンの対象外になり、404 になります。
+        `@SpringBootApplication` のクラス(`HelloWebApplication`)と**同じパッケージかその下**に置くのがポイントです。別のパッケージに置くとコンポーネントスキャンの対象外になり、404 になります。
     - title: アプリを起動する
       detail: |
         プロジェクトを右クリックして **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)。左下の **Boot Dashboard** でプロジェクトを選んで起動ボタンを押しても同じです。

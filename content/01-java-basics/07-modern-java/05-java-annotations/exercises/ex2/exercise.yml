@@ -3,7 +3,7 @@ className: LogMasker
 difficulty: 2
 problem: |
   ログにパスワードやカード番号がそのまま出てしまう事故を防ぐため、伏せたいフィールドに `@Mask` を付けておき、
-  ログ用の文字列を作るときに **リフレクションで目印を読んで** 伏せ字にする仕組みを作ります。
+  ログ用の文字列を作るときに**リフレクションで目印を読んで**伏せ字にする仕組みを作ります。
 
   ```java
   class LoginForm {
@@ -29,7 +29,7 @@ problem: |
   **2. `toLog(Object obj)` … ログ用の文字列を作る**
 
   - 形式は `クラスの単純名{名前=値, 名前=値, ...}`。クラス名は `obj.getClass().getSimpleName()`
-  - フィールドは `getDeclaredFields()` で全部取り、**フィールド名の昇順** に並べる(返る順番は決まっていないため)
+  - フィールドは `getDeclaredFields()` で全部取り、**フィールド名の昇順**に並べる(返る順番は決まっていないため)
   - `private` フィールドを読むには `f.setAccessible(true)` してから `f.get(obj)`
   - `@Mask` が付いたフィールドは `mask(値の文字列, keep)` の結果を、付いていないフィールドはそのままの値を出す(`null` は `null`)
   - `f.get` が投げる `IllegalAccessException` はチェック例外です。`IllegalStateException` に包んで投げ直してください

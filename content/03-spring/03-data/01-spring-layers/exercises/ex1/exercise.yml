@@ -8,16 +8,16 @@ problem: |
   **作るもの**
 
   1. `OrderRepository`(インターフェース、雛形にあり)を実装する `InMemoryOrderRepository`
-     - `save(order)`:`id` が `0` の注文なら **1 から順に** 番号を振った `Order` を作って保存し、それを返す(`order.withId(番号)` が使えます)
+     - `save(order)`:`id` が `0` の注文なら **1 から順に**番号を振った `Order` を作って保存し、それを返す(`order.withId(番号)` が使えます)
      - `findById(id)`:見つかれば `Optional.of(注文)`、無ければ `Optional.empty()`
      - `findAll()`:保存した順の一覧
   2. `OrderService`(業務ロジック)
-     - コンストラクタで `OrderRepository` を受け取る(**インターフェースの型** で受け取ること)
+     - コンストラクタで `OrderRepository` を受け取る(**インターフェースの型**で受け取ること)
      - `placeOrder(customer, unitPrice, quantity)`:
        - `customer` が null か空白だけなら `IllegalArgumentException("顧客名が空です")`
        - `quantity` が 1 未満なら `IllegalArgumentException("数量は1以上にしてください")`
        - 小計 = 単価 × 数量、送料 = 小計が **5000 円以上なら 0 円、未満なら 500 円**、合計 = 小計 + 送料
-       - `new Order(0, customer, 小計, 送料, 合計)` を Repository に保存し、**保存後の(番号付きの)注文** を返す
+       - `new Order(0, customer, 小計, 送料, 合計)` を Repository に保存し、**保存後の(番号付きの)注文**を返す
   3. `OrderController`(入出力)
      - 自分では計算も保存もせず、`service.placeOrder(...)` を呼ぶだけにする
      - 成功したら `"注文番号 1:合計 4100 円"` の形の文字列を返す

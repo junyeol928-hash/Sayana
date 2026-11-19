@@ -39,20 +39,20 @@
   en: "Javadoc"
   def: "/** で始めるコメント。クラスやメソッドの説明書として IDE やドキュメントに表示される。"
   lesson: java-hello
-- term: "AP サーバ"
+- term: "AP サーバ(アプリケーションサーバ)"
   read: "エーピーサーバ"
   en: "application server"
   def: "Java のプログラムが動くサーバ。Web サーバから受けたリクエストを処理し、DB とやり取りする。"
-  lesson: java-hello
-- term: "フロントエンド / バックエンド"
+  lesson: spring-boot-startup
+- term: "フロントエンド / バックエンド(画面側 / サーバー側)"
   en: "frontend / backend"
   def: "ユーザーが直接触る画面側(HTML/CSS/JS)と、見えないサーバ側(Java)のこと。"
-  lesson: java-hello
+  lesson: spring-thymeleaf
 - term: "MVC"
   read: "エムブイシー"
   en: "Model-View-Controller"
   def: "サーバ側のコードを、データと業務ルール(M)、見た目(V)、受付(C)の3役に分ける設計の型。"
-  lesson: java-hello
+  lesson: spring-controller
 - term: "変数"
   read: "へんすう"
   en: "variable"
@@ -141,7 +141,7 @@
   en: "overflow"
   def: "型の上限を超えて、値が壊れること。int で約 21 億を超えると負の数になる。例外は出ない。"
   lesson: java-operators
-- term: "関係演算子"
+- term: "関係演算子(比較演算子)"
   read: "かんけいえんざんし"
   en: "relational operator"
   def: "`==` `!=` `<` `>` `<=` `>=` のこと。2 つの値を比べて boolean を返す。"
@@ -176,7 +176,7 @@
   en: "element"
   def: "配列や `List` に入っている 1 つ 1 つの値。"
   lesson: java-arrays
-- term: "添え字"
+- term: "添え字(インデックス)"
   read: "そえじ"
   en: "index"
   def: "要素の位置を表す番号。0 から始まり、最後は「要素数 - 1」。"
@@ -193,7 +193,7 @@
 - term: "ArrayIndexOutOfBoundsException"
   def: "配列の範囲外の添え字を使ったときに起きる実行時例外。"
   lesson: java-arrays
-- term: "多次元配列"
+- term: "多次元配列(二次元配列)"
   read: "たじげんはいれつ"
   en: "multidimensional array"
   def: "配列の配列。int[][] で表のようなデータを持つ。外側が行、内側が列。"
@@ -242,7 +242,6 @@
   read: "たんらくひょうか"
   en: "short-circuit evaluation"
   def: "`&&` や `||` で、左側の結果だけで全体が確定するとき右側を評価しない仕組み。"
-  lesson: java-if
 - term: "ガード節"
   read: "ガードせつ"
   en: "guard clause"
@@ -304,7 +303,7 @@
   en: "continue"
   def: "その周の残りをスキップし、次の周の条件判定に戻る命令。"
   lesson: java-loops
-- term: "二重ループ"
+- term: "二重ループ(多重ループ)"
   read: "にじゅうループ"
   en: "nested loop"
   def: "for 文の中にさらに for 文がある、入れ子になったくり返し。"
@@ -313,7 +312,7 @@
   read: "かくちょうフォーぶん"
   en: "enhanced for / for-each"
   def: "配列や `List` の要素を順番に取り出すだけの、簡潔なくり返し構文。"
-  lesson: java-loops
+  lesson: java-arrays
 - term: "ConcurrentModificationException"
   en: "ConcurrentModificationException"
   def: "拡張 for や `Iterator` でくり返し中のコレクションを直接変更すると発生する実行時例外。"
@@ -385,7 +384,7 @@
   read: "アクセスしゅうしょくし"
   en: "access modifier"
   def: "private / (なし) / protected / public。フィールドやメソッドに誰から触れるかを決める。"
-  lesson: java-classes
+  lesson: java-encapsulation
 - term: "カプセル化"
   read: "カプセルか"
   en: "encapsulation"
@@ -414,11 +413,11 @@
   en: "scope"
   def: "変数が使える範囲。宣言した { } の中だけ。フィールドはクラス全体。"
   lesson: java-methods
-- term: "標準クラス(API)"
+- term: "標準クラス(API、標準ライブラリ)"
   read: "ひょうじゅんクラス"
   en: "standard API"
   def: "Java が最初から用意しているクラス群。`String`、`Math`、`List` など。Javadoc で仕様を調べる。"
-  lesson: java-classes
+  lesson: java-hello
 - term: "コンストラクタ"
   en: "constructor"
   def: "new のときに自動で1回呼ばれる初期化処理。戻り値の型を書かず、名前はクラス名と同じ。"
@@ -498,7 +497,7 @@
   en: "string pool"
   def: "同じ内容の文字列リテラルを複数回作らず使い回すための、JVM 内の共有領域。"
   lesson: java-strings
-- term: "static 領域"
+- term: "static 領域(メソッド領域)"
   en: "method area"
   def: "クラスの情報や static フィールドなど、クラスに1つだけ存在する情報が置かれる領域。"
   lesson: java-jvm-memory
@@ -596,21 +595,21 @@
 - term: "アップキャスト"
   en: "upcast"
   def: "子の実体を親(またはインターフェース)型の変数に入れること。自動で行われる。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "ダウンキャスト"
   en: "downcast"
   def: "親型の変数を `(子型)` で子の型に戻すこと。実体が違うと `ClassCastException`。instanceof で確認してから行う。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "動的ディスパッチ"
   read: "どうてきディスパッチ"
   en: "dynamic dispatch"
   def: "実行時に実体の型を見て、どのオーバーライド版を動かすか決める仕組み。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "instanceof"
   read: "インスタンスオブ"
   en: "instanceof"
   def: "変数の実体がある型(またはその子)かどうかを `true` / `false` で返す演算子。Java 16+ では判定と同時に変数宣言できる。"
-  lesson: java-abstract-interface
+  lesson: java-polymorphism
 - term: "DI(依存性注入)"
   read: "ディーアイ"
   en: "dependency injection"
@@ -634,7 +633,7 @@
   en: "inner class"
   def: "static を付けずに外側のクラスの直下に書くクラス。1つの外側インスタンスに結び付き、そのフィールドに直接アクセスできる。"
   lesson: java-nested-classes
-- term: "Outer.this"
+- term: "Outer.this(外側クラス名.this)"
   read: "アウター・ディス"
   en: "Outer.this"
   def: "内部クラスや匿名クラスの中から、結び付いている外側のインスタンス自身を指す書き方。"
@@ -648,7 +647,7 @@
   en: "anonymous class"
   def: "インターフェースや抽象クラスの実装を、名前を付けずに new と同時にその場で書く方法。"
   lesson: java-nested-classes
-- term: "実質的final"
+- term: "実質的 final(effectively final)"
   read: "じっしつてきファイナル"
   en: "effectively final"
   def: "final と書いていないが、一度代入した後に値を変えていない変数。匿名クラスやラムダから使える条件。"
@@ -658,7 +657,7 @@
   en: "instance initializer block"
   def: "クラスの直下に `{ }` だけで書くコード。インスタンスが作られるたびに、コンストラクタの `super(...)` の後・本体の前に実行される。"
   lesson: java-nested-classes
-- term: "static初期化ブロック"
+- term: "static 初期化ブロック"
   en: "static initializer block"
   def: "static { } の形で書くコード。そのクラスが最初に読み込まれたときに1回だけ実行される。"
   lesson: java-nested-classes
@@ -697,12 +696,11 @@
 - term: "ワイルドカード import"
   en: "wildcard import"
   def: "import java.util.*; のように、パッケージ直下の全クラスをまとめて import する書き方。サブパッケージは含まない。"
-  lesson: java-encapsulation
 - term: "static import"
   read: "スタティック・インポート"
   en: "static import"
   def: "クラスの static メソッドや定数を、クラス名なしで使えるようにする import。"
-  lesson: java-encapsulation
+  lesson: spring-mockmvc
 - term: "パッケージプライベート"
   en: "package-private"
   def: "アクセス修飾子を何も付けない状態。同じパッケージからだけ見える。"
@@ -757,7 +755,7 @@
   en: "AutoCloseable"
   def: "`close()` メソッドを持つことを約束するインターフェース。これを実装したクラスが try-with-resources に使える。"
   lesson: java-exceptions
-- term: "ユーザー定義例外"
+- term: "ユーザー定義例外(独自例外)"
   read: "ユーザーていぎれいがい"
   en: "custom exception"
   def: "`Exception` や `RuntimeException` を継承して自分で作る例外クラス。業務の失敗を型で表す。"
@@ -803,7 +801,6 @@
 - term: "ラッパークラス"
   en: "wrapper class"
   def: "`int` → `Integer` のように、基本データ型に対応する参照型。コレクションには参照型しか入らないので使う。"
-  lesson: java-collections
 - term: "オートボクシング"
   en: "autoboxing"
   def: "`int` と `Integer` を自動で相互変換する仕組み。`null` を `int` にしようとすると `NullPointerException`。"
@@ -879,7 +876,6 @@
   read: "じっこうしよう"
   en: "execution specification"
   def: "ライフライン上で、そのオブジェクトが処理を実行している期間を表す細長い箱。"
-  lesson: java-polymorphism
 - term: "複合フラグメント"
   read: "ふくごうフラグメント"
   en: "combined fragment"
@@ -893,7 +889,7 @@
   en: "breakpoint"
   def: "指定した行でプログラムの実行を一時停止させる目印。"
   lesson: sts-debugger
-- term: "ステップオーバー"
+- term: "ステップオーバー(Step Over)"
   en: "step over"
   def: "現在の行を実行して次の行へ進む操作。呼び出し先のメソッドの中には入らない。"
   lesson: sts-debugger
@@ -901,11 +897,11 @@
   en: "step into"
   def: "呼び出しているメソッドの中へ実行位置を移動させる操作。"
   lesson: sts-debugger
-- term: "ステップリターン"
+- term: "ステップリターン(Step Return)"
   en: "step return"
   def: "今のメソッドの残りをすべて実行し、呼び出し元に戻る操作。"
   lesson: sts-debugger
-- term: "変数ビュー"
+- term: "変数ビュー(Variables ビュー)"
   read: "へんすうビュー"
   en: "variables view"
   def: "ブレークポイントで停止中に、変数の現在の値を確認できる IDE の画面。"
@@ -932,7 +928,7 @@
   en: "immutable"
   def: "作った後に中身を変更できない性質。`String` は不変で、操作のたびに新しい文字列が作られる。"
   lesson: java-strings
-- term: "定数プール"
+- term: "定数プール(文字列プール)"
   read: "ていすうプール"
   en: "string pool"
   def: "ここでは文字列の定数プール(文字列プール)のこと。同じ内容の文字列リテラルを1つだけ置いて共有する JVM の仕組みで、リテラルどうしは同じオブジェクトになる。JVM 仕様でいう定数プール(クラスファイルの定数の表)とは別物。"
@@ -975,7 +971,7 @@
   read: "じゅうろくしんもじれつ"
   en: "hex string"
   def: "バイト列を 0〜9 と a〜f で表した文字列。1バイト = 2文字。ハッシュ値の表示によく使う。"
-  lesson: java-strings
+  lesson: java-datetime
 - term: "正規表現"
   read: "せいきひょうげん"
   en: "regular expression"
@@ -999,7 +995,7 @@
   en: "type safety"
   def: "間違った型の値を入れるとコンパイル時にエラーになること。実行してから気づくバグを減らせる。"
   lesson: java-generics
-- term: "ジェネリッククラス"
+- term: "ジェネリッククラス(型パラメータ付きクラス)"
   en: "generic class"
   def: "`class Box<T>` のように型パラメータを持つクラス。`Box<String>` のように使う側が型を決める。"
   lesson: java-generics
@@ -1131,7 +1127,6 @@
   read: "フラットマップ"
   en: "flatMap"
   def: "各要素を `Stream` に変換し、1本に平らにつなぐ中間操作。「リストのリスト」を1段ほどく。"
-  lesson: java-lambda-stream
 - term: "Collectors"
   read: "コレクターズ"
   en: "Collectors"
@@ -1151,7 +1146,6 @@
   read: "リデュース"
   en: "reduce"
   def: "要素を先頭から順に1つの値へ畳み込む終端操作。`reduce(0, Integer::sum)` は合計。"
-  lesson: java-lambda-stream
 - term: "Optional"
   read: "オプショナル"
   en: "Optional"
@@ -1247,7 +1241,6 @@
 - term: "フォールスルー"
   en: "fall-through"
   def: "古い switch 文で break を書かないと次の case まで実行される動き。バグの原因になる。"
-  lesson: java-record-enum
 - term: "java.time"
   en: "java.time"
   def: "Java 8 で導入された日付時刻 API。`LocalDate`、`Instant` などすべて不変でスレッドセーフ。"
@@ -1292,7 +1285,7 @@
   read: "ビットえんざん"
   en: "bitwise operation"
   def: "整数を 0/1 の並びとして扱う演算。`&` `|` `^` `~` `<<` `>>` `>>>` がある。フラグ管理やバイト操作で使う。"
-  lesson: java-datetime
+  lesson: java-operators
 - term: "16進表記"
   read: "じゅうろくしんひょうき"
   en: "hexadecimal"
@@ -1302,7 +1295,7 @@
   read: "もじコード"
   en: "charset"
   def: "文字と byte の対応表。UTF-8 と Shift_JIS が業務で混在し、取り違えると文字化けする。"
-  lesson: java-datetime
+  lesson: java-file-io
 - term: "ストリーム"
   en: "stream"
   def: "データが順番に流れる通り道。`java.util.stream` の `Stream` とは別物。"
@@ -1328,7 +1321,7 @@
   en: "Files"
   def: "`Path` を使ってファイルを読み書きするための静的メソッド集(`java.nio.file.Files`)。"
   lesson: java-file-io
-- term: "EOF"
+- term: "EOF(終端)"
   read: "イーオーエフ"
   en: "end of file"
   def: "ファイル(ストリーム)の終わり。byte 版の `read()` が `-1` を返すことで分かる。"
@@ -1346,11 +1339,9 @@
   read: "ちょくれつか"
   en: "serialization"
   def: "オブジェクトを byte 列に変換して保存・送信できる形にすること。`ObjectOutputStream` で行う古い仕組み。"
-  lesson: java-file-io
 - term: "バッファリング"
   en: "buffering"
   def: "小さい読み書きをまとめて処理することで速度を上げる仕組み。`BufferedReader` などが行う。"
-  lesson: java-file-io
 - term: "アノテーション"
   en: "annotation"
   def: "クラス・メソッド・フィールドなどに付ける目印(メタデータ)。それ自体は処理をせず、読む側が意味を決める。"
@@ -1438,7 +1429,7 @@
   en: "assertion"
   def: "テストの中で「期待通りか」を確認する呼び出し。assertEquals や assertThrows など。"
   lesson: java-junit
-- term: "モック"
+- term: "モック(偽物)"
   en: "mock"
   def: "本物の代わりに使う、決められた通りにしか動かない偽物のオブジェクト。Mockito で作る。"
   lesson: spring-mockmvc
@@ -1527,11 +1518,11 @@
   en: "component scan"
   def: "起動時にパッケージ以下を走査して @Component 系のクラスを見つけ、Bean として登録すること。"
   lesson: spring-di
-- term: "コンストラクタ注入"
+- term: "コンストラクタ注入(コンストラクタインジェクション)"
   en: "constructor injection"
   def: "コンストラクタの引数で部品を受け取る注入方式。final にできるので推奨。"
   lesson: spring-di
-- term: "フィールド注入"
+- term: "フィールド注入(フィールドインジェクション)"
   en: "field injection"
   def: "フィールドに @Autowired を付けて直接入れてもらう方式。古いコードで見る。"
   lesson: spring-di
@@ -1574,7 +1565,7 @@
   lesson: spring-boot-startup
 - term: "application.yml"
   def: "設定値を書くファイル。src/main/resources にある。.properties 形式のこともある。"
-  lesson: spring-boot-startup
+  lesson: spring-config
 - term: "プロファイル"
   en: "profile"
   def: "dev / stg / prod のような環境の名札。application-{名前}.yml がその環境でだけ読まれる。"
@@ -1582,15 +1573,14 @@
 - term: "@Value"
   read: "バリュー"
   def: "${キー} で設定値を1個ずつフィールドに入れる。${キー:既定値} で既定値も指定できる。"
-  lesson: spring-boot-startup
+  lesson: spring-config
 - term: "@ConfigurationProperties"
   def: "prefix 以下の設定値をまとめて1つのクラスのフィールドに入れる。フィールド名 = キー名。"
   lesson: spring-boot-startup
 - term: "@PostConstruct"
   read: "ポストコンストラクト"
   def: "注入がすべて終わった直後に Spring が1回だけ呼ぶメソッドの印。初期化処理に使う。"
-  lesson: spring-boot-startup
-- term: "組み込みサーバ"
+- term: "組み込みサーバ(組み込み Tomcat)"
   read: "くみこみサーバ"
   en: "embedded server"
   def: "jar の中に Tomcat が入っていて、java -jar だけで Web サーバが立つ仕組み。"
@@ -1687,10 +1677,9 @@
   lesson: spring-security
 - term: "OncePerRequestFilter"
   def: "1リクエストにつき1回だけ実行される `Filter` の親クラス。自作フィルタでよく使う。"
-  lesson: spring-security
+  lesson: spring-reading-code
 - term: "AuthenticationEntryPoint / AccessDeniedHandler"
   def: "前者は未認証(401)、後者は権限不足(403)のときに呼ばれる処理を差し替える仕組み。"
-  lesson: spring-security
 - term: "Repository"
   read: "リポジトリ"
   en: "repository"
@@ -1737,7 +1726,7 @@
   en: "rollback"
   def: "トランザクション内の変更をすべて取り消し、なかったことにすること。"
   lesson: spring-data-jpa
-- term: "N+1問題"
+- term: "N+1 問題"
   read: "エヌプラスイチもんだい"
   en: "N+1 problem"
   def: "一覧を取得した後、各行の関連データを1件ずつ追加で取得してしまい、SQL の回数が増えすぎる問題。"
@@ -1751,16 +1740,13 @@
   read: "デロンボック"
   en: "delombok"
   def: "Lombok が展開した後の実際の Java コードを出力する機能。確認用。"
-  lesson: java-encapsulation
 - term: "@Getter / @Setter"
   def: "フィールドの getter / setter メソッドを生成する。"
   lesson: java-encapsulation
 - term: "@ToString"
   def: "全フィールドの値を含む `toString()` メソッドを生成する。"
-  lesson: java-encapsulation
 - term: "@EqualsAndHashCode"
   def: "全フィールドを比較する `equals()` と `hashCode()` を生成する。"
-  lesson: java-encapsulation
 - term: "@RequiredArgsConstructor"
   def: "final(または @NonNull)のフィールドだけを引数にとるコンストラクタを生成する。DI でよく使う。"
   lesson: java-encapsulation
@@ -1769,7 +1755,6 @@
   lesson: java-encapsulation
 - term: "@Value"
   def: "Lombok。@Data の不変版。全フィールドが private final になり setter は生成されない(Spring の @Value とは別物)。"
-  lesson: java-encapsulation
 - term: "@Builder"
   def: "フィールド名のメソッドで1つずつ値を積み上げて生成する Builder を自動生成する。"
   lesson: java-encapsulation
@@ -1778,7 +1763,6 @@
   lesson: java-encapsulation
 - term: "@SneakyThrows"
   def: "検査例外を throws 宣言なしで投げられるようにする。呼び出し側から例外の存在が見えなくなる。"
-  lesson: java-encapsulation
 - term: "レイヤードアーキテクチャ"
   en: "layered architecture"
   def: "Controller / Service / Repository のように役割ごとに層を分けてコードを組み立てる設計の考え方。"
@@ -1805,8 +1789,8 @@
   read: "ていぎへいどう"
   en: "Go to Definition"
   def: "IDE の機能。クリックしたクラス・メソッドの宣言元(実体)にジャンプする。"
-  lesson: spring-reading-code
-- term: "相関ID"
+  lesson: sts-shortcuts
+- term: "相関ID(リクエストID)"
   read: "そうかんアイディー"
   en: "correlation ID / request ID"
   def: "1つのリクエストに紐づけて全ログに残す識別子。複数のログ行を1つの処理としてつなげて追える。"

@@ -8,9 +8,9 @@
 
 `String` はクラス(参照型)です。`"abc"` と書くと `String` オブジェクトが作られ、変数にはその参照が入ります。前回学んだメソッドを、今回は `文字列.メソッド名()` の形で呼んでいきます。
 
-## String は不変(immutable)
+## `String` は不変(immutable)
 
-一度作った `String` の中身は **絶対に変わりません**。変換系のメソッドは、すべて **新しい String を返す** だけです。
+一度作った `String` の中身は**絶対に変わりません**。変換系のメソッドは、すべて**新しい `String` を返す**だけです。
 
 ```java
 String s = "java";
@@ -24,9 +24,9 @@ System.out.println(s);    // JAVA
 
 <figure class="figure"><svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" font-family="inherit"><defs><marker id="java-strings-arrow16a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker><marker id="java-strings-arrow16b" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-muted)"/></marker></defs><text x="20" y="26" font-size="14" fill="var(--ink-muted)">name = name + "!";  の前後</text><rect x="20" y="70" width="100" height="56" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2"/><text x="70" y="104" font-size="16" font-weight="700" text-anchor="middle" fill="var(--ink)">name</text><rect x="250" y="46" width="130" height="50" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 4"/><text x="315" y="77" font-size="18" font-weight="700" text-anchor="middle" fill="var(--ink-muted)">"java"</text><text x="400" y="77" font-size="13" fill="var(--ink-muted)">← 変更されない(そのまま残る)</text><rect x="250" y="120" width="130" height="50" rx="10" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2"/><text x="315" y="151" font-size="18" font-weight="700" text-anchor="middle" fill="var(--ink)">"java!"</text><text x="400" y="151" font-size="13" fill="var(--ink)">← 新しく作られた文字列</text><path d="M120 92 L245 72" stroke="var(--ink-muted)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#java-strings-arrow16b)"/><text x="160" y="66" font-size="12" fill="var(--ink-muted)">前</text><path d="M120 104 L245 140" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#java-strings-arrow16a)"/><text x="160" y="140" font-size="12" fill="var(--accent)">後</text></svg><figcaption>不変のイメージ(例は name = name + "!"):元の文字列は書き換わらず、変数が新しい文字列を指し直す</figcaption></figure>
 
-なぜ不変なのか。同じ文字列を複数の変数やスレッドで **安全に共有** できるからです。誰かが勝手に書き換える心配がないので、次の「文字列プール」で使い回せ、ファイルパスや接続先を渡しても途中で改ざんされません。
+なぜ不変なのか。同じ文字列を複数の変数やスレッドで**安全に共有**できるからです。誰かが勝手に書き換える心配がないので、次の「文字列プール」で使い回せ、ファイルパスや接続先を渡しても途中で改ざんされません。
 
-## == と equals、文字列プール
+## == と `equals`、文字列プール
 
 文字列の中身の比較は **`equals`**、大文字小文字を無視するなら **`equalsIgnoreCase`** です。`==` は「同じオブジェクトか」を比べます。
 
@@ -50,13 +50,13 @@ flowchart LR
   E["e"] --> R["実行時連結の Java"]
 ```
 
-ソースに書いたリテラルは JVM の **文字列プール** に1つだけ置かれ、使い回されます。`"Ja" + "va"` のような定数同士の連結もコンパイル時に `"Java"` になるのでプール行き。一方、`new String(...)` や実行時の連結は別オブジェクトです。入力やDBの値は常に後者なので、**文字列は必ず equals**。`new String("…")` は無駄なので、現場では書きません。
+ソースに書いたリテラルは JVM の**文字列プール**に1つだけ置かれ、使い回されます。`"Ja" + "va"` のような定数同士の連結もコンパイル時に `"Java"` になるのでプール行き。一方、`new String(...)` や実行時の連結は別オブジェクトです。入力やDBの値は常に後者なので、**文字列は必ず equals**。`new String("…")` は無駄なので、現場では書きません。
 
 ::: haru
 リテラル同士だと `==` でも `true` になるから、テストをすり抜けちゃうんすね……。
 :::
 
-`null` かもしれない変数は、**固定値の側から** 呼ぶのが定石です。
+`null` かもしれない変数は、**固定値の側から**呼ぶのが定石です。
 
 ```java
 String rank = null;
@@ -64,11 +64,11 @@ String rank = null;
 rank.equals("GOLD");   // NullPointerException
 ```
 
-比べる **両方** が `null` かもしれない(変数同士の比較)なら、`java.util.Objects.equals(a, b)` が使えます。片方だけ `null` なら `false`、両方 `null` なら `true` を返し、例外は出しません。
+比べる**両方**が `null` かもしれない(変数同士の比較)なら、`java.util.Objects.equals(a, b)` が使えます。片方だけ `null` なら `false`、両方 `null` なら `true` を返し、例外は出しません。
 
 ## よく使うメソッド
 
-インデックスは配列と同じく **0 始まり** です。
+インデックスは配列と同じく **0 始まり**です。
 
 | 式 | 結果 |
 |---|---|
@@ -89,7 +89,7 @@ java.lang.StringIndexOutOfBoundsException:
   Range [2, 5) out of bounds for length 3
 ```
 
-### trim と strip
+### `trim` と `strip`
 
 どちらも前後の空白を除きますが、`trim` は ASCII の空白(コード 32 以下)しか消しません。Java 11 の **`strip`** は全角スペースなど Unicode の空白も消します。日本語の入力を扱うなら `strip` 一択です。
 
@@ -107,9 +107,9 @@ String[] cols = "A001,コーヒー,1200".split(",");
 "a.b.c".split("\\.").length;  // 3
 ```
 
-`split` の引数は **正規表現** です。`.` は「任意の1文字」なので全部が区切りになり、空の要素は末尾から捨てられて 0 個。`.` や `|` で区切るときは `\\` でエスケープします。
+`split` の引数は**正規表現**です。`.` は「任意の1文字」なので全部が区切りになり、空の要素は末尾から捨てられて 0 個。`.` や `|` で区切るときは `\\` でエスケープします。
 
-## 書式:format / formatted / テキストブロック
+## 書式:`format` / `formatted` / テキストブロック
 
 ```java
 String.format("%-8s|%5d|%,10d円", "Coffee", 3, 1234567);
@@ -117,14 +117,14 @@ String.format("%-8s|%5d|%,10d円", "Coffee", 3, 1234567);
 "%s さん %d 歳".formatted("ハル", 22);   // Java 15〜
 ```
 
-| 指定 | 意味 |
+| 書式文字列の指定 | 意味 |
 |---|---|
 | `%s` / `%d` | 文字列 / 整数 |
 | `%5d` / `%-8s` | 幅5で右寄せ / 幅8で左寄せ |
 | `%05d` | 0 埋め(`00042`) |
 | `%,d` / `%.1f` | 3桁区切り / 小数1桁(区切りと小数点の記号は既定のロケールに従う。日本や米国なら `,` と `.`) |
 
-複数行の文字列は **テキストブロック**(Java 15〜)が便利です。
+複数行の文字列は**テキストブロック**(Java 15〜)が便利です。
 
 ```java
 String mail = """
@@ -135,9 +135,9 @@ String mail = """
 
 閉じの `"""` の位置(または最も浅い行)を基準に、共通のインデントが自動で取り除かれます。`\n` を手書きする必要もありません。
 
-## 連結:+、StringBuilder、String.join
+## 連結:`+`、`StringBuilder`、`String.join`
 
-1つの式の中の `+` は JDK 9 以降コンパイラが最適化するので、そのままで構いません。**ループで少しずつつなぐなら `StringBuilder`**(ループのレッスンで見たとおり、不変の String に `+=` すると毎回コピーが走る)。区切り文字でつなぐだけなら `String.join` が最短です。
+1つの式の中の `+` は JDK 9 以降コンパイラが最適化するので、そのままで構いません。**ループで少しずつつなぐなら `StringBuilder`**(ループのレッスンで見たとおり、不変の `String` に `+=` すると毎回コピーが走る)。区切り文字でつなぐだけなら `String.join` が最短です。
 
 ```java
 String.join(" / ", "東京", "大阪", "福岡");
@@ -160,7 +160,7 @@ java.lang.NumberFormatException: For input string: " 42"
 
 ## よくあるミス
 
-**char と String を混ぜる**。`'E'`(シングルクォート)は `char`、`"E"`(ダブルクォート)は `String` で、別の型です。
+**char と `String` を混ぜる**。`'E'`(シングルクォート)は `char`、`"E"`(ダブルクォート)は `String` で、別の型です。
 
 ```java
 if (id.charAt(0) == "E") { }   // コンパイルエラー
@@ -173,7 +173,7 @@ error: bad operand types for binary operator '=='
   second type: String
 ```
 
-**length のカッコ**。配列は `arr.length`、String は `s.length()`。逆に書くと `cannot find symbol` です。
+**length のカッコ**。配列は `arr.length`、`String` は `s.length()`。逆に書くと `cannot find symbol` です。
 
 **ループの中で `s += …`**。動くけれど、件数が増えると急に遅くなります。レビューで真っ先に指摘されるので `StringBuilder` へ。
 
@@ -182,7 +182,7 @@ error: bad operand types for binary operator '=='
 :::
 
 ::: point まとめ
-- String は **不変**。`s = s.toUpperCase();` のように戻り値を受け取る
+- `String` は**不変**。`s = s.toUpperCase();` のように戻り値を受け取る
 - 中身の比較は `equals` / `equalsIgnoreCase`。`null` かもしれないなら `"固定値".equals(変数)`
 - リテラルと定数連結はプールで共有、`new String` と実行時連結は別物。だから `==` は使わない
 - `substring` の終了位置は含まない。`split` は正規表現(`.` は `\\.`)

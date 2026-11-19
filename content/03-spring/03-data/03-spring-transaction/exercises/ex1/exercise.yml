@@ -14,7 +14,7 @@ problem: |
 
   `AccountStore` の動き:
   - 口座がなければ `IllegalArgumentException`、残高不足なら `IllegalStateException`(どちらも RuntimeException)
-  - 例:A に 10000 円、B に 0 円のとき `transfer("A", "Z", 3000)` は、A から 3000 円引き出した **後で** Z が無いと分かって例外になる。
+  - 例:A に 10000 円、B に 0 円のとき `transfer("A", "Z", 3000)` は、A から 3000 円引き出した**後で** Z が無いと分かって例外になる。
     トランザクションがあればロールバックされて A は 10000 円に戻る
 
   ※ 採点では、DB の代わりに「開始・コミット・ロールバック」を記録するトランザクションマネージャ(ロールバック時に `AccountStore` を開始時の状態に戻す)を

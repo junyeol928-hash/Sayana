@@ -55,7 +55,7 @@
   question: "Spring が起動し、`issue(\"C001\")` を呼ぶと?"
   choices:
     - "`\"OK\"` が返る"
-    - "起動時に、`cryptoClient` の注入に失敗して例外"
+    - "起動時に `cryptoClient` の注入で例外"
     - "8行目で `NullPointerException`"
     - "コンパイルエラー"
   answer: 2

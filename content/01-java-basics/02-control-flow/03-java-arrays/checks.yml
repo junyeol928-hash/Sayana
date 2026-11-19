@@ -27,10 +27,10 @@
   answer: 0
   why:
     - ""
-    - "`a[0]` から順に出ると読んだ答え。i は 1 から始まり、i が 3 の回で範囲外になる"
+    - "`a[0]` から順に出ると読んだ答え。`i` は 1 から始まり、`i` が 3 の回で範囲外になる"
     - "範囲外を先に調べてから動くと読んだ答え。例外は `a[3]` を読む回で起き、5 と 6 は出たあと"
   explanation: |
-    i が 1 から始まるので `a[0]` の 4 は出ない。i が 3 の回で `a[3]` を読みに行き、`ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3` で止まる。それまでに出した 5 と 6 は表示済み。
+    `i` が 1 から始まるので `a[0]` の 4 は出ない。`i` が 3 の回で `a[3]` を読みに行き、次の例外で止まる: `ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3` それまでに出した 5 と 6 は表示済み。
 - after: Arrays クラスの便利メソッド
   question: |
     次のコードはどうなる?(`import java.util.Arrays;` 済み)

@@ -17,7 +17,7 @@ problem: |
 
   **2. `Decision check(String path, LoginUser user)`**(`user` が `null` なら未ログイン)
 
-  登録順にルールを見て、**最初に一致したルールだけ** で決めます。
+  登録順にルールを見て、**最初に一致したルールだけ**で決めます。
 
   - `PERMIT_ALL` → `ALLOW`(未ログインでも)
   - 未ログイン → `LOGIN_REQUIRED`(ログイン画面へ)
@@ -36,7 +36,7 @@ problem: |
   ```
 
   ヒント:
-  - 「未ログイン」と「権限不足」は別の結果です。前者は **認証** の失敗、後者は **認可** の失敗。
+  - 「未ログイン」と「権限不足」は別の結果です。前者は**認証**の失敗、後者は**認可**の失敗。
   - 本物の Spring Security でも、`hasRole("ADMIN")` は権限 `ROLE_ADMIN` を探します。
 
   ※ STS で書くなら、`Decision` などは `com.example.demo.security` パッケージに別ファイルで置くところを、採点用に1ファイルにまとめています。

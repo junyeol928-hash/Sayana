@@ -11,7 +11,7 @@ goals:
   - 起動ログ・`APPLICATION FAILED TO START`・`--debug` の自動設定レポートを読んで原因を探せる
 samples:
   - title: 「利用者が定義していなければ既定を使う」を真似る
-    description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定(`UserConfig`)が無い 1 回目と、ある 2 回目で、`alert` のメッセージはそれぞれどの Notifier で送られるだろうか。
+    description: 自動設定の **back off(後ろに引っ込む)** の考え方を素の Spring で真似します。`ObjectProvider` は「その型の Bean を、あれば取り出す」入れ物です。利用者の設定(`UserConfig`)が無い 1 回目と、ある 2 回目で、`alert` のメッセージはそれぞれどの `Notifier` で送られるだろうか。
     libraries: [spring]
     code: |
       import org.springframework.beans.factory.*;
@@ -119,7 +119,7 @@ quiz:
     explanation: |
       `@SpringBootApplication` は `@SpringBootConfiguration`(`@Configuration` の特殊版)・`@EnableAutoConfiguration`(自動設定)・`@ComponentScan`(メインクラスのパッケージ以下を探索)の合成アノテーションです。だからメインクラスの中に `@Bean` メソッドを書くこともできます。
   - question: |
-      メインクラスが `com.example.shop.ShopApplication` のとき、`@Service` を付けても **Bean として見つからない** のはどれ?
+      メインクラスが `com.example.shop.ShopApplication` のとき、`@Service` を付けても **Bean として見つからない**のはどれ?
     choices: ["`com.example.shop.OrderService`", "`com.example.shop.order.OrderService`", "`com.example.shop.order.mail.MailService`", "`com.example.common.AuditService`"]
     answer: 3
     why:
@@ -128,7 +128,7 @@ quiz:
       - "探すのは1階層下までと読んだ答え。`com.example.shop` の下なら何階層下でも対象"
       - ""
     explanation: |
-      `@ComponentScan` はメインクラスのパッケージ `com.example.shop` と、その **サブパッケージ** だけを探します。`com.example.shop.order` や `com.example.shop.order.mail` は何階層下でも対象です。
+      `@ComponentScan` はメインクラスのパッケージ `com.example.shop` と、その**サブパッケージ**だけを探します。`com.example.shop.order` や `com.example.shop.order.mail` は何階層下でも対象です。
       `com.example.common` は名前が似ていても `com.example.shop` の下ではないので対象外。使おうとすると `required a bean of type 'com.example.common.AuditService' that could not be found` で起動に失敗します。
   - question: |
       `spring-boot-starter-web` を入れたアプリで、利用者が次の設定を書きました。Jackson の自動設定は `@Bean @ConditionalOnMissingBean ObjectMapper jacksonObjectMapper()` を持っています。起動後のコンテナはどうなる?
@@ -192,13 +192,13 @@ quiz:
       - "`run` が起動ログより前に呼ばれると読んだ答え。`run` は Started のログが出た後に呼ばれる"
       - "Bean が起動完了の後に作られると読んだ答え。Bean は準備中に作られ、Started のログはその後"
     explanation: |
-      Bean はコンテナの準備中(`refresh`)に `new` されるので、まず A。準備が終わると Spring Boot が `Started ... in x seconds` をログに出し(C)、その **後で** `CommandLineRunner` の `run` が呼ばれます(B)。
+      Bean はコンテナの準備中(`refresh`)に `new` されるので、まず A。準備が終わると Spring Boot が `Started ... in x seconds` をログに出し(C)、その**後で** `CommandLineRunner` の `run` が呼ばれます(B)。
       `run` は「起動が全部終わった後に1回だけ」実行されるので、DI 済みの Bean を安心して使えます。コンストラクタより先に `run` が呼ばれることはありません(インスタンスが無いと呼べないため)。
 columns:
   - type: trivia
     title: あのロゴ(バナー)は変えられる
     body: |
-      起動時に出る `Spring` の AA(アスキーアート)は **バナー** と呼ばれます。`src/main/resources/banner.txt` を置くと、その中身に差し替わります。
+      起動時に出る `Spring` の AA(アスキーアート)は**バナー**と呼ばれます。`src/main/resources/banner.txt` を置くと、その中身に差し替わります。
 
       ```text
        ☕ Java道場 ☕
@@ -207,11 +207,11 @@ columns:
 
       `${spring-boot.version}` や `${application.title}` のようなプレースホルダも使えます。消したいときは `application.properties` に `spring.main.banner-mode=off`。
 
-      現場では、本番・ステージング・開発で **環境名入りのバナー** を出しておき、「今どの環境のログを見ているか」を取り違えないようにするチームもあります。地味ですが、本番のログだと思ったら開発環境だった……という事故は意外と多いのです。
+      現場では、本番・ステージング・開発で**環境名入りのバナー**を出しておき、「今どの環境のログを見ているか」を取り違えないようにするチームもあります。地味ですが、本番のログだと思ったら開発環境だった……という事故は意外と多いのです。
   - type: genba
     title: 「8080 が使われています」と言われたら
     body: |
-      STS で `Run As > Spring Boot App` を2回押すと、2つ目が `Port 8080 was already in use` で落ちます。Console ビューは最新のプロセスしか表示しないことがあるので、「止めたつもり」になりがちです。
+      STS で `Run As > Spring Boot App` を2回押すと、2つ目が次のエラーで落ちます: `Port 8080 was already in use` Console ビューは最新のプロセスしか表示しないことがあるので、「止めたつもり」になりがちです。
 
       - **Boot Dashboard** で、緑の ▶ が付いているアプリを選んで ■(Stop)
       - **Console** ビューの赤い ■(**Terminate** / 終了)で止める
@@ -230,7 +230,7 @@ columns:
 
       1. **Project > Build Automatically**(プロジェクト > 自動的にビルド)のチェックが外れている
       2. pom.xml に DevTools を追加した後、**Maven > Update Project**(Maven > プロジェクトの更新)をしていない
-      3. `templates/` や `static/` の HTML・CSS を変えた。これらは既定で **再起動の対象外**(再起動するほどではないので、ブラウザ側の LiveReload で反映する設計)
+      3. `templates/` や `static/` の HTML・CSS を変えた。これらは既定で**再起動の対象外**(再起動するほどではないので、ブラウザ側の LiveReload で反映する設計)
 
       ログのスレッド名が `[restartedMain]` になっていなければ、DevTools 自体が効いていません。
 sts:
@@ -269,7 +269,7 @@ sts:
         `did not find required class` と理由が書かれていることを確認してください。確認できたら `--debug` を消して **Apply**(適用)しておきます。
     - title: パッケージの外にクラスを置いて、エラーを再現する
       detail: |
-        `src/main/java` を右クリック → **New > Package**(新規 > パッケージ)で `com.example.common` を作ります(`com.example.bootstartup` の **外**)。
+        `src/main/java` を右クリック → **New > Package**(新規 > パッケージ)で `com.example.common` を作ります(`com.example.bootstartup` の**外**)。
         その中に次のクラスを作ります。
 
         ```java
@@ -307,7 +307,7 @@ sts:
         移動先に `com.example.bootstartup` を選び(**Create Package...**(パッケージの作成...)で `com.example.bootstartup.common` を作ってそこに移しても OK)、**OK**。
         `import` 文は STS が自動で書き換えます。
 
-        もう一度起動して、`Started ...` の **後に** `起動しました: 10:15:30.123` のような行が出れば成功です。
+        もう一度起動して、`Started ...` の**後に** `起動しました: 10:15:30.123` のような行が出れば成功です。
     - title: DevTools の自動再起動を体験する
       detail: |
         アプリを起動したまま、`HelloRunner` のメッセージを `"再起動しました: "` に変えて **Ctrl+S** で保存します。

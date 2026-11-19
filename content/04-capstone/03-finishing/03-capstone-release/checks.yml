@@ -23,7 +23,7 @@
 - after: プロファイル:dev と prod
   question: |
     `--spring.profiles.active=prod` を付けて起動した(`application.yml` は `spring.profiles.default: dev`)。`@Profile("dev")` の `DevPasswordInitializer` は?
-  choices: ["Bean にならず、開発用パスワードは入らない", "`default` が dev なので dev も有効になり、パスワードが入る", "dev 用のクラスが残っているので起動に失敗する"]
+  choices: ["Bean にならないので、開発用パスワードは入らない", "`default` が dev なので dev も有効になり、パスワードが入る", "dev 用のクラスが残っているので起動に失敗する"]
   answer: 0
   why:
     - ""

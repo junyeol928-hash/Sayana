@@ -33,7 +33,7 @@
     - "既定で実行時まで残ると読んだ答え。省略すると `CLASS` で、実行時には読めない"
     - "`@Retention` は必ず書くものと読んだ答え。省略でき、そのときは `CLASS` になる"
   explanation: |
-    `@Retention` を省略すると `CLASS` になり、class ファイルには残るが実行時には読めない。だから `getAnnotation` は `null` を返す。実行時に読むなら `@Retention(RetentionPolicy.RUNTIME)` を明示する。
+    `@Retention` を省略すると `CLASS` になり、`.class` ファイルには残るが実行時には読めない。だから `getAnnotation` は `null` を返す。実行時に読むなら `@Retention(RetentionPolicy.RUNTIME)` を明示する。
 - after: リフレクションで読む
   question: |
     `hello` には `@Audited` が付いていない。次のコードは?

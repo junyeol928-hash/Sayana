@@ -19,7 +19,7 @@
     - ""
     - "`logging.file.path` も要ると読んだ答え。`logging.file.name` だけで、そのファイルに書かれる"
   explanation: |
-    `logging.file.name` は、Console に **加えて** ファイルにも出す設定。Console の出力はそのまま続く。
+    `logging.file.name` は、Console に**加えて**ファイルにも出す設定。Console の出力はそのまま続く。
 - after: 書いてはいけないもの、付けておきたいもの
   question: |
     スレッド 1 本を使い回すプール(`Executors.newFixedThreadPool(1)`)で、2 つの処理を順に動かした。2 件目のログに出る `requestId` は?

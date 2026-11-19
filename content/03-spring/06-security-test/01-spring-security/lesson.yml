@@ -75,7 +75,7 @@ quiz:
       - ""
       - "ルールが重なると起動で止まると読んだ答え。起動で止まるのは `anyRequest()` の後に書いたときだけ"
     explanation: |
-      ルールは **上から順に評価され、最初に一致したもの** で決まります。`/admin/users/1` は1行目の `/admin/**` に一致し、ルールは `authenticated()`(ログインしていれば誰でも)なので **表示できてしまいます**。2行目の `hasRole("ADMIN")` は評価すらされません。
+      ルールは**上から順に評価され、最初に一致したもの**で決まります。`/admin/users/1` は1行目の `/admin/**` に一致し、ルールは `authenticated()`(ログインしていれば誰でも)なので**表示できてしまいます**。2行目の `hasRole("ADMIN")` は評価すらされません。
       細かい URL ほど上に書くのが鉄則です。この設定は文法上は正しく、起動してしまうのが怖いところです。起動時に例外になるのは `anyRequest()` の後に `requestMatchers` を書いた場合で、次のメッセージが出ます: `Can't configure requestMatchers after anyRequest`
   - question: |
       次のコードの出力は?
@@ -94,7 +94,7 @@ quiz:
       - "`encode` は毎回同じで `matches` は通らないと読んだ答え。実際は毎回違う文字列になり、`matches` は `true`"
       - "文字列が違うので照合も通らないと読んだ答え。`matches` は保存値の中のソルトで計算し直すので `true`"
     explanation: |
-      BCrypt は `encode` のたびに **ランダムなソルト** を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
+      BCrypt は `encode` のたびに**ランダムなソルト**を作って混ぜるので、同じパスワードでも結果の文字列は毎回違い、`a.equals(b)` は `false` です。
       ソルトは保存値(`$2a$10$` に続く部分)の中に入っているので、`matches` はそのソルトで計算し直して比べ、`true` になります。だからパスワードの照合に `equals` を使ってはいけません。
   - question: |
       Spring Security を有効にしたアプリで、次の Thymeleaf のフォームから送信したら 403 Forbidden になった。原因として最も適切なのは?
@@ -112,7 +112,7 @@ quiz:
       - "`@PreAuthorize` が無いと拒否されると読んだ答え。無ければ制限がかからないだけ"
       - ""
     explanation: |
-      POST などの更新系リクエストには **CSRF トークン** が必要で、無いと `CsrfFilter` が 403 で拒否します。Thymeleaf は `th:action="@{/orders}"` と書いたときだけ、隠し項目 `_csrf` を自動で入れてくれます。素の `action` では入りません。
+      POST などの更新系リクエストには **CSRF トークン**が必要で、無いと `CsrfFilter` が 403 で拒否します。Thymeleaf は `th:action="@{/orders}"` と書いたときだけ、隠し項目 `_csrf` を自動で入れてくれます。素の `action` では入りません。
   - question: 「認証」と「認可」の説明として正しいものはどれ?
     choices: ["認証は「何をしてよいか」、認可は「誰か」を確かめる", "ログインに成功すれば、すべての画面の認可も済んだことになる", "認証は「誰か」を確かめ、ログイン済みでも権限が足りなければ認可で 403 になる", "認可に失敗するとログイン画面に戻される"]
     answer: 2
@@ -125,7 +125,7 @@ quiz:
       **認証(Authentication)** は「あなたは誰?」、**認可(Authorization)** は「それをしてよい?」です。ログインは認証にすぎず、管理画面に入れるかは別途ロールなどで判定されます(足りなければ 403 Forbidden)。
       ログイン画面に戻されるのは「まだ認証されていない」場合です。この2つを区別できると、障害調査で「401/ログイン画面へ」か「403」かを見て原因の切り分けができます。
   - question: |
-      次の Service を作り、一般ユーザーで `deleteUser` を呼んだら **削除できてしまった**。最も考えられる原因は?
+      次の Service を作り、一般ユーザーで `deleteUser` を呼んだら**削除できてしまった**。最も考えられる原因は?
       ```java
       @Service
       public class UserAdminService {
@@ -141,7 +141,7 @@ quiz:
       - "`public` が原因と読んだ答え。外から呼ばれる `public` メソッドに付けるのが基本"
       - "パスワードの部品が原因と読んだ答え。`@PreAuthorize` を効かせるのは `@EnableMethodSecurity`"
     explanation: |
-      `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると **エラーも警告も出ずに無視される** ので、テストで「拒否されること」まで確かめるのが大切です。
+      `@PreAuthorize` は `@EnableMethodSecurity` を付けて初めて効きます。付け忘れると**エラーも警告も出ずに無視される**ので、テストで「拒否されること」まで確かめるのが大切です。
       なお `@PreAuthorize` はプロキシ経由の呼び出しにだけ効くので、同じクラスの中からの呼び出しには効きません。
 columns:
   - type: genba
@@ -149,7 +149,7 @@ columns:
     body: |
       フォームを作ったら 403。検索すると「`csrf(csrf -> csrf.disable())` で直りました!」という記事が山ほど出てきます。貼ると動く。そしてそのままリリース……。レビューでよく見る光景です。
 
-      403 が消えたのは **守りを外したから** です。画面のあるアプリなら、正しい直し方は `th:action` を使うこと(JavaScript から送るならトークンをヘッダ `X-CSRF-TOKEN` に載せる)。
+      403 が消えたのは**守りを外したから**です。画面のあるアプリなら、正しい直し方は `th:action` を使うこと(JavaScript から送るならトークンをヘッダ `X-CSRF-TOKEN` に載せる)。
 
       外してよい代表は、**Cookie のセッションを使わない REST API**(毎回 `Authorization: Bearer ...` ヘッダでトークンを送る方式)。ブラウザが自動で付ける認証情報が無いので、罠サイトから送らせても意味がないからです。
       「なぜ無効にしてよいか」をコメント1行で説明できないなら、その `disable()` は消しましょう。`anyRequest().permitAll()` も同じです。
@@ -181,7 +181,7 @@ columns:
       ```
 
       ロールは「`ROLE_` で始まる権限(authority)」として表され、`hasRole("ADMIN")` は内部で `ROLE_` を付けて探します(メッセージに `hasAnyRole` と出るのは、内部でこれを使っているため)。二重付けを防いでいるのです。
-      直し方は `hasRole("ADMIN")` か、そのまま比べる `hasAuthority("ROLE_ADMIN")`。逆に `authorities("ADMIN")` と **ROLE_ なしで** 登録すると `hasRole("ADMIN")` に一致せず 403 です(`roles("ADMIN")` なら自動で付く)。
+      直し方は `hasRole("ADMIN")` か、そのまま比べる `hasAuthority("ROLE_ADMIN")`。逆に `authorities("ADMIN")` と **ROLE_ なしで**登録すると `hasRole("ADMIN")` に一致せず 403 です(`roles("ADMIN")` なら自動で付く)。
 sts:
   intro: |
     Spring Boot プロジェクトに Spring Security を入れて、「何もしないと全部ロックされる」→「SecurityFilterChain で /admin/** を ADMIN だけにする」→「2人のユーザーでログインして違いを確かめる」までやります。
@@ -214,7 +214,7 @@ sts:
       detail: |
         同じパッケージに `SecurityConfig` クラスを作り、本文の `filterChain`(`/` を `permitAll`、`/admin/**` を `hasRole("ADMIN")`、それ以外は `authenticated`)と、`passwordEncoder`・`users`(haru = USER、mocha = USER と ADMIN)の3つの `@Bean` を書きます。
         import は **Ctrl+Shift+O**(インポートの編成)で整理できます。`User` は `org.springframework.security.core.userdetails.User` を選んでください。
-        保存して再起動すると、Console から `Using generated security password` が **消えて** いることを確認します(自分で UserDetailsService を定義したため)。
+        保存して再起動すると、Console から `Using generated security password` が**消えて**いることを確認します(自分で UserDetailsService を定義したため)。
     - title: 2人のユーザーでログインして違いを確かめる
       detail: |
         ブラウザで `http://localhost:8080/` を開くと、今度はログインなしで「トップ」が出ます(permitAll)。
@@ -223,7 +223,7 @@ sts:
         ブラウザのシークレットウィンドウを使うと、2人を同時に試せて便利です。
     - title: ルールの順番を入れ替えて事故を起こしてみる
       detail: |
-        `filterChain` の中で、`.requestMatchers("/admin/**").hasRole("ADMIN")` の行を `.anyRequest().authenticated()` の **下** に移して再起動します。
+        `filterChain` の中で、`.requestMatchers("/admin/**").hasRole("ADMIN")` の行を `.anyRequest().authenticated()` の**下**に移して再起動します。
         Console に `Can't configure requestMatchers after anyRequest` を含む例外が出て起動に失敗することを確認したら、元に戻します。
     - title: ログイン中のユーザー名を表示する
       detail: |

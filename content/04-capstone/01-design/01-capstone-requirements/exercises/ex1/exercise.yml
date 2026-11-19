@@ -21,7 +21,7 @@ problem: |
 
   | メソッド | 返すもの |
   |---|---|
-  | `canTransitionTo(RequestStatus next)` | この状態から `next` へ **図に矢印があれば** `true`、なければ `false` |
+  | `canTransitionTo(RequestStatus next)` | この状態から `next` へ**図に矢印があれば** `true`、なければ `false` |
   | `isFinal()` | これ以上変更できない状態(`APPROVED` と `WITHDRAWN`。業務ルール5)なら `true` |
 
   例:
@@ -34,7 +34,7 @@ problem: |
 
   - 同じ状態への遷移(`DRAFT` → `DRAFT`)は矢印がないので `false` です。
   - `next` が `null` のときは例外にせず `false` を返します。
-  - ヒント:`switch (this)` の **switch 式** で状態ごとに行き先を書くと、状態を1つ増やしたときに書き忘れがコンパイルエラーで分かります。
+  - ヒント:`switch (this)` の **switch 式**で状態ごとに行き先を書くと、状態を1つ増やしたときに書き忘れがコンパイルエラーで分かります。
 
   `StatusTable`(完成済み)は遷移表を表示するだけのクラスで、採点用ファイルに `public class` が1つ必要なので置いてあります。
   STS では `com.example.approval.domain` パッケージに `RequestStatus.java`(`public enum`)として置きます。

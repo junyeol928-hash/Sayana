@@ -28,7 +28,7 @@ quiz:
     answer: 2
     why:
       - "runtime の jar もコンパイルに使えると読んだ答え。runtime は実行とテストのためのスコープ"
-      - "テストで使えることと本体のコンパイルを混ぜた答え。本体からの import は警告でなくエラー"
+      - "テストで使えることと本体のコンパイルを混ぜた答え。本体からの `import` は警告でなくエラー"
       - ""
       - "コンパイルは通り、実行時に落ちると読んだ答え。runtime の jar は、本体のコンパイルにそもそも使えない"
     explanation: |
@@ -83,7 +83,7 @@ quiz:
       - "`install` を登録だけの操作と読んだ答え。指定したフェーズより前が順に全部実行される"
       - ""
     explanation: |
-      フェーズを指定すると、**それより前のフェーズが順番に全部** 実行されます。`install` なら `validate` → `compile` → `test` → `package` → `verify` → `install` の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
+      フェーズを指定すると、**それより前のフェーズが順番に全部**実行されます。`install` なら `validate` → `compile` → `test` → `package` → `verify` → `install` の順で、途中のフェーズが失敗したらそこで `BUILD FAILURE` となって止まります。
       「テストが落ちたものは jar にしない」のが Maven の安全装置です。テストを飛ばす `-DskipTests` というオプションもありますが、「落ちるから飛ばす」は現場では御法度です。
   - question: |
       `./mvnw dependency:tree` の結果が次のようになりました。最終的に使われる `util` のバージョンは?(dependencyManagement では `util` を管理していないものとします)
@@ -111,7 +111,7 @@ quiz:
       「新しい方が勝つ」わけではないので、`b` が 3.0 の新機能を使っていると実行時に `NoSuchMethodError` になることがあります。そういうときは自分の pom.xml の `<dependencyManagement>` で版を固定します。
       衝突はエラーにならず黙って解決されるので、`dependency:tree` で確認する習慣が大事です。
   - question: |
-      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 のパターンマッチング for `switch`(`case Integer i ->`)を使っています。結果は?
+      ある人が Spring Boot の pom.xml を次のように書き、JDK 21 で `./mvnw compile` しました。コードでは Java 21 の `switch` のパターンマッチング(`case Integer i ->`)を使っています。結果は?
       ```xml
       <parent>
         <groupId>org.springframework.boot</groupId>
@@ -134,7 +134,7 @@ quiz:
       - ""
       - "properties をただのメモと読んだ答え。`java.version` は parent がコンパイラの設定に使う"
     explanation: |
-      Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル** するので、Java 21 で正式化された機能は
+      Boot の parent は `java.version` の値を `maven.compiler.release` に渡し、javac に `--release 17` を指定します。すると **JDK 21 の javac でも「Java 17 の文法と API」でコンパイル**するので、Java 21 で正式化された機能は
       `patterns in switch statements are not supported in -source 17` のようなエラーになります。
       ちなみに Boot 3.5 の parent の既定値は 17 なので、`<java.version>21</java.version>` の行を消しても同じことが起きます。このアプリの pom.xml にこの行があるのはそのためです。
 columns:
@@ -169,7 +169,7 @@ columns:
 
       定番アドバイスは「`.m2` を丸ごと消せ」。直りはしますが、何百もの jar を全部取り直すので社内プロキシ環境では数十分かかり、原因(プロキシ設定など)が残っていればまた壊れます。
 
-      正しい手順は、エラーメッセージに出ている **そのライブラリのフォルダだけ** を消して(例:`.m2\repository\com\h2database\h2\2.3.232`)、`./mvnw -U clean test` か STS の **Maven > Update Project...** で **Force Update of Snapshots/Releases** にチェックを入れて取り直すことです。`.lastUpdated` という拡張子のファイルが並んでいたら、それが「前回ダウンロードに失敗した」印です。
+      正しい手順は、エラーメッセージに出ている**そのライブラリのフォルダだけ**を消して(例:`.m2\repository\com\h2database\h2\2.3.232`)、`./mvnw -U clean test` か STS の **Maven > Update Project...** で **Force Update of Snapshots/Releases** にチェックを入れて取り直すことです。`.lastUpdated` という拡張子のファイルが並んでいたら、それが「前回ダウンロードに失敗した」印です。
   - type: trivia
     title: src/main/java という謎の階層は Maven が決めた
     body: |

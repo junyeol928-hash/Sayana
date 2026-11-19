@@ -8,7 +8,7 @@
 
 ## 今回作るもの
 
-申請者が **下書きを登録** し、**自分の申請の一覧** を見られるところまで作ります。STS のプロジェクト `approval-app` に足すファイルはこれだけです。
+申請者が**下書きを登録**し、**自分の申請の一覧**を見られるところまで作ります。STS のプロジェクト `approval-app` に足すファイルはこれだけです。
 
 | ファイル | パッケージ | 役割 |
 |---|---|---|
@@ -31,15 +31,15 @@ flowchart TD
 
 ## 設計の考え方:誰が何を決めるか
 
-- **フォーム**(`RequestForm`)は画面の入力欄だけを持つ。`status` や `applicant` の欄は **作らない**。作るとパラメータに `status=APPROVED` を足すだけで「承認済み」の申請が作れてしまいます(マスアサインメント)。
+- **フォーム**(`RequestForm`)は画面の入力欄だけを持つ。`status` や `applicant` の欄は**作らない**。作るとパラメータに `status=APPROVED` を足すだけで「承認済み」の申請が作れてしまいます(マスアサインメント)。
 - **状態と申請者はフォームでは決めない**。新規は必ず `DRAFT`(エンティティの初期値)、申請者は Service が「ログイン中の人」を入れる。
-- **ログインはまだ無い**。当面は Controller の定数 `CURRENT_EMPLOYEE_ID = 1L`(初期データの社員の id)で代用し、capstone-security で **ログインユーザーに置き換え** ます。
+- **ログインはまだ無い**。当面は Controller の定数 `CURRENT_EMPLOYEE_ID = 1L`(初期データの社員の id)で代用し、capstone-security で**ログインユーザーに置き換え**ます。
 
 ::: sensei
 仮の実装は「どこが仮か」を1か所に閉じ込めるのがコツ。定数1個なら、後で置き換える場所を grep で一発で探せる。
 :::
 
-## RequestForm:入力ルールと相関チェック
+## `RequestForm`:入力ルールと相関チェック
 
 `com.example.approval.web.RequestForm` です(getter / setter は **Source > Generate Getters and Setters** で生成)。
 
@@ -80,7 +80,7 @@ public class RequestForm {
 
 `toEntity()` は capstone-setup で作った5つの引数のコンストラクタを使います。引数なしのコンストラクタは JPA 用の `protected` なので、別パッケージ(`web`)からは `new` できません。
 
-金額は「経費精算・備品購入なら必須、休暇なら不要」。**他の項目(type)の値で必須かどうかが変わる** ので、フィールドに `@NotNull` は付けられません。こういう複数項目にまたがるチェックが **相関チェック** です。`@AssertTrue` を付けた `isAmountEntered()` は、Bean Validation から `amountEntered` という項目として検証されます。
+金額は「経費精算・備品購入なら必須、休暇なら不要」。**他の項目(type)の値で必須かどうかが変わる**ので、フィールドに `@NotNull` は付けられません。こういう複数項目にまたがるチェックが**相関チェック**です。`@AssertTrue` を付けた `isAmountEntered()` は、Bean Validation から `amountEntered` という項目として検証されます。
 
 `RequestType` には、domain パッケージで表示名と判定メソッドを足しておきます。
 
@@ -130,10 +130,10 @@ public class RequestService {
 
 `assignApplicant` は、今回 `ApprovalRequest` に足す「申請者を入れるだけ」のメソッドです。capstone-setup で決めたとおり setter は作らず、入口を必要な分だけ用意します。
 
-`findByApplicantIdOrderByCreatedAtDesc` は Spring Data JPA の **派生クエリ** です。`ApplicantId` は「`applicant` の `id`」とプロパティをたどって解釈されます。`ApprovalRequestRepository` に宣言を1行足すだけで、SQL は書きません。
+`findByApplicantIdOrderByCreatedAtDesc` は Spring Data JPA の**派生クエリ**です。`ApplicantId` は「`applicant` の `id`」とプロパティをたどって解釈されます。`ApprovalRequestRepository` に宣言を1行足すだけで、SQL は書きません。
 
 ::: genba Service がフォームを知らない理由
-`createDraft(Long, RequestForm)` にしたくなりますが、そうすると service が web に依存します。REST API(capstone-api-test)から同じ処理を呼ぶとき、JSON 用のクラスを RequestForm に詰め直す羽目に。依存は **web → service → domain** の一方向に保ちます。
+`createDraft(Long, RequestForm)` にしたくなりますが、そうすると service が web に依存します。REST API(capstone-api-test)から同じ処理を呼ぶとき、JSON 用のクラスを `RequestForm` に詰め直す羽目に。依存は **web → service → domain** の一方向に保ちます。
 :::
 
 ## Controller:3つのハンドラと PRG
@@ -182,7 +182,7 @@ public class RequestController {
 }
 ```
 
-`@ModelAttribute` を **メソッド** に付けると、このクラスの **全ハンドラの前に呼ばれて** 戻り値が Model に入ります。種類の選択肢をここで入れておけば、入力エラーで `requests/new` を返したときも選択肢が消えません。
+`@ModelAttribute` を**メソッド**に付けると、このクラスの**全ハンドラの前に呼ばれて**戻り値が `Model` に入ります。種類の選択肢をここで入れておけば、入力エラーで `requests/new` を返したときも選択肢が消えません。
 
 ## 画面:new.html と list.html
 
@@ -201,7 +201,7 @@ public class RequestController {
 
 - `th:value="${t}"` は enum の名前(`EXPENSE`)を送り、表示は `label()`。名前と表示を分けておけば、表示名を変えても DB の値は変わりません。
 - 「選択してください」の空文字は、Spring が enum へ変換するとき `null` になり、`@NotNull` が働きます。
-- `th:errors` はエラーが無いと **タグごと消える** ので、`th:if` を書かなくても空の span は残りません。
+- `th:errors` はエラーが無いと**タグごと消える**ので、`th:if` を書かなくても空の span は残りません。
 
 `list.html` では状態を日本語で出します。
 
@@ -217,11 +217,11 @@ public class RequestController {
 ## よくあるミス
 
 ::: warn エラーで戻ると選択肢が空
-`types` を `newForm` の中だけで `addAttribute` していると、POST でエラーになったとき Model に入っておらず、セレクトボックスが「選択してください」だけになります。`@ModelAttribute` メソッドにすれば全ハンドラで入ります。
+`types` を `newForm` の中だけで `addAttribute` していると、POST でエラーになったとき `Model` に入っておらず、セレクトボックスが「選択してください」だけになります。`@ModelAttribute` メソッドにすれば全ハンドラで入ります。
 :::
 
 ::: warn enum に @NotBlank
-コンパイルは通り、**最初に検証したとき** 落ちます。
+コンパイルは通り、**最初に検証したとき**落ちます。
 
 ```text
 jakarta.validation.UnexpectedTypeException: HV000030:
@@ -234,15 +234,15 @@ validating type '...RequestType'.
 :::
 
 ::: warn 一覧に他人の申請が出る
-`findAll()` で全件出すのは、テストデータが自分の分しか無いと気づけません。初期データに **別の社員の申請を1件入れて** 確認するのが鉄則です。
+`findAll()` で全件出すのは、テストデータが自分の分しか無いと気づけません。初期データに**別の社員の申請を1件入れて**確認するのが鉄則です。
 :::
 
 ::: point まとめ
 - フォームは入力欄だけ。**状態と申請者はフォームで決めない**(新規は `DRAFT`、申請者は Service が入れる)
 - 他の項目で必須が変わるルールは **`@AssertTrue` の相関チェック**
 - 依存は **web → service → domain**。フォームからエンティティへの詰め替えは web 側で
-- 選択肢など全画面で要るものは **`@ModelAttribute` メソッド** で Model へ
-- 成功したら **PRG**、一覧は **自分の申請だけ**。ログインの代わりの固定IDは capstone-security で置き換える
+- 選択肢など全画面で要るものは **`@ModelAttribute` メソッド** で `Model` へ
+- 成功したら **PRG**、一覧は**自分の申請だけ**。ログインの代わりの固定IDは capstone-security で置き換える
 :::
 
 ::: sensei

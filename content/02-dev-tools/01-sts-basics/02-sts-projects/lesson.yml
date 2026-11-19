@@ -66,10 +66,10 @@ quiz:
       demo/src/main/java/com/example/shop/OrderService.java
       ```
     choices:
-      - "package src.main.java.com.example.shop;"
-      - "package com.example.shop.OrderService;"
-      - "package com.example.shop;"
-      - "package com/example/shop;"
+      - "`package src.main.java.com.example.shop;`"
+      - "`package com.example.shop.OrderService;`"
+      - "`package com.example.shop;`"
+      - "`package com/example/shop;`"
     answer: 2
     why:
       - "`src/main/java` もパッケージに含めた答え。パッケージは `src/main/java` の下から数える"
@@ -82,7 +82,7 @@ quiz:
       パッケージとフォルダが食い違うと、STS は `The declared package "..." does not match the expected package "..."` というエラーを出します。
 
   - question: |
-      Spring Starter Project で作ったプロジェクトを Git で管理する。次のうち **コミットすべき** ものはどれ?
+      Spring Starter Project で作ったプロジェクトを Git で管理する。次のうち**コミットすべき**ものはどれ?
     choices:
       - "mvnw・mvnw.cmd と .mvn/wrapper/ フォルダ"
       - ".classpath"
@@ -138,19 +138,19 @@ columns:
 
       (実際は1行で入力。PowerShell では `curl` が別コマンドの別名のことがあるので `curl.exe` と書きます。)
 
-      IntelliJ IDEA や VS Code のウィザードも同じ Initializr を使うので、**どの IDE で作っても同じ雛形** になります。
+      IntelliJ IDEA や VS Code のウィザードも同じ Initializr を使うので、**どの IDE で作っても同じ雛形**になります。
 
   - type: genba
     title: 「.settings はコミットする派」との静かな戦い
     body: |
-      `.project`・`.classpath`・`.settings` を Git に入れない、というのが今の主流ですが、古いプロジェクトでは **全部コミットされている** ことがよくあります。
+      `.project`・`.classpath`・`.settings` を Git に入れない、というのが今の主流ですが、古いプロジェクトでは**全部コミットされている**ことがよくあります。
       「全員 Eclipse だし、フォーマッタの設定(`.settings/org.eclipse.jdt.core.prefs`)を共有したい」という理由です。
 
-      ところが、誰かが STS の版を上げたり、Update Project を実行したりするたびに、これらのファイルに **関係ない差分** が出ます。
+      ところが、誰かが STS の版を上げたり、Update Project を実行したりするたびに、これらのファイルに**関係ない差分**が出ます。
       プルリクエストに `.classpath` の変更が毎回混ざり、マージで衝突し、「誰の設定が正しいの?」と揉めるのが定番の流れです。
 
       いまどきは、Java の版や文字コードは `pom.xml` に、フォーマットのルールは Maven のプラグインや `.editorconfig` に書き、
-      **IDE に依存しない場所を正解にする** のが現場の落としどころです(管理対象から外す手順は Git の回で扱います)。
+      **IDE に依存しない場所を正解にする**のが現場の落としどころです(管理対象から外す手順は Git の回で扱います)。
 
   - type: mistake
     title: Spring Boot Version で SNAPSHOT を選んでしまう
@@ -162,7 +162,7 @@ columns:
       - M や RC は正式リリース前の版で、ネット上の情報や書籍と挙動が合わないことがあります
 
       `pom.xml` に `<repository>` として `https://repo.spring.io/snapshot` などが追加されていたら、うっかり選んだサインです。
-      学習でも仕事でも、**何も付いていない正式版** を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
+      学習でも仕事でも、**何も付いていない正式版**を選びましょう。この道場アプリは 3.5 系の正式版を使っています。
       ただし start.spring.io(STS のウィザードも裏で同じ)はサポート中の 4.x しか出しません。本教材のアプリは 3.5 系なので、4.x では細かい所が違うことがあります。
 
 sts:
@@ -216,7 +216,7 @@ sts:
         ブラウザで `http://localhost:8080` を開き、**Whitelabel Error Page**(`status=404`)が出れば OK。まだ画面を作っていないので 404 で正解です。
     - title: ポート 8080 の衝突を体験して直す
       detail: |
-        demo を起動したまま、Package Explorer で `DemoApplication.java` を右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選び、**同じアプリをもう1つ** 起動します。
+        demo を起動したまま、Package Explorer で `DemoApplication.java` を右クリック > **Run As > Spring Boot App**(実行 > Spring Boot アプリケーション)を選び、**同じアプリをもう1つ**起動します。
         Console に `Web server failed to start. Port 8080 was already in use.` が出るのを確認します。
 
         1. Console ビューの赤い四角 **Terminate**(終了)で、失敗した方を止める(すでに止まっていれば不要)

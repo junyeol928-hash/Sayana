@@ -89,10 +89,10 @@ quiz:
       - "メソッド名の綴りをコンパイラが調べると読んだ答え。文法は正しく、コンパイルは通る"
       - "知らない条件は無視されると読んだ答え。黙って無視せず、起動時にエラーになる"
     explanation: |
-      派生クエリのメソッド名は、Repository のプロキシを作る **起動時** に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。`Did you mean 'name'` と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
+      派生クエリのメソッド名は、Repository のプロキシを作る**起動時**に解析・検証されます。存在しないプロパティ `nmae` を見つけた時点で `PropertyReferenceException` になり、アプリが起動しません。`Did you mean 'name'` と候補も添えて、次のメッセージが出ます: `No property 'nmae' found for type 'Employee'`
       Java の文法としては正しいメソッド宣言なのでコンパイルは通ります。条件を黙って無視することもありません。呼ぶまで気づけない、ではなく起動時に気づけるのが派生クエリの利点です。
   - question: |
-      社員が10人いて、全員が **別々の部署** に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
+      社員が10人いて、全員が**別々の部署**に所属しています。`department` は `@ManyToOne(fetch = FetchType.LAZY)` です。
       次のコードを(同じトランザクション内で)実行すると、SQL は合計何回発行される?
       ```java
       for (Employee e : employeeRepository.findAll()) {
@@ -107,7 +107,7 @@ quiz:
       - "社員一覧を取る1回を数え落とした答え。`findAll` の1回と部署の10回で 11"
       - ""
     explanation: |
-      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 `1 + 10 = 11` 回です。これが **N+1 問題** です。
+      `findAll()` で社員一覧を取るのに1回。LAZY の部署はプロキシなので、`getName()` で触った瞬間に部署ごとに1回ずつ SQL が飛び、10部署で10回。合計 `1 + 10 = 11` 回です。これが **N+1 問題**です。
       同じ部署の社員が多ければ、取得済みの部署はキャッシュ(永続性コンテキスト)から返るので回数は減りますが、根本的な解決は `join fetch` で一度に取ることです。
   - question: |
       `@Query` の JPQL として正しいものはどれ?(エンティティは `Employee`、テーブル名は `employees`、フィールドは `age`、列名も `age`)
@@ -123,7 +123,7 @@ quiz:
       - "`from` にテーブル名を書くと読んだ答え。JPQL の `from` に書くのはエンティティ名の `Employee`"
       - "クラス名をそのまま select に書けると読んだ答え。JPQL は別名を付けて `select e` と `e.age` で書く"
     explanation: |
-      JPQL は **エンティティ(クラス名)とフィールド名** に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
+      JPQL は**エンティティ(クラス名)とフィールド名**に対して書きます。`from Employee e` のように別名を付け、`e.age` で参照し、`select e` でエンティティそのものを返します。
       `employees` はテーブル名なので JPQL では使えません(エンティティ名として解決できずエラー)。`select *` は SQL の書き方で、JPQL にはありません。テーブル名で生の SQL を書きたいときは `@Query(value = "...", nativeQuery = true)` を使います。
   - question: |
       本番環境の `spring.jpa.hibernate.ddl-auto` の設定として、最も適切なものは?
@@ -163,7 +163,7 @@ columns:
 
       部署をログに出した瞬間 `java.lang.StackOverflowError`。部署→社員リスト→社員→部署……と toString が無限に往復するからです。Lombok の `@Data` をエンティティに付けても同じことが起きます。
 
-      しかも関連に触るので、遅延ロードの SQL が勝手に飛んだり LazyInitializationException になったりします。エンティティの toString に **関連フィールドは入れない** のが定番です。
+      しかも関連に触るので、遅延ロードの SQL が勝手に飛んだり LazyInitializationException になったりします。エンティティの toString に**関連フィールドは入れない**のが定番です。
   - type: genba
     title: 起動ログの WARN「spring.jpa.open-in-view is enabled by default」
     body: |
@@ -265,7 +265,7 @@ sts:
     - title: 落とし穴を体験する
       detail: |
         1. 停止(Console の赤い四角 **Terminate** ボタン)して再起動し、データが消えずに残っている(insert が流れない)ことを確認します。プロジェクト直下の `data` フォルダ(**F5** で表示を更新)に `jpa-demo.mv.db` ができています。
-        2. `forEach` の出力を `e.getName() + " / " + e.getDepartment().getName()` に変えて起動すると、`LazyInitializationException: could not initialize proxy ... - no Session` で落ちます。CommandLineRunner はトランザクションの外なので、検索が終わった時点でセッションが閉じているからです。
+        2. `forEach` の出力を `e.getName() + " / " + e.getDepartment().getName()` に変えて起動すると、次の例外で落ちます: `LazyInitializationException: could not initialize proxy ... - no Session` CommandLineRunner はトランザクションの外なので、検索が終わった時点でセッションが閉じているからです。
         3. Repository に `@Query("select e from Employee e join fetch e.department where e.name like %:keyword%")` を付けたメソッドを追加して使うと、部署名も表示できます。Console の SQL に `join departments` が入っていることを確かめましょう。
         4. 最後に `findByNameContaining` を `findByNmaeContaining` に変えて起動し、`No property 'nmae' found` で起動に失敗することを見ておきます(確認したら元に戻す)。
 checklist:

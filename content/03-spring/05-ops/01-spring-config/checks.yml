@@ -1,6 +1,6 @@
 - after: "@Value と @ConfigurationProperties"
   question: |
-    `@ConfigurationProperties("shop")` の record が `@DefaultValue("5000") int freeThreshold` を持つ。`application.yml` が次のとき、`freeThreshold()` が返すのは?
+    `@ConfigurationProperties("shop")` の `record` が `@DefaultValue("5000") int freeThreshold` を持つ。`application.yml` が次のとき、`freeThreshold()` が返すのは?
     ```yaml
     shop:
       free-threshold: 4000
