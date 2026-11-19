@@ -345,9 +345,18 @@ await scrollTo("#run .sample-out", 300);
 await shot("pc-run-result");
 // 演習に模範解答を出して合格したとき(28 回目: 段の帯・軸の「演習」と冒頭の色見本が、開き直すまで古いままだった)。
 // 藍に染まる瞬間を撮るため、ホームの一覧から縹(クイズ合格)で演習の残るレッスンを選ぶ(29 回目: クイズ未合格の java-hello では
-// 甕覗きのままで写らなかった)。無ければ java-hello。この作業ツリーの data/ の記録が進む(選んだレッスンは藍になる)
+// 甕覗きのままで写らなかった)。藍には STS のチェックも全部要る(ProgressService の dyeLevel)ので、STS の段が無いか済んだレッスンに限る
+// (30 回目の撮影の spring-di は STS が残っていて縹のままだった)。無ければ STS の無い最初のレッスン(藍にはならない、と知らせる)。
+// この作業ツリーの data/ の記録が進む(選んだレッスンは藍になる)
 await open(pcArg);
-const exLesson = (await js(`const a = [...document.querySelectorAll('.lesson-row a[data-dye="2"]')].find((x) => Number(x.dataset.exercises) > 0); return a ? a.dataset.lesson : "";`)) || "java-hello";
+const exPick = await js(`const rows = [...document.querySelectorAll(".lesson-row a[data-lesson]")];
+  const noSts = (a) => !(a.dataset.steps || "").split(" ").includes("sts") || (a.dataset.done || "").split(" ").includes("sts");
+  const ok = rows.find((a) => a.dataset.dye === "2" && Number(a.dataset.exercises) > 0 && noSts(a));
+  if (ok) return ok.dataset.lesson;
+  const any = rows.find((a) => Number(a.dataset.exercises) > 0 && noSts(a));
+  return "!" + (any ? any.dataset.lesson : "java-variables");`);
+const exLesson = exPick.replace(/^!/, "");
+if (exPick.startsWith("!")) console.log("演習の合格: 縹で演習が残り STS の済んだレッスンが記録に無いので、" + exLesson + " で撮る(藍に染まる瞬間は写らない)");
 await open(pcArg + "lessons/" + exLesson);
 console.log("演習の合格(" + exLesson + "):", await js(`const cards = [...document.querySelectorAll("#write .exercise")];
   for (const c of cards) {
