@@ -52,7 +52,7 @@
       "status" : "EXCEPTION",
       "output" : "Haru 10 10000000000\n20\nnull\n",
       "values" : [ ],
-      "exception" : "例外が発生しました: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"REPL.$JShell$18.memo\" is null\n    at (2行目付近)",
+      "exception" : "例外が発生しました: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"memo\" is null\n    at (14行目)",
       "varies" : false
     }
   } ],
