@@ -466,6 +466,13 @@ function phraseWrap(el) {
 
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 
+/** 「読んだ」を押したあとの 1 行。本文のすぐ下の段を指す(PC の Lesson.afterReadHint と同じ。スマホのサンプルは動かさず予想して開く) */
+function afterRead(L) {
+  if (L.atWork?.length) return "読了。次は下の仕事のコードを読んでみよう";
+  if (L.samples?.length) return "読了。次は下のサンプルの結果を予想してみよう";
+  return "読了。次は下のクイズで縹へ";
+}
+
 // ------------------------------------------------------------ 画面
 
 const view = () => $("#view");
@@ -777,7 +784,7 @@ async function renderLesson(id) {
       <div class="lesson-hero-body">
       <nav class="breadcrumb" aria-label="現在地"><a href="#/">ホーム</a><span class="visually-hidden"><span class="crumb-part"> / ${esc(L.part)}</span> / ${esc(L.chapter)}</span></nav>
       <h1 class="${titleSize(L.title)}">${esc(L.title)}</h1>
-      <p class="summary">${esc(L.summary).replace(/`([^`]+)`/g, "<code>$1</code>")}</p>
+      <p class="summary">${esc(L.summary).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/([A-Za-z0-9_.)\]」』）]|<\/code>)( ?)(?=[ぁ-ゖ])/g, (_, head, space) => head + (space ? "&nbsp;" : "\u2060"))}</p>
       <p class="meta"><span class="lesson-dye">${dyeSwatch(level, "lesson-swatch")} <span class="dye-name">${DYE[level].name}(${DYE[level].meaning})</span></span>
         <span>読む ${L.minutes} 分</span>${quiz ? `<span>クイズ最高 ${quiz.best}/${L.quiz.length}</span>` : ""}</p>
       </div>
@@ -1188,6 +1195,14 @@ function descriptionWithoutPredict(html) {
   return d.innerHTML;
 }
 
+/** 実行時例外の文。1 行目(例外の名前と理由)だけ朱にする(PC の fragments/run.html と同じ。::first-line は折り返しの途中で切れた) */
+function exceptionPre(text) {
+  const nl = text.indexOf("\n");
+  const head = nl < 0 ? text : text.slice(0, nl);
+  const rest = nl < 0 ? "" : text.slice(nl);
+  return `<pre class="exception"><span class="ex-head">${esc(head)}</span>${esc(rest)}</pre>`;
+}
+
 /** サンプルの実行結果(PC で実行した控え)。予想してから開くように、最初は閉じておく */
 function sampleResult(r, descriptionHtml) {
   if (!r) return "";
@@ -1195,7 +1210,7 @@ function sampleResult(r, descriptionHtml) {
   const failed = r.status !== "OK";
   const body = `${r.output ? `<pre class="console">${phraseLines(r.output)}</pre>` : ""}
     ${r.values?.length ? `<div class="values">${r.values.map((v) => `<div class="value-line"><span class="arrow" aria-hidden="true">⇒</span> <code>${esc(v)}</code></div>`).join("")}</div>` : ""}
-    ${r.exception ? `<pre class="exception">${esc(r.exception)}</pre>` : ""}
+    ${r.exception ? exceptionPre(r.exception) : ""}
     ${!r.output && !r.values?.length && !r.exception ? `<p class="muted small">(出力はありません)</p>` : ""}
     ${r.varies ? `<p class="muted small">スレッドの順番や、@ の後ろの番号(ハッシュコード)などは、実行のたびに変わることがあります。</p>` : ""}`;
   return `<details class="sample-result"><summary><span>${q ? `<span class="predict">予想: ${predictHtml(q, descriptionHtml)}</span>` : ""}<span>予想したら、実行結果を見る</span></span></summary>
@@ -1519,7 +1534,7 @@ function bindLesson(L, meta) {
       S.read[L.id] = true;
       recordDay();
       const dyed = refreshDye(meta);
-      el.outerHTML = `<div class="done">${icon("check")}読了。次はクイズで縹へ</div>${dyedLine(dyed)}`;
+      el.outerHTML = `<div class="done">${icon("check")}${afterRead(L)}</div>${dyedLine(dyed)}`;
       markStep("read");
     } else if (action === "check") {
       const list = new Set(S.checklist[L.id] || []);
@@ -1544,7 +1559,7 @@ function bindLesson(L, meta) {
       el.closest(".self-check").querySelector(".dyed-line")?.remove();
       if (dyed) el.closest(".self-check").insertAdjacentHTML("beforeend", dyedLine(dyed));
       stepCount("write", L.exercises.filter((e) => S.exercise[e.key]?.selfPass).length, L.exercises.length);
-      toast(ok ? "記録しました。1日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
+      toast(ok ? "記録しました。1 日後に復習で出ます" : "記録しました。明日もう一度やってみよう");
     } else if (action === "ai-review" || action === "ai-hint") {
       const card = el.closest("article");
       const code = card.querySelector("textarea").value;
@@ -1625,7 +1640,7 @@ function bindLesson(L, meta) {
       <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
         <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
       ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai">${dyeSwatch(3)}演習ができたら藍に</p>` : ""}
-      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1日後 → 3日後 → 7日後 → 14日後 に出題されます。</p></div>`;
+      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。</p></div>`;
     decorate($("#quiz-result"));
     $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
   };

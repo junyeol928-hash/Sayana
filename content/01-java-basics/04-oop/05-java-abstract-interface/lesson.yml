@@ -14,7 +14,8 @@ samples:
     description: 処理の流れ(見出し→本文→フッター)は親の `print()` が決め、子は `title()` と `body()` の差分だけを書きます。在庫 8 個のコピー用紙の行には、何が付く?
     code: |
       // 帳票出力をテンプレートメソッドで作る
-      // ここを変えてみよう:StockReport の在庫数を 20 にする / 新しい帳票クラスを足してみる
+      // ここを変えてみよう:StockReport の在庫数を 20 にする /
+      // 新しい帳票クラスを足してみる
       abstract class Report {
           // 処理の流れは親が固定する(final で上書き禁止)
           final String print() {
@@ -60,7 +61,8 @@ samples:
     description: "`Checkout` は `PriceRule` 型しか知りません。ルールを差し替えても `Checkout` のコードは1行も変わらないのがポイントです。20%オフのルールで、2,980 円はいくらになる?"
     code: |
       // 料金計算ルールをインターフェースで差し替える
-      // ここを変えてみよう:SaleDiscount の割引率を変える / NoDiscount の label() を消してみる
+      // ここを変えてみよう:SaleDiscount の割引率を変える /
+      // NoDiscount の label() を消してみる
       interface PriceRule {
           int apply(int price);                 // 暗黙に public abstract
 
@@ -104,7 +106,8 @@ samples:
       `Arrays.sort` は `compareTo` の結果(負・0・正)だけを頼りに並べる。`implements Comparable<Item>` を消したら、さらに `@Override` も消したら何が起きるかも試してみよう。3 つの `Item` は、どの順に並ぶ?
     code: |
       // Comparable を実装して Arrays.sort で並べ替える
-      // ここを変えてみよう:compareTo を「高い順」にする(Integer.compare の引数を入れ替える)
+      // ここを変えてみよう:compareTo を「高い順」にする
+      // (Integer.compare の引数を入れ替える)
       class Item implements Comparable<Item> {
           final String name;
           final int price;

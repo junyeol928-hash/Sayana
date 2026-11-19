@@ -47,7 +47,8 @@ public class InvoiceAutoConfig {
 
     // TODO: @Bean を付ける
     InvoiceService invoiceService(ObjectProvider<TaxRate> taxRates) {
-        // TODO: 利用者の TaxRate Bean があればそれを、無ければ StandardTaxRate を使う
+        // TODO: 利用者の TaxRate Bean があればそれを、
+        //       無ければ StandardTaxRate を使う
         //       (taxRates.getIfAvailable(...) を使う)
         return new InvoiceService(new StandardTaxRate());
     }

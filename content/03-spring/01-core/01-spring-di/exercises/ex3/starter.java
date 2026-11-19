@@ -62,7 +62,8 @@ public class CheckoutService {
     }
 
     public int totalBy(String method, int amount) {
-        // TODO: gateways から method の決済手段を探す。無ければ IllegalArgumentException
+        // TODO: gateways から method の決済手段を探す。
+        //       無ければ IllegalArgumentException
         return 0;
     }
 }

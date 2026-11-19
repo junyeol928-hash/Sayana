@@ -7,7 +7,8 @@ public class ShopConfig {
 
     @Bean
     ShippingPolicy shippingPolicy(
-            // TODO: @Value("${shop.name:Java道場ストア}") のように、3つの引数に @Value を付ける
+            // TODO: @Value("${shop.name:Java道場ストア}") のように、
+            //       3つの引数に @Value を付ける
             String name,
             int freeThreshold,
             int fee) {
@@ -16,7 +17,10 @@ public class ShopConfig {
     }
 }
 
-/** 送料ルール(STS では com.example.shop.domain パッケージの別ファイルに置く) */
+/**
+ * 送料ルール
+ * (STS では com.example.shop.domain パッケージの別ファイルに置く)
+ */
 record ShippingPolicy(String shopName, int freeThreshold, int fee) {
 
     int feeFor(int amount) {

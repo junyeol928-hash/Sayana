@@ -138,7 +138,8 @@ samples:
       import java.util.*;
 
       public class Main {
-          // ここを変えてみよう:timeout を "" や "  " にする / "app.timeout" のキー名を変える
+          // ここを変えてみよう:timeout を "" や "  " にする /
+          // "app.timeout" のキー名を変える
           static Map<String, String> conf = Map.of(
               "app.name", "Java道場",
               "app.timeout", " 30 ",

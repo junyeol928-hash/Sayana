@@ -17,7 +17,8 @@ samples:
       経費精算なのに金額なし・理由は空白だけのフォームは、何件のエラーになる? それぞれどの項目のエラー?
     code: |
       // 申請フォームの入力チェックを Validator で直接動かす
-      // ここを変えてみよう:type を LEAVE に / amount を null や 0 に / title を "" や 51文字に
+      // ここを変えてみよう:type を LEAVE に / amount を null や 0 に /
+      // title を "" や 51文字に
       import jakarta.validation.*;
       import jakarta.validation.constraints.*;
 
@@ -82,7 +83,8 @@ samples:
           new ApprovalRequest(2, "モニター購入", 32000, RequestStatus.SUBMITTED, 2),
           new ApprovalRequest(3, "夏季休暇", null, RequestStatus.APPROVED, 1));
 
-      final long CURRENT_EMPLOYEE_ID = 1;   // ログインの代わり(capstone-security で置き換え)
+      // ログインの代わり(capstone-security で置き換え)
+      final long CURRENT_EMPLOYEE_ID = 1;
 
       List<ApprovalRequest> mine = all.stream()
               .filter(r -> r.applicantId() == CURRENT_EMPLOYEE_ID)

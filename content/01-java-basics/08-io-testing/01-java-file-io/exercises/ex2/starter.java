@@ -18,7 +18,8 @@ public class SalesReport {
 
         // TODO: output の親フォルダが無ければ作る
 
-        // TODO: "店舗,合計" のヘッダーに続けて、"店舗,合計金額" の行を output に書き出す(上書き)
+        // TODO: "店舗,合計" のヘッダーに続けて、
+        //       "店舗,合計金額" の行を output に書き出す(上書き)
 
     }
 
@@ -31,7 +32,8 @@ public class SalesReport {
         Path out = dir.resolve("report").resolve("summary.csv");
         summarize(in, out);
         if (Files.exists(out)) {
-            System.out.print(Files.readString(out)); // 店舗,合計 / 新宿,800 / 渋谷,1700
+            // 出力: 店舗,合計 / 新宿,800 / 渋谷,1700
+            System.out.print(Files.readString(out));
         } else {
             System.out.println("出力ファイルがありません");
         }

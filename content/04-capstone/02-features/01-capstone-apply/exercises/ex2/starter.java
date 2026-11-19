@@ -20,7 +20,10 @@ import java.util.List;
 @RequestMapping("/requests")
 public class RequestController {
 
-    /** ログインの代わり。capstone-security でログインユーザーに置き換える */
+    /**
+     * ログインの代わり。capstone-security で
+     * ログインユーザーに置き換える
+     */
     static final Long CURRENT_EMPLOYEE_ID = 1L;
 
     private final RequestService requestService;
@@ -29,26 +32,32 @@ public class RequestController {
         this.requestService = requestService;
     }
 
-    // TODO: @ModelAttribute("types") を付けて RequestType.values() を返すメソッドを作る
+    // TODO: @ModelAttribute("types") を付けて
+    //       RequestType.values() を返すメソッドを作る
 
     @GetMapping
     public String list(Model model) {
-        // TODO: requestService.findMine(CURRENT_EMPLOYEE_ID) を "requests" という名前で Model に入れる
+        // TODO: requestService.findMine(CURRENT_EMPLOYEE_ID) を
+        //       "requests" という名前で Model に入れる
         return "requests/list";
     }
 
     @GetMapping("/new")
     public String newForm(Model model) {
-        // TODO: 空の RequestForm を "requestForm" という名前で Model に入れる
+        // TODO: 空の RequestForm を "requestForm" という名前で
+        //       Model に入れる
         return "requests/new";
     }
 
-    // TODO: 引数を「@Validated @ModelAttribute RequestForm form, BindingResult result, RedirectAttributes ra」にする
+    // TODO: 引数を「@Validated @ModelAttribute RequestForm form,
+    //       BindingResult result, RedirectAttributes ra」にする
     @PostMapping
     public String create(@ModelAttribute RequestForm form) {
         // TODO: result.hasErrors() なら保存せずに "requests/new" を返す
-        // TODO: requestService.createDraft(CURRENT_EMPLOYEE_ID, form.toEntity()) で保存し、
-        //       フラッシュ属性 "message" に "下書きを保存しました(No.<id>)" を入れる
+        // TODO: requestService.createDraft(
+        //           CURRENT_EMPLOYEE_ID, form.toEntity()) で保存し、
+        //       フラッシュ属性 "message" に
+        //       "下書きを保存しました(No.<id>)" を入れる
         return "redirect:/requests";
     }
 }
@@ -112,7 +121,8 @@ enum RequestType {
 
 /** 申請の状態(完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -121,7 +131,10 @@ enum RequestStatus {
     public String label() { return label; }
 }
 
-/** 申請(エンティティの縮小版。STS では JPA の @Entity で、申請者は Employee。完成済み) */
+/**
+ * 申請(エンティティの縮小版。STS では JPA の @Entity で、
+ * 申請者は Employee。完成済み)
+ */
 class ApprovalRequest {
     private Long id;
     private String title;
@@ -144,12 +157,16 @@ class ApprovalRequest {
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
     public Long getApplicantId() { return applicantId; }
-    public void setApplicantId(Long applicantId) { this.applicantId = applicantId; }
+    public void setApplicantId(Long applicantId) {
+        this.applicantId = applicantId;
+    }
 }
 
 /** 申請の登録と検索(完成済み) */
 interface RequestService {
-    /** 申請者 applicantId の下書きとして保存し、id の振られた申請を返す */
+    /**
+     * 申請者 applicantId の下書きとして保存し、id の振られた申請を返す
+     */
     ApprovalRequest createDraft(Long applicantId, ApprovalRequest request);
 
     /** 申請者 applicantId の申請だけを返す */
@@ -161,7 +178,8 @@ class InMemoryRequestService implements RequestService {
     private final List<ApprovalRequest> store = new ArrayList<>();
 
     @Override
-    public ApprovalRequest createDraft(Long applicantId, ApprovalRequest request) {
+    public ApprovalRequest createDraft(
+            Long applicantId, ApprovalRequest request) {
         request.setId((long) store.size() + 1);
         request.setApplicantId(applicantId);
         request.setStatus(RequestStatus.DRAFT);

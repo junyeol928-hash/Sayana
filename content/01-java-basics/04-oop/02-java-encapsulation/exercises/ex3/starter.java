@@ -14,7 +14,8 @@ public class ScoreBook {
     }
 
     void setScore(int index, int score) {
-        // TODO: index が範囲外、または score が 0〜100 の範囲外なら IllegalArgumentException
+        // TODO: index が範囲外、または score が 0〜100 の範囲外なら
+        //       IllegalArgumentException
         scores[index] = score;
     }
 

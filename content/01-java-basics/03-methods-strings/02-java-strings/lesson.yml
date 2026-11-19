@@ -16,21 +16,27 @@ samples:
       `s.toUpperCase();` の戻り値を受け取らなかったとき、`s` は変わる?
     code: |
       // String は不変。そして中身の比較は equals
-      // ここを変えてみよう:input を "GOLD" や null にする / b を d + "va" の形にしてみる
+      // ここを変えてみよう:input を "GOLD" や null にする /
+      // String d = "Ja"; を足して、b を d + "va" の形にしてみる
       String s = "java";
-      s.toUpperCase();                 // 戻り値を捨てている(s は変わらない)
+      // 戻り値を捨てている(s は変わらない)
+      s.toUpperCase();
       System.out.println("捨てた場合  : " + s);
-      s = s.toUpperCase();             // 受け取って代入する
+      // 受け取って代入する
+      s = s.toUpperCase();
       System.out.println("代入した場合: " + s);
 
       String a = "Java";
-      String b = "Ja" + "va";          // 定数同士の連結 → コンパイル時に "Java"(プールの1つ)
-      String c = new String("Java");   // new は必ず別のオブジェクト
+      // 定数同士の連結 → コンパイル時に "Java"(プールの1つ)
+      String b = "Ja" + "va";
+      // new は必ず別のオブジェクト
+      String c = new String("Java");
       System.out.println("a == b      : " + (a == b));
       System.out.println("a == c      : " + (a == c));
       System.out.println("a.equals(c) : " + a.equals(c));
 
-      String input = "Gold";           // 画面から来た値のつもり
+      // 画面から来た値のつもり
+      String input = "Gold";
       System.out.println("equals           : " + "GOLD".equals(input));
       System.out.println("equalsIgnoreCase : " + "GOLD".equalsIgnoreCase(input));
   - title: メールアドレスを整えて分解する
@@ -62,8 +68,10 @@ samples:
       `split` で列に分け、`strip` してから `Integer.parseInt`。`strip()` を外したら何が起きるかも試してみよう。
       `"a.b.c".split(".")` は、何個に分ける?
     code: |
-      // CSV の1行を分解して集計する(split / strip / Integer.parseInt / String.join)
-      // ここを変えてみよう:列の前後の空白を増やす / strip() を外すとどうなる? / "1,200" のようなカンマ入りにする
+      // CSV の1行を分解して集計する
+      // (split / strip / Integer.parseInt / String.join)
+      // ここを変えてみよう:列の前後の空白を増やす /
+      // strip() を外すとどうなる? / "1,200" のようなカンマ入りにする
       String[] lines = {
           "A001,コーヒー豆,1200,3",
           "B002, マグカップ , 800 , 2",
@@ -75,7 +83,8 @@ samples:
       for (int i = 0; i < lines.length; i++) {
           String[] cols = lines[i].split(",");
           String name = cols[1].strip();
-          int price = Integer.parseInt(cols[2].strip());   // strip しないと NumberFormatException
+          // strip しないと NumberFormatException
+          int price = Integer.parseInt(cols[2].strip());
           int qty = Integer.parseInt(cols[3].strip());
           names[i] = name;
           total += price * qty;
@@ -91,7 +100,8 @@ samples:
     description: "`%-10s`(左寄せ)、`%4d`(右寄せ)、`%,9d`(3桁区切り)、`%05d`(0埋め)。`%%` は `%` そのものを出力します。伝票番号の 42 は、`%05d` でどう表示される?"
     code: |
       // 書式指定(String.format / formatted)とテキストブロックで帳票を作る
-      // ここを変えてみよう:%-10s の 10 や %,9d の 9 を変える / 金額を 1234567 にする
+      // ここを変えてみよう:%-10s の 10 や %,9d の 9 を変える /
+      // 金額を 1234567 にする
       String[] items = {"Coffee", "Mug", "Dripper"};
       int[] qtys = {3, 12, 1};
       int[] amounts = {3600, 9600, 1500};

@@ -14,14 +14,20 @@ public class KeyRotationService {
         this.crypto = crypto;
     }
 
-    /** 鍵の更新。今の鍵を失効させ、暗号装置で作った新しい鍵を有効にする */
-    // TODO: 暗号装置が失敗したとき、失効させた今の鍵が元に戻るように直す
+    /**
+     * 鍵の更新。今の鍵を失効させ、暗号装置で作った新しい鍵を有効にする
+     */
+    // TODO: 暗号装置が失敗したとき、
+    //       失効させた今の鍵が元に戻るように直す
     @Transactional
     public String rotate(String cardId) {
-        store.revokeActive(cardId);                          // 1. 今の ACTIVE な鍵を REVOKED にする
+        // 1. 今の ACTIVE な鍵を REVOKED にする
+        store.revokeActive(cardId);
         try {
-            String newKeyId = crypto.generateKey(cardId);       // 2. 暗号装置に新しい鍵を作ってもらう
-            store.saveActive(cardId, newKeyId);              // 3. 新しい鍵を ACTIVE で保存する
+            // 2. 暗号装置に新しい鍵を作ってもらう
+            String newKeyId = crypto.generateKey(cardId);
+            // 3. 新しい鍵を ACTIVE で保存する
+            store.saveActive(cardId, newKeyId);
             return newKeyId;
         } catch (CryptoException e) {
             // 暗号装置が落ちていたら、呼び出し元には null を返す
@@ -31,14 +37,20 @@ public class KeyRotationService {
 }
 
 // ===== 例外(用意済み) =====
-/** 暗号装置(鍵を作る専用の装置。仕事では HSM)との通信に失敗した。検査例外 */
+/**
+ * 暗号装置(鍵を作る専用の装置。仕事では HSM)との通信に失敗した。
+ * 検査例外
+ */
 class CryptoException extends Exception {
     CryptoException(String message) {
         super(message);
     }
 }
 
-/** 鍵の更新に失敗した。RuntimeException なので @Transactional の既定でロールバックされる */
+/**
+ * 鍵の更新に失敗した。RuntimeException なので
+ * @Transactional の既定でロールバックされる
+ */
 class KeyRotationFailedException extends RuntimeException {
     KeyRotationFailedException(String cardId, Throwable cause) {
         super("カード " + cardId + " の鍵の更新に失敗しました", cause);
@@ -62,8 +74,9 @@ class KeyStore {
     }
 
     void revokeActive(String cardId) {
-        rows.replaceAll(r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE")
-                ? new KeyRow(r.keyId(), r.cardId(), "REVOKED") : r);
+        rows.replaceAll(
+                r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE")
+                        ? new KeyRow(r.keyId(), r.cardId(), "REVOKED") : r);
     }
 
     void saveActive(String cardId, String keyId) {
@@ -71,7 +84,9 @@ class KeyStore {
     }
 
     Optional<String> activeKeyOf(String cardId) {
-        return rows.stream().filter(r -> r.cardId().equals(cardId) && r.status().equals("ACTIVE"))
+        return rows.stream()
+                .filter(r -> r.cardId().equals(cardId)
+                        && r.status().equals("ACTIVE"))
                 .map(KeyRow::keyId).findFirst();
     }
 

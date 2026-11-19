@@ -5,8 +5,10 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -93,6 +95,8 @@ public class JShellRunner {
                     .out(ps)
                     .err(ps)
                     .in(new ByteArrayInputStream(new byte[0]))
+                    // 変数の名前を残す。無いと、クラスの中の null の例外が「because "<local1>" is null」になる(30 回目の審査)
+                    .compilerOptions("-g")
                     .remoteVMOptions("-Xmx" + config.getMaxHeap(), "-XX:+UseSerialGC", "-XX:TieredStopAtLevel=1",
                             "-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
                             "-Duser.language=ja",
@@ -170,6 +174,8 @@ public class JShellRunner {
         private final String code;
         private final List<String> values = new ArrayList<>();
         private final List<CodeDiagnostic> errors = new ArrayList<>();
+        /** スニペットの id → そのスニペットが編集欄で始まる行(スタックトレースの行番号はスニペットの頭から数える) */
+        private final Map<String, Long> snippetLines = new HashMap<>();
         private volatile String exception;
 
         Evaluation(String code) {
@@ -185,24 +191,36 @@ public class JShellRunner {
             boolean executedStatement = false;
             List<String> mainCandidates = new ArrayList<>();
             while (!remaining.isBlank()) {
-                int offset = code.length() - remaining.length() + leadingWhitespace(remaining);
+                int start = code.length() - remaining.length() + leadingWhitespace(remaining);
                 SourceCodeAnalysis.CompletionInfo info = sca.analyzeCompletion(remaining);
-                String source;
+                String whole;
                 if (info.completeness().isComplete()) {
-                    source = info.source();
+                    whole = info.source();
                     remaining = info.remaining();
                 } else if (info.completeness() == Completeness.EMPTY) {
                     break;
                 } else {
                     // 途中で終わっている・構文が壊れている → まとめて eval してコンパイルエラーを出させる
-                    source = remaining;
+                    whole = remaining;
                     remaining = "";
                 }
+                // 頭に改行が残ったまま渡すと、JShell のスタックトレースの行番号が狂う(本文の 4 行目で落ちても 1 になる)。
+                // 頭のコメントも、代入・++ の文ではコメントを除いた式の頭から数えられ、宣言や呼び出しでは数えられる
+                // (コメントの真下の代入文で落ちると、コメントの行を指した。30 回目の審査)。頭の空白とコメントを除いて渡し、
+                // 除いた分だけ offset を進めれば、どの種類のスニペットも 1 行目はコードの行(lineOf(offset))になる
+                String stripped = whole.stripLeading();
+                int skip = leadingComments(stripped);
+                if (skip >= stripped.length()) {
+                    continue; // コメントだけの塊(評価するものが無い)
+                }
+                String source = stripped.substring(skip);
+                int offset = start + skip;
                 for (SnippetEvent ev : js.eval(source)) {
                     if (ev.causeSnippet() != null) {
                         continue;
                     }
                     Snippet snippet = ev.snippet();
+                    snippetLines.putIfAbsent(snippet.id(), lineOf(offset));
                     if (ev.status() == Snippet.Status.REJECTED) {
                         js.diagnostics(snippet).forEach(d -> errors.add(toDiagnostic(d, source, offset)));
                         if (errors.isEmpty()) {
@@ -211,7 +229,7 @@ public class JShellRunner {
                         return;
                     }
                     if (ev.exception() != null) {
-                        exception = describe(ev.exception(), js);
+                        exception = describe(ev.exception(), js, snippetLines);
                         return;
                     }
                     if (snippet.kind() == Snippet.Kind.EXPRESSION
@@ -236,7 +254,7 @@ public class JShellRunner {
             if (!executedStatement && mainCandidates.size() == 1) {
                 for (SnippetEvent ev : js.eval(mainCandidates.get(0) + ".main(new String[0]);")) {
                     if (ev.exception() != null) {
-                        exception = describe(ev.exception(), js);
+                        exception = describe(ev.exception(), js, snippetLines);
                     } else if (ev.status() == Snippet.Status.REJECTED) {
                         js.diagnostics(ev.snippet()).forEach(d -> errors.add(
                                 new CodeDiagnostic("main の呼び出し", 0, 0, d.getMessage(Locale.JAPANESE), "")));
@@ -259,12 +277,21 @@ public class JShellRunner {
         }
     }
 
-    private static String describe(JShellException e, JShell js) {
+    /**
+     * JShell の例外を、編集欄の行番号で読める文にする。
+     * <p>
+     * JShell は文ごとに別のスニペットにし、スタックトレースのファイル名を「#スニペットの id」、行番号をスニペットの頭からの数にする。
+     * そのままだと、トップレベルの文はどこで落ちても「1行目」になった(29 回目の審査)。スニペットの始まりの行を足して編集欄の行にし、
+     * JShell が包むクラスの名前(「REPL.$JShell$12.input」「REPL.$JShell$5$Boom」)は外す。
+     *
+     * @param snippetLines スニペットの id → 編集欄で始まる行。無いスニペット(自動で足した main の呼び出し)の行は出さない
+     */
+    static String describe(JShellException e, JShell js, Map<String, Long> snippetLines) {
         StringBuilder sb = new StringBuilder();
         if (e instanceof EvalException ee) {
-            sb.append("例外が発生しました: ").append(ee.getExceptionClassName());
+            sb.append("例外が発生しました: ").append(withoutWrapper(ee.getExceptionClassName()));
             if (ee.getMessage() != null) {
-                sb.append(": ").append(ee.getMessage());
+                sb.append(": ").append(withoutWrapper(ee.getMessage()));
             }
         } else if (e instanceof UnresolvedReferenceException ue) {
             sb.append("まだ定義されていないものを使っています: ").append(ue.getSnippet().source().lines().findFirst().orElse(""));
@@ -273,26 +300,83 @@ public class JShellRunner {
         } else {
             sb.append(e.getMessage());
         }
-        StackTraceElement[] trace = e.getStackTrace();
-        int shown = 0;
-        for (StackTraceElement el : trace) {
-            if (el.getClassName().startsWith("jdk.") || el.getClassName().startsWith("java.lang.reflect")
-                    || el.getClassName().startsWith("jdk.internal")) {
+        // 編集欄の行は 6 行まで必ず出す。ライブラリの中の行は、投げた所の 2 行だけ名前を出し、残りは 1 行に畳む
+        // (ストリームの中で落ちると JDK の行が 5 つ並び、6 行の上限で呼んだ側の行が出なかった。30 回目の審査)
+        int editorShown = 0;
+        int libraryShown = 0;
+        int hidden = 0;
+        boolean editorSeen = false;
+        for (StackTraceElement el : e.getStackTrace()) {
+            if (el.getClassName().startsWith("jdk.") || el.getClassName().startsWith("java.lang.reflect")) {
                 continue;
             }
-            sb.append("\n    at ").append(simplify(el));
-            if (++shown >= 6) {
-                break;
+            String file = el.getFileName();
+            if (file != null && file.startsWith("#")) {
+                String frame = editorFrame(el, snippetLines);
+                if (frame.isEmpty()) {
+                    continue;
+                }
+                hidden = appendHidden(sb, hidden);
+                sb.append("\n    at ").append(frame);
+                editorSeen = true;
+                if (++editorShown >= 6) {
+                    break;
+                }
+            } else if (!editorSeen && libraryShown < 2) {
+                sb.append("\n    at ").append(withoutWrapper(el.getClassName())).append('.').append(el.getMethodName());
+                libraryShown++;
+            } else {
+                hidden++;
             }
         }
+        appendHidden(sb, hidden);
         return sb.toString();
     }
 
-    private static String simplify(StackTraceElement el) {
-        String cls = el.getClassName().replaceAll("REPL\\.\\$JShell\\$\\d+[A-Z]?\\$?", "").replaceAll("^\\.", "");
+    /** 畳んだライブラリの中の行を 1 行で書き足す。数え直すので 0 を返す */
+    private static int appendHidden(StringBuilder sb, int hidden) {
+        if (hidden > 0) {
+            sb.append("\n    …(ライブラリの中の ").append(hidden).append(" 行は省略)");
+        }
+        return 0;
+    }
+
+    private static final Pattern WRAPPER = Pattern.compile("REPL\\.\\$JShell\\$\\d+[A-Z]?[.$]");
+
+    /** JShell が包むクラスの名前を外す(「REPL.$JShell$12.input」→「input」、「REPL.$JShell$5$Boom」→「Boom」) */
+    static String withoutWrapper(String s) {
+        return WRAPPER.matcher(s).replaceAll("");
+    }
+
+    private static final Pattern LAMBDA = Pattern.compile("lambda\\$(.*)\\$\\d+");
+
+    /**
+     * 編集欄のコードのスタックトレースの 1 行。「check(5行目)」「Main.main(7行目)」、トップレベルの文は「14行目」、
+     * ラムダ式は「ラムダ式(4行目)」「total の中のラムダ式(2行目)」(JShell の中の名前「lambda$do_it$$0」は出さない。30 回目の審査)。
+     * 編集欄に無いスニペット(自動で足した main の呼び出し)は空
+     */
+    private static String editorFrame(StackTraceElement el, Map<String, Long> snippetLines) {
+        Long start = snippetLines.get(el.getFileName().substring(1));
+        if (start == null) {
+            return "";
+        }
+        // トップレベルの文は、JShell がクラスの名前もメソッドの名前も空にして返す
+        String cls = withoutWrapper(el.getClassName()).replaceAll("^\\.", "");
+        String owner = cls.isEmpty() || cls.startsWith("do_it$") ? "" : cls + ".";
         String method = el.getMethodName();
-        String where = cls.isEmpty() || cls.startsWith("do_it$") ? method : cls + "." + method;
-        return where + (el.getLineNumber() > 0 ? "(" + el.getLineNumber() + "行目付近)" : "");
+        Matcher lambda = LAMBDA.matcher(method);
+        String where;
+        if (lambda.matches()) {
+            String in = lambda.group(1);
+            where = owner.isEmpty() && in.startsWith("do_it$") ? "ラムダ式" : owner + in + " の中のラムダ式";
+        } else {
+            where = method.startsWith("do_it$") ? "" : owner + method;
+        }
+        if (el.getLineNumber() <= 0) {
+            return where;
+        }
+        long line = start + el.getLineNumber() - 1;
+        return where.isEmpty() ? line + "行目" : where + "(" + line + "行目)";
     }
 
     private static final Pattern LEADING_DOT = Pattern.compile("^(\\s*)\\.(?=[A-Za-z_<])");
@@ -340,6 +424,29 @@ public class JShellRunner {
             n++;
         }
         return n;
+    }
+
+    /** 頭の空白と、続く行コメント・ブロックコメントの長さ(コードの始まりの位置) */
+    static int leadingComments(String s) {
+        int i = leadingWhitespace(s);
+        while (i < s.length()) {
+            if (s.startsWith("//", i)) {
+                int nl = s.indexOf('\n', i);
+                i = nl < 0 ? s.length() : nl;
+            } else if (s.startsWith("/*", i)) {
+                int end = s.indexOf("*/", i + 2);
+                if (end < 0) {
+                    return i; // 閉じていないコメントはそのまま渡してコンパイルエラーにさせる
+                }
+                i = end + 2;
+            } else {
+                break;
+            }
+            while (i < s.length() && Character.isWhitespace(s.charAt(i))) {
+                i++;
+            }
+        }
+        return i;
     }
 
     private static int leadingWhitespace(String s) {

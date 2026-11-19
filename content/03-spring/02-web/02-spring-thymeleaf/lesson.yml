@@ -17,15 +17,16 @@ samples:
       `<特価>` の付いた商品名や在庫 0 の行はどうなり、`th:` の属性は出力に残るだろうか。
     code: |
       // テンプレート文字列を Thymeleaf で描画してみる
-      // ここを変えてみよう:th:text を th:utext に / 在庫を 0 に / 商品を増やす
+      // ここを変えてみよう:th:text を th:utext に /
+      // 在庫を 0 に / 商品を増やす
       import java.time.LocalDate;
       import java.util.*;
       import org.thymeleaf.context.Context;
       import org.thymeleaf.spring6.SpringTemplateEngine;
       import org.thymeleaf.templateresolver.*;
-      
+
       record Item(String name, int price, int stock) {}
-      
+
       String template = """
           <p th:text="${message}">ここにメッセージ</p>
           <p th:utext="${message}">utext は HTML のまま</p>
@@ -43,10 +44,10 @@ samples:
             </li>
           </ul>
           """;
-      
+
       var engine = new SpringTemplateEngine();
       engine.setTemplateResolver(new StringTemplateResolver());
-      
+
       // Controller の Model の代わり。ここに入れた値を ${…} で読む
       var ctx = new Context(Locale.JAPAN);
       ctx.setVariable("message", "<b>本日</b>セール中");
@@ -55,7 +56,7 @@ samples:
               new Item("ボールペン", 120, 12),
               new Item("<特価>ノート", 1500, 0),
               new Item("万年筆", 32000, 1)));
-      
+
       System.out.println(engine.process(template, ctx));
   - title: Controller → Model → Thymeleaf をつなげる
     libraries: [spring, thymeleaf]
@@ -78,9 +79,9 @@ samples:
       import org.thymeleaf.spring6.view.ThymeleafViewResolver;
       import org.thymeleaf.templateresolver.StringTemplateResolver;
       import org.thymeleaf.templateresource.*;
-      
+
       record Item(int id, String name) {}
-      
+
       @Controller
       class ItemController {
           @GetMapping("/items")
@@ -90,7 +91,7 @@ samples:
               return "items/list";   // ビュー名
           }
       }
-      
+
       // 本物の templates/ フォルダの代わり(ファイル名 → 中身)
       class Templates extends StringTemplateResolver {
           static final Map<String, String> FILES = Map.of(
@@ -110,7 +111,7 @@ samples:
                     </li>
                   </ul>
                   """);
-      
+
           @Override
           protected ITemplateResource computeTemplateResource(
                   IEngineConfiguration conf, String owner, String name,
@@ -118,7 +119,7 @@ samples:
               return new StringTemplateResource(FILES.get(name));
           }
       }
-      
+
       public class Main {
           public static void main(String[] args) throws Exception {
               // Spring Boot が自動でやってくれる設定を手で書いている
@@ -127,12 +128,12 @@ samples:
               var viewResolver = new ThymeleafViewResolver();
               viewResolver.setTemplateEngine(engine);
               viewResolver.setCharacterEncoding("UTF-8");
-      
+
               MockMvc mvc = MockMvcBuilders
                       .standaloneSetup(new ItemController())
                       .setViewResolvers(viewResolver)
                       .build();
-      
+
               // アプリが /shop で公開されている想定(コンテキストパス)
               var res = mvc.perform(get("/shop/items").contextPath("/shop"))
                       .andReturn().getResponse();

@@ -25,13 +25,16 @@ public class KeyIssueController {
     }
 
     @PostMapping
-    public ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+    public ResponseEntity<KeyIssueResponse> issue(
+            @Valid @RequestBody KeyIssueRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(keyIssueService.issue(request));
     }
 }
 
 // ===== dto(リクエストの形と制約) =====
-// TODO: スタックトレースから原因をたどり、仕様の入力チェックが抜けている所を直す
+// TODO: スタックトレースから原因をたどり、
+//       仕様の入力チェックが抜けている所を直す
 record KeyIssueRequest(
         @NotBlank String cardId,
         Integer keyVersion) {
@@ -45,9 +48,12 @@ class KeyIssueService {
     private final List<KeyIssueResponse> issued = new ArrayList<>();
 
     KeyIssueResponse issue(KeyIssueRequest request) {
-        int version = request.keyVersion();   // ← 本番ログの「at ...KeyIssueService.issue(KeyIssueService.java:31)」はこの行
+        // ↓ 本番ログの次の 1 行は、この下の行を指す
+        //   「at ...KeyIssueService.issue(KeyIssueService.java:31)」
+        int version = request.keyVersion();
         KeyIssueResponse res = new KeyIssueResponse(
-                String.format("K-%04d", issued.size() + 1), request.cardId(), version);
+                String.format("K-%04d", issued.size() + 1),
+                request.cardId(), version);
         issued.add(res);
         return res;
     }

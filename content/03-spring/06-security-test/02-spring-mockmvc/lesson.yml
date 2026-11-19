@@ -15,7 +15,8 @@ samples:
     description: Tomcat を起動せずに、`standaloneSetup` で載せた Controller に偽物のリクエストを投げます。`andReturn()` で結果を取り出して表示したあと、テストと同じ `andExpect` で検証します。`qty` を 3 で送ると、status と body は何が出る?
     code: |
       // MockMvc で Controller を「サーバーを起動せずに」呼び出す
-      // ここを変えてみよう:qty を 20 や 0 に / 最後の "left: 8" を "left: 9" にして AssertionError を見る
+      // ここを変えてみよう:qty を 20 や 0 に /
+      // 最後の "left: 8" を "left: 9" にして AssertionError を見る
       import org.springframework.http.ResponseEntity;
       import org.springframework.web.bind.annotation.*;
       import org.springframework.test.web.servlet.MockMvc;
@@ -66,7 +67,8 @@ samples:
     description: 同じ Controller を、UTF-8 の設定なし/ありの2通りで呼び出します。設定なしのとき、「合計 1,500円」の本文はどう出る?Content-Type の charset は何になるだろうか。
     code: |
       // 日本語を返す Controller を、UTF-8 設定なし/ありで呼び比べる
-      // ここを変えてみよう:返す文字列を "Total 1,500 yen" にすると、設定なしでも化けない
+      // ここを変えてみよう:返す文字列を "Total 1,500 yen" にすると、
+      // 設定なしでも化けない
       import java.nio.charset.StandardCharsets;
       import org.springframework.web.bind.annotation.*;
       import org.springframework.http.converter.StringHttpMessageConverter;

@@ -15,7 +15,8 @@ public class SignupForm {
     // TODO: 必須・メールアドレスの形式
     private String email;
 
-    // TODO: 必須・18以上120以下(Integer なので @NotBlank は使えない点に注意)
+    // TODO: 必須・18以上120以下
+    //       (Integer なので @NotBlank は使えない点に注意)
     private Integer age;
 
     // TODO: 必須・「数字3桁-数字4桁」の形
@@ -26,8 +27,10 @@ public class SignupForm {
 
     private String passwordConfirm;
 
-    // TODO: @AssertTrue を付けた public boolean isPasswordMatched() を作る
-    //       (password が null なら false、password と passwordConfirm が等しければ true)
+    // TODO: @AssertTrue を付けた
+    //       public boolean isPasswordMatched() を作る
+    //       (password が null なら false、
+    //       password と passwordConfirm が等しければ true)
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -40,5 +43,7 @@ public class SignupForm {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getPasswordConfirm() { return passwordConfirm; }
-    public void setPasswordConfirm(String passwordConfirm) { this.passwordConfirm = passwordConfirm; }
+    public void setPasswordConfirm(String passwordConfirm) {
+        this.passwordConfirm = passwordConfirm;
+    }
 }

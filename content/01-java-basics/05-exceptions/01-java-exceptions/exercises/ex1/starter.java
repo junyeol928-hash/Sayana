@@ -5,7 +5,8 @@ public class QuantityParser {
 
         // TODO: try の中で、前後の空白を除いて Integer.parseInt する
 
-        // TODO: NumberFormatException を catch したら defaultValue を返す
+        // TODO: NumberFormatException を catch したら
+        //       defaultValue を返す
 
         return 0; // ← ダミー。書き換えてください
     }

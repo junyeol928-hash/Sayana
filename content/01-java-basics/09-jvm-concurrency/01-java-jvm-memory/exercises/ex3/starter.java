@@ -1,7 +1,8 @@
 public class SumCalculator {
 
     static long sumTo(int n) {
-        // TODO: for 文で書き直す(再帰だと n が大きいと StackOverflowError)
+        // TODO: for 文で書き直す
+        //       (再帰だと n が大きいと StackOverflowError)
         if (n <= 0) {
             return 0;
         }

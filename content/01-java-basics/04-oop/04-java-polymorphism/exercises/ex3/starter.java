@@ -2,19 +2,22 @@ public class NotificationSender {
 
     static String[] renderAll(Notification[] list) {
         String[] result = new String[list.length];
-        // TODO: 各通知の render() の結果を result に入れる(種類の判定は不要)
+        // TODO: 各通知の render() の結果を result に入れる
+        //       (種類の判定は不要)
         return result;
     }
 
     static String smsPhones(Notification[] list) {
         // TODO: SMS の通知だけ電話番号を "," 区切りでつなげて返す
-        //       if (n instanceof SmsNotification sms) { ... sms.getPhone() ... }
+        //       if (n instanceof SmsNotification sms) {
+        //           ... sms.getPhone() ... }
         return "";
     }
 
     public static void main(String[] args) {
         Notification[] list = {
-            new EmailNotification("hal@example.com", "面談のご案内", "明日10時に伺います"),
+            new EmailNotification("hal@example.com", "面談のご案内",
+                    "明日10時に伺います"),
             new SmsNotification("090-1111-2222", "明日10時に伺います"),
         };
         for (String text : renderAll(list)) {
@@ -55,7 +58,8 @@ class EmailNotification extends Notification {
         return address;
     }
 
-    // TODO: render() をオーバーライドし、"宛先: アドレス\n件名: 件名\n本文" を返す
+    // TODO: render() をオーバーライドし、
+    //       "宛先: アドレス\n件名: 件名\n本文" を返す
 }
 
 class SmsNotification extends Notification {
@@ -72,5 +76,6 @@ class SmsNotification extends Notification {
     }
 
     // TODO: render() をオーバーライドし、"[SMS] " + 本文 を返す
-    //       本文が MAX_LENGTH 文字を超えるなら、先頭 69 文字 + "…" にする
+    //       本文が MAX_LENGTH 文字を超えるなら、
+    //       先頭 69 文字 + "…" にする
 }

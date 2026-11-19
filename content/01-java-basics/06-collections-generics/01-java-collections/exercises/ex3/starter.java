@@ -9,11 +9,14 @@ import java.util.Set;
 
 public class DeptRoster {
 
-    public static Map<String, List<String>> groupByDept(List<Employee> employees) {
-        // TODO: 結果用の LinkedHashMap と、処理済みの社員を覚える HashSet を用意する
+    public static Map<String, List<String>> groupByDept(
+            List<Employee> employees) {
+        // TODO: 結果用の LinkedHashMap と、
+        //       処理済みの社員を覚える HashSet を用意する
 
         // TODO: 1人ずつ処理する
-        //   - Set への add が false なら(すでに処理済みの社員なら)読み飛ばす
+        //   - Set への add が false なら
+        //     (すでに処理済みの社員なら)読み飛ばす
         //   - 部署のリストがなければ新しい ArrayList を作って put する
         //   - そのリストに氏名を add する
 
@@ -26,7 +29,8 @@ public class DeptRoster {
                 new Employee("E02", "鈴木", "開発"),
                 new Employee("E03", "高橋", "営業"),
                 new Employee("E01", "佐藤", "営業"));
-        System.out.println(groupByDept(list)); // {営業=[佐藤, 高橋], 開発=[鈴木]}
+        // 出力: {営業=[佐藤, 高橋], 開発=[鈴木]}
+        System.out.println(groupByDept(list));
     }
 }
 
@@ -53,7 +57,8 @@ class Employee {
         return dept;
     }
 
-    // TODO: id が同じなら true を返す equals(Object o) をオーバーライドする
+    // TODO: id が同じなら true を返す
+    //       equals(Object o) をオーバーライドする
 
     // TODO: id から計算する hashCode() をオーバーライドする
 

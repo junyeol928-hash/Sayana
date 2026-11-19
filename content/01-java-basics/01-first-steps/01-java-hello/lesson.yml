@@ -30,7 +30,8 @@ samples:
       System.out.println("餃子");   // ここで改行される
       System.out.println("お願いします");
       System.out.println();          // 空行が1行入る
-      // ここを変えてみよう:3行目の println を print に変えると、出力はどうなる?
+      // ここを変えてみよう:3行目の println を print に変えると、
+      // 出力はどうなる?
       System.out.print("お会計は");
       System.out.println("こちらです");
 
@@ -42,7 +43,8 @@ samples:
     code: |
       public class Hello {
           public static void main(String[] args) {
-              // ここを変えてみよう:println の行を増やしたり、わざと ; を消してエラーを見てみよう
+              // ここを変えてみよう:println の行を増やしたり、
+              // わざと ; を消してエラーを見てみよう
               System.out.println("Hello, World!");
               System.out.println("main メソッドから実行が始まります");
           }

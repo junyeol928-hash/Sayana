@@ -12,11 +12,15 @@ public class GenericTools {
 
     public static void main(String[] args) {
         Pair<String, Integer> p = new Pair<>("りんご", 120);
-        System.out.println(p.getKey() + " / " + p.getValue());          // りんご / 120
+        // 出力: りんご / 120
+        System.out.println(p.getKey() + " / " + p.getValue());
         Pair<Integer, String> s = p.swap();
-        System.out.println(s.getKey() + " / " + s.getValue());          // 120 / りんご
-        System.out.println(max(List.of(3, 9, 4)));                      // 9
-        System.out.println(max(List.of("kiwi", "apple", "melon")));     // melon
+        // 出力: 120 / りんご
+        System.out.println(s.getKey() + " / " + s.getValue());
+        // 出力: 9
+        System.out.println(max(List.of(3, 9, 4)));
+        // 出力: melon
+        System.out.println(max(List.of("kiwi", "apple", "melon")));
     }
 }
 

@@ -16,14 +16,22 @@ public class LogMasker {
     }
 
     /** ログイン試行のログメッセージを組み立てる */
-    public static String loginMessage(String userId, String email, String password) {
-        // TODO: "ログイン試行 user=<userId> email=<マスクしたメール> password=[MASKED]"
-        return "ログイン試行 user=" + userId + " email=" + email + " password=" + password; // ← 危険なダミー
+    public static String loginMessage(
+            String userId, String email, String password) {
+        // TODO: 次の形の文字列を返す
+        //       "ログイン試行 user=<userId> email=<マスクしたメール>
+        //        password=[MASKED]"
+        // ↓ 危険なダミー
+        return "ログイン試行 user=" + userId + " email=" + email
+                + " password=" + password;
     }
 
     public static void main(String[] args) {
-        System.out.println(maskEmail("taro.yamada@example.com"));   // t***@example.com
-        System.out.println(maskCard("4111-1111-1111-1234"));        // ************1234
-        System.out.println(loginMessage("u001", "taro.yamada@example.com", "himitsu123"));
+        // 出力: t***@example.com
+        System.out.println(maskEmail("taro.yamada@example.com"));
+        // 出力: ************1234
+        System.out.println(maskCard("4111-1111-1111-1234"));
+        System.out.println(loginMessage(
+                "u001", "taro.yamada@example.com", "himitsu123"));
     }
 }

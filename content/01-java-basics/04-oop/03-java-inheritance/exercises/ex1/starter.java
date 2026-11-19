@@ -18,8 +18,10 @@ public class Shape {
     }
 
     public static void main(String[] args) {
-        System.out.println(new Rectangle(3, 4).describe()); // 長方形の面積: 12.0
-        System.out.println(new Triangle(3, 5).describe());  // 三角形の面積: 7.5
+        // 出力: 長方形の面積: 12.0
+        System.out.println(new Rectangle(3, 4).describe());
+        // 出力: 三角形の面積: 7.5
+        System.out.println(new Triangle(3, 5).describe());
     }
 }
 
@@ -33,7 +35,8 @@ class Rectangle extends Shape {
         this.height = height;
     }
 
-    // TODO: @Override を付けて area() をオーバーライドし、幅 × 高さ を返す
+    // TODO: @Override を付けて area() をオーバーライドし、
+    //       幅 × 高さ を返す
 }
 
 class Triangle extends Shape {
@@ -46,5 +49,6 @@ class Triangle extends Shape {
         this.height = height;
     }
 
-    // TODO: @Override を付けて area() をオーバーライドし、底辺 × 高さ ÷ 2 を返す
+    // TODO: @Override を付けて area() をオーバーライドし、
+    //       底辺 × 高さ ÷ 2 を返す
 }

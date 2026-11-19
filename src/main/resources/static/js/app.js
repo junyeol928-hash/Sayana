@@ -742,14 +742,21 @@ fitAxis(document.querySelector(".lesson-axis"));
 addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 
 /**
- * 本文の軸(PC の 1280px 以上・AI の欄が無い 1 列で、CSS が見せる): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと
+ * 本文の軸(PC の 1024px 以上で、CSS が見せる。1360px 以上の 1 列は段の名前つき、ほかは細い軸): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと
  * 段ごとの縦の運針を載せる。段・済み・いまの段は段の帯(.stepper)をそのまま写し(帯は軸がある間 CSS で隠す)、
  * 帯の済みが変われば(サンプルを 3 秒読んだ・クイズに合格・読解を全問・読んだ)軸も描き直して、その目を縫う。
  * 玉結びの位置(--k)は trackLesson の update() が決める
  */
 function buildRail(stepper, steps, backLink) {
-  const main = stepper.closest(".lesson-layout.no-tutor")?.querySelector(".lesson-main");
+  const layout = stepper.closest(".lesson-layout");
+  const main = layout?.querySelector(".lesson-main");
   if (!main) return null;
+  // 1024〜1359px の 1 列と AI の欄があるときは、段の名前を軸の左に下げる空きが無いので細い軸(CSS の .rail-thin)。
+  // どちらも軸を出さず段の帯のままだったので、署名が続かなかった(30 回目の審査)
+  const narrow = matchMedia("(max-width: 1359.98px)");
+  const setMode = () => layout.classList.toggle("rail-thin", narrow.matches || !layout.classList.contains("no-tutor"));
+  setMode();
+  narrow.addEventListener("change", setMode);
   const part = document.querySelector(".lesson-axis span")?.textContent.trim() || "";
   const rail = document.createElement("div");
   rail.className = "lesson-rail";
@@ -797,7 +804,11 @@ function trackLesson() {
   // 読解・用語集へは普通のリンクで戻り、一覧の側で押したリンクの所へ送る(PEEK_RETURN_KEY)。ブラウザの「戻る」だと、
   // 着いたレッスンで段の帯を押したあとは同じレッスンの前の段へ戻るだけだった(27 回目の審査)
   const backLink = (cls) => back ? `<a class="${cls}" href="${back[0]}${back[0] === "/review" ? "" : "?ret=1"}">${back[1]}</a>` : "";
-  if (back) stepper.insertAdjacentHTML("afterend", backLink("peek-back"));
+  if (back) {
+    stepper.insertAdjacentHTML("afterend", backLink("peek-back"));
+    // 細い軸のときの置き場(軸の左に空きが無い)。CSS が .rail-thin のときだけ見せる
+    document.querySelector(".lesson-hero .breadcrumb")?.insertAdjacentHTML("beforeend", backLink("peek-back hero-back"));
+  }
   const rail = buildRail(stepper, steps, backLink("peek-back rail-back"));
   const railItems = rail ? [...rail.querySelectorAll(".rail-step")] : [];
   const seen = pcStore(SECTIONS_KEY);
@@ -892,7 +903,7 @@ function trackLesson() {
     requestAnimationFrame(() => { ticking = false; update(); });
   };
   addEventListener("scroll", onFrame, { passive: true });
-  addEventListener("resize", onFrame); // 幅が 1280px をまたぐと軸が出たり消えたりするので、玉結びの位置も測り直す
+  addEventListener("resize", onFrame); // 幅が 1024px・1360px をまたぐと軸が出たり消えたりするので、玉結びの位置も測り直す
   // 図(Mermaid)やコードの色付けで段の高さが変わったときも、いまの段と玉結びを測り直す(スクロールが起きないと古いままだった)
   if (window.ResizeObserver) new ResizeObserver(onFrame).observe(stepper.closest(".lesson-main") || document.body);
   update();

@@ -21,7 +21,9 @@ public class NotifierConfig {
     }
 }
 
-/** お知らせの送信口(STS では com.example.shop.notify パッケージに置く) */
+/**
+ * お知らせの送信口(STS では com.example.shop.notify パッケージに置く)
+ */
 interface Notifier {
     String send(String to, String message);
 }

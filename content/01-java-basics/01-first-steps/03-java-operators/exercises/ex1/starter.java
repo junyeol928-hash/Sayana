@@ -2,7 +2,8 @@ public class Warikan {
 
     // 1人あたりの支払額(端数は切り捨て)を返す
     public static int perPerson(int total, int people) {
-        // TODO: ここに書く(total と people を使って1人あたりの金額を計算する)
+        // TODO: ここに書く
+        //       (total と people を使って1人あたりの金額を計算する)
         return 0;
     }
 

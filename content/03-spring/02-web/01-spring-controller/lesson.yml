@@ -25,7 +25,7 @@ samples:
       import org.springframework.test.web.servlet.setup.*;
       import static org.springframework.test.web.servlet
               .request.MockMvcRequestBuilders.*;
-      
+
       @RestController
       class HelloController {
           @GetMapping("/hello")   // GET /hello?name=...
@@ -33,18 +33,18 @@ samples:
                   @RequestParam(defaultValue = "ゲスト") String name) {
               return "こんにちは、" + name + "さん";
           }
-      
+
           @GetMapping("/users/{id}")   // GET /users/7
           String user(@PathVariable int id) {
               return "ユーザー" + id + "番";
           }
-      
+
           @PostMapping("/login")   // name は必須(required = true)
           String login(@RequestParam String name) {
               return name + " でログインしました";
           }
       }
-      
+
       public class Main {
           public static void main(String[] args) throws Exception {
               MockMvc mvc = MockMvcBuilders
@@ -53,7 +53,7 @@ samples:
                               new StringHttpMessageConverter(UTF_8))
                       .defaultResponseCharacterEncoding(UTF_8)
                       .build();
-      
+
               send(mvc, get("/hello"));
               send(mvc, get("/hello").param("name", "ハル"));
               send(mvc, get("/users/7"));
@@ -67,7 +67,7 @@ samples:
               // 対応表に無いパス
               send(mvc, get("/nothing"));
           }
-      
+
           static void send(MockMvc mvc, RequestBuilder req)
                   throws Exception {
               MvcResult result = mvc.perform(req).andReturn();
@@ -105,16 +105,16 @@ samples:
       import org.springframework.test.web.servlet.setup.*;
       import static org.springframework.test.web.servlet
               .request.MockMvcRequestBuilders.*;
-      
+
       record Item(int id, String name, int price) {}
-      
+
       @RestController
       @RequestMapping("/api/items")   // 共通プレフィックス
       class ItemApi {
           Map<Integer, Item> items = Map.of(
                   1, new Item(1, "ボールペン", 120),
                   2, new Item(2, "ノート", 200));
-      
+
           @GetMapping("/{id}")   // GET /api/items/{id}
           ResponseEntity<Item> find(@PathVariable int id) {
               Item item = items.get(id);
@@ -124,11 +124,11 @@ samples:
               return ResponseEntity.ok(item);   // 200 + JSON
           }
       }
-      
+
       @Controller   // 画面用。"redirect:" で始まるとリダイレクト
       class OrderController {
           long nextId = 100;
-      
+
           @PostMapping("/orders")
           String order(@RequestParam int itemId,
                        @RequestParam int quantity) {
@@ -138,7 +138,7 @@ samples:
               return "redirect:/orders/" + id;   // PRG パターン
           }
       }
-      
+
       public class Main {
           public static void main(String[] args) throws Exception {
               MockMvc mvc = MockMvcBuilders
@@ -148,13 +148,13 @@ samples:
                               new MappingJackson2HttpMessageConverter())
                       .defaultResponseCharacterEncoding(UTF_8)
                       .build();
-      
+
               send(mvc, get("/api/items/1"));
               send(mvc, get("/api/items/99"));
               send(mvc, post("/orders")
                       .param("itemId", "1").param("quantity", "3"));
           }
-      
+
           static void send(MockMvc mvc, RequestBuilder req)
                   throws Exception {
               MvcResult result = mvc.perform(req).andReturn();

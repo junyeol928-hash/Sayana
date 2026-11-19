@@ -33,7 +33,8 @@ public class TicketMachine {
         }
 
         int behind() {
-            // TODO: 自分より後に発行された枚数を返す(外側の最新の発行枚数を使う)
+            // TODO: 自分より後に発行された枚数を返す
+            //       (外側の最新の発行枚数を使う)
             return 0;
         }
     }

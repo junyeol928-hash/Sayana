@@ -1,6 +1,8 @@
 import java.time.LocalDateTime;
 
-/** 申請(エンティティの縮小版)。状態の整合性(業務ルール4・5)は自分で守る */
+/**
+ * 申請(エンティティの縮小版)。状態の整合性(業務ルール4・5)は自分で守る
+ */
 public class ApprovalRequest {
     private final Long id;
     private final String title;
@@ -12,7 +14,8 @@ public class ApprovalRequest {
     private LocalDateTime submittedAt;
     private LocalDateTime decidedAt;
 
-    public ApprovalRequest(Long id, String title, Integer amount, Employee applicant) {
+    public ApprovalRequest(
+            Long id, String title, Integer amount, Employee applicant) {
         this.id = id;
         this.title = title;
         this.amount = amount;
@@ -21,18 +24,23 @@ public class ApprovalRequest {
 
     /** 申請する(差戻し後なら再申請) */
     public void submit(LocalDateTime now) {
-        // TODO: ApprovalFlow.next(status, Action.SUBMIT) で次の状態にし、submittedAt に now を入れる
+        // TODO: ApprovalFlow.next(status, Action.SUBMIT) で
+        //       次の状態にし、submittedAt に now を入れる
     }
 
     /** 承認する。comment は任意 */
     public void approve(Employee approver, String comment, LocalDateTime now) {
-        // TODO: 状態を APPROVE 後の状態にし、approver・comment・decidedAt を記録する
+        // TODO: 状態を APPROVE 後の状態にし、
+        //       approver・comment・decidedAt を記録する
     }
 
     /** 差し戻す。コメント必須(業務ルール4) */
-    public void returnBack(Employee approver, String comment, LocalDateTime now) {
-        // TODO: comment が null か空白だけなら BusinessRuleException("差戻しにはコメントが必要です")
-        // TODO: 状態を RETURN 後の状態にし、approver・comment・decidedAt を記録する
+    public void returnBack(
+            Employee approver, String comment, LocalDateTime now) {
+        // TODO: comment が null か空白だけなら
+        //       BusinessRuleException("差戻しにはコメントが必要です")
+        // TODO: 状態を RETURN 後の状態にし、
+        //       approver・comment・decidedAt を記録する
     }
 
     /** 取り下げる */
@@ -66,7 +74,8 @@ record Employee(Long id, String name, Role role) {}
 
 /** 申請の状態(capstone-requirements の答え。完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -110,14 +119,19 @@ enum Action {
 class ApprovalFlow {
     static final int ADMIN_LIMIT = 100_000;
 
-    /** current に action をした後の状態。できなければ BusinessRuleException(業務ルール5) */
+    /**
+     * current に action をした後の状態。
+     * できなければ BusinessRuleException(業務ルール5)
+     */
     static RequestStatus next(RequestStatus current, Action action) {
         if (current.isFinal()) {
-            throw new BusinessRuleException(current.label() + "の申請は変更できません");
+            throw new BusinessRuleException(current.label()
+                    + "の申請は変更できません");
         }
         RequestStatus to = action.target();
         if (!current.canTransitionTo(to)) {
-            throw new BusinessRuleException(current.label() + "の申請は「" + action.label() + "」できません");
+            throw new BusinessRuleException(current.label() + "の申請は「"
+                    + action.label() + "」できません");
         }
         return to;
     }

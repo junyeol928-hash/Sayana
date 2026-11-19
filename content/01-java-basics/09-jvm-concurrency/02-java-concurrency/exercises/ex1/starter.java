@@ -1,5 +1,6 @@
 public class SafeCounter {
-    // TODO: 複数スレッドから同時に呼ばれると数え漏れが起きる。AtomicInteger に変える
+    // TODO: 複数スレッドから同時に呼ばれると数え漏れが起きる。
+    //       AtomicInteger に変える
     private int count = 0;
 
     public void increment() {

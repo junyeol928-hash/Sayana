@@ -61,6 +61,134 @@ class JShellRunnerTest {
     }
 
     @Test
+    void 実行時例外は編集欄の行番号で示しJShellの中の名前を出さない() {
+        // JShell は文ごとに別のスニペットにするので、スタックトレースの行番号はスニペットの頭からの数になる
+        // (どこで落ちても「1行目付近」と出ていた。29 回目の審査)
+        RunResult r = runner.run("""
+                // 1 行目はコメント
+                String input = null;
+
+                void check() {
+                    System.out.println("長さ: " + input.length());
+                }
+                check();
+                """);
+        assertThat(r.status()).isEqualTo(RunResult.Status.EXCEPTION);
+        assertThat(r.exception()).as(r.exception())
+                .startsWith("例外が発生しました: java.lang.NullPointerException:")
+                .contains("because \"input\" is null")
+                .contains("at check(5行目)")
+                .contains("at 7行目")
+                .doesNotContain("REPL").doesNotContain("$JShell").doesNotContain("付近");
+    }
+
+    @Test
+    void コメントの真下の代入文で落ちても行番号はその文の行() {
+        // 代入・複合代入・++ の文は、JShell がコメントを除いた式の頭から行を数える(コメントの行を指していた。30 回目の審査)
+        RunResult a = runner.run("""
+                int[] sales = new int[5];
+                // ここを sales[5] にすると?
+                sales[5] = 31000;
+                """);
+        assertThat(a.exception()).as(a.exception()).contains("at 3行目");
+        RunResult b = runner.run("""
+                int x = 1, y = 0;
+                // 2 行の
+                // コメント
+                x += 1 / y;
+                """);
+        assertThat(b.exception()).as(b.exception()).contains("at 4行目");
+        RunResult c = runner.run("""
+                int[] a = new int[1];
+                /* ブロックの
+                   コメント */
+                a[5]++;
+                """);
+        assertThat(c.exception()).as(c.exception()).contains("at 4行目");
+    }
+
+    @Test
+    void 自分で作った例外のクラス名と自動で呼んだmainの中の行も編集欄に合わせる() {
+        RunResult r = runner.run("""
+                class Boom extends RuntimeException {
+                    Boom(String m) { super(m); }
+                }
+                public class Main {
+                    public static void main(String[] args) {
+                        System.out.println("はじめ");
+                        throw new Boom("ばくはつ");
+                    }
+                }
+                """);
+        assertThat(r.status()).isEqualTo(RunResult.Status.EXCEPTION);
+        assertThat(r.output()).contains("はじめ");
+        // 編集欄に無い「Main.main(new String[0]);」の呼び出しの行は出さない
+        assertThat(r.exception()).as(r.exception())
+                .isEqualTo("例外が発生しました: Boom: ばくはつ\n    at Main.main(7行目)");
+    }
+
+    @Test
+    void ラムダ式の中の例外は名前を言い換えライブラリの中の行を畳んで呼んだ行まで出す() {
+        // 「lambda$do_it$$0」と JDK のストリームの 5 行で 6 行の上限が埋まり、呼んだ行が出なかった(30 回目の審査)
+        RunResult top = runner.run("""
+                var xs = List.of("a", "bb", "");
+                // 長さで割る
+                xs.stream()
+                        .map(s -> 10 / s.length())
+                        .forEach(System.out::println);
+                """);
+        assertThat(top.exception()).as(top.exception())
+                .contains("\n    at ラムダ式(4行目)\n    …(ライブラリの中の ")
+                .endsWith(" 行は省略)\n    at 5行目")
+                .doesNotContain("lambda$").doesNotContain("java.util.stream");
+        RunResult inMethod = runner.run("""
+                int total(List<String> xs) {
+                    return xs.stream().mapToInt(s -> 10 / s.length()).sum();
+                }
+                System.out.println(total(List.of("a", "")));
+                """);
+        assertThat(inMethod.exception()).as(inMethod.exception())
+                .contains("at total の中のラムダ式(2行目)")
+                .endsWith("\n    at total(2行目)\n    at 4行目");
+    }
+
+    @Test
+    void クラスの中のnullの例外も変数の名前で示す() {
+        // JShell の既定では変数の名前が残らず「because "<local1>" is null」になった(30 回目の審査)
+        RunResult local = runner.run("""
+                public class Main {
+                    public static void main(String[] args) {
+                        String name = null;
+                        System.out.println(name.length());
+                    }
+                }
+                """);
+        assertThat(local.exception()).as(local.exception()).contains("because \"name\" is null");
+        RunResult param = runner.run("""
+                class Greeter {
+                    static int len(String word) { return word.length(); }
+                }
+                Greeter.len(null);
+                """);
+        assertThat(param.exception()).as(param.exception())
+                .contains("because \"word\" is null")
+                .endsWith("\n    at Greeter.len(2行目)\n    at 4行目");
+    }
+
+    @Test
+    void 例外の文は1行目とそれ以降に分けられる() {
+        // 1 行目(例外の名前と理由)だけ朱にする。::first-line では、折り返した見た目の 1 行目で色が切れた(30 回目の審査)
+        RunResult r = runner.run("""
+                String memo = null;
+                memo.length();
+                """);
+        assertThat(r.exceptionHead()).isEqualTo("例外が発生しました: java.lang.NullPointerException: "
+                + "Cannot invoke \"String.length()\" because \"memo\" is null");
+        assertThat(r.exceptionRest()).isEqualTo("\n    at 2行目");
+        assertThat(runner.run("1 + 1").exceptionHead()).isEmpty();
+    }
+
+    @Test
     void 無限ループはタイムアウトして本体は固まらない() {
         long start = System.nanoTime();
         RunResult r = runner.run("while (true) { }", Duration.ofSeconds(2));

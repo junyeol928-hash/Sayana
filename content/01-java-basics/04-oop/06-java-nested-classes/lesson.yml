@@ -15,7 +15,8 @@ samples:
       `UserQuery.Builder` は static ネストクラスなので、`UserQuery` のインスタンスがなくても `new UserQuery.Builder()` で作れる。Builder で指定しなかった項目は、どう表示される?
     code: |
       // Builder(static ネストクラス)で検索条件を組み立てる
-      // ここを変えてみよう:minAge を指定しない検索を足す / onlyActive(false) を呼んでみる
+      // ここを変えてみよう:minAge を指定しない検索を足す /
+      // onlyActive(false) を呼んでみる
       class UserQuery {
           private final String dept;
           private final int minAge;
@@ -56,7 +57,8 @@ samples:
       `Gauge` は static のない内部クラス。`car1` だけ走らせたあと、`g1` と `g2` の `read()` はそれぞれ何 L と読む?
     code: |
       // 内部クラスは外側のインスタンス1つに結び付く
-      // ここを変えてみよう:car2 の fuel を変える / Gauge に static を付けるとどんなエラーになる?
+      // ここを変えてみよう:car2 の fuel を変える /
+      // Gauge に static を付けるとどんなエラーになる?
       class Car {
           private final String name;
           private int fuel;
@@ -66,7 +68,8 @@ samples:
           }
           void drive(int liters) { fuel -= liters; }
 
-          class Gauge {                       // static なし = 内部クラス
+          // static なし = 内部クラス
+          class Gauge {
               private final String name = "燃料計";
               String read() {
                   // this.name は Gauge 自身、Car.this.name は外側の Car
@@ -74,7 +77,8 @@ samples:
               }
           }
 
-          Gauge gauge() { return new Gauge(); }   // この Car に結び付いた Gauge を作る
+          // この Car に結び付いた Gauge を作る
+          Gauge gauge() { return new Gauge(); }
       }
 
       Car car1 = new Car("社用車A", 40);
@@ -82,8 +86,10 @@ samples:
       Car.Gauge g1 = car1.gauge();
       Car.Gauge g2 = car2.gauge();
 
-      car1.drive(12);                 // car1 だけ走らせる
-      System.out.println(g1.read());  // 外側の最新の fuel を読みに行く
+      // car1 だけ走らせる
+      car1.drive(12);
+      // 外側の最新の fuel を読みに行く
+      System.out.println(g1.read());
       System.out.println(g2.read());
   - title: 匿名クラスの Comparator で並べ替える
     description: "`new Comparator<Order>() { ... }` が匿名クラスです。並べ方のルールをその場で書いて `Arrays.sort` に渡します。同じ配列を、ルールを替えて2通りに並べています。高い順に並べたとき、先頭に来るのは誰?"
@@ -116,7 +122,8 @@ samples:
       });
       System.out.println("高い順: " + Arrays.toString(orders));
 
-      // 顧客名の順(String の compareTo は文字コード順。カタカナならほぼ五十音順)
+      // 顧客名の順(String の compareTo は文字コード順。
+      // カタカナならほぼ五十音順)
       Arrays.sort(orders, new Comparator<Order>() {
           @Override
           public int compare(Order a, Order b) {
@@ -129,7 +136,8 @@ samples:
       `new Derived()` を 2 回呼ぶ。A〜F の行は、1 回目と 2 回目でそれぞれどの順に出る?
     code: |
       // static ブロック → 初期化ブロック → コンストラクタ の順番
-      // ここを変えてみよう:3回目の new を足す / Derived のフィールドに初期値を付けて表示してみる
+      // ここを変えてみよう:3回目の new を足す /
+      // Derived のフィールドに初期値を付けて表示してみる
       class Base {
           static { System.out.println("A: Base の static ブロック"); }
           { System.out.println("C: Base の初期化ブロック"); }

@@ -542,12 +542,12 @@ a.cloth-row:hover .cloth-label, a.cloth-row:focus-visible .cloth-label { color: 
 /* PC の冒頭の要約は行の長さをそろえる(pretty でも 1024px 以上で 9 本の最後の行に「で。」だけが落ちた。28 回目の審査)。
    そろえると「仕組 / み」と語の途中で折れたので、語の切れ目で折る(29 回目の審査)。スマホ版は .lesson-layout を使わない */
 @media (min-width: 1024px) { .lesson-layout .lesson-hero .summary { text-wrap: balance; word-break: auto-phrase; } }
-/* 軸の出ない 1024〜1279px の 1 列も、コード・図・編集欄・演習だけ左右へ同じだけ張り出す(本文の行は 42 字のまま。
-   ここだけ 736px のままで、サンプルの編集欄の 3 本に 2 本が横に送られ、左右には 144〜232px の空きが残った。29 回目の審査) */
-@media (min-width: 1024px) and (max-width: 1279.98px) {
-  .lesson-layout.no-tutor { --bleed-x: clamp(0px, calc((100vw - 736px) / 2 - 72px), 100px); }
-  .lesson-layout.no-tutor :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-inline: calc(var(--bleed-x) * -1); }
-  .lesson-layout.no-tutor #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
+/* 軸の出ない 1 列(JS が動かず、軸が作れないとき)も、コード・図・編集欄・演習だけ左右へ同じだけ張り出す(本文の行は 42 字のまま。
+   736px のままでは、サンプルの編集欄の 3 本に 2 本が横に送られ、左右には 144〜232px の空きが残った。29 回目の審査) */
+@media (min-width: 1024px) {
+  .lesson-layout.no-tutor:not(.has-rail) { --bleed-x: clamp(0px, calc((100vw - 736px) / 2 - 72px), 100px); }
+  .lesson-layout.no-tutor:not(.has-rail) :is(#read .md > pre, #read .md > .figure, #read .md > .mermaid, #atwork .code-notes, .sample .code-form, .sample-out, #write .exercise) { margin-inline: calc(var(--bleed-x) * -1); }
+  .lesson-layout.no-tutor:not(.has-rail) #write .exercise .problem { max-width: calc(var(--measure) - 48px); }
 }
 .ai-off-line { font-size: .8125rem; color: var(--ink-muted); }
 /* レッスンの冒頭もホームと同じ「大きな札」: 左に藍の軸(部と章を縦書き)、題は札の文字のように */
@@ -644,13 +644,24 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
 .step small { color: var(--ink-muted); font-weight: 400; }
 @media (min-width: 1024px) { .step { font-size: 1rem; } }
 
-/* 本文の軸(PC の 1280px 以上・AI の欄が無い 1 列): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと段ごとの縦の運針を載せる。
+/* 本文の軸(PC の 1024px 以上): 冒頭の藍の軸を本文の終わりまで通し、部の縦書きと段ごとの縦の運針を載せる。
    済んだ段は糸、読んでいる段は朱の玉結びが読み進めた分だけ下りて刺し子の目を出し、まだの段は針穴。段の名前は軸の左に下げる。
    段の帯(.stepper)と同じ段・同じ済み・同じ「いまの段」を写すので、軸がある間は帯を隠す(上と左に同じ並びを 2 つ出さない)。
-   軸は app.js の buildRail が作り、作れたときだけ .has-rail を付ける(JS が動かなければ、帯のまま) */
+   軸は app.js の buildRail が作り、作れたときだけ .has-rail を付ける(JS が動かなければ、帯のまま)。
+   1360px 以上の 1 列は、48px の軸と左に下げた段の名前。1024〜1359px の 1 列と AI の欄があるときは、段の名前を左に下げる
+   空きが無いので、24px の細い軸にして名前は読み上げと、指を載せた・フォーカスしたときの札だけにする(.rail-thin。app.js)。
+   どちらも出なかったときは、1279px 以下と AI の欄がある 2 列に署名が続かなかった(30 回目の審査) */
 .lesson-rail { display: none; }
-@media (min-width: 1280px) {
+.hero-back { display: none; }
+@media (min-width: 1024px) {
   .lesson-layout.no-tutor.has-rail .lesson-main { position: relative; max-width: calc(var(--rail-w) + var(--rail-gap) + var(--measure)); padding-left: calc(var(--rail-w) + var(--rail-gap)); }
+  .lesson-layout.has-rail:not(.no-tutor) { --bleed: 0px; } /* 右は AI の欄。コードは張り出さない */
+  .lesson-layout.has-rail:not(.no-tutor) .lesson-main { position: relative; max-width: calc(var(--rail-w) + var(--rail-gap) + 760px); padding-left: calc(var(--rail-w) + var(--rail-gap)); }
+  /* 細い軸の 1 列: 軸と本文と右へ張り出すコードのまとまりを中央に置き、左右の端から 48px あける(1024px でコードは 880px。
+     帯のままの 1024〜1279px と同じ幅、1280〜1359px は 860px から 936px に広がる) */
+  .lesson-layout.rail-thin { --rail-w: 24px; --rail-gap: 24px; }
+  .lesson-layout.rail-thin.no-tutor { --bleed: clamp(0px, calc(100vw - 880px), 200px); }
+  .lesson-layout.rail-thin.no-tutor .lesson-main { left: calc(var(--bleed) / -2); }
   /* 冒頭は軸の幅だけ左へ出し、題の頭を本文の頭にそろえる。冒頭の軸は、上から下まで続く本文の軸が兼ねる */
   .has-rail .lesson-hero { margin-left: calc((var(--rail-w) + var(--rail-gap)) * -1); grid-template-columns: var(--rail-w) minmax(0, 1fr); column-gap: var(--rail-gap); }
   .has-rail .lesson-hero .lesson-axis { visibility: hidden; }
@@ -709,7 +720,18 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
   /* 段が済んだ瞬間だけ、その目を上から縫う(「縫う」240ms。動きの種類は増やさない) */
   .rail-step.just .rail-stitch::before { animation: sew-down .24s var(--ease) both; }
   .rail-back { position: absolute; top: 8px; right: calc(100% + 16px); }
+  /* 細い軸: 段は運針の目だけ。名前は読み上げに残し、指を載せた・フォーカスしたときだけ軸の右に札で出す */
+  .rail-thin .rail-part { font-size: .75rem; letter-spacing: .18em; }
+  .rail-thin .rail-step { position: relative; margin-left: 0; grid-template-columns: var(--rail-w); column-gap: 0; }
+  .rail-thin .rail-label { position: absolute; left: calc(100% + 10px); top: -4px; z-index: 2; justify-self: auto; text-align: left; padding: 4px 10px;
+    background: var(--surface); color: var(--ink); border-radius: var(--r-s); box-shadow: var(--shadow-float); opacity: 0; pointer-events: none; transition: opacity .16s var(--ease); }
+  .rail-thin .rail-step:is(:hover, :focus-visible) .rail-label { opacity: 1; text-decoration: none; }
+  .rail-thin .rail-cap, .rail-thin .rail-back { display: none; }
+  /* のぞき見の「〇〇へ戻る」は、軸の左に置く空きが無いので、冒頭の現在地の行の右に */
+  .rail-thin .hero-back { display: inline-flex; min-height: 0; padding: 0; margin-left: 16px; vertical-align: baseline; }
 }
+/* AI の欄がある 2 列は、細い軸のぶん AI の欄を 380px から 340px に詰め、本文の幅を今までと同じに保つ */
+@media (min-width: 1101px) { .lesson-layout.has-rail:not(.no-tutor) { grid-template-columns: minmax(0, 1fr) 340px; } }
 @keyframes sew-down { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .rail-stitch::before, .rail-stitch::after, .rail-label { transition: none !important; } .rail-step.just .rail-stitch::before { animation: none; } }
 
@@ -996,11 +1018,11 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .run-result:not(.status-ok) { border-left-color: var(--shu); }
 .run-meta { display: flex; justify-content: space-between; font-size: .8125rem; color: var(--ink-muted); }
 .console { background: var(--code-bg); color: var(--code-ink); margin: 8px 0; max-height: 360px; }
-.exception { background: var(--ng-soft); color: var(--ink); }
-/* PC の実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す。1 行目(例外の名前と理由)だけ朱の文字(サーモン色の塗りの箱で、
-   理由の「… is null」が右で切れていた。29 回目の審査)。スマホのサンプルの結果(.sample-result)は使わない入れ物なので変わらない */
-.sample-out pre.exception, #playground-out pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
-.sample-out pre.exception::first-line, #playground-out pre.exception::first-line { color: var(--syn-num); }
+/* 実行時例外は塗らず、出力と同じ暗い帯に折り返して最後まで出す(サーモン色の塗りの箱で、理由の「… is null」が右で切れていた。
+   PC は 29 回目、スマホのサンプルの結果は 30 回目の審査)。1 行目(例外の名前と理由)だけ朱の文字。文の 1 行目を .ex-head で包む
+   (::first-line は折り返した見た目の 1 行目にしか効かず、「is null」の手前で色が切れた。30 回目の審査) */
+pre.exception { background: var(--code-bg); color: var(--code-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.exception .ex-head { color: var(--syn-num); }
 .values .arrow { color: var(--accent-ink); font-weight: 700; }
 .diagnostics { padding-left: 1.2em; color: var(--ink); }
 .code-line { margin: 4px 0; padding: 6px 10px; background: var(--surface); border-radius: var(--r-s); font-size: 13px; color: var(--ink); }

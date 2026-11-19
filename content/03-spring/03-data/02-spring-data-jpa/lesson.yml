@@ -19,12 +19,14 @@ samples:
       import org.springframework.data.repository.query.parser.Part;
       import org.springframework.data.repository.query.parser.PartTree;
 
-      // Spring Data が派生クエリのメソッド名を解析するクラス PartTree を、直接呼んでみる
+      // Spring Data が派生クエリのメソッド名を解析するクラス
+      // PartTree を、直接呼んでみる
       class Department { Long id; String name; }
       class Employee { Long id; String name; int age; Department department; }
 
       // ここを変えてみよう:メソッド名を書き換えて再実行
-      // (Or を入れる・Asc にする・First にする・わざと nmae とつづりを間違える など)
+      // (Or を入れる・Asc にする・First にする・
+      // わざと nmae とつづりを間違える など)
       String[] names = {
           "findByNameAndAge",
           "findTop3ByDepartmentNameOrderByAgeDesc",

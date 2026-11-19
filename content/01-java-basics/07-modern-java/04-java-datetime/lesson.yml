@@ -15,23 +15,29 @@ samples:
       `start.plusDays(7)` の戻り値を捨てたあと、`start` は変わっているだろうか。1月31日の1か月後は何日になり、2023年2月29日を作ると何が起きる?
     code: |
       // 日付を作って足す。java.time は不変なので戻り値を受け取る
-      // ここを変えてみよう:start を 2024-03-31 に / plusMonths(1) を plusMonths(12) に
+      // ここを変えてみよう:start を 2024-03-31 に /
+      // plusMonths(1) を plusMonths(12) に
       import java.time.*;
 
-      LocalDate start = LocalDate.of(2024, 1, 31);   // 月は1始まり
-      start.plusDays(7);                             // × 戻り値を捨てている
+      // 月は1始まり
+      LocalDate start = LocalDate.of(2024, 1, 31);
+      // × 戻り値を捨てている
+      start.plusDays(7);
       System.out.println("捨てた後  : " + start);
 
-      LocalDate due = start.plusDays(7);             // ○ 受け取る
+      // ○ 受け取る
+      LocalDate due = start.plusDays(7);
       System.out.println("7日後     : " + due);
-      System.out.println("1か月後   : " + start.plusMonths(1));  // 2/31 はないので月末
+      // 2/31 はないので月末
+      System.out.println("1か月後   : " + start.plusMonths(1));
       System.out.println("比較      : " + start.isBefore(due));
 
       LocalDateTime dt = LocalDate.parse("2024-04-01").atTime(9, 30);
       System.out.println("日時      : " + dt);
 
       try {
-          LocalDate.of(2023, 2, 29);                 // 存在しない日付
+          // 存在しない日付
+          LocalDate.of(2023, 2, 29);
       } catch (DateTimeException e) {
           System.out.println("例外      : " + e.getMessage());
       }

@@ -61,7 +61,8 @@ public class ApprovalRequest {
     @Column(nullable = false, length = 100)
     private String title;
 
-    // TODO: 3. enum を名前の文字列で保存する(nullable = false, length = 20 の @Column も)
+    // TODO: 3. enum を名前の文字列で保存する
+    //          (nullable = false, length = 20 の @Column も)
     private RequestType type;
 
     private Integer amount;          // LEAVE(休暇)では null
@@ -69,7 +70,8 @@ public class ApprovalRequest {
     @Column(length = 1000)
     private String reason;
 
-    // TODO: 3. enum を名前の文字列で保存する(nullable = false, length = 20 の @Column も)
+    // TODO: 3. enum を名前の文字列で保存する
+    //          (nullable = false, length = 20 の @Column も)
     private RequestStatus status = RequestStatus.DRAFT;
 
     // TODO: 4. 多対一・LAZY・必須。外部キー列は applicant_id

@@ -8,7 +8,10 @@ import java.util.Map;
 
 public class ConfigLoader {
 
-    /** key=value 形式の設定ファイルを読み込む。ファイルが無ければ空の Map */
+    /**
+     * key=value 形式の設定ファイルを読み込む。
+     * ファイルが無ければ空の Map
+     */
     public static Map<String, String> load(Path file) throws IOException {
         Map<String, String> config = new HashMap<>();
 
@@ -16,8 +19,10 @@ public class ConfigLoader {
 
         // TODO: UTF-8 で全行を読み、1行ずつ処理する(行番号は1から)
         //   - trim して空の行、# で始まる行は飛ばす
-        //   - 最初の = の位置でキーと値に分け、それぞれ trim して config に入れる
-        //   - = が無い行は IllegalArgumentException("<行番号>行目: = がありません")
+        //   - 最初の = の位置でキーと値に分け、
+        //     それぞれ trim して config に入れる
+        //   - = が無い行は IllegalArgumentException を投げる
+        //     (メッセージは "<行番号>行目: = がありません")
 
         return config; // ← 今は空のまま。中身を入れてください
     }

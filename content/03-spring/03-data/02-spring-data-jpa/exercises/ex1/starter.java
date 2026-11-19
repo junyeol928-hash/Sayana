@@ -41,7 +41,8 @@ public class Employee {
     public Department getDepartment() { return department; }
 }
 
-// 部署エンティティ(@OneToMany 以外は完成済み。書き方の見本にしてください)
+// 部署エンティティ
+// (@OneToMany 以外は完成済み。書き方の見本にしてください)
 @Entity
 @Table(name = "departments")
 class Department {
@@ -53,7 +54,8 @@ class Department {
     @Column(nullable = false)
     private String name;
 
-    // TODO: 一対多(部署 → 社員)。関連の持ち主は Employee 側の department フィールド
+    // TODO: 一対多(部署 → 社員)。
+    //       関連の持ち主は Employee 側の department フィールド
     private List<Employee> employees = new ArrayList<>();
 
     protected Department() {

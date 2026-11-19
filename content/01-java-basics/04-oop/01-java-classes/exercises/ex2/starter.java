@@ -11,7 +11,8 @@ public class BankAccount {
     }
 
     boolean deposit(int amount) {
-        // TODO: amount が 0 以下なら false。そうでなければ残高を増やして true
+        // TODO: amount が 0 以下なら false。
+        //       そうでなければ残高を増やして true
         return false; // ← ダミー。書き換えてください
     }
 

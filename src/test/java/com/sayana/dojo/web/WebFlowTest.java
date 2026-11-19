@@ -89,7 +89,11 @@ class WebFlowTest {
         Lesson lesson = content.lesson("java-loops").orElseThrow();
 
         // 読む
-        mvc.perform(post("/lessons/java-loops/read")).andExpect(status().isOk());
+        // 「読了」の 1 行は本文のすぐ下の段を指す(いつも「サンプルを動かして」だった。30 回目の審査)
+        mvc.perform(post("/lessons/java-loops/read")).andExpect(status().isOk())
+                .andExpect(content().string(containsString(lesson.afterReadHint())));
+        assertThat(lesson.afterReadHint()).isEqualTo(lesson.atWork().isEmpty()
+                ? "読了。次は下のサンプルを動かしてみよう" : "読了。次は下の仕事のコードを読んでみよう");
         // 動かす
         mvc.perform(post("/run").param("code", lesson.samples().get(0).code()).param("lessonId", "java-loops"))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("実行しました")));

@@ -17,7 +17,8 @@ samples:
     code: |
       import java.util.Arrays;
 
-      int[] sales = new int[5];          // ここを new int[3] に変えてみよう
+      // ここを new int[3] に変えてみよう
+      int[] sales = new int[5];
       String[] names = new String[3];
       boolean[] done = new boolean[2];
 
@@ -25,12 +26,15 @@ samples:
       System.out.println("既定値: " + Arrays.toString(sales) + " " + Arrays.toString(names) + " " + Arrays.toString(done));
 
       sales[0] = 12000;
-      sales[4] = 31000;                  // ここを sales[5] にすると? 例外メッセージを読んでみよう
+      // ここを sales[5] にすると? 例外メッセージを読んでみよう
+      sales[4] = 31000;
       System.out.println("代入後: " + Arrays.toString(sales));
 
-      int[] primes = {2, 3, 5, 7};       // 要素を足すと length も変わる
+      // 要素を足すと length も変わる
+      int[] primes = {2, 3, 5, 7};
       System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
-      System.out.println("println に直接渡すと: " + primes);  // 謎の文字列になる(中身とは無関係な値)
+      // 謎の文字列になる(中身とは無関係な値)
+      System.out.println("println に直接渡すと: " + primes);
   - title: 代入はコピーじゃない(エイリアスとコピー)
     description: |
       `b = a` のあと `b` を書き換えたら、`a` と、`Arrays.copyOf` で作った `c` はどうなるか。`==` と `Arrays.equals` は、それぞれ何を返すか。
@@ -39,20 +43,25 @@ samples:
       import java.util.Arrays;
 
       int[] a = {1, 2, 3};
-      int[] b = a;                       // 同じ配列を指す
-      int[] c = Arrays.copyOf(a, a.length);  // 新しい配列(ここを a.clone() に変えても同じ)
+      // 同じ配列を指す
+      int[] b = a;
+      // 新しい配列(ここを a.clone() に変えても同じ)
+      int[] c = Arrays.copyOf(a, a.length);
 
-      b[0] = 99;                         // b 経由で書き換えると……
+      // b 経由で書き換えると……
+      b[0] = 99;
       System.out.println("a = " + Arrays.toString(a));
       System.out.println("b = " + Arrays.toString(b));
       System.out.println("c = " + Arrays.toString(c));
 
       System.out.println("a == b : " + (a == b));
       System.out.println("a == c : " + (a == c));
-      c[0] = 99;                         // この行を消すと Arrays.equals の結果は?
+      // この行を消すと Arrays.equals の結果は?
+      c[0] = 99;
       System.out.println("Arrays.equals(a, c) : " + Arrays.equals(a, c));
 
-      int[] longer = Arrays.copyOf(a, 5);    // 長くコピーすると残りは既定値
+      // 長くコピーすると残りは既定値
+      int[] longer = Arrays.copyOf(a, 5);
       System.out.println("longer = " + Arrays.toString(longer));
   - title: 典型アルゴリズム(合計・平均・最大・探索・カウント)
     description: |

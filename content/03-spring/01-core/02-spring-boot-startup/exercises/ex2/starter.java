@@ -63,8 +63,10 @@ class AccessLogger {
 /** 「LogSink 型の Bean がまだ無い」ときだけ true */
 class OnMissingLogSinkCondition implements Condition {
     @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        // TODO: context.getBeanFactory().getBeanNamesForType(LogSink.class, true, false) が
+    public boolean matches(
+            ConditionContext context, AnnotatedTypeMetadata metadata) {
+        // TODO: context.getBeanFactory()
+        //       .getBeanNamesForType(LogSink.class, true, false) が
         //       空のときだけ true を返す
         return true;
     }
@@ -74,7 +76,8 @@ class OnMissingLogSinkCondition implements Condition {
 // TODO: @Configuration を付ける
 public class LoggingAutoConfig {
 
-    // TODO: @Bean と @Conditional(OnMissingLogSinkCondition.class) を付ける
+    // TODO: @Bean と
+    //       @Conditional(OnMissingLogSinkCondition.class) を付ける
     LogSink logSink() {
         return new ConsoleLogSink();
     }

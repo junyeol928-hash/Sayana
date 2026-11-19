@@ -904,6 +904,105 @@ class CurriculumTest {
         return a.substring(end - best, end);
     }
 
+    @Test
+    @DisplayName("演習の雛形とサンプルのコメントは、PC の編集欄で横に送らずに読める(コメントだけの行は 72 列、行末にコメントのある行は 80 列まで。和字は 2 列)")
+    void commentsFitEditor() {
+        // PC の編集欄は 1280px で 1 行 82 列(16px の Cascadia Code。和字は 1.7 列)。TODO の指示が右で切れ、書く人が横に送って読んでいた
+        // (29 回目の審査。1280px で 54 本)。コメントだけの行は意味の切れ目で折れるので 72 列まで。コードの後ろのコメントはコードの長さに
+        // 引きずられるので 80 列まで(超えるならコメントを上の行へ移す)。コメントでないコードの行は数えない
+        List<String> problems = new java.util.ArrayList<>();
+        CONTENT.allExercises().forEach(e -> commentWidthProblems(e.key() + " の雛形", e.starter(), problems));
+        for (Lesson l : CONTENT.readyLessons()) {
+            for (Lesson.Sample s : l.samples()) {
+                commentWidthProblems(l.id() + " / " + s.title(), s.code(), problems);
+            }
+        }
+        assertThat(problems).as("編集欄で右が切れるコメント(折るか、行末のコメントを上の行へ移す)").isEmpty();
+    }
+
+    @Test
+    void starterCodeFitsEditor() {
+        // 演習の編集欄はいちばん狭い 1024px で 1 行 80 列。雛形のメソッドの宣言(書く人が最初に読む「何を受け取るか」)が
+        // 1280px で 21 本、右で切れて横に送って読んでいた(30 回目の審査)。コードの行も 80 列までに折る(引数の前で改行して 8 字下げる)。
+        // import の行は折れないので数えない
+        List<String> problems = new java.util.ArrayList<>();
+        CONTENT.allExercises().forEach(e -> {
+            String[] lines = e.starter().split("\n", -1);
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i].stripTrailing();
+                String s = line.strip();
+                if (s.startsWith("//") || s.startsWith("/*") || s.startsWith("*") || s.startsWith("import ")) {
+                    continue;
+                }
+                int w = displayWidth(line);
+                if (w > 80) {
+                    problems.add(e.key() + " の雛形の " + (i + 1) + " 行目(" + w + " 列): " + s);
+                }
+            }
+        });
+        assertThat(problems).as("編集欄で右が切れる雛形のコードの行(引数や + の前で折る)").isEmpty();
+    }
+
+    private static void commentWidthProblems(String where, String code, List<String> problems) {
+        boolean[] textBlock = { false };
+        String[] lines = code.split("\n", -1);
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].stripTrailing();
+            String s = line.strip();
+            boolean commentOnly = !textBlock[0] && (s.startsWith("//") || s.startsWith("/*") || s.startsWith("*"));
+            int at = commentOnly ? -1 : lineCommentAt(line, textBlock);
+            int w = displayWidth(line);
+            if (commentOnly && w > 72 || at >= 0 && w > 80) {
+                problems.add(where + " の " + (i + 1) + " 行目(" + w + " 列): " + s);
+            }
+        }
+    }
+
+    /** 行の中の行末コメント(// か /*)の位置。文字列・文字・テキストブロックの中は除く。無ければ -1。textBlock[0] は行をまたいで持つ */
+    private static int lineCommentAt(String line, boolean[] textBlock) {
+        char quote = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (textBlock[0]) {
+                if (line.startsWith("\"\"\"", i)) {
+                    textBlock[0] = false;
+                    i += 2;
+                }
+                continue;
+            }
+            char c = line.charAt(i);
+            if (quote != 0) {
+                if (c == '\\') {
+                    i++;
+                } else if (c == quote) {
+                    quote = 0;
+                }
+            } else if (line.startsWith("\"\"\"", i)) {
+                textBlock[0] = true;
+                i += 2;
+            } else if (c == '"' || c == '\'') {
+                quote = c;
+            } else if (line.startsWith("//", i) || line.startsWith("/*", i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** 等幅の書体で何列ぶんか(East Asian Width が W・F の字を 2 列。矢印・丸数字などのあいまいな字は 1 列) */
+    static int displayWidth(String s) {
+        int w = 0;
+        for (int i = 0; i < s.length(); ) {
+            int cp = s.codePointAt(i);
+            i += Character.charCount(cp);
+            boolean wide = cp >= 0x1100 && cp <= 0x115F || cp >= 0x2E80 && cp <= 0x303E || cp >= 0x3041 && cp <= 0x33FF
+                    || cp >= 0x3400 && cp <= 0x4DBF || cp >= 0x4E00 && cp <= 0x9FFF || cp >= 0xA000 && cp <= 0xA4CF
+                    || cp >= 0xAC00 && cp <= 0xD7A3 || cp >= 0xF900 && cp <= 0xFAFF || cp >= 0xFE30 && cp <= 0xFE4F
+                    || cp >= 0xFF00 && cp <= 0xFF60 || cp >= 0xFFE0 && cp <= 0xFFE6 || cp >= 0x1F300 && cp <= 0x1FAFF;
+            w += wide ? 2 : 1;
+        }
+        return w;
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("exercises")
     @DisplayName("模範解答は採点テストに全部合格する")

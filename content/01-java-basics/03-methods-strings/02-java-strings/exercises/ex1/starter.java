@@ -13,7 +13,8 @@ public class EmployeeId {
     // 正しい形式なら "EMP-" を大文字にした社員番号、そうでなければ null
     public static String normalize(String id) {
         // TODO: isValid でなければ null
-        // TODO: strip した文字列の数字部分(5文字)の前に "EMP-" を付けて返す
+        // TODO: strip した文字列の数字部分(5文字)の前に
+        //       "EMP-" を付けて返す
         return null; // ← ダミー。書き換えてください
     }
 

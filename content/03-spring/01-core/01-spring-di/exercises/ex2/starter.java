@@ -44,7 +44,9 @@ class ReminderService {
 
     List<String> remind(List<String> members, String message) {
         List<String> results = new ArrayList<>();
-        // TODO: members の各宛先に notifier.send(宛先, message) を呼び、戻り値を results に追加する
+        // TODO: members の各宛先について、
+        //       notifier.send(宛先, message) を呼び、
+        //       戻り値を results に追加する
 
         return results;
     }
@@ -59,7 +61,8 @@ public class AppConfig {
         return null;
     }
 
-    // TODO: @Bean を付け、notifier() を使って ReminderService を作って返す
+    // TODO: @Bean を付け、notifier() を使って
+    //       ReminderService を作って返す
     ReminderService reminderService() {
         return null;
     }
@@ -74,7 +77,8 @@ class DevConfig {
         return null;
     }
 
-    // TODO: @Bean を付け、引数で受け取った notifier で ReminderService を作って返す
+    // TODO: @Bean を付け、引数で受け取った notifier で
+    //       ReminderService を作って返す
     ReminderService reminderService(Notifier notifier) {
         return null;
     }

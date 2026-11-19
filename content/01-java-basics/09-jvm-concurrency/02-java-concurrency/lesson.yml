@@ -16,9 +16,11 @@ samples:
     code: |
       int[] numbers = new int[1000];
       for (int i = 0; i < numbers.length; i++) {
-          numbers[i] = i + 1;          // 1〜1000
+          // 1〜1000
+          numbers[i] = i + 1;
       }
-      long[] partial = new long[2];    // スレッドごとの書き込み先(別々の枠)
+      // スレッドごとの書き込み先(別々の枠)
+      long[] partial = new long[2];
 
       Thread front = new Thread(() -> {
           for (int i = 0; i < 500; i++) partial[0] += numbers[i];
@@ -27,9 +29,12 @@ samples:
           for (int i = 500; i < 1000; i++) partial[1] += numbers[i];
       });
 
-      front.start();   // ここで別スレッドが動き出す(run() と書くと今のスレッドで実行されるだけ)
+      // ここで別スレッドが動き出す
+      // (run() と書くと今のスレッドで実行されるだけ)
+      front.start();
       back.start();
-      front.join();    // 終わるまで待つ。消すと、まだ足し終わっていない値を読むことがある
+      // 終わるまで待つ。消すと、まだ足し終わっていない値を読むことがある
+      front.join();
       back.join();
 
       // ここを変えてみよう:配列の大きさや分け方を変える
@@ -52,7 +57,8 @@ samples:
 
       System.out.println("2回 count++ したのに count = " + count);
 
-      // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから B が読む順に並べ替えると?
+      // ここを変えてみよう:A が「読む・足す・書く」を全部終えてから
+      // B が読む順に並べ替えると?
   - title: AtomicInteger と synchronized なら必ず合う
     description: |
       4本のスレッドが1万回ずつ数える。素の `int` の `count++` は、実行するたびに結果が変わり得るので、このサンプルには入れていない。`AtomicInteger` と `synchronized` の数え方で、合計はそれぞれいくつになるだろうか。
@@ -99,26 +105,31 @@ samples:
           List<Future<String>> futures = new ArrayList<>();
           for (String item : List.of("ペン", "ノート", "消しゴム")) {
               futures.add(pool.submit(() -> {
-                  Thread.sleep(50);                 // 外部APIの呼び出しのつもり
+                  // 外部APIの呼び出しのつもり
+                  Thread.sleep(50);
                   return item + ":" + item.length() * 100 + "円";
               }));
           }
           for (Future<String> f : futures) {
-              System.out.println(f.get(1, TimeUnit.SECONDS));   // 投げた順に受け取る
+              // 投げた順に受け取る
+              System.out.println(f.get(1, TimeUnit.SECONDS));
           }
 
           Future<String> slow = pool.submit(() -> {
-              Thread.sleep(5_000);                  // 5秒かかる重い処理
+              // 5秒かかる重い処理
+              Thread.sleep(5_000);
               return "done";
           });
           try {
               System.out.println(slow.get(100, TimeUnit.MILLISECONDS));
           } catch (TimeoutException e) {
-              slow.cancel(true);                    // 待つのをやめ、処理にも中断を伝える
+              // 待つのをやめ、処理にも中断を伝える
+              slow.cancel(true);
               System.out.println("タイムアウトしたので諦めました");
           }
       } finally {
-          pool.shutdown();                          // 忘れるとスレッドが残り続ける
+          // 忘れるとスレッドが残り続ける
+          pool.shutdown();
           pool.awaitTermination(1, TimeUnit.SECONDS);
       }
       System.out.println("プールは止まった? " + pool.isTerminated());

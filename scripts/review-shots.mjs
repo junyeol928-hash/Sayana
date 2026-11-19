@@ -305,10 +305,11 @@ await js(`window.scrollTo(0, 0);`);
 await shot("pc-lesson-top");
 await scrollTo("#atwork .notes-toggle", 190);
 await shot("pc-lesson-atwork");
-// 本文の軸(28 回目): 1280px 以上・AI の欄が無い 1 列では、冒頭の藍の軸が本文の終わりまで続き、段ごとの縦の運針が縫い進む。
-// 読み進めた途中(読むの 45%)を 1440・1280px の明るい・暗い表示で撮る
+// 本文の軸(28 回目): 冒頭の藍の軸が本文の終わりまで続き、段ごとの縦の運針が縫い進む。1360px 以上・AI の欄が無い 1 列は
+// 段の名前つきの軸、1024〜1359px と AI の欄があるときは細い軸(30 回目のあと)。読み進めた途中(読むの 45%)を撮る
 const PC1280 = { w: 1280, h: 800, dpr: 1, mobile: false };
-for (const [name, size] of [["pc-rail-1440", DESK], ["pc-rail-1440-dark", { ...DESK, dark: true }], ["pc-rail-1280", PC1280], ["pc-rail-1280-dark", { ...PC1280, dark: true }]]) {
+const PC1024 = { w: 1024, h: 768, dpr: 1, mobile: false };
+for (const [name, size] of [["pc-rail-1440", DESK], ["pc-rail-1440-dark", { ...DESK, dark: true }], ["pc-rail-1280", PC1280], ["pc-rail-1280-dark", { ...PC1280, dark: true }], ["pc-rail-1024", PC1024]]) {
   await view(size);
   await open(pcArg + "lessons/spring-di");
   await js(`const s = document.getElementById("read"); window.scrollTo(0, s.offsetTop + s.offsetHeight * 0.45); await new Promise((r) => setTimeout(r, 600));`);
@@ -345,9 +346,18 @@ await scrollTo("#run .sample-out", 300);
 await shot("pc-run-result");
 // 演習に模範解答を出して合格したとき(28 回目: 段の帯・軸の「演習」と冒頭の色見本が、開き直すまで古いままだった)。
 // 藍に染まる瞬間を撮るため、ホームの一覧から縹(クイズ合格)で演習の残るレッスンを選ぶ(29 回目: クイズ未合格の java-hello では
-// 甕覗きのままで写らなかった)。無ければ java-hello。この作業ツリーの data/ の記録が進む(選んだレッスンは藍になる)
+// 甕覗きのままで写らなかった)。藍には STS のチェックも全部要る(ProgressService の dyeLevel)ので、STS の段が無いか済んだレッスンに限る
+// (30 回目の撮影の spring-di は STS が残っていて縹のままだった)。無ければ STS の無い最初のレッスン(藍にはならない、と知らせる)。
+// この作業ツリーの data/ の記録が進む(選んだレッスンは藍になる)
 await open(pcArg);
-const exLesson = (await js(`const a = [...document.querySelectorAll('.lesson-row a[data-dye="2"]')].find((x) => Number(x.dataset.exercises) > 0); return a ? a.dataset.lesson : "";`)) || "java-hello";
+const exPick = await js(`const rows = [...document.querySelectorAll(".lesson-row a[data-lesson]")];
+  const noSts = (a) => !(a.dataset.steps || "").split(" ").includes("sts") || (a.dataset.done || "").split(" ").includes("sts");
+  const ok = rows.find((a) => a.dataset.dye === "2" && Number(a.dataset.exercises) > 0 && noSts(a));
+  if (ok) return ok.dataset.lesson;
+  const any = rows.find((a) => Number(a.dataset.exercises) > 0 && noSts(a));
+  return "!" + (any ? any.dataset.lesson : "java-variables");`);
+const exLesson = exPick.replace(/^!/, "");
+if (exPick.startsWith("!")) console.log("演習の合格: 縹で演習が残り STS の済んだレッスンが記録に無いので、" + exLesson + " で撮る(藍に染まる瞬間は写らない)");
 await open(pcArg + "lessons/" + exLesson);
 console.log("演習の合格(" + exLesson + "):", await js(`const cards = [...document.querySelectorAll("#write .exercise")];
   for (const c of cards) {
@@ -368,23 +378,48 @@ for (const [name, size] of [["pc-run-exception", DESK], ["pc-run-exception-dark"
   await view(size);
   await open(pcArg + "playground");
   const npe = ["String input = null;", 'System.out.println("比べる前");', 'System.out.println(input.equals("GOLD"));'].join("\n");
-  await js(`const ta = document.querySelector("textarea[name=code]"); ta.value = ${JSON.stringify(npe)}; document.querySelector(".run-form button[type=submit]").click();
+  // 編集欄(CodeMirror)の中身も入れ替える(textarea だけ替えると、写る編集欄と例外の行番号が食い違った)
+  await js(`const ta = document.querySelector("textarea[name=code]"); ta.value = ${JSON.stringify(npe)}; const v = ta._cmView; if (v) v.dispatch({ changes: { from: 0, to: v.state.doc.length, insert: ta.value } }); document.querySelector(".run-form button[type=submit]").click();
     for (let i = 0; i < 60 && !document.querySelector("#playground-out .run-result"); i++) await new Promise((r) => setTimeout(r, 250));`);
-  console.log("実行時例外の文:", await js(`const e = document.querySelector("#playground-out .exception"); return e ? e.textContent.split(String.fromCharCode(10))[0] + " / 横のはみ出し " + (e.scrollWidth > e.clientWidth + 1) : "なし";`));
+  console.log("実行時例外の文:", await js(`const e = document.querySelector("#playground-out .exception"); return e ? e.textContent.split(String.fromCharCode(10)).map((x) => x.trim()).join(" / ") + " / 横のはみ出し " + (e.scrollWidth > e.clientWidth + 1) : "なし";`));
   await scrollTo("#playground-out", 200);
   await shot(name);
 }
+// サンプルそのままで止まる実行時例外(30 回目の前: JShell の文ごとの「1行目付近」をやめ、編集欄の行番号「at (14行目)」に)
+await view(DESK);
+await open(pcArg + "lessons/java-variables");
+console.log("サンプルの実行時例外:", await js(`const s = [...document.querySelectorAll(".sample")].find((x) => (x.querySelector("textarea[name=code]")?.value || "").includes("memo.length()"));
+  if (!s) return "サンプルが見つからない"; s.querySelector(".run-form button[type=submit]").click();
+  for (let i = 0; i < 60 && !s.querySelector(".exception"); i++) await new Promise((r) => setTimeout(r, 250));
+  s.querySelector(".exception")?.scrollIntoView({ block: "center" }); await new Promise((r) => setTimeout(r, 500));
+  return (s.querySelector(".exception")?.textContent || "なし").split(String.fromCharCode(10)).map((x) => x.trim()).join(" / ");`));
+await shot("pc-sample-exception");
 await view(DESK);
 // 全レッスンを 1280px で開き、軸が出ない・段の数が帯と違う・段の名前が画面の左へ出る・横にはみ出す数(目標はどれも 0)と、
 // 横に送られる編集欄の数(28 回目: 736px の幅で 149 本のうち 96 本。コードだけ右へ張り出して、目標は 30 本以下)
-// サンプルと演習の編集欄を分けて [サンプルの横送り, サンプル, 演習の横送り, 演習] を返す
+// サンプルと演習の編集欄を分けて [サンプルの横送り, サンプル, 演習の横送り, 演習, 右で切れる TODO の行, TODO の行,
+// 右で切れる雛形の行, 雛形の行] を返す(30 回目: 雛形のメソッドの宣言が 1280px で 21 本、右で切れた。目標 0)
+// (29 回目: 演習の TODO の指示が 1440px で 28 行、1280px で 54 行、右で切れた。コメントを 72 列までに折って目標 0。
+// CodeMirror は画面の近くの行しか描かないので、編集欄ごとに画面の中ほどへ送ってから数える)
 const cmCount = `const ov = (s) => s.scrollWidth > s.clientWidth + 1; const sm = [...document.querySelectorAll(".sample .cm-scroller")], ex = [...document.querySelectorAll(".exercise .cm-scroller")];
-  return [sm.filter(ov).length, sm.length, ex.filter(ov).length, ex.length];`;
+  let cut = 0, todo = 0, cutAll = 0, all = 0;
+  for (const s of ex) {
+    s.scrollIntoView({ block: "center" }); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const right = s.getBoundingClientRect().right;
+    for (const l of s.querySelectorAll(".cm-line")) {
+      const r = document.createRange(); r.selectNodeContents(l); const over = r.getBoundingClientRect().right > right + 1;
+      all++; if (over) cutAll++;
+      if (!l.textContent.includes("TODO")) continue;
+      todo++; if (over) cut++;
+    }
+  }
+  return [sm.filter(ov).length, sm.length, ex.filter(ov).length, ex.length, cut, todo, cutAll, all];`;
 const addCount = (acc, c) => c.forEach((n, i) => { acc[i] += n; });
 await view(PC1280);
 const railBad = [];
-const cm1280 = [0, 0, 0, 0];
+const cm1280 = [0, 0, 0, 0, 0, 0, 0, 0];
 const summaryOrphan = [];
+const summaryParticle = [];
 for (const id of ids) {
   await send("Page.navigate", { url: pcArg + "lessons/" + id });
   await sleep(1200);
@@ -399,15 +434,31 @@ for (const id of ids) {
     // コードのチップの矩形は上端が数 px ずれるので、上端の差が 8px 以内なら同じ行にまとめる
     const rows = []; for (const q of [...r.getClientRects()].sort((a, b) => a.top - b.top)) { const row = rows.find((w) => Math.abs(w.top - q.top) < 8); if (row) row.w += q.width; else rows.push({ top: q.top, w: q.width }); }
     return rows.length > 1 && rows[rows.length - 1].w <= 40;`)) summaryOrphan.push(id);
+  // 冒頭の要約で、英字の名前・チップ・閉じ括弧の直後の助詞が行頭に来るか(30 回目: 「素の Java / で体験してから」が 7 / 55。目標 0)
+  if (await js(`const s = document.querySelector(".lesson-hero .summary"); if (!s) return false; const w = document.createTreeWalker(s, NodeFilter.SHOW_TEXT);
+    let lastTop = null, last = "", lastCode = false;
+    for (let n = w.nextNode(); n; n = w.nextNode()) for (let i = 0; i < n.data.length; i++) {
+      const ch = n.data[i]; if (/[\\s\\u00a0\\u2060]/.test(ch)) continue;
+      const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1); const q = r.getClientRects()[0]; if (!q) continue;
+      const code = !!n.parentElement.closest("code");
+      if (lastTop != null && q.top > lastTop + 8 && /[ぁ-ゖ]/.test(ch) && !code && (lastCode || /[A-Za-z0-9_.)\\]」』）]/.test(last))) return true;
+      lastTop = q.top; last = ch; lastCode = code;
+    }
+    return false;`)) summaryParticle.push(id);
 }
 console.log("1280px で冒頭の要約の最後の行が 2 字以下:", summaryOrphan.length, "/", ids.length, summaryOrphan.join(" "));
+console.log("1280px で冒頭の要約の行頭が英字・チップの直後の助詞:", summaryParticle.length, "/", ids.length, summaryParticle.join(" "));
 console.log("1280px の本文の軸の不具合:", railBad.length, "/", ids.length, railBad.join(" "));
-console.log("1280px で横に送られる編集欄: サンプル", cm1280[0], "/", cm1280[1], "・演習", cm1280[2], "/", cm1280[3]);
+console.log("1280px で横に送られる編集欄: サンプル", cm1280[0], "/", cm1280[1], "・演習", cm1280[2], "/", cm1280[3], "・右で切れる TODO の行", cm1280[4], "/", cm1280[5], "・右で切れる雛形の行", cm1280[6], "/", cm1280[7]);
+// 1280px の演習の雛形(29 回目: java-exceptions の 11・13・17・18 行目の TODO が右で切れた)
+await open(pcArg + "lessons/java-exceptions");
+await scrollTo("#write .exercise .cm-editor", 120);
+await shot("pc1280-exercise-todo");
 // 1440px で全レッスンを復習の「読み直す」(#quiz-q1)で開き、3 秒後に問いの頭が画面の上半分にあるか(28 回目: 図が描けて上の段が
 // 伸び、55 本のうち 10 本で問いが画面の外へ流された。目標 0)と、横に送られる編集欄の数
 await view(DESK);
 const driftBad = [], hashBad = [];
-const cm1440 = [0, 0, 0, 0];
+const cm1440 = [0, 0, 0, 0, 0, 0, 0, 0];
 for (const id of ids) {
   await send("Page.navigate", { url: pcArg + "lessons/" + id + "?from=review#quiz-q1" });
   await sleep(3000);
@@ -422,7 +473,7 @@ for (const id of ids) {
 }
 console.log("1440px の読み直すで問いが画面の上半分にない:", driftBad.length, "/", ids.length, driftBad.join(" "));
 console.log("1440px の #write で演習の見出しが 230±12px にない:", hashBad.length, hashBad.join(" "));
-console.log("1440px で横に送られる編集欄: サンプル", cm1440[0], "/", cm1440[1], "・演習", cm1440[2], "/", cm1440[3]);
+console.log("1440px で横に送られる編集欄: サンプル", cm1440[0], "/", cm1440[1], "・演習", cm1440[2], "/", cm1440[3], "・右で切れる TODO の行", cm1440[4], "/", cm1440[5], "・右で切れる雛形の行", cm1440[6], "/", cm1440[7]);
 // ホームの「続きから」で開いたとき(28 回目: 前回の続きのクイズではなく、1 画面上のサンプルに着いた)。3 秒後の前回の段の頭の位置
 await open(pcArg);
 await js(`localStorage.setItem("javadojo-pc-last", JSON.stringify({ id: "spring-di", title: "DIとIoCコンテナ", section: "quiz", off: 40, end: false })); location.reload();`);
@@ -456,8 +507,12 @@ for (let k = 0; k < 12; k++) {
   if (!more) break;
 }
 await open(pcArg + "review?retry=99&r=100");
-await scrollTo(".review-done, .review-break", 90);
-await shot("pc-review-retry-end");
+// 今日の記録に間違えた問が無いと、解き直しの終わりは作れない(上書きの ?r= で「解き直した 0 問は、まだ」と「ホームへ」2 つの
+// 画面になった。30 回目)。そのときは知らせて撮らない(pc-review-answer と同じ)
+if (await js(`return !!document.querySelector(".retry-done");`)) {
+  await scrollTo(".review-done, .review-break", 90);
+  await shot("pc-review-retry-end");
+} else console.log("PC の復習: 今日の記録に間違えた問が無いので、解き直しの終わりは撮りません(data/ を消すと撮れる)");
 // 「読み直す」で問いそのものへ着いたとき(1.2 秒の藍の枠とフォーカス)。枠が消える前に撮る
 await send("Page.navigate", { url: pcArg + "lessons/java-if?from=review#quiz-q1" });
 let landed = "";

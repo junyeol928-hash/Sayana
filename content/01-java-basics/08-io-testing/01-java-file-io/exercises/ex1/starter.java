@@ -8,7 +8,8 @@ public class LogCounter {
 
     /** log の中で [ERROR] を含む行の数を返す */
     public static long countErrors(Path log) throws IOException {
-        // TODO: log を UTF-8 で1行ずつ読み、"[ERROR]" を含む行を数えて返す
+        // TODO: log を UTF-8 で1行ずつ読み、
+        //       "[ERROR]" を含む行を数えて返す
         //       Files.lines を使うなら try-with-resources で閉じること
 
         return 0; // ← ダミー。書き換えてください

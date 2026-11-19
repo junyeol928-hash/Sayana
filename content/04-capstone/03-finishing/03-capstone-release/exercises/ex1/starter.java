@@ -44,7 +44,8 @@ interface RequestService {
     RequestDetail approve(Long id, String loginId);
 }
 
-// ===== web.api(用意済み。Controller の中にはもう @ExceptionHandler を書かない) =====
+// ===== web.api(用意済み) =====
+// Controller の中にはもう @ExceptionHandler を書かない
 record RequestDetail(Long id, String title, RequestStatus status) {
 }
 
@@ -58,7 +59,8 @@ class RequestApiController {
     }
 
     @GetMapping
-    List<RequestDetail> list(@RequestParam(required = false) RequestStatus status) {
+    List<RequestDetail> list(
+            @RequestParam(required = false) RequestStatus status) {
         return service.findByStatus(status);
     }
 
@@ -74,23 +76,29 @@ class RequestApiController {
 }
 
 // ===== web.api の共通エラーハンドラ =====
-// TODO: @RestControllerAdvice を付け、ResponseEntityExceptionHandler を継承する
+// TODO: @RestControllerAdvice を付け、
+//       ResponseEntityExceptionHandler を継承する
 public class ApiExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ApiExceptionHandler.class);
 
-    // TODO: BusinessRuleException → 409・title「業務ルール違反」・detail に例外メッセージ
+    // TODO: BusinessRuleException → 409・
+    //       title「業務ルール違反」・detail に例外メッセージ
     public ProblemDetail onRule(BusinessRuleException e) {
         return null;
     }
 
-    // TODO: RequestNotFoundException → 404・title「申請が見つかりません」・detail に例外メッセージ
+    // TODO: RequestNotFoundException →
+    //       404・title「申請が見つかりません」・detail に例外メッセージ
     public ProblemDetail onNotFound(RequestNotFoundException e) {
         return null;
     }
 
-    // TODO: それ以外の例外 → 500・title「システムエラー」・detail「時間をおいて再度お試しください」。
-    //       例外メッセージは返さない。errorId(UUID の先頭8文字)を作り、ログ(log.error)と本文の両方に入れる
+    // TODO: それ以外の例外 → 500・title「システムエラー」・
+    //       detail「時間をおいて再度お試しください」。
+    //       例外メッセージは返さない。errorId(UUID の先頭8文字)を作り、
+    //       ログ(log.error)と本文の両方に入れる
     public ProblemDetail onUnexpected(Exception e) {
         return null;
     }

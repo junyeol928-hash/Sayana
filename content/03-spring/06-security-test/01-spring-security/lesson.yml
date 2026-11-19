@@ -14,7 +14,8 @@ samples:
     description: haru と mocha が同じパスワードを使っています。仕組みの体験用で、本番は BCrypt を使います。ソルトなしとソルトありで、2 人のハッシュはそれぞれ同じになる?
     code: |
       // SHA-256 でハッシュ化して16進数で表示する
-      // ここを変えてみよう:パスワードを "password" や "haru-pass" に、ソルトの文字列を変える
+      // ここを変えてみよう:パスワードを "password" や "haru-pass" に、
+      // ソルトの文字列を変える
       import java.security.MessageDigest;
       import java.util.HexFormat;
 
@@ -36,7 +37,8 @@ samples:
     description: Spring Security の `authorizeHttpRequests` と同じく、上から順に見て最初に一致したルールで判定します。一般ユーザーの haru が `/admin/users` を開くと、許可と拒否のどちら?2 行目と 3 行目を入れ替えたら、どうなるだろうか。
     code: |
       // URL とルールの対応表(上から順に評価)
-      // ここを変えてみよう:2行目と3行目を入れ替える / path を "/administrator" にする
+      // ここを変えてみよう:2行目と3行目を入れ替える /
+      // path を "/administrator" にする
       record Rule(String prefix, String need) {}
 
       List<Rule> rules = List.of(

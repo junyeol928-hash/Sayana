@@ -113,8 +113,9 @@ public class ReviewController {
                 session.removeAttribute(RETRY_KEY);
                 state = null;
             }
-            if (retryResults != null) {
-                // 問ごとの正誤を URL で渡したとき(撮影とテスト用): 1 回目の解き直しを終えた状態にする
+            if (retryResults != null && !again.isEmpty()) {
+                // 問ごとの正誤を URL で渡したとき(撮影とテスト用): 1 回目の解き直しを終えた状態にする。
+                // 解き直す問が無い日は無視する(「解き直した 0 問は、まだ」と「ホームへ」が 2 つ並んだ。30 回目の撮影)
                 String r = retryResults.replaceAll("[^01]", "");
                 r = r.substring(0, Math.min(r.length(), again.size()));
                 Map<Long, Boolean> given = new java.util.HashMap<>();

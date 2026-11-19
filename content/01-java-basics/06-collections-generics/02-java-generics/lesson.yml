@@ -30,7 +30,7 @@ samples:
       // ジェネリクス版。キャスト不要で、間違った型はコンパイル時に弾かれる
       List<String> names = new ArrayList<>();
       names.add("佐藤");
-      // names.add(42);                    // ← コメントを外すとコンパイルエラー
+      // names.add(42);  // ← コメントを外すとコンパイルエラー
       String first = names.get(0);
       System.out.println("ジェネリクス版: " + first);
   - title: Pair クラスとジェネリックメソッド
@@ -66,7 +66,8 @@ samples:
       int qty = stock.getValue();            // Integer → int(アンボクシング)
       System.out.println(item + " の在庫: " + qty);
 
-      // ここを変えてみよう:List.of(2.5, 1.5) や List.of("kiwi", "apple") にする
+      // ここを変えてみよう:List.of(2.5, 1.5) や
+      // List.of("kiwi", "apple") にする
       System.out.println("最大値: " + max(List.of(3, 9, 4)));
       System.out.println("最大値: " + max(List.of("kiwi", "apple", "melon")));
   - title: ワイルドカード(? extends と ? super)
@@ -96,7 +97,8 @@ samples:
       addSamples(numbers);
       addSamples(objects);
       System.out.println("numbers: " + numbers + " / objects: " + objects);
-      // ここを変えてみよう:sum の引数を List<Number> に変えると、sum(ints) はどうなる?
+      // ここを変えてみよう:sum の引数を List<Number> に変えると、
+      // sum(ints) はどうなる?
   - title: 型消去と Integer の比較
     description: |
       `List<String>` と `List<Integer>` の `getClass()` は同じだろうか。`Integer` の 1000 同士を `==` と `equals` で比べると、それぞれ何が出る?

@@ -26,8 +26,10 @@ samples:
               super(name);               // 親のコンストラクタで name を初期化
               this.hours = hours;
           }
-          // ここを変えてみよう:@Override を消してメソッド名を salaly に typo すると?
-          // (@Override ありならコンパイルエラー、なしなら黙って 200000 が返る)
+          // ここを変えてみよう:@Override を消して、
+          // メソッド名を salaly に typo すると?
+          // (@Override ありならコンパイルエラー、
+          // なしなら黙って 200000 が返る)
           @Override
           int salary() { return hours * 1_200; }
       }
@@ -64,8 +66,10 @@ samples:
           C() { System.out.println("C のコンストラクタ"); }
       }
 
-      // ここを変えてみよう:new B() にする / B の super(); を2行目に移動してみる
-      // (Java 21 ではコンパイルエラー。Java 25 以降は this を使わない文なら super() の前に書ける)
+      // ここを変えてみよう:new B() にする /
+      // B の super(); を2行目に移動してみる
+      // (Java 21 ではコンパイルエラー。
+      // Java 25 以降は this を使わない文なら super() の前に書ける)
       new C();
   - title: toString と equals をオーバーライドする
     description: |

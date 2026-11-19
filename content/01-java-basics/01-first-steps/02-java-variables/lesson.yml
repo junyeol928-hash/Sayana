@@ -68,7 +68,8 @@ samples:
       System.out.println(1.15 * 100);
 
       // BigDecimal は文字列で作ると正確
-      java.math.BigDecimal x = new java.math.BigDecimal("0.1"); // "0.1" を 0.1(クォートなし)に変えてみよう
+      // "0.1" を 0.1(クォートなし)に変えてみよう
+      java.math.BigDecimal x = new java.math.BigDecimal("0.1");
       java.math.BigDecimal y = new java.math.BigDecimal("0.2");
       System.out.println(x.add(y));
   - title: var・ラッパークラス・null
@@ -80,7 +81,8 @@ samples:
       var name = "Haru";            // String と推論される
       var total = 10_000_000_000L;  // long と推論される
       System.out.println(name + " " + count + " " + total);
-      // count = "ten";  // ← 先頭の // を消すとコンパイルエラー。var でも count は int のまま
+      // count = "ten";  // ← 先頭の // を消すとコンパイルエラー
+      //                      var でも count は int のまま
 
       Integer boxed = count;        // int → Integer(オートボクシング)
       int raw = boxed;              // Integer → int(アンボクシング)

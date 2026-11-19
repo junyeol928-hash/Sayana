@@ -2,7 +2,8 @@ public class LeapYear {
 
     // year がうるう年なら true を返す
     public static boolean isLeapYear(int year) {
-        // TODO: ここに書く(if を使わず、% と == != && || で1つの式にして return する)
+        // TODO: ここに書く。if を使わず、
+        //       % と == != && || で1つの式にして return する
         return false;
     }
 

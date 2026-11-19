@@ -13,7 +13,8 @@ samples:
   - title: Service を Spring も DB も使わずにテストする
     description: Repository のインターフェースにメモリ実装を渡すだけで、業務ロジック(メールの重複チェック)を確かめられます。大文字・空白違いの 2 回目の登録は弾かれるだろうか。3 つのチェックは、それぞれ `✔` と `✘` のどちらになる?そのあと `toLowerCase()` を消したら、どう変わるだろうか。
     code: |
-      // Service を Spring も DB も使わずにテストする:Repository をメモリ実装に差し替えるだけ
+      // Service を Spring も DB も使わずにテストする:
+      // Repository をメモリ実装に差し替えるだけ
       interface MemberRepository {
           boolean existsByEmail(String email);
           void save(String email);
@@ -32,7 +33,8 @@ samples:
           MemberService(MemberRepository repository) { this.repository = repository; }
 
           void register(String email) {
-              String normalized = email.strip().toLowerCase(); // ここを変えてみよう:toLowerCase() を消す
+              // ここを変えてみよう:toLowerCase() を消す
+              String normalized = email.strip().toLowerCase();
               if (repository.existsByEmail(normalized)) {
                   throw new IllegalStateException("登録済みのメールです: " + normalized);
               }
@@ -46,14 +48,16 @@ samples:
       }
 
       InMemoryMemberRepository repo = new InMemoryMemberRepository();
-      MemberService service = new MemberService(repo);   // new するだけ。Spring もDBも不要
+      // new するだけ。Spring もDBも不要
+      MemberService service = new MemberService(repo);
 
       service.register("taro@example.com");
       check("1件目は登録できる", repo.emails.contains("taro@example.com"));
 
       boolean rejected;
       try {
-          service.register(" TARO@example.com ");   // 大文字・空白違いの同じアドレス
+          // 大文字・空白違いの同じアドレス
+          service.register(" TARO@example.com ");
           rejected = false;
       } catch (IllegalStateException e) {
           rejected = true;
@@ -68,7 +72,8 @@ samples:
       import org.springframework.context.annotation.AnnotationConfigApplicationContext;
       import org.springframework.stereotype.*;
 
-      // 3層を Spring のコンテナで組み立てる(Spring Boot ならコンポーネントスキャンが自動でやる部分)
+      // 3層を Spring のコンテナで組み立てる
+      // (Spring Boot ならコンポーネントスキャンが自動でやる部分)
       interface MemberRepository {
           void save(String name);
           List<String> findAll();
@@ -110,7 +115,8 @@ samples:
           }
       }
 
-      // ここを変えてみよう:InMemoryMemberRepository.class を消すと、起動時にどんなエラーになる?
+      // ここを変えてみよう:InMemoryMemberRepository.class を消すと、
+      // 起動時にどんなエラーになる?
       var ctx = new AnnotationConfigApplicationContext(
               MemberController.class,
               MemberService.class,
@@ -121,7 +127,8 @@ samples:
       System.out.println(controller.post("  "));
       System.out.println(controller.post("佐藤花子"));
 
-      // コンテナが作った Bean はシングルトン:何度 getBean しても同じインスタンス
+      // コンテナが作った Bean はシングルトン:
+      // 何度 getBean しても同じインスタンス
       MemberService s1 = ctx.getBean(MemberService.class);
       MemberService s2 = ctx.getBean(MemberService.class);
       System.out.println("同じ Service? " + (s1 == s2));

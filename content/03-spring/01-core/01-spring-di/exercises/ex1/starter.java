@@ -52,9 +52,11 @@ public class OrderService {
     }
 
     public int placeOrder(String orderId, int unitPrice, int quantity) {
-        // TODO: quantity が 0 以下なら IllegalArgumentException を投げる
+        // TODO: quantity が 0 以下なら
+        //       IllegalArgumentException を投げる
 
-        // TODO: 小計を taxPolicy で税込にし、orderRepository に保存して、税込金額を返す
+        // TODO: 小計を taxPolicy で税込にし、
+        //       orderRepository に保存して、税込金額を返す
 
         return 0; // ← ダミー。書き換えてください
     }

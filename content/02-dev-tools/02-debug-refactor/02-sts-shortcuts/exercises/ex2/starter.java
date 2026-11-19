@@ -7,8 +7,10 @@ record Item(String name, int unitPrice, int quantity) {
 public class Invoice {
 
     /**
-     * 請求書の文字列を作る。動作は正しいが、1つのメソッドに全部入っていて長い。
-     * TODO: 下の4つのメソッドに処理を分け、build からはそれらを呼ぶように書き換える。
+     * 請求書の文字列を作る。動作は正しいが、
+     * 1つのメソッドに全部入っていて長い。
+     * TODO: 下の4つのメソッドに処理を分け、
+     *       build からはそれらを呼ぶように書き換える。
      *       出力される文字列は1文字も変えないこと。
      */
     public static String build(List<Item> items, boolean member) {
@@ -17,7 +19,8 @@ public class Invoice {
         for (Item item : items) {
             subtotal += item.unitPrice() * item.quantity();
         }
-        // 割引:会員は小計の10%、非会員でも小計1万円以上なら5%(端数切り捨て)
+        // 割引:会員は小計の10%、非会員でも
+        // 小計1万円以上なら5%(端数切り捨て)
         int discount = 0;
         if (member) {
             discount = subtotal * 10 / 100;

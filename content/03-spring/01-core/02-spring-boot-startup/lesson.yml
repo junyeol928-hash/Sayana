@@ -30,7 +30,8 @@ samples:
       }
 
       // 「自動設定」のつもり:利用者が Notifier を定義していれば、それを使う。
-      // 無ければ既定の ConsoleNotifier で動く(@ConditionalOnMissingBean の考え方)
+      // 無ければ既定の ConsoleNotifier で動く
+      // (@ConditionalOnMissingBean の考え方)
       @Configuration
       class AlertAutoConfig {
           @Bean
@@ -62,7 +63,8 @@ samples:
       }
 
       System.out.println("--- 利用者が Notifier を定義した ---");
-      // ここを変えてみよう:UserConfig の slackNotifier を消したり、別の Notifier を返したりする
+      // ここを変えてみよう:UserConfig の slackNotifier を消したり、
+      // 別の Notifier を返したりする
       try (var ctx = new AnnotationConfigApplicationContext(
               UserConfig.class, AlertAutoConfig.class)) {
           ctx.getBean(AlertService.class).alert("ディスク残量 5%");
@@ -73,11 +75,14 @@ samples:
     code: |
       import org.springframework.util.ClassUtils;
 
-      // @ConditionalOnClass の考え方:「その jar(クラス)がクラスパスにあるか」で設定を使うか決める
-      // この実行環境には Spring・Jackson・Tomcat の jar は入っているが、Thymeleaf と MySQL ドライバは入っていない
+      // @ConditionalOnClass の考え方:
+      // 「その jar(クラス)がクラスパスにあるか」で設定を使うか決める
+      // この実行環境には Spring・Jackson・Tomcat の jar は入っているが、
+      // Thymeleaf と MySQL ドライバは入っていない
       record AutoConfig(String name, String requiredClass) { }
 
-      // ここを変えてみよう:自分で思いつくクラス名(java.time.LocalDate など)を足してみる
+      // ここを変えてみよう:
+      // 自分で思いつくクラス名(java.time.LocalDate など)を足してみる
       List<AutoConfig> candidates = List.of(
               new AutoConfig("JacksonAutoConfiguration",
                       "com.fasterxml.jackson.databind.ObjectMapper"),

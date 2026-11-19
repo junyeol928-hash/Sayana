@@ -50,7 +50,8 @@ samples:
       manual.placeOrder("haru@example.com", "コーヒー豆");
 
       System.out.println("--- ② IoC コンテナに組み立てを任せる ---");
-      // ここを変えてみよう:LogMailSender.class を消して実行すると?(部品が無くて起動失敗)
+      // ここを変えてみよう:LogMailSender.class を消して実行すると?
+      // (部品が無くて起動失敗)
       var ctx = new AnnotationConfigApplicationContext(
               LogMailSender.class, OrderService.class);
       OrderService s = ctx.getBean(OrderService.class);
@@ -148,7 +149,8 @@ samples:
           }
       }
 
-      // ここを変えてみよう:BadCartService の上に @Scope("prototype") を付けると?
+      // ここを変えてみよう:BadCartService の上に
+      // @Scope("prototype") を付けると?
       var ctx = new AnnotationConfigApplicationContext(
               BadCartService.class, GoodCartService.class);
 

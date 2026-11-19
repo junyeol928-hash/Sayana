@@ -11,13 +11,16 @@ public class MavenPlan {
     public static List<String> plan(String command) {
         List<String> result = new ArrayList<>();
 
-        // TODO: command が null・空白だけなら IllegalArgumentException を投げる
+        // TODO: command が null・空白だけなら
+        //       IllegalArgumentException を投げる
 
         // TODO: command.trim().split("\\s+") で1つずつ取り出し、
         //   - "clean" なら "clean" を追加
-        //   - DEFAULT_PHASES にあるなら validate からそのフェーズまでを順に追加
+        //   - DEFAULT_PHASES にあるなら
+        //     validate からそのフェーズまでを順に追加
         //   - ":" を含むならそのまま追加
-        //   - どれでもなければ IllegalArgumentException(メッセージに指定を含める)
+        //   - どれでもなければ IllegalArgumentException
+        //     (メッセージに指定を含める)
         //   ※ すでに result にあるものは追加しない
 
         return result;
