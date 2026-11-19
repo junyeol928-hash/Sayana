@@ -588,7 +588,20 @@ function fitAxis(ax) {
 }
 
 fitAxis(document.querySelector(".lesson-axis"));
-document.fonts?.ready.then(() => fitAxis(document.querySelector(".lesson-axis")));
+// 描いた直後は書体の読み込みやチップの組み直しで冒頭がまだ縮むので、冒頭の高さが変わるたびに合わせ直す
+// (合わせ直すと高さがまた変わるので、次の描画で。同じ大きさなら何もしない)
+(() => {
+  const ax = document.querySelector(".lesson-axis");
+  const hero = ax?.closest(".lesson-hero");
+  if (!hero || !window.ResizeObserver) return;
+  let last = "";
+  new ResizeObserver(([e]) => {
+    const size = `${Math.round(e.contentRect.width)}x${Math.round(e.contentRect.height)}`;
+    if (size === last) return;
+    last = size;
+    requestAnimationFrame(() => fitAxis(ax));
+  }).observe(hero);
+})();
 addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 
 /** 読んでいる段を段の並びに示し、縫い線を進める */

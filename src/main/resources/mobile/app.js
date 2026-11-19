@@ -830,7 +830,7 @@ async function renderLesson(id) {
   decorate(view());
   trackLesson(id, steps.map(([key]) => key), !!peek);
   fitAxis($(".lesson-axis"));
-  document.fonts?.ready.then(() => fitAxis($(".lesson-axis")));
+  watchAxis($(".lesson-axis"));
 }
 
 const seenSection = (id, key) => !!S.sections?.[id]?.includes(key);
@@ -842,6 +842,26 @@ let lessonTracker = null;
  * まだ入らなければ字間を詰め、それでも入らなければ冒頭の高さを軸の字の長さまで伸ばす
  * (軸の高さは本文に合わせているので、本文の短いレッスンでは字が 2 列目へ折れ、「礎」だけが左に残った。26 回目の審査)
  */
+/**
+ * 冒頭の高さが変わるたびに軸を合わせ直す。描いた直後は書体の読み込みやチップの組み直しで冒頭がまだ縮むので、
+ * その時点で入っていても、縮んだあとに 2 列目へ折れていた(27 回目の撮影で 55 本中 2 本)
+ */
+let axisWatch = null;
+function watchAxis(ax) {
+  axisWatch?.disconnect();
+  const hero = ax?.closest(".lesson-hero");
+  if (!hero || !window.ResizeObserver) return;
+  let last = "";
+  axisWatch = new ResizeObserver(([e]) => {
+    const size = `${Math.round(e.contentRect.width)}x${Math.round(e.contentRect.height)}`;
+    if (size === last) return;
+    last = size;
+    // 合わせ直すと冒頭の高さがまた変わるので、次の描画で(同じ描画の中で観測が回り続けないように)
+    requestAnimationFrame(() => fitAxis(ax));
+  });
+  axisWatch.observe(hero);
+}
+
 function fitAxis(ax) {
   if (!ax) return;
   const hero = ax.closest(".lesson-hero");
