@@ -90,7 +90,9 @@
 
     <section id="run" class="lesson-section" th:if="${!lesson.samples.isEmpty()}" aria-labelledby="run-title">
         <h2 class="section-title" id="run-title">サンプルを動かす</h2>
-        <p class="section-lead">実行する前に、何が出るかを<b>予想</b>してから押そう。予想と違った所が、いちばん身につく所です。サンプルはこの画面で実行でき(JShell)、書き換えて何度でも試せます。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。</p>
+        <p class="section-lead">実行する前に、何が出るかを<b>予想</b>してから押そう。予想と違った所が、いちばん身につく所です。サンプルはこの画面で実行でき(JShell)、書き換えて何度でも試せます。<kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。
+            <!--/* 編集欄の中の Tab は字下げなので、キーボードで外へ出る方法を書いておく(編集欄が aria-describedby で指す) */-->
+            <span id="editor-keys-run" data-editor-help>編集欄の中の <kbd>Tab</kbd> は字下げ。外へ出るときは <kbd>Esc</kbd> のあと <kbd>Tab</kbd>。</span></p>
         <div class="sample" th:each="s, st : ${lesson.samples}">
             <h3 th:text="${s.title}"></h3>
             <div class="md" th:utext="${s.descriptionHtml}"></div>
@@ -132,7 +134,8 @@
     <section id="write" class="lesson-section" th:if="${!exercises.isEmpty()}" aria-labelledby="write-title">
         <h2 class="section-title" id="write-title">演習・AIに見てもらう</h2>
         <p class="section-lead">提出すると別のJVMでJUnitが走って採点されます(10秒で打ち切り)。
-            採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。</p>
+            採点後は「AIに講評してもらう」で、正解でも<b>より良い書き方・現場ならこう書く</b>を教えてもらえます。
+            <span id="editor-keys-write" data-editor-help>編集欄の中の <kbd>Tab</kbd> は字下げ。外へ出るときは <kbd>Esc</kbd> のあと <kbd>Tab</kbd>。</span></p>
         <!--/* AI の設定の有無は、AI の入口(この段)でだけ知らせる。ヘッダーやレッスンの冒頭には出さない */-->
         <p class="muted small" th:unless="${aiAvailable}">AI は未設定です(教材と自動採点はそのまま使えます。設定の手順は README)。</p>
         <th:block th:each="view : ${exercises}">

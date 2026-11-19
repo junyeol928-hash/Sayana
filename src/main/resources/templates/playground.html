@@ -5,9 +5,10 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container narrow">
     <h1 class="page-title">プレイグラウンド</h1>
-    <p class="muted">JShell で自由にコードを試せます。文・式・メソッド・クラスを並べて書けます。<code>main</code> を持つクラスだけを書いた場合は自動で <code>main</code> を呼びます。</p>
+    <p class="muted">JShell で自由にコードを試せます。文・式・メソッド・クラスを並べて書けます。<code>main</code> を持つクラスだけを書いた場合は自動で <code>main</code> を呼びます。
+        <span id="editor-keys-playground" data-editor-help><kbd>Ctrl</kbd>+<kbd>Enter</kbd> でも実行。編集欄の中の <kbd>Tab</kbd> は字下げ。外へ出るときは <kbd>Esc</kbd> のあと <kbd>Tab</kbd>。</span></p>
     <form class="code-form run-form card" hx-post="/run" hx-target="#playground-out" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]">
-        <textarea class="code-editor tall" name="code" rows="18" spellcheck="false" th:text="${code}"></textarea>
+        <textarea class="code-editor tall" name="code" rows="18" spellcheck="false" aria-label="プレイグラウンドのコード" th:text="${code}"></textarea>
         <div class="actions">
             <button type="submit" class="btn primary">実行</button>
             <label class="small"><input type="checkbox" name="libraries" value="spring"> Spring を使う</label>
