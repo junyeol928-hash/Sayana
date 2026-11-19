@@ -25,7 +25,7 @@
   }, {
     "title" : "九九表と多重ループ(StringBuilder で組み立て)",
     "descriptionHtml" : "<p>外側のループが1回まわる間に、内側のループが最後までまわる。\n<code>max</code> を変えたり、<code>continue</code> / <code>break</code> の行のコメントを外したりして動きを確かめよう。\n内側のループの本体は、全部で何回実行される?</p>\n",
-    "code" : "int max = 9;   // ← ここを変えてみよう(5 や 12 など)\nStringBuilder sb = new StringBuilder();\nint count = 0;\nfor (int i = 1; i <= max; i++) {\n    for (int j = 1; j <= max; j++) {\n        // if (j == 5) continue;   // ← コメントを外すと 5 の列が飛ばされる\n        // if (j > i) break;       // ← コメントを外すと三角形の表になる\n        int v = i * j;\n        if (v < 10) sb.append(' ');\n        if (v < 100) sb.append(' ');\n        sb.append(' ').append(v);\n        count++;\n    }\n    sb.append('\\n');\n}\nSystem.out.print(sb);\nSystem.out.println(\"内側の本体を実行した回数: \" + count);\n",
+    "code" : "int max = 9;   // ← ここを変えてみよう(5 や 12 など)\nStringBuilder sb = new StringBuilder();\nint count = 0;\nfor (int i = 1; i <= max; i++) {\n    for (int j = 1; j <= max; j++) {\n        // if (j == 5) continue; // ← 外すと 5 の列が飛ばされる\n        // if (j > i) break;     // ← 外すと三角形の表になる\n        int v = i * j;\n        if (v < 10) sb.append(' ');\n        if (v < 100) sb.append(' ');\n        sb.append(' ').append(v);\n        count++;\n    }\n    sb.append('\\n');\n}\nSystem.out.print(sb);\nSystem.out.println(\"内側の本体を実行した回数: \" + count);\n",
     "result" : {
       "status" : "OK",
       "output" : "   1   2   3   4   5   6   7   8   9\n   2   4   6   8  10  12  14  16  18\n   3   6   9  12  15  18  21  24  27\n   4   8  12  16  20  24  28  32  36\n   5  10  15  20  25  30  35  40  45\n   6  12  18  24  30  36  42  48  54\n   7  14  21  28  35  42  49  56  63\n   8  16  24  32  40  48  56  64  72\n   9  18  27  36  45  54  63  72  81\n内側の本体を実行した回数: 81\n",
