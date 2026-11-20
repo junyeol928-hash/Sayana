@@ -151,26 +151,44 @@ await scrollTo(".fig-scroll", 140);
 await shot("m-figure-svg");
 // コードのコメントが語の途中で割れていないか(30 回目のあと: 行末のコメントが「null のままだ / と NullPointerException」と割れた)。
 // 折り返した続きの行が助詞・送り仮名(文節の頭に来ないひらがな)で始まり、前の行が和文で終わるものを全レッスンで数える
-let commentSplit = 0, commentWraps = 0;
+let commentSplit = 0, commentWraps = 0, blankRows = 0;
 const splitAt = [];
 for (const id of ids) {
   await send("Page.navigate", { url: mobileArg + "#/lesson/" + id });
   await sleep(900);
-  const r = await js(`let bad = 0, all = 0; const at = [];
+  // 31 回目の審査のあと: カタカナ同士(「コメ / ント」)・英数字同士の語の途中の割れと、行番号の行が空のまま中身が次の行から始まる行も数える
+  const r = await js(`let bad = 0, all = 0, blank = 0; const at = [];
     for (const c of document.querySelectorAll("pre.code-lines .hljs-comment")) {
       const range = document.createRange(); let top = null, prev = "";
       const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
       for (let n = w.nextNode(); n; n = w.nextNode()) for (let i = 0; i < n.data.length; i++) {
         range.setStart(n, i); range.setEnd(n, i + 1); const q = range.getClientRects()[0]; if (!q) continue;
-        if (top !== null && q.top - top > 5) { all++; if (/[をはがのにへとでやもかねよばてただっゃゅょぁぃぅぇぉんるれりず]/.test(n.data[i]) && /[\\u3041-\\u30ff\\u4e00-\\u9fff]/.test(prev)) { bad++; at.push(prev + " / " + n.data[i]); } }
+        if (top !== null && q.top - top > 5) {
+          all++;
+          const ch = n.data[i];
+          const particle = /[をはがのにへとでやもかねよばてただっゃゅょぁぃぅぇぉんるれりず]/.test(ch) && /[\\u3041-\\u30ff\\u4e00-\\u9fff]/.test(prev);
+          const kata = /[\\u30a1-\\u30fa\\u30fc]/.test(ch) && /[\\u30a1-\\u30fa\\u30fc]/.test(prev);
+          const latin = /\\w/.test(ch) && /\\w/.test(prev);
+          if (particle || kata || latin) { bad++; at.push(prev + " / " + ch); }
+        }
         top = q.top; prev = n.data[i];
       }
     }
-    return [bad, all, at.slice(0, 3)];`);
-  commentSplit += r[0]; commentWraps += r[1];
-  if (r[0]) splitAt.push(id + "(" + r[2].join("・") + ")");
+    for (const ln of document.querySelectorAll("pre.code-lines .ln")) {
+      const box = ln.getBoundingClientRect(); if (!box.height) continue;
+      const range = document.createRange(); const w = document.createTreeWalker(ln, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        const k = n.data.search(/[^\\s\\u00a0]/); if (k < 0) continue;
+        range.setStart(n, k); range.setEnd(n, k + 1); const q = range.getClientRects()[0];
+        if (q && q.top - box.top > 8) blank++;
+        break;
+      }
+    }
+    return [bad, all, at.slice(0, 3), blank];`);
+  commentSplit += r[0]; commentWraps += r[1]; blankRows += r[3];
+  if (r[0] || r[3]) splitAt.push(id + "(" + r[2].join("・") + (r[3] ? " 空の行 " + r[3] : "") + ")");
 }
-console.log("390px でコードのコメントが語の途中で割れる:", commentSplit, "/ 折り返し", commentWraps, splitAt.join(" "));
+console.log("390px でコードのコメントが語の途中で割れる:", commentSplit, "/ 折り返し", commentWraps, "・行番号の行が空:", blankRows, splitAt.join(" "));
 await open(mobileArg + "#/lesson/java-variables");
 await js(`const l = [...document.querySelectorAll("pre.code-lines .ln")].find((x) => x.textContent.includes("memo.length()")); l.scrollIntoView({ block: "center" });`);
 await sleep(400);
