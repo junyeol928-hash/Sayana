@@ -14,7 +14,10 @@ public class ScoreStats {
         return count;
     }
 
-    /** 平均点以上(平均ちょうどを含む)の人数を返す。null または空配列なら 0。 */
+    /**
+     * 平均点以上(平均ちょうどを含む)の人数を返す。
+     * null または空配列なら 0。
+     */
     public static int countAtOrAboveAverage(int[] scores) {
         if (scores == null || scores.length == 0) {
             return 0;

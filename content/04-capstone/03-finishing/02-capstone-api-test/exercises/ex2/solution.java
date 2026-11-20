@@ -18,11 +18,14 @@ enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
 record Employee(Long id, String name, String email) {
 }
 
-/** STS では JPA のエンティティ(class + getter)。採点用に record で簡略化している */
+/**
+ * STS では JPA のエンティティ(class + getter)。
+ * 採点用に record で簡略化している
+ */
 record ApprovalRequest(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, Employee applicant, Employee approver,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, Employee applicant,
+        Employee approver, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 }
 
 /** 業務ルール違反(業務ルール7) */
@@ -44,21 +47,24 @@ interface RequestService {
     /** なければ RequestNotFoundException */
     ApprovalRequest get(Long id);
 
-    /** loginId の人が承認する。なければ RequestNotFoundException、ルール違反は BusinessRuleException */
+    /**
+     * loginId の人が承認する。なければ RequestNotFoundException、
+     * ルール違反は BusinessRuleException
+     */
     ApprovalRequest approve(Long id, String loginId);
 }
 
 // ===== web.api の DTO(用意済み) =====
 record RequestDetail(Long id, String title, RequestType type, Integer amount,
-        String reason, RequestStatus status, String applicantName, String approverName,
-        String comment, LocalDateTime createdAt, LocalDateTime submittedAt,
-        LocalDateTime decidedAt) {
+        String reason, RequestStatus status, String applicantName,
+        String approverName, String comment, LocalDateTime createdAt,
+        LocalDateTime submittedAt, LocalDateTime decidedAt) {
 
     static RequestDetail from(ApprovalRequest r) {
         String approverName = r.approver() == null ? null : r.approver().name();
-        return new RequestDetail(r.id(), r.title(), r.type(), r.amount(), r.reason(),
-                r.status(), r.applicant().name(), approverName, r.comment(),
-                r.createdAt(), r.submittedAt(), r.decidedAt());
+        return new RequestDetail(r.id(), r.title(), r.type(), r.amount(),
+                r.reason(), r.status(), r.applicant().name(), approverName,
+                r.comment(), r.createdAt(), r.submittedAt(), r.decidedAt());
     }
 }
 
@@ -85,14 +91,16 @@ public class RequestApiController {
 
     @ExceptionHandler(BusinessRuleException.class)
     public ProblemDetail onRule(BusinessRuleException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT, e.getMessage());
         pd.setTitle("業務ルール違反");
         return pd;
     }
 
     @ExceptionHandler(RequestNotFoundException.class)
     public ProblemDetail onNotFound(RequestNotFoundException e) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, e.getMessage());
         pd.setTitle("申請が見つかりません");
         return pd;
     }

@@ -8,12 +8,17 @@ public class TimeFormatter {
         final int secondsPerHour = 3600;
         final int secondsPerMinute = 60;
 
-        int hours = totalSeconds / secondsPerHour;   // 時間(int 同士の割り算なので切り捨て)
-        int rest = totalSeconds % secondsPerHour;    // 時間の分を除いた残りの秒数
-        int minutes = rest / secondsPerMinute;       // 分
-        int seconds = rest % secondsPerMinute;       // 秒
+        // 時間(int 同士の割り算なので切り捨て)
+        int hours = totalSeconds / secondsPerHour;
+        // 時間の分を除いた残りの秒数
+        int rest = totalSeconds % secondsPerHour;
+        // 分
+        int minutes = rest / secondsPerMinute;
+        // 秒
+        int seconds = rest % secondsPerMinute;
 
-        // ここは書き換えなくてOK(%02d は「2桁になるよう左を0で埋める」という指定)
+        // ここは書き換えなくてOK
+        // (%02d は「2桁になるよう左を0で埋める」という指定)
         return String.format("%d:%02d:%02d", hours, minutes, seconds);
     }
 }

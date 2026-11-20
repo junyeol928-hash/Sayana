@@ -23,7 +23,8 @@ samples:
       boolean[] done = new boolean[2];
 
       System.out.println("sales の長さ: " + sales.length);
-      System.out.println("既定値: " + Arrays.toString(sales) + " " + Arrays.toString(names) + " " + Arrays.toString(done));
+      System.out.println("既定値: " + Arrays.toString(sales) + " "
+              + Arrays.toString(names) + " " + Arrays.toString(done));
 
       sales[0] = 12000;
       // ここを sales[5] にすると? 例外メッセージを読んでみよう
@@ -32,7 +33,8 @@ samples:
 
       // 要素を足すと length も変わる
       int[] primes = {2, 3, 5, 7};
-      System.out.println("primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
+      System.out.println(
+              "primes: " + Arrays.toString(primes) + " 長さ " + primes.length);
       // 謎の文字列になる(中身とは無関係な値)
       System.out.println("println に直接渡すと: " + primes);
   - title: 代入はコピーじゃない(エイリアスとコピー)
@@ -90,7 +92,8 @@ samples:
 
       System.out.println("合計: " + total);
       System.out.println("平均: " + avg);
-      System.out.println("最大: " + (maxIndex + 1) + "日目 (" + sales[maxIndex] + "円)");
+      System.out.println(
+              "最大: " + (maxIndex + 1) + "日目 (" + sales[maxIndex] + "円)");
       System.out.println(target + " が最初に出るインデックス: " + found);
       System.out.println("1万円以上の日数: " + over10k);
   - title: 二次元配列とジャグ配列
@@ -110,7 +113,8 @@ samples:
       for (int i = 0; i < hours.length; i++) {
           int sum = 0;
           for (int h : hours[i]) sum += h;   // hours[i] の長さだけ回る
-          System.out.println("社員" + i + ": " + hours[i].length + "日 / " + sum + "時間");
+          System.out.println(
+                  "社員" + i + ": " + hours[i].length + "日 / " + sum + "時間");
       }
 
       System.out.println(Arrays.deepToString(hours));

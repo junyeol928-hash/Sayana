@@ -23,7 +23,9 @@ samples:
       // 本番では JPA の実装が入る場所。テストでは HashSet で十分
       class InMemoryMemberRepository implements MemberRepository {
           final Set<String> emails = new HashSet<>();
-          public boolean existsByEmail(String email) { return emails.contains(email); }
+          public boolean existsByEmail(String email) {
+              return emails.contains(email);
+          }
           public void save(String email) { emails.add(email); }
       }
 
@@ -36,7 +38,8 @@ samples:
               // ここを変えてみよう:toLowerCase() を消す
               String normalized = email.strip().toLowerCase();
               if (repository.existsByEmail(normalized)) {
-                  throw new IllegalStateException("登録済みのメールです: " + normalized);
+                  throw new IllegalStateException(
+                          "登録済みのメールです: " + normalized);
               }
               repository.save(normalized);
           }
@@ -132,7 +135,8 @@ samples:
       MemberService s1 = ctx.getBean(MemberService.class);
       MemberService s2 = ctx.getBean(MemberService.class);
       System.out.println("同じ Service? " + (s1 == s2));
-      System.out.println("Repository の中身: " + ctx.getBean(MemberRepository.class).findAll());
+      System.out.println(
+              "Repository の中身: " + ctx.getBean(MemberRepository.class).findAll());
       ctx.close();
 quiz:
   - question: |

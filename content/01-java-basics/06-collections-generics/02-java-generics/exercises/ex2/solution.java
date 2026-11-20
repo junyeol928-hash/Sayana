@@ -37,6 +37,7 @@ public class ExpenseReport {
 
         List<Number> audit = new ArrayList<>();
         int n = collectLarge(List.of(3000, 52000, 50000, 800), 50000, audit);
-        System.out.println(n + "件: " + audit);                  // 2件: [52000.0, 50000.0]
+        // 出力: 2件: [52000.0, 50000.0]
+        System.out.println(n + "件: " + audit);
     }
 }

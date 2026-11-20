@@ -16,25 +16,36 @@ import org.springframework.web.bind.annotation.RestController;
 /** テストの「準備」をまとめたクラス */
 public class OrderTestSupport {
 
-    /** 渡された Service(スタブ)を差し込んだ OrderController の MockMvc を組み立てる */
+    /**
+     * 渡された Service(スタブ)を差し込んだ OrderController の
+     * MockMvc を組み立てる
+     */
     static MockMvc mockMvc(OrderService service) {
         return MockMvcBuilders.standaloneSetup(new OrderController(service))
-                // standaloneSetup の既定は ISO-8859-1。日本語を返すので UTF-8 にする
-                .setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8),
+                // standaloneSetup の既定は ISO-8859-1。
+                // 日本語を返すので UTF-8 にする
+                .setMessageConverters(
+                        new StringHttpMessageConverter(StandardCharsets.UTF_8),
                         new MappingJackson2HttpMessageConverter())
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .build();
     }
 }
 
-/** テスト用の手書きスタブ。Mockito の when/thenReturn と verify を手で書いたもの */
+/**
+ * テスト用の手書きスタブ。Mockito の when/thenReturn と
+ * verify を手で書いたもの
+ */
 class StubOrderService implements OrderService {
 
     private final Map<String, List<Order>> data = new HashMap<>();
     /** findByCustomer が呼ばれたときの引数を、呼ばれた順に記録する */
     final List<String> calledWith = new ArrayList<>();
 
-    /** customerId で呼ばれたら orders を返すように仕込む(when(...).thenReturn(...) に相当) */
+    /**
+     * customerId で呼ばれたら orders を返すように仕込む
+     * (when(...).thenReturn(...) に相当)
+     */
     StubOrderService willReturn(String customerId, Order... orders) {
         data.put(customerId, List.of(orders));
         return this;
@@ -43,7 +54,8 @@ class StubOrderService implements OrderService {
     @Override
     public List<Order> findByCustomer(String customerId) {
         calledWith.add(customerId);
-        // 仕込んでいない顧客は空リスト(null を返すと Controller が NullPointerException になる)
+        // 仕込んでいない顧客は空リスト
+        // (null を返すと Controller が NullPointerException になる)
         return data.getOrDefault(customerId, List.of());
     }
 }
@@ -75,6 +87,7 @@ class OrderController {
     public String total(@PathVariable("id") String id) {
         List<Order> orders = service.findByCustomer(id);
         int sum = orders.stream().mapToInt(Order::amount).sum();
-        return String.format(Locale.JAPAN, "合計 %,d円(%d件)", sum, orders.size());
+        return String.format(Locale.JAPAN, "合計 %,d円(%d件)",
+                sum, orders.size());
     }
 }

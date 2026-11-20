@@ -61,7 +61,8 @@ public class CheckoutService {
     public int totalBy(String method, int amount) {
         PaymentGateway gateway = gateways.get(method);
         if (gateway == null) {
-            throw new IllegalArgumentException("未対応の決済手段です: " + method);
+            throw new IllegalArgumentException(
+                    "未対応の決済手段です: " + method);
         }
         return amount + gateway.fee(amount);
     }

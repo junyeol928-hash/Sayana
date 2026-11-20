@@ -53,7 +53,8 @@ public class OrderService {
 
     public int placeOrder(String orderId, int unitPrice, int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("数量は1以上で指定してください: " + quantity);
+            throw new IllegalArgumentException(
+                    "数量は1以上で指定してください: " + quantity);
         }
         int total = taxPolicy.withTax(unitPrice * quantity);
         orderRepository.save(orderId, total);

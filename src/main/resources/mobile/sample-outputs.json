@@ -15,20 +15,6 @@
       "exception" : null,
       "varies" : false
     },
-    "082e5bf6194b56f19b04abdd" : {
-      "status" : "OK",
-      "output" : "合計: 64000\n平均: 12800.0\n最大: 5日目 (21000円)\n8000 が最初に出るインデックス: 1\n1万円以上の日数: 3\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "0888a90a41993577dfee8ebf" : {
-      "status" : "OK",
-      "output" : "① 失敗: Java 8 date/time type `java.time.LocalDate` not supported by default: add Module \"com.fasterxml.jackson.datatype:jackson-datatype-jsr310\" to enable handling (or disable `MapperFeature.REQUIRE_HANDLERS_FOR_JAVA8_TIMES`) (through reference chain: REPL.$JShell$14$TaskResponse[\"dueDate\"])\n② {\"id\":1,\"title\":\"見積書を作る\",\"dueDate\":[2026,10,31]}\n③ {\"id\":1,\"title\":\"見積書を作る\",\"dueDate\":\"2026-10-31\"}\n④ TaskResponse[id=2, title=請求書を送る, dueDate=2026-11-05]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "0912ab9188bfa5319d8ffd45" : {
       "status" : "OK",
       "output" : "佐藤 → if版: 開発 / Optional版: 開発\n鈴木 → if版: 未所属 / Optional版: 未所属\n田中 → if版: 未所属 / Optional版: 未所属\n(null) → if版: 未所属 / Optional版: 未所属\n",
@@ -43,6 +29,13 @@
       "exception" : null,
       "varies" : false
     },
+    "10b60ea227e96150575331a0" : {
+      "status" : "OK",
+      "output" : "次へ: /requests/search?status=SUBMITTED&keyword=%E5%87%BA%E5%BC%B5%20%E5%A4%A7%E9%98%AA&page=1\n  status = SUBMITTED\n  keyword = 出張 大阪\n  page = 1\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "12691cb38f7a7d263e9ad4a1" : {
       "status" : "OK",
       "output" : "GET /api/items/1 → 200\n  application/json\n  {\"id\":1,\"name\":\"ボールペン\",\"price\":120}\nGET /api/items/99 → 404\n  (注文を登録: 商品1 × 3)\nPOST /orders → 302\n  Location: /orders/100\n",
@@ -50,9 +43,9 @@
       "exception" : null,
       "varies" : false
     },
-    "1432353c14f614730f8f696b" : {
+    "131a8f82f4e3e21625fc7762" : {
       "status" : "OK",
-      "output" : "[age は 150 以下にしてください, email は必須です]\n[]\n",
+      "output" : "byte=127 short=32000 int=2000000000 long=9000000000\nfloat=3.14 double=3.14 char=J boolean=true\nint : -2147483648 〜 2147483647\nlong: -9223372036854775808 〜 9223372036854775807\n31\n10\n1000000\n8\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -92,6 +85,13 @@
       "exception" : null,
       "varies" : false
     },
+    "1c1240bafa4143c46d85b0b8" : {
+      "status" : "OK",
+      "output" : "ルール違反: 100,000円以上の申請は管理者しか承認できません(状態は SUBMITTED のまま)\n部長が承認しました → APPROVED\n履歴 1 件: [History[action=APPROVE, actor=部長]]\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "1c40e3462b4683405a0ab437" : {
       "status" : "OK",
       "output" : "input == \"GOLD\"      → false\ninput.equals(\"GOLD\") → true\n\"GOLD\".equals(input) → true\n会員区分: ゴールド会員\n",
@@ -103,13 +103,6 @@
       "status" : "OK",
       "output" : "a.value = 5\na == b ? true\nlist[0] = null\nlist[2].value = 20\n",
       "values" : [ "5" ],
-      "exception" : null,
-      "varies" : false
-    },
-    "1ef94f53d64643978becb21d" : {
-      "status" : "OK",
-      "output" : "✔ 1件目は登録できる\n  例外メッセージ: 登録済みのメールです: taro@example.com\n✔ 大文字・空白違いでも重複として弾く\n✔ 登録件数は1件のまま\n",
-      "values" : [ ],
       "exception" : null,
       "varies" : false
     },
@@ -151,6 +144,13 @@
     "2b665b2888de22beb4975ed6" : {
       "status" : "OK",
       "output" : "100 / 100.0\n(int) 3.99 = 3\n(byte) 200 = -56\n3\n3.5\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "2bfaedb423bc2604415265eb" : {
+      "status" : "OK",
+      "output" : "No. | 件名 | 金額 | 状態\n1 | 交通費 | 1,200円 | 下書き\n3 | 夏季休暇 | - | 承認済\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -197,9 +197,9 @@
       "exception" : null,
       "varies" : false
     },
-    "34138c4b4eef19e54c7ddd72" : {
+    "33d43509cc55edeb3dcf5aaa" : {
       "status" : "OK",
-      "output" : "--- 利用者の設定なし ---\n(Notifier が無いので既定の ConsoleNotifier を使います)\n[CONSOLE] ディスク残量 5%\n--- 利用者が Notifier を定義した ---\n[SLACK #ops] ディスク残量 5%\n",
+      "output" : "[Controller] POST /api/keys cardId=C001\n  [Service] issue(C001)\n    [Repository] existsActive(C001)\n結果: 409 重複\n\n[Controller] POST /api/keys cardId=C100\n  [Service] issue(C100)\n    [Repository] existsActive(C100)\n\n--- スタックトレース(自分のクラスの行だけ) ---\nKeyIssueFailedException: 鍵の発行に失敗しました cardId=C100\n    at KeyIssueService.issue\n    at KeyIssueController.post\nCaused by: RepositoryException: DB 接続がタイムアウトしました\n    at KeyRepository.existsActive\n    at KeyIssueService.issue\n    at KeyIssueController.post\n--- 根本原因(一番下の Caused by) ---\nRepositoryException: DB 接続がタイムアウトしました\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -218,7 +218,7 @@
       "exception" : null,
       "varies" : false
     },
-    "38208bb75d1b1212b1923298" : {
+    "3a300d140879251cd52eae73" : {
       "status" : "OK",
       "output" : "■ ハンドラなし\n  例外が Controller の外へ漏れた: TaskNotFoundException: タスク 99 は見つかりません\n■ ハンドラあり\n  404 application/problem+json\n  {\"type\":\"about:blank\",\"title\":\"タスクが見つかりません\",\"status\":404,\"detail\":\"タスク 99 は見つかりません\",\"instance\":\"/api/tasks/99\"}\n",
       "values" : [ ],
@@ -232,7 +232,7 @@
       "exception" : null,
       "varies" : false
     },
-    "3d44d168a6c96ed5f7e42b8b" : {
+    "3d8ec8fd031b8a07af052d1e" : {
       "status" : "OK",
       "output" : "行の数: 3\n社員0: 5日 / 40時間\n社員1: 3日 / 18時間\n社員2: 5日 / 41時間\n[[8, 8, 7, 8, 9], [6, 6, 6], [8, 9, 8, 8, 8]]\n[[I@246b179d, [I@7a07c5b4, [I@26a1ab54]\n",
       "values" : [ ],
@@ -252,6 +252,27 @@
       "values" : [ ],
       "exception" : null,
       "varies" : true
+    },
+    "40afc9331410f1164e5e20b4" : {
+      "status" : "OK",
+      "output" : "申請者ID=1 / 金額=120000\nハル  APPLICANT ボタン表示:なし サーバー判定:× 承認者ではない\nモカ  APPROVER  ボタン表示:あり サーバー判定:× 高額は管理者だけ\n部長  ADMIN     ボタン表示:あり サーバー判定:○ 承認できる\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "42b9880d8bea7a288b9a896e" : {
+      "status" : "OK",
+      "output" : "■ CatchAllAdvice\n  GET(未対応のメソッド)    → 500\n  POST(Content-Type なし) → 500\n  POST(壊れた JSON)       → 500\n    {\"type\":\"about:blank\",\"title\":\"Internal Server Error\",\"status\":500,\"detail\":\"システムエラーが発生しました\",\"instance\":\"/api/tasks\"}\n■ BetterAdvice\n  GET(未対応のメソッド)    → 405\n  POST(Content-Type なし) → 415\n  POST(壊れた JSON)       → 400\n    {\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/tasks\"}\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "43239cef5ed75d93633e0fb1" : {
+      "status" : "OK",
+      "output" : "使った条件: 2 個\nReq[id=1, title=大阪出張の交通費, status=SUBMITTED, type=EXPENSE]\nReq[id=3, title=出張用モバイルルーター, status=SUBMITTED, type=PURCHASE]\n任意条件 1 個 → 派生クエリ 2 本\n任意条件 2 個 → 派生クエリ 4 本\n任意条件 3 個 → 派生クエリ 8 本\n任意条件 4 個 → 派生クエリ 16 本\n任意条件 5 個 → 派生クエリ 32 本\n任意条件 6 個 → 派生クエリ 64 本\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
     },
     "4499d44b5c20215c106fc3b9" : {
       "status" : "OK",
@@ -278,6 +299,13 @@
       "status" : "OK",
       "output" : "x = 5, i = 6\ny = 7, i = 7\nj = 10\nbt = -128\n",
       "values" : [ "10", "-128" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "480f8156bb332e19c28e9020" : {
+      "status" : "OK",
+      "output" : "addPoints 後: ハル 150\nreplace 後:   ハル 150\naddOne 後:    10\ncart == alias ? true\ncart == other ? false(中身が同じでも別の実体)\n",
+      "values" : [ ],
       "exception" : null,
       "varies" : false
     },
@@ -309,23 +337,9 @@
       "exception" : null,
       "varies" : false
     },
-    "4b580618f8ff4a4d4b9fb678" : {
+    "4c3121f983e30b29a99b99bd" : {
       "status" : "OK",
-      "output" : "■ findByNameAndAge\n  条件1: name SIMPLE_PROPERTY (1): [Is, Equals]\n  条件1: age SIMPLE_PROPERTY (1): [Is, Equals]\n  並び順: UNSORTED / 件数制限: なし / count: false\n■ findTop3ByDepartmentNameOrderByAgeDesc\n  条件1: department.name SIMPLE_PROPERTY (1): [Is, Equals]\n  並び順: age: DESC / 件数制限: 3 / count: false\n■ countByAgeBetween\n  条件1: age BETWEEN (2): [IsBetween, Between]\n  並び順: UNSORTED / 件数制限: なし / count: true\n■ findByNameContainingOrAgeLessThan\n  条件1: name CONTAINING (1): [IsContaining, Containing, Contains]\n  条件2: age LESS_THAN (1): [IsLessThan, LessThan]\n  並び順: UNSORTED / 件数制限: なし / count: false\n■ findByNmae\n  起動時エラーになる: No property 'nmae' found for type 'Employee'; Did you mean 'name'\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "4edbaab1aa24e644459ef8df" : {
-      "status" : "OK",
-      "output" : "=== 自動設定レポートもどき ===\nPositive matches:\n   JacksonAutoConfiguration matched:\n      - found required class 'ObjectMapper'\n   WebMvcAutoConfiguration matched:\n      - found required class 'DispatcherServlet'\n   EmbeddedTomcat matched:\n      - found required class 'Tomcat'\nNegative matches:\n   ThymeleafAutoConfiguration:\n      - did not find required class 'SpringTemplateEngine'\n   DataSourceAutoConfiguration(MySQL):\n      - did not find required class 'Driver'\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "4ef777c2281c39a04b368d1e" : {
-      "status" : "OK",
-      "output" : "addPoints 後: ハル 150\nreplace 後:   ハル 150\naddOne 後:    10\ncart == alias ? true\ncart == other ? false(中身が同じでも別の実体)\n",
+      "output" : "count : 目印なし\nissue : ISSUE_KEY / general\nrevoke : REVOKE_KEY / security\n普通に呼ぶ : key-for-haru(目印だけでは何も起きない)\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -334,6 +348,13 @@
       "status" : "OK",
       "output" : "件数: 1\nE001 はいる? true\n",
       "values" : [ "true", "false" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "511ed452190b8e7b0d31d082" : {
+      "status" : "OK",
+      "output" : "200 OK: 山田太郎 さんを登録(会員数 1)\n400 Bad Request: 名前が空です\n200 OK: 佐藤花子 さんを登録(会員数 2)\n同じ Service? true\nRepository の中身: [山田太郎, 佐藤花子]\n",
+      "values" : [ ],
       "exception" : null,
       "varies" : false
     },
@@ -365,6 +386,13 @@
       "exception" : null,
       "varies" : false
     },
+    "57c8867cb32d5277586675ad" : {
+      "status" : "OK",
+      "output" : "toString に @Override は?   false\noldTitle に @Deprecated は? true\n  since=2.0 forRemoval=true\nFormatter に @FunctionalInterface は? true\n12,800円\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "582839f501132cffc0e54b0e" : {
       "status" : "OK",
       "output" : "--- name=山田太郎 email=taro@example.com\nステータス: 302\nビュー名: redirect:/members/done\nリダイレクト先: /members/done\nフラッシュ属性 message: 登録しました\n--- name= email=taro\nステータス: 200\nビュー名: members/form\n  エラー email: メールの形式が正しくありません\n  エラー name: 氏名を入力してください\nリダイレクト先: null\nフラッシュ属性 message: null\n登録件数: 1\n",
@@ -372,9 +400,9 @@
       "exception" : null,
       "varies" : false
     },
-    "598002816242b64a5f55aba4" : {
+    "594416122f56b25b46538ec7" : {
       "status" : "OK",
-      "output" : "toString に @Override は?   false\noldTitle に @Deprecated は? true\n  since=2.0 forRemoval=true\nFormatter に @FunctionalInterface は? true\n12,800円\n",
+      "output" : "■ findByNameAndAge\n  条件1: name SIMPLE_PROPERTY (1): [Is, Equals]\n  条件1: age SIMPLE_PROPERTY (1): [Is, Equals]\n  並び順: UNSORTED / 件数制限: なし / count: false\n■ findTop3ByDepartmentNameOrderByAgeDesc\n  条件1: department.name SIMPLE_PROPERTY (1): [Is, Equals]\n  並び順: age: DESC / 件数制限: 3 / count: false\n■ countByAgeBetween\n  条件1: age BETWEEN (2): [IsBetween, Between]\n  並び順: UNSORTED / 件数制限: なし / count: true\n■ findByNameContainingOrAgeLessThan\n  条件1: name CONTAINING (1): [IsContaining, Containing, Contains]\n  条件2: age LESS_THAN (1): [IsLessThan, LessThan]\n  並び順: UNSORTED / 件数制限: なし / count: false\n■ findByNmae\n  起動時エラーになる: No property 'nmae' found for type 'Employee'; Did you mean 'name'\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -414,9 +442,9 @@
       "exception" : null,
       "varies" : false
     },
-    "64a2fdf4da34342f458853f6" : {
+    "65d929d36ff44ddb235ec2d2" : {
       "status" : "OK",
-      "output" : "count : 目印なし\nissue : ISSUE_KEY / general\nrevoke : REVOKE_KEY / security\n普通に呼ぶ : key-for-haru(目印だけでは何も起きない)\n",
+      "output" : "--- 利用者の設定なし ---\n(Notifier が無いので既定の ConsoleNotifier を使います)\n[CONSOLE] ディスク残量 5%\n--- 利用者が Notifier を定義した ---\n[SLACK #ops] ディスク残量 5%\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -442,6 +470,20 @@
       "exception" : null,
       "varies" : false
     },
+    "6cc53a43e5273a2c422bcbda" : {
+      "status" : "OK",
+      "output" : "main のフレームから呼び出す\n  → total(500, 3) のフレームを積む\n    → tax(1500) のフレームを積む\n    ← tax が 150 を返して、フレームが消える\n  ← total が 1650 を返して、フレームが消える\nmain に戻った: 1650\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "6e0a0b8339b710859193a6af" : {
+      "status" : "OK",
+      "output" : "合計: 64000\n平均: 12800.0\n最大: 5日目 (21000円)\n8000 が最初に出るインデックス: 1\n1万円以上の日数: 3\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "6e243c4959f300c813147bb6" : {
       "status" : "OK",
       "output" : "捨てた後  : 2024-01-31\n7日後     : 2024-02-07\n1か月後   : 2024-02-29\n比較      : true\n日時      : 2024-04-01T09:30\n例外      : Invalid date 'February 29' as '2023' is not a leap year\n",
@@ -449,23 +491,16 @@
       "exception" : null,
       "varies" : false
     },
-    "6e59e3a1614d9827e0295203" : {
+    "6f0eafdd8a707d92b8ed44e5" : {
       "status" : "OK",
-      "output" : "byte=127 short=32000 int=2000000000 long=9000000000\nfloat=3.14 double=3.14 char=J boolean=true\nint : -2147483648 〜 2147483647\nlong: -9223372036854775808 〜 9223372036854775807\n31\n10\n1000000\n8\n",
+      "output" : "太郎: 承認してコミット(version=1)\n部長: 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)\n最終状態: APPROVED / 履歴: [APPROVE by 太郎]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "6f89be3111efa1de5c0ab2b5" : {
+    "7108990b8f8a650d2365f421" : {
       "status" : "OK",
-      "output" : "1人あたり: 3333円, 端数: 1円\nBMI(そのまま): 22.49134948096886\nBMI(小数第1位): 22.5\n1024.0\n7, 3, 5\n3, -2\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "748257d40a76d75efce5b489" : {
-      "status" : "OK",
-      "output" : "リクエストは終わったのに残っている Report: 1000 個\n配列だけで約 4000KB(計算上の値)\nclear 後: 0 個\n",
+      "output" : "コーヒー豆: 1200 × 3 = 3600\nマグカップ: 800 × 2 = 1600\nドリッパー: 1500 × 1 = 1500\n商品: コーヒー豆 / マグカップ / ドリッパー\n合計: 6700円\nsplit(\".\")   → 0 個\nsplit(\"\\\\.\") → 3 個\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -483,13 +518,6 @@
       "values" : [ "\"客先訪問の交通費\"", "EXPENSE", "null", "\"  \"" ],
       "exception" : null,
       "varies" : false
-    },
-    "78bc4e9201361299f5d31ece" : {
-      "status" : "OK",
-      "output" : "支払い = 1000円\n",
-      "values" : [ "true" ],
-      "exception" : null,
-      "varies" : true
     },
     "79e4fc67989d4dada1e45ac0" : {
       "status" : "OK",
@@ -516,13 +544,6 @@
       "status" : "OK",
       "output" : "固定した今 : 2024-04-01T00:00(東京)\n同じ瞬間   : 2024-03-31T15:00:00Z(UTC)\n2024-03-31 期限は過ぎた? true\n2024-04-01 期限は過ぎた? false\n",
       "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "834afa698264f7da7648f4df" : {
-      "status" : "OK",
-      "output" : "連結版の toString 呼び出し: 5 回\n{} 版の toString 呼び出し: 0 回\n",
-      "values" : [ "0" ],
       "exception" : null,
       "varies" : false
     },
@@ -554,9 +575,23 @@
       "exception" : null,
       "varies" : false
     },
+    "8e120124c18b6b724e486269" : {
+      "status" : "OK",
+      "output" : "===== 売上明細 =====\n担当: 山田  日付: 2024-04-01\nCoffee       3    3,600円\nMug         12    9,600円\nDripper      1    1,500円\n合計             14,700円\n伝票番号: 00042 / 税率: 10.0%\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
     "8e642024c21bfe3645d28372" : {
       "status" : "OK",
       "output" : "[100, 200] → 前: 330 / 後: 330 同じ\n[] → 前: 0 / 後: 0 同じ\n[999] → 前: 1098 / 後: 1098 同じ\n[1, 2, 3] → 前: 6 / 後: 6 同じ\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "8ed7f892b14212739d3fb78d" : {
+      "status" : "OK",
+      "output" : "Bean のクラス: KeyRotationService$$SpringCGLIB$$0\n\n  [TX] 開始\n  [Service] 今の鍵を失効 →暗号装置に新しい鍵を依頼\n  [TX] ロールバック\n\njava.lang.IllegalStateException: 暗号装置に接続できません cardId=C001\n    at KeyRotationService.rotate   ← 自分のコード\n    at (Spring) AopUtils\n    at (Spring) ReflectiveMethodInvocation\n    at (Spring) TransactionAspectSupport\n    at (Spring) TransactionInterceptor\n    at (Spring) ReflectiveMethodInvocation\n    at (Spring) CglibAopProxy$DynamicAdvisedInterceptor\n    at KeyRotationService$$SpringCGLIB$$0.rotate   ← プロキシ\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -568,12 +603,26 @@
       "exception" : null,
       "varies" : false
     },
-    "91b9299031f4bfcd75a9e638" : {
+    "9019b8d672f0637606f2c4df" : {
       "status" : "OK",
-      "output" : "スタート: DRAFT\nDRAFT → SUBMITTED OK\nSUBMITTED → RETURNED OK\nRETURNED → SUBMITTED OK\nSUBMITTED → APPROVED OK\nAPPROVED → RETURNED できません(状態はそのまま)\n最終状態: APPROVED\n",
+      "output" : "trim  : [　 Yamada.Taro@Example.co.jp]\nstrip : [yamada.taro@example.co.jp]\nlength=25 at=11\nユーザー部: yamada.taro / ドメイン: example.co.jp\n社内ドメイン? true\n名前だけ  : yamada taro\n先頭の文字: y\n区切り線  : --------------------\n空白だけ? true / 空文字? false\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
+    },
+    "91aadafd6da9d9f5603df2b4" : {
+      "status" : "OK",
+      "output" : "同じインスタンス? true\nハル: 1000円の本 → 合計 1000\nモカ:  500円の豆 → 合計 1500\nハル: 200円のペン → 合計 1700\nステートレス版 → ハル 1200円 / モカ 500円\n",
+      "values" : [ "1200" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "92bb6ee4c62e1ee1c59f91cc" : {
+      "status" : "OK",
+      "output" : "支払い = 1000円\n",
+      "values" : [ "true" ],
+      "exception" : null,
+      "varies" : true
     },
     "93566fefe73d0efea56bb69d" : {
       "status" : "OK",
@@ -582,16 +631,16 @@
       "exception" : null,
       "varies" : false
     },
-    "94b5f65c0bc870579f7e45a4" : {
+    "95490169e2f0550d5c57b681" : {
       "status" : "OK",
-      "output" : "申請者ID=1 / 金額=120000\nハル  APPLICANT ボタン表示:なし サーバー判定:× 承認者ではない\nモカ  APPROVER  ボタン表示:あり サーバー判定:× 高額は管理者だけ\n部長  ADMIN     ボタン表示:あり サーバー判定:○ 承認できる\n",
+      "output" : "--- 従来の switch 文(break 忘れ)---\n土曜日\n日曜日\n--- アロー構文(落ちていかない)---\n土曜日\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "95490169e2f0550d5c57b681" : {
+    "96d2504dd019de8861775935" : {
       "status" : "OK",
-      "output" : "--- 従来の switch 文(break 忘れ)---\n土曜日\n日曜日\n--- アロー構文(落ちていかない)---\n土曜日\n",
+      "output" : "--- 山田太郎 / taro@example.com / 30\nOK!\n---     / taro / 17\nage: 18歳以上が対象です\nemail: メールの形式が正しくありません\nname: 名前を入力してください\n--- あああああああああああああああああああああ /  / null\nage: 年齢を入力してください\nemail: メールを入力してください\nname: 名前は20文字以内です\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -610,9 +659,23 @@
       "exception" : null,
       "varies" : false
     },
-    "9e187a4de57bac6c99da8fae" : {
+    "984c8194656cdfb016c7fd40" : {
       "status" : "OK",
-      "output" : "Bean のクラス: KeyRotationService$$SpringCGLIB$$0\n\n  [TX] 開始\n  [Service] 今の鍵を失効 →暗号装置に新しい鍵を依頼\n  [TX] ロールバック\n\njava.lang.IllegalStateException: 暗号装置に接続できません cardId=C001\n    at KeyRotationService.rotate   ← 自分のコード\n    at (Spring) AopUtils\n    at (Spring) ReflectiveMethodInvocation\n    at (Spring) TransactionAspectSupport\n    at (Spring) TransactionInterceptor\n    at (Spring) ReflectiveMethodInvocation\n    at (Spring) CglibAopProxy$DynamicAdvisedInterceptor\n    at KeyRotationService$$SpringCGLIB$$0.rotate   ← プロキシ\n",
+      "output" : "AtomicInteger : 40000(期待値と一致: true)\nsynchronized  : 40000(期待値と一致: true)\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : true
+    },
+    "9b94812f4090c1af31805e3a" : {
+      "status" : "OK",
+      "output" : "1人あたり: 3333円, 端数: 1円\nBMI(そのまま): 22.49134948096886\nBMI(小数第1位): 22.5\n1024.0\n7, 3, 5\n3, -2\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "9ba6aaa9272068c3ecc78e3b" : {
+      "status" : "OK",
+      "output" : "① 失敗: Java 8 date/time type `java.time.LocalDate` not supported by default: add Module \"com.fasterxml.jackson.datatype:jackson-datatype-jsr310\" to enable handling (or disable `MapperFeature.REQUIRE_HANDLERS_FOR_JAVA8_TIMES`) (through reference chain: REPL.$JShell$14$TaskResponse[\"dueDate\"])\n② {\"id\":1,\"title\":\"見積書を作る\",\"dueDate\":[2026,10,31]}\n③ {\"id\":1,\"title\":\"見積書を作る\",\"dueDate\":\"2026-10-31\"}\n④ TaskResponse[id=2, title=請求書を送る, dueDate=2026-11-05]\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -624,16 +687,23 @@
       "exception" : null,
       "varies" : true
     },
-    "a3125d77f9769b20ea2499f8" : {
+    "9f97ddec6e50366658ff669d" : {
       "status" : "OK",
-      "output" : "部署=営業 / 30歳以上 / 在籍者のみ\n部署=全部署 / 0歳以上 / 在籍者のみ\n",
+      "output" : "連結版の toString 呼び出し: 5 回\n{} 版の toString 呼び出し: 0 回\n",
+      "values" : [ "0" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "a198beba6f63e6014c708cd6" : {
+      "status" : "OK",
+      "output" : "✔ 1件目は登録できる\n  例外メッセージ: 登録済みのメールです: taro@example.com\n✔ 大文字・空白違いでも重複として弾く\n✔ 登録件数は1件のまま\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "a37482c86361c6f62d201976" : {
+    "a3125d77f9769b20ea2499f8" : {
       "status" : "OK",
-      "output" : "No. | 件名 | 金額 | 状態\n1 | 交通費 | 1,200円 | 下書き\n3 | 夏季休暇 | - | 承認済\n",
+      "output" : "部署=営業 / 30歳以上 / 在籍者のみ\n部署=全部署 / 0歳以上 / 在籍者のみ\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -645,23 +715,9 @@
       "exception" : null,
       "varies" : false
     },
-    "a605a70b57dc5a6f49fa306e" : {
-      "status" : "OK",
-      "output" : "ルール違反: 100,000円以上の申請は管理者しか承認できません(状態は SUBMITTED のまま)\n部長が承認しました → APPROVED\n履歴 1 件: [History[action=APPROVE, actor=部長]]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "a6b5c6bdbf1c6d318aa8a39f" : {
       "status" : "OK",
       "output" : "Stream版: [Abe, Ito, Sato]\nfor 版  : [Abe, Ito, Sato]\n5000円以上の合計: 40400円\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "a7f849d8073c6e7c8224b527" : {
-      "status" : "OK",
-      "output" : "使った条件: 2 個\nReq[id=1, title=大阪出張の交通費, status=SUBMITTED, type=EXPENSE]\nReq[id=3, title=出張用モバイルルーター, status=SUBMITTED, type=PURCHASE]\n任意条件 1 個 → 派生クエリ 2 本\n任意条件 2 個 → 派生クエリ 4 本\n任意条件 3 個 → 派生クエリ 8 本\n任意条件 4 個 → 派生クエリ 16 本\n任意条件 5 個 → 派生クエリ 32 本\n任意条件 6 個 → 派生クエリ 64 本\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -680,13 +736,6 @@
       "exception" : null,
       "varies" : true
     },
-    "a9b9ab749d64b241e5147efd" : {
-      "status" : "OK",
-      "output" : "[Controller] POST /api/keys cardId=C001\n  [Service] issue(C001)\n    [Repository] existsActive(C001)\n結果: 409 重複\n\n[Controller] POST /api/keys cardId=C100\n  [Service] issue(C100)\n    [Repository] existsActive(C100)\n\n--- スタックトレース(自分のクラスの行だけ) ---\nKeyIssueFailedException: 鍵の発行に失敗しました cardId=C100\n    at KeyIssueService.issue\n    at KeyIssueController.post\nCaused by: RepositoryException: DB 接続がタイムアウトしました\n    at KeyRepository.existsActive\n    at KeyIssueService.issue\n    at KeyIssueController.post\n--- 根本原因(一番下の Caused by) ---\nRepositoryException: DB 接続がタイムアウトしました\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "aa2908a37374e2a5339b7325" : {
       "status" : "OK",
       "output" : "存在する?: true\nバイト数: 37\n--- readString ---\n1行目:こんにちは\n2行目:Java\n--- readAllLines ---\n1: 1行目:こんにちは(9文字)\n2: 2行目:Java(8文字)\n削除後に存在する?: false\n",
@@ -701,13 +750,6 @@
       "exception" : null,
       "varies" : false
     },
-    "ad9e7afc74a0a50f9896803c" : {
-      "status" : "OK",
-      "output" : "200 OK: 山田太郎 さんを登録(会員数 1)\n400 Bad Request: 名前が空です\n200 OK: 佐藤花子 さんを登録(会員数 2)\n同じ Service? true\nRepository の中身: [山田太郎, 佐藤花子]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "add1818e28d0c18a831b0ea7" : {
       "status" : "OK",
       "output" : "① orElse          : ゲスト\n② ID 3 は未登録\n③ 例外 → ID不明: 3\n④ get() で例外 → No value present\n",
@@ -715,17 +757,24 @@
       "exception" : null,
       "varies" : false
     },
-    "b2404923b20c6e011d970317" : {
+    "b119b6035bd6b58e6799524a" : {
       "status" : "OK",
-      "output" : "AtomicInteger : 40000(期待値と一致: true)\nsynchronized  : 40000(期待値と一致: true)\n",
+      "output" : "Bean のクラス: $JShell$18$OrderService$$SpringCGLIB$$0\n① 参照だけ(readOnly)\n  [TX] 開始(readOnly)\n  注文を検索\n  [TX] コミット\n② RuntimeException が起きた\n  [TX] 開始\n  注文を保存\n  [TX] ロールバック\n  例外: 在庫不足\n③ 検査例外が起きた\n  [TX] 開始\n  注文を保存\n  [TX] コミット\n  例外: 通知に失敗\n④ 同じクラスの中から呼んだ\n  注文を保存\n  例外: 在庫不足\n",
       "values" : [ ],
       "exception" : null,
-      "varies" : true
+      "varies" : false
     },
     "b2dcc5d536b405f29d212d92" : {
       "status" : "OK",
       "output" : "2回 count++ したのに count = 1\n",
       "values" : [ "1", "1", "1", "1" ],
+      "exception" : null,
+      "varies" : false
+    },
+    "b4f4d3baecf708fc3d2f291b" : {
+      "status" : "OK",
+      "output" : "[age は 150 以下にしてください, email は必須です]\n[]\n",
+      "values" : [ ],
       "exception" : null,
       "varies" : false
     },
@@ -743,20 +792,6 @@
       "exception" : null,
       "varies" : false
     },
-    "b86d3777a3d2444bed5b226a" : {
-      "status" : "OK",
-      "output" : "同じインスタンス? true\nハル: 1000円の本 → 合計 1000\nモカ:  500円の豆 → 合計 1500\nハル: 200円のペン → 合計 1700\nステートレス版 → ハル 1200円 / モカ 500円\n",
-      "values" : [ "1200" ],
-      "exception" : null,
-      "varies" : false
-    },
-    "b9173b630ea7c460c1170b38" : {
-      "status" : "OK",
-      "output" : "■ CatchAllAdvice\n  GET(未対応のメソッド)    → 500\n  POST(Content-Type なし) → 500\n  POST(壊れた JSON)       → 500\n    {\"type\":\"about:blank\",\"title\":\"Internal Server Error\",\"status\":500,\"detail\":\"システムエラーが発生しました\",\"instance\":\"/api/tasks\"}\n■ BetterAdvice\n  GET(未対応のメソッド)    → 405\n  POST(Content-Type なし) → 415\n  POST(壊れた JSON)       → 400\n    {\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/tasks\"}\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
     "b9ae9265fcd05a58f06d277c" : {
       "status" : "OK",
       "output" : "GET /hello → 200 こんにちは、ゲストさん\nGET /hello name=ハル → 200 こんにちは、ハルさん\nGET /users/7 → 200 ユーザー7番\nGET /users/abc → 400 [MethodArgumentTypeMismatchException]\nPOST /login → 400 [MissingServletRequestParameterException]\nPOST /login name=haru → 200 haru でログインしました\nPOST /hello → 405 [HttpRequestMethodNotSupportedException]\nGET /nothing → 404 [NoHandlerFoundException]\n",
@@ -767,13 +802,6 @@
     "ba698bb3990bdf93b002bedd" : {
       "status" : "OK",
       "output" : "Dog → ワン\nCat → ニャー\nDog → ワン\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "badf3e1f16c043006d419ad8" : {
-      "status" : "OK",
-      "output" : "要求: Page request [number: 1, size 20, sort: createdAt: DESC,id: DESC]\nOFFSET(読み飛ばす件数) = 20\n中身: [申請25, 申請24, 申請23, 申請22, 申請21, 申請20, 申請19, 申請18, 申請17, 申請16, 申請15, 申請14, 申請13, 申請12, 申請11, 申請10, 申請9, 申請8, 申請7, 申請6]\n総件数 45 / 総ページ 3 / 今 2 ページ目(画面表示は +1)\n前へ? true 次へ? true\nPageRequest.of(-1, 20) → Page index must not be less than zero\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -834,19 +862,12 @@
       "exception" : null,
       "varies" : false
     },
-    "c5d7fb4b2203368157034087" : {
+    "c730226cb39947bf353d8a37" : {
       "status" : "OK",
-      "output" : "Bean のクラス: $JShell$18$OrderService$$SpringCGLIB$$0\n① 参照だけ(readOnly)\n  [TX] 開始(readOnly)\n  注文を検索\n  [TX] コミット\n② RuntimeException が起きた\n  [TX] 開始\n  注文を保存\n  [TX] ロールバック\n  例外: 在庫不足\n③ 検査例外が起きた\n  [TX] 開始\n  注文を保存\n  [TX] コミット\n  例外: 通知に失敗\n④ 同じクラスの中から呼んだ\n  注文を保存\n  例外: 在庫不足\n",
-      "values" : [ ],
+      "output" : "sales の長さ: 5\n既定値: [0, 0, 0, 0, 0] [null, null, null] [false, false]\n代入後: [12000, 0, 0, 0, 31000]\nprimes: [2, 3, 5, 7] 長さ 4\nprintln に直接渡すと: [I@3d646c37\n",
+      "values" : [ "12000", "31000" ],
       "exception" : null,
-      "varies" : false
-    },
-    "c92ae9e05aa0c52dead845d9" : {
-      "status" : "OK",
-      "output" : "===== 売上明細 =====\n担当: 山田  日付: 2024-04-01\nCoffee       3    3,600円\nMug         12    9,600円\nDripper      1    1,500円\n合計             14,700円\n伝票番号: 00042 / 税率: 10.0%\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
+      "varies" : true
     },
     "c9bb0295de3e4f3707e30af6" : {
       "status" : "OK",
@@ -876,9 +897,9 @@
       "exception" : null,
       "varies" : false
     },
-    "da4f97ae4fea25eb478bef06" : {
+    "d3d7a0fb1535d7323ab14a47" : {
       "status" : "OK",
-      "output" : "trim  : [　 Yamada.Taro@Example.co.jp]\nstrip : [yamada.taro@example.co.jp]\nlength=25 at=11\nユーザー部: yamada.taro / ドメイン: example.co.jp\n社内ドメイン? true\n名前だけ  : yamada taro\n先頭の文字: y\n区切り線  : --------------------\n空白だけ? true / 空文字? false\n",
+      "output" : "要求: Page request [number: 1, size 20, sort: createdAt: DESC,id: DESC]\nOFFSET(読み飛ばす件数) = 20\n中身: [申請25, 申請24, 申請23, 申請22, 申請21, 申請20, 申請19, 申請18, 申請17, 申請16, 申請15, 申請14, 申請13, 申請12, 申請11, 申請10, 申請9, 申請8, 申請7, 申請6]\n総件数 45 / 総ページ 3 / 今 2 ページ目(画面表示は +1)\n前へ? true 次へ? true\nPageRequest.of(-1, 20) → Page index must not be less than zero\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -890,16 +911,23 @@
       "exception" : null,
       "varies" : false
     },
-    "dd3486e367f9a1b2532e8680" : {
+    "dc67c27ddaf04bf5c6b131c3" : {
       "status" : "OK",
-      "output" : "123\n33\n合計: 12\n合計: 3\nfalse\n72点 → 合格\n== : false\nequals : true\n",
+      "output" : "=== 自動設定レポートもどき ===\nPositive matches:\n   JacksonAutoConfiguration matched:\n      - found required class 'ObjectMapper'\n   WebMvcAutoConfiguration matched:\n      - found required class 'DispatcherServlet'\n   EmbeddedTomcat matched:\n      - found required class 'Tomcat'\nNegative matches:\n   ThymeleafAutoConfiguration:\n      - did not find required class 'SpringTemplateEngine'\n   DataSourceAutoConfiguration(MySQL):\n      - did not find required class 'Driver'\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "e04f943bc427f9b1f4fd875c" : {
+    "dcedd4f2619d1632a520646b" : {
       "status" : "OK",
-      "output" : "コーヒー豆: 1200 × 3 = 3600\nマグカップ: 800 × 2 = 1600\nドリッパー: 1500 × 1 = 1500\n商品: コーヒー豆 / マグカップ / ドリッパー\n合計: 6700円\nsplit(\".\")   → 0 個\nsplit(\"\\\\.\") → 3 個\n",
+      "output" : "リクエストは終わったのに残っている Report: 1000 個\n配列だけで約 4000KB(計算上の値)\nclear 後: 0 個\n",
+      "values" : [ ],
+      "exception" : null,
+      "varies" : false
+    },
+    "dd3486e367f9a1b2532e8680" : {
+      "status" : "OK",
+      "output" : "123\n33\n合計: 12\n合計: 3\nfalse\n72点 → 合格\n== : false\nequals : true\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -911,16 +939,16 @@
       "exception" : null,
       "varies" : false
     },
-    "e0b502b44a588169d5621b7b" : {
+    "e0e285a8b3ca50550fec9121" : {
       "status" : "OK",
-      "output" : "--- 山田太郎 / taro@example.com / 30\nOK!\n---     / taro / 17\nage: 18歳以上が対象です\nemail: メールの形式が正しくありません\nname: 名前を入力してください\n--- あああああああああああああああああああああ /  / null\nage: 年齢を入力してください\nemail: メールを入力してください\nname: 名前は20文字以内です\n",
+      "output" : "Period       : P1M24D\ngetDays()    : 24 ← 総日数ではない\nDAYS.between : 55 日\n実働         : PT8H30M\n表示         : 8時間30分\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
     },
-    "e0e285a8b3ca50550fec9121" : {
+    "e2009e839192c4ca5ad11d80" : {
       "status" : "OK",
-      "output" : "Period       : P1M24D\ngetDays()    : 24 ← 総日数ではない\nDAYS.between : 55 日\n実働         : PT8H30M\n表示         : 8時間30分\n",
+      "output" : "スタート: DRAFT\nDRAFT → SUBMITTED OK\nSUBMITTED → RETURNED OK\nRETURNED → SUBMITTED OK\nSUBMITTED → APPROVED OK\nAPPROVED → RETURNED できません(状態はそのまま)\n最終状態: APPROVED\n",
       "values" : [ ],
       "exception" : null,
       "varies" : false
@@ -936,13 +964,6 @@
       "status" : "OK",
       "output" : "for      : 55\nwhile    : 55\n0 は 1 桁\n",
       "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "e98eb4d7a52057b6e7253cfe" : {
-      "status" : "OK",
-      "output" : "エラー件数: 3\nage [typeMismatch] 入力値=abc → 数値で入力してください\nname [duplicate] 入力値=山田太郎 → その氏名は登録済みです\npasswordMatched [AssertTrue] 入力値=false → 確認用パスワードが一致しません\nform.getAge() = null(変換できない値はセットされない)\n",
-      "values" : [ "null", "null", "null", "null" ],
       "exception" : null,
       "varies" : false
     },
@@ -981,17 +1002,10 @@
       "exception" : null,
       "varies" : false
     },
-    "f06b9de9973d4ce151b713c2" : {
+    "f0e8a61d94eae63ce1089864" : {
       "status" : "OK",
-      "output" : "main のフレームから呼び出す\n  → total(500, 3) のフレームを積む\n    → tax(1500) のフレームを積む\n    ← tax が 150 を返して、フレームが消える\n  ← total が 1650 を返して、フレームが消える\nmain に戻った: 1650\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "f0a00194356d9e19001281d2" : {
-      "status" : "OK",
-      "output" : "次へ: /requests/search?status=SUBMITTED&keyword=%E5%87%BA%E5%BC%B5%20%E5%A4%A7%E9%98%AA&page=1\n  status = SUBMITTED\n  keyword = 出張 大阪\n  page = 1\n",
-      "values" : [ ],
+      "output" : "エラー件数: 3\nage [typeMismatch] 入力値=abc → 数値で入力してください\nname [duplicate] 入力値=山田太郎 → その氏名は登録済みです\npasswordMatched [AssertTrue] 入力値=false → 確認用パスワードが一致しません\nform.getAge() = null(変換できない値はセットされない)\n",
+      "values" : [ "null", "null", "null", "null" ],
       "exception" : null,
       "varies" : false
     },
@@ -1001,20 +1015,6 @@
       "values" : [ "99", "99" ],
       "exception" : null,
       "varies" : false
-    },
-    "f2cb0dddaab3698d9f68e1a9" : {
-      "status" : "OK",
-      "output" : "太郎: 承認してコミット(version=1)\n部長: 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)\n最終状態: APPROVED / 履歴: [APPROVE by 太郎]\n",
-      "values" : [ ],
-      "exception" : null,
-      "varies" : false
-    },
-    "f443f7815bcf735dc36ba512" : {
-      "status" : "OK",
-      "output" : "sales の長さ: 5\n既定値: [0, 0, 0, 0, 0] [null, null, null] [false, false]\n代入後: [12000, 0, 0, 0, 31000]\nprimes: [2, 3, 5, 7] 長さ 4\nprintln に直接渡すと: [I@3d646c37\n",
-      "values" : [ "12000", "31000" ],
-      "exception" : null,
-      "varies" : true
     },
     "f5086f7af71daa149163e21a" : {
       "status" : "OK",
@@ -1030,7 +1030,7 @@
       "exception" : null,
       "varies" : false
     },
-    "fb3ce5f50b37385c04ec10ae" : {
+    "f7ae1c92ab0c4225c8748e39" : {
       "status" : "OK",
       "output" : "POST /api/keys {\"cardId\":\"C100\",\"keyVersion\":1}\n  [Controller] issue KeyIssueRequest[cardId=C100, keyVersion=1]\n    [Service] issue 開始\n      [Repository] existsByCardIdAndStatus(C100, ACTIVE)\n      [Repository] save(C100)\n→ 201 {\"keyId\":\"K-0002\",\"status\":\"ACTIVE\"}\n\nPOST /api/keys {\"cardId\":\"C001\",\"keyVersion\":2}\n  [Controller] issue KeyIssueRequest[cardId=C001, keyVersion=2]\n    [Service] issue 開始\n      [Repository] existsByCardIdAndStatus(C001, ACTIVE)\n    [Service] 重複 → 例外を投げる\n  [Advice] handleDuplicate が受け取った\n→ 409 {\"code\":\"E409\",\"message\":\"カード C001 には有効な鍵がすでにあります\"}\n\nPOST /api/keys {\"cardId\":\"C200\",\"keyVersion\":0}\n→ 400 \n\n",
       "values" : [ ],

@@ -16,10 +16,11 @@ public class ApplicationFlow {
     }
 
     public static void main(String[] args) {
-        System.out.println(Status.DRAFT.canMoveTo(Status.SUBMITTED));    // true
-        System.out.println(Status.DRAFT.canMoveTo(Status.APPROVED));     // false
-        System.out.println(Status.APPROVED.canMoveTo(Status.DRAFT));     // false
-        System.out.println(countByStatus(List.of(Status.DRAFT, Status.SUBMITTED, Status.DRAFT)));
+        System.out.println(Status.DRAFT.canMoveTo(Status.SUBMITTED));  // true
+        System.out.println(Status.DRAFT.canMoveTo(Status.APPROVED));   // false
+        System.out.println(Status.APPROVED.canMoveTo(Status.DRAFT));   // false
+        System.out.println(countByStatus(
+                List.of(Status.DRAFT, Status.SUBMITTED, Status.DRAFT)));
         // {DRAFT=2, SUBMITTED=1, APPROVED=0, REJECTED=0}
     }
 }
@@ -33,7 +34,8 @@ enum Status {
         }
         return switch (this) {
             case DRAFT -> next == SUBMITTED;
-            case SUBMITTED -> next == APPROVED || next == REJECTED || next == DRAFT;
+            case SUBMITTED -> next == APPROVED || next == REJECTED
+                    || next == DRAFT;
             case REJECTED -> next == DRAFT;
             case APPROVED -> false; // 最終状態
         };

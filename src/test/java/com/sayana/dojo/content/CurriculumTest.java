@@ -905,13 +905,17 @@ class CurriculumTest {
     }
 
     @Test
-    @DisplayName("演習の雛形とサンプルのコメントは、PC の編集欄で横に送らずに読める(コメントだけの行は 72 列、行末にコメントのある行は 80 列まで。和字は 2 列)")
+    @DisplayName("演習の雛形・模範解答とサンプルのコメントは、PC の編集欄で横に送らずに読める(コメントだけの行は 72 列、行末にコメントのある行は 80 列まで。和字は 2 列)")
     void commentsFitEditor() {
         // PC の編集欄は 1280px で 1 行 82 列(16px の Cascadia Code。和字は 1.7 列)。TODO の指示が右で切れ、書く人が横に送って読んでいた
         // (29 回目の審査。1280px で 54 本)。コメントだけの行は意味の切れ目で折れるので 72 列まで。コードの後ろのコメントはコードの長さに
-        // 引きずられるので 80 列まで(超えるならコメントを上の行へ移す)。コメントでないコードの行は数えない
+        // 引きずられるので 80 列まで(超えるならコメントを上の行へ移す)。コメントでないコードの行は codeLinesFitEditor が数える。
+        // 模範解答も提出の前から畳んだ欄で開けて、雛形と見比べる(30 回目のあと。72 列を超えるコメントが 71 行あった)
         List<String> problems = new java.util.ArrayList<>();
-        CONTENT.allExercises().forEach(e -> commentWidthProblems(e.key() + " の雛形", e.starter(), problems));
+        CONTENT.allExercises().forEach(e -> {
+            commentWidthProblems(e.key() + " の雛形", e.starter(), problems);
+            commentWidthProblems(e.key() + " の模範解答", e.solution(), problems);
+        });
         for (Lesson l : CONTENT.readyLessons()) {
             for (Lesson.Sample s : l.samples()) {
                 commentWidthProblems(l.id() + " / " + s.title(), s.code(), problems);
@@ -921,26 +925,38 @@ class CurriculumTest {
     }
 
     @Test
-    void starterCodeFitsEditor() {
+    @DisplayName("演習の雛形・模範解答とサンプルのコードの行は 80 列まで(和字は 2 列。import は除く)")
+    void codeLinesFitEditor() {
         // 演習の編集欄はいちばん狭い 1024px で 1 行 80 列。雛形のメソッドの宣言(書く人が最初に読む「何を受け取るか」)が
         // 1280px で 21 本、右で切れて横に送って読んでいた(30 回目の審査)。コードの行も 80 列までに折る(引数の前で改行して 8 字下げる)。
-        // import の行は折れないので数えない
+        // 模範解答(雛形と見比べる)とサンプル(PC は編集欄で横に送り、スマホは折り返して読む)も同じ幅に(30 回目のあと。
+        // 80 列を超える行が模範解答に 157、サンプルに 87 あった)。import の行は折れないので数えない
         List<String> problems = new java.util.ArrayList<>();
         CONTENT.allExercises().forEach(e -> {
-            String[] lines = e.starter().split("\n", -1);
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i].stripTrailing();
-                String s = line.strip();
-                if (s.startsWith("//") || s.startsWith("/*") || s.startsWith("*") || s.startsWith("import ")) {
-                    continue;
-                }
-                int w = displayWidth(line);
-                if (w > 80) {
-                    problems.add(e.key() + " の雛形の " + (i + 1) + " 行目(" + w + " 列): " + s);
-                }
-            }
+            codeWidthProblems(e.key() + " の雛形", e.starter(), problems);
+            codeWidthProblems(e.key() + " の模範解答", e.solution(), problems);
         });
-        assertThat(problems).as("編集欄で右が切れる雛形のコードの行(引数や + の前で折る)").isEmpty();
+        for (Lesson l : CONTENT.readyLessons()) {
+            for (Lesson.Sample s : l.samples()) {
+                codeWidthProblems(l.id() + " / " + s.title(), s.code(), problems);
+            }
+        }
+        assertThat(problems).as("編集欄で右が切れるコードの行(引数や + の前で折る)").isEmpty();
+    }
+
+    private static void codeWidthProblems(String where, String code, List<String> problems) {
+        String[] lines = code.split("\n", -1);
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].stripTrailing();
+            String s = line.strip();
+            if (s.startsWith("//") || s.startsWith("/*") || s.startsWith("*") || s.startsWith("import ")) {
+                continue;
+            }
+            int w = displayWidth(line);
+            if (w > 80) {
+                problems.add(where + " の " + (i + 1) + " 行目(" + w + " 列): " + s);
+            }
+        }
     }
 
     private static void commentWidthProblems(String where, String code, List<String> problems) {

@@ -264,7 +264,7 @@
       }, {
         "id" : "java-annotations",
         "title" : "アノテーションの仕組み",
-        "summary" : "`@` は「目印」で、それ自体は何もしない。標準の `@Override` から、`@interface` による自作、`@Retention` / `@Target` の意味、リフレクション(`getAnnotation` / `isAnnotationPresent`)で目印を読んで処理を挟む仕組みまで。Spring の `@Service` や `@Transactional` がどう読まれているかの予告つき。",
+        "summary" : "`@` は「目印」で、それ自体は何もしない。標準の `@Override` から、`@interface` で自作する方法、`@Retention` / `@Target` の意味、リフレクション(`getAnnotation` / `isAnnotationPresent`)で目印を読んで処理を挟む仕組みまで。Spring の `@Service` や `@Transactional` がどう読まれているかの予告つき。",
         "minutes" : 19,
         "ready" : true,
         "exercises" : 3,

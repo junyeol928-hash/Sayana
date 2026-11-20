@@ -30,7 +30,9 @@ public class ScoreBook {
         int[] t = {60, 75, 90};
         int[] u = withBonus(t, 5);
         System.out.println(java.util.Arrays.toString(t)); // [60, 75, 90]
-        System.out.println(java.util.Arrays.toString(u)); // [65, 80, 95]
-        System.out.println(sameScores(new int[]{1, 2}, new int[]{1, 2})); // true
+        // 出力: [65, 80, 95]
+        System.out.println(java.util.Arrays.toString(u));
+        // 出力: true
+        System.out.println(sameScores(new int[]{1, 2}, new int[]{1, 2}));
     }
 }

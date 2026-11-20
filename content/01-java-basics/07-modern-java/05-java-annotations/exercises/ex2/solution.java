@@ -26,7 +26,8 @@ public class LogMasker {
 
     public static String toLog(Object obj) {
         Field[] fields = obj.getClass().getDeclaredFields();
-        Arrays.sort(fields, Comparator.comparing(Field::getName)); // 名前順に並べておく
+        // 名前順に並べておく
+        Arrays.sort(fields, Comparator.comparing(Field::getName));
         List<String> parts = new ArrayList<>();
         for (Field f : fields) {
             f.setAccessible(true);
@@ -34,19 +35,23 @@ public class LogMasker {
             try {
                 value = f.get(obj);
             } catch (IllegalAccessException e) {
-                throw new IllegalStateException(f.getName() + " を読めません", e);
+                throw new IllegalStateException(
+                        f.getName() + " を読めません", e);
             }
             Mask m = f.getAnnotation(Mask.class);
-            String text = (m == null) ? String.valueOf(value) : mask(value == null ? null : value.toString(), m.keep());
+            String text = (m == null) ? String.valueOf(value)
+                    : mask(value == null ? null : value.toString(), m.keep());
             parts.add(f.getName() + "=" + text);
         }
-        return obj.getClass().getSimpleName() + "{" + String.join(", ", parts) + "}";
+        return obj.getClass().getSimpleName()
+                + "{" + String.join(", ", parts) + "}";
     }
 
     public static void main(String[] args) {
         System.out.println(mask("4111222233334444", 4)); // ************4444
         System.out.println(toLog(new LoginForm()));
-        // LoginForm{cardNo=************4444, password=***, retry=2, userId=haru}
+        // 出力: LoginForm{cardNo=************4444, password=***,
+        //       retry=2, userId=haru}
     }
 }
 

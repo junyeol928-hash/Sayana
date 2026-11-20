@@ -37,7 +37,8 @@ samples:
           @Bean
           AlertService alertService(ObjectProvider<Notifier> notifiers) {
               Notifier n = notifiers.getIfAvailable(() -> {
-                  System.out.println("(Notifier が無いので既定の ConsoleNotifier を使います)");
+                  System.out.println(
+                          "(Notifier が無いので既定の ConsoleNotifier を使います)");
                   return new ConsoleNotifier();
               });
               return new AlertService(n);
@@ -99,11 +100,14 @@ samples:
       List<String> negative = new ArrayList<>();
       for (AutoConfig c : candidates) {
           boolean present = ClassUtils.isPresent(c.requiredClass(), null);
-          String simple = c.requiredClass().substring(c.requiredClass().lastIndexOf('.') + 1);
+          String simple = c.requiredClass()
+                  .substring(c.requiredClass().lastIndexOf('.') + 1);
           if (present) {
-              positive.add(c.name() + " matched:\n      - found required class '" + simple + "'");
+              positive.add(c.name() + " matched:\n      - found required class '"
+                      + simple + "'");
           } else {
-              negative.add(c.name() + ":\n      - did not find required class '" + simple + "'");
+              negative.add(c.name() + ":\n      - did not find required class '"
+                      + simple + "'");
           }
       }
       System.out.println("=== 自動設定レポートもどき ===");

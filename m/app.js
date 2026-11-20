@@ -1117,6 +1117,8 @@ function trackLesson(id, keys, peek = false) {
  * 句読点・かっこ・助詞は前の語に付け、記号の連なり(---)はひとまとまりにする。見出しの phraseWrap と同じ分け方
  */
 function phraseLines(text) {
+  // 末尾の改行で空の行を 1 つ作り、帯の下だけ 1 行ぶん空いていた(31 回目の審査)
+  text = text.replace(/\n$/, "");
   if (!("Segmenter" in Intl)) return text.split("\n").map((line) => `<span class="out-line">${esc(line)}</span>`).join("");
   const seg = new Intl.Segmenter("ja", { granularity: "word" });
   return text.split("\n").map((line) => {
@@ -1534,7 +1536,10 @@ function bindLesson(L, meta) {
       S.read[L.id] = true;
       recordDay();
       const dyed = refreshDye(meta);
-      el.outerHTML = `<div class="done">${icon("check")}${afterRead(L)}</div>${dyedLine(dyed)}`;
+      const wrap = el.parentElement;
+      el.outerHTML = `<div class="done" tabindex="-1">${icon("check")}${afterRead(L)}</div>${dyedLine(dyed)}`;
+      // ボタンごと消えるとフォーカスが body に落ち、「読了。次は…」が読み上げに届かなかった(31 回目の審査。PC は 29 回目に直した)
+      wrap.querySelector(".done")?.focus({ preventScroll: true });
       markStep("read");
     } else if (action === "check") {
       const list = new Set(S.checklist[L.id] || []);
@@ -2633,6 +2638,22 @@ async function decorate(root) {
 }
 
 /** コードを 1 行ずつの要素に分け、行番号を付ける(色付けの span が行をまたいでも、行ごとに閉じて開き直す) */
+// 和文の字(かな・漢字・全角の記号)。コメントの中で、和文の語の後ろの空白だけを折り返しの候補に残す
+const JA_CHAR = /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/;
+// s[i] の空白で折ってよいか: 和文の字か、和文の直後の半角の「?」「!」「:」「)」の後ろ(後ろが「/」なら除く)と、
+// その後ろの「 / 」の後ろ(「どうなる? / 」)。後ろが漢字・カタカナ(「← コメントを外すと」。助詞のひらがなは除く)、
+// コメントの中の 2 つ目の「//」の前(「// base = 200; // ← …」)、矢印「←」「→」の後ろも折ってよい。
+// 英字や矢印の後ろでつながった塊を、語の途中で割っていた(「コメ / ント」。31 回目の審査)。
+// 英数字だけのコメント(// a = 2;)の中は今までどおり切らない(コードに見える切れ端を作らない)
+function jaSpace(s, i) {
+  const ja = (k) => JA_CHAR.test(s[k] || "") || ("?!:)".includes(s[k] || "x") && JA_CHAR.test(s[k - 1] || ""));
+  if (s[i + 1] !== "/" && ja(i - 1)) return true;
+  if (s[i - 1] === "/" && s[i - 2] === " " && ja(i - 3)) return true;
+  if (/[\u30a0-\u30ff\u3400-\u9fff]/.test(s[i + 1] || "")) return true;
+  if (s[i + 1] === "/" && s[i + 2] === "/" && i > 1) return true;
+  return "←→".includes(s[i - 1] || "x");
+}
+
 function numberLines(code) {
   // 400px 以下は字下げを半分(深くても 6 文字まで)にして 1 行の字数を稼ぐ(文字は 14px のまま。型と名前が折り返しで離れないように)
   const narrow = matchMedia("(max-width: 400px)").matches;
@@ -2648,14 +2669,20 @@ function numberLines(code) {
     else if (part === "</span>") { open.pop(); cur += part; }
     // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)。
     // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
-    // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)
-    else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, " ");
+    // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)。
+    // ただし和文の語の後ろの空白(「のままだと NullPointerException」)だけは切ってよい。全部つなぐと、収まらない分を
+    // 語の途中で割っていた(「のままだ / と」)。和文の中は CSS の auto-phrase(無ければ keep-all)で文節の切れ目だけで折る
+    // 狭い画面では、行末のコメントの続きをそろえた 4 字以上の空白を 1 字に縮める(PC の列そろえが、折り返すと穴に見えた)
+    else if (open.some((o) => o.includes("hljs-comment"))) cur += (narrow ? part.replace(/(\S) {4,}/g, "$1 ") : part).replace(/ /g, (m, i, s) => (jaSpace(s, i) ? " " : "\u00a0"));
     // 添字の連なり(t[2][1])は「][」で割らない(語をつなぐ印 U+2060 を挟む。コピーのときは下の copy で取り除く)
     else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>").replace(/\]\[/g, "]\u2060[");
   }
   lines.push(cur);
-  // 行末の「 {」は前の語から離さない(「{」だけが次の行に落ちて、行の数が増えて見えないように)
-  for (let i = 0; i < lines.length; i++) lines[i] = lines[i].replace(/ (\{(?:<\/span>)*)\s*$/, " $1");
+  // 行末の「 {」は前の語から離さない(「{」だけが次の行に落ちて、行の数が増えて見えないように)。
+  // 行頭の字下げでも折らない(長い塊が丸ごと次の行へ送られ、行番号の行が空になった。31 回目の審査)
+  for (let i = 0; i < lines.length; i++) {
+    lines[i] = lines[i].replace(/ (\{(?:<\/span>)*)\s*$/, " $1").replace(/^((?:<span[^>]*>)*)( +)/, (m, tags, sp) => tags + "\u00a0".repeat(sp.length));
+  }
   // 折り返した続きは、その行の字下げ + 2 文字の位置から始める(どこからが続きか見分けられるように)
   const indent = text.split("\n").map((t) => t.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length);
   code.innerHTML = lines.map((l, i) => `<span class="ln${notes.has(i + 1) ? " note" : ""}" data-n="${i + 1}" style="--ind:${indent[i] || 0}">${l || " "}</span>`).join("");
@@ -2850,7 +2877,8 @@ navigator.serviceWorker?.addEventListener("controllerchange", async () => {
 // コードを写すときは、折り返しのために挟んだ語をつなぐ印(U+2060)を取り除く(Java に貼るとコンパイルエラーになるので)
 document.addEventListener("copy", (e) => {
   const text = getSelection()?.toString() || "";
-  if (!text.includes("\u2060")) return;
-  e.clipboardData.setData("text/plain", text.replace(/\u2060/g, ""));
+  if (!/[\u2060\u00a0]/.test(text)) return;
+  // 字下げとコメントの空白は改行しない空白(U+00A0)で組んでいるので、写すときはふつうの空白に戻す
+  e.clipboardData.setData("text/plain", text.replace(/\u2060/g, "").replace(/\u00a0/g, " "));
   e.preventDefault();
 });

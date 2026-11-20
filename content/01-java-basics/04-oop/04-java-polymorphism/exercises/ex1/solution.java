@@ -19,7 +19,11 @@ public class AreaCalculator {
     }
 
     public static void main(String[] args) {
-        Shape[] shapes = { new Rectangle(3, 4), new Triangle(4, 5), new Circle(1) };
+        Shape[] shapes = {
+            new Rectangle(3, 4),
+            new Triangle(4, 5),
+            new Circle(1)
+        };
         System.out.println(totalArea(shapes));             // 25.14159...
         System.out.println(countLargerThan(shapes, 10.0)); // 1
     }

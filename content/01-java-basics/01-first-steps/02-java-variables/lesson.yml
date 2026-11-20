@@ -24,7 +24,8 @@ samples:
       boolean ok = true;
 
       System.out.println("byte=" + b + " short=" + s + " int=" + i + " long=" + l);
-      System.out.println("float=" + f + " double=" + d + " char=" + c + " boolean=" + ok);
+      System.out.println(
+              "float=" + f + " double=" + d + " char=" + c + " boolean=" + ok);
 
       // 範囲はラッパークラスの定数で確認できる
       System.out.println("int : " + Integer.MIN_VALUE + " 〜 " + Integer.MAX_VALUE);

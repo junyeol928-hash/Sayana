@@ -51,7 +51,9 @@ public class UrlAccessTable {
 
     /** "/requests/5" → ["requests", "5"](空のセグメントは捨てる) */
     static String[] segments(String s) {
-        return Arrays.stream(s.split("/")).filter(x -> !x.isEmpty()).toArray(String[]::new);
+        return Arrays.stream(s.split("/"))
+                .filter(x -> !x.isEmpty())
+                .toArray(String[]::new);
     }
 
     static boolean matches(String pattern, String path) {
@@ -86,7 +88,8 @@ public class UrlAccessTable {
             if (rule.kind() == Kind.AUTHENTICATED) {
                 return Result.ALLOW;
             }
-            return rule.roles().contains(role) ? Result.ALLOW : Result.FORBIDDEN;
+            return rule.roles().contains(role) ? Result.ALLOW
+                    : Result.FORBIDDEN;
         }
         return role == null ? Result.LOGIN_REQUIRED : Result.FORBIDDEN;
     }

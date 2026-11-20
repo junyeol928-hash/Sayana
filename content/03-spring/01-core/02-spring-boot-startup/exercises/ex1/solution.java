@@ -46,7 +46,8 @@ public class InvoiceAutoConfig {
 
     @Bean
     InvoiceService invoiceService(ObjectProvider<TaxRate> taxRates) {
-        // 利用者の TaxRate Bean があればそれを、無ければ既定の 10% を使う
+        // 利用者の TaxRate Bean があればそれを、
+        // 無ければ既定の 10% を使う
         TaxRate rate = taxRates.getIfAvailable(StandardTaxRate::new);
         return new InvoiceService(rate);
     }

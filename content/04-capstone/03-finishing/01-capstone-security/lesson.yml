@@ -23,7 +23,9 @@ samples:
       String canApprove(Emp e, Req r) {
           if (e.role() == Role.APPLICANT) return "× 承認者ではない";
           if (e.id() == r.applicantId()) return "× 自分の申請";
-          if (r.amount() >= 100_000 && e.role() != Role.ADMIN) return "× 高額は管理者だけ";
+          if (r.amount() >= 100_000 && e.role() != Role.ADMIN) {
+              return "× 高額は管理者だけ";
+          }
           return "○ 承認できる";
       }
 
@@ -41,7 +43,8 @@ samples:
           // 画面の sec:authorize はロールしか見ない
           boolean buttonShown = e.role() != Role.APPLICANT;
           System.out.printf("%-3s %-9s ボタン表示:%s サーバー判定:%s%n",
-                  e.name(), e.role(), buttonShown ? "あり" : "なし", canApprove(e, req));
+                  e.name(), e.role(), buttonShown ? "あり" : "なし",
+                  canApprove(e, req));
       }
   - title: URL ルールは上から順に、最初に一致したもので決まる
     description: |

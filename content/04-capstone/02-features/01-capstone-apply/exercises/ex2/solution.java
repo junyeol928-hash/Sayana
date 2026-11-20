@@ -20,7 +20,10 @@ import java.util.List;
 @RequestMapping("/requests")
 public class RequestController {
 
-    /** ログインの代わり。capstone-security でログインユーザーに置き換える */
+    /**
+     * ログインの代わり。capstone-security で
+     * ログインユーザーに置き換える
+     */
     static final Long CURRENT_EMPLOYEE_ID = 1L;
 
     private final RequestService requestService;
@@ -37,7 +40,8 @@ public class RequestController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("requests", requestService.findMine(CURRENT_EMPLOYEE_ID));
+        model.addAttribute(
+                "requests", requestService.findMine(CURRENT_EMPLOYEE_ID));
         return "requests/list";
     }
 
@@ -52,11 +56,15 @@ public class RequestController {
                          BindingResult result,
                          RedirectAttributes ra) {
         if (result.hasErrors()) {
-            return "requests/new";            // 入力値とエラーを持ったまま同じ画面へ
+            // 入力値とエラーを持ったまま同じ画面へ
+            return "requests/new";
         }
-        ApprovalRequest saved = requestService.createDraft(CURRENT_EMPLOYEE_ID, form.toEntity());
-        ra.addFlashAttribute("message", "下書きを保存しました(No." + saved.getId() + ")");
-        return "redirect:/requests";          // PRG
+        ApprovalRequest saved = requestService.createDraft(
+                CURRENT_EMPLOYEE_ID, form.toEntity());
+        ra.addFlashAttribute(
+                "message", "下書きを保存しました(No." + saved.getId() + ")");
+        // PRG
+        return "redirect:/requests";
     }
 }
 
@@ -119,7 +127,8 @@ enum RequestType {
 
 /** 申請の状態(完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -128,7 +137,10 @@ enum RequestStatus {
     public String label() { return label; }
 }
 
-/** 申請(エンティティの縮小版。STS では JPA の @Entity で、申請者は Employee。完成済み) */
+/**
+ * 申請(エンティティの縮小版。STS では JPA の @Entity で、
+ * 申請者は Employee。完成済み)
+ */
 class ApprovalRequest {
     private Long id;
     private String title;
@@ -151,12 +163,16 @@ class ApprovalRequest {
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
     public Long getApplicantId() { return applicantId; }
-    public void setApplicantId(Long applicantId) { this.applicantId = applicantId; }
+    public void setApplicantId(Long applicantId) {
+        this.applicantId = applicantId;
+    }
 }
 
 /** 申請の登録と検索(完成済み) */
 interface RequestService {
-    /** 申請者 applicantId の下書きとして保存し、id の振られた申請を返す */
+    /**
+     * 申請者 applicantId の下書きとして保存し、id の振られた申請を返す
+     */
     ApprovalRequest createDraft(Long applicantId, ApprovalRequest request);
 
     /** 申請者 applicantId の申請だけを返す */
@@ -168,7 +184,8 @@ class InMemoryRequestService implements RequestService {
     private final List<ApprovalRequest> store = new ArrayList<>();
 
     @Override
-    public ApprovalRequest createDraft(Long applicantId, ApprovalRequest request) {
+    public ApprovalRequest createDraft(
+            Long applicantId, ApprovalRequest request) {
         request.setId((long) store.size() + 1);
         request.setApplicantId(applicantId);
         request.setStatus(RequestStatus.DRAFT);

@@ -6,7 +6,8 @@ import java.util.Base64;
 
 /**
  * ソルト + ストレッチングでパスワードをハッシュ化する(仕組みの学習用)。
- * 本番では自作せず、Spring Security の BCryptPasswordEncoder などを使うこと。
+ * 本番では自作せず、Spring Security の
+ * BCryptPasswordEncoder などを使うこと。
  */
 public class PasswordHasher {
 
@@ -17,26 +18,37 @@ public class PasswordHasher {
 
     private final SecureRandom random = new SecureRandom();
 
-    /** 新しいランダムなソルトでハッシュ化し、"ソルト$ハッシュ"(どちらも Base64)で返す */
+    /**
+     * 新しいランダムなソルトでハッシュ化し、
+     * "ソルト$ハッシュ"(どちらも Base64)で返す
+     */
     public String encode(String raw) {
         byte[] salt = new byte[SALT_BYTES];
         random.nextBytes(salt);
         return encode(raw, salt);
     }
 
-    /** 指定したソルトでハッシュ化し、"ソルト$ハッシュ"(どちらも Base64)で返す(完成済み) */
+    /**
+     * 指定したソルトでハッシュ化し、
+     * "ソルト$ハッシュ"(どちらも Base64)で返す(完成済み)
+     */
     static String encode(String raw, byte[] salt) {
         Base64.Encoder b64 = Base64.getEncoder();
-        return b64.encodeToString(salt) + "$" + b64.encodeToString(digest(raw, salt));
+        return b64.encodeToString(salt) + "$"
+                + b64.encodeToString(digest(raw, salt));
     }
 
-    /** SHA-256(ソルト + パスワード) を求め、その結果をさらに SHA-256 にかけて、合計 ITERATIONS 回計算する */
+    /**
+     * SHA-256(ソルト + パスワード) を求め、
+     * その結果をさらに SHA-256 にかけて、合計 ITERATIONS 回計算する
+     */
     static byte[] digest(String raw, byte[] salt) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e); // SHA-256 はどの JDK にも必ずある
+            // SHA-256 はどの JDK にも必ずある
+            throw new IllegalStateException(e);
         }
         md.update(salt);
         byte[] hash = md.digest(raw.getBytes(StandardCharsets.UTF_8));
@@ -46,7 +58,9 @@ public class PasswordHasher {
         return hash;
     }
 
-    /** raw が保存値 stored と同じパスワードか。形式が壊れていれば false */
+    /**
+     * raw が保存値 stored と同じパスワードか。形式が壊れていれば false
+     */
     public boolean matches(String raw, String stored) {
         if (raw == null || stored == null) {
             return false;
@@ -63,7 +77,8 @@ public class PasswordHasher {
         } catch (IllegalArgumentException e) {
             return false; // Base64 として不正
         }
-        // 保存値のソルトで計算し直して比べる。比較は時間が一定の isEqual で
+        // 保存値のソルトで計算し直して比べる。
+        // 比較は時間が一定の isEqual で
         return MessageDigest.isEqual(digest(raw, salt), expected);
     }
 
@@ -73,8 +88,11 @@ public class PasswordHasher {
         String b = hasher.encode("haru-pass");
         System.out.println(a);
         System.out.println(b);
-        System.out.println(a.equals(b));                      // false(ソルトが違う)
-        System.out.println(hasher.matches("haru-pass", a));   // true
-        System.out.println(hasher.matches("HARU-pass", a));   // false
+        // 出力: false(ソルトが違う)
+        System.out.println(a.equals(b));
+        // 出力: true
+        System.out.println(hasher.matches("haru-pass", a));
+        // 出力: false
+        System.out.println(hasher.matches("HARU-pass", a));
     }
 }

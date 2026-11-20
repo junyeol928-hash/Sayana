@@ -92,9 +92,11 @@ samples:
 
       System.out.println("No. | 件名 | 金額 | 状態");
       for (ApprovalRequest r : mine) {
-          String amount = r.amount() == null ? "-" : String.format("%,d円", r.amount());
+          String amount = r.amount() == null ? "-"
+                  : String.format("%,d円", r.amount());
           // 画面には enum の名前(DRAFT)ではなく日本語の label を出す
-          System.out.println(r.id() + " | " + r.title() + " | " + amount + " | " + r.status().label);
+          System.out.println(r.id() + " | " + r.title() + " | " + amount + " | "
+                  + r.status().label);
       }
 quiz:
   - question: |

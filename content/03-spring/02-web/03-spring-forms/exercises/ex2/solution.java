@@ -35,11 +35,13 @@ public class MemberController {
                            BindingResult result,
                            RedirectAttributes ra) {
         if (result.hasErrors()) {
-            return "members/form";            // 入力値とエラーを持ったまま同じ画面へ
+            // 入力値とエラーを持ったまま同じ画面へ
+            return "members/form";
         }
         store.add(form.getName(), form.getEmail());
         ra.addFlashAttribute("message", "登録しました");
-        return "redirect:/members/done";      // PRG:POST の後はリダイレクト
+        // PRG:POST の後はリダイレクト
+        return "redirect:/members/done";
     }
 }
 

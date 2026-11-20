@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 record Task(long id, String title, boolean done) {
 }
 
-/** POST で受け取る JSON の形。id や done はクライアントに決めさせない */
+/**
+ * POST で受け取る JSON の形。id や done はクライアントに決めさせない
+ */
 record CreateTaskRequest(String title) {
 }
 

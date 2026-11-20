@@ -48,7 +48,8 @@ samples:
                   group++;
               }
               System.out.println("  並び順: " + tree.getSort()
-                      + " / 件数制限: " + (tree.isLimiting() ? tree.getMaxResults() : "なし")
+                      + " / 件数制限: "
+                      + (tree.isLimiting() ? tree.getMaxResults() : "なし")
                       + " / count: " + tree.isCountProjection());
           } catch (RuntimeException e) {
               System.out.println("  起動時エラーになる: " + e.getMessage());

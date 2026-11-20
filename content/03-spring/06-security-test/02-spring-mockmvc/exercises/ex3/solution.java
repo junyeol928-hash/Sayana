@@ -12,7 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** 送料 API の仕様を確かめる「テスト」を書く */
 public class ShipApiCheck {
 
-    /** mvc の先にある送料 API が仕様どおりなら何も起きず、違えば AssertionError を投げる */
+    /**
+     * mvc の先にある送料 API が仕様どおりなら何も起きず、
+     * 違えば AssertionError を投げる
+     */
     public static void check(MockMvc mvc) throws Exception {
         // 一般会員:5000 円未満は 500 円(境界の内側)
         mvc.perform(get("/shipping-fee").param("amount", "4999"))
@@ -24,7 +27,8 @@ public class ShipApiCheck {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fee").value(0));
         // GOLD 会員は少額でも無料
-        mvc.perform(get("/shipping-fee").param("amount", "100").param("rank", "GOLD"))
+        mvc.perform(get("/shipping-fee").param("amount", "100")
+                .param("rank", "GOLD"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fee").value(0));
         // 金額 0 円は不正な入力
@@ -33,7 +37,8 @@ public class ShipApiCheck {
     }
 
     public static void main(String[] args) throws Exception {
-        MockMvc mvc = MockMvcBuilders.standaloneSetup(new FeeController()).build();
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new FeeController())
+                .build();
         check(mvc);
         System.out.println("検証OK:FeeController は仕様どおりです");
     }
@@ -48,7 +53,8 @@ class FeeController {
 
     @GetMapping("/shipping-fee")
     public ResponseEntity<FeeResult> fee(@RequestParam("amount") int amount,
-            @RequestParam(value = "rank", defaultValue = "NORMAL") String rank) {
+            @RequestParam(value = "rank", defaultValue = "NORMAL")
+            String rank) {
         if (amount <= 0) {
             return ResponseEntity.badRequest().build();
         }

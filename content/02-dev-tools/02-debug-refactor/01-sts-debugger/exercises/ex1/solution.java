@@ -3,7 +3,8 @@ public class LateCounter {
     /**
      * 1か月分の出社時刻から、遅刻した日数を数える。
      * 時刻は「0時からの分数」で表す(9:00 → 540、9:05 → 545)。
-     * 始業時刻 start ちょうどに着いたら遅刻ではない。1分でも過ぎたら遅刻。
+     * 始業時刻 start ちょうどに着いたら遅刻ではない。
+     * 1分でも過ぎたら遅刻。
      */
     public static int countLate(int[] arrivals, int start) {
         int count = 0;

@@ -44,11 +44,13 @@ samples:
 
       void check(MemberForm form) {
           Set<ConstraintViolation<MemberForm>> errors = validator.validate(form);
-          System.out.println("--- " + form.name + " / " + form.email + " / " + form.age);
+          System.out.println(
+                  "--- " + form.name + " / " + form.email + " / " + form.age);
           if (errors.isEmpty()) { System.out.println("OK!"); return; }
           errors.stream()   // Set は順番が決まらないので項目名で並べる
               .sorted(Comparator.comparing(v -> v.getPropertyPath().toString()))
-              .forEach(v -> System.out.println(v.getPropertyPath() + ": " + v.getMessage()));
+              .forEach(v -> System.out.println(
+                      v.getPropertyPath() + ": " + v.getMessage()));
       }
 
       // ここを変えてみよう:値を書き換えて、どの注釈に引っかかるか見る
@@ -129,7 +131,8 @@ samples:
           System.out.println(e.getField() + " [" + e.getCode() + "] 入力値="
                   + e.getRejectedValue() + " → " + msg);
       }
-      System.out.println("form.getAge() = " + form.getAge() + "(変換できない値はセットされない)");
+      System.out.println("form.getAge() = " + form.getAge()
+              + "(変換できない値はセットされない)");
   - title: MockMvc で PRG の流れを見る
     description: フォームの POST を `MockMvc` で送ります(実行に数秒かかります)。入力にエラーがあるときと無いときで、ステータス・ビュー名・リダイレクト先・フラッシュ属性はどう違うだろうか。
     libraries: [spring]

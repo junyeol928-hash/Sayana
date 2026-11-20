@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** 承認・差戻しの業務ルール(1〜3・6)を守るサービス。STS では @Service @Transactional */
+/**
+ * 承認・差戻しの業務ルール(1〜3・6)を守るサービス。
+ * STS では @Service @Transactional
+ */
 public class ApprovalService {
 
     private final ApprovalRequestRepository requests;
@@ -32,15 +35,18 @@ public class ApprovalService {
     }
 
     /** 承認(ルール2・3) */
-    public ApprovalRequest approve(Long requestId, Long actorId, String comment) {
+    public ApprovalRequest approve(
+            Long requestId, Long actorId, String comment) {
         ApprovalRequest r = findRequest(requestId);
         Employee actor = findEmployee(actorId);
         requireApprover(actor);
         if (r.getApplicant().id().equals(actor.id())) {
             throw new BusinessRuleException("自分の申請は承認できません");
         }
-        if (ApprovalFlow.requiresAdmin(r.getAmount()) && actor.role() != Role.ADMIN) {
-            throw new BusinessRuleException("100,000円以上の申請は管理者しか承認できません");
+        if (ApprovalFlow.requiresAdmin(r.getAmount())
+                && actor.role() != Role.ADMIN) {
+            throw new BusinessRuleException(
+                    "100,000円以上の申請は管理者しか承認できません");
         }
         LocalDateTime now = LocalDateTime.now();
         r.approve(actor, comment, now);
@@ -49,7 +55,8 @@ public class ApprovalService {
     }
 
     /** 差戻し(ルール2。コメント必須のルール4はエンティティが守る) */
-    public ApprovalRequest returnBack(Long requestId, Long actorId, String comment) {
+    public ApprovalRequest returnBack(
+            Long requestId, Long actorId, String comment) {
         ApprovalRequest r = findRequest(requestId);
         Employee actor = findEmployee(actorId);
         requireApprover(actor);
@@ -72,12 +79,14 @@ public class ApprovalService {
 
     private ApprovalRequest findRequest(Long id) {
         return requests.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("申請が見つかりません"));
+                .orElseThrow(() -> new BusinessRuleException(
+                        "申請が見つかりません"));
     }
 
     private Employee findEmployee(Long id) {
         return employees.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("社員が見つかりません"));
+                .orElseThrow(() -> new BusinessRuleException(
+                        "社員が見つかりません"));
     }
 
     private void requireApplicant(ApprovalRequest r, Employee actor) {
@@ -92,9 +101,14 @@ public class ApprovalService {
         }
     }
 
-    /** ルール6:状態を変えたら必ず履歴を1件(STS では同じトランザクションで保存される) */
-    private void record(ApprovalRequest r, Employee actor, Action action, String comment, LocalDateTime now) {
-        histories.save(new ApprovalHistory(r.getId(), actor.id(), action, comment, now));
+    /**
+     * ルール6:状態を変えたら必ず履歴を1件
+     * (STS では同じトランザクションで保存される)
+     */
+    private void record(ApprovalRequest r, Employee actor, Action action,
+            String comment, LocalDateTime now) {
+        histories.save(new ApprovalHistory(
+                r.getId(), actor.id(), action, comment, now));
     }
 }
 
@@ -110,7 +124,8 @@ class ApprovalRequest {
     private LocalDateTime submittedAt;
     private LocalDateTime decidedAt;
 
-    public ApprovalRequest(Long id, String title, Integer amount, Employee applicant) {
+    public ApprovalRequest(
+            Long id, String title, Integer amount, Employee applicant) {
         this.id = id;
         this.title = title;
         this.amount = amount;
@@ -130,7 +145,8 @@ class ApprovalRequest {
     }
 
     /** 差し戻す。コメント必須(業務ルール4) */
-    public void returnBack(Employee approver, String comment, LocalDateTime now) {
+    public void returnBack(
+            Employee approver, String comment, LocalDateTime now) {
         if (comment == null || comment.isBlank()) {
             throw new BusinessRuleException("差戻しにはコメントが必要です");
         }
@@ -175,7 +191,8 @@ record Employee(Long id, String name, Role role) {}
 
 /** 申請の状態(capstone-requirements の答え。完成済み) */
 enum RequestStatus {
-    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"), RETURNED("差戻し"), WITHDRAWN("取下げ");
+    DRAFT("下書き"), SUBMITTED("申請中"), APPROVED("承認済"),
+    RETURNED("差戻し"), WITHDRAWN("取下げ");
 
     private final String label;
 
@@ -219,14 +236,19 @@ enum Action {
 class ApprovalFlow {
     static final int ADMIN_LIMIT = 100_000;
 
-    /** current に action をした後の状態。できなければ BusinessRuleException(業務ルール5) */
+    /**
+     * current に action をした後の状態。
+     * できなければ BusinessRuleException(業務ルール5)
+     */
     static RequestStatus next(RequestStatus current, Action action) {
         if (current.isFinal()) {
-            throw new BusinessRuleException(current.label() + "の申請は変更できません");
+            throw new BusinessRuleException(current.label()
+                    + "の申請は変更できません");
         }
         RequestStatus to = action.target();
         if (!current.canTransitionTo(to)) {
-            throw new BusinessRuleException(current.label() + "の申請は「" + action.label() + "」できません");
+            throw new BusinessRuleException(current.label() + "の申請は「"
+                    + action.label() + "」できません");
         }
         return to;
     }
@@ -237,10 +259,18 @@ class ApprovalFlow {
     }
 }
 
-/** 承認履歴(エンティティの縮小版。STS では request・actor は ApprovalRequest・Employee への参照。完成済み) */
-record ApprovalHistory(Long requestId, Long actorId, Action action, String comment, LocalDateTime at) {}
+/**
+ * 承認履歴(エンティティの縮小版。完成済み)
+ * STS では request・actor は ApprovalRequest・Employee への参照
+ */
+record ApprovalHistory(
+        Long requestId, Long actorId, Action action, String comment,
+        LocalDateTime at) {}
 
-/** 申請の Repository(STS では JpaRepository を継承するインターフェース。完成済み) */
+/**
+ * 申請の Repository(完成済み)
+ * STS では JpaRepository を継承するインターフェース
+ */
 interface ApprovalRequestRepository {
     Optional<ApprovalRequest> findById(Long id);
 
@@ -299,6 +329,8 @@ class InMemoryApprovalHistoryRepository implements ApprovalHistoryRepository {
 
     @Override
     public List<ApprovalHistory> findByRequestId(Long requestId) {
-        return store.stream().filter(h -> h.requestId().equals(requestId)).toList();
+        return store.stream()
+                .filter(h -> h.requestId().equals(requestId))
+                .toList();
     }
 }

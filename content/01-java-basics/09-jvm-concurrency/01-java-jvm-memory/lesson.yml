@@ -22,16 +22,19 @@ samples:
           System.out.println(indent(depth) + "→ tax(" + price + ") のフレームを積む");
           // result は tax のフレームにあるローカル変数
           int result = price * 10 / 100;
-          System.out.println(indent(depth) + "← tax が " + result + " を返して、フレームが消える");
+          System.out.println(indent(depth) + "← tax が " + result
+                  + " を返して、フレームが消える");
           return result;
       }
 
       static int total(int price, int qty, int depth) {
-          System.out.println(indent(depth) + "→ total(" + price + ", " + qty + ") のフレームを積む");
+          System.out.println(indent(depth) + "→ total(" + price + ", " + qty
+                  + ") のフレームを積む");
           // subtotal は total のフレームにある
           int subtotal = price * qty;
           int sum = subtotal + tax(subtotal, depth + 1);
-          System.out.println(indent(depth) + "← total が " + sum + " を返して、フレームが消える");
+          System.out.println(indent(depth) + "← total が " + sum
+                  + " を返して、フレームが消える");
           return sum;
       }
 
@@ -87,7 +90,8 @@ samples:
       Cart alias = cart;
       Cart other = new Cart("ハル", 150);
       System.out.println("cart == alias ? " + (cart == alias));
-      System.out.println("cart == other ? " + (cart == other) + "(中身が同じでも別の実体)");
+      System.out.println(
+              "cart == other ? " + (cart == other) + "(中身が同じでも別の実体)");
   - title: static なリストから辿れる限り GC されない
     description: |
       リクエストを処理するたびに `Report` を static なリストへ「取っておく」。表示する KB は計算上の値で、実測ではない。1000 回のリクエストが終わってローカル変数 `r` が消えたあと、リストから辿れる `Report` は何個残っているだろうか。
@@ -122,7 +126,8 @@ samples:
           handleRequest(i);
       }
       int kept = ReportCache.ALL.size();
-      System.out.println("リクエストは終わったのに残っている Report: " + kept + " 個");
+      System.out.println(
+              "リクエストは終わったのに残っている Report: " + kept + " 個");
       System.out.println("配列だけで約 " + (kept * 4000 / 1000) + "KB(計算上の値)");
 
       ReportCache.ALL.clear();      // 参照を外せば、次の GC で回収できる状態になる

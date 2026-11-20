@@ -37,8 +37,11 @@ public class SalesRanking {
                 new Product("ボールペン", 12),
                 new Product("ノート", 0),
                 new Product("付箋", 7));
-        System.out.println(topSellers(products, 3));  // トートバッグ, ボールペン, マグカップ
-        System.out.println(topSellers(products, 10)); // トートバッグ, ボールペン, マグカップ, 付箋
-        System.out.println("[" + topSellers(products, 0) + "]"); // []
+        // 出力: トートバッグ, ボールペン, マグカップ
+        System.out.println(topSellers(products, 3));
+        // 出力: トートバッグ, ボールペン, マグカップ, 付箋
+        System.out.println(topSellers(products, 10));
+        // 出力: []
+        System.out.println("[" + topSellers(products, 0) + "]");
     }
 }

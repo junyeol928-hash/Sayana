@@ -32,7 +32,8 @@ public class TicketMachine {
         }
 
         int behind() {
-            // 外側の issued は発行のたびに増えるので、呼んだ時点の値で計算する
+            // 外側の issued は発行のたびに増えるので、
+            // 呼んだ時点の値で計算する
             return TicketMachine.this.issued - number;
         }
     }

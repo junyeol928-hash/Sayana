@@ -29,7 +29,8 @@ record MemberRequest(
         @Email(message = "メールアドレスの形式が正しくありません") String email,
         @NotNull(message = "年齢は必須です")
         @Min(value = 18, message = "18歳以上の方のみ登録できます")
-        @Max(value = 120, message = "年齢は120以下で入力してください") Integer age) {
+        @Max(value = 120, message = "年齢は120以下で入力してください")
+        Integer age) {
 }
 
 record MemberResponse(long id, String name, String email, int age) {
@@ -41,10 +42,12 @@ class MemberController {
     private final AtomicLong seq = new AtomicLong();
 
     @PostMapping
-    ResponseEntity<MemberResponse> register(@Valid @RequestBody MemberRequest req) {
+    ResponseEntity<MemberResponse> register(
+            @Valid @RequestBody MemberRequest req) {
         long id = seq.incrementAndGet();
         return ResponseEntity.created(URI.create("/api/members/" + id))
-                .body(new MemberResponse(id, req.name(), req.email(), req.age()));
+                .body(new MemberResponse(
+                        id, req.name(), req.email(), req.age()));
     }
 }
 
@@ -58,7 +61,8 @@ public class ValidationErrorHandler {
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             errors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "入力内容を確認してください");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "入力内容を確認してください");
         pd.setTitle("入力エラー");
         pd.setProperty("errors", errors);
         return pd;

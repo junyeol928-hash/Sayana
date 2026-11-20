@@ -2,7 +2,8 @@ public class BmiChecker {
 
     // BMI を小数第1位まで四捨五入して返す
     public static double bmi(int heightCm, double weightKg) {
-        // 100 ではなく 100.0 で割る(int / int だと 170 / 100 = 1 になってしまう)
+        // 100 ではなく 100.0 で割る
+        // (int / int だと 170 / 100 = 1 になってしまう)
         double heightM = heightCm / 100.0;
         double raw = weightKg / (heightM * heightM);
         // 10 倍して四捨五入し、10.0 で割って小数第1位に戻す

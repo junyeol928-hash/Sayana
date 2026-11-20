@@ -23,7 +23,8 @@ public class OrderService {
     }
 
     // 同じクラスの placeOrder を呼んでもプロキシを通らないので、
-    // こちらにも @Transactional を付けて「全体で1トランザクション」にする
+    // こちらにも @Transactional を付けて
+    // 「全体で1トランザクション」にする
     @Transactional(rollbackFor = PaymentException.class)
     public void placeAll(List<OrderLine> lines) throws PaymentException {
         for (OrderLine line : lines) {
@@ -43,7 +44,8 @@ class PaymentException extends Exception {
     }
 }
 
-// 外部の決済サービスの代わり(完成済み)。1回の決済が 10000 円を超えると失敗する
+// 外部の決済サービスの代わり(完成済み)。
+// 1回の決済が 10000 円を超えると失敗する
 class PaymentGateway {
     final List<Integer> charged = new ArrayList<>();   // 決済できた金額の記録
 
