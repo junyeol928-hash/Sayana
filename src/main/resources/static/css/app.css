@@ -649,7 +649,8 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
    段の帯(.stepper)と同じ段・同じ済み・同じ「いまの段」を写すので、軸がある間は帯を隠す(上と左に同じ並びを 2 つ出さない)。
    軸は app.js の buildRail が作り、作れたときだけ .has-rail を付ける(JS が動かなければ、帯のまま)。
    1360px 以上の 1 列は、48px の軸と左に下げた段の名前。1024〜1359px の 1 列と AI の欄があるときは、段の名前を左に下げる
-   空きが無いので、24px の細い軸にして名前は読み上げと、指を載せた・フォーカスしたときの札だけにする(.rail-thin。app.js)。
+   空きが無いので、24px の細い軸にして名前は読み上げと、指を載せた・フォーカスしたときの札だけにする(.rail-thin。app.js。
+   1200〜1359px の 1 列は、細い軸の左に短い名前の列を下げる。下)。
    どちらも出なかったときは、1279px 以下と AI の欄がある 2 列に署名が続かなかった(30 回目の審査) */
 .lesson-rail { display: none; }
 .hero-back { display: none; }
@@ -730,6 +731,21 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
   /* のぞき見の「〇〇へ戻る」は、軸の左に置く空きが無いので、冒頭の現在地の行の右に */
   .rail-thin .hero-back { display: inline-flex; min-height: 0; padding: 0; margin-left: 16px; vertical-align: baseline; }
 }
+/* 1200〜1359px の 1 列は、細い軸のまま段の名前を軸の左に下げる(名前が札だけでは、ノートパソコンの幅でいまどの段かを
+   文字で読めなかった。31 回目の審査)。全体を 50px 右へ寄せて名前の 100px(88px + 間 12px)を空け、左右の端の空きをそろえる
+   (1200px で 58px)。コードの張り出しはそのまま */
+@media (min-width: 1200px) and (max-width: 1359.98px) {
+  .lesson-layout.rail-thin.no-tutor .lesson-main { left: calc((var(--bleed) - 100px) / -2); }
+  .rail-thin.no-tutor .rail-steps { --label: 88px; }
+  .rail-thin.no-tutor .rail-step { margin-left: calc((var(--label) + 12px) * -1); grid-template-columns: var(--label) var(--rail-w); column-gap: 12px; }
+  .rail-thin.no-tutor .rail-label { position: static; justify-self: end; text-align: right; white-space: normal; word-break: auto-phrase;
+    padding: 0; background: none; box-shadow: none; color: var(--ink-muted); opacity: 1; pointer-events: auto; }
+  .rail-thin.no-tutor .rail-step.sewn .rail-label { color: var(--ink); }
+  .rail-thin.no-tutor .rail-step[aria-current="true"] .rail-label { color: var(--accent-ink); }
+  .rail-thin.no-tutor .rail-step:hover .rail-label { color: var(--ink); text-decoration: underline; }
+  .rail-thin.no-tutor .rail-cap { display: block; margin-left: calc((var(--label) + 12px) * -1); }
+  .rail-thin.no-tutor .rail-cap b { white-space: nowrap; } /* 2 行に折れても「4 / 段済み」と数を割らない */
+}
 /* AI の欄がある 2 列は、細い軸のぶん AI の欄を 380px から 340px に詰め、本文の幅を今までと同じに保つ */
 @media (min-width: 1101px) { .lesson-layout.has-rail:not(.no-tutor) { grid-template-columns: minmax(0, 1fr) 340px; } }
 @keyframes sew-down { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -778,7 +794,10 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
   .figure .fig-fit { margin: 8px 0 0; }
   .fig-fit { display: inline-flex; align-items: center; min-height: 44px; margin: -18px 0 12px; padding: 0 2px; border: 0; background: none; color: var(--accent-ink); font-size: .875rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 }
-.read-action { margin: 28px 0 0; display: flex; justify-content: flex-start; }
+/* 折り返して、染み込みの行(.dyed-line)を次の行の全幅に出す(横に並べると、スマホで読了の文が 173px の列に 3〜4 行で
+   押し込まれた。31 回目の審査) */
+.read-action { margin: 28px 0 0; display: flex; flex-wrap: wrap; justify-content: flex-start; }
+.read-action .done { word-break: auto-phrase; }
 .done { color: var(--ok); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
 
 /* 掛け合い: 名札と吹き出し */
@@ -1068,7 +1087,7 @@ pre.exception .ex-head { color: var(--syn-num); }
 /* 出力は書き写さないので、箱の幅で折り返して読ませる。語の切れ目(sampleResult が <wbr> を入れる)でだけ折り、
    「コー/ヒー豆」のように語の途中で割らない。記号の連なり(---)はひとまとまり */
 .sample-result .console { white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; line-break: strict; }
-.sample-result > summary .predict { display: block; font-weight: 400; color: var(--ink); font-size: .875rem; line-height: 1.6; margin-bottom: 2px; }
+.sample-result > summary .predict { display: block; word-break: auto-phrase; font-weight: 400; color: var(--ink); font-size: .875rem; line-height: 1.6; margin-bottom: 2px; }
 .sample-result .console .nb { white-space: nowrap; }
 .sample-result .console .out-line { display: block; min-height: 1.5em; padding-left: 1.5em; text-indent: -1.5em; } /* 折り返した続きは 1.5 字下げる */
 @media (max-width: 760px) {
