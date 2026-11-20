@@ -833,8 +833,10 @@ pre.code-lines .ln.note::before { content: attr(data-n); left: 6px; width: 30px;
 pre.code-lines .ln.note { background-color: oklch(1 0 0 / .05); }
 /* 折り返した続きの行は、行番号の列に細い縦線を引いて見分ける(1 行目の高さより下だけ) */
 pre.code-lines .ln { background-image: linear-gradient(var(--code-muted), var(--code-muted)); background-position: 22px 1.7em; background-size: 1px calc(100% - 1.9em); background-repeat: no-repeat; }
-/* コメントは範囲を薄い面で示す(割れても、どこまでがコメントか分かるように) */
-pre.code-lines .hljs-comment { background-color: oklch(1 0 0 / .07); border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* コメントは範囲を薄い面で示す(割れても、どこまでがコメントか分かるように)。
+   和文は文節の切れ目だけで折る(auto-phrase の無いブラウザは keep-all で、空白と約物の所だけ)。字ごとに割ると「のままだ / と」になった */
+pre.code-lines .hljs-comment { background-color: oklch(1 0 0 / .07); border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  word-break: keep-all; word-break: auto-phrase; }
 /* 説明はコードの注: 色を 1 段下げ、左の線で従に見せる。大きさは下限の 14px を割らない(PC はコードを 15px に上げて主従を戻す) */
 pre.code-lines .ln-note { color: oklch(.84 .02 245); font-size: 14px; }
 @media (min-width: 1024px) { pre.code-lines { font-size: 15px; } pre.code-lines .ln-note { font-size: 14px; } }
