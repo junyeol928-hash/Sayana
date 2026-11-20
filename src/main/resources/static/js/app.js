@@ -435,6 +435,16 @@ const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)")
 const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /** コードを 1 行ずつの要素に分け、行番号を付ける(スマホ版 app.js の numberLines と同じ) */
+// 和文の字(かな・漢字・全角の記号)。コメントの中で、和文の語の後ろの空白だけを折り返しの候補に残す
+const JA_CHAR = /[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]/;
+// s[i] の空白で折ってよいか: 和文の字か、和文の直後の半角の「?」「!」「:」「)」の後ろ(後ろが「/」なら除く)と、
+// その後ろの「 / 」の後ろ(「どうなる? / 」)。英数字だけのコメント(// a = 2;)の中は今までどおり切らない
+function jaSpace(s, i) {
+  const ja = (k) => JA_CHAR.test(s[k] || "") || ("?!:)".includes(s[k] || "x") && JA_CHAR.test(s[k - 1] || ""));
+  if (s[i + 1] !== "/" && ja(i - 1)) return true;
+  return s[i - 1] === "/" && s[i - 2] === " " && ja(i - 3);
+}
+
 function numberLines(code) {
   // 400px 以下は字下げを半分にして 1 行の字数を稼ぐ(型と名前が折り返しで離れないように。行番号の列を詰めるより効く)
   const narrow = matchMedia("(max-width: 400px)").matches;
@@ -450,8 +460,10 @@ function numberLines(code) {
     else if (part === "</span>") { open.pop(); cur += part; }
     // 狭い画面で折り返すときは . の前、( と , の後ろで切る(識別子の途中や「()」の間で切らない)。
     // 短い名前の直後の . では切らない(q と .size() が離れると、何の呼び出しか追い直すことになる)
-    // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)
-    else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, " ");
+    // コメントの中は折り返しの候補を入れず、空白でも切らない(コメントの範囲を読ませる問題で、割れ方が答えに見えないように)。
+    // ただし和文の語の後ろの空白(「のままだと NullPointerException」)だけは切ってよい。全部つなぐと、収まらない分を
+    // 語の途中で割っていた(「のままだ / と」)。和文の中は CSS の auto-phrase(無ければ keep-all)で文節の切れ目だけで折る
+    else if (open.some((o) => o.includes("hljs-comment"))) cur += part.replace(/ /g, (m, i, s) => (jaSpace(s, i) ? " " : "\u00a0"));
     // 添字の連なり(t[2][1])は「][」で割らない(語をつなぐ印 U+2060 を挟む。コピーのときは下の copy で取り除く)
     else cur += part.replace(/(\w{4,}|\))\./g, "$1<wbr>.").replace(/\((?!\))/g, "(<wbr>").replace(/,/g, ",<wbr>").replace(/\]\[/g, "]\u2060[");
   }

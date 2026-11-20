@@ -149,6 +149,32 @@ console.log("390px ではみ出す手描きの図:", figOver, "/ うち手がか
 await open(mobileArg + "#/lesson/java-jvm-memory");
 await scrollTo(".fig-scroll", 140);
 await shot("m-figure-svg");
+// コードのコメントが語の途中で割れていないか(30 回目のあと: 行末のコメントが「null のままだ / と NullPointerException」と割れた)。
+// 折り返した続きの行が助詞・送り仮名(文節の頭に来ないひらがな)で始まり、前の行が和文で終わるものを全レッスンで数える
+let commentSplit = 0, commentWraps = 0;
+const splitAt = [];
+for (const id of ids) {
+  await send("Page.navigate", { url: mobileArg + "#/lesson/" + id });
+  await sleep(900);
+  const r = await js(`let bad = 0, all = 0; const at = [];
+    for (const c of document.querySelectorAll("pre.code-lines .hljs-comment")) {
+      const range = document.createRange(); let top = null, prev = "";
+      const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) for (let i = 0; i < n.data.length; i++) {
+        range.setStart(n, i); range.setEnd(n, i + 1); const q = range.getClientRects()[0]; if (!q) continue;
+        if (top !== null && q.top - top > 5) { all++; if (/[をはがのにへとでやもかねよばてただっゃゅょぁぃぅぇぉんるれりず]/.test(n.data[i]) && /[\\u3041-\\u30ff\\u4e00-\\u9fff]/.test(prev)) { bad++; at.push(prev + " / " + n.data[i]); } }
+        top = q.top; prev = n.data[i];
+      }
+    }
+    return [bad, all, at.slice(0, 3)];`);
+  commentSplit += r[0]; commentWraps += r[1];
+  if (r[0]) splitAt.push(id + "(" + r[2].join("・") + ")");
+}
+console.log("390px でコードのコメントが語の途中で割れる:", commentSplit, "/ 折り返し", commentWraps, splitAt.join(" "));
+await open(mobileArg + "#/lesson/java-variables");
+await js(`const l = [...document.querySelectorAll("pre.code-lines .ln")].find((x) => x.textContent.includes("memo.length()")); l.scrollIntoView({ block: "center" });`);
+await sleep(400);
+await shot("m-sample-comment");
 await js(`localStorage.setItem("javadojo-m-v1", ${JSON.stringify(JSON.stringify(seed()))});`);
 await open(mobileArg + "#/lesson/spring-di");
 await js(`window.scrollTo(0, 0); await new Promise((r) => setTimeout(r, 500)); document.querySelector(".step-menu").open = true;`);
