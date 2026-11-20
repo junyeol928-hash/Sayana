@@ -59,7 +59,8 @@ samples:
       for (int i = 1; i <= 5; i++) {
           log.debug("連結で処理: " + new Order(i));
       }
-      System.out.println("連結版の toString 呼び出し: " + Order.toStringCalls + " 回");
+      System.out.println(
+              "連結版の toString 呼び出し: " + Order.toStringCalls + " 回");
 
       Order.toStringCalls = 0;
       for (int i = 1; i <= 5; i++) {

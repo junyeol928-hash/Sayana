@@ -34,8 +34,10 @@ samples:
 
       Method ts = Report.class.getMethod("toString");
       Method old = Report.class.getMethod("oldTitle");
-      System.out.println("toString に @Override は?   " + ts.isAnnotationPresent(Override.class));
-      System.out.println("oldTitle に @Deprecated は? " + old.isAnnotationPresent(Deprecated.class));
+      System.out.println("toString に @Override は?   "
+              + ts.isAnnotationPresent(Override.class));
+      System.out.println("oldTitle に @Deprecated は? "
+              + old.isAnnotationPresent(Deprecated.class));
       Deprecated d = old.getAnnotation(Deprecated.class);
       System.out.println("  since=" + d.since() + " forRemoval=" + d.forRemoval());
       System.out.println("Formatter に @FunctionalInterface は? "
@@ -80,10 +82,12 @@ samples:
           if (a == null) {
               System.out.println(m.getName() + " : 目印なし");
           } else {
-              System.out.println(m.getName() + " : " + a.value() + " / " + a.category());
+              System.out.println(
+                      m.getName() + " : " + a.value() + " / " + a.category());
           }
       }
-      System.out.println("普通に呼ぶ : " + new KeyService().issue("haru") + "(目印だけでは何も起きない)");
+      System.out.println("普通に呼ぶ : " + new KeyService().issue("haru")
+              + "(目印だけでは何も起きない)");
   - title: 目印を見て前後に処理を挟む
     description: |
       `call` が「読む側」。Spring の `@Transactional` も、発想はこれと同じ。`@Audited` が付いた `issue` と、付いていない `hello` を `call` で呼ぶと、出力はどう違うだろうか。
@@ -159,19 +163,22 @@ samples:
               // private フィールドも読めるようにする
               f.setAccessible(true);
               Object v = f.get(form);
-              if (f.isAnnotationPresent(NotBlank.class) && (v == null || v.toString().isBlank())) {
+              if (f.isAnnotationPresent(NotBlank.class)
+                      && (v == null || v.toString().isBlank())) {
                   errors.add(f.getName() + " は必須です");
               }
               Max max = f.getAnnotation(Max.class);
               if (max != null && (int) v > max.value()) {
-                  errors.add(f.getName() + " は " + max.value() + " 以下にしてください");
+                  errors.add(
+                          f.getName() + " は " + max.value() + " 以下にしてください");
               }
           }
           return errors;
       }
 
       System.out.println(validate(new SignupForm("ハル", "", 200, null)));
-      System.out.println(validate(new SignupForm("モカ", "moka@example.com", 38, "")));
+      System.out.println(
+              validate(new SignupForm("モカ", "moka@example.com", 38, "")));
 quiz:
   - question: |
       アノテーションそのものについて、正しい説明は?

@@ -40,7 +40,8 @@ samples:
       System.out.println("総件数 " + result.getTotalElements()
               + " / 総ページ " + result.getTotalPages()
               + " / 今 " + (result.getNumber() + 1) + " ページ目(画面表示は +1)");
-      System.out.println("前へ? " + result.hasPrevious() + " 次へ? " + result.hasNext());
+      System.out.println(
+              "前へ? " + result.hasPrevious() + " 次へ? " + result.hasNext());
 
       // ここを変えてみよう:-1 を 0 にすると例外が出なくなる
       try {
@@ -87,7 +88,8 @@ samples:
       // 派生クエリで同じことをすると、
       // 条件の有無の組み合わせだけメソッドが要る
       for (int n = 1; n <= 6; n++) {
-          System.out.println("任意条件 " + n + " 個 → 派生クエリ " + (1 << n) + " 本");
+          System.out.println(
+                  "任意条件 " + n + " 個 → 派生クエリ " + (1 << n) + " 本");
       }
   - title: 検索条件を URL に残す(ブックマーク・戻るボタン対策)
     description: |
@@ -123,8 +125,8 @@ samples:
       MultiValueMap<String, String> q = UriComponentsBuilder.fromUriString(next)
               .build(true)
               .getQueryParams();
-      q.forEach((k, v) -> System.out.println("  " + k + " = "
-              + URLDecoder.decode(v.get(0), java.nio.charset.StandardCharsets.UTF_8)));
+      q.forEach((k, v) -> System.out.println("  " + k + " = " + URLDecoder.decode(
+              v.get(0), java.nio.charset.StandardCharsets.UTF_8)));
 quiz:
   - question: |
       45件の検索結果に対して、次の `Pageable` で取得すると、何件目から何件目が返る?(並び順の1件目を「1件目」と数える)

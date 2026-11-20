@@ -89,7 +89,8 @@ samples:
       // 割り勘と BMI を Math クラスで計算してみる。数値を変えてみよう
       int bill = 10000;
       int people = 3;
-      System.out.println("1人あたり: " + (bill / people) + "円, 端数: " + (bill % people) + "円");
+      System.out.println("1人あたり: " + (bill / people) + "円, 端数: "
+              + (bill % people) + "円");
 
       double heightCm = 170;
       double weightKg = 65;
@@ -101,7 +102,8 @@ samples:
 
       // double で返る
       System.out.println(Math.pow(2, 10));
-      System.out.println(Math.max(3, 7) + ", " + Math.min(3, 7) + ", " + Math.abs(-5));
+      System.out.println(
+              Math.max(3, 7) + ", " + Math.min(3, 7) + ", " + Math.abs(-5));
       // -2.5 は -2 になる
       System.out.println(Math.round(2.5) + ", " + Math.round(-2.5));
 quiz:

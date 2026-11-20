@@ -31,7 +31,8 @@ samples:
               return (Boolean) tx;
           }
           protected void doBegin(Object tx, TransactionDefinition def) {
-              System.out.println("  [TX] 開始" + (def.isReadOnly() ? "(readOnly)" : ""));
+              System.out.println(
+                      "  [TX] 開始" + (def.isReadOnly() ? "(readOnly)" : ""));
           }
           protected void doCommit(DefaultTransactionStatus s) {
               System.out.println("  [TX] コミット");
@@ -74,18 +75,31 @@ samples:
           }
       }
 
-      var ctx = new AnnotationConfigApplicationContext(TxConfig.class, OrderService.class);
+      var ctx = new AnnotationConfigApplicationContext(
+              TxConfig.class, OrderService.class);
       var service = ctx.getBean(OrderService.class);
       System.out.println("Bean のクラス: " + service.getClass().getSimpleName());
 
       System.out.println("① 参照だけ(readOnly)");
       service.find();
       System.out.println("② RuntimeException が起きた");
-      try { service.runtimeFail(); } catch (RuntimeException e) { System.out.println("  例外: " + e.getMessage()); }
+      try {
+          service.runtimeFail();
+      } catch (RuntimeException e) {
+          System.out.println("  例外: " + e.getMessage());
+      }
       System.out.println("③ 検査例外が起きた");
-      try { service.checkedFail(); } catch (Exception e) { System.out.println("  例外: " + e.getMessage()); }
+      try {
+          service.checkedFail();
+      } catch (Exception e) {
+          System.out.println("  例外: " + e.getMessage());
+      }
       System.out.println("④ 同じクラスの中から呼んだ");
-      try { service.outer(); } catch (RuntimeException e) { System.out.println("  例外: " + e.getMessage()); }
+      try {
+          service.outer();
+      } catch (RuntimeException e) {
+          System.out.println("  例外: " + e.getMessage());
+      }
       ctx.close();
 quiz:
   - question: |

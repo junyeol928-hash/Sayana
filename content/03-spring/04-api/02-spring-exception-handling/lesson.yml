@@ -41,7 +41,8 @@ samples:
       @RestController
       @RequestMapping("/api/tasks")
       class TaskController {
-          private final Map<Long, Task> store = Map.of(1L, new Task(1, "請求書を送る"));
+          private final Map<Long, Task> store =
+                  Map.of(1L, new Task(1, "請求書を送る"));
 
           @GetMapping("/{id}")
           Task get(@PathVariable long id) {
@@ -134,7 +135,8 @@ samples:
           @ExceptionHandler(Exception.class)
           ProblemDetail handle(Exception ex) {
               return ProblemDetail.forStatusAndDetail(
-                      HttpStatus.INTERNAL_SERVER_ERROR, "システムエラーが発生しました");
+                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      "システムエラーが発生しました");
           }
       }
 
@@ -144,7 +146,8 @@ samples:
           @ExceptionHandler(Exception.class)
           ProblemDetail handle(Exception ex) {
               return ProblemDetail.forStatusAndDetail(
-                      HttpStatus.INTERNAL_SERVER_ERROR, "システムエラーが発生しました");
+                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      "システムエラーが発生しました");
           }
       }
 

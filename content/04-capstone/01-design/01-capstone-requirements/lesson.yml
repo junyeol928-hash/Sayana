@@ -44,7 +44,8 @@ samples:
               System.out.println(current + " → " + next + " OK");
               current = next;
           } else {
-              System.out.println(current + " → " + next + " できません(状態はそのまま)");
+              System.out.println(
+                      current + " → " + next + " できません(状態はそのまま)");
           }
       }
       System.out.println("最終状態: " + current);

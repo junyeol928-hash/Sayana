@@ -91,8 +91,10 @@ samples:
       }
 
       int expected = 4 * 10_000;
-      System.out.println("AtomicInteger : " + atomic.get() + "(期待値と一致: " + (atomic.get() == expected) + ")");
-      System.out.println("synchronized  : " + sync.get() + "(期待値と一致: " + (sync.get() == expected) + ")");
+      System.out.println("AtomicInteger : " + atomic.get() + "(期待値と一致: "
+              + (atomic.get() == expected) + ")");
+      System.out.println("synchronized  : " + sync.get() + "(期待値と一致: "
+              + (sync.get() == expected) + ")");
   - title: ExecutorService と Future(タイムアウト付き)
     description: |
       3本のスレッドのプールに仕事を投げ、`Future` で結果を受け取る。どの仕事が先に終わるかは決まっていないが、結果はどの順で表示されるだろうか。後半の、5 秒かかる仕事を `get` で 100 ミリ秒だけ待つとどうなる?
@@ -143,14 +145,16 @@ samples:
 
       CompletableFuture<Integer> applyDiscount(int total, ExecutorService pool) {
           // 割引の計算も別スレッドで行う(非同期を返す関数)
-          return CompletableFuture.supplyAsync(() -> total >= 1000 ? total - 200 : total, pool);
+          return CompletableFuture.supplyAsync(
+                  () -> total >= 1000 ? total - 200 : total, pool);
       }
 
       int quantity = 3;
       // supplyAsync : 単価を取ってくる(別スレッド)
       // thenApply   : 普通の関数で加工(400 × 3 = 1200)
       // thenCompose : CompletableFuture を返す関数をつなぐ(割引)
-      CompletableFuture<Integer> price = CompletableFuture.supplyAsync(() -> 400, pool)
+      CompletableFuture<Integer> price = CompletableFuture
+              .supplyAsync(() -> 400, pool)
               .thenApply(unit -> unit * quantity)
               .thenCompose(total -> applyDiscount(total, pool));
 

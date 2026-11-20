@@ -53,7 +53,8 @@ samples:
               throw new BusinessRuleException("自分の申請は承認できません");
           }
           if (r.amount != null && r.amount >= 100_000 && actor.role() != Role.ADMIN) {
-              throw new BusinessRuleException("100,000円以上の申請は管理者しか承認できません");
+              throw new BusinessRuleException(
+                      "100,000円以上の申請は管理者しか承認できません");
           }
           r.approve();
           // 成功した後に履歴
@@ -72,7 +73,8 @@ samples:
           approve(r, actor);
           System.out.println(actor.name() + " が承認しました → " + r.status);
       } catch (BusinessRuleException e) {
-          System.out.println("ルール違反: " + e.getMessage() + "(状態は " + r.status + " のまま)");
+          System.out.println("ルール違反: " + e.getMessage() + "(状態は " + r.status
+                  + " のまま)");
       }
       try {
           // 2回目(1回目が成功していれば状態のルールで失敗)
@@ -111,7 +113,8 @@ samples:
               return;
           }
           if (checkVersion && row.version != read.version()) {
-              System.out.println(who + ": 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)");
+              System.out.println(who
+                      + ": 更新 0 件 → 楽観ロック失敗(ロールバック。履歴も残らない)");
               return;
           }
           row.status = "APPROVED";

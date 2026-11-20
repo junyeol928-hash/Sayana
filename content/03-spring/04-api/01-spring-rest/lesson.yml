@@ -99,7 +99,8 @@ samples:
 
       record TaskResponse(long id, String title, LocalDate dueDate) {}
 
-      TaskResponse task = new TaskResponse(1, "見積書を作る", LocalDate.of(2026, 10, 31));
+      TaskResponse task = new TaskResponse(
+              1, "見積書を作る", LocalDate.of(2026, 10, 31));
 
       // ① 素の ObjectMapper:java.time に対応していないので失敗する
       try {
@@ -124,7 +125,8 @@ samples:
       // UnrecognizedPropertyException
       // (Spring が作る ObjectMapper は、
       // 知らない項目を無視する設定になっている)
-      String json = "{\"id\":2,\"title\":\"請求書を送る\",\"dueDate\":\"2026-11-05\"}";
+      String json =
+              "{\"id\":2,\"title\":\"請求書を送る\",\"dueDate\":\"2026-11-05\"}";
       TaskResponse back = m3.readValue(json, TaskResponse.class);
       System.out.println("④ " + back);
 quiz:

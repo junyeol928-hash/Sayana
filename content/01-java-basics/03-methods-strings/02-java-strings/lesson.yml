@@ -62,7 +62,8 @@ samples:
       System.out.println("名前だけ  : " + user.replace(".", " "));
       System.out.println("先頭の文字: " + user.charAt(0));
       System.out.println("区切り線  : " + "-".repeat(20));
-      System.out.println("空白だけ? " + "   ".isBlank() + " / 空文字? " + "   ".isEmpty());
+      System.out.println(
+              "空白だけ? " + "   ".isBlank() + " / 空文字? " + "   ".isEmpty());
   - title: CSV の行を分解して集計する
     description: |
       `split` で列に分け、`strip` してから `Integer.parseInt`。`strip()` を外したら何が起きるかも試してみよう。
@@ -88,7 +89,8 @@ samples:
           int qty = Integer.parseInt(cols[3].strip());
           names[i] = name;
           total += price * qty;
-          System.out.println(name + ": " + price + " × " + qty + " = " + (price * qty));
+          System.out.println(
+                  name + ": " + price + " × " + qty + " = " + (price * qty));
       }
       System.out.println("商品: " + String.join(" / ", names));
       System.out.println("合計: " + total + "円");
@@ -115,7 +117,8 @@ samples:
       int total = 0;
       for (int i = 0; i < items.length; i++) {
           // %-10s:幅10で左寄せ / %4d:幅4で右寄せ / %,9d:3桁区切りで幅9
-          System.out.println(String.format("%-10s%4d%,9d円", items[i], qtys[i], amounts[i]));
+          System.out.println(
+                  String.format("%-10s%4d%,9d円", items[i], qtys[i], amounts[i]));
           total += amounts[i];
       }
       // 「合計」は2文字だが画面上は半角4つ分の幅。だから空白は 14 - 4 = 10 個

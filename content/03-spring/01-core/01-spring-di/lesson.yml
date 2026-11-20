@@ -166,7 +166,8 @@ samples:
       int haruTotal = good.add(0, 1000);   // 状態は呼び出し側(本物ならセッションやDB)
       int mokaTotal = good.add(0, 500);
       haruTotal = good.add(haruTotal, 200);
-      System.out.println("ステートレス版 → ハル " + haruTotal + "円 / モカ " + mokaTotal + "円");
+      System.out.println(
+              "ステートレス版 → ハル " + haruTotal + "円 / モカ " + mokaTotal + "円");
       ctx.close();
 quiz:
   - question: |

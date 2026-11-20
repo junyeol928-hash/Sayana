@@ -24,7 +24,9 @@ samples:
           RepositoryException(String message) { super(message); }
       }
       class KeyIssueFailedException extends RuntimeException {
-          KeyIssueFailedException(String message, Throwable cause) { super(message, cause); }
+          KeyIssueFailedException(String message, Throwable cause) {
+              super(message, cause);
+          }
       }
 
       class KeyRepository {
@@ -47,7 +49,8 @@ samples:
                   }
                   return "201 発行";
               } catch (RepositoryException e) {
-                  throw new KeyIssueFailedException("鍵の発行に失敗しました cardId=" + cardId, e);
+                  throw new KeyIssueFailedException(
+                          "鍵の発行に失敗しました cardId=" + cardId, e);
               }
           }
       }
@@ -61,14 +64,17 @@ samples:
       }
 
       // スタックトレースのうち、自分たちのクラスの行だけを抜き出して表示する
-      Set<String> mine = Set.of("KeyRepository", "KeyIssueService", "KeyIssueController");
+      Set<String> mine = Set.of(
+              "KeyRepository", "KeyIssueService", "KeyIssueController");
       String simpleName(String className) {
-          return className.substring(Math.max(className.lastIndexOf('$'), className.lastIndexOf('.')) + 1);
+          return className.substring(Math.max(
+                  className.lastIndexOf('$'), className.lastIndexOf('.')) + 1);
       }
       void printTrace(Throwable t) {
           String prefix = "";
           while (t != null) {
-              System.out.println(prefix + t.getClass().getSimpleName() + ": " + t.getMessage());
+              System.out.println(
+                      prefix + t.getClass().getSimpleName() + ": " + t.getMessage());
               for (StackTraceElement f : t.getStackTrace()) {
                   String name = simpleName(f.getClassName());
                   if (mine.contains(name)) {
@@ -94,7 +100,8 @@ samples:
               root = root.getCause();
           }
           System.out.println("--- 根本原因(一番下の Caused by) ---");
-          System.out.println(root.getClass().getSimpleName() + ": " + root.getMessage());
+          System.out.println(
+                  root.getClass().getSimpleName() + ": " + root.getMessage());
       }
   - title: 1本の API を通しで動かして、呼ばれる順番を確かめる
     libraries: [spring]
@@ -118,19 +125,23 @@ samples:
       import jakarta.validation.constraints.*;
       import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-      record KeyIssueRequest(@NotBlank String cardId, @NotNull @Min(1) @Max(255) Integer keyVersion) {}
+      record KeyIssueRequest(@NotBlank String cardId,
+                             @NotNull @Min(1) @Max(255) Integer keyVersion) {}
       record KeyIssueResponse(String keyId, String status) {}
       record ErrorResponse(String code, String message) {}
 
       class KeyAlreadyExistsException extends RuntimeException {
-          KeyAlreadyExistsException(String cardId) { super("カード " + cardId + " には有効な鍵がすでにあります"); }
+          KeyAlreadyExistsException(String cardId) {
+              super("カード " + cardId + " には有効な鍵がすでにあります");
+          }
       }
 
       class KeyRepository {
           private final Set<String> activeCards = new HashSet<>(Set.of("C001"));
           private int seq = 1;
           boolean existsByCardIdAndStatus(String cardId, String status) {
-              System.out.println("      [Repository] existsByCardIdAndStatus(" + cardId + ", " + status + ")");
+              System.out.println("      [Repository] existsByCardIdAndStatus("
+                      + cardId + ", " + status + ")");
               return activeCards.contains(cardId);
           }
           String save(String cardId) {
@@ -142,7 +153,9 @@ samples:
 
       class KeyIssueService {
           private final KeyRepository keyRepository;
-          KeyIssueService(KeyRepository keyRepository) { this.keyRepository = keyRepository; }
+          KeyIssueService(KeyRepository keyRepository) {
+              this.keyRepository = keyRepository;
+          }
           KeyIssueResponse issue(KeyIssueRequest request) {
               System.out.println("    [Service] issue 開始");
               if (keyRepository.existsByCardIdAndStatus(request.cardId(), "ACTIVE")) {
@@ -158,11 +171,15 @@ samples:
       @RequestMapping("/api/keys")
       class KeyIssueController {
           private final KeyIssueService keyIssueService;
-          KeyIssueController(KeyIssueService keyIssueService) { this.keyIssueService = keyIssueService; }
+          KeyIssueController(KeyIssueService keyIssueService) {
+              this.keyIssueService = keyIssueService;
+          }
           @PostMapping
-          ResponseEntity<KeyIssueResponse> issue(@Valid @RequestBody KeyIssueRequest request) {
+          ResponseEntity<KeyIssueResponse> issue(
+                  @Valid @RequestBody KeyIssueRequest request) {
               System.out.println("  [Controller] issue " + request);
-              return ResponseEntity.status(HttpStatus.CREATED).body(keyIssueService.issue(request));
+              return ResponseEntity.status(HttpStatus.CREATED)
+                      .body(keyIssueService.issue(request));
           }
       }
 
@@ -171,24 +188,28 @@ samples:
           @ExceptionHandler(KeyAlreadyExistsException.class)
           ResponseEntity<ErrorResponse> handleDuplicate(KeyAlreadyExistsException e) {
               System.out.println("  [Advice] handleDuplicate が受け取った");
-              return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("E409", e.getMessage()));
+              return ResponseEntity.status(HttpStatus.CONFLICT)
+                      .body(new ErrorResponse("E409", e.getMessage()));
           }
       }
 
       var validator = new LocalValidatorFactoryBean();
       validator.afterPropertiesSet();
       MockMvc mvc = MockMvcBuilders
-              .standaloneSetup(new KeyIssueController(new KeyIssueService(new KeyRepository())))
+              .standaloneSetup(new KeyIssueController(
+                      new KeyIssueService(new KeyRepository())))
               .setControllerAdvice(new ApiExceptionHandler())
               .setValidator(validator)
-              .setMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8),
+              .setMessageConverters(
+                      new StringHttpMessageConverter(StandardCharsets.UTF_8),
                       new MappingJackson2HttpMessageConverter())
               .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
               .build();
 
       void send(String json) throws Exception {
           System.out.println("POST /api/keys " + json);
-          var res = mvc.perform(post("/api/keys").contentType(MediaType.APPLICATION_JSON).content(json))
+          var res = mvc.perform(post("/api/keys")
+                  .contentType(MediaType.APPLICATION_JSON).content(json))
                   .andReturn().getResponse();
           System.out.println("→ " + res.getStatus() + " " + res.getContentAsString());
           System.out.println();
@@ -216,11 +237,19 @@ samples:
       // DB の代わりに「開始・コミット・ロールバック」を表示するだけの
       // トランザクションマネージャ(読み飛ばしてOK)
       class LogTxManager extends AbstractPlatformTransactionManager {
-          protected Object doGetTransaction() { return TransactionSynchronizationManager.isActualTransactionActive(); }
+          protected Object doGetTransaction() {
+              return TransactionSynchronizationManager.isActualTransactionActive();
+          }
           protected boolean isExistingTransaction(Object tx) { return (Boolean) tx; }
-          protected void doBegin(Object tx, TransactionDefinition def) { System.out.println("  [TX] 開始"); }
-          protected void doCommit(DefaultTransactionStatus s) { System.out.println("  [TX] コミット"); }
-          protected void doRollback(DefaultTransactionStatus s) { System.out.println("  [TX] ロールバック"); }
+          protected void doBegin(Object tx, TransactionDefinition def) {
+              System.out.println("  [TX] 開始");
+          }
+          protected void doCommit(DefaultTransactionStatus s) {
+              System.out.println("  [TX] コミット");
+          }
+          protected void doRollback(DefaultTransactionStatus s) {
+              System.out.println("  [TX] ロールバック");
+          }
       }
 
       @Configuration @EnableTransactionManagement
@@ -231,14 +260,18 @@ samples:
       class KeyRotationService {
           @Transactional
           public void rotate(String cardId) {
-              System.out.println("  [Service] 今の鍵を失効 →暗号装置に新しい鍵を依頼");
-              throw new IllegalStateException("暗号装置に接続できません cardId=" + cardId);
+              System.out.println(
+                      "  [Service] 今の鍵を失効 →暗号装置に新しい鍵を依頼");
+              throw new IllegalStateException(
+                      "暗号装置に接続できません cardId=" + cardId);
           }
       }
 
-      var ctx = new AnnotationConfigApplicationContext(TxConfig.class, KeyRotationService.class);
+      var ctx = new AnnotationConfigApplicationContext(
+              TxConfig.class, KeyRotationService.class);
       var service = ctx.getBean(KeyRotationService.class);
-      System.out.println("Bean のクラス: " + service.getClass().getName().replaceAll("^REPL\\.\\$JShell\\$\\d+\\$", ""));
+      System.out.println("Bean のクラス: " + service.getClass().getName()
+              .replaceAll("^REPL\\.\\$JShell\\$\\d+\\$", ""));
       System.out.println();
 
       try {
@@ -252,7 +285,8 @@ samples:
           for (StackTraceElement f : e.getStackTrace()) {
               String c = f.getClassName();
               if (c.contains("KeyRotationService") && !c.contains("$$")) {
-                  System.out.println("    at KeyRotationService." + f.getMethodName() + "   ← 自分のコード");
+                  System.out.println("    at KeyRotationService." + f.getMethodName()
+                          + "   ← 自分のコード");
               } else if (c.startsWith("org.springframework")) {
                   String part = c.substring(c.lastIndexOf('.') + 1);
                   if (!part.equals(lastSpring)) {
@@ -260,7 +294,8 @@ samples:
                       lastSpring = part;
                   }
               } else if (c.contains("$$SpringCGLIB$$")) {
-                  System.out.println("    at KeyRotationService$$SpringCGLIB$$0." + f.getMethodName() + "   ← プロキシ");
+                  System.out.println("    at KeyRotationService$$SpringCGLIB$$0."
+                          + f.getMethodName() + "   ← プロキシ");
               }
           }
       }
