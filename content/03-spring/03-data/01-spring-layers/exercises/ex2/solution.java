@@ -28,7 +28,8 @@ class InventoryController {
 
     String receive(String sku, int quantity) {
         try {
-            return "入荷:" + sku + " 在庫 " + service.receive(sku, quantity) + " 個";
+            return "入荷:" + sku + " 在庫 "
+                    + service.receive(sku, quantity) + " 個";
         } catch (IllegalArgumentException e) {
             return "エラー:" + e.getMessage();
         }
@@ -36,7 +37,8 @@ class InventoryController {
 
     String ship(String sku, int quantity) {
         try {
-            return "出荷:" + sku + " 残り " + service.ship(sku, quantity) + " 個";
+            return "出荷:" + sku + " 残り "
+                    + service.ship(sku, quantity) + " 個";
         } catch (IllegalArgumentException | IllegalStateException e) {
             return "エラー:" + e.getMessage();
         }
@@ -63,7 +65,8 @@ class InventoryService {
         checkQuantity(quantity);
         int current = repository.findQuantity(sku);
         if (current < quantity) {
-            throw new IllegalStateException(sku + " の在庫が足りません(在庫 " + current + " 個)");
+            throw new IllegalStateException(
+                    sku + " の在庫が足りません(在庫 " + current + " 個)");
         }
         int after = current - quantity;
         repository.saveQuantity(sku, after);

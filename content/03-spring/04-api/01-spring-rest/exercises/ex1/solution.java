@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 返す JSON の形(DTO)。record なので Jackson がそのまま JSON にしてくれる */
+/**
+ * 返す JSON の形(DTO)。
+ * record なので Jackson がそのまま JSON にしてくれる
+ */
 record Item(String code, String name, int stock) {
 }
 
@@ -18,7 +21,8 @@ record Item(String code, String name, int stock) {
 @RequestMapping("/api/items")
 public class InventoryController {
 
-    // 本物のアプリなら DB。ここではメモリ上の Map(TreeMap なので商品コード順)
+    // 本物のアプリなら DB。
+    // ここではメモリ上の Map(TreeMap なので商品コード順)
     private final Map<String, Item> items = new TreeMap<>();
 
     public InventoryController() {
@@ -32,7 +36,8 @@ public class InventoryController {
     }
 
     @GetMapping
-    public List<Item> list(@RequestParam(defaultValue = "false") boolean inStock) {
+    public List<Item> list(
+            @RequestParam(defaultValue = "false") boolean inStock) {
         return items.values().stream()
                 .filter(i -> !inStock || i.stock() > 0)
                 .toList();

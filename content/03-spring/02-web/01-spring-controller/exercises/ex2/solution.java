@@ -31,7 +31,8 @@ public class StockApiController {
     }
 
     @PostMapping("/{code}/ship")
-    public ResponseEntity<Stock> ship(@PathVariable String code, @RequestParam int qty) {
+    public ResponseEntity<Stock> ship(
+            @PathVariable String code, @RequestParam int qty) {
         Stock stock = stocks.get(code);
         if (stock == null) {
             return ResponseEntity.notFound().build();

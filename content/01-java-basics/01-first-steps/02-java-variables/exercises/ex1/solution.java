@@ -6,7 +6,9 @@ public class TaxCalculator {
      * @param taxRate 税率(10% なら 0.10)
      */
     public static int priceWithTax(int price, double taxRate) {
-        double total = price * (1 + taxRate); // int × double → double(拡大変換)
-        return (int) Math.floor(total);       // double → int はキャストが必要(縮小変換)
+        // int × double → double(拡大変換)
+        double total = price * (1 + taxRate);
+        // double → int はキャストが必要(縮小変換)
+        return (int) Math.floor(total);
     }
 }

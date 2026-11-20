@@ -4,12 +4,14 @@ import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-// 検索画面のクエリパラメータ(文字列)から、安全な PageRequest を組み立てる
+// 検索画面のクエリパラメータ(文字列)から、
+// 安全な PageRequest を組み立てる
 public class PagingParams {
 
     static final int DEFAULT_SIZE = 20;
     static final int MAX_SIZE = 50;
-    static final Set<String> SORTABLE = Set.of("createdAt", "submittedAt", "amount");
+    static final Set<String> SORTABLE = Set.of(
+            "createdAt", "submittedAt", "amount");
     static final Sort.Order DEFAULT_ORDER = Sort.Order.desc("createdAt");
     static final Sort.Order TIE_BREAKER = Sort.Order.desc("id");
 
@@ -46,7 +48,8 @@ public class PagingParams {
         if (parts.length == 1) {
             return Sort.Order.asc(property);
         }
-        Optional<Sort.Direction> dir = Sort.Direction.fromOptionalString(parts[1].strip());
+        Optional<Sort.Direction> dir = Sort.Direction.fromOptionalString(
+                parts[1].strip());
         return dir.map(d -> new Sort.Order(d, property)).orElse(DEFAULT_ORDER);
     }
 

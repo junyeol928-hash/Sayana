@@ -26,7 +26,8 @@ public class LogMasker {
     }
 
     /** ログイン試行のログメッセージを組み立てる */
-    public static String loginMessage(String userId, String email, String password) {
+    public static String loginMessage(
+            String userId, String email, String password) {
         // password は受け取っても使わない(長さすら出さない)
         return "ログイン試行 user=" + userId
                 + " email=" + maskEmail(email)
@@ -34,8 +35,11 @@ public class LogMasker {
     }
 
     public static void main(String[] args) {
-        System.out.println(maskEmail("taro.yamada@example.com"));   // t***@example.com
-        System.out.println(maskCard("4111-1111-1111-1234"));        // ************1234
-        System.out.println(loginMessage("u001", "taro.yamada@example.com", "himitsu123"));
+        // 出力: t***@example.com
+        System.out.println(maskEmail("taro.yamada@example.com"));
+        // 出力: ************1234
+        System.out.println(maskCard("4111-1111-1111-1234"));
+        System.out.println(loginMessage(
+                "u001", "taro.yamada@example.com", "himitsu123"));
     }
 }

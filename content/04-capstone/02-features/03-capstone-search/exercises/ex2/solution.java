@@ -1,22 +1,27 @@
 import java.util.List;
 
 // 検索結果の1ページ分と、ページ送りの表示に必要な情報
-public record PageView<T>(List<T> content, int number, int size, long totalElements) {
+public record PageView<T>(
+        List<T> content, int number, int size, long totalElements) {
 
     public static <T> PageView<T> of(List<T> all, int page, int size) {
         if (page < 0 || size < 1) {
-            throw new IllegalArgumentException("page は 0 以上、size は 1 以上にしてください");
+            throw new IllegalArgumentException(
+                    "page は 0 以上、size は 1 以上にしてください");
         }
-        long from = (long) page * size;          // int の掛け算は桁あふれするので long で
+        // int の掛け算は桁あふれするので long で
+        long from = (long) page * size;
         if (from >= all.size()) {
             return new PageView<>(List.of(), page, size, all.size());
         }
         int to = (int) Math.min(from + size, all.size());
-        return new PageView<>(List.copyOf(all.subList((int) from, to)), page, size, all.size());
+        return new PageView<>(List.copyOf(all.subList((int) from, to)),
+                page, size, all.size());
     }
 
     public int totalPages() {
-        return (int) ((totalElements + size - 1) / size);   // 切り上げ
+        // 切り上げ
+        return (int) ((totalElements + size - 1) / size);
     }
 
     public boolean hasPrevious() {
@@ -37,6 +42,7 @@ public record PageView<T>(List<T> content, int number, int size, long totalEleme
         }
         long first = (long) number * size + 1;
         long last = first + content.size() - 1;
-        return "全 " + total + " 件中 " + String.format("%,d", first) + "〜" + String.format("%,d", last) + " 件目";
+        return "全 " + total + " 件中 " + String.format("%,d", first) + "〜"
+                + String.format("%,d", last) + " 件目";
     }
 }

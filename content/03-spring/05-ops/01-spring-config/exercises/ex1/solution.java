@@ -14,7 +14,10 @@ public class ShopConfig {
     }
 }
 
-/** 送料ルール(STS では com.example.shop.domain パッケージの別ファイルに置く) */
+/**
+ * 送料ルール
+ * (STS では com.example.shop.domain パッケージの別ファイルに置く)
+ */
 record ShippingPolicy(String shopName, int freeThreshold, int fee) {
 
     int feeFor(int amount) {

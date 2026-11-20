@@ -1,6 +1,9 @@
 public class WorkLog {
 
-    /** 古い順の配列を受け取り、新しい順(逆順)にした新しい配列を返す。元の配列は変更しない。 */
+    /**
+     * 古い順の配列を受け取り、新しい順(逆順)にした新しい配列を返す。
+     * 元の配列は変更しない。
+     */
     public static int[] reversed(int[] history) {
         if (history == null) {
             return new int[0];

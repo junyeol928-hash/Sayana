@@ -14,7 +14,8 @@ public class TransferService {
     @Transactional
     public void transfer(String from, String to, int amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("振込金額は1円以上にしてください: " + amount);
+            throw new IllegalArgumentException(
+                    "振込金額は1円以上にしてください: " + amount);
         }
         store.withdraw(from, amount);
         store.deposit(to, amount);

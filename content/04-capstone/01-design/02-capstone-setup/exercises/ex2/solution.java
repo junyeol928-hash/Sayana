@@ -21,7 +21,8 @@ enum RequestStatus { DRAFT, SUBMITTED, APPROVED, RETURNED, WITHDRAWN }
 
 enum Action { SUBMIT, APPROVE, RETURN, WITHDRAW }
 
-// ===== エンティティ(完成済み。プロパティ名を確認するのに使ってください) =====
+// ===== エンティティ(完成済み) =====
+// プロパティ名を確認するのに使ってください
 
 @Entity
 class Employee {
@@ -88,19 +89,23 @@ interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByEmail(String email);
 }
 
-interface ApprovalRequestRepository extends JpaRepository<ApprovalRequest, Long> {
+interface ApprovalRequestRepository
+        extends JpaRepository<ApprovalRequest, Long> {
 
     // 2. 自分の申請一覧(新しい順)
-    List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(Employee applicant);
+    List<ApprovalRequest> findByApplicantOrderByCreatedAtDesc(
+            Employee applicant);
 
     // 3. 承認待ち一覧(待たせている順)
-    List<ApprovalRequest> findByStatusOrderBySubmittedAtAsc(RequestStatus status);
+    List<ApprovalRequest> findByStatusOrderBySubmittedAtAsc(
+            RequestStatus status);
 
     // 4. 件数バッジ
     long countByStatus(RequestStatus status);
 }
 
-interface ApprovalHistoryRepository extends JpaRepository<ApprovalHistory, Long> {
+interface ApprovalHistoryRepository
+        extends JpaRepository<ApprovalHistory, Long> {
 
     // 5. 詳細画面の履歴(古い順)
     List<ApprovalHistory> findByRequestOrderByAtAsc(ApprovalRequest request);

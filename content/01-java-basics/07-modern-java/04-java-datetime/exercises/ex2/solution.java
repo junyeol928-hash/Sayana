@@ -11,9 +11,11 @@ public class WorkTime {
         if (s.breakMinutes() < 0) {
             throw new IllegalArgumentException("休憩がマイナスです: " + s);
         }
-        Duration d = Duration.between(s.start(), s.end()).minusMinutes(s.breakMinutes());
+        Duration d = Duration.between(s.start(), s.end())
+                .minusMinutes(s.breakMinutes());
         if (d.isNegative()) {
-            throw new IllegalArgumentException("休憩が勤務時間より長いです: " + s);
+            throw new IllegalArgumentException(
+                    "休憩が勤務時間より長いです: " + s);
         }
         return d;
     }

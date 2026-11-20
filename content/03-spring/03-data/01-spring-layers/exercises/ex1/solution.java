@@ -23,7 +23,8 @@ public class OrderService {
         }
         int subtotal = unitPrice * quantity;
         int shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-        return repository.save(new Order(0, customer, subtotal, shipping, subtotal + shipping));
+        return repository.save(new Order(
+                0, customer, subtotal, shipping, subtotal + shipping));
     }
 }
 
@@ -65,7 +66,10 @@ class InMemoryOrderRepository implements OrderRepository {
     }
 }
 
-/** 入出力(Controller 層):受け取って、Service に任せて、結果を表示用に整えるだけ */
+/**
+ * 入出力(Controller 層):受け取って、Service に任せて、
+ * 結果を表示用に整えるだけ
+ */
 class OrderController {
 
     private final OrderService service;

@@ -8,7 +8,8 @@ public class TaxCalc {
         if (text == null) {
             throw new IllegalArgumentException("税区分が指定されていません");
         }
-        // 一致しない名前なら valueOf が IllegalArgumentException を投げる
+        // 一致しない名前なら valueOf が
+        // IllegalArgumentException を投げる
         return TaxCategory.valueOf(text.strip().toUpperCase());
     }
 

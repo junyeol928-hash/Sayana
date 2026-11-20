@@ -63,5 +63,6 @@ interface BookRepository extends JpaRepository<Book, Long> {
     long countByStockLessThan(int threshold);
 
     // 6. 著者名が一致し、かつ発行年が year 以降の本
-    List<Book> findByAuthorAndPublishedYearGreaterThanEqual(String author, int year);
+    List<Book> findByAuthorAndPublishedYearGreaterThanEqual(
+            String author, int year);
 }

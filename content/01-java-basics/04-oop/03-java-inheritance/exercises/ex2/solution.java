@@ -19,9 +19,12 @@ public class Employee {
     }
 
     public static void main(String[] args) {
-        System.out.println(new FullTimeEmployee("田中", 300000, 10).payslip()); // 田中: 325000円
-        System.out.println(new PartTimeEmployee("高橋", 1000, 170).payslip()); // 高橋: 172500円
-        System.out.println(new Manager("佐藤", 400000).payslip());            // 佐藤: 450000円
+        // 出力: 田中: 325000円
+        System.out.println(new FullTimeEmployee("田中", 300000, 10).payslip());
+        // 出力: 高橋: 172500円
+        System.out.println(new PartTimeEmployee("高橋", 1000, 170).payslip());
+        // 出力: 佐藤: 450000円
+        System.out.println(new Manager("佐藤", 400000).payslip());
     }
 }
 

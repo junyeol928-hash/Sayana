@@ -66,20 +66,27 @@ public class ApprovalFlow {
     /** これ以上の金額は ADMIN しか承認できない(業務ルール3) */
     static final int ADMIN_LIMIT = 100_000;
 
-    /** current の申請に action をした後の状態。できない操作なら BusinessRuleException */
+    /**
+     * current の申請に action をした後の状態。
+     * できない操作なら BusinessRuleException
+     */
     public static RequestStatus next(RequestStatus current, Action action) {
         if (current.isFinal()) {
-            throw new BusinessRuleException(current.label() + "の申請は変更できません");
+            throw new BusinessRuleException(
+                    current.label() + "の申請は変更できません");
         }
         RequestStatus to = action.target();
         if (!current.canTransitionTo(to)) {
             throw new BusinessRuleException(
-                    current.label() + "の申請は「" + action.label() + "」できません");
+                    current.label() + "の申請は「" + action.label()
+                            + "」できません");
         }
         return to;
     }
 
-    /** この金額の申請の承認に ADMIN が必要か。amount は休暇申請では null */
+    /**
+     * この金額の申請の承認に ADMIN が必要か。amount は休暇申請では null
+     */
     public static boolean requiresAdmin(Integer amount) {
         return amount != null && amount >= ADMIN_LIMIT;
     }

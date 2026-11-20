@@ -20,7 +20,10 @@ public class SalesReport {
         return (double) total(sales) / sales.length;
     }
 
-    /** 売上が最大の日のインデックスを返す。同点なら早い日。null または空配列なら -1。 */
+    /**
+     * 売上が最大の日のインデックスを返す。同点なら早い日。
+     * null または空配列なら -1。
+     */
     public static int bestDay(int[] sales) {
         if (sales == null || sales.length == 0) {
             return -1;

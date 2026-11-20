@@ -25,6 +25,7 @@ public class LogLevelCounter {
                 "10:00:05 ERROR DB接続に失敗",
                 "10:00:06 ERROR DB接続に失敗",
                 "10:00:09 WARN リトライします");
-        System.out.println(count(lines)); // 例: {ERROR=2, INFO=1, WARN=1}(順番は不定)
+        // 出力の例: {ERROR=2, INFO=1, WARN=1}(順番は不定)
+        System.out.println(count(lines));
     }
 }

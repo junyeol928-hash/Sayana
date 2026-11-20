@@ -10,7 +10,10 @@ enum Operation { VIEW, SUBMIT, WITHDRAW, APPROVE, RETURN }
 /** ログイン中の社員(LoginUser の縮小版) */
 record Actor(long employeeId, Role role) {}
 
-/** 判定に必要な申請の情報(ApprovalRequest の縮小版)。amount は休暇なら null */
+/**
+ * 判定に必要な申請の情報(ApprovalRequest の縮小版)。
+ * amount は休暇なら null
+ */
 record RequestInfo(long applicantId, RequestStatus status, Integer amount) {}
 
 /** 判定結果。許可なら reason は空文字 */
@@ -33,7 +36,8 @@ public class AccessPolicy {
     static final String OWN_REQUEST = "自分の申請は承認できません";
     static final String FINAL_STATUS = "承認済・取下げ済の申請は変更できません";
     static final String BAD_STATUS = "今の状態ではこの操作はできません";
-    static final String HIGH_AMOUNT = "100,000円以上の申請は管理者しか承認できません";
+    static final String HIGH_AMOUNT =
+            "100,000円以上の申請は管理者しか承認できません";
 
     static final int HIGH_AMOUNT_THRESHOLD = 100_000;
 
@@ -42,11 +46,13 @@ public class AccessPolicy {
             return Decision.deny(LOGIN_REQUIRED);
         }
         boolean owner = actor.employeeId() == req.applicantId();
-        boolean approver = actor.role() == Role.APPROVER || actor.role() == Role.ADMIN;
+        boolean approver = actor.role() == Role.APPROVER
+                || actor.role() == Role.ADMIN;
 
         // 1. 閲覧:本人か承認者・管理者
         if (op == Operation.VIEW) {
-            return owner || approver ? Decision.allow() : Decision.deny(NO_VIEW);
+            return owner || approver ? Decision.allow()
+                    : Decision.deny(NO_VIEW);
         }
 
         // 2. 誰が(ルール1・2)
@@ -73,7 +79,8 @@ public class AccessPolicy {
             return Decision.deny(FINAL_STATUS);
         }
         boolean statusOk = switch (op) {
-            case SUBMIT, WITHDRAW -> s == RequestStatus.DRAFT || s == RequestStatus.RETURNED;
+            case SUBMIT, WITHDRAW -> s == RequestStatus.DRAFT
+                    || s == RequestStatus.RETURNED;
             case APPROVE, RETURN -> s == RequestStatus.SUBMITTED;
             case VIEW -> true;
         };
@@ -83,7 +90,8 @@ public class AccessPolicy {
 
         // 4. 高額の承認は管理者だけ(ルール3)。休暇は amount が null
         if (op == Operation.APPROVE && actor.role() != Role.ADMIN
-                && req.amount() != null && req.amount() >= HIGH_AMOUNT_THRESHOLD) {
+                && req.amount() != null
+                && req.amount() >= HIGH_AMOUNT_THRESHOLD) {
             return Decision.deny(HIGH_AMOUNT);
         }
         return Decision.allow();

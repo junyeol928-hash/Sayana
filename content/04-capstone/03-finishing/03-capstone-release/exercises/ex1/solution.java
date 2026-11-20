@@ -44,7 +44,8 @@ interface RequestService {
     RequestDetail approve(Long id, String loginId);
 }
 
-// ===== web.api(用意済み。Controller の中にはもう @ExceptionHandler を書かない) =====
+// ===== web.api(用意済み) =====
+// Controller の中にはもう @ExceptionHandler を書かない
 record RequestDetail(Long id, String title, RequestStatus status) {
 }
 
@@ -58,7 +59,8 @@ class RequestApiController {
     }
 
     @GetMapping
-    List<RequestDetail> list(@RequestParam(required = false) RequestStatus status) {
+    List<RequestDetail> list(
+            @RequestParam(required = false) RequestStatus status) {
         return service.findByStatus(status);
     }
 
@@ -77,7 +79,8 @@ class RequestApiController {
 @RestControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(BusinessRuleException.class)
     public ProblemDetail onRule(BusinessRuleException e) {
@@ -86,7 +89,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RequestNotFoundException.class)
     public ProblemDetail onNotFound(RequestNotFoundException e) {
-        return problem(HttpStatus.NOT_FOUND, "申請が見つかりません", e.getMessage());
+        return problem(
+                HttpStatus.NOT_FOUND, "申請が見つかりません", e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
@@ -99,7 +103,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return pd;
     }
 
-    private ProblemDetail problem(HttpStatus status, String title, String detail) {
+    private ProblemDetail problem(
+            HttpStatus status, String title, String detail) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
         pd.setTitle(title);
         return pd;

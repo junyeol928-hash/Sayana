@@ -38,9 +38,12 @@ public class Product {
 
     public static void main(String[] args) {
         Product apple = new Product("A001", "りんご", 120);
-        System.out.println(apple);                                    // [A001] りんご 120円
-        System.out.println(apple.equals(new Product("A001", "林檎", 150))); // true
-        System.out.println(new DiscountProduct("B002", "みかん", 300, 20)); // [B002] みかん 300円 → 20%OFF 240円
+        // 出力: [A001] りんご 120円
+        System.out.println(apple);
+        // 出力: true
+        System.out.println(apple.equals(new Product("A001", "林檎", 150)));
+        // 出力: [B002] みかん 300円 → 20%OFF 240円
+        System.out.println(new DiscountProduct("B002", "みかん", 300, 20));
     }
 }
 

@@ -20,7 +20,8 @@ public class ContactController {
     }
 
     @PostMapping
-    public String submit(@RequestParam String name, @RequestParam String message) {
+    public String submit(
+            @RequestParam String name, @RequestParam String message) {
         inquiries.add(new Inquiry(name, message));
         return "redirect:/contact/thanks";
     }

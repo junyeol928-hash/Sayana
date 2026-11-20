@@ -8,7 +8,10 @@ import java.util.Map;
 
 public class ConfigLoader {
 
-    /** key=value 形式の設定ファイルを読み込む。ファイルが無ければ空の Map */
+    /**
+     * key=value 形式の設定ファイルを読み込む。
+     * ファイルが無ければ空の Map
+     */
     public static Map<String, String> load(Path file) throws IOException {
         Map<String, String> config = new HashMap<>();
         if (!Files.exists(file)) {
@@ -23,7 +26,8 @@ public class ConfigLoader {
             }
             int eq = line.indexOf('=');
             if (eq < 0) {
-                throw new IllegalArgumentException((i + 1) + "行目: = がありません");
+                throw new IllegalArgumentException(
+                        (i + 1) + "行目: = がありません");
             }
             String key = line.substring(0, eq).trim();
             String value = line.substring(eq + 1).trim();

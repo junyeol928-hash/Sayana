@@ -33,7 +33,10 @@ public class Invoice {
         return subtotal;
     }
 
-    /** 割引額:会員は小計の10%、非会員でも小計1万円以上なら5%(端数切り捨て) */
+    /**
+     * 割引額:会員は小計の10%、
+     * 非会員でも小計1万円以上なら5%(端数切り捨て)
+     */
     static int discount(int subtotal, boolean member) {
         int discount = 0;
         if (member) {

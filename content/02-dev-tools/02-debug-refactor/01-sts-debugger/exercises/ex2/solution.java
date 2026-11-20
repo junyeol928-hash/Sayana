@@ -9,7 +9,8 @@ class Order {
     Order(String customer, List<String> items) {
         this.customer = customer;
         // バグ1(参照の共有):受け取ったリストをそのまま持つと、
-        // 呼び出し元や別の注文と同じ ArrayList を共有してしまう。コピーして持つ(防御的コピー)
+        // 呼び出し元や別の注文と同じ ArrayList を共有してしまう。
+        // コピーして持つ(防御的コピー)
         this.items = new ArrayList<>(items);
     }
 
@@ -35,7 +36,8 @@ public class ReorderService {
 
     /**
      * 「前回と同じ内容で注文」ボタンの処理。
-     * 前回の注文と同じ商品で、新しい注文を作る。前回の注文は変えてはいけない。
+     * 前回の注文と同じ商品で、新しい注文を作る。
+     * 前回の注文は変えてはいけない。
      */
     public static Order reorder(Order previous, String customer) {
         return new Order(customer, previous.getItems());
@@ -46,7 +48,9 @@ public class ReorderService {
         Order previous = new Order("佐藤", items);
         Order next = reorder(previous, "佐藤");
         next.addItem("ボールペン");
-        System.out.println("前回: " + previous.getItems()); // [コピー用紙, トナー]
-        System.out.println("今回: " + next.getItems());     // [コピー用紙, トナー, ボールペン]
+        // 期待: [コピー用紙, トナー]
+        System.out.println("前回: " + previous.getItems());
+        // 期待: [コピー用紙, トナー, ボールペン]
+        System.out.println("今回: " + next.getItems());
     }
 }

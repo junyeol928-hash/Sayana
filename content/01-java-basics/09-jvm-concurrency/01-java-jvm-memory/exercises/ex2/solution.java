@@ -7,7 +7,8 @@ public class RecentLog {
 
     RecentLog(int capacity) {
         if (capacity <= 0) {
-            throw new IllegalArgumentException("capacity は 1 以上: " + capacity);
+            throw new IllegalArgumentException(
+                    "capacity は 1 以上: " + capacity);
         }
         this.capacity = capacity;
     }

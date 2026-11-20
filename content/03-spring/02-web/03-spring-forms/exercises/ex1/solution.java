@@ -23,7 +23,8 @@ public class SignupForm {
     private Integer age;
 
     @NotBlank(message = "郵便番号を入力してください")
-    @Pattern(regexp = "\\d{3}-\\d{4}", message = "郵便番号は 123-4567 の形で入力してください")
+    @Pattern(regexp = "\\d{3}-\\d{4}",
+            message = "郵便番号は 123-4567 の形で入力してください")
     private String zipCode;
 
     @NotBlank(message = "パスワードを入力してください")
@@ -48,5 +49,7 @@ public class SignupForm {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getPasswordConfirm() { return passwordConfirm; }
-    public void setPasswordConfirm(String passwordConfirm) { this.passwordConfirm = passwordConfirm; }
+    public void setPasswordConfirm(String passwordConfirm) {
+        this.passwordConfirm = passwordConfirm;
+    }
 }

@@ -6,7 +6,8 @@ public class UrlAuthorizer {
 
     private final List<Rule> rules = new ArrayList<>();
 
-    // ---- ルールの登録(Spring Security の authorizeHttpRequests の縮小版。ここは完成済み) ----
+    // ---- ルールの登録(ここは完成済み) ----
+    // Spring Security の authorizeHttpRequests の縮小版
 
     public UrlAuthorizer permitAll(String... patterns) {
         for (String p : patterns) {
@@ -29,7 +30,10 @@ public class UrlAuthorizer {
 
     // ---- ここから下を実装する ----
 
-    /** pattern が path に一致するか。"/xxx/**" は "/xxx" とその配下すべて、それ以外は完全一致 */
+    /**
+     * pattern が path に一致するか。
+     * "/xxx/**" は "/xxx" とその配下すべて、それ以外は完全一致
+     */
     static boolean matches(String pattern, String path) {
         if (pattern.endsWith("/**")) {
             String base = pattern.substring(0, pattern.length() - 3);
@@ -61,7 +65,8 @@ public class UrlAuthorizer {
         if (rule.access() == Access.AUTHENTICATED) {
             return Decision.ALLOW;
         }
-        // HAS_ROLE: hasRole("ADMIN") は権限 "ROLE_ADMIN" を持っているかで判定する
+        // HAS_ROLE: hasRole("ADMIN") は、
+        // 権限 "ROLE_ADMIN" を持っているかで判定する
         return user.authorities().contains("ROLE_" + rule.role())
                 ? Decision.ALLOW
                 : Decision.FORBIDDEN; // 認証は済んだが認可で拒否
@@ -73,7 +78,8 @@ public class UrlAuthorizer {
                 .hasRole("/admin/**", "ADMIN")
                 .authenticated("/**");
         LoginUser haru = new LoginUser("haru", Set.of("ROLE_USER"));
-        LoginUser mocha = new LoginUser("mocha", Set.of("ROLE_USER", "ROLE_ADMIN"));
+        LoginUser mocha = new LoginUser("mocha",
+                Set.of("ROLE_USER", "ROLE_ADMIN"));
         System.out.println(auth.check("/css/app.css", null)); // ALLOW
         System.out.println(auth.check("/orders", null));      // LOGIN_REQUIRED
         System.out.println(auth.check("/admin/users", haru)); // FORBIDDEN
@@ -90,5 +96,8 @@ enum Access { PERMIT_ALL, AUTHENTICATED, HAS_ROLE }
 /** URL パターンと必要な権限の組。role は HAS_ROLE のときだけ使う */
 record Rule(String pattern, Access access, String role) { }
 
-/** ログイン中のユーザー。authorities は "ROLE_USER" のように ROLE_ 付きで持つ */
+/**
+ * ログイン中のユーザー。
+ * authorities は "ROLE_USER" のように ROLE_ 付きで持つ
+ */
 record LoginUser(String name, Set<String> authorities) { }

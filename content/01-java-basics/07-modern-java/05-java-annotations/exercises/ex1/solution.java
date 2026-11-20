@@ -13,11 +13,13 @@ public class OwnerReport {
     public static List<String> owners(Class<?> type) {
         List<String> result = new ArrayList<>();
         Method[] methods = type.getDeclaredMethods();
-        Arrays.sort(methods, Comparator.comparing(Method::getName)); // 名前順に並べておく
+        // 名前順に並べておく
+        Arrays.sort(methods, Comparator.comparing(Method::getName));
         for (Method m : methods) {
             Owner owner = m.getAnnotation(Owner.class);
             if (owner != null) {
-                result.add(m.getName() + ": " + owner.value() + "(" + owner.team() + ")");
+                result.add(m.getName() + ": " + owner.value() + "("
+                        + owner.team() + ")");
             }
         }
         return result;
@@ -36,8 +38,10 @@ public class OwnerReport {
     }
 
     public static void main(String[] args) {
-        System.out.println(owners(PaymentService.class));   // [charge: 佐藤(未所属), refund: 鈴木(経理)]
-        System.out.println(unowned(PaymentService.class));  // [ping]
+        // 出力: [charge: 佐藤(未所属), refund: 鈴木(経理)]
+        System.out.println(owners(PaymentService.class));
+        // 出力: [ping]
+        System.out.println(unowned(PaymentService.class));
     }
 }
 

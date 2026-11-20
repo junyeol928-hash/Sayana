@@ -9,7 +9,8 @@ import java.util.Set;
 
 public class DeptRoster {
 
-    public static Map<String, List<String>> groupByDept(List<Employee> employees) {
+    public static Map<String, List<String>> groupByDept(
+            List<Employee> employees) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         Set<Employee> seen = new HashSet<>();
         for (Employee e : employees) {
@@ -32,7 +33,8 @@ public class DeptRoster {
                 new Employee("E02", "鈴木", "開発"),
                 new Employee("E03", "高橋", "営業"),
                 new Employee("E01", "佐藤", "営業"));
-        System.out.println(groupByDept(list)); // {営業=[佐藤, 高橋], 開発=[鈴木]}
+        // 出力: {営業=[佐藤, 高橋], 開発=[鈴木]}
+        System.out.println(groupByDept(list));
     }
 }
 

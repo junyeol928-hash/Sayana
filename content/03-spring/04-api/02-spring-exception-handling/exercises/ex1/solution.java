@@ -47,7 +47,8 @@ class OrderService {
     Order cancel(long id) {
         Order o = find(id);
         if ("SHIPPED".equals(o.status())) {
-            throw new OrderStateException("注文 " + id + " は発送済みのためキャンセルできません");
+            throw new OrderStateException(
+                    "注文 " + id + " は発送済みのためキャンセルできません");
         }
         Order canceled = new Order(o.id(), o.item(), "CANCELED");
         orders.put(id, canceled);
@@ -57,7 +58,8 @@ class OrderService {
     String issueReceipt(long id) {
         find(id);
         // 外部の領収書サービスにつながらなかった、という想定
-        throw new IllegalStateException("receipt-service timeout: http://10.0.3.7:8080/receipts");
+        throw new IllegalStateException(
+                "receipt-service timeout: http://10.0.3.7:8080/receipts");
     }
 }
 
@@ -95,21 +97,26 @@ record ErrorResponse(String code, String message) {
 public class ApiExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(OrderNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            OrderNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("ORDER_NOT_FOUND", ex.getMessage()));
     }
 
     @ExceptionHandler(OrderStateException.class)
-    public ResponseEntity<ErrorResponse> handleConflict(OrderStateException ex) {
+    public ResponseEntity<ErrorResponse> handleConflict(
+            OrderStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("ORDER_STATE_CONFLICT", ex.getMessage()));
+                .body(new ErrorResponse(
+                        "ORDER_STATE_CONFLICT", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        // 本物のアプリでは log.error("想定外のエラー", ex); で詳細(スタックトレース)をログに残す
+        // 本物のアプリでは log.error("想定外のエラー", ex); で詳細
+        // (スタックトレース)をログに残す
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_ERROR", "システムエラーが発生しました"));
+                .body(new ErrorResponse(
+                        "INTERNAL_ERROR", "システムエラーが発生しました"));
     }
 }

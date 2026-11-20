@@ -1,6 +1,7 @@
 public class HourlyRate {
 
-    public static int rate(int dayOfWeek, boolean publicHoliday, boolean night) {
+    public static int rate(
+            int dayOfWeek, boolean publicHoliday, boolean night) {
         if (dayOfWeek < 1 || dayOfWeek > 7) {
             return -1;
         }

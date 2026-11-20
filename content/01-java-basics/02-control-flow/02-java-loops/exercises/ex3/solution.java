@@ -1,6 +1,7 @@
 public class SavingsPlan {
 
-    public static int yearsToReach(long principal, int ratePercent, long target) {
+    public static int yearsToReach(
+            long principal, int ratePercent, long target) {
         long balance = principal;
         int years = 0;
         while (balance < target) {

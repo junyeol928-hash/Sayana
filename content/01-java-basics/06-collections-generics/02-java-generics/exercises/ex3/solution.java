@@ -10,7 +10,8 @@ public class TypedCache<K, V> {
 
     public TypedCache(int capacity) {
         if (capacity < 1) {
-            throw new IllegalArgumentException("capacity は 1 以上にしてください: " + capacity);
+            throw new IllegalArgumentException(
+                    "capacity は 1 以上にしてください: " + capacity);
         }
         this.capacity = capacity;
     }
@@ -51,7 +52,8 @@ public class TypedCache<K, V> {
         c.put("C", 3);
         System.out.println(c.get("A"));  // null
         System.out.println(c.get("C"));  // 3
-        System.out.println("件数=" + c.size() + " ヒット=" + c.hits() + " ミス=" + c.misses());
+        System.out.println("件数=" + c.size() + " ヒット=" + c.hits()
+                + " ミス=" + c.misses());
         // 件数=2 ヒット=1 ミス=1
     }
 }
