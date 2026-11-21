@@ -798,6 +798,44 @@ code.code-msg { display: block; margin: 6px 0; padding: 4px 0 4px 10px; backgrou
    押し込まれた。31 回目の審査) */
 .read-action { margin: 28px 0 0; display: flex; flex-wrap: wrap; justify-content: flex-start; }
 .read-action .done { word-break: auto-phrase; }
+
+/* 1 段ずつ見せる(2026-11-21。「縦スクロールが多すぎる」「重い」の声から。design.md の「1 段ずつ見せる」)。
+   段の帯で選んだ段だけを出し、「読む」は本文の見出し(h2)ごとの節に分けて送る。段の終わりに「次の段へ」 */
+.read-page > :first-child { margin-top: 0; }
+/* 本文の節の一覧(読むの頭)。段の一覧(.step-menu)と同じ部品の言葉: 番号・いまの節に藍の左線と面 */
+.read-toc { margin: 0 0 24px; }
+.read-toc > summary { list-style: none; display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 8px 0 0; cursor: pointer;
+  font-size: .9375rem; font-weight: 700; color: var(--ink-muted); border-radius: var(--r-m); }
+.read-toc > summary::-webkit-details-marker { display: none; }
+.read-toc > summary::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.read-toc[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+.read-toc > summary:hover { color: var(--ink); }
+.read-toc-pos { color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+.read-toc ol { margin: 4px 0 0; padding: 6px; list-style: none; counter-reset: rp; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); }
+.read-toc li { counter-increment: rp; }
+.read-toc li a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 12px; border-radius: var(--r-m); color: var(--ink); text-decoration: none;
+  font-size: .9375rem; line-height: 1.55; word-break: auto-phrase; }
+.read-toc li a::before { content: counter(rp); flex: none; width: 1.4em; color: var(--ink-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.read-toc li a:hover { background: var(--surface-2); }
+.read-toc li a[aria-current="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--accent); color: var(--accent-ink); font-weight: 700; }
+/* 節の終わり: 「前の節」(弱い文字のリンク)と「次の節へ」(主ボタン。下に次の節の見出し)。区切りは刺し子 */
+.page-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 40px 0 0; padding-top: 24px;
+  background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat; }
+.page-prev { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink-muted); font-size: .9375rem; text-decoration-color: var(--line-strong); }
+.page-prev::before { content: ""; width: 6px; height: 6px; margin: 0 10px 0 4px; border-left: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+.page-prev:hover { color: var(--ink); }
+.page-next { margin-left: auto; min-width: min(100%, 280px); max-width: 100%; }
+.page-next .btn-sub, .step-next .btn-sub { word-break: auto-phrase; text-wrap: balance; }
+/* 段の終わりの「次の段へ」。最後の段には置かず、代わりに用語・コラムと前後のレッスン */
+.step-next { display: flex; justify-content: flex-end; margin: 48px 0 0; padding-top: 24px;
+  background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px) top / 100% 2px no-repeat; }
+.step-next .btn { min-width: min(100%, 240px); }
+.read-end .step-next { margin-top: 32px; }
+.read-end:not([hidden]) + .page-nav { margin-top: 12px; padding-top: 0; background: none; } /* 最後の節は「次の段へ」の下に「前の節」だけ(刺し子を 2 本重ねない) */
+/* PC: app.js がいまの段を選ぶまで、段と前後のレッスンを隠す(lesson.html の steps-pending。全部の段を一度に組まない) */
+.steps-pending .lesson-main > :is(.lesson-section, .lesson-nav), .steps-pending .page-reading main > .lesson-section { display: none; }
+/* クイズに合格したら、結果の「演習へ進む」が次の一手(同じ段を指す「次の段へ」を重ねない) */
+#quiz:has(.quiz-next .btn.primary) > .step-next { display: none; }
 .done { color: var(--ok); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
 
 /* 掛け合い: 名札と吹き出し */
@@ -959,14 +997,26 @@ body:has(.kana-wrap) .site-header::after { display: none; }
 .search .icon { position: absolute; left: 14px; top: 13px; color: var(--ink-muted); }
 .glossary-count { font-size: .875rem; color: var(--ink-muted); }
 .term-group { grid-column: 1 / -1; padding: 28px 0 4px; }
-/* 用語集の一覧は 1 列で上から順に読む。PC は語の名前を左、説明を右に分けた辞書の組み
+/* 用語集の一覧は 1 列で上から順に読む。PC は開いた語の名前を左、説明を右に分けた辞書の組み
    (格子だと説明の長い語に行の高さが引っ張られて短い語の下が空き、段組みだと読む順が画面の上下を往復する) */
 #terms.term-list { display: block; }
+/* 一覧には語の名前だけを並べ、押すと説明が開く(説明まで並べると、スマホで画面 79 枚分あった。2026-11-21)。
+   行全体が押せる所(44px 以上)。右端の山形で開く・閉じるを示す(段の一覧・本文の節の一覧と同じ印) */
+#terms .term { padding: 0; }
+.term-fold > summary { list-style: none; position: relative; min-height: 48px; padding: 8px 32px 8px 0; line-height: 1.6; cursor: pointer; border-radius: var(--r-m); }
+.term-fold > summary::-webkit-details-marker { display: none; }
+.term-fold > summary::after { content: ""; position: absolute; right: 10px; top: 50%; width: 7px; height: 7px; margin-top: -6px;
+  border-right: 1.5px solid var(--ink-muted); border-bottom: 1.5px solid var(--ink-muted); transform: rotate(45deg); transition: transform .16s var(--ease); }
+.term-fold[open] > summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.term-fold > summary:hover .term-word { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.term-body { padding: 0 0 16px; }
+.term-body > .term-from-line:first-child, .term-body > .term-defs:first-child { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { .term-fold > summary::after { transition: none; } }
 @media (min-width: 1024px) {
-  #terms.term-list .term { display: grid; grid-template-columns: 280px minmax(0, 46em); gap: 0 40px; align-items: start; }
-  #terms.term-list .term > .term-name { grid-column: 1; grid-row: 1 / span 4; flex-direction: column; align-items: flex-start; gap: 2px; }
-  #terms.term-list .term > :not(.term-name) { grid-column: 2; }
-  #terms.term-list .term > .term-from-line:first-child + *, #terms.term-list .term > .term-name + .term-from-line { margin-top: 0; }
+  #terms .term-fold[open] { display: flow-root; }
+  #terms .term-fold[open] > summary { float: left; width: 280px; flex-direction: column; align-items: flex-start; gap: 2px; }
+  #terms .term-fold[open] > summary::after { right: auto; left: calc(100% + 8px); top: 22px; }
+  #terms .term-fold[open] > .term-body { margin-left: 320px; max-width: 46em; padding-top: 4px; }
 }
 .term-group h2 { margin: 0; font-size: 1rem; color: var(--accent-ink); display: flex; align-items: center; gap: 10px; }
 .term-group h2::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--stitch-color) 0 9px, transparent 9px 15px); }

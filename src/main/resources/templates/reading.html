@@ -3,6 +3,8 @@
 <head th:replace="~{fragments/layout :: head('読解')}"></head>
 <body class="page-reading">
 <header th:replace="~{fragments/layout :: header}"></header>
+<!--/* 1 問ずつ送る: app.js がいまの問いを選ぶまで一覧を隠す。app.js が読めないときは 4 秒で全部出す */-->
+<script>document.documentElement.classList.add("steps-pending");setTimeout(function(){var d=document.documentElement;if(!d.classList.contains("steps-on"))d.classList.remove("steps-pending");},4000);</script>
 <main id="main" class="container narrow">
     <h1 class="page-title">コードを読む</h1>
     <p class="page-lead">業務のコードを読む力を、実行せずに頭の中で追って鍛えます。全 <b th:text="${total}">171</b> 問。

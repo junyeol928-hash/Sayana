@@ -466,11 +466,12 @@ function phraseWrap(el) {
 
 const SECTION_LABEL = { read: "読む", atwork: "仕事のコード", run: "サンプル", sts: "STSで試す", write: "演習", reading: "読解", quiz: "クイズ" };
 
-/** 「読んだ」を押したあとの 1 行。本文のすぐ下の段を指す(PC の Lesson.afterReadHint と同じ。スマホのサンプルは動かさず予想して開く) */
+/** 「読んだ」を押したあとの 1 行。次の段を指す(PC の Lesson.afterReadHint と同じ。スマホのサンプルは動かさず予想して開く)。
+ *  1 段ずつ見せるので「下の」とは言わない(すぐ下は「次の段へ」のボタン) */
 function afterRead(L) {
-  if (L.atWork?.length) return "読了。次は下の仕事のコードを読んでみよう";
-  if (L.samples?.length) return "読了。次は下のサンプルの結果を予想してみよう";
-  return "読了。次は下のクイズで縹へ";
+  if (L.atWork?.length) return "読了。次は仕事のコードを読んでみよう";
+  if (L.samples?.length) return "読了。次はサンプルの結果を予想してみよう";
+  return "読了。次はクイズで縹へ";
 }
 
 // ------------------------------------------------------------ 画面
@@ -482,6 +483,7 @@ async function render() {
   document.body.classList.remove("sheet-open");
   view().onclick = null;
   lessonTracker?.disconnect();
+  lessonView = null;
   const tab = hash.startsWith("/lesson/") ? null : hash;
   document.querySelectorAll(".bottom-nav a").forEach((a) => {
     if (a.getAttribute("href") === "#" + tab) a.setAttribute("aria-current", "page");
@@ -686,6 +688,7 @@ let pendingPeek = null;
 // 読解・用語集からのぞき見したときの元の位置(戻ったら一覧の先頭からではなく、押したカード・語の所へ。26 回目の審査)
 let peekReturn = null;
 let returning = null;
+let readingOrder = []; // 読解の一覧に並ぶ問いの id(1 問ずつ見せるので、次のカードは画面に無い)
 let linkNav = false; // 次の hashchange がリンクを押したものか(端末の「戻る」と見分ける)
 addEventListener("resize", () => fitAxis(document.querySelector(".lesson-axis")));
 const PEEK_BACK = { review: ["#/review", "復習へ戻る"], reading: ["#/reading", "読解へ戻る"], terms: ["#/terms", "用語集へ戻る"] };
@@ -698,7 +701,8 @@ document.addEventListener("click", (ev) => {
     const card = link.closest(".reading-q, li.term");
     // 次のカードも控える(着いたレッスンでその問いに答えると「まだ解いていない」の一覧から外れ、戻ると先頭だった。27 回目の審査)
     const next = [];
-    for (let c = card?.nextElementSibling; c && next.length < 8; c = c.nextElementSibling) if (c.id) next.push(c.id);
+    if (card && link.dataset.peek === "reading") next.push(...readingOrder.slice(readingOrder.indexOf(card.id) + 1, readingOrder.indexOf(card.id) + 9));
+    else for (let c = card?.nextElementSibling; c && next.length < 8; c = c.nextElementSibling) if (c.id) next.push(c.id);
     peekReturn = { tab: link.dataset.peek, at: card?.id || null, next, y: scrollY, q: document.getElementById("q")?.value || "" };
   }
   returning = link?.classList.contains("peek-back") ? peekReturn : null;
@@ -772,12 +776,59 @@ async function renderLesson(id) {
     L.reading?.length ? ["reading", "読解", readingDone === L.reading.length, false, readingDone] : null,
     L.sts || L.checklist.length ? ["sts", "STSで試す", L.checklist.length > 0 && L.checklist.every((c) => checked.includes(c.key)), true] : null,
   ].filter(Boolean);
-  // 見出しの番号は段の並びの位置(読むが 01)。段にない節(用語など)は番号なし
+  const keys = steps.map(([key]) => key);
+  // 見出しの番号は段の並びの位置(読むが 01)。段にない節(用語など)は番号なし。段を切り替えたときにフォーカスを置く(tabindex)
   const title = (key, text) => {
-    const n = steps.findIndex((st) => st[0] === key) + 1;
-    return `<h2 class="section-title" id="${key}-title">${n ? `<span class="no">${String(n).padStart(2, "0")}</span>` : ""}${text}</h2>`;
+    const n = keys.indexOf(key) + 1;
+    return `<h2 class="section-title" id="${key}-title"${n ? ' tabindex="-1"' : ""}>${n ? `<span class="no">${String(n).padStart(2, "0")}</span>` : ""}${text}</h2>`;
   };
   const total = { reading: L.reading?.length, write: L.exercises.length };
+  // 段の終わりの「次の段へ」。ほかに主ボタンが無い段(仕事のコード・サンプル・演習・STS、読み終えた「読む」)だけ藍の塗り
+  const stepNext = (key) => {
+    const next = keys[keys.indexOf(key) + 1];
+    if (!next) return "";
+    const primary = !["read", "quiz", "reading"].includes(key) || (key === "read" && S.read[id]);
+    return `<div class="step-next"><a class="btn btn-stack${primary ? " primary" : ""}" href="#${next}" data-scroll="${next}">次の段へ<span class="btn-sub">${SECTION_LABEL[next]}</span></a></div>`;
+  };
+  // 段の中身は、その段をはじめて開くときに組み立てる(全部の段を一度に組むと、開くたびにページ全体の最初のレイアウトで
+  // CPU 4 倍遅いとき 0.5〜1.5 秒かかり、縦にも画面 45 枚分あった。2026-11-21 の声「重い」「縦スクロールが多すぎる」)
+  const panels = {
+    read: () => `<h2 class="visually-hidden" id="read-title" tabindex="-1">読む</h2>
+      <details class="read-toc"><summary><span>本文の節</span><span class="read-toc-pos" aria-hidden="true"></span></summary><ol></ol></details>
+      <article class="lesson-body md"></article>
+      <div class="read-end" hidden>
+        <div class="read-action">${S.read[id] ? `<div class="done">${icon("check")}読了済み</div>` : `<button class="btn primary" data-action="read">${icon("check")}読んだ</button>`}</div>
+        ${stepNext("read")}
+      </div>
+      <nav class="page-nav" aria-label="本文の節を送る"></nav>`,
+    atwork: () => `${title("atwork", "仕事のコードではこう出てくる")}
+      <p class="section-lead">業務の Spring Boot アプリで、このレッスンの知識が現れる場所です。番号の行と、その直後の説明を照らし合わせながら読みましょう。</p>
+      ${L.atWork.map(atWorkBlock).join("")}`,
+    run: () => `${title("run", "サンプルを見る")}
+      <p class="run-note">まず出力を<b>予想</b>してから、「実行結果を見る」で答え合わせ。予想と違った所が、いちばん身につく所です。書き換えて試すのは PC版か Codespaces 版で。</p>
+      ${L.samples.map((s) => `<div class="sample"><h3>${esc(s.title)}</h3><div class="md">${s.result ? descriptionWithoutPredict(s.descriptionHtml) : s.descriptionHtml}</div>
+        <pre class="code-lines"><code class="language-java">${esc(s.code)}</code></pre>${sampleResult(s.result, s.descriptionHtml)}</div>`).join("")}`,
+    quiz: () => `${title("quiz", "クイズ")}
+      <form class="quiz" data-action="quiz">
+        <ol>${L.quiz.map((q, i) => `<li class="quiz-q"><div class="md" id="qq-${i}">${q.questionHtml}</div>
+          <div class="quiz-choices" role="radiogroup" aria-labelledby="qq-${i}">${choiceOrder(q.choicesHtml.length, `${L.id}#${i}|${S.quiz[L.id]?.n || 0}`).map((j) => `<label class="choice"><input type="radio" name="q${i}" value="${j}"><span>${q.choicesHtml[j]}</span></label>`).join("")}</div></li>`).join("")}</ol>
+        <button class="btn primary" type="submit">採点する</button>
+      </form>
+      <div id="quiz-result" aria-live="polite"></div>`,
+    write: () => `${title("write", "演習")}
+      <p class="run-note">スマホ版は自動採点できないので、<b>採点テスト</b>を読んで自分で確かめ、「できた/まだ」を記録します。
+      本物の採点は PC版か Codespaces 版で。電波と APIキーがあれば AI にも見てもらえます。</p>
+      ${L.exercises.map((e, i) => exerciseCard(e, i)).join("")}`,
+    reading: () => `${title("reading", "読解 — コードを読む")}
+      <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
+      <ol class="reading-list">${L.reading.map((r, i) => readingCard(r, `${id}@${i}`)).join("")}</ol>`,
+    sts: () => `${title("sts", "STSでやってみよう")}
+      ${L.sts ? `<div class="md">${L.sts.introHtml}</div><ol class="sts-steps">${L.sts.steps.map((s) => `<li><div class="sts-step-title">${esc(s.title)}</div><div class="md">${s.detailHtml}</div></li>`).join("")}</ol>` : ""}
+      ${L.checklist.length ? `<div class="checklist card"><div class="checklist-title">やったらチェック</div><ul>
+        ${L.checklist.map((c) => `<li class="check-item ${checked.includes(c.key) ? "checked" : ""}">
+          <button class="check-button" data-action="check" data-key="${esc(c.key)}" aria-pressed="${checked.includes(c.key)}" aria-label="${esc(c.text)}"></button>
+          <span>${esc(c.text)}</span></li>`).join("")}</ul></div>` : ""}`,
+  };
   view().innerHTML = `
     <header class="lesson-hero">
       <p class="lesson-axis" aria-hidden="true"><span>${esc(kanjiOrdinal(L.part))}</span><small>${esc(kanjiOrdinal(L.chapter))}</small></p>
@@ -802,55 +853,8 @@ async function renderLesson(id) {
       <div class="sew" aria-hidden="true"></div>
     </div>
     ${L.goals.length ? `<details class="goals"${S.seen?.[id] ? "" : " open"}><summary class="goals-title">このレッスンのゴール(${L.goals.length})</summary><ul>${L.goals.map((g) => `<li>${esc(g).replace(/`([^`]+)`/g, "<code>$1</code>")}</li>`).join("")}</ul></details>` : ""}
-    <section id="read" class="lesson-section" aria-labelledby="read-title">
-      <h2 class="visually-hidden" id="read-title">解説</h2>
-      <article class="lesson-body md">${L.bodyHtml}</article>
-      <div class="read-action">${S.read[id] ? `<div class="done">${icon("check")}読了済み</div>` : `<button class="btn primary" data-action="read">${icon("check")}読んだ</button>`}</div>
-    </section>
-    ${L.atWork?.length ? `
-    <section id="atwork" class="lesson-section" aria-labelledby="atwork-title">
-      ${title("atwork", "仕事のコードではこう出てくる")}
-      <p class="section-lead">業務の Spring Boot アプリで、このレッスンの知識が現れる場所です。番号の行と、その直後の説明を照らし合わせながら読みましょう。</p>
-      ${L.atWork.map(atWorkBlock).join("")}
-    </section>` : ""}
-    ${L.samples.length ? `
-    <section id="run" class="lesson-section" aria-labelledby="run-title">
-      ${title("run", "サンプルを見る")}
-      <p class="run-note">まず出力を<b>予想</b>してから、「実行結果を見る」で答え合わせ。予想と違った所が、いちばん身につく所です。書き換えて試すのは PC版か Codespaces 版で。</p>
-      ${L.samples.map((s) => `<div class="sample"><h3>${esc(s.title)}</h3><div class="md">${s.result ? descriptionWithoutPredict(s.descriptionHtml) : s.descriptionHtml}</div>
-        <pre class="code-lines"><code class="language-java">${esc(s.code)}</code></pre>${sampleResult(s.result, s.descriptionHtml)}</div>`).join("")}
-    </section>` : ""}
-    <section id="quiz" class="lesson-section" aria-labelledby="quiz-title">
-      ${title("quiz", "クイズ")}
-      <form class="quiz" data-action="quiz">
-        <ol>${L.quiz.map((q, i) => `<li class="quiz-q"><div class="md" id="qq-${i}">${q.questionHtml}</div>
-          <div class="quiz-choices" role="radiogroup" aria-labelledby="qq-${i}">${choiceOrder(q.choicesHtml.length, `${L.id}#${i}|${S.quiz[L.id]?.n || 0}`).map((j) => `<label class="choice"><input type="radio" name="q${i}" value="${j}"><span>${q.choicesHtml[j]}</span></label>`).join("")}</div></li>`).join("")}</ol>
-        <button class="btn primary" type="submit">採点する</button>
-      </form>
-      <div id="quiz-result" aria-live="polite"></div>
-    </section>
-    ${L.exercises.length ? `
-    <section id="write" class="lesson-section" aria-labelledby="write-title">
-      ${title("write", "演習")}
-      <p class="run-note">スマホ版は自動採点できないので、<b>採点テスト</b>を読んで自分で確かめ、「できた/まだ」を記録します。
-      本物の採点は PC版か Codespaces 版で。電波と APIキーがあれば AI にも見てもらえます。</p>
-      ${L.exercises.map((e, i) => exerciseCard(e, i)).join("")}
-    </section>` : ""}
-    ${L.reading?.length ? `
-    <section id="reading" class="lesson-section" aria-labelledby="reading-title">
-      ${title("reading", "読解 — コードを読む")}
-      <p class="section-lead">実行せずに、頭の中で 1 行ずつ追って答えます。答えたあとに「1 行ずつの追跡」で答え合わせ。</p>
-      <ol class="reading-list">${L.reading.map((r, i) => readingCard(r, `${id}@${i}`)).join("")}</ol>
-    </section>` : ""}
-    ${L.sts || L.checklist.length ? `
-    <section id="sts" class="lesson-section" aria-labelledby="sts-title">
-      ${title("sts", "STSでやってみよう")}
-      ${L.sts ? `<div class="md">${L.sts.introHtml}</div><ol class="sts-steps">${L.sts.steps.map((s) => `<li><div class="sts-step-title">${esc(s.title)}</div><div class="md">${s.detailHtml}</div></li>`).join("")}</ol>` : ""}
-      ${L.checklist.length ? `<div class="checklist card"><div class="checklist-title">やったらチェック</div><ul>
-        ${L.checklist.map((c) => `<li class="check-item ${checked.includes(c.key) ? "checked" : ""}">
-          <button class="check-button" data-action="check" data-key="${esc(c.key)}" aria-pressed="${checked.includes(c.key)}" aria-label="${esc(c.text)}"></button>
-          <span>${esc(c.text)}</span></li>`).join("")}</ul></div>` : ""}
-    </section>` : ""}
+    <div class="step-panels">${keys.map((key) => `<section id="${key}" class="lesson-section step-panel" aria-labelledby="${key}-title" hidden></section>`).join("")}</div>
+    <div class="lesson-extras" hidden>
     ${myTerms.length ? `
     <section class="lesson-section lesson-terms" aria-labelledby="terms-title">
       ${title("terms", "このレッスンの用語")}
@@ -862,20 +866,173 @@ async function renderLesson(id) {
       <div class="columns">${L.columns.map((c) => `<aside class="column column-${esc(c.type)}"><div class="column-label">${esc(c.label)}</div>
         <h3>${esc(c.title)}</h3><div class="md">${c.bodyHtml}</div></aside>`).join("")}</div>
     </section>` : ""}
-    <nav class="lesson-nav" aria-label="前後のレッスン">
+    </div>
+    <nav class="lesson-nav" aria-label="前後のレッスン" hidden>
       ${L.prev ? `<a href="#/lesson/${esc(L.prev)}"><small>前のレッスン</small>${esc(L.prevTitle || "")}</a>` : "<span></span>"}
       ${L.next ? `<a class="next" href="#/lesson/${esc(L.next)}"><small>次のレッスン</small>${esc(L.nextTitle || "")}</a>` : ""}
     </nav>
     <div class="sheet-backdrop" data-action="tutor"></div>
     ${tutorSheet(L)}`;
-  bindLesson(L, meta);
-  decorate(view());
-  trackLesson(id, steps.map(([key]) => key), !!peek);
+  const sv = stepView(L, meta, keys, panels, stepNext, !!peek);
+  bindLesson(L, meta, sv);
+  decorate($(".lesson-hero"));
+  if ($(".goals")) decorate($(".goals"));
+  trackLesson(id, keys, !!peek, sv);
   fitAxis($(".lesson-axis"));
   watchAxis($(".lesson-axis"));
 }
 
 const seenSection = (id, key) => !!S.sections?.[id]?.includes(key);
+
+/**
+ * 1 段ずつ見せる(2026-11-21。ユーザーの決定)。段の帯を押すとその段だけを出し、ほかの段は隠す(はじめて開くまで組み立てない)。
+ * 「読む」は本文の見出し(h2)ごとに節を送る。いま見えている段・節だけを色付け・図の描画にかける(decorate は隠れた所を飛ばす)
+ */
+let lessonView = null;
+function stepView(L, meta, keys, panels, stepNext, peek) {
+  const sv = { current: null, page: 0, pages: 1, titles: [], keys, onShow: null };
+  const last = keys[keys.length - 1];
+  // 段の中身を組み、その段の部品を結ぶ(はじめて開くときに 1 回だけ。一度組んだ段は、隠しても答えや入力を残す)
+  sv.ensure = (key) => {
+    const panel = document.getElementById(key);
+    if (!panel || panel.dataset.built) return panel;
+    panel.dataset.built = "1";
+    panel.innerHTML = panels[key]() + (key === "read" ? "" : stepNext(key));
+    if (key === "read") buildReadPages(sv, panel, L.bodyHtml);
+    bindPanel(L, meta, key, panel);
+    return panel;
+  };
+  sv.show = (key, { page, focus = false, scroll = "top" } = {}) => {
+    if (!keys.includes(key)) key = keys[0];
+    const panel = sv.ensure(key);
+    const prev = sv.current;
+    sv.current = key;
+    document.querySelectorAll(".step-panels > .step-panel").forEach((p) => { p.hidden = p.id !== key; });
+    const isLast = key === last;
+    const extras = $(".lesson-extras");
+    if (extras) extras.hidden = !isLast;
+    const nav = $(".lesson-nav");
+    if (nav) nav.hidden = !isLast;
+    if (key === "read") sv.showPage(page ?? (prev === "read" ? sv.page : 0), { scroll: "none" });
+    else decorate(panel);
+    if (isLast && extras) decorate(extras);
+    markCurrentStep(keys, key);
+    // 段の頭からの距離は前の段のもの。新しい段の頭(0)に戻す(400ms 後の記録の前に離れると、別の段の距離が残った)
+    if (!peek && S.last?.id === L.id && S.last.section !== key) { S.last.section = key; S.last.page = key === "read" ? sv.page : 0; S.last.off = 0; save(); }
+    if (scroll === "top") scrollToPanel(panel);
+    // 段を切り替えたことを支援技術に伝える(見出しへフォーカス。読み上げは段の名前から始まる)
+    if (focus) (key === "read" ? panel.querySelector("#read-title") : panel.querySelector(".section-title"))?.focus({ preventScroll: true });
+    sv.onShow?.(key);
+  };
+  sv.showPage = (i, { focus = false, scroll = "top" } = {}) => {
+    const panel = sv.ensure("read");
+    const pages = [...panel.querySelectorAll(".read-page")];
+    i = Math.max(0, Math.min(pages.length - 1, Number(i) || 0));
+    sv.page = i;
+    sv.pages = pages.length;
+    pages.forEach((p, j) => { p.hidden = j !== i; });
+    const toc = panel.querySelector(".read-toc");
+    if (toc) {
+      toc.hidden = pages.length < 2;
+      toc.open = false;
+      toc.querySelector(".read-toc-pos").textContent = `${pages.length} 節中 ${i + 1}`;
+      toc.querySelectorAll("a[data-page-go]").forEach((a) => {
+        if (Number(a.dataset.pageGo) === i) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+      });
+    }
+    const end = panel.querySelector(".read-end");
+    if (end) end.hidden = i !== pages.length - 1;
+    const nav = panel.querySelector(".page-nav");
+    if (nav) {
+      nav.hidden = pages.length < 2;
+      nav.innerHTML = `${i > 0 ? `<a class="page-prev" href="#read" data-page-go="${i - 1}">前の節<span class="visually-hidden">: ${esc(sv.titles[i - 1])}</span></a>` : ""}
+        ${i < pages.length - 1 ? `<a class="btn primary btn-stack page-next" href="#read" data-page-go="${i + 1}">次の節へ<span class="btn-sub">${esc(sv.titles[i + 1])}</span></a>` : ""}`;
+    }
+    decorate(pages[i]);
+    if (!peek && sv.current === "read" && S.last?.id === L.id && S.last.page !== i) { S.last.page = i; S.last.off = 0; save(); }
+    if (scroll === "top") scrollToPanel(panel);
+    if (focus) {
+      const h = i === 0 ? panel.querySelector("#read-title") : pages[i].querySelector("h2");
+      if (h && !h.hasAttribute("tabindex")) h.tabIndex = -1;
+      h?.focus({ preventScroll: true });
+    }
+    if (sv.current === "read") sv.onShow?.("read");
+  };
+  // その id の所が隠れた段・節にあれば、そこを開いてから要素を返す(「間違えた問」・本文の中の #リンク・着地)
+  sv.reveal = (id) => {
+    let key = keys.includes(id) ? id : /^q{1,2}-\d/.test(id) ? "quiz" : /^rq-/.test(id) ? "reading" : /^check-/.test(id) ? "read" : null;
+    let el = document.getElementById(id);
+    if (!key && el) key = el.closest(".step-panel")?.id || null;
+    if (!key || !keys.includes(key)) return el;
+    if (!el || !el.closest(".step-panel")) { sv.ensure(key); el = document.getElementById(id); }
+    const page = key === "read" && el ? pageOf(el) : undefined;
+    if (sv.current !== key) sv.show(key, { page, scroll: "none" });
+    else if (page != null && page !== sv.page) sv.showPage(page, { scroll: "none" });
+    return el;
+  };
+  // 段の帯・段の一覧・「次の段へ」・「演習へ進む」などから: 段ならその段の頭へ、段の中の所ならそこを開いてそこへ
+  sv.go = (id, { focus = true } = {}) => {
+    if (keys.includes(id)) return sv.show(id, { focus, scroll: "top" });
+    const el = sv.reveal(id);
+    el?.scrollIntoView({ behavior: smooth() });
+  };
+  lessonView = sv;
+  return sv;
+}
+const pageOf = (el) => Number(el?.closest(".read-page")?.dataset.page || 0);
+/**
+ * 段・節の頭を、上に留まるヘッダーと段の帯のすぐ下へ(すぐに。html の scroll-behavior: smooth と scroll-padding に任せると、
+ * 中身を差し替えた直後になめらかに動き出し、帯の下 120px もあいた所に止まった)
+ */
+function scrollToPanel(panel) {
+  const header = $(".site-header")?.getBoundingClientRect().height || 0;
+  const bar = $(".stepper-wrap")?.offsetHeight || 0;
+  scrollTo({ top: Math.max(0, panel.getBoundingClientRect().top + scrollY - header - bar - 12), behavior: "instant" });
+}
+
+/** 本文を見出し(h2)ごとの節に分ける。最初の h2 の前の掛け合いは、最初の節に入れる */
+function buildReadPages(sv, panel, bodyHtml) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = bodyHtml;
+  const groups = [[]];
+  for (const n of [...tpl.content.childNodes]) {
+    if (n.nodeName === "H2" && groups[groups.length - 1].some((x) => x.nodeName === "H2")) groups.push([]);
+    groups[groups.length - 1].push(n);
+  }
+  const art = panel.querySelector(".lesson-body");
+  groups.forEach((nodes, i) => {
+    const page = document.createElement("div");
+    page.className = "read-page";
+    page.dataset.page = i;
+    page.hidden = i > 0;
+    page.append(...nodes);
+    art.append(page);
+  });
+  sv.titles = groups.map((nodes) => nodes.find((x) => x.nodeName === "H2")?.textContent.replace(/\u2060/g, "").trim() || "本文");
+  sv.pages = groups.length;
+  panel.querySelector(".read-toc ol").innerHTML = sv.titles.map((t, i) => `<li><a href="#read" data-page-go="${i}">${esc(t)}</a></li>`).join("");
+}
+
+/** 段の帯・段の一覧・「7段中3」に、いま見せている段を示す */
+function markCurrentStep(keys, key) {
+  const stepper = $(".stepper");
+  document.querySelectorAll(".step-menu a[data-scroll]").forEach((a) => {
+    if (a.dataset.scroll === key) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
+  });
+  stepper?.querySelectorAll(".step").forEach((a) => {
+    if (a.dataset.step === key) {
+      a.setAttribute("aria-current", "true");
+      // 横に並んだ段の中で、今の段が見える位置まで送る(縦のスクロールは動かさない)
+      const left = a.offsetLeft - (stepper.clientWidth - a.offsetWidth) / 2;
+      stepper.scrollTo({ left, behavior: smooth() });
+    } else a.removeAttribute("aria-current");
+  });
+  // 分数の形は「済んだ問の数」だけに使うので、いまの位置は「7段中3」と言葉で
+  const count = $("#step-count");
+  if (count) count.textContent = `${keys.length}段中${keys.indexOf(key) + 1}`;
+  const now = $("#step-now");
+  if (now) now.textContent = SECTION_LABEL[key];
+}
 
 // 用語集の「〇〇 で」の着地: 語の候補(「A / B」は両方、括弧の中の言い換えも)を、本文の太字 → 本文の段落・見出し・表 →
 // 仕事のコードの行の説明 → サンプルの説明の順に探す(本文の p・li だけを探していたので、3 語に 1 語はレッスンの頭に
@@ -888,7 +1045,8 @@ function termWords(term) {
 const plainText = (el) => el.textContent.replace(/[\u2060\u00ad]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 function findTerm(term) {
   const words = termWords(term);
-  const visible = (el) => el.getClientRects().length > 0;
+  // 手を止めての中は着地先にしない(用語集の着地の検査も、手を止めてを除いて数える。PC 版と同じ)
+  const visible = (el) => el.getClientRects().length > 0 && !el.closest("aside.check");
   const bold = [...document.querySelectorAll("#read .md strong")].find((b) => words.includes(plainText(b)) && visible(b));
   if (bold) return bold.closest("p, li, h2, h3, h4, td, th") || bold;
   for (const sel of ["#read .md :is(p, li, h2, h3, h4, td, th, figcaption)", "#atwork :is(.ln-note, p, li)", "#run :is(h3, p, li)"]) {
@@ -967,26 +1125,27 @@ function fitAxis(ax) {
   hero.style.minHeight = `${Math.ceil(need)}px`;
 }
 
-function trackLesson(id, keys, peek = false) {
+function trackLesson(id, keys, peek, sv) {
   lessonTracker?.disconnect();
-  const sections = keys.map((k) => document.getElementById(k)).filter(Boolean);
   const stepper = $(".stepper");
   const sew = $(".sew");
-  if (!stepper || !sections.length) return;
+  if (!stepper || !keys.length) return;
   // 右端のフェードを、段の一覧と質問ボタンの手前に合わせる
   const wrap = $(".stepper-wrap");
   wrap?.style.setProperty("--tail", `${wrap.offsetWidth - stepper.offsetWidth}px`);
   watchOverflow(stepper, wrap);
   // 前回の位置へ戻るのは、前回いた段を指して開いたときだけ(次の段を指したときは、その段の先頭へ)
-  const resume = S.last?.id === id && pendingSection && pendingSection === S.last.section ? { section: S.last.section, off: S.last.off } : null;
+  const resume = S.last?.id === id && pendingSection && pendingSection === S.last.section ? { section: S.last.section, page: S.last.page || 0, off: S.last.off } : null;
   // のぞき見で別のレッスンを開いたときは、前回の続きを書き換えない(下の段と位置の記録も、S.last.id が違うので書かない)
-  if (!peek || S.last?.id === id) S.last = { id, section: S.last?.id === id ? S.last.section : "read", off: S.last?.id === id ? S.last.off || 0 : 0 };
+  if (!peek || S.last?.id === id) {
+    const same = S.last?.id === id;
+    S.last = { id, section: same ? S.last.section : "read", page: same ? S.last.page || 0 : 0, off: same ? S.last.off || 0 : 0 };
+  }
   S.seen = Object.assign(S.seen || {}, { [id]: true });
   save();
   let saveTimer = null;
-  let current = null;
   let pos = null;
-  // 位置は「段 + 段の先頭からの距離」で覚える(図の描画で高さが変わっても、同じ所へ戻れるように)
+  // 位置は「段(読むは節も) + 段の先頭からの距離」で覚える(図の描画で高さが変わっても、同じ所へ戻れるように)
   // のぞき見のあいだは、同じレッスンでも前回の段と位置を書き換えない(演習の途中で同じレッスンの問いを読み直すと、
   // 前回の位置がクイズに替わり、ホームの「前回の位置へ戻る」が演習を指さなくなった。27 回目の審査)
   const flush = () => {
@@ -995,62 +1154,42 @@ function trackLesson(id, keys, peek = false) {
     Object.assign(S.last, pos);
     save();
   };
-  const setCurrent = (key) => {
-    if (key === current) return;
-    current = key;
-    document.querySelectorAll(".step-menu a[data-scroll]").forEach((a) => {
-      if (a.dataset.scroll === key) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
-    });
-    stepper.querySelectorAll(".step").forEach((a) => {
-      if (a.dataset.step === key) {
-        a.setAttribute("aria-current", "true");
-        // 横に並んだ段の中で、今の段が見える位置まで送る(縦のスクロールは動かさない)
-        const left = a.offsetLeft - (stepper.clientWidth - a.offsetWidth) / 2;
-        stepper.scrollTo({ left, behavior: smooth() });
-      } else a.removeAttribute("aria-current");
-    });
-    if (!peek && S.last?.id === id && S.last.section !== key) { S.last.section = key; save(); }
-  };
   // 仕事のコード・サンプルを「読んだ」とみなすのは、段が画面に 3 秒以上あって、その終わりが画面の中に見えたとき
   // (段の一覧で飛び越した・続きから後ろへ戻っただけの段に、レ点を付けないように)
   const shownSince = {};
+  const line = 140; // ヘッダーと段の並びの下あたりを「今読んでいる位置」とみなす
   const update = () => {
-    const line = 140; // ヘッダーと段の並びの下あたりを「今読んでいる位置」とみなす
-    let key = keys[0];
-    for (const sec of sections) {
-      const r = sec.getBoundingClientRect();
-      if (r.top <= line) key = sec.id;
-      // 仕事のコード・見るは、段の最後が画面に入ったら「済み」
-      const onScreen = r.top < innerHeight && r.bottom > 0;
-      if (!onScreen) delete shownSince[sec.id];
-      else if (shownSince[sec.id] == null) {
-        shownSince[sec.id] = Date.now();
-        // スクロールを止めて読んでいても 3 秒後に確かめ直す
-        setTimeout(() => { if (document.contains(stepper)) update(); }, 3100);
-      }
-      if ((sec.id === "atwork" || sec.id === "run") && r.bottom > 0 && r.bottom < innerHeight && Date.now() - shownSince[sec.id] >= 3000 && !seenSection(id, sec.id)) {
-        S.sections = Object.assign(S.sections || {}, { [id]: [...(S.sections?.[id] || []), sec.id] });
-        save();
-        markStep(sec.id);
-      }
+    const key = sv.current;
+    const sec = key && document.getElementById(key);
+    if (!sec) return;
+    const r = sec.getBoundingClientRect();
+    const onScreen = r.top < innerHeight && r.bottom > 0;
+    if (!onScreen) delete shownSince[key];
+    else if (shownSince[key] == null) {
+      shownSince[key] = Date.now();
+      // スクロールを止めて読んでいても 3 秒後に確かめ直す
+      setTimeout(() => { if (document.contains(stepper)) update(); }, 3100);
     }
-    setCurrent(key);
-    const count = $("#step-count");
-    // 分数の形は「済んだ問の数」だけに使うので、いまの位置は「7段中3」と言葉で
-    if (count) count.textContent = `${keys.length}段中${keys.indexOf(key) + 1}`;
-    const now = $("#step-now");
-    if (now) now.textContent = SECTION_LABEL[key];
-    // 読んでいる位置を覚える(「続きから」で同じ所へ戻る)。最後の前後リンクまで来たら読み切り
-    const secTop = document.getElementById(key).getBoundingClientRect().top;
-    pos = { section: key, off: Math.round(line - secTop), end: $(".lesson-nav")?.getBoundingClientRect().top < innerHeight };
+    if ((key === "atwork" || key === "run") && r.bottom > 0 && r.bottom < innerHeight && Date.now() - shownSince[key] >= 3000 && !seenSection(id, key)) {
+      S.sections = Object.assign(S.sections || {}, { [id]: [...(S.sections?.[id] || []), key] });
+      save();
+      markStep(key);
+    }
+    // 読んでいる位置を覚える(「続きから」で同じ所へ戻る)。最後の段の前後リンクまで来たら読み切り
+    const nav = $(".lesson-nav");
+    pos = { section: key, page: key === "read" ? sv.page : 0, off: Math.round(line - r.top), end: !!nav && !nav.hidden && nav.getBoundingClientRect().top < innerHeight };
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flush, 400);
-    const first = sections[0].getBoundingClientRect().top + scrollY;
-    const lastSec = sections[sections.length - 1];
-    const end = lastSec.getBoundingClientRect().bottom + scrollY - innerHeight;
-    const p = Math.max(0, Math.min(1, (scrollY - first + line) / Math.max(1, end - first + line)));
+    // 縫い線はレッスン全体の進み具合: 済ませた段の数 + いまの段(読むは節)の中で読んだ割合。段の終わりが見えたら、その段は読み切り
+    const within = r.bottom <= innerHeight ? 1 : Math.max(0, Math.min(1, (line - r.top) / Math.max(1, r.height - innerHeight + line)));
+    const inStep = key === "read" && sv.pages > 1 ? (sv.page + within) / sv.pages : within;
+    const p = Math.max(0, Math.min(1, (keys.indexOf(key) + inStep) / keys.length));
     // 縫い目(9px の目 + 6px の間)の切れ目で止める(目の途中で切れた半端な欠片を出さない)
     if (sew) sew.style.setProperty("--p", `${p >= 1 ? sew.clientWidth : Math.floor((p * sew.clientWidth) / 15) * 15 + (p > 0 ? 9 : 0)}px`);
+  };
+  sv.onShow = (key) => {
+    delete shownSince[key];
+    if (document.contains(stepper)) requestAnimationFrame(update);
   };
   let ticking = false;
   const menu = $(".step-menu");
@@ -1088,28 +1227,66 @@ function trackLesson(id, keys, peek = false) {
   };
   addEventListener("scroll", onScroll, { passive: true });
   lessonTracker = { disconnect: () => { removeEventListener("scroll", onScroll); flush(); } };
-  update();
-  if (pendingSection?.startsWith("term:")) {
-    landTerm(pendingSection.slice(5));
-    pendingSection = "";
-  }
-  if (pendingSection) {
-    const target = document.getElementById(pendingSection);
-    requestAnimationFrame(() => {
-      const sec = resume && document.getElementById(resume.section);
-      if (sec && resume.off > 0) scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 140 + resume.off, behavior: "auto" });
-      else if (pendingSection !== "read") target?.scrollIntoView();
-      // 復習の「読み直す」で問いそのものへ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す
-      const spot = /^(qq|check|rq)-/.test(target?.id || "") && (target.closest("li.quiz-q, aside.check, li.reading-q") || target);
-      if (spot) {
-        spot.tabIndex = -1;
-        spot.focus({ preventScroll: true });
-        spot.classList.add("spot-flash");
-        setTimeout(() => spot.classList.remove("spot-flash"), 1200);
-      }
-    });
-  }
+
+  // 着地: 着地先を含む段(読むならその節)を開いてから、そこへ着く
+  const land = pendingSection;
   pendingSection = null;
+  if (land?.startsWith("term:")) {
+    landTermStep(sv, land.slice(5));
+    return;
+  }
+  let key = "read";
+  let page = 0;
+  if (land) {
+    key = /^qq-/.test(land) ? "quiz" : /^rq-/.test(land) ? "reading" : /^check-/.test(land) ? "read" : land;
+    if (!keys.includes(key)) key = "read";
+    if (resume && resume.section === key) page = resume.page;
+    if (/^check-/.test(land)) { sv.ensure("read"); page = pageOf(document.getElementById(land)); }
+  }
+  sv.show(key, { page, scroll: "none" });
+  if (!land) return;
+  requestAnimationFrame(() => {
+    const sec = document.getElementById(key);
+    const target = document.getElementById(land) || sec;
+    if (resume && resume.section === key && resume.off > 0) scrollTo({ top: sec.getBoundingClientRect().top + scrollY - line + resume.off, behavior: "auto" });
+    else if (land !== "read") target?.scrollIntoView();
+    // 復習の「読み直す」で問いそのものへ来たときは、その問いにフォーカスを置き、1.2 秒だけ藍の枠で示す
+    const spot = /^(qq|check|rq)-/.test(target?.id || "") && (target.closest("li.quiz-q, aside.check, li.reading-q") || target);
+    if (spot) {
+      spot.tabIndex = -1;
+      spot.focus({ preventScroll: true });
+      spot.classList.add("spot-flash");
+      setTimeout(() => spot.classList.remove("spot-flash"), 1200);
+    }
+  });
+}
+
+/**
+ * 用語集の「〇〇 で」: 語の候補を、本文の太字 → 本文の段落・見出し・表・図の説明(どの節でも)→ 仕事のコードの行の説明 →
+ * サンプルの説明の順に探し、見つかった段(読むならその節)を開いてから着く。見つからなければ「読む」の頭に 1 行で知らせる
+ */
+function landTermStep(sv, term) {
+  const words = termWords(term);
+  const panel = sv.ensure("read");
+  // 隠れた節の中でも、その節を開けば見える所(畳んだ続き・答える前の理由は除く)
+  const shownIfPaged = (el) => {
+    if (el.closest("aside.check")) return false;
+    for (let n = el; n && n !== panel; n = n.parentElement) if (n.hidden && !n.classList.contains("read-page")) return false;
+    return true;
+  };
+  const bold = [...panel.querySelectorAll(".md strong")].find((b) => words.includes(plainText(b)) && shownIfPaged(b));
+  const text = bold || [...panel.querySelectorAll(".md :is(p, li, h2, h3, h4, td, th, figcaption)")].find((el) => shownIfPaged(el) && words.some((w) => plainText(el).includes(w)));
+  if (text) {
+    sv.show("read", { page: pageOf(text), scroll: "none" });
+    return landTerm(term);
+  }
+  for (const key of ["atwork", "run"]) {
+    if (!sv.keys.includes(key)) continue;
+    sv.show(key, { scroll: "none" });
+    if (findTerm(term)) return landTerm(term);
+  }
+  sv.show("read", { page: 0, scroll: "none" });
+  landTerm(term);
 }
 
 /**
@@ -1395,18 +1572,22 @@ function termItem(t, withLesson, lessonTitle) {
     ${withLesson && t.lesson ? `<a class="term-from" href="#/lesson/${esc(t.lesson)}" data-peek="terms">${esc(lessonTitle || t.lesson)}</a>` : ""}</li>`;
 }
 
-/** 用語集の 1 枚。同じ語がいくつかのレッスンで出るときは、レッスンごとの説明を 1 枚の中に並べる */
+/**
+ * 用語集の 1 枚。同じ語がいくつかのレッスンで出るときは、レッスンごとの説明を 1 枚の中に並べる。
+ * 一覧には語の名前だけを並べ、押すと説明が開く(説明まで全部並べると、スマホで画面 79 枚分あった。2026-11-21)
+ */
 function termCard(g, titles) {
   const t = g[0];
   // 英語が見出しと同じ綴りなら繰り返さない(「final(クラス・メソッド)」の括弧の前とも比べる)
   const base = t.term.replace(/[((].*$/, "").trim().toLowerCase();
   const en = g.map((x) => x.en).find((e) => e && e.toLowerCase() !== t.term.toLowerCase() && e.toLowerCase() !== base);
   const tid = `term-${[...base].map((c) => c.codePointAt(0).toString(36)).join("")}`;
-  const head = `<p class="term-name">${esc(t.term)}${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</p>`;
+  const head = `<summary class="term-name"><span class="term-word">${esc(t.term)}</span>${t.read ? `<small>${esc(t.read)}</small>` : ""}${en ? `<small lang="en">${esc(en)}</small>` : ""}${g.length > 1 ? ` <span class="term-count">${g.length} レッスン</span>` : ""}</summary>`;
   // どの語も「〇〇 で」(レッスン名)を説明の前に置く
-  if (g.length === 1) return `<li class="term" id="${tid}">${head}${t.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(t.lesson)}" data-peek="terms" data-resume="term:${esc(t.term)}">${esc(titles[t.lesson] || t.lesson)}</a><span class="term-de">で</span></p>` : ""}<p class="term-def">${t.defHtml}</p></li>`;
-  return `<li class="term" id="${tid}">${head}<ul class="term-defs">${g.map((x) => `<li>${x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}" data-peek="terms" data-resume="term:${esc(x.term)}">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : ""}
-    <p class="term-def">${x.defHtml}</p></li>`).join("")}</ul></li>`;
+  const from = (x) => x.lesson ? `<p class="term-from-line"><a class="term-from term-from-head" href="#/lesson/${esc(x.lesson)}" data-peek="terms" data-resume="term:${esc(x.term)}">${esc(titles[x.lesson] || x.lesson)}</a><span class="term-de">で</span></p>` : "";
+  const body = g.length === 1 ? `${from(t)}<p class="term-def">${t.defHtml}</p>`
+    : `<ul class="term-defs">${g.map((x) => `<li>${from(x)}<p class="term-def">${x.defHtml}</p></li>`).join("")}</ul>`;
+  return `<li class="term" id="${tid}"><details class="term-fold">${head}<div class="term-body">${body}</div></details></li>`;
 }
 
 function exerciseCard(e, i) {
@@ -1502,30 +1683,100 @@ const dyedLine = (d) => d ? `<span class="dyed-line">${dyeBurst(d.from, d.to)}<s
 
 let lastCode = "";
 
-function bindLesson(L, meta) {
-  const root = view();
-  const dyeWrap = $(".lesson-dye");
-  if (dyeWrap && meta) dyeWrap.dataset.level = dyeLevel(meta);
+/** 段を組み立てたときに、その段の部品を結ぶ(段ははじめて開くときに組むので、レッスンを開いた時点では無い) */
+function bindPanel(L, meta, key, panel) {
   // 手を止めて: 答えた問いは復習(1・3・7・14 日)にも入る
-  bindChecks(root, (i, ok) => { practice(`${L.id}!${i}`, "check", L.id, ok); recordDay(); });
-  root.querySelectorAll("textarea.code-input").forEach((ta) => {
+  if (key === "read") bindChecks(panel, (i, ok) => { practice(`${L.id}!${i}`, "check", L.id, ok); recordDay(); });
+  if (key === "write") panel.querySelectorAll("textarea.code-input").forEach((ta) => {
     addSymbolBar(ta);
     ta.addEventListener("focus", () => { lastCode = ta.value; });
     ta.addEventListener("input", () => {
       lastCode = ta.value;
-      const key = ta.dataset.key;
-      S.exercise[key] = Object.assign(S.exercise[key] || {}, { code: ta.value });
+      const k = ta.dataset.key;
+      S.exercise[k] = Object.assign(S.exercise[k] || {}, { code: ta.value });
       save();
     });
   });
-  bindReading(root, (ref) => L.reading[Number(ref.split("@")[1])]);
+  if (key === "reading") bindReading(panel, (ref) => L.reading[Number(ref.split("@")[1])]);
+  if (key === "quiz") bindQuiz(L, meta, panel);
+}
+
+/** クイズの採点(段を組み立てたときに結ぶ) */
+function bindQuiz(L, meta, panel) {
+  panel.querySelector("form[data-action=quiz]").onsubmit = (ev) => {
+    ev.preventDefault();
+    const form = ev.target;
+    let score = 0;
+    form.querySelectorAll(".q-explain").forEach((n) => n.remove());
+    L.quiz.forEach((q, i) => {
+      const v = form.querySelector(`input[name=q${i}]:checked`);
+      const chosen = v ? Number(v.value) : -1;
+      const ok = chosen === q.answer;
+      if (ok) score++;
+      if (chosen >= 0) practice(`${L.id}#${i}`, "quiz", L.id, ok);
+      const li = form.querySelectorAll(".quiz-q")[i];
+      li.querySelectorAll("label.choice").forEach((label) => {
+        const j = Number(label.querySelector("input").value); // 並びを入れ替えているので、位置ではなく値で見る
+        label.classList.toggle("is-answer", j === q.answer);
+        label.classList.toggle("is-wrong", j === chosen && !ok);
+        // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
+        label.querySelector(".choice-tag")?.remove();
+        if (j === chosen && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
+        if (j === q.answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
+      });
+      li.insertAdjacentHTML("beforeend", `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</span>
+        ${!ok && q.whyHtml?.[chosen] ? `<p class="check-why">${q.whyHtml[chosen]}</p>` : ""}<div class="explanation md">${q.explanationHtml}</div></div>`);
+    });
+    decorate(form);
+    form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
+    const submit = form.querySelector("button[type=submit]");
+    submit.hidden = true;
+    // 最高点(縹)に数えるのは、その日の最初の採点だけ。答えを見た直後の解き直しは練習(覚えているだけのことがある)
+    const prev = S.quiz[L.id];
+    const counted = prev?.day !== today();
+    S.quiz[L.id] = { best: counted ? Math.max(score, prev?.best ?? 0) : (prev?.best ?? 0), last: score, day: today(), n: (prev?.n || 0) + 1 };
+    recordDay();
+    const dyed = refreshDye(meta);
+    const pass = Math.ceil(L.quiz.length * 0.8);
+    if (S.quiz[L.id].best >= pass) markStep("quiz");
+    const wrong = L.quiz.map((q, i) => i).filter((i) => !form.querySelectorAll(".quiz-q")[i].querySelector(".q-explain.correct"));
+    form.querySelectorAll(".quiz-q").forEach((li, i) => { li.id = `q-${i + 1}`; });
+    // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
+    const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
+    const level = meta ? dyeLevel(meta) : 0;
+    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(L.quiz.map((_, i) => !wrong.includes(i)))}
+      <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
+      ${score >= pass && S.quiz[L.id].best < pass ? `<p class="muted small">同じ日の解き直しは練習として数えます。縹(クイズ合格)には、明日以降に解き直して ${pass} 問以上(答えを見た直後は、覚えているだけのことがあるため)。</p>` : ""}
+      ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
+      <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
+        <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
+      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai">${dyeSwatch(3)}演習ができたら藍に</p>` : ""}
+      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。</p></div>`;
+    decorate($("#quiz-result"));
+    $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
+  };
+}
+
+function bindLesson(L, meta, sv) {
+  const root = view();
+  const dyeWrap = $(".lesson-dye");
+  if (dyeWrap && meta) dyeWrap.dataset.level = dyeLevel(meta);
 
   root.onclick = async (ev) => {
+    // 段の帯・段の一覧・「次の段へ」・「演習へ進む」・「間違えた問」: 段ならその段だけを出し、段の中の所ならそこを開いて送る
     const jump = ev.target.closest("[data-scroll]");
     if (jump) {
       ev.preventDefault();
       jump.closest("details")?.removeAttribute("open");
-      document.getElementById(jump.dataset.scroll)?.scrollIntoView({ behavior: smooth() });
+      sv.go(jump.dataset.scroll);
+      return;
+    }
+    // 「読む」の節を送る(次の節へ・前の節・本文の節の一覧)
+    const pg = ev.target.closest("[data-page-go]");
+    if (pg) {
+      ev.preventDefault();
+      pg.closest("details")?.removeAttribute("open");
+      sv.showPage(Number(pg.dataset.pageGo), { focus: true, scroll: "top" });
       return;
     }
     const el = ev.target.closest("[data-action]");
@@ -1541,6 +1792,8 @@ function bindLesson(L, meta) {
       // ボタンごと消えるとフォーカスが body に落ち、「読了。次は…」が読み上げに届かなかった(31 回目の審査。PC は 29 回目に直した)
       wrap.querySelector(".done")?.focus({ preventScroll: true });
       markStep("read");
+      // 読み終えたら、段の終わりの「次の段へ」が主ボタン(「読んだ」が消えて、ほかに主ボタンが無い)
+      $("#read .read-end .step-next .btn")?.classList.add("primary");
     } else if (action === "check") {
       const list = new Set(S.checklist[L.id] || []);
       list.has(el.dataset.key) ? list.delete(el.dataset.key) : list.add(el.dataset.key);
@@ -1595,59 +1848,6 @@ function bindLesson(L, meta) {
       save();
       $("#chat-log").querySelectorAll(".chat-msg:not(:first-child)").forEach((n) => n.remove());
     }
-  };
-
-  root.querySelector("form[data-action=quiz]").onsubmit = (ev) => {
-    ev.preventDefault();
-    const form = ev.target;
-    let score = 0;
-    form.querySelectorAll(".q-explain").forEach((n) => n.remove());
-    L.quiz.forEach((q, i) => {
-      const v = form.querySelector(`input[name=q${i}]:checked`);
-      const chosen = v ? Number(v.value) : -1;
-      const ok = chosen === q.answer;
-      if (ok) score++;
-      if (chosen >= 0) practice(`${L.id}#${i}`, "quiz", L.id, ok);
-      const li = form.querySelectorAll(".quiz-q")[i];
-      li.querySelectorAll("label.choice").forEach((label) => {
-        const j = Number(label.querySelector("input").value); // 並びを入れ替えているので、位置ではなく値で見る
-        label.classList.toggle("is-answer", j === q.answer);
-        label.classList.toggle("is-wrong", j === chosen && !ok);
-        // 色だけに頼らない: 選んだ誤答には「あなたの答え」、正解には「正解」と文字で出す
-        label.querySelector(".choice-tag")?.remove();
-        if (j === chosen && !ok) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag">× あなたの答え</span>`);
-        if (j === q.answer) label.querySelector("span").insertAdjacentHTML("beforeend", `<span class="choice-tag is-ok">✓ 正解</span>`);
-      });
-      li.insertAdjacentHTML("beforeend", `<div class="q-explain ${ok ? "correct" : "wrong"}"><span class="q-mark">${icon(ok ? "check" : "cross", "sm")} ${ok ? "正解" : chosen < 0 ? "未回答" : "不正解"}</span>
-        ${!ok && q.whyHtml?.[chosen] ? `<p class="check-why">${q.whyHtml[chosen]}</p>` : ""}<div class="explanation md">${q.explanationHtml}</div></div>`);
-    });
-    decorate(form);
-    form.querySelectorAll("input[type=radio]").forEach((x) => { x.disabled = true; });
-    const submit = form.querySelector("button[type=submit]");
-    submit.hidden = true;
-    // 最高点(縹)に数えるのは、その日の最初の採点だけ。答えを見た直後の解き直しは練習(覚えているだけのことがある)
-    const prev = S.quiz[L.id];
-    const counted = prev?.day !== today();
-    S.quiz[L.id] = { best: counted ? Math.max(score, prev?.best ?? 0) : (prev?.best ?? 0), last: score, day: today(), n: (prev?.n || 0) + 1 };
-    recordDay();
-    const dyed = refreshDye(meta);
-    const pass = Math.ceil(L.quiz.length * 0.8);
-    if (S.quiz[L.id].best >= pass) markStep("quiz");
-    const wrong = L.quiz.map((q, i) => i).filter((i) => !form.querySelectorAll(".quiz-q")[i].querySelector(".q-explain.correct"));
-    form.querySelectorAll(".quiz-q").forEach((li, i) => { li.id = `q-${i + 1}`; });
-    // 次の一手: 合格なら段の並びの次(演習 → 読解)、届かなければ間違えた問の見直しと解き直し
-    const nextKey = score >= pass ? (L.exercises.length ? "write" : L.reading?.length ? "reading" : null) : null;
-    const level = meta ? dyeLevel(meta) : 0;
-    $("#quiz-result").innerHTML = `<div class="quiz-result"><div class="quiz-score"><span class="big">${score}<span class="slash">/</span>${L.quiz.length}</span>${scoreStitches(L.quiz.map((_, i) => !wrong.includes(i)))}
-      <span>${score === L.quiz.length ? "満点" : score >= pass ? `合格(${pass} 問以上)` : `あと ${pass - score} 問で合格(${pass} 問以上)`}</span></div>${dyedLine(dyed)}
-      ${score >= pass && S.quiz[L.id].best < pass ? `<p class="muted small">同じ日の解き直しは練習として数えます。縹(クイズ合格)には、明日以降に解き直して ${pass} 問以上(答えを見た直後は、覚えているだけのことがあるため)。</p>` : ""}
-      ${wrong.length ? `<p class="quiz-wrong">間違えた問: ${wrong.map((i) => `<a href="#q-${i + 1}" data-scroll="q-${i + 1}">問 ${i + 1}</a>`).join(" ")}</p>` : ""}
-      <div class="quiz-next">${nextKey ? `<a class="btn primary" href="#${nextKey}" data-scroll="${nextKey}">${nextKey === "write" ? "演習へ進む" : "読解へ進む"}</a>` : ""}
-        <button class="btn" type="button" data-action="quiz-reset">もう一度解く</button></div>
-      ${score >= pass && level === 2 && L.exercises.length ? `<p class="quiz-ai">${dyeSwatch(3)}演習ができたら藍に</p>` : ""}
-      <p class="muted small">各問の下に解説を出しました。解いた問題は復習に入り、1 日後 → 3 日後 → 7 日後 → 14 日後 に出題されます。</p></div>`;
-    decorate($("#quiz-result"));
-    $("#quiz-result").scrollIntoView({ behavior: smooth(), block: "center" });
   };
 
   root.querySelector("form[data-action=chat]").onsubmit = async (ev) => {
@@ -1734,7 +1934,19 @@ async function renderReadingPage() {
   };
   const shown = items.filter(pick);
   const correct = items.filter((r) => S.reading[r.ref]?.ok).length;
-  const PAGE = 20;
+  // 1 問ずつ送る(全部を並べると、スマホで画面 19 枚分あった。2026-11-21)。いまの問いは覚えておき、次に開いたときもそこから
+  const cardId = (r) => `rq-${r.ref.replace("@", "-")}`;
+  readingOrder = shown.map(cardId);
+  let at = 0;
+  if (returning?.tab === "reading") {
+    // のぞき見から戻ったら押したカードへ(答えて一覧から外れていたら、その次のカードへ)
+    const k = [returning.at, ...(returning.next || [])].map((x) => readingOrder.indexOf(x)).find((i) => i >= 0);
+    if (k != null) at = k;
+    returning = null;
+  } else if (S.settings.readingAt) {
+    const k = readingOrder.indexOf(S.settings.readingAt.id);
+    at = k >= 0 ? k : Math.min(S.settings.readingAt.i || 0, Math.max(0, shown.length - 1));
+  }
   view().innerHTML = `
     <h1 class="page-title">コードを読む</h1>
     <p class="page-lead">業務のコードを読む力を、実行せずに頭の中で追って鍛えます。全 ${items.length} 問のうち <b>${correct}</b> 問に正解。答えた問題は復習にも出ます。</p>
@@ -1746,45 +1958,48 @@ async function renderReadingPage() {
       <select data-select="readingLevel" aria-label="難しさで絞る"><option value="all">すべての難しさ</option>
         ${["やさしい", "ふつう", "むずかしい"].map((t, i) => `<option value="${i + 1}" ${level === String(i + 1) ? "selected" : ""}>${t}</option>`).join("")}</select>
     </div>
-    <p class="glossary-count">${shown.length} 問</p>
-    ${shown.length ? `<ol class="reading-list" id="reading-list"></ol><div class="more"><button class="btn" type="button" id="more" hidden></button></div>`
-      : `<div class="card empty-state"><p>${filter === "wrong" ? "間違えた問題はありません。" : "この条件の問題はありません。"}</p></div>`}`;
+    ${shown.length ? `<p class="glossary-count" id="reading-pos"></p><ol class="reading-list" id="reading-list"></ol><nav class="page-nav reading-nav" aria-label="読解の問いを送る"></nav>`
+      : `<p class="glossary-count">0 問</p><div class="card empty-state"><p>${filter === "wrong" ? "間違えた問題はありません。" : "この条件の問題はありません。"}</p></div>`}`;
   view().querySelectorAll("[data-filter]").forEach((b) => {
-    b.onclick = () => { S.settings.readingFilter = b.dataset.filter; save(); renderReadingPage(); };
+    b.onclick = () => { S.settings.readingFilter = b.dataset.filter; S.settings.readingAt = null; save(); renderReadingPage(); };
   });
   view().querySelectorAll("[data-select]").forEach((sel) => {
-    sel.onchange = () => { S.settings[sel.dataset.select] = sel.value; save(); renderReadingPage(); };
+    sel.onchange = () => { S.settings[sel.dataset.select] = sel.value; S.settings.readingAt = null; save(); renderReadingPage(); };
   });
   const byRef = Object.fromEntries(items.map((r) => [r.ref, r]));
   const list = $("#reading-list");
-  const more = $("#more");
-  let count = 0;
-  // 少しずつ描く(171 問を一度に描くと、スマホでコードの色付けが重い)
-  const showMore = () => {
-    const chunk = shown.slice(count, count + PAGE);
-    const tmp = document.createElement("ol");
-    tmp.innerHTML = chunk.map((r) => readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}" data-peek="reading" data-resume="rq-${esc(r.ref.replace("@", "-"))}">${esc(titles[r.lesson] || r.lesson)}</a>`)).join("");
-    bindReading(tmp, (ref) => byRef[ref]);
-    decorate(tmp);
-    list.append(...tmp.children);
-    count += chunk.length;
-    more.hidden = count >= shown.length;
-    more.textContent = `もっと見る(残り ${shown.length - count} 問)`;
+  if (!list) return;
+  const nav = view().querySelector(".reading-nav");
+  const show = (i, focus) => {
+    at = Math.max(0, Math.min(shown.length - 1, i));
+    const r = shown[at];
+    S.settings.readingAt = { id: cardId(r), i: at };
+    save();
+    list.style.counterReset = `rq ${at}`;
+    list.innerHTML = readingCard(r, r.ref, `<a href="#/lesson/${esc(r.lesson)}" data-peek="reading" data-resume="${cardId(r)}">${esc(titles[r.lesson] || r.lesson)}</a>`);
+    bindReading(list, (ref) => byRef[ref]);
+    decorate(list);
+    $("#reading-pos").textContent = `${shown.length} 問中 ${at + 1}`;
+    const next = shown[at + 1];
+    nav.innerHTML = `${at > 0 ? `<a class="page-prev" href="#/reading" data-reading-go="${at - 1}">前の問<span class="visually-hidden">: ${esc(shown[at - 1].title)}</span></a>` : ""}
+      ${next ? `<a class="btn btn-stack page-next" href="#/reading" data-reading-go="${at + 1}">次の問へ<span class="btn-sub">${esc(next.title)}</span></a>` : ""}`;
+    // 答え合わせのあとは、「次の問へ」が主ボタン(答える前は「答え合わせ」が主)
+    list.querySelector("form")?.addEventListener("submit", () => nav.querySelector(".page-next")?.classList.add("primary"));
+    if (focus) {
+      const h = list.querySelector(".reading-head h3");
+      h.tabIndex = -1;
+      h.focus({ preventScroll: true });
+      const header = $(".site-header")?.getBoundingClientRect().height || 0;
+      scrollTo({ top: Math.max(0, $("#reading-pos").getBoundingClientRect().top + scrollY - header - 12), behavior: "instant" });
+    }
   };
-  if (list) { more.onclick = showMore; showMore(); }
-  if (returning?.tab === "reading" && returning.at) {
-    const ids = [returning.at, ...(returning.next || [])];
-    returning = null;
-    const find = () => ids.map((x) => document.getElementById(x)).find(Boolean);
-    while (list && !find() && !more.hidden) showMore();
-    const card = find();
-    // 頭に合わせる(縦に長いカードを中央に合わせると、題と出どころが画面の上に切れた)
-    if (card) requestAnimationFrame(() => {
-      card.scrollIntoView({ block: "start" });
-      card.classList.add("spot-flash");
-      setTimeout(() => card.classList.remove("spot-flash"), 1200);
-    });
-  }
+  nav.onclick = (e) => {
+    const a = e.target.closest("[data-reading-go]");
+    if (!a) return;
+    e.preventDefault();
+    show(Number(a.dataset.readingGo), true);
+  };
+  show(at, false);
 }
 
 // ------------------------------------------------------------ 用語集
@@ -1838,6 +2053,8 @@ async function renderGlossary() {
       row = x.row;
       return head + termCard(x.g, titles);
     }).join("");
+    // 3 語以下に絞れたら、説明を開いて見せる(押す手間を省く)
+    if (q && hit.length <= 3) list.querySelectorAll(".term-fold").forEach((d) => { d.open = true; });
   };
   $("#q").addEventListener("input", (e) => show(e.target.value.trim()));
   // 索引の虫めがね: 先頭まで戻って検索欄へ
@@ -1852,6 +2069,8 @@ async function renderGlossary() {
     returning = null;
     if (back.q) { $("#q").value = back.q; show(back.q); }
     const card = back.at && document.getElementById(back.at);
+    // 戻った語は、説明を開いた状態で見せる
+    card?.querySelector(".term-fold")?.setAttribute("open", "");
     requestAnimationFrame(() => {
       if (card) {
         card.scrollIntoView({ block: "center" });
@@ -2467,7 +2686,7 @@ function fitFigures(nodes) {
 // (Mermaid だけにしていたので、スマホで手描きの図 34 のうち 33 が右の 3 割を手がかりなく切られていた。27 回目の審査)。
 // 図だけを包みに入れ、説明文は包みの外に残す(横に送っても読めるように)。畳みの中の図は開いたときに測り直す(watchOverflow)
 function fitSvgFigures(root) {
-  root.querySelectorAll("figure.figure > svg").forEach((svg) => {
+  liveAll(root, "figure.figure > svg").forEach((svg) => {
     const wrap = document.createElement("div");
     wrap.className = "fig-scroll";
     svg.before(wrap);
@@ -2511,6 +2730,10 @@ function proseLike(t) {
   return plain(words[0]) && plain(words[1] || "");
 }
 
+// 1 段ずつ見せるので、隠れた段・節(はじめて開くまで色付けも図も要らない)は飾り付けを飛ばす。開いたときに decorate し直す
+const parked = (el) => !!el.closest?.(".read-page[hidden], .step-panel[hidden]");
+const liveAll = (root, sel) => [...root.querySelectorAll(sel)].filter((el) => !parked(el));
+
 async function decorate(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
   blocks.forEach((code) => {
@@ -2519,33 +2742,34 @@ async function decorate(root) {
     div.textContent = code.textContent;
     code.parentElement.replaceWith(div);
   });
-  if (root.querySelector(".mermaid:not([data-processed])")) {
+  // 隠れた段・節の図は、開いたときに描く(隠れたまま描くと文字の大きさが測れず、図が崩れる)
+  const figs = liveAll(root, ".mermaid:not([data-processed])");
+  if (figs.length) {
     try {
       if (!mermaidModule) mermaidModule = (await import(MERMAID_URL)).default;
       mermaidModule.initialize(mermaidTheme());
-      const nodes = [...root.querySelectorAll(".mermaid:not([data-processed])")];
-      await mermaidModule.run({ nodes });
-      fitFigures(nodes);
+      await mermaidModule.run({ nodes: figs });
+      fitFigures(figs);
     } catch (e) {
       // 図を描けないとき(初回オフラインなど)は、図の元のテキストのまま見せる
-      root.querySelectorAll(".mermaid:not([data-processed])").forEach((d) => { d.style.whiteSpace = "pre"; d.style.textAlign = "left"; });
+      figs.filter((d) => !d.dataset.processed).forEach((d) => { d.style.whiteSpace = "pre"; d.style.textAlign = "left"; });
     }
   }
   fitSvgFigures(root);
   // 読むためのコードは折り返す。書き写す・実行するもの(サンプル・演習・本文の例)はそのまま
-  root.querySelectorAll(".quiz-q .md pre, .q-explain pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre, .check pre").forEach((pre) => pre.classList.add("code-lines"));
-  root.querySelectorAll("pre.code-lines > code:not([data-lines])").forEach(numberLines);
+  liveAll(root, ".quiz-q .md pre, .q-explain pre, .review-quiz pre, .quiz-answer pre, .reading-answer pre, .check pre").forEach((pre) => pre.classList.add("code-lines"));
+  liveAll(root, "pre.code-lines > code:not([data-lines])").forEach(numberLines);
   // 短いコード(case 3、i++ など)は語の途中で行をまたがせない(長いものは折り返す)
   // 16 字までのチップは折らない(「javac App.java」が空白で 2 行に割れていた)
-  root.querySelectorAll(":not(pre) > code").forEach((c) => { if (c.textContent.length <= 16) c.classList.add("nb"); });
+  liveAll(root, ":not(pre) > code").forEach((c) => { if (c.textContent.length <= 16) c.classList.add("nb"); });
   // 8 字までの強調の語は語の途中で行をまたがせない(「ジャ / ンプ」「コンポー / ネントスキャン」と割れていた。27 回目の審査)
-  root.querySelectorAll(".md strong").forEach((b) => { if (b.textContent.trim().length <= 8) b.classList.add("nb"); });
+  liveAll(root, ".md strong").forEach((b) => { if (b.textContent.trim().length <= 8) b.classList.add("nb"); });
   inlineNotes(root);
   // 出力・識別子だけの選択肢(X3、IndexOutOfBoundsException など)はコードの字体で。
   // 同じ問いに ASCII だけの選択肢が 2 つ以上あれば、語の数によらず全部コードの字体に
   // (「0 3 6 9」は本文、「3 6 9」はコード、と同じ問いの中で書体が分かれ、1 つだけ形の違う選択肢が手がかりになっていた)
   const asciiChoices = new Map();
-  root.querySelectorAll(".choice > span").forEach((sp) => {
+  liveAll(root, ".choice > span").forEach((sp) => {
     if (sp.querySelector("code") || !/^[!-~][ -~]*$/.test(sp.textContent.trim())) return;
     const group = sp.closest(".choice").parentElement;
     asciiChoices.set(group, [...(asciiChoices.get(group) || []), sp]);
@@ -2554,7 +2778,7 @@ async function decorate(root) {
     if (spans.length >= 2 || !/\s\S+\s\S+\s/.test(sp.textContent.trim())) sp.classList.add("code-choice");
   }));
   // 解説の中の長いメッセージ・出力(エラー文など)は、文の中のチップにせず独立した 1 行のブロックに(検索窓に貼る文なので途切れさせない)
-  root.querySelectorAll(".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
+  liveAll(root, ".explanation :not(pre) > code, .reading-answer :not(pre) > code, .q-explain :not(pre) > code").forEach((c) => {
     const t = c.textContent;
     // コードの式・宣言・呼び出し(; { } = や「名前(」、&& || ->)はチップのまま(段落にすると、文が 3 つに割れた。24 回目の審査)。
     // ただし英語の文らしいもの(`Cannot invoke "String.hashCode()"`・`method calc(int) is already defined`)は、
@@ -2564,7 +2788,7 @@ async function decorate(root) {
   // 本文の段落・箇条書き(STS の手順・コラム・演習の問題も)の長いメッセージも 1 行のブロックに(チップのまま 3〜6 本の帯に割れていた。
   // 25・26 回目の審査)。ただし本文では、英語の文らしいものとエラーの 1 行だけ(宣言・総称型・キャスト・式はチップのまま。
   // ブロックにすると文が 3 つに割れた)。括弧の中の補足・直後が「。、」・表の中はチップのまま(「(」が行末に、「。」が行頭に残る)
-  root.querySelectorAll("p > code:not(.code-msg), li > code:not(.code-msg)").forEach((c) => {
+  liveAll(root, "p > code:not(.code-msg), li > code:not(.code-msg)").forEach((c) => {
     if (!bodyMsg(c.textContent) || c.closest(".explanation, .reading-answer, .q-explain, .choice, td, th, h1, h2, h3, .missed-list")) return;
     const after = c.nextSibling?.textContent || "";
     if (/^[\u2060]?[、。，．]/.test(after)) return;
@@ -2581,7 +2805,7 @@ async function decorate(root) {
   });
   // チップの前後の禁則: 直後の「、。)」が次の行の頭に、直前の「(」が行末に残らないよう、語をつなぐ印(U+2060)で結ぶ
   // (コピーでは下の copy で取り除く)。括弧に接する側はチップの内側の余白を詰める(CSS の after-open など)
-  root.querySelectorAll(":not(pre) > code:not(.code-msg)").forEach((c) => {
+  liveAll(root, ":not(pre) > code:not(.code-msg)").forEach((c) => {
     const prev = c.previousSibling;
     const next = c.nextSibling;
     if (prev?.nodeType === 3 && /[(（「『【\[]$/.test(prev.data) && !prev.data.endsWith("\u2060")) {
@@ -2602,7 +2826,7 @@ async function decorate(root) {
   // (「SpringApplication.run / で何が起きるか」「「Javaを入れる」/ って」と、太い見出しの行が助詞で始まっていた。27 回目の審査)。
   // 間の空白は改行しない空白に、空白が無ければ語をつなぐ印(U+2060)に
   const joinParticle = (_, head, space) => head + (space ? "\u00a0" : "\u2060");
-  root.querySelectorAll(".md h2, .md h3").forEach((h) => {
+  liveAll(root, ".md h2, .md h3").forEach((h) => {
     const walker = document.createTreeWalker(h, NodeFilter.SHOW_TEXT);
     const texts = [];
     for (let n = walker.nextNode(); n; n = walker.nextNode()) if (!n.parentElement.closest("code")) texts.push(n);
@@ -2613,22 +2837,22 @@ async function decorate(root) {
     }
   });
   // 選択肢の中身が 1 つのコードだけなら、チップの地を外してコードの書体だけに(地のある・無いの 2 通りが復習で続けて出た)
-  root.querySelectorAll(".choice > span").forEach((sp) => {
+  liveAll(root, ".choice > span").forEach((sp) => {
     const only = sp.children.length === 1 && sp.firstElementChild.tagName === "CODE" ? sp.firstElementChild : null;
     if (only && sp.textContent.trim() === only.textContent.trim()) { sp.textContent = only.textContent; sp.classList.add("code-choice"); }
   });
   // 本文の表: 3 列までは、狭い画面で行ごとの積みにする(左の列が行の見出し、ほかの列は見出しを添えて全幅で)。横に送る表は 4 列から
-  root.querySelectorAll(".md table").forEach((table) => {
+  liveAll(root, ".md table").forEach((table) => {
     const heads = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
     if (!heads.length || heads.length > 3) return;
     table.classList.add("stack");
     table.querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => { if (heads[i]) td.dataset.th = heads[i]; }));
   });
   // 16 字までのチップには候補を入れない(nowrap でも <wbr> で「/api/tasks/3」が「/」で 2 行に割れた。27 回目の審査)
-  root.querySelectorAll(".choice span, :not(pre) > code").forEach((el) => { if (!(el.matches("code") && el.textContent.length <= 16)) softBreaks(el); });
+  liveAll(root, ".choice span, :not(pre) > code").forEach((el) => { if (!(el.matches("code") && el.textContent.length <= 16)) softBreaks(el); });
   mendSplitChips(root);
   if (window.hljs) {
-    root.querySelectorAll("pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
+    liveAll(root, "pre code:not([data-highlighted]):not([data-lines])").forEach((el) => {
       // 仕事のコードの行の説明(コードの中に差し込んだ文)のチップは色付けしない(塊になり、説明が全幅の切れ端に割れた。25 回目の審査)
       if (el.closest(".ln-note")) return;
       if (!el.className.includes("language-")) el.classList.add("language-java");
@@ -2826,9 +3050,11 @@ async function warmMermaid() {
 let currentRoute = location.hash.startsWith("#/") ? location.hash : "#/";
 window.addEventListener("hashchange", () => {
   if (location.hash && !location.hash.startsWith("#/")) {
-    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    // 隠れた段・節の中の所なら、そこを開いてから送る(1 段ずつ見せるので)
+    const id = decodeURIComponent(location.hash.slice(1));
     history.replaceState(null, "", currentRoute);
-    target?.scrollIntoView({ behavior: smooth() });
+    if (lessonView && currentRoute.startsWith("#/lesson/")) return lessonView.go(id, { focus: false });
+    document.getElementById(id)?.scrollIntoView({ behavior: smooth() });
     return;
   }
   const from = currentRoute;
@@ -2842,6 +3068,7 @@ window.addEventListener("hashchange", () => {
 });
 window.addEventListener("online", updateHeader);
 window.addEventListener("offline", updateHeader);
+// highlight.js は defer なので、読み込み後にもう一度かける(隠れた段・節は、開いたときにかかる)
 window.addEventListener("load", () => decorate(document));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && document.body.classList.contains("sheet-open")) document.body.classList.remove("sheet-open");

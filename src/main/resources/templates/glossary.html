@@ -18,9 +18,11 @@
     <ul class="term-list" id="terms">
         <th:block th:each="c, cs : ${cards}">
         <li class="term-group" th:if="${cs.index == 0 or c.row != cards[cs.index - 1].row}" th:id="'g-' + ${rows.indexOf(c.row)}"><h2 th:text="${c.row}">あ行</h2></li>
-        <li class="term">
-            <p class="term-name"><span th:text="${c.first.term}"></span><small th:if="${c.first.read != null}" th:text="${c.first.read}"></small><small lang="en" th:if="${c.en != null}" th:text="${c.en}"></small>
-                <span class="term-count" th:if="${c.terms.size() > 1}" th:text="${c.terms.size()} + ' レッスン'"></span></p>
+        <!--/* 語の名前だけを並べ、押すと説明が開く(説明まで並べると縦に長すぎた。2026-11-21。スマホ版の termCard と同じ形) */-->
+        <li class="term"><details class="term-fold">
+            <summary class="term-name"><span class="term-word" th:text="${c.first.term}"></span><small th:if="${c.first.read != null}" th:text="${c.first.read}"></small><small lang="en" th:if="${c.en != null}" th:text="${c.en}"></small>
+                <span class="term-count" th:if="${c.terms.size() > 1}" th:text="${c.terms.size()} + ' レッスン'"></span></summary>
+            <div class="term-body">
             <th:block th:if="${c.terms.size() == 1}">
                 <p class="term-from-line" th:if="${c.first.lessonId != null}"><a class="term-from term-from-head" th:href="@{/lessons/{id}(id=${c.first.lessonId},from='terms',term=${c.first.term})}" th:text="${lessonTitles.get(c.first.lessonId)}"></a><span class="term-de">で</span></p>
                 <p class="term-def" th:utext="${c.first.defHtml}"></p>
@@ -31,7 +33,8 @@
                     <p class="term-def" th:utext="${t.defHtml}"></p>
                 </li>
             </ul>
-        </li>
+            </div>
+        </details></li>
         </th:block>
     </ul>
 </main>

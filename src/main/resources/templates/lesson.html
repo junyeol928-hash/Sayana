@@ -20,6 +20,9 @@
 </main>
 
 <div class="lesson-layout" th:if="${lesson.ready()}" th:classappend="${aiAvailable} ? '' : 'no-tutor'">
+<!--/* 1 段ずつ見せる: app.js がいまの段を選ぶまで段を隠す(全部の段が一瞬並んで、そのぶん組み立てる時間がかからないように)。
+       app.js が読めないときは 4 秒で全部の段を出す */-->
+<script>document.documentElement.classList.add("steps-pending");setTimeout(function(){var d=document.documentElement;if(!d.classList.contains("steps-on"))d.classList.remove("steps-pending");},4000);</script>
 <main id="main" class="lesson-main">
     <header class="lesson-hero">
         <!--/* 部と章は左の軸に縦書きで。現在地の読み上げには残す */-->
@@ -37,7 +40,8 @@
         </div>
     </header>
 
-    <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→クイズ→読解→演習→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ */-->
+    <!--/* 段の順は染まりの順: 読む→仕事のコード→サンプル→クイズ→演習→読解→STS。段の名前はスマホ版 app.js の SECTION_LABEL と同じ。
+           押すとその段だけを出す(app.js の initLessonSteps) */-->
     <div class="stepper-wrap">
     <nav class="stepper" aria-label="このレッスンの段">
         <a href="#read" class="step" th:classappend="${status.read} ? 'done'">読む</a>
@@ -59,7 +63,7 @@
     </details>
 
     <section id="read" class="lesson-section" aria-labelledby="read-title">
-        <h2 class="visually-hidden" id="read-title">解説</h2>
+        <h2 class="visually-hidden" id="read-title">読む</h2>
         <article class="lesson-body md" th:utext="${lesson.bodyHtml}"></article>
         <div class="read-action">
             <div th:if="${status.read}" class="read-done done"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>読了済み</div>
