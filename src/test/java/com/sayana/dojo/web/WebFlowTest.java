@@ -55,6 +55,9 @@ class WebFlowTest {
     @Autowired
     SubmissionRepository submissions;
 
+    /** lesson.html・reading.html の頭の保険(段を選ぶ app.js が動かなければ、4 秒で steps-pending を外して全部の段を見せる) */
+    private static final String STEPS_FALLBACK = "if(!d.classList.contains(\"steps-on\"))d.classList.remove(\"steps-pending\");},4000);";
+
     @Test
     @DisplayName("主要な画面が表示できる")
     void pages() throws Exception {
@@ -76,7 +79,10 @@ class WebFlowTest {
                     .andExpect(content().string(containsString("準備中")));
         }
         mvc.perform(get("/lessons/spring-di")).andExpect(status().isOk())
-                .andExpect(content().string(containsString("DIとIoCコンテナ")));
+                .andExpect(content().string(containsString("DIとIoCコンテナ")))
+                .andExpect(content().string(containsString(STEPS_FALLBACK)));
+        // 1 段ずつ見せる画面は、JS が段を選ぶまで段を隠す。JS が動かなくても 4 秒で隠すのをやめる保険があること
+        mvc.perform(get("/reading")).andExpect(status().isOk()).andExpect(content().string(containsString(STEPS_FALLBACK)));
         mvc.perform(get("/lessons/no-such-lesson")).andExpect(status().isNotFound());
         mvc.perform(get("/review")).andExpect(status().isOk());
         mvc.perform(get("/history")).andExpect(status().isOk());
@@ -89,11 +95,11 @@ class WebFlowTest {
         Lesson lesson = content.lesson("java-loops").orElseThrow();
 
         // 読む
-        // 「読了」の 1 行は本文のすぐ下の段を指す(いつも「サンプルを動かして」だった。30 回目の審査)
+        // 「読了」の 1 行は次の段を指す(いつも「サンプルを動かして」だった。30 回目の審査)
         mvc.perform(post("/lessons/java-loops/read")).andExpect(status().isOk())
                 .andExpect(content().string(containsString(lesson.afterReadHint())));
         assertThat(lesson.afterReadHint()).isEqualTo(lesson.atWork().isEmpty()
-                ? "読了。次は下のサンプルを動かしてみよう" : "読了。次は下の仕事のコードを読んでみよう");
+                ? "読了。次はサンプルを動かしてみよう" : "読了。次は仕事のコードを読んでみよう");
         // 動かす
         mvc.perform(post("/run").param("code", lesson.samples().get(0).code()).param("lessonId", "java-loops"))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("実行しました")));
