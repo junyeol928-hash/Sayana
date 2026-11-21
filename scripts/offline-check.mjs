@@ -1,7 +1,7 @@
 // スマホ版のオフライン動作を、ヘッドレスの Edge で実際に確かめる。
 // 1) ローカルのサーバで開き、Service Worker の制御と「保存済み」表示を待って撮る
 // 2) サーバを止め、Edge をネットワークに出られない設定(死んだプロキシ)で開き直し、ページもオフラインにして
-//    図のあるレッスン・読解・用語集を開いて撮る
+//    図のあるレッスン(図のある「読む」の節)・読解(1 問ずつ)・用語集(語を 1 つ開く)を開いて撮る
 // 使い方: node scripts/offline-check.mjs <リポジトリ> <出力フォルダ>(Edge と Node 22 以上、図の部品を取る間のインターネットが要る)
 import { spawn } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -114,18 +114,24 @@ await waitFor(c, "document.querySelector('.today-title') && document.querySelect
 report.homeNet = await c.evaluate("document.querySelector('#net')?.textContent");
 await c.shot("offline-home");
 await go(c, base + "#/lesson/java-loops");
-await waitFor(c, "document.querySelector('.lesson-body svg') || document.querySelector('.mermaid[data-processed] svg')", "オフラインで図を描く", 30000);
-report.figures = await c.evaluate("document.querySelectorAll('.mermaid svg').length");
-await c.evaluate("const f=document.querySelector('.mermaid svg'); window.scrollTo(0, f.getBoundingClientRect().top + scrollY - 200)");
+// 1 段ずつ見せるので、図のある「読む」の節を開いてから(隠れた節の図は、開いたときに描く)
+await c.evaluate(`(() => { const m = document.querySelector("#read .read-page code.language-mermaid, #read .read-page .mermaid, #read .read-page figure.figure");
+  const page = m ? m.closest(".read-page").dataset.page : "0"; document.querySelector('.read-toc a[data-page-go="' + page + '"]')?.click(); return page; })()`);
+await waitFor(c, "document.querySelector('.read-page:not([hidden]) .mermaid[data-processed] svg') || document.querySelector('.read-page:not([hidden]) figure.figure svg')", "オフラインで図を描く", 30000);
+report.figures = await c.evaluate("document.querySelectorAll('.read-page:not([hidden]) .mermaid svg').length");
+await c.evaluate("const f=document.querySelector('.read-page:not([hidden]) .mermaid svg, .read-page:not([hidden]) figure.figure svg'); window.scrollTo(0, f.getBoundingClientRect().top + scrollY - 200)");
 await sleep(800);
 await c.shot("offline-lesson-figure");
 await go(c, base + "#/reading");
+// 読解の一覧は 1 問ずつ。「n 問中 k」の位置と、見えている 1 問
 await waitFor(c, "document.querySelectorAll('.reading-q').length > 0", "オフラインの読解", 20000);
-report.reading = await c.evaluate("document.querySelectorAll('.reading-q').length");
+report.reading = await c.evaluate("document.querySelector('#reading-pos')?.textContent || document.querySelectorAll('.reading-q').length");
 await c.shot("offline-reading");
 await go(c, base + "#/terms");
+// 用語集は語の名前だけを並べる。1 語を開いて、説明まで出ることを確かめる
 await waitFor(c, "document.querySelectorAll('.term').length > 100", "オフラインの用語集", 20000);
 report.terms = await c.evaluate("document.querySelectorAll('.term').length");
+report.termOpens = await c.evaluate("(() => { const d = document.querySelectorAll('#terms .term-fold')[3]; d.open = true; return d.querySelector('.term-def')?.getClientRects().length > 0; })()");
 await c.shot("offline-terms");
 log("結果:", JSON.stringify(report));
 writeFileSync(join(outDir, "offline-check.json"), JSON.stringify(report, null, 2));
