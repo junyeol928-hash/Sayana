@@ -2731,8 +2731,14 @@ function proseLike(t) {
 }
 
 // 1 段ずつ見せるので、隠れた段・節(はじめて開くまで色付けも図も要らない)は飾り付けを飛ばす。開いたときに decorate し直す
-const parked = (el) => !!el.closest?.(".read-page[hidden], .step-panel[hidden]");
-const liveAll = (root, sel) => [...root.querySelectorAll(sel)].filter((el) => !parked(el));
+const PARKED = ".read-page[hidden], .step-panel[hidden]";
+const parked = (el) => !!el.closest?.(PARKED);
+// 中に隠れた段・節が無ければ(用語集・読解・復習)1 つずつ確かめない(400 語の用語集で、要素ごとの closest が開く時間を延ばしていた)
+const liveAll = (root, sel) => {
+  if (root.closest?.(PARKED)) return [];
+  const all = [...root.querySelectorAll(sel)];
+  return root.querySelector(PARKED) ? all.filter((el) => !parked(el)) : all;
+};
 
 async function decorate(root) {
   const blocks = root.querySelectorAll("pre > code.language-mermaid");
